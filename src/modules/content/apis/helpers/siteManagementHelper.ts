@@ -1,14 +1,13 @@
 import { APIRequestContext, test } from '@playwright/test';
 
-import { ContentManagementService } from '../services/ContentManagementService';
-import { SiteManagementService } from '../services/SiteManagementService';
-
 import {
   SiteCreationPayload,
   SiteMembershipAction,
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -35,11 +34,11 @@ export class SiteManagementHelper {
   private contentManagementService: ContentManagementService;
 
   constructor(
-    private apiRequestContext: APIRequestContext,
-    baseUrl?: string
+    readonly apiRequestContext: APIRequestContext,
+    readonly baseUrl: string
   ) {
-    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl || '');
-    this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl || '');
+    this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
+    this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
   }
 
   /**
@@ -72,8 +71,8 @@ export class SiteManagementHelper {
       access: 'public',
       name: finalSiteName,
       category: {
-        categoryId: categoryObj!.categoryId,
-        name: categoryObj!.name,
+        categoryId: categoryObj.categoryId,
+        name: categoryObj.name,
       },
       ...overrides,
     });
@@ -405,7 +404,8 @@ export class SiteManagementHelper {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
-      filter: 'mySites',
+      filter: 'active',
+      canManage: true,
       sortBy: 'alphabetical',
     });
 
@@ -510,7 +510,7 @@ export class SiteManagementHelper {
     return await test.step(`Getting ${count} non-featured sites`, async () => {
       // Fetch both lists in parallel for better performance
       const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'mySites', size: 1000 }),
+        this.getListOfSites({ filter: 'active', size: 1000 }),
         this.getListOfSites({ filter: 'featured', size: 1000 }),
       ]);
 
@@ -648,8 +648,14 @@ export class SiteManagementHelper {
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
     }
-  ): Promise<{ siteId: string; name: string; authorName?: string }> {
-    const siteListResponse = await this.getListOfSites({ filter: 'mySites' });
+  ): Promise<{ siteId: string; name: string }> {
+    // Defensive check to ensure accessType is a string
+    if (typeof accessType !== 'string') {
+      throw new Error(
+        `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
+      );
+    }
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
     let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
@@ -683,7 +689,7 @@ export class SiteManagementHelper {
       throw new Error(`No site found or created with access type ${accessType}`);
     }
 
-    return { siteId, name: siteName, authorName };
+    return { siteId, name: siteName };
   }
 
   async getSiteAuthorNameAndEventStartDate(): Promise<{

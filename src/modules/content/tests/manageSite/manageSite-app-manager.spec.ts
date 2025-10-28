@@ -24,6 +24,7 @@ test.describe(
     // Helper function to get a unique site that hasn't been used before
     async function getUniqueSite(
       accessType: string,
+      siteManagementHelper: SiteManagementHelper,
       maxAttempts: number = 10
     ): Promise<{ siteId: string; name: string; authorName?: string }> {
       let attempts = 0;
@@ -55,9 +56,9 @@ test.describe(
       throw new Error(`Failed to get unique site after ${maxAttempts} attempts`);
     }
 
-    test.beforeEach(async ({ appManagerApiFixture, appManagerFixture }) => {
+    test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
-      siteManagementHelper = new SiteManagementHelper(appManagerApiFixture.apiContext);
+
       siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
 
       // Clear used site IDs at the start of each test for fresh tracking
@@ -84,7 +85,9 @@ test.describe(
         });
 
         // Get first unique site
-        const creatingSiteFirstPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteFirstPublicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(
+          SITE_TYPES.PUBLIC
+        );
         const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteFirstPublicSite.siteId);
         await newSiteDashboard.loadPage();
         const firstManageSitePageAppManagerSite = new ManageSitePage(
@@ -97,7 +100,10 @@ test.describe(
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
 
         // Get second unique site (different from first)
-        const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteSecondPublicSite = await getUniqueSite(
+          SITE_TYPES.PUBLIC,
+          appManagerFixture.siteManagementHelper
+        );
         const newSecondDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteSecondPublicSite.siteId);
         await newSecondDashboard.loadPage();
         const manageSitePageSecondPublicSite = new ManageSitePage(
@@ -113,7 +119,10 @@ test.describe(
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
 
         // Get third unique site (different from first and second)
-        const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteThirdPublicSite = await getUniqueSite(
+          SITE_TYPES.PUBLIC,
+          appManagerFixture.siteManagementHelper
+        );
         const newThirdDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteThirdPublicSite.siteId);
         await newThirdDashboard.loadPage();
         const thirdManageSitePageAppManagerSite = new ManageSitePage(
@@ -159,7 +168,9 @@ test.describe(
         const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo.siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
-        const membersName = await siteManagementHelper.getMembersNameFromList(getMembershipList.site.siteId);
+        const membersName = await appManagerFixture.siteManagementHelper.getMembersNameFromList(
+          getMembershipList.site.siteId
+        );
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.assertions.checkIsUserMarkedAsFavorite();
         await manageSitePageAppManagerSite.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
