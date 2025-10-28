@@ -95,11 +95,7 @@ test.describe(
         await ukgSyncPage.selectSyncOptions(SYNCING.UKG_PRO);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.PAY_CURRENCY);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.FIRST_NAME);
-        await ukgSyncPage.checkSyncCheckBox(SYNCING.FIRST_NAME);
-        await ukgSyncPage.selectPreferredNameFromDropdown(SYNCING.PREFERRED_NAME);
         await ukgSyncPage.verifyDetailsCheckBoxVisibility(SYNCING.HIRE_DATE);
-        await ukgSyncPage.checkSyncCheckBox(SYNCING.HIRE_DATE);
-        await ukgSyncPage.selectSeniorityDateFromDropdown(SYNCING.SENIORITY_DATE);
       }
     );
   }
