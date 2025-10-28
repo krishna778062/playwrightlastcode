@@ -34,8 +34,8 @@ export class SiteManagementHelper {
   private contentManagementService: ContentManagementService;
 
   constructor(
-    private apiRequestContext: APIRequestContext,
-    baseUrl?: string
+    readonly apiRequestContext: APIRequestContext,
+    readonly baseUrl: string
   ) {
     this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
     this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
