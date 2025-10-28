@@ -31,6 +31,9 @@ export interface IActions {
   addPublishContentFilter: () => Promise<void>;
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
+  verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
+  clickOnOnboardingOption: () => Promise<void>;
+  verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
 }
 
 export interface IAssertions {
@@ -350,6 +353,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
   }
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
+  }
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
+  }
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
@@ -367,5 +376,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);
+  }
+  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
+    await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
   }
 }

@@ -28,6 +28,9 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly contentFilterDropdown: Locator;
+  readonly contentFilterSelectedValue: Locator;
+  readonly contentSearchBar: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -55,6 +58,9 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.contentFilterDropdown = page.locator('select[aria-label="Content:"]');
+    this.contentFilterSelectedValue = page.locator('select[aria-label="Content:"]').locator(':checked');
+    this.contentSearchBar = page.locator('[aria-label="Search…"]');
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -318,6 +324,27 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
       });
+    });
+  }
+
+  async selectManagingContentFilter(): Promise<void> {
+    await test.step('Select managing content filter', async () => {
+      await this.contentFilterDropdown.selectOption('managing');
+    });
+  }
+
+  async verifyContentFilterIsSelectedWithValue(value: string): Promise<void> {
+    await test.step(`Verify content filter is selected with value: ${value}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentFilterSelectedValue.filter({ hasText: value }), {
+        assertionMessage: `Content filter should be selected with value: ${value}`,
+      });
+    });
+  }
+
+  async searchContentInManageSite(contentName: string): Promise<void> {
+    await test.step(`Search content ${contentName} in manage site`, async () => {
+      await this.typeInElement(this.contentSearchBar, contentName);
+      await this.contentSearchBar.press('Enter');
     });
   }
 }

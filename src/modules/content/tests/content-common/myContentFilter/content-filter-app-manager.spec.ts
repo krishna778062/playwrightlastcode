@@ -269,7 +269,7 @@ test.describe(
     test(
       'verify app manager should be able to filter the content for the content status as Published and Unpublished',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25058'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
