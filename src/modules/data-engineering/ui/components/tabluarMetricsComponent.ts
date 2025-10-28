@@ -185,15 +185,18 @@ export class TabluarMetricsComponent extends BaseComponent {
   /**
    * Normalizes values by removing percentage symbols, comma separators, and trailing zeros for comparison
    * @param value - The value to normalize
-   * @returns Normalized value without & symbol, commas, and trailing zeros
+   * @returns Normalized value without % symbol, commas, and trailing zeros
    */
   private normalizeValue(value: string): string {
     // Remove % symbol and commas
     let normalized = value.replace('%', '').replace(/,/g, '');
-    // Remove trailing zeros from decimal numbers (e.g., "2.0" →> "2", "2.50" →> "2.5")
+
+    // Remove trailing zeros from decimal numbers (e.g., "2.0" → "2", "2.50" → "2.5")
     // Only remove zeros that come after a decimal point
-    normalized = normalized.replace(/\.0+$/, '').replace(/(1.\d*?)0+$/, '$1');
-    return normalized;
+    normalized = normalized.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+
+    // Trim any whitespace (handles spaces like in "100.0 %")
+    return normalized.trim();
   }
 
   /**
