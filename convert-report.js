@@ -167,6 +167,9 @@ const htmlContent = `
                 <a href="${getPlaywrightReportPath()}" class="view-report" style="text-decoration: none;" target="_blank">
                     View Detailed Playwright Report
                 </a>
+                <a href="./tag-report.html" class="view-report" style="text-decoration: none; background-color: #28a745; margin-left: 10px;" target="_blank">
+                    View Tag Report
+                </a>
             </div>
         </div>
         <div class="filters">
@@ -368,6 +371,7 @@ const landingHtml = `<!DOCTYPE html>
     <div class="nav-links">
         <a href="./summary.html">View Summary Report</a>
         <a href="./index.html">View Detailed Report</a>
+        <a href="./tag-report.html" style="background-color: #28a745;">View Tag Report</a>
     </div>
     <script>
         // Redirect to summary by default

@@ -738,4 +738,11 @@ export class HomeDashboard extends BasePage {
       fields: [{ name: fieldName2, value: fieldValue2 }],
     });
   }
+  /**
+   * Verify Greenhouse tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
+  }
 }
