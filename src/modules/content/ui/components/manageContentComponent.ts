@@ -396,6 +396,14 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.onboardingOption);
     });
   }
+
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the onboarding option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.onboardingOption, {
+        assertionMessage: 'Onboarding option should be visible',
+      });
+    });
+  }
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
@@ -651,12 +659,6 @@ export class ManageContentComponent extends BaseComponent {
   async applyButtonShouldBeDisabled(): Promise<void> {
     await test.step('Checking if the apply button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
-    });
-  }
-
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
     });
   }
 

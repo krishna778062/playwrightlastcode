@@ -38,7 +38,7 @@ test.describe('manage Site Tests', () => {
         siteId: siteInfo.siteId,
         contentInfo: { contentType: 'page', contentSubType: 'news' },
         options: {
-          pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
+          pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateUniqueName('page'),
           contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
         },
       });
