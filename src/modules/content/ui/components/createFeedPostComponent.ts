@@ -47,6 +47,8 @@ export interface ICreateFeedPostActions {
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -65,9 +67,6 @@ export class CreateFeedPostComponent
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
-  readonly fileUploadWarningMessage = this.page.locator(
-    'div:has-text("It\'s not possible to add more than 10 photos/files")'
-  );
 
   // Post editing section
   readonly editButton = this.page
@@ -503,6 +502,25 @@ export class CreateFeedPostComponent
       await this.fileUploadInput.setInputFiles(filePaths);
       // Only wait for the UI to update with file names, not for all uploads to complete
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+    });
+  }
+
+  /**
+   * Adds a single file to the post by uploading it
+   * @param filePath - Path to the file to upload
+   */
+  async addFileToPost(filePath: string): Promise<void> {
+    await test.step(`Add file to post: ${filePath}`, async () => {
+      await this.fileUploadInput.first().setInputFiles([filePath]);
+    });
+  }
+
+  /**
+   * Waits for file items to appear in the UI after upload
+   */
+  async waitForFileToAppear(): Promise<void> {
+    await test.step('Wait for file to appear in UI', async () => {
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: 5000 });
     });
   }
 }

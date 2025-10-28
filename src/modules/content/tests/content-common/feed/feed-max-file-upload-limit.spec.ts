@@ -148,11 +148,11 @@ test.describe(
 
         await test.step('Attempt to drag and drop another file', async () => {
           await feedPage.page.locator("input[type='file']").first().setInputFiles([image1Path]);
-          // Wait for UI to process
+
           await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
 
           // Verify warning message appears again
-          console.log('the toast messages are in test file ----> ', await feedPage.toastMessages.allTextContents());
+
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 
           // Verify still only 10 files
@@ -165,19 +165,13 @@ test.describe(
             files: elevenFiles.slice(0, 10),
           },
         });
-        console.log('the post result is ', postResult);
 
         // Store created post text and postId for cleanup
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
-        console.log('Created Post ID:', createdPostId);
-        console.log('Created Post Text:', createdPostText);
 
         // Wait for post to be visible
         await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
-
-        // Verify 10 files are attached
-        //await feedPage.assertions.verifyPostDetails(postResult.postText, 10);
 
         // Part 2: Edit Feed Post
         await feedPage.actions.openPostOptionsMenu(createdPostText);
@@ -196,8 +190,8 @@ test.describe(
 
         // Drag and drop a file from computer (add one more file to get back to 10)
         await test.step('Add one more file to get back to 10', async () => {
-          await feedPage.page.locator("input[type='file']").first().setInputFiles([image3Path]);
-          await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
+          await feedPage.actions.addFileToPost(image3Path);
+          await feedPage.actions.waitForFileToAppear();
         });
 
         // Verify file added successfully (total 10 files)
@@ -205,12 +199,8 @@ test.describe(
 
         // Drag and drop another file from computer (attempt to add 11th file)
         await test.step('Attempt to add 11th file in edit mode', async () => {
-          await feedPage.page.locator("input[type='file']").first().setInputFiles([image4Path]);
-          await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
-
-          // Check current file count
-          const currentFileCount = await feedPage.page.locator("div[class='FileItem-name']").count();
-          console.log(`Current file count in edit mode after trying to add 11th file: ${currentFileCount}`);
+          await feedPage.actions.addFileToPost(image4Path);
+          await feedPage.actions.waitForFileToAppear();
 
           await feedPage.assertions.verifyAttachedFileCount(FEED_TEST_DATA.MAX_FILE_UPLOAD_LIMIT);
         });

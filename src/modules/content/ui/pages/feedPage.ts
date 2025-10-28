@@ -67,12 +67,12 @@ export interface IFeedActions {
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
-  clickDeleteOption: () => Promise<void>;
-  clickConfirmDelete: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -532,14 +532,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.createFeedPostComponent.clickEditOption();
   }
 
-  async clickDeleteOption(): Promise<void> {
-    await this.listFeedComponent.clickDeleteOption();
-  }
-
-  async clickConfirmDelete(): Promise<void> {
-    await this.listFeedComponent.confirmDelete();
-  }
-
   async createPost(text: string): Promise<void> {
     await this.createFeedPostComponent.createPost(text);
   }
@@ -554,5 +546,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickUpdateButton(): Promise<void> {
     await this.createFeedPostComponent.clickUpdateButton();
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await this.createFeedPostComponent.addFileToPost(filePath);
+  }
+
+  async waitForFileToAppear(): Promise<void> {
+    await this.createFeedPostComponent.waitForFileToAppear();
   }
 }
