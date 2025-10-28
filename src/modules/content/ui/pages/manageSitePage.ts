@@ -6,6 +6,7 @@ import { ManageSitesComponent } from '@/src/modules/content/ui/components/manage
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
+  // Old methods from ManageSitesComponent
   clickOnSite: () => Promise<void>;
   clickOnAboutTab: () => Promise<void>;
   clickOnTheMembersTab: () => Promise<void>;
@@ -19,6 +20,7 @@ export interface IManageSiteActions {
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
   clickOnInsideContentButton: () => Promise<void>;
+  // New methods from develop
   clickOnUpdateCategory: () => Promise<void>;
   clickOnCancelOption: () => Promise<void>;
   clickOnSites: () => Promise<void>;
@@ -27,6 +29,7 @@ export interface IManageSiteActions {
 }
 
 export interface IManageSiteAssertions {
+  // Old methods from ManageSitesComponent
   checkIsUserMarkedAsFavorite: () => Promise<void>;
   clickOnPeppleTab: () => Promise<void>;
   verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
@@ -39,18 +42,33 @@ export interface IManageSiteAssertions {
   verifyEventsTabImageIsDisplayed: () => Promise<void>;
   verifyAlbumTabImageIsDisplayed: () => Promise<void>;
   verifyPageTabImageIsDisplayed: () => Promise<void>;
+  // New methods from develop
   verifyNoSitesFound: (siteName: string) => Promise<void>;
   // Add assertions as needed
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
-  private manageSitesComponent: ManageSitesComponent;
+  // Locators from develop
+  readonly contentTab = this.page.locator(
+    'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
+  );
+  readonly siteCell: Locator;
+  readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
+  readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
+  readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
+  readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
+  readonly siteList = this.page.locator('.type--title').first();
+
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
+  private sideNavBarComponent: SideNavBarComponent;
+  private manageSitesComponent: ManageSitesComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+    this.sideNavBarComponent = new SideNavBarComponent(page);
+    this.manageSitesComponent = new ManageSitesComponent(page);
     this.clickOnSite = this.clickOnSite.bind(this);
   }
 
@@ -68,6 +86,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     return this;
   }
 
+  // OLD METHODS - from ManageSitesComponent
   async clickOnSite(): Promise<void> {
     await this.manageSitesComponent.clickOnSiteAction();
   }
@@ -168,6 +187,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.manageSitesComponent.verifyPageTabImageIsDisplayed();
   }
 
+  // NEW METHODS - from develop
   async clickOnUpdateCategory(): Promise<void> {
     await this.updateSiteCategoryComponent.hoverOverElementInJavaScript(this.updateSiteCategoryComponent.ellipses);
   }
