@@ -450,6 +450,14 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.siteStatusStamp);
     });
   }
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await test.step(`Selecting site search bar with name: ${siteName}`, async () => {
+      await this.clickOnElement(this.siteSearchBar);
+      await this.fillInElement(this.siteSearchBar, siteName);
+      await this.selectSiteSearchBarOption();
+    });
+  }
+
   async selectSiteSearchBarOption(): Promise<void> {
     await test.step('Selecting the site search bar option', async () => {
       const fullText = (await this.siteSearchBarOption.textContent()) || '';
@@ -631,6 +639,13 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsDisabled(this.applyButton);
     });
   }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
+
   async selectContentFilter(managedBy: string): Promise<void> {
     await test.step('Selecting the content filter', async () => {
       await this.contentFilter.selectOption(managedBy);

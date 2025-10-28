@@ -129,7 +129,7 @@ test.describe(
     test(
       'verify content publish and unpublish option in My Content Screen',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20951'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -212,8 +212,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite.name);
-        await manageContentPage.actions.selectSiteSearchBarOption();
+        await manageContentPage.actions.selectSiteSearchBar(publicSite.name);
         await manageContentPage.assertions.verifySiteNameLink();
       }
     );
