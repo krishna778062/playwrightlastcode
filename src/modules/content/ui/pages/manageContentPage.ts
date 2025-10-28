@@ -4,6 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
@@ -218,7 +219,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.clickSortByButton();
   }
 
-  async selectTheStatusFilter(status: string): Promise<void> {
+  async selectTheStatusFilter(status: ContentStatus): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
 
