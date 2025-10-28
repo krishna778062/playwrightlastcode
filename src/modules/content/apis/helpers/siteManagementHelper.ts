@@ -1,8 +1,5 @@
 import { APIRequestContext, test } from '@playwright/test';
 
-import { ContentManagementService } from '../services/ContentManagementService';
-import { SiteManagementService } from '../services/SiteManagementService';
-
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -504,23 +501,6 @@ export class SiteManagementHelper {
     return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
 
-  async getMemberList(options?: {
-    size?: number;
-    filter?: string;
-    page?: number;
-    siteId?: string;
-    nextPageToken?: number;
-    sortBy?: string;
-  }) {
-    const defaultOptions = {
-      size: 1000,
-      filter: options?.filter || 'active',
-      page: 0,
-      ...options,
-    };
-    return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
-  }
-
   /**
    * Gets 2 sites that are not in the featured sites list
    * @param count - Number of non-featured sites to return (default: 2)
@@ -712,36 +692,6 @@ export class SiteManagementHelper {
     return { siteId, name: siteName };
   }
 
-  async getSiteAuthorNameAndEventStartDate(): Promise<{
-    siteId: string;
-    authorName?: string;
-    startsAt?: string;
-    eventName?: string;
-    siteName?: string;
-  }> {
-    const siteListResponse = await this.getListOfSites();
-
-    for (const _site of siteListResponse.result.listOfItems) {
-      // Get individual site details to check for coverImage and hasEvents
-      const response = await this.contentManagementService.getContentList();
-      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
-      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
-      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
-      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
-
-      if (content) {
-        return {
-          siteId: siteId?.siteId || '',
-          authorName: content.authoredBy.name,
-          startsAt: startsAt?.startsAt,
-          eventName: content.title,
-          siteName: siteName?.site.name,
-        };
-      }
-    }
-
-    throw new Error('No site found with cover image and hasEvents: true');
-  }
   async getSiteBySpecificName(
     Name: string,
     options?: {
