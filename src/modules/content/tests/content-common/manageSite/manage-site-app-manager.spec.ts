@@ -3,7 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
+import { ContentStatus, OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -124,7 +124,7 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickFilterButton();
-      await manageContentPage.actions.selectTheStatusFilter('Published');
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
       await manageContentPage.actions.clickOnFirstContentButton();
       await manageContentPage.actions.clickOnSelectActionDropdown();
       await manageContentPage.actions.clickOnUnpublishButton();
@@ -132,7 +132,7 @@ test.describe('manage Site Tests', () => {
       await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
       await appManagerFixture.page.reload();
       await manageContentPage.actions.clickFilterButton();
-      await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
       await manageContentPage.actions.clickOnFirstContentButton();
       await manageContentPage.actions.clickOnSelectActionDropdown();
       await manageContentPage.actions.clickOnPublishButton();
