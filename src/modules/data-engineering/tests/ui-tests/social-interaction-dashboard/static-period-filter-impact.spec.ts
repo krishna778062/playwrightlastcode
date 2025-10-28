@@ -209,6 +209,7 @@ test.describe(
         // Verify the same data is displayed in the dashboard
         const socialCampaignShareDistribution =
           testEnvironment.socialInteractionDashboard.socialCampaignShareDistribution;
+        await socialCampaignShareDistribution.scrollToComponent();
         await socialCampaignShareDistribution.verifyUIDataMatchesWithSnowflakeData(socialCampaignShareData);
       }
     );
