@@ -188,4 +188,93 @@ export class FileUtil {
       throw new Error(`Failed to delete temporary file: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+
+  /**
+   * Gets the project root directory path.
+   * Navigates up from the current file location to find the project root.
+   * @param fromPath - Optional path to start from (defaults to __dirname)
+   * @returns The absolute path to the project root directory.
+   */
+  public static getProjectRoot(fromPath?: string): string {
+    // Use process.cwd() which gives us the current working directory (project root)
+    return process.cwd();
+  }
+
+  /**
+   * Gets the downloads directory path relative to project root.
+   * Creates the downloads directory if it doesn't exist.
+   * @param fromPath - Optional path to start from (defaults to __dirname)
+   * @returns The absolute path to the downloads directory.
+   */
+  public static getDownloadsDir(fromPath?: string): string {
+    const projectRoot = this.getProjectRoot(fromPath);
+    const downloadsDir = path.join(projectRoot, 'downloads');
+
+    // Create downloads directory if it doesn't exist
+    if (!this.fileExists(downloadsDir)) {
+      this.createDir(downloadsDir);
+      console.log(`Created downloads directory: ${downloadsDir}`);
+    }
+
+    return downloadsDir;
+  }
+
+  /**
+   * Saves a file to the downloads directory with automatic directory creation.
+   * This method ensures the downloads folder exists and provides a safe way to save files.
+   * @param fileName - The name of the file to save.
+   * @param fileContent - The content to write to the file (Buffer or string).
+   * @param fromPath - Optional path to start from for project root resolution.
+   * @returns The full path where the file was saved.
+   */
+  public static saveToDownloads(fileName: string, fileContent: Buffer | string, fromPath?: string): string {
+    const downloadsDir = this.getDownloadsDir(fromPath);
+    const filePath = path.join(downloadsDir, fileName);
+
+    try {
+      fs.writeFileSync(filePath, fileContent);
+      console.log(`File saved to downloads: ${filePath}`);
+      return filePath;
+    } catch (error) {
+      console.error(`Error saving file to downloads ${filePath}:`, error);
+      throw new Error(`Failed to save file to downloads: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Gets a safe file path for downloads with automatic directory creation.
+   * Useful for Playwright download operations where you need to ensure the directory exists.
+   * @param fileName - The name of the file.
+   * @param fromPath - Optional path to start from for project root resolution.
+   * @returns The full path where the file should be saved.
+   */
+  public static getDownloadsFilePath(fileName: string, fromPath?: string): string {
+    const downloadsDir = this.getDownloadsDir(fromPath);
+    return path.join(downloadsDir, fileName);
+  }
+
+  /**
+   * Create a debug copy of a file in the project root for debugging purposes
+   * @param sourceFilePath - Path to the source file
+   * @param debugFileName - Optional debug file name (defaults to debug.csv)
+   * @returns Path to the debug copy
+   */
+  public static createDebugFileCopy(sourceFilePath: string, debugFileName: string = 'debug.csv'): string {
+    try {
+      if (!fs.existsSync(sourceFilePath)) {
+        throw new Error(`Source file not found: ${sourceFilePath}`);
+      }
+
+      const projectRoot = this.getProjectRoot();
+      const debugFilePath = path.join(projectRoot, debugFileName);
+
+      fs.copyFileSync(sourceFilePath, debugFilePath);
+      console.log(`Created debug copy: ${debugFilePath}`);
+
+      return debugFilePath;
+    } catch (error) {
+      console.warn(`Failed to create debug copy: ${error}`);
+      throw error;
+    }
+  }
 }

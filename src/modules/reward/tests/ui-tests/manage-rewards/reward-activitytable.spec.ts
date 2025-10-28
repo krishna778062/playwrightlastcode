@@ -6,13 +6,13 @@ import { DialogBox } from '@rewards-components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
-import fs from 'fs';
-import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { FileUtil } from '@/src/core/utils';
 
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
@@ -243,21 +243,25 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
 
       // Validate the new Entry in the Downloaded CSV file
-      const csvUtils = new CSVUtils('./downloads');
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.loadPage();
 
-      // Trigger and capture download
-      const [download] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
-        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-      const validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
-      expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
-      fs.unlinkSync(csvUtils.getLatestCSV());
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
+
+      try {
+        const validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
     }
   );
 
@@ -453,7 +457,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           storyId: testId,
         });
         const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-        const csvUtils = new CSVUtils('./downloads');
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         if (testTitle.includes('points redeemed')) {
           await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsRedeemTable, {
@@ -462,22 +465,27 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           });
           await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         }
-        const [download] = await Promise.all([
-          appManagerFixture.page.waitForEvent('download'),
-          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-            stepInfo: 'Clicking on Download CSV button',
-          }),
-        ]);
-        await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-        const csvHeaders = testTitle.includes('points given') ? HEADERS.given : HEADERS.redeemed;
-        const headersValidation = await csvUtils.validateHeaders(csvHeaders);
-        expect(
-          headersValidation.isValid,
-          `Missing headers: ${headersValidation.missingHeaders}. Unexpected headers: ${headersValidation.unexpectedHeaders}`
-        ).toBeTruthy();
 
-        // Clean up
-        fs.unlinkSync(csvUtils.getLatestCSV());
+        // Download with unique filename using BaseActionUtil
+        const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+          () =>
+            manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+              stepInfo: 'Clicking on Download CSV button',
+            }),
+          { stepInfo: 'Download CSV file' }
+        );
+
+        try {
+          const csvHeaders = testTitle.includes('points given') ? HEADERS.given : HEADERS.redeemed;
+          const headersValidation = await CSVUtils.validateHeaders(csvHeaders, csvFile.filePath);
+          expect(
+            headersValidation.isValid,
+            `Expecting csv headers: ${csvHeaders} to be present in the downloaded CSV file`
+          ).toBeTruthy();
+        } finally {
+          // Clean up using FileUtil
+          FileUtil.deleteTemporaryFile(csvFile.filePath);
+        }
       }
     );
   });
@@ -807,40 +815,45 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
 
       // Validate the new Entry in the Downloaded CSV file
-      const csvUtils = new CSVUtils('./downloads');
       await manageRewardsOverviewPage.loadPage();
 
-      const [download] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
-        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
 
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+      try {
+        // Validate last row column values
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
 
-      // Validate last row column values
-      let validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
-      expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 15, recognitionPostMessage, csvFile.filePath);
+        expect(
+          validationResult.isMatch,
+          `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
 
-      validationResult = await csvUtils.validateRowValue('last', 15, recognitionPostMessage);
-      expect(
-        validationResult.isMatch,
-        `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
+        const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+        validationResult = await CSVUtils.validateRowValue(
+          'last',
+          16,
+          `${appURL}/recognition/recognition/${recognitionPostId}`,
+          csvFile.filePath
+        );
+        expect(
+          validationResult.isMatch,
+          `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
 
       const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
-      validationResult = await csvUtils.validateRowValue(
-        'last',
-        16,
-        `${appURL}/recognition/recognition/${recognitionPostId}`
-      );
-      expect(
-        validationResult.isMatch,
-        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
-
-      fs.unlinkSync(csvUtils.getLatestCSV());
       await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
@@ -852,26 +865,30 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.deleteTheFirstRecognitionPost();
 
       // Validate the new Entry in the Downloaded CSV file after deletion
-      const [downloadAfterDelete] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
-        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button after deletion',
-        }),
-      ]);
+      // Download with unique filename using BaseActionUtil
+      const csvFileAfterDelete = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button after deletion',
+          }),
+        { stepInfo: 'Download CSV file after deletion' }
+      );
 
-      await downloadAfterDelete.saveAs(path.resolve('./downloads', downloadAfterDelete.suggestedFilename()));
+      try {
+        // Validate last row column values after deletion
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'REJECTED', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
 
-      // Validate last row column values after deletion
-      validationResult = await csvUtils.validateRowValue('last', 14, 'REJECTED');
-      expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 15, 'deleted', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
 
-      validationResult = await csvUtils.validateRowValue('last', 15, 'deleted');
-      expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 16, 'deleted', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFileAfterDelete.filePath);
+      }
 
-      validationResult = await csvUtils.validateRowValue('last', 16, 'deleted');
-      expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
-
-      fs.unlinkSync(csvUtils.getLatestCSV());
       await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRecognitionPostIsDeleted();
     }
@@ -932,38 +949,44 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       );
 
       // Validate the new Entry in the Downloaded CSV file
-      const csvUtils = new CSVUtils('./downloads');
       await manageRewardsOverviewPage.loadPage();
 
-      const [download] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
-        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
 
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-      let validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
-      expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+      try {
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
 
-      validationResult = await csvUtils.validateRowValue('last', 15, recognitionPostMessage);
-      expect(
-        validationResult.isMatch,
-        `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 15, recognitionPostMessage, csvFile.filePath);
+        expect(
+          validationResult.isMatch,
+          `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+
+        const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+        validationResult = await CSVUtils.validateRowValue(
+          'last',
+          16,
+          `${appURL}/recognition/recognition/${recognitionPostId}`,
+          csvFile.filePath
+        );
+        expect(
+          validationResult.isMatch,
+          `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
 
       const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
-      validationResult = await csvUtils.validateRowValue(
-        'last',
-        16,
-        `${appURL}/recognition/recognition/${recognitionPostId}`
-      );
-      expect(
-        validationResult.isMatch,
-        `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
-      ).toBeTruthy();
-
-      fs.unlinkSync(csvUtils.getLatestCSV());
       await appManagerFixture.page.goto(`${appURL}/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
@@ -1022,7 +1045,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsOverviewPage.page.waitForTimeout(15000);
 
       // Validate the new Entry in the Downloaded CSV file
-      const csvUtils = new CSVUtils('./downloads');
       await manageRewardsOverviewPage.loadPage();
       await appManagerFixture.page.reload();
 
@@ -1038,21 +1060,26 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         force: true,
       });
 
-      const [download] = await Promise.all([
-        appManagerFixture.page.waitForEvent('download'),
-        manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
 
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-      let validationResult = await csvUtils.validateRowValue('last', 14, 'APPROVED');
-      expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
-      validationResult = await csvUtils.validateRowValue('last', 15, 'import');
-      expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
-      validationResult = await csvUtils.validateRowValue('last', 16, 'import');
-      expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
-      fs.unlinkSync(csvUtils.getLatestCSV());
+      try {
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'APPROVED', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 15, 'import', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
+        validationResult = await CSVUtils.validateRowValue('last', 16, 'import', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "import" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
     }
   );
 });

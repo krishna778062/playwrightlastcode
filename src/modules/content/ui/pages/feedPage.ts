@@ -63,6 +63,8 @@ export interface IFeedActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
+  clickOnCommentIcon: () => Promise<void>;
+  clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -88,6 +90,10 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -100,6 +106,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly optionLocator: Locator;
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
+  readonly celebrityFeedBlocks: Locator;
+  readonly newHireFeedBlocks: Locator;
+  readonly commentIcon: Locator;
+  readonly commentOptionsMenu: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -114,6 +124,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
+    this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
+    this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
+    this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
+    this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
   }
 
   get actions(): IFeedActions {
@@ -445,5 +459,50 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
+  }
+
+  async verifySmartFeedBlocksAreNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.celebrityFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+  }
+
+  async clickOnCommentIcon(): Promise<void> {
+    await test.step('Click on comment icon', async () => {
+      await this.clickOnElement(this.commentIcon);
+    });
+  }
+
+  async clickOnCommentOptionsMenu(commentText: string): Promise<void> {
+    await test.step(`Click on comment options menu for: ${commentText}`, async () => {
+      const commentElement = this.page.locator(`text=${commentText}`).first();
+      const optionsButton = commentElement.locator('..').getByRole('button', { name: 'Options' });
+      await this.clickOnElement(optionsButton);
+    });
+  }
+
+  async verifyCommentOptionsMenuVisible(expectedOptions: string[]): Promise<void> {
+    await test.step(`Verify comment options menu contains: ${expectedOptions.join(', ')}`, async () => {
+      for (const option of expectedOptions) {
+        await this.verifier.verifyTheElementIsVisible(this.commentOptionsMenu.getByRole('button', { name: option }), {
+          assertionMessage: `Comment option "${option}" should be visible`,
+        });
+      }
+    });
   }
 }

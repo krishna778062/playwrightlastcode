@@ -65,7 +65,14 @@ export class CreateFeedPostComponent
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
 
   // Post editing section
-  readonly editButton = this.page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ });
+  readonly editButton = this.page
+    .locator("div[role='menuitem'] > div")
+    .filter({ hasText: /^Edit$/ })
+    .first();
+  readonly deleteButton = this.page
+    .locator("div[role='menuitem'] > div")
+    .filter({ hasText: /^Delete$/ })
+    .first();
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
 
   // File upload section
@@ -293,7 +300,7 @@ export class CreateFeedPostComponent
    */
   async clickEditOption(): Promise<void> {
     await test.step('Click edit option', async () => {
-      await this.clickOnElement(this.editButton);
+      await this.clickByInjectingJavaScript(this.editButton);
     });
   }
 
@@ -449,6 +456,13 @@ export class CreateFeedPostComponent
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await test.step('Verify question button is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.questionButton);
+    });
+  }
+
+  async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
+    await test.step('Verify edit and delete options are visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton);
+      await this.verifier.verifyTheElementIsVisible(this.deleteButton);
     });
   }
 }

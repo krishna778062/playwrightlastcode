@@ -719,4 +719,30 @@ export class HomeDashboard extends BasePage {
       radioOptions: [{ fieldName: fieldName2, option: fieldValue2 }],
     });
   }
+
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   */
+  async addAppManagerDefinedWithOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
+  }
+  /**
+   * Verify Greenhouse tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
+  }
 }
