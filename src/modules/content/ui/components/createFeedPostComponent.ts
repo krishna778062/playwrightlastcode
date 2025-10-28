@@ -492,23 +492,6 @@ export class CreateFeedPostComponent
     });
   }
 
-  /**
-   * Uploads files to the post without waiting for all uploads to complete
-   * Useful for testing file upload limits
-   * @param filePaths - Array of file paths to upload
-   */
-  async uploadFilesWithoutWaiting(filePaths: string[]): Promise<void> {
-    await test.step('Upload files to feed post without waiting', async () => {
-      await this.fileUploadInput.setInputFiles(filePaths);
-      // Only wait for the UI to update with file names, not for all uploads to complete
-      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-    });
-  }
-
-  /**
-   * Adds a single file to the post by uploading it
-   * @param filePath - Path to the file to upload
-   */
   async addFileToPost(filePath: string): Promise<void> {
     await test.step(`Add file to post: ${filePath}`, async () => {
       await this.fileUploadInput.first().setInputFiles([filePath]);

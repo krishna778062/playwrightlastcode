@@ -151,8 +151,6 @@ test.describe(
 
           await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
 
-          // Verify warning message appears again
-
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 
           // Verify still only 10 files
