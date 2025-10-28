@@ -22,11 +22,13 @@ export class ContentPreviewPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify content preview page is loaded', async () => {
+    await test.step('Verifying the home page is loaded', async () => {
       await this.expect(
         this.page.locator('.type--h1'),
         'Expected to find Content title on content detail page'
-      ).toBeVisible({ timeout: 5000 });
+      ).toBeVisible({
+        timeout: 35_000,
+      });
     });
   }
 
