@@ -15,15 +15,12 @@ export class UkgSyncComponents extends BaseComponent {
   readonly optionValue: (name: string) => Locator;
   readonly syncDetailsCheckBox: (option: string) => Locator;
   readonly syncDropdown: (option: string) => Locator;
+  readonly preferredNameDropdown: () => Locator;
+  readonly seniorityDateDropdown: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.syncSourceDropdown = () => this.rootLocator.locator('#syncSource');
-    this.syncCheckBox = (text: string) =>
-      this.rootLocator
-        .getByRole('combobox')
-        .filter({ hasText: text })
-        .or(this.rootLocator.getByRole('listbox').filter({ hasText: text }));
     this.userSyncingDropdown = (option: string) =>
       this.rootLocator.getByRole('combobox', { name: new RegExp(option, 'i') });
     this.scheduledSourcesCheckbox = (name: string) =>
@@ -40,6 +37,18 @@ export class UkgSyncComponents extends BaseComponent {
         .locator('input[type="checkbox"]')
         .nth(2);
     this.syncDropdown = (option: string) => this.rootLocator.getByRole('option', { name: option });
+    this.syncCheckBox = (name: string) =>
+      this.rootLocator.locator(`span:has-text('${name}')`).locator('xpath=ancestor::div//input[@type="checkbox"]');
+    this.preferredNameDropdown = () =>
+      this.rootLocator
+        .locator('select[name="tenantFields[0].config[ukgpro].sync_mapping_key"]')
+        .or(this.rootLocator.getByRole('combobox').filter({ hasText: /preferred name/i }))
+        .or(this.rootLocator.locator('select.NativeSelect').filter({ hasText: /preferred name/i }));
+    this.seniorityDateDropdown = () =>
+      this.rootLocator
+        .locator('select[name="tenantFields[5].config[ukgpro].sync_mapping_key"]')
+        .or(this.rootLocator.getByRole('combobox').filter({ hasText: /seniority date/i }))
+        .or(this.rootLocator.locator('select.NativeSelect').filter({ hasText: /seniority date/i }));
   }
 
   /**
@@ -160,6 +169,29 @@ export class UkgSyncComponents extends BaseComponent {
       } else {
         console.log('Already checked');
       }
+    });
+  }
+
+  async checkSyncCheckBox(name: string): Promise<void> {
+    await test.step(`Check Sync CheckBox: ${name}`, async () => {
+      const checkbox = this.syncCheckBox(name);
+      await checkbox.nth(1).click();
+    });
+  }
+
+  async selectPreferredNameFromDropdown(option: string): Promise<void> {
+    await test.step('Select Preferred Name from dropdown', async () => {
+      const dropdown = this.preferredNameDropdown();
+      await dropdown.click();
+      await dropdown.selectOption(option);
+    });
+  }
+
+  async selectSeniorityDateFromDropdown(option: string): Promise<void> {
+    await test.step('Select Seniority Date from dropdown', async () => {
+      const dropdown = this.seniorityDateDropdown();
+      await dropdown.click();
+      await dropdown.selectOption(option);
     });
   }
 }

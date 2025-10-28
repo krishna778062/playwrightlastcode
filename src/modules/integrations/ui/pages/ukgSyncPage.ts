@@ -86,4 +86,17 @@ export class UkgSyncPage extends BasePage {
   async uncheckScheduledSourcesCheckBox(name: string): Promise<void> {
     await this.ukgSyncComponents.uncheckScheduledSourcesCheckBox(name);
   }
+
+  // Method to check sync checkbox
+  async checkSyncCheckBox(name: string): Promise<void> {
+    await this.ukgSyncComponents.checkSyncCheckBox(name);
+  }
+
+  async selectPreferredNameFromDropdown(): Promise<void> {
+    await this.ukgSyncComponents.selectPreferredNameFromDropdown();
+  }
+
+  async selectSeniorityDateFromDropdown(): Promise<void> {
+    await this.ukgSyncComponents.selectSeniorityDateFromDropdown();
+  }
 }

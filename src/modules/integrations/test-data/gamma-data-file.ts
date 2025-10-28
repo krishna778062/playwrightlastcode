@@ -96,8 +96,8 @@ export const SYNCING = {
   PAY_CURRENCY: 'Pay Currency',
   FIRST_NAME: 'First name',
   HIRE_DATE: 'Hire date',
-  SENIORITY_DATE: 'Seniority Date',
-  PREFERRED_NAME: 'Preferred Name',
+  SENIORITY_DATE: 'dateOfSeniority',
+  PREFERRED_NAME: 'preferredName',
   NAME: 'First Name',
   HIRE: 'Hire Date',
 } as const;
