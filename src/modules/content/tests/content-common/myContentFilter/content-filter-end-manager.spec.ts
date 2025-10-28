@@ -4,7 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
+import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 
@@ -67,7 +67,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewest =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST);
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         if (contentCreatedAtDetailsNewest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewest[0]
@@ -75,7 +75,7 @@ test.describe(
         }
         const contentCreatedAtDetailsOldest =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST);
-        await manageContentPage.actions.selectCreatedOldestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
         if (contentCreatedAtDetailsOldest !== null) {
           await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldest[0]
@@ -86,7 +86,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         const contentCreatedAtDetailsNewestPublished =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST);
-        await manageContentPage.actions.selectCreateNewestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         if (contentCreatedAtDetailsNewestPublished !== null) {
           await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewestPublished[0]
@@ -95,7 +95,7 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
         const contentCreatedAtDetailsOldestPublished =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST);
         if (contentCreatedAtDetailsOldestPublished !== null) {
@@ -143,7 +143,7 @@ test.describe(
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedOldestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
 
         // Get dates from API
         const contentCreatedAtDetailsOldest =
@@ -173,7 +173,7 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreateOldestPublishedOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
 
         // Get dates from API
         const contentPublishedAtDetailsOldest =
@@ -186,6 +186,29 @@ test.describe(
         }
       }
     );
+    test(
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25050'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25050',
+          storyId: 'CONT-25050',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(17);
+      }
+    );
+
     test(
       'application allow to filter on my content page using Author By filter',
       {
@@ -201,7 +224,7 @@ test.describe(
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectCreatedNewestOption();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectPageOption();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.DRAFT);

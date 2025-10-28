@@ -39,25 +39,107 @@ test.describe(
     );
 
     multiUserTileFixture(
+      'Verify the Custom Name of the ServiceNow ticket in Tickets Page',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-9699', 'INT-9700', 'INT-9971'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.verifyServiceNowFieldsVisible();
+        await adminHomeDashboard.selectCustomNameAndFillValue('Service NowTest Custom Name');
+        const endUserServiceNowTicketsPage = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNowTicketsPage.loadPage();
+        await endUserServiceNowTicketsPage.verifyThePageIsLoaded();
+        await endUserServiceNowTicketsPage.verifyServiceNowTicketsPageTitle('Service NowTest Custom Name');
+        await endUserServiceNowTicketsPage.verifyCustomNameInServiceNowMenu('Service NowTest Custom Name');
+        await adminHomeDashboard.selectDefaultName();
+        await endUserServiceNowTicketsPage.verifyServiceNowTicketsPageTitle('ServiceNow tickets');
+        await endUserServiceNowTicketsPage.verifyCustomNameInServiceNowMenu('ServiceNow tickets');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify the Custom Name of the ServiceNow ticket in Tickets Page with special characters',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-11440', 'INT-11441'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.verifyServiceNowFieldsVisible();
+        await adminHomeDashboard.selectCustomNameAndFillValue('#@&!D@SAD');
+        const endUserServiceNowTicketsPage = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNowTicketsPage.loadPage();
+        await endUserServiceNowTicketsPage.verifyThePageIsLoaded();
+        await endUserServiceNowTicketsPage.verifyServiceNowTicketsPageTitle('#@&!D@SAD');
+        await endUserServiceNowTicketsPage.verifyCustomNameInServiceNowMenu('#@&!D@SAD');
+        await adminHomeDashboard.selectDefaultName();
+        await endUserServiceNowTicketsPage.verifyServiceNowTicketsPageTitle('ServiceNow tickets');
+        await endUserServiceNowTicketsPage.verifyCustomNameInServiceNowMenu('ServiceNow tickets');
+      }
+    );
+
+    multiUserTileFixture(
       'Verify New Ticket button is visible on Service Now Tickets Page and Ticket creation can be cancelled',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: ['INT-9702', 'INT-10615'],
+          zephyrTestId: ['INT-9702', 'INT-10615', 'INT-10436', 'INT-10437', 'INT-9970', 'INT-9973'],
           storyId: 'INT-28224',
         });
 
         const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
         await adminHomeDashboard.loadPage();
         await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.verifyTicketListIsVisible();
         const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
         await endUserServiceNow.loadPage();
         await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.verifyTicketListIsVisible();
         await endUserServiceNow.clickNewTicketButton();
         await endUserServiceNow.verifyNewTicketOptionVisible(true);
         await endUserServiceNow.clickButton('Cancel');
+        await endUserServiceNow.verifyNewTicketOptionVisible(false);
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify ServiceNow Create ticket popup should close by clicking on X',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-11316'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.verifyTicketListIsVisible();
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.verifyTicketListIsVisible();
+        await endUserServiceNow.clickNewTicketButton();
+        await endUserServiceNow.verifyNewTicketOptionVisible(true);
+        await endUserServiceNow.clickCloseTicketCreationButton();
         await endUserServiceNow.verifyNewTicketOptionVisible(false);
       }
     );
@@ -69,7 +151,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-10415',
+          zephyrTestId: ['INT-10415', 'INT-10604', 'INT-10606', 'INT-10607'],
           storyId: 'INT-28224',
         });
 
@@ -84,6 +166,31 @@ test.describe(
           description: 'Test Description',
         });
         await endUserServiceNow.verifyTicketCreationSuccess();
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify SNOW Ticket creation without adding mandatory fields value',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-11315',
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.createNewTicket({
+          title: '',
+          description: 'Test Description',
+        });
+        await endUserServiceNow.verifyCreateTicketButtonIsDisabled();
       }
     );
 
@@ -156,6 +263,122 @@ test.describe(
 
         // Verify sorting works for end user too (using unified function for ascending order)
         await endUserServiceNowTicketsPage.verifyTicketSortingByDate('asc');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify ServiceNow tickets Sorting by Status, A-Z',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-9979',
+          storyId: 'INT-28224',
+        });
+
+        // Test sorting functionality with admin user
+        const adminServiceNowTicketsPage = new ServiceNowTicketsPage(adminPage);
+        await adminServiceNowTicketsPage.loadPage();
+        await adminServiceNowTicketsPage.verifyThePageIsLoaded();
+
+        // Open sort dropdown and select "Status, A-Z"
+        await adminServiceNowTicketsPage.sortByStatus('Status, A-Z');
+
+        // Verify tickets are sorted correctly (using unified function)
+        await adminServiceNowTicketsPage.verifyTicketSortingByStatus('Status, A-Z');
+
+        // Test sorting functionality with end user
+        const endUserServiceNowTicketsPage = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNowTicketsPage.loadPage();
+        await endUserServiceNowTicketsPage.verifyThePageIsLoaded();
+
+        // Apply sorting for end user as well (A-Z order)
+        await endUserServiceNowTicketsPage.sortByStatus('Status, A-Z');
+
+        // Verify sorting works for end user too (using unified function)
+        await endUserServiceNowTicketsPage.verifyTicketSortingByStatus('Status, A-Z');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify ServiceNow tickets Sorting by Status, Z-A',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-9980',
+          storyId: 'INT-28224',
+        });
+
+        // Test sorting functionality with admin user
+        const adminServiceNowTicketsPage = new ServiceNowTicketsPage(adminPage);
+        await adminServiceNowTicketsPage.loadPage();
+        await adminServiceNowTicketsPage.verifyThePageIsLoaded();
+
+        // Open sort dropdown and select "Status, Z-A"
+        await adminServiceNowTicketsPage.sortByStatus('Status, Z-A');
+
+        // Verify tickets are sorted correctly (using unified function)
+        await adminServiceNowTicketsPage.verifyTicketSortingByStatus('Status, Z-A');
+
+        // Test sorting functionality with end user
+        const endUserServiceNowTicketsPage = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNowTicketsPage.loadPage();
+        await endUserServiceNowTicketsPage.verifyThePageIsLoaded();
+
+        // Apply sorting for end user as well (Z-A order)
+        await endUserServiceNowTicketsPage.sortByStatus('Status, Z-A');
+
+        // Verify sorting works for end user too (using unified function)
+        await endUserServiceNowTicketsPage.verifyTicketSortingByStatus('Status, Z-A');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify when the ServiceNow tab is clicked list should be displayed for app manager and end user',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-10436', 'INT-10437', 'INT-10439', 'INT-10435'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new ServiceNowTicketsPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.searchAndSelectServiceNowKb('Test');
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.searchAndSelectServiceNowKb('Test');
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify ServiceNow Knowledge base results tab name should update as per name in App level connection',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-10438'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        const endUserServiceNow = new ServiceNowTicketsPage(endUserPage);
+        await endUserServiceNow.loadPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await adminHomeDashboard.selectServiceNowCustomKnowledgeBaseName('Test Knowledge Base');
+        await endUserServiceNow.searchForTerm('Test');
+        await endUserServiceNow.VerifyServiceNowKnowledgeBaseName('Test Knowledge Base');
+        await adminHomeDashboard.selectServiceNowDefaultKnowledgeBaseName();
       }
     );
   }
