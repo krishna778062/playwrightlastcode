@@ -361,14 +361,7 @@ export class ManageContentComponent extends BaseComponent {
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
-      if (await this.verifier.isTheElementVisible(this.publishOption)) {
-        await this.clickOnElement(this.publishOption);
-      } else {
-        await this.verifier.verifyTheElementIsVisible(this.unpublishOption);
-        await this.clickOnElement(this.unpublishOption);
-        await this.verifier.verifyTheElementIsVisible(this.publishOption);
-        await this.clickOnElement(this.publishOption);
-      }
+      await this.verifier.verifyTheElementIsVisible(this.unpublishOption);
     });
   }
 

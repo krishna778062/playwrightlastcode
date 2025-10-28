@@ -80,7 +80,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
-            pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
+            pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('page'),
             contentDescription: randDomDescription,
           },
         });
@@ -88,7 +88,7 @@ test.describe(
           siteId: siteInfo.siteId,
           imageName: 'beach.jpg',
           options: {
-            albumName: MANAGE_SITE_TEST_DATA.ALBUM_NAME.generateUniqueName(),
+            albumName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('album'),
             contentDescription: randDomDescription,
           },
         });
@@ -96,7 +96,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'event' },
           options: {
-            eventName: MANAGE_SITE_TEST_DATA.EVENT_NAME.generateUniqueName(),
+            eventName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('event'),
             contentDescription: randDomDescription,
           },
         });
