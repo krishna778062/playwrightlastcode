@@ -10,6 +10,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly emojiPickerButton: Locator;
   readonly emojiPickerContainer: Locator;
   readonly emojiPickerEmojisGroupsContainer: Locator;
+  readonly reactionEmojiPickerbutton: Locator;
   readonly threeDotsButtonToOpenMessageActionsMenu: Locator;
   readonly deleteMessageButtonFromMessageActionsMenu: Locator;
   readonly replyInThreadButton: Locator;
@@ -25,6 +26,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly unPinMessageConfirmationPrompt: Locator;
   readonly unPinnedToastMessage: Locator;
   readonly getPinnedMessage: (message: string) => Locator;
+  readonly reactionEmojiPickerContainer: Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -33,6 +35,8 @@ export class MessageCardComponent extends MessageBaseComponent {
     this.emojiPickerButton = this.messageActionsContainer.getByLabel('addEmoji icon');
     this.emojiPickerContainer = this.page.locator("[class*='EmojiPicker_root']").first();
     this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator("[EmojiPicker_emojiGroupWrapper']");
+    this.reactionEmojiPickerbutton = this.page.locator('button[aria-label="Emoji Picker"]').last();
+    this.reactionEmojiPickerContainer = this.page.locator('//p[text()="smileys & emotion"]/../..//span');
     this.threeDotsButtonToOpenMessageActionsMenu = this.focusedMessageContainer.getByTestId('message-action-trigger');
     this.deleteMessageButtonFromMessageActionsMenu = this.page
       .getByTestId('deleteMessageButton')
@@ -71,7 +75,7 @@ export class MessageCardComponent extends MessageBaseComponent {
 
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
-      await this.openMessageActionsMenuFromThreeDots();
+      await this.openMessageActionsMenuFrom3Dots();
       await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
@@ -81,8 +85,8 @@ export class MessageCardComponent extends MessageBaseComponent {
   }
 
   async unPinMessageFromPinnedMessage(): Promise<void> {
-    await test.step(`Deleting the message`, async () => {
-      await this.openMessageActionsMenuFromThreeDots();
+    await test.step(`Unpinning the message`, async () => {
+      await this.openMessageActionsMenuFrom3Dots();
       await this.clickOnElement(this.unPinMessageButtonFromMessageActionsMenu);
       await this.clickOnElement(this.unPinMessageConfirmationPrompt);
       await this.verifier.verifyTheElementIsVisible(this.unPinnedToastMessage, {

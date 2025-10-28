@@ -6,23 +6,30 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { FooterComponent } from '../components/footerComponent';
 
 import { AddTileComponent } from '@/src/modules/content/ui/components/addTileComponent';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 
 export interface INewHomePageActions {
   clickOnManageDashboardCarousel: (options?: { stepInfo?: string }) => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
-  clickOnSocialCampaignTile: (tileTitle: string) => Promise<void>;
-  clickAddToHomeButton: () => Promise<void>;
+  clickOnSocialCampaignTile: () => Promise<void>;
+  clickAddToHomeButton: () => Promise<string>;
   enterTileTitle: (tileTitle: string) => Promise<void>;
+  clickOnCustomSCTile: () => Promise<void>;
+  setCustomSCTitle: (title: string) => Promise<void>;
+  clickOnChangeLayout: () => Promise<void>;
+  clickExcludeFeed: () => Promise<void>;
 }
 
 export interface INewHomePageAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
 }
 
 export class NewHomePage extends BasePage {
+  readonly changeLayoutComponent: ChangeLayoutComponent;
   readonly footerComponent: FooterComponent;
   readonly manageDashboardCarouselButton: Locator;
   readonly editbarComponent: EditBarComponent;
@@ -39,6 +46,7 @@ export class NewHomePage extends BasePage {
     this.tileListComponent = (tileTitle: string) => page.getByRole('heading', { name: tileTitle });
     this.socialCampaignNameInTileList = (socialCampaignName: string) =>
       page.getByRole('button', { name: socialCampaignName }).first();
+    this.changeLayoutComponent = new ChangeLayoutComponent(page);
   }
 
   get actions(): INewHomePageActions {
@@ -79,11 +87,11 @@ export class NewHomePage extends BasePage {
     return this.editbarComponent.clickOnAddTile();
   }
 
-  async clickOnSocialCampaignTile(tileTitle: string): Promise<void> {
+  async clickOnSocialCampaignTile(): Promise<void> {
     return this.addTileComponent.clickSocialCampaignsButton();
   }
 
-  async clickAddToHomeButton(): Promise<void> {
+  async clickAddToHomeButton(): Promise<string> {
     return this.addTileComponent.clickAddToHomeButton();
   }
 
@@ -107,5 +115,30 @@ export class NewHomePage extends BasePage {
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
       });
     });
+  }
+
+  async verifySocialCampaignNameNotDisplayed(socialCampaignName: string): Promise<void> {
+    await test.step('Verifying social campaign name is displayed in the displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.socialCampaignNameInTileList(socialCampaignName), {
+        timeout: 20000,
+        assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+
+  async clickOnCustomSCTile(): Promise<void> {
+    return this.addTileComponent.clickCustomTab();
+  }
+
+  async setCustomSCTitle(title: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title);
+  }
+
+  async clickOnChangeLayout(): Promise<void> {
+    return this.editbarComponent.clickChangeLayout();
+  }
+
+  async clickExcludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickExcludeFeed();
   }
 }

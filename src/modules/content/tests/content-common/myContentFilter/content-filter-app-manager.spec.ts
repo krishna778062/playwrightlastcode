@@ -207,7 +207,6 @@ test.describe(
         }
       }
     );
-
     test(
       'verify user should be able to filter the content on the "Created Date Oldest First" filter',
       {
@@ -236,7 +235,6 @@ test.describe(
         }
       }
     );
-
     test(
       'verify user should be able to filter the content on the "Published Date Oldest First" filter',
       {

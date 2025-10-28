@@ -532,4 +532,52 @@ export class BaseActionUtil {
       return userName;
     });
   }
+
+  /**
+   * Downloads a file by triggering an action and saves it with a unique filename.
+   * This method handles the entire download flow including unique filename generation.
+   * @param downloadTrigger - Function that triggers the download (e.g., () => this.clickOnElement(downloadButton))
+   * @param options - Optional parameters for the download
+   * @returns Promise with file path and filename information
+   */
+  async downloadAndSaveFile(
+    downloadTrigger: () => Promise<void>,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ): Promise<{
+    filePath: string;
+    fileName: string;
+  }> {
+    return await test.step(options?.stepInfo || 'Download and save file', async () => {
+      // 1. Create download promise
+      const downloadPromise = this.page.waitForEvent('download', {
+        timeout: options?.timeout || 30000,
+      });
+
+      // 2. Trigger the download action
+      await downloadTrigger();
+
+      // 3. Wait for download to complete
+      const download = await downloadPromise;
+
+      // 4. Generate unique filename to avoid race conditions
+      const originalFileName = download.suggestedFilename();
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const fileName = `${timestamp}-${randomSuffix}-${originalFileName}`;
+
+      // 5. Save to downloads folder
+      const filePath = FileUtil.getDownloadsFilePath(fileName);
+      await download.saveAs(filePath);
+
+      console.log(`Downloaded file: ${fileName}`);
+
+      return {
+        filePath,
+        fileName,
+      };
+    });
+  }
 }
