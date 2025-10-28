@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { ManageContentOptions } from '@/src/modules/content/constants';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -47,10 +48,9 @@ test.describe('manage Site Tests', () => {
       await manageContentPage.actions.scheduledTagVisibleInManageContent();
       await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
       await manageContentPage.actions.hoverOnFirstDropDownOption();
-      await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-      await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-      await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
-      await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
       await manageContentPage.actions.clickOnPublishButton();
     }
   );

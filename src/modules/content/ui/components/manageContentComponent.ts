@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { ManageContentOptions } from '@/src/modules/content/constants';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -703,62 +704,6 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.pageOption);
     });
   }
-  async verifyDraftTagVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the draft tag is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.draftTag, {
-        assertionMessage: 'Draft tag should be visible',
-      });
-    });
-  }
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the published stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishedTag, {
-        assertionMessage: 'Published stamp should be visible',
-      });
-    });
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
-        assertionMessage: 'Unpublished stamp should be visible',
-      });
-    });
-  }
-  async verifyEditOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the edit option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.editButton, {
-        assertionMessage: 'Edit option should be visible',
-      });
-    });
-  }
-  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the delete option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.deleteButton, {
-        assertionMessage: 'Delete option should be visible',
-      });
-    });
-  }
-  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublish option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishButton, {
-        assertionMessage: 'Unpublish option should be visible',
-      });
-    });
-  }
-  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the move option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.moveButton, {
-        assertionMessage: 'Move option should be visible',
-      });
-    });
-  }
-  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the publish option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishButton, {
-        assertionMessage: 'Publish option should be visible',
-      });
-    });
-  }
 
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
     await test.step('Verifying the add to campaign option is not visible in manage content', async () => {
@@ -767,6 +712,40 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
+
+  /**
+   * Unified function to verify any option visibility in manage content
+   * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
+   */
+  async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
+    await test.step(`Verifying ${option} option is visible in manage content`, async () => {
+      const locator = await this.optionLocators(option);
+      await this.verifier.verifyTheElementIsVisible(locator, {
+        assertionMessage: `${option} option should be visible`,
+      });
+    });
+  }
+
+  async verifyTagVisibleInManageContent(tag: string): Promise<void> {
+    await test.step(`Verifying ${tag} tag is visible in manage content`, async () => {
+      const locator = await this.tagLocators(tag);
+      await this.verifier.verifyTheElementIsVisible(locator, {
+        assertionMessage: `${tag} tag should be visible`,
+      });
+    });
+  }
+
+  async tagLocators(tag: string): Promise<Locator> {
+    return this.page
+      .locator('div')
+      .filter({ hasText: new RegExp(`^${tag}$`) })
+      .first();
+  }
+
+  async optionLocators(option: ManageContentOptions): Promise<Locator> {
+    return this.page.getByText(option, { exact: true });
+  }
+
   async clickOnContentEditButton(): Promise<void> {
     await test.step('Clicking on content edit button', async () => {
       await this.clickOnElement(this.editButton);

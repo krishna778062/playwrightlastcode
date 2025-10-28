@@ -4,7 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
+import { ContentSortBy, ContentStatus, ManageContentTags } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 
@@ -206,7 +206,7 @@ test.describe(
         await manageContentPage.actions.selectPageOption();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.DRAFT);
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.verifyDraftTagVisibleInManageContent();
+        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
       }
     );
   }
