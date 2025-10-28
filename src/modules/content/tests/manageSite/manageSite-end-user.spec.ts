@@ -9,6 +9,7 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   ContentSuiteTags.MANAGE_SITE,
@@ -17,6 +18,7 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
+    let identityManagementHelper: IdentityManagementHelper;
     test.beforeEach(async ({}) => {});
 
     test.afterEach(async ({ page }) => {
@@ -25,11 +27,17 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Public site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
-          description: 'login as Standard User where user is Site Content Manager of Public site',
+          description: 'To verify the favourite people from manage site people',
           customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',

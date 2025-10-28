@@ -1,6 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -29,9 +28,6 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
-  readonly clickOnContentFilterButton: Locator;
-  readonly searchContentInput: Locator;
-  readonly searchContentButton: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -59,10 +55,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
-    this.clickOnContentFilterButton = page.getByLabel('Content:').first();
-    this.searchContentInput = page.getByRole('textbox', { name: 'Search…' });
-    this.searchContentButton = page.locator('.SearchField-submit.SearchField-submit--active');
   }
+
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
   }
@@ -302,55 +296,6 @@ export class ManageSitesComponent extends BaseComponent {
       await this.clickOnElement(this.clickOnInsideContentButton);
     });
   }
-  async clickOnContentFilterButtonAction(): Promise<void> {
-    await test.step('Click on the content filter button', async () => {
-      await this.clickOnElement(this.clickOnContentFilterButton);
-    });
-  }
-
-  async selectManagingContentFilter(): Promise<void> {
-    await test.step('Select managing option in content filter', async () => {
-      await this.clickOnContentFilterButton.selectOption('managing');
-    });
-  }
-
-  async searchContentInManageSite(contentName: string): Promise<void> {
-    await test.step('Search content in manage site', async () => {
-      await this.typeInElement(this.searchContentInput, contentName);
-      await this.clickOnElement(this.searchContentButton);
-    });
-  }
-
-  async selectOwnedContentFilter(): Promise<void> {
-    await test.step('Select owned option in content filter', async () => {
-      await this.clickOnContentFilterButton.selectOption('owned');
-    });
-  }
-
-  async verifyContentFilterIsSelectedWithValue(expectedValue: string): Promise<void> {
-    await test.step(`Verify content filter is selected with value: ${expectedValue}`, async () => {
-      const selectedValue = await this.clickOnContentFilterButton.inputValue();
-      const contentFilterResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnContentFilterButton.selectOption(expectedValue),
-        response =>
-          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 30_000,
-        }
-      );
-      await contentFilterResponse.finished();
-
-      if (selectedValue !== expectedValue) {
-        throw new Error(`Content filter value is "${selectedValue}" but expected "${expectedValue}"`);
-      }
-    });
-  }
-
-  get contentFilterLocator(): Locator {
-    return this.clickOnContentFilterButton;
-  }
 
   async verifyEventsTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify events tab image is displayed', async () => {
@@ -372,15 +317,6 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Verify page tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
-      });
-    });
-  }
-
-  async verifyNoSitesFoundAction(siteName: string): Promise<void> {
-    await test.step(`Verify no sites found for: ${siteName}`, async () => {
-      const siteLink = this.page.getByText(siteName).first();
-      await this.verifier.verifyTheElementIsNotVisible(siteLink, {
-        assertionMessage: `Site "${siteName}" should not be found but was visible in search results`,
       });
     });
   }

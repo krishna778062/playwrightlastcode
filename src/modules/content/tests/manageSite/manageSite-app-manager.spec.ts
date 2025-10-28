@@ -24,6 +24,7 @@ test.describe(
     // Helper function to get a unique site that hasn't been used before
     async function getUniqueSite(
       accessType: string,
+      siteManagementHelper: SiteManagementHelper,
       maxAttempts: number = 10
     ): Promise<{ siteId: string; name: string; authorName?: string }> {
       let attempts = 0;
@@ -45,7 +46,7 @@ test.describe(
         // If we've tried many times with the same result, create a new site
         if (attempts >= maxAttempts - 2) {
           console.log(`Creating new site after ${attempts} attempts...`);
-          const newSite = await siteManagementHelper.createSite({ accessType: accessType as SITE_TYPES });
+          const newSite = await siteManagementHelper.createSiteByAccessType(accessType);
           const siteWithName = { siteId: newSite.siteId, name: newSite.siteName };
           usedSiteIds.push(siteWithName.siteId);
           return siteWithName;
@@ -57,8 +58,8 @@ test.describe(
 
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
+
       siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
-      siteManagementHelper = appManagerFixture.siteManagementHelper;
 
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
@@ -84,7 +85,9 @@ test.describe(
         });
 
         // Get first unique site
-        const creatingSiteFirstPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteFirstPublicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(
+          SITE_TYPES.PUBLIC
+        );
         const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteFirstPublicSite.siteId);
         await newSiteDashboard.loadPage();
         const firstManageSitePageAppManagerSite = new ManageSitePage(
@@ -97,7 +100,10 @@ test.describe(
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
 
         // Get second unique site (different from first)
-        const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteSecondPublicSite = await getUniqueSite(
+          SITE_TYPES.PUBLIC,
+          appManagerFixture.siteManagementHelper
+        );
         const newSecondDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteSecondPublicSite.siteId);
         await newSecondDashboard.loadPage();
         const manageSitePageSecondPublicSite = new ManageSitePage(
@@ -113,7 +119,10 @@ test.describe(
         await siteCategoriesPage.actions.createCategoryWithName(categoryName);
 
         // Get third unique site (different from first and second)
-        const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
+        const creatingSiteThirdPublicSite = await getUniqueSite(
+          SITE_TYPES.PUBLIC,
+          appManagerFixture.siteManagementHelper
+        );
         const newThirdDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteThirdPublicSite.siteId);
         await newThirdDashboard.loadPage();
         const thirdManageSitePageAppManagerSite = new ManageSitePage(
@@ -136,7 +145,13 @@ test.describe(
     test(
       'to verify the favourite people from manage site people',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.MANAGE_SITE,
+          ContentFeatureTags.MANAGE_SITE,
+          '@CONT-29063',
+        ],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -146,19 +161,16 @@ test.describe(
           storyId: 'CONT-24178',
         });
 
-        const getMembershipList = await appManagerApiFixture.siteManagementHelper.getSiteWithMembers(
-          SITE_TYPES.PUBLIC,
-          2
-        );
-        const siteId = getMembershipList.site.siteId;
-        const members = getMembershipList.members.listOfItems || [];
-        const membersName = { membersName: members.map((m: any) => m.name || m.displayName || m.email) };
-
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteAuthorNameAndEventStartDate();
+        const getMembershipList = await appManagerApiFixture.siteManagementHelper.getSiteWithMembers(siteInfo.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteId);
+        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo.siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
+        const membersName = await appManagerFixture.siteManagementHelper.getMembersNameFromList(
+          getMembershipList.site.siteId
+        );
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.assertions.checkIsUserMarkedAsFavorite();
         await manageSitePageAppManagerSite.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
@@ -167,7 +179,7 @@ test.describe(
         await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
         await manageSitePageAppManagerSite.actions.markAsUnfavorite(membersName.membersName[0]);
-        const memberSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const memberSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, getMembershipList.site.siteId);
         await memberSiteDashboardPage.loadPage();
         await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMemberButtonInAboutTab();
