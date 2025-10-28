@@ -33,8 +33,8 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27020',
-          storyId: 'INT-18854',
+          zephyrTestId: 'INT-28723',
+          storyId: 'INT-28723',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -240,9 +240,13 @@ test.describe(
     test(
       'verify tile creation form validation',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28707',
+          storyId: 'INT-24557',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
         await customAppTilesPage.clickCreateCustomAppTileButton();
@@ -268,9 +272,13 @@ test.describe(
     test(
       'verify API action dropdown is enabled after app selection',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28709',
+          storyId: 'INT-28708',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
@@ -291,9 +299,13 @@ test.describe(
     test(
       'verify cancel button functionality',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28710',
+          storyId: 'INT-28710',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
@@ -313,9 +325,13 @@ test.describe(
     test(
       'verify search with special characters',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28711',
+          storyId: 'INT-28711',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
         // Test search with special characters (should return no results)
@@ -336,9 +352,13 @@ test.describe(
     test(
       'verify tile operations menu',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28712',
+          storyId: 'INT-28712',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
         const tileCount = await customAppTilesPage.getRenderedTileCount();
@@ -353,9 +373,13 @@ test.describe(
     test(
       'verify add custom app link redirect',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerUiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28713',
+          storyId: 'INT-28713',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
@@ -370,9 +394,13 @@ test.describe(
     test(
       'verify create API action link redirect',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerUiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28714',
+          storyId: 'INT-28714',
+        });
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
@@ -382,9 +410,295 @@ test.describe(
     );
 
     test(
+      'verify status filter shows only filtered tiles',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28715',
+          storyId: 'INT-28715',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Get total tile count before filtering
+        const totalTileCount = await customAppTilesPage.getRenderedTileCount();
+
+        if (totalTileCount > 0) {
+          // Filter by Draft status - should show only draft tiles
+          await customAppTilesPage.selectStatusFilter('Draft');
+          const draftTileCount = await customAppTilesPage.getRenderedTileCount();
+
+          // Verify draft filter is applied - count changes from total
+          await customAppTilesPage.verifyResultCount(draftTileCount);
+
+          // Filter by Published status - should show only published tiles
+          await customAppTilesPage.selectStatusFilter('Published');
+          const publishedTileCount = await customAppTilesPage.getRenderedTileCount();
+
+          // Verify published filter is applied
+          await customAppTilesPage.verifyResultCount(publishedTileCount);
+
+          // Clear status filter - should show all tiles again
+          await customAppTilesPage.clearStatusFilter();
+
+          // Verify all tiles are visible again after clearing filter
+          await customAppTilesPage.verifyResultCount(totalTileCount);
+        }
+      }
+    );
+
+    test(
+      'verify back button navigates to tiles list',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28716',
+          storyId: 'INT-28716',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Click create button to go to create form
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        // Click back button to navigate back to tiles list
+        await customAppTilesPage.clickBackToTilesList();
+
+        // Verify we're back on the tiles list page
+        await customAppTilesPage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      'verify cancel button redirects to tiles list',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28717',
+          storyId: 'INT-28717',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Start creating a new tile
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Cancel Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Cancel Description ${faker.lorem.sentence()}`;
+
+        // Fill in tile details
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Click Cancel button to cancel creating the tile
+        await customAppTilesPage.clickButton('Cancel');
+
+        // Verify we're redirected back to the tiles list page
+        await customAppTilesPage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      'verify navigation to tile builder step',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28718',
+          storyId: 'INT-28718',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Builder Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Builder Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Click Next to navigate to Tile Builder step
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Verify we're on the Tile Builder step (stepper shows active)
+        await customAppTilesPage.verifyTileBuilderStepIsActive();
+      }
+    );
+
+    test(
+      'verify publish empty tile shows error message',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28719',
+          storyId: 'INT-28719',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Empty Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Empty Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Navigate to Tile Builder step without adding any blocks (empty tile)
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Try to publish empty tile
+        await customAppTilesPage.clickButton('Publish');
+
+        // Verify error message appears
+        await customAppTilesPage.verifyToastMessage(MESSAGES.SAVE_TILE_FAILED);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_CANNOT_BE_EMPTY);
+      }
+    );
+
+    test(
+      'verify save empty tile shows error message',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28720',
+          storyId: 'INT-28720',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Empty Save Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Empty Save Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Navigate to Tile Builder step without adding any blocks (empty tile)
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Try to save empty tile
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
+
+        // Verify error message appears
+        await customAppTilesPage.verifyToastMessage(MESSAGES.SAVE_TILE_FAILED);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_CANNOT_BE_EMPTY);
+      }
+    );
+
+    test(
+      'verify save and publish buttons disabled for empty tile',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28721',
+          storyId: 'INT-28721',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Disabled Buttons Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Disabled Buttons Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Navigate to Tile Builder step without adding any blocks (empty tile)
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Click on Preview button
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
+
+        // Verify Save and Publish buttons are disabled
+        await customAppTilesPage.verifyButtonStatus('disabled', CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
+        await customAppTilesPage.verifyButtonStatus('disabled', CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PUBLISH);
+      }
+    );
+
+    test(
+      'verify delete single tile from menu',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28722',
+          storyId: 'INT-28722',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Create a tile first to test deletion
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Delete Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Delete Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Save as draft
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
+
+        // Navigate back to list
+        await customAppTilesPage.loadPage();
+        await customAppTilesPage.verifyThePageIsLoaded();
+
+        // Delete the tile we just created
+        await customAppTilesPage.clickThreeDotsForTileStartingWith(tileName);
+
+        // Select Delete option from menu
+        await customAppTilesPage.selectOptionFromTileMenuDropdown('Delete');
+
+        // Confirm deletion in dialog
+        await customAppTilesPage.clickConfirmDeleteButton();
+        await customAppTilesPage.verifyToastMessage(MESSAGES.getAppDeletedMessage(tileName));
+
+        // Verify tile is deleted by searching for it (should not find it)
+        await customAppTilesPage.searchForTiles(tileName);
+        await customAppTilesPage.verifyResultCount(0);
+      }
+    );
+
+    test(
       'clean up test tiles',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

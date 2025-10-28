@@ -28,6 +28,7 @@ export class CustomAppTilesPage extends BasePage {
   // Page header elements
   readonly pageTitle: Locator;
   readonly createCustomAppTileButton: Locator;
+  readonly backToTilesListLink: Locator;
 
   // Search elements
   readonly searchInput: Locator;
@@ -36,6 +37,7 @@ export class CustomAppTilesPage extends BasePage {
   // Apps dropdown elements
   readonly appsDropdown: Locator;
   readonly statusDropdown: Locator;
+  readonly statusFilterLabels: Locator;
   readonly appsSearchInput: Locator;
   readonly appsClearButton: Locator;
   readonly appOptionLabels: Locator;
@@ -65,6 +67,7 @@ export class CustomAppTilesPage extends BasePage {
   readonly nextButton: Locator;
   readonly publishButton: Locator;
   readonly previewButton: Locator;
+  readonly tileBuilderStepper: Locator;
 
   // Canvas and builder elements
   readonly canvasContainer: Locator;
@@ -214,6 +217,7 @@ export class CustomAppTilesPage extends BasePage {
     // Page header elements
     this.pageTitle = page.locator('h1', { hasText: 'Custom app tiles' });
     this.createCustomAppTileButton = page.getByRole('link', { name: 'Create custom app tile' });
+    this.backToTilesListLink = page.getByRole('link', { name: 'Custom app tiles' });
 
     // Search elements
     this.searchInput = page.locator('#search');
@@ -222,6 +226,7 @@ export class CustomAppTilesPage extends BasePage {
     // Apps dropdown elements
     this.appsDropdown = page.locator('button', { hasText: 'Apps' });
     this.statusDropdown = page.locator('button.FilterGroup-module__pill__a50KR', { hasText: 'Status' });
+    this.statusFilterLabels = page.locator('label');
     this.appsSearchInput = page.locator('input[aria-label="Search…"]');
     this.appsClearButton = page.locator('button[type="reset"]', { hasText: 'Clear' });
     this.appOptionLabels = page.locator('label.CheckboxWithIconAndCount-module__label__iBhDy');
@@ -253,6 +258,7 @@ export class CustomAppTilesPage extends BasePage {
     this.nextButton = page.locator('button', { hasText: 'Next' });
     this.publishButton = page.locator('button', { hasText: 'Publish' });
     this.previewButton = page.locator('button', { hasText: 'Preview' });
+    this.tileBuilderStepper = page.getByText('Tile builder', { exact: true });
 
     // Canvas and builder elements
     this.canvasContainer = page.locator('[data-testid="container"]');
@@ -422,6 +428,84 @@ export class CustomAppTilesPage extends BasePage {
   }
 
   /**
+   * Navigate back to tiles list by clicking the back link
+   */
+  async clickBackToTilesList(): Promise<void> {
+    await test.step('Navigate back to tiles list', async () => {
+      await this.clickOnElement(this.backToTilesListLink, {
+        stepInfo: 'Click back link to return to tiles list',
+      });
+    });
+  }
+
+  /**
+   * Verify that the Tile Builder step is active and visible
+   */
+  async verifyTileBuilderStepIsActive(): Promise<void> {
+    await test.step('Verify Tile Builder step is active', async () => {
+      await this.expect(this.tileBuilderStepper, 'Expected Tile Builder step to be visible').toBeVisible({
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Click on a tile by its name to navigate to the edit page
+   * @param tileName - The name of the tile to click
+   */
+  async clickOnTileByName(tileName: string): Promise<void> {
+    await test.step(`Click on tile: ${tileName}`, async () => {
+      const tileLocator = this.tileHeadingByPrefix.filter({ hasText: tileName }).first();
+      await this.clickOnElement(tileLocator, {
+        stepInfo: `Click on tile "${tileName}" to edit it`,
+      });
+    });
+  }
+
+  /**
+   * Verify we are on the Edit page (not Create page)
+   */
+  async verifyOnEditPage(): Promise<void> {
+    await test.step('Verify we are on the Edit page', async () => {
+      const editPageTitle = this.page.getByText('Edit custom app tile', { exact: true });
+      await this.expect(editPageTitle, 'Expected to be on Edit custom app tile page').toBeVisible({
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Set up dialog handler and return dialog information
+   * @returns Promise that resolves to dialog message and dismiss function
+   */
+  async setupDialogHandler(timeout = 10000): Promise<{ message: string; dismiss: () => Promise<void> }> {
+    return new Promise<{ message: string; dismiss: () => Promise<void> }>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error('Dialog did not appear within timeout'));
+      }, timeout);
+
+      this.page.once('dialog', dialog => {
+        clearTimeout(timer);
+        resolve({
+          message: dialog.message(),
+          dismiss: async () => await dialog.dismiss(),
+        });
+      });
+    });
+  }
+
+  /**
+   * Verify button status using tile operations component
+   */
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    await test.step(`Verify ${buttonName} button is ${status}`, async () => {
+      const locator = this.buttonByRole.filter({ hasText: buttonName });
+      await expect(locator).toBeVisible();
+      status.toLowerCase() === 'enabled' ? await expect(locator).toBeEnabled() : await expect(locator).toBeDisabled();
+    });
+  }
+
+  /**
    * Enter the tile name in the input field
    * @param tileName - The name of the tile to enter
    */
@@ -491,25 +575,39 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
+  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName}`;
+    await test.step(stepName, async () => {
+      // Try button first with name
+      try {
+        const button = this.page.getByRole('button', { name: buttonName });
+        await this.clickOnElement(button, { timeout });
+      } catch {
+        // If button not found, try as link with name
+        const link = this.page.getByRole('link', { name: buttonName });
+        await this.clickOnElement(link, { timeout });
+      }
+    });
+  }
+
   /**
-   * Click a button by its name
-   * @param buttonName - The name/text of the button to click
+   * Click the Cancel link
+   * This will trigger the unsaved changes dialog if there are unsaved changes
    */
-  async clickButton(buttonName: string): Promise<void> {
-    await test.step(`Click ${buttonName} button`, async () => {
-      // Try to find as button first, then as link if not found
-      let element = this.buttonByRole.filter({ hasText: buttonName });
+  async clickCancelLink(): Promise<void> {
+    await test.step('Click Cancel link', async () => {
+      // Look for Cancel link by href attribute first
+      const cancelLink = this.page.locator('a[href="/manage/custom-app-tiles"]').filter({ hasText: 'Cancel' });
 
       try {
-        await element.waitFor({ state: 'visible', timeout: 2000 });
+        await cancelLink.waitFor({ state: 'visible', timeout: 5000 });
+        await cancelLink.dispatchEvent('click', { timeout: 1000 });
       } catch {
-        // If button not found, try as link
-        element = this.linkByRole.filter({ hasText: buttonName });
+        // If not found by href, try by role
+        const cancelByRole = this.page.getByRole('link', { name: 'Cancel' });
+        await cancelByRole.waitFor({ state: 'visible', timeout: 5000 });
+        await cancelByRole.dispatchEvent('click', { timeout: 1000 });
       }
-
-      await this.clickOnElement(element, {
-        stepInfo: `Click ${buttonName} button`,
-      });
     });
   }
 
@@ -786,7 +884,12 @@ export class CustomAppTilesPage extends BasePage {
   async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
     await test.step(`Select status filter: ${status}`, async () => {
       await this.clickOnElement(this.statusDropdown);
-      await this.radioByRole.filter({ hasText: status }).click();
+
+      // Find and click the label containing the status text
+      const statusLabel = this.statusFilterLabels.filter({ hasText: status });
+      await this.expect(statusLabel, `Expected "${status}" label to be visible`).toBeVisible({ timeout: 10000 });
+      await statusLabel.click();
+
       await this.page.keyboard.press('Escape');
     });
   }
