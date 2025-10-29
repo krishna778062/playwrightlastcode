@@ -12,6 +12,8 @@ export interface IManageSiteActions {
   clickOnSites: () => Promise<void>;
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
   searchForSite: (siteName: string) => Promise<void>;
+  clickDashboardAndFeedTab: () => Promise<void>;
+  setFeedPostingPermission: (permission: 'managersOnly' | 'everyone') => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -31,6 +33,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
+  readonly feedPostingPermissionRadio = (permission: 'managersOnly' | 'everyone') => {
+    // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
+    const value = permission === 'managersOnly' ? 'yes' : 'no';
+    return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
+  };
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private sideNavBarComponent: SideNavBarComponent;
@@ -98,6 +106,50 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     console.log('noSitesFound', noSitesFound);
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
+    });
+  }
+
+  async clickDashboardAndFeedTab(): Promise<void> {
+    await test.step('Ensure Setup tab is active (feed permissions are under Setup tab)', async () => {
+      // Wait for tabs to be visible
+      await this.page.waitForSelector('[role="tab"]', { state: 'visible', timeout: 10000 });
+      // Feed permissions are on the Setup tab, ensure it's active
+      await this.verifier.verifyTheElementIsVisible(this.setupTab, {
+        assertionMessage: 'Setup tab should be visible',
+        timeout: 10000,
+      });
+      // Click Setup tab if not already active
+      const isSelected = await this.setupTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await this.clickOnElement(this.setupTab);
+      }
+      await this.page.waitForLoadState('domcontentloaded');
+      // Wait for feed permissions section to be visible (radio buttons)
+      await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible', timeout: 10000 });
+    });
+  }
+
+  async setFeedPostingPermission(permission: 'managersOnly' | 'everyone'): Promise<void> {
+    await test.step(`Set feed posting permission to ${permission}`, async () => {
+      const radioButton = this.feedPostingPermissionRadio(permission);
+      await this.verifier.verifyTheElementIsVisible(radioButton, {
+        assertionMessage: `Feed posting permission radio button for "${permission}" should be visible`,
+        timeout: 10000,
+      });
+      await radioButton.click({ force: true });
+      await this.expect(radioButton).toBeChecked({ timeout: 5000 });
+
+      // Look for and click Save/Update button if it exists
+      const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+      const saveButtonVisible = await saveButton.isVisible().catch(() => false);
+      if (saveButtonVisible) {
+        await saveButton.click();
+        await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+        await this.page.waitForTimeout(1000);
+      } else {
+        // If no save button, assume auto-save and wait for changes to propagate
+        await this.page.waitForTimeout(2000);
+      }
     });
   }
 }

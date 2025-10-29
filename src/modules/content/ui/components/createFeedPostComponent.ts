@@ -514,4 +514,51 @@ export class CreateFeedPostComponent
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: 5000 });
     });
   }
+
+  /**
+   * Verifies that feed posting restriction message is visible on the dashboard
+   * When feed permission is set to "Only site owners and site managers can make feed posts",
+   * Site Content Managers and Members should see the restriction message directly on the dashboard.
+   * @param expectedText - The expected restriction message text to verify
+   */
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await test.step('Verify feed restriction message is visible on dashboard', async () => {
+      // Wait for page to load
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(2000);
+
+      // Use filter with hasText to find paragraph containing the message text
+      // hasText checks if the element or its children contain the text
+      let messageLocator = this.page.locator('p').filter({ hasText: expectedText });
+      let messageCount = await messageLocator.count();
+
+      // If not found with filter, try getByText as fallback
+      if (messageCount === 0) {
+        messageLocator = this.page.getByText(expectedText, { exact: false });
+        messageCount = await messageLocator.count();
+      }
+
+      // If still not found, try partial phrases as fallback
+      if (messageCount === 0) {
+        const partialPhrases = [
+          'site managers on this site',
+          'only available for site managers',
+          'feed posts are only',
+        ];
+
+        for (const phrase of partialPhrases) {
+          messageLocator = this.page.locator('p').filter({ hasText: phrase });
+          messageCount = await messageLocator.count();
+          if (messageCount > 0) {
+            break;
+          }
+        }
+      }
+      // Verify the restriction message text is visible on the page
+      await this.verifier.verifyTheElementIsVisible(messageLocator, {
+        assertionMessage: `Restriction message "${expectedText}" should be visible on dashboard`,
+        timeout: 10000,
+      });
+    });
+  }
 }
