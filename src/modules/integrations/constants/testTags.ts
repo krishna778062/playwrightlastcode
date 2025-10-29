@@ -26,6 +26,7 @@ export enum IntegrationsSuiteTags {
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
   UKG_SYNCING = '@ukgSync',
   WORKDAY = '@workdayAppTiles',
+  HOTJAR = '@hotjar',
 }
 
 export enum IntegrationsFeatureTags {
@@ -37,6 +38,7 @@ export enum IntegrationsFeatureTags {
   OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
   CONFLUENCE = '@confluence',
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  HOTJAR = '@hotjar',
 }
 
 export const TEST_TAGS = {
@@ -71,6 +73,7 @@ export const TEST_TAGS = {
   RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
   UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
+  HOTJAR: IntegrationsSuiteTags.HOTJAR,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
