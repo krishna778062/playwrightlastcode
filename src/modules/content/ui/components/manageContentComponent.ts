@@ -5,6 +5,7 @@ import { SortOptionLabels } from '@modules/content/constants';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -78,7 +79,7 @@ export class ManageContentComponent extends BaseComponent {
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
-    this.unpublishButton = page.getByRole('button', { name: 'Unpublish' });
+    this.unpublishButton = page.getByText('Unpublish', { exact: true });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
     this.moveButton = page.getByText('Move', { exact: true });
@@ -148,6 +149,9 @@ export class ManageContentComponent extends BaseComponent {
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
+  }
+  getGlobalSearchResultPageName(pageName: string): Locator {
+    return this.page.locator(`h2:has-text("${pageName}")`).first();
   }
 
   createdAtDate(createdAtDate: string): Locator {
@@ -707,6 +711,37 @@ export class ManageContentComponent extends BaseComponent {
       for (let i = 0; i < dates.length; i++) {
         const dateToCheck = dates[i];
         await this.verifyPublishedAtDateVisibleInManageContent(dateToCheck);
+      }
+    });
+  }
+  async getAllContentNames(): Promise<string[]> {
+    return await test.step('Get all content names from manage content page', async () => {
+      const contentNames = await this.listContainer.allInnerTexts();
+      return contentNames
+        .map(content => {
+          // Extract the title from the content text
+          // Format: 'PUBLISHED\nTitle_Name\nBy...'
+          const lines = content.split('\n');
+          if (lines.length >= 2) {
+            return lines[1].trim(); // Get the second line which contains the title
+          }
+          return content.trim();
+        })
+        .filter(name => name.length > 0);
+    });
+  }
+
+  async searchAllContentsInGlobalSearchBar(contentNames: string[]): Promise<void> {
+    await test.step('Searching all contents in global search bar', async () => {
+      const topNavBar = new TopNavBarComponent(this.page);
+      for (let i = 0; i < contentNames.length; i++) {
+        const contentName = contentNames[i];
+        await topNavBar.typeInSearchBarInput(contentName);
+        await topNavBar.clickSearchButton();
+        await this.verifier.verifyTheElementIsNotVisible(this.getGlobalSearchResultPageName(contentName), {
+          assertionMessage: `Content ${contentName} should not be visible in global search bar`,
+        });
+        await topNavBar.clickOnXButtonToClearGlobalSearchBarInput();
       }
     });
   }
