@@ -11,7 +11,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { AppConnectorOptions } from '../../ui/components/customAppsListComponent';
 import { CustomAppsIntegrationPage } from '../../ui/pages/customAppsIntegrationPage';
 
-import { APP_LABELS, FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
+import { ACTION_LABELS, APP_LABELS, FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import {
   CONNECTOR_IDS,
@@ -53,6 +53,31 @@ test.describe(
         createdTileTitle = undefined;
       }
     });
+
+    test(
+      'verify that App Manager is able to connect Expensify from Manage->Integrations',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25946',
+          storyId: 'INT-24423',
+        });
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Navigate to Manage->Integrations->Custom page
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Delete);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(AppName));
+        await customIntegrationsPage.addPrebuiltApp(AppName);
+        await customIntegrationsPage.clickSaveButton();
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(AppName));
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+        await customIntegrationsPage.openConnectorOptions(ACTION_LABELS.ENABLE);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
+      }
+    );
 
     test(
       'create and edit Expensify tile on home dashboard',
