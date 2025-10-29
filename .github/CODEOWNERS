@@ -37,6 +37,10 @@
 # Alert Notification Module
 /src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr
 
+
+# Employee Listening Module
+/src/modules/employee-listening/ @prateek-sqa @ravina-Simpplr
+
 # Configuration and build files
 playwright.base.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 *.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
