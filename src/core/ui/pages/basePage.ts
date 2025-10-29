@@ -94,4 +94,22 @@ export abstract class BasePage extends BaseActionUtil {
       ).toBeVisible();
     });
   }
+
+  /**
+   * @description
+   * Verify toast message is visible with specific text
+   * @param message - The expected toast message text
+   * @param options - Optional configuration
+   * @param options.timeout - Timeout for toast visibility (default: 10000ms)
+   * @param options.stepInfo - Custom step info message
+   */
+  async verifyToastMessage(message: string, options?: { timeout?: number; stepInfo?: string }) {
+    await test.step(options?.stepInfo || `Verify toast message: "${message}"`, async () => {
+      const toastLocator = this.page.locator(`div[role="alert"]:has-text("${message}")`);
+      await this.verifier.verifyTheElementIsVisible(toastLocator, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+        assertionMessage: `Verifying toast message with text: "${message}"`,
+      });
+    });
+  }
 }
