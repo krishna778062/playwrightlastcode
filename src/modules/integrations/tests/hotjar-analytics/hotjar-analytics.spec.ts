@@ -65,11 +65,12 @@ test.describe(
     test(
       'verify hotjar analytics configuration with valid site id and version',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          storyId: 'INT-28763',
+          zephyrTestId: 'INT-28833',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
@@ -102,11 +103,12 @@ test.describe(
     test(
       'verify hotjar analytics validation with alphanumeric site id and version',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          zephyrTestId: 'INT-28834',
+          storyId: 'INT-28765',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
@@ -136,11 +138,12 @@ test.describe(
     test(
       'verify hotjar analytics validation with blank site id and version fields',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          zephyrTestId: 'INT-28835',
+          storyId: 'INT-28764',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
@@ -169,11 +172,12 @@ test.describe(
     test(
       'verify hotjar analytics validation with site id minimum length is 4 digits and maximum length is 7 digits',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          zephyrTestId: 'INT-28836',
+          storyId: 'INT-28766',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
@@ -217,11 +221,12 @@ test.describe(
     test(
       'verify saving google analytics and hotjar together',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          zephyrTestId: 'INT-28837',
+          storyId: 'INT-28767',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
@@ -261,11 +266,12 @@ test.describe(
     test(
       'verify saving google analytics',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HOTJAR],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: '',
+          zephyrTestId: 'INT-28838',
+          storyId: 'INT-28768',
         });
 
         const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
