@@ -88,6 +88,7 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
   POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
