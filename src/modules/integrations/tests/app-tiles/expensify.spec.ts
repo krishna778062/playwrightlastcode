@@ -8,9 +8,6 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { UserCredentials } from '@core/types/test.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { AppConnectorOptions } from '../../ui/components/customAppsListComponent';
-import { CustomAppsIntegrationPage } from '../../ui/pages/customAppsIntegrationPage';
-
 import { ACTION_LABELS, APP_LABELS, FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import {
@@ -21,6 +18,8 @@ import {
   STATUS_VALUES,
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsListComponent';
+import { CustomAppsIntegrationPage } from '@/src/modules/integrations/ui/pages/customAppsIntegrationPage';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
