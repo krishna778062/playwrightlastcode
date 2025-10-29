@@ -18,8 +18,10 @@ test.describe(
     ],
   },
   () => {
+    let analyticsEmbedsPage: AnalyticsEmbedsPage;
+
     test.beforeEach(async ({ appManagerFixture }) => {
-      const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
+      analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
       await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
       await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
 
@@ -40,8 +42,7 @@ test.describe(
       }
     });
 
-    test.afterEach(async ({ appManagerFixture }) => {
-      const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
+    test.afterEach(async () => {
       await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
       await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
 
@@ -67,19 +68,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           storyId: 'INT-28763',
           zephyrTestId: 'INT-28833',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Hotjar analytics checkbox
+        // Step 1: Enable Hotjar analytics checkbox
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyHotjarDescriptionText();
 
@@ -105,19 +100,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28834',
           storyId: 'INT-28765',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Hotjar analytics checkbox
+        // Step 1: Enable Hotjar analytics checkbox
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyHotjarDescriptionText();
 
@@ -140,19 +129,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28835',
           storyId: 'INT-28764',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Hotjar analytics checkbox
+        // Step 1: Enable Hotjar analytics checkbox
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyHotjarDescriptionText();
 
@@ -174,19 +157,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28836',
           storyId: 'INT-28766',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Hotjar analytics checkbox
+        // Step 1: Enable Hotjar analytics checkbox
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyHotjarDescriptionText();
 
@@ -223,19 +200,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28837',
           storyId: 'INT-28767',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Google Analytics checkbox
+        // Step 1: Enable Google Analytics checkbox
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyGoogleAnalyticsDescriptionText();
 
@@ -268,19 +239,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerFixture }) => {
+      async () => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28838',
           storyId: 'INT-28768',
         });
 
-        const analyticsEmbedsPage = new AnalyticsEmbedsPage(appManagerFixture.page);
-
-        // Step 1: Navigate to analytics & embeds page
-        await analyticsEmbedsPage.actions.navigateToAnalyticsEmbedsPage();
-        await analyticsEmbedsPage.assertions.verifyThePageIsLoaded();
-
-        // Step 2: Enable Google Analytics checkbox
+        // Step 1: Enable Google Analytics checkbox
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.assertions.verifyGoogleAnalyticsDescriptionText();
 
