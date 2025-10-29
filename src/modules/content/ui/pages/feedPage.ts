@@ -65,6 +65,15 @@ export interface IFeedActions {
   clickOnSortByOption: (optionValue: string) => Promise<void>;
   clickOnCommentIcon: () => Promise<void>;
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickEditOption: () => Promise<void>;
+  createPost: (text: string) => Promise<void>;
+  updatePostText: (text: string) => Promise<void>;
+  removeAttachedFile: (index?: number) => Promise<void>;
+  clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -94,6 +103,8 @@ export interface IFeedAssertions {
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
+  verifyAttachedFileCount: (count: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -504,5 +515,49 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         });
       }
     });
+  }
+
+  async verifyAttachedFileCount(count: number): Promise<void> {
+    await this.createFeedPostComponent.verifyAttachedFileCount(count);
+  }
+
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await this.createFeedPostComponent.verifyUpdateButtonDisabled();
+  }
+
+  async openPostOptionsMenu(postText: string): Promise<void> {
+    await this.createFeedPostComponent.openPostOptionsMenu(postText);
+  }
+
+  async clickEditOption(): Promise<void> {
+    await this.createFeedPostComponent.clickEditOption();
+  }
+
+  async createPost(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  async updatePostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.updatePostText(text);
+  }
+
+  async removeAttachedFile(index: number = 0): Promise<void> {
+    await this.createFeedPostComponent.removeAttachedFile(index);
+  }
+
+  async clickUpdateButton(): Promise<void> {
+    await this.createFeedPostComponent.clickUpdateButton();
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await this.createFeedPostComponent.addFileToPost(filePath);
+  }
+
+  async waitForFileToAppear(): Promise<void> {
+    await this.createFeedPostComponent.waitForFileToAppear();
+  }
+
+  async uploadFiles(files: string[]): Promise<void> {
+    await this.createFeedPostComponent.uploadFiles(files);
   }
 }
