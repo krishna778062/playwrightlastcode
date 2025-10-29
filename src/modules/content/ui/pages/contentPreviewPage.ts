@@ -22,6 +22,9 @@ export interface IContentPreviewPageActions {
   clickQuestionButton: () => Promise<void>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  clickOnOptionMenuButton: () => Promise<void>;
+  clickOnMustReadButton: () => Promise<void>;
+  clickOnMustReadModalCancelButton: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -34,6 +37,7 @@ export interface IContentPreviewPageAssertions {
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyMustReadModalIsNotVisible: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -45,7 +49,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
   readonly closeModalButton = this.page.getByTestId('close-modal-button');
   readonly versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
-  readonly optionMenuDropdown = this.page.getByTestId('option-menu-dropdown');
+  readonly optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
   readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
   readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
   readonly contentStatus = (status: string) =>
@@ -67,6 +71,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
+  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
+  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -239,5 +246,40 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
     await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  /**
+   * Clicks on the Must Read button to open the Must Read modal
+   */
+  async clickOnMustReadButton(): Promise<void> {
+    await test.step('Click on Must Read button', async () => {
+      await this.clickOnElement(this.mustReadButton);
+    });
+  }
+
+  /**
+   * Clicks on the Cancel button in the Must Read modal
+   */
+  async clickOnMustReadModalCancelButton(): Promise<void> {
+    await test.step('Click on Must Read modal cancel button', async () => {
+      await this.clickOnElement(this.mustReadModalCancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the Must Read modal is not visible
+   */
+  async verifyMustReadModalIsNotVisible(): Promise<void> {
+    await test.step('Verify Must Read modal is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mustReadModal, {
+        assertionMessage: 'Must Read modal should not be visible',
+      });
+    });
+  }
+
+  async clickOnOptionMenuButton(): Promise<void> {
+    await test.step('Click on Option menu button', async () => {
+      await this.clickOnElement(this.optionMenuDropdown);
+    });
   }
 }
