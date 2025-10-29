@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { ManageContentOptions, ManageContentTags } from '@/src/modules/content/constants/manageContentOptions';
 
 export class ManageContentComponent extends BaseComponent {
   readonly searchBar: Locator;
@@ -831,41 +832,6 @@ export class ManageContentComponent extends BaseComponent {
     await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
       await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
         assertionMessage: 'Unpublished stamp should be visible',
-      });
-    });
-  }
-  async verifyEditOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the edit option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.editButton, {
-        assertionMessage: 'Edit option should be visible',
-      });
-    });
-  }
-  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the delete option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.deleteButton, {
-        assertionMessage: 'Delete option should be visible',
-      });
-    });
-  }
-  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublish option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishButton, {
-        assertionMessage: 'Unpublish option should be visible',
-      });
-    });
-  }
-  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the move option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.moveButton, {
-        assertionMessage: 'Move option should be visible',
-      });
-    });
-  }
-  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the publish option is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishButton, {
-        assertionMessage: 'Publish option should be visible',
       });
     });
   }

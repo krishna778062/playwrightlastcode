@@ -363,22 +363,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
   }
 
-  async verifyEditOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyEditOptionVisibleInManageContent();
-  }
-  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyDeleteOptionVisibleInManageContent();
-  }
-  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyUnpublishOptionVisibleInManageContent();
-  }
-  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyMoveOptionVisibleInManageContent();
-  }
-  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyPublishOptionVisibleInManageContent();
-  }
-
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
