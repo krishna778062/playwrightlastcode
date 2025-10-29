@@ -28,7 +28,7 @@ test.describe(
       if (isGoogleAnalyticsChecked) {
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
 
       // Check if Hotjar checkbox is checked, if yes then uncheck it
@@ -36,7 +36,7 @@ test.describe(
       if (isHotjarChecked) {
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
     });
 
@@ -50,7 +50,7 @@ test.describe(
       if (isGoogleAnalyticsChecked) {
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
 
       // Check if Hotjar checkbox is checked, if yes then uncheck it
@@ -58,7 +58,7 @@ test.describe(
       if (isHotjarChecked) {
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
     });
 
@@ -90,12 +90,12 @@ test.describe(
         await analyticsEmbedsPage.actions.clickOnSaveButton();
 
         // Step 4: Wait for toast message "Saved changes successfully"
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
 
         // Cleanup:
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
     );
 
@@ -190,23 +190,23 @@ test.describe(
         await analyticsEmbedsPage.hotjarSiteIdInputbox.fill('123'); // 4 digits (valid)
         await analyticsEmbedsPage.hotjarVersionInputbox.fill('1');
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Invalid SiteId');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Invalid SiteId');
 
         // Step 6: Enter Site ID with more than 7 digits and any version
         await analyticsEmbedsPage.hotjarSiteIdInputbox.fill('12345678'); // 8 digits (invalid)
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Invalid SiteId');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Invalid SiteId');
 
         // enter valid site id and version
         await analyticsEmbedsPage.hotjarSiteIdInputbox.fill('1234567'); // 7 digits (valid)
         await analyticsEmbedsPage.hotjarVersionInputbox.fill('1');
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
 
         await analyticsEmbedsPage.hotjarSiteIdInputbox.fill('1234'); // 4 digits (valid)
         await analyticsEmbedsPage.hotjarVersionInputbox.fill('1');
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
 
         // Cleanup: Disable Hotjar checkbox
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
@@ -248,13 +248,13 @@ test.describe(
         await analyticsEmbedsPage.actions.clickOnSaveButton();
 
         // Step 7: Verify success toast message
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
 
         // Cleanup: Disable both Google Analytics and Hotjar
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnHotjarAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
     );
 
@@ -284,12 +284,12 @@ test.describe(
         await analyticsEmbedsPage.actions.clickOnSaveButton();
 
         // Step 7: Verify success toast message
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
 
         // Cleanup: Disable Google Analytics
         await analyticsEmbedsPage.actions.clickOnGoogleAnalyticsCheckbox();
         await analyticsEmbedsPage.actions.clickOnSaveButton();
-        await analyticsEmbedsPage.verifyToastMessage('Saved changes successfully');
+        await analyticsEmbedsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
       }
     );
   }
