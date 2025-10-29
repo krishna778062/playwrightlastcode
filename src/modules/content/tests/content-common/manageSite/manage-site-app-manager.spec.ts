@@ -3,8 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ManageContentOptions } from '@/src/modules/content/constants';
-import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
+import { ContentFeatureTags, SortOptionLabels } from '@/src/modules/content/constants';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
@@ -44,13 +43,14 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickSortByButton();
-      await manageContentPage.actions.selectCreatedNewestOption();
+      await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       await manageContentPage.actions.scheduledTagVisibleInManageContent();
       await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
       await manageContentPage.actions.hoverOnFirstDropDownOption();
-      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
-      await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+      await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
+      await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
       await manageContentPage.actions.clickOnPublishButton();
     }
   );
