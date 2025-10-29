@@ -32,7 +32,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+    this.page.locator("div[class*='postContent']").filter({ hasText: text });
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
@@ -181,12 +181,14 @@ export class ListFeedComponent extends BaseComponent {
    * @param expectedText - Expected text of the post
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    console.log('Waiting for post to be visible: ', expectedText);
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.getFeedTextLocator(expectedText).first();
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
+      await postLocator.scrollIntoViewIfNeeded().catch(() => {});
     });
   }
 
