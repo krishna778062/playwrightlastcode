@@ -478,11 +478,14 @@ test.describe(
           DisplayRecentTasks,
           WorkspaceIDOption,
           WorkspaceID,
+          FIELD_NAMES.STATUS,
+          ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED,
+          ACTION_LABELS.COMPLETED,
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
-        await siteDashboard.verifyTasksWithStatusShowing(createdTileTitle, ACTION_LABELS.MARK_COMPLETE);
+        await siteDashboard.verifyTasksWithStatusShowing(createdTileTitle, ACTION_LABELS.COMPLETED);
         await siteDashboard.verifyTileHasTaskData(createdTileTitle);
         createdTileTitle = undefined;
       }
