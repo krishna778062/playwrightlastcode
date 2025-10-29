@@ -137,9 +137,8 @@ test.describe(
         await feedPage.actions.createPost(postText);
 
         await test.step('Upload 11 files and verify warning message', async () => {
-          await feedPage.page.locator("input[type='file']").first().setInputFiles(elevenFiles);
-
-          await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
+          await feedPage.actions.uploadFiles(elevenFiles);
+          await feedPage.actions.waitForFileToAppear();
 
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 
@@ -147,9 +146,8 @@ test.describe(
         });
 
         await test.step('Attempt to drag and drop another file', async () => {
-          await feedPage.page.locator("input[type='file']").first().setInputFiles([image1Path]);
-
-          await feedPage.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: 5000 });
+          await feedPage.actions.addFileToPost(image1Path);
+          await feedPage.actions.waitForFileToAppear();
 
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 

@@ -73,6 +73,7 @@ export interface IFeedActions {
   clickUpdateButton: () => Promise<void>;
   addFileToPost: (filePath: string) => Promise<void>;
   waitForFileToAppear: () => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -554,5 +555,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async waitForFileToAppear(): Promise<void> {
     await this.createFeedPostComponent.waitForFileToAppear();
+  }
+
+  async uploadFiles(files: string[]): Promise<void> {
+    await this.createFeedPostComponent.uploadFiles(files);
   }
 }

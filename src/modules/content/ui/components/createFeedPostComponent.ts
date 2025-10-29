@@ -246,7 +246,15 @@ export class CreateFeedPostComponent
       }
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-      await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      /*
+          If files are more than 10, verify the count of attached files is 10
+          because atmax 10 files are uploaded else verify the count of attached files is the number of files uploaded
+      */
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
 
       // Wait for all upload requests to complete
       await Promise.all(responsePromises);
