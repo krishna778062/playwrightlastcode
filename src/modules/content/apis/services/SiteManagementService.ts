@@ -285,78 +285,49 @@ export class SiteManagementService implements ISiteManagementOperations {
       }
 
       const content = contentData.result;
-      const contentType = content.type;
 
-      // Map status to publishingStatus - use only values from API response
-      const publishingStatus = content.publishingStatus || content.status;
-
-      // Build payload matching EXACTLY what addNewPageContent/addNewEventContent/addNewAlbumContent sends
-      let approvalPayload: any = {
-        contentSubType: content.contentSubType,
-        listOfFiles: content.listOfFiles,
-        publishAt: content.publishAt,
-        body: content.body,
-        imgCaption: content.imgCaption,
-        publishingStatus: publishingStatus,
-        bodyHtml: content.bodyHtml,
-        imgLayout: content.imgLayout,
-        title: content.title,
-        language: content.language,
-        isFeedEnabled: content.isFeedEnabled,
-        listOfTopics: content.listOfTopics,
+      // Prepare the approval payload with all required fields from the existing content
+      const approvalPayload = {
+        authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
+        contentSubType: content.contentSubType || content.type || 'general',
+        contentType: content.type || 'page',
+        listOfFiles: content.listOfFiles || [],
+        publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),
+        body: content.body || '',
+        imgCaption: content.imgCaption || '',
+        isRestricted: content.isRestricted || false,
+        publishingStatus: content.status === 'published' ? 'immediate' : content.publishingStatus || 'immediate',
+        listOfInlineImages: content.listOfInlineImages || [],
+        listOfInlineVideos: content.listOfInlineVideos || [],
+        summary: content.summary || null,
+        readTimeInMin: content.readTimeInMin || 1,
+        publishTo: content.publishTo || null,
+        bodyHtml: content.bodyHtml || `<p>${content.excerpt || ''}</p>`,
+        imgLayout: content.imgLayout || 'small',
+        isMaximumWidth: content.isMaximumWidth || false,
+        isQuestionAnswerEnabled: content.isQuestionAnswerEnabled !== undefined ? content.isQuestionAnswerEnabled : true,
+        targetAudience: content.targetAudience || [],
+        title: content.title || '',
+        language: content.language || 'en-US',
+        isFeedEnabled: content.isFeedEnabled !== undefined ? content.isFeedEnabled : true,
+        listOfTopics: content.listOfTopics || [],
         category: content.category
           ? {
-              id: content.category.id || content.category.categoryId,
-              name: content.category.name,
+              id: content.category.id || content.category.categoryId || '',
+              name: content.category.name || '',
             }
-          : undefined,
-        contentType: contentType,
-        isNewTiptap: content.isNewTiptap,
+          : { id: '', name: 'Uncategorized' },
+        manualTransEnabled: content.manualTransEnabled || false,
+        // Event-specific fields
+        ...(content.startsAt && { startsAt: content.startsAt }),
+        ...(content.endsAt && { endsAt: content.endsAt }),
+        ...(content.timezoneIso && { timezoneIso: content.timezoneIso }),
+        ...(content.location && { location: content.location }),
+        ...(content.isAllDay !== undefined && { isAllDay: content.isAllDay }),
+        // Album-specific fields
+        ...(content.listOfAlbumMedia && { listOfAlbumMedia: content.listOfAlbumMedia }),
+        ...(content.coverImageMediaId && { coverImageMediaId: content.coverImageMediaId }),
       };
-
-      // Add conditional fields if they exist
-      if (content.publishAt) {
-        approvalPayload.publishAt = content.publishAt;
-      }
-      if (content.publishTo) {
-        approvalPayload.publishTo = content.publishTo;
-      }
-
-      // Add content-type-specific fields matching create methods
-      if (contentType === 'event') {
-        // Match addNewEventContent exactly - no contentSubType or category
-        approvalPayload = {
-          listOfFiles: content.listOfFiles,
-          body: content.body,
-          imgCaption: content.imgCaption,
-          startsAt: content.startsAt,
-          isAllDay: content.isAllDay,
-          publishingStatus: publishingStatus,
-          endsAt: content.endsAt,
-          timezoneIso: content.timezoneIso,
-          bodyHtml: content.bodyHtml,
-          imgLayout: content.imgLayout,
-          directions: content.directions,
-          location: content.location,
-          title: content.title,
-          language: content.language,
-          isFeedEnabled: content.isFeedEnabled,
-          listOfTopics: content.listOfTopics,
-          contentType: contentType,
-          isNewTiptap: content.isNewTiptap,
-          ...(content.publishAt && { publishAt: content.publishAt }),
-          ...(content.eventSync && { eventSync: content.eventSync }),
-          ...(content.rsvp && { rsvp: content.rsvp }),
-        };
-      } else if (contentType === 'album') {
-        // Match addNewAlbumContent exactly
-        approvalPayload = {
-          ...approvalPayload,
-          coverImageMediaId: content.coverImageMediaId,
-          listOfAlbumMedia: content.listOfAlbumMedia,
-        };
-      }
-      // For 'page' type, use the base payload as-is (matches addNewPageContent)
 
       const response = await this.httpClient.put(API_ENDPOINTS.content.approveContent(siteId, contentId), {
         data: approvalPayload,

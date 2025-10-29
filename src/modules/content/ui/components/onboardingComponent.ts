@@ -20,9 +20,10 @@ export class OnboardingComponent extends BaseComponent {
   selectOnboardingRadioButton(option: OnboardingOption): Locator {
     return this.page.getByRole('radio', { name: option });
   }
-  verifyOnboardingTabVisible(tabName: string): Locator {
-    return this.page.getByText(tabName).first();
+  verifyTabVisible(tabName: string): Locator {
+    return this.page.locator('.StampList').filter({ hasText: tabName }).first();
   }
+
   async selectOnboardingOption(option: OnboardingOption): Promise<void> {
     await test.step(`Select onboarding option: ${option}`, async () => {
       await this.checkElement(this.selectOnboardingRadioButton(option));
@@ -30,7 +31,7 @@ export class OnboardingComponent extends BaseComponent {
   }
   async verifyTagIsVisibleOnContent(option: OnboardingOption): Promise<void> {
     await test.step(`Verify tag is visible on content: ${option}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.verifyOnboardingTabVisible(option));
+      await this.verifier.verifyTheElementIsVisible(this.verifyTabVisible(option));
     });
   }
   async verifyAlreadySelectedOnboardingOptionVisible(option: OnboardingOption): Promise<void> {
@@ -53,7 +54,7 @@ export class OnboardingComponent extends BaseComponent {
       const textContent = await this.contentOuterDiv.textContent();
       console.log('textContent', textContent);
       if (textContent && textContent.includes(option)) {
-        await this.verifier.verifyTheElementIsNotVisible(this.verifyOnboardingTabVisible(option));
+        await this.verifier.verifyTheElementIsNotVisible(this.verifyTabVisible(option));
       }
     });
   }

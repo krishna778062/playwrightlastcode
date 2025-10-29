@@ -196,13 +196,13 @@ test.describe('manage Site Tests', () => {
   test(
     'verify published stamp and its options menu on approved content under Content tab in Manage Site',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20534'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20536'],
     },
-    async ({ appManagerApiFixture, standardUserApiFixture }) => {
+    async ({ appManagerFixture, appManagerApiFixture, standardUserApiFixture }) => {
       tagTest(test.info(), {
         description: 'Verify published stamp and its options menu on approved content under Content tab in Manage Site',
-        zephyrTestId: 'CONT-20534',
-        storyId: 'CONT-20534',
+        zephyrTestId: 'CONT-20536',
+        storyId: 'CONT-20536',
       });
 
       const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -216,7 +216,16 @@ test.describe('manage Site Tests', () => {
         pageInfo.contentId
       );
       console.log('approveContentResponse', approveContentResponse);
-      await manageContentPage.actions.verifyTagIsVisibleOnContent(OnboardingOption.PUBLISHED_TAG);
+      const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo.siteId);
+      await siteDetailsPage.loadPage();
+      await manageSitesComponent.clickOnTheManageSiteButtonAction();
+      await manageSitesComponent.clickOnInsideContentButtonAction();
+      await siteDetailsPage.actions.clickOnContentTab();
+      await manageContentPage.actions.clickFilterButton();
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+      await manageContentPage.actions.clickFilterButton();
+      await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+      await onboardingComponent.verifyTagIsVisibleOnContent(OnboardingOption.PUBLISHED_TAG);
     }
   );
 });
