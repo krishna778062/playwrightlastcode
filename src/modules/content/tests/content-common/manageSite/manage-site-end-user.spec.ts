@@ -9,7 +9,6 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   ContentSuiteTags.MANAGE_SITE,
@@ -18,7 +17,6 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
-    let identityManagementHelper: IdentityManagementHelper;
     test.beforeEach(async ({}) => {});
 
     test.afterEach(async ({ page }) => {
@@ -30,7 +28,6 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
           ContentFeatureTags.MANAGE_SITE,
           '@CONT-29063',
         ],
@@ -88,7 +85,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
-            pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('page'),
+            pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
             contentDescription: randDomDescription,
           },
         });
@@ -96,7 +93,7 @@ test.describe(
           siteId: siteInfo.siteId,
           imageName: 'beach.jpg',
           options: {
-            albumName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('album'),
+            albumName: MANAGE_SITE_TEST_DATA.ALBUM_NAME.generateUniqueName(),
             contentDescription: randDomDescription,
           },
         });
@@ -104,7 +101,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'event' },
           options: {
-            eventName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('event'),
+            eventName: MANAGE_SITE_TEST_DATA.EVENT_NAME.generateUniqueName(),
             contentDescription: randDomDescription,
           },
         });
@@ -135,7 +132,6 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
           ContentFeatureTags.MANAGE_SITE,
           '@CONT-29063',
         ],
@@ -172,7 +168,6 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
           ContentFeatureTags.MANAGE_SITE,
           '@CONT-29063',
         ],

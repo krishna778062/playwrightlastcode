@@ -124,7 +124,7 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickFilterButton();
-      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+      await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
       await manageContentPage.actions.clickOnFirstContentButton();
       await manageContentPage.actions.clickOnSelectActionDropdown();
       await manageContentPage.actions.clickOnUnpublishButton();
@@ -190,6 +190,33 @@ test.describe('manage Site Tests', () => {
       await manageContentPage.actions.hoverOnFirstDropDownOption();
       await manageContentPage.actions.clickOnDeleteOption();
       await manageContentPage.actions.clickDeleteModalConfirmButton();
+    }
+  );
+
+  test(
+    'verify published stamp and its options menu on approved content under Content tab in Manage Site',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20534'],
+    },
+    async ({ appManagerApiFixture, standardUserApiFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify published stamp and its options menu on approved content under Content tab in Manage Site',
+        zephyrTestId: 'CONT-20534',
+        storyId: 'CONT-20534',
+      });
+
+      const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'page', contentSubType: 'news' },
+      });
+      console.log('pageInfo', pageInfo);
+      const approveContentResponse = await appManagerApiFixture.siteManagementHelper.approveContent(
+        siteInfo.siteId,
+        pageInfo.contentId
+      );
+      console.log('approveContentResponse', approveContentResponse);
+      await manageContentPage.actions.verifyTagIsVisibleOnContent(OnboardingOption.PUBLISHED_TAG);
     }
   );
 });

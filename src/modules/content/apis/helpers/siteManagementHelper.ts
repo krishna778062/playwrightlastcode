@@ -1102,6 +1102,10 @@ export class SiteManagementHelper {
     }
   }
 
+  async approveContent(siteId: string, contentId: string): Promise<any> {
+    return await this.siteManagementService.approveContent(siteId, contentId);
+  }
+
   async getSiteInUserIsNotMemberOrOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
       const siteListResponse = await this.getListOfSites({ filter: 'active' });

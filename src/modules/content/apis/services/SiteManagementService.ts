@@ -274,6 +274,96 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
+  async approveContent(siteId: string, contentId: string): Promise<void> {
+    return await test.step(`Approving content: ${contentId} for site: ${siteId}`, async () => {
+      // First, get the content details to get all required fields
+      const getResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId));
+      const contentData = await getResponse.json();
+
+      if (!getResponse.ok() || contentData.status !== 'success') {
+        throw new Error(`Failed to get content details. Status: ${getResponse.status()}`);
+      }
+
+      const content = contentData.result;
+      const contentType = content.type;
+
+      // Map status to publishingStatus - use only values from API response
+      const publishingStatus = content.publishingStatus || content.status;
+
+      // Build payload matching EXACTLY what addNewPageContent/addNewEventContent/addNewAlbumContent sends
+      let approvalPayload: any = {
+        contentSubType: content.contentSubType,
+        listOfFiles: content.listOfFiles,
+        publishAt: content.publishAt,
+        body: content.body,
+        imgCaption: content.imgCaption,
+        publishingStatus: publishingStatus,
+        bodyHtml: content.bodyHtml,
+        imgLayout: content.imgLayout,
+        title: content.title,
+        language: content.language,
+        isFeedEnabled: content.isFeedEnabled,
+        listOfTopics: content.listOfTopics,
+        category: content.category
+          ? {
+              id: content.category.id || content.category.categoryId,
+              name: content.category.name,
+            }
+          : undefined,
+        contentType: contentType,
+        isNewTiptap: content.isNewTiptap,
+      };
+
+      // Add conditional fields if they exist
+      if (content.publishAt) {
+        approvalPayload.publishAt = content.publishAt;
+      }
+      if (content.publishTo) {
+        approvalPayload.publishTo = content.publishTo;
+      }
+
+      // Add content-type-specific fields matching create methods
+      if (contentType === 'event') {
+        // Match addNewEventContent exactly - no contentSubType or category
+        approvalPayload = {
+          listOfFiles: content.listOfFiles,
+          body: content.body,
+          imgCaption: content.imgCaption,
+          startsAt: content.startsAt,
+          isAllDay: content.isAllDay,
+          publishingStatus: publishingStatus,
+          endsAt: content.endsAt,
+          timezoneIso: content.timezoneIso,
+          bodyHtml: content.bodyHtml,
+          imgLayout: content.imgLayout,
+          directions: content.directions,
+          location: content.location,
+          title: content.title,
+          language: content.language,
+          isFeedEnabled: content.isFeedEnabled,
+          listOfTopics: content.listOfTopics,
+          contentType: contentType,
+          isNewTiptap: content.isNewTiptap,
+          ...(content.publishAt && { publishAt: content.publishAt }),
+          ...(content.eventSync && { eventSync: content.eventSync }),
+          ...(content.rsvp && { rsvp: content.rsvp }),
+        };
+      } else if (contentType === 'album') {
+        // Match addNewAlbumContent exactly
+        approvalPayload = {
+          ...approvalPayload,
+          coverImageMediaId: content.coverImageMediaId,
+          listOfAlbumMedia: content.listOfAlbumMedia,
+        };
+      }
+      // For 'page' type, use the base payload as-is (matches addNewPageContent)
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.approveContent(siteId, contentId), {
+        data: approvalPayload,
+      });
+      return await response.json();
+    });
+  }
 
   /**
    * Unfeatures a site (removes it from featured sites)
