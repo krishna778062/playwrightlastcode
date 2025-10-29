@@ -22,6 +22,9 @@ export const PAGE_ENDPOINTS = {
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
+  CONTENT_SITES: '/v1/content/sites',
+  CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
+  IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
@@ -52,6 +55,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_CONTENT_STATUS_API: '/manage/content/status',
   MANAGE_CONTENT_MOVE_API: '/v1/page',
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+  CONTENT_PAGE_UPDATE_API: 'action=update',
 
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
@@ -84,4 +88,10 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  USER_SYNCING: '/manage/app/people/user-syncing',
+
+  //Polls settings page
+  POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
+  //Poll listening page
+  POLLS_LISTING_PAGE: '/polls',
 };
