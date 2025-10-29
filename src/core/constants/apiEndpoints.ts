@@ -71,7 +71,8 @@ export const API_ENDPOINTS = {
   content: {
     category: '/pageCategories/list',
     publish: '/content?action=publish',
-    approveContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
+    approveContent: (siteId: string, contentId: string) =>
+      `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',

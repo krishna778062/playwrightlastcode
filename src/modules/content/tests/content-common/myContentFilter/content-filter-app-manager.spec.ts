@@ -28,12 +28,7 @@ test.describe(
     test(
       'verify published status for scheduled page by app manager',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MY_CONTENT_FILTER,
-          '@CONT-33059',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-33059'],
       },
       async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
