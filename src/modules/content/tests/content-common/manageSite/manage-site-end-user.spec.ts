@@ -25,12 +25,7 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Public site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -85,7 +80,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
-            pageName: MANAGE_SITE_TEST_DATA.PAGE_NAME.generateUniqueName(),
+            pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('page'),
             contentDescription: randDomDescription,
           },
         });
@@ -93,7 +88,7 @@ test.describe(
           siteId: siteInfo.siteId,
           imageName: 'beach.jpg',
           options: {
-            albumName: MANAGE_SITE_TEST_DATA.ALBUM_NAME.generateUniqueName(),
+            albumName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('album'),
             contentDescription: randDomDescription,
           },
         });
@@ -101,7 +96,7 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'event' },
           options: {
-            eventName: MANAGE_SITE_TEST_DATA.EVENT_NAME.generateUniqueName(),
+            eventName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateContentName('event'),
             contentDescription: randDomDescription,
           },
         });
@@ -129,12 +124,7 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Private site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -165,12 +155,7 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Unlisted site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
