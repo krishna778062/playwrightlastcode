@@ -24,6 +24,7 @@ export enum IntegrationsSuiteTags {
   CONFLUENCE = '@confluence',
   GREENHOUSE = '@greenhouseAppTiles',
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  UKG_SYNCING = '@ukgSync',
   WORKDAY = '@workdayAppTiles',
 }
 
@@ -68,6 +69,7 @@ export const TEST_TAGS = {
   GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
   CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
   RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+  UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
 } as const;
 
@@ -75,4 +77,5 @@ export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
   PEOPLE_TAB = '@people',
+  UKG_SYNCING = '@ukg-syncing',
 }

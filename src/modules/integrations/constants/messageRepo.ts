@@ -48,6 +48,8 @@ export const MESSAGES = {
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
   getAppDisabledMessage: (appName: string) => `${appName} disabled`,
   getAppConnectedMessage: (appName: string) => `Connected to ${appName} successfully`,
+  VALID_URL: 'This is not a valid URL',
+  MISSING_FIELD: 'Please fill out this field',
   getAppPublishedMessage: (appName: string) => `${appName} published`,
   NO_RESULTS_TEXT: 'No results Try adjusting search term or filters',
   TILE_SAVED_DRAFT: 'Tile saved as draft',
