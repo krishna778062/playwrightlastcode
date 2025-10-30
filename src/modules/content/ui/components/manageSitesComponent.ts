@@ -1,7 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { ContentFilter } from '@/src/modules/content/constants/contentFilter';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
@@ -58,9 +60,9 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
-    this.contentFilterDropdown = page.locator('select[aria-label="Content:"]');
-    this.contentFilterSelectedValue = page.locator('select[aria-label="Content:"]').locator(':checked');
-    this.contentSearchBar = page.locator('[aria-label="Search…"]');
+    this.contentFilterDropdown = page.getByLabel('Content:');
+    this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
+    this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -327,22 +329,35 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
-  async selectManagingContentFilter(): Promise<void> {
-    await test.step('Select managing content filter', async () => {
-      await this.contentFilterDropdown.selectOption('managing');
+  async selectContentFilter(filter: ContentFilter): Promise<void> {
+    await test.step(`Select content filter: ${filter}`, async () => {
+      await this.performActionAndWaitForResponse(
+        () => this.contentFilterDropdown.selectOption(filter),
+        response =>
+          response.request().url().includes(API_ENDPOINTS.content.contentListInSite) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
     });
   }
 
-  async verifyContentFilterIsSelectedWithValue(value: string): Promise<void> {
+  async verifyContentFilterIsSelectedWithValue(value: ContentFilter | string): Promise<void> {
     await test.step(`Verify content filter is selected with value: ${value}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.contentFilterSelectedValue.filter({ hasText: value }), {
-        assertionMessage: `Content filter should be selected with value: ${value}`,
-      });
+      const selectedValue = await this.contentFilterDropdown.inputValue();
+      if (selectedValue !== value) {
+        throw new Error(`Content filter should be selected with value: ${value}, but found: ${selectedValue}`);
+      }
     });
   }
 
   async searchContentInManageSite(contentName: string): Promise<void> {
     await test.step(`Search content ${contentName} in manage site`, async () => {
+      if (!contentName || typeof contentName !== 'string') {
+        throw new Error(`Invalid contentName provided: ${contentName}. Expected a non-empty string.`);
+      }
       await this.typeInElement(this.contentSearchBar, contentName);
       await this.contentSearchBar.press('Enter');
     });

@@ -378,6 +378,7 @@ export class ContentManagementService implements IContentManagementServices {
    */
   async getContentList(
     options: {
+      siteId?: string;
       size?: number;
       status?: string;
       filter?: string;
@@ -392,6 +393,7 @@ export class ContentManagementService implements IContentManagementServices {
         sortBy: options.sortBy || 'publishedNewest',
         contribution: options.contribution || 'all',
         filter: options.filter || 'managing',
+        ...(options.siteId && { siteId: options.siteId }),
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

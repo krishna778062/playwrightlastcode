@@ -476,7 +476,7 @@ export class SiteManagementHelper {
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
       size: options?.size || 16,
-      filter: options?.filter || 'mySites',
+      filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'alphabetical',
       ...options,
     };
@@ -510,7 +510,7 @@ export class SiteManagementHelper {
     return await test.step(`Getting ${count} non-featured sites`, async () => {
       // Fetch both lists in parallel for better performance
       const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'mySites', size: 1000 }),
+        this.getListOfSites({ filter: 'active', size: 1000 }),
         this.getListOfSites({ filter: 'featured', size: 1000 }),
       ]);
 
