@@ -362,11 +362,15 @@ export class SiteDashboard {
     appName: string,
     tileName: string,
     fieldName: string,
-    url: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldStatus: string,
     destination: string
   ): Promise<void> {
     await this.addTile(tileTitle, appName, tileName, destination, {
-      fields: [{ name: fieldName, value: url }],
+      fields: [{ name: fieldName, value: fieldValue }],
+      radioOptionsWithValues: [{ fieldName: fieldName2, option: fieldValue2, value: fieldStatus }],
     });
   }
 
