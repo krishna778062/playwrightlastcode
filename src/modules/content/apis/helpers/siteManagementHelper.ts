@@ -477,7 +477,7 @@ export class SiteManagementHelper {
     const defaultOptions = {
       size: options?.size || 16,
       filter: options?.filter || 'active',
-      sortBy: options?.sortBy || 'alphabetical',
+      sortBy: options?.sortBy || 'createdNewest',
       ...options,
     };
 

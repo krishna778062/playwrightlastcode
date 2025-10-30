@@ -1946,84 +1946,88 @@ export class CustomAppTilesPage extends BasePage {
   }
 
   /**
-   * Delete all tiles that start with the given prefix
-   * @param prefix - The prefix to match tiles for deletion
+   * Delete all tiles that start with the given prefix or match a pattern
+   * @param prefix - The prefix to match tiles for deletion, or empty string for pattern matching
+   * @param pattern - Optional regex pattern to match tile names (e.g., /Test\s[a-zA-Z0-9]{6}$/)
    */
-  async deleteAllTilesWithPrefix(prefix: string): Promise<void> {
+  async deleteAllTilesWithPrefix(prefix: string, pattern?: RegExp): Promise<void> {
     await test.step(`Delete all tiles with prefix: ${prefix}`, async () => {
       let deletedCount = 0;
-      const maxAttempts = 30; // Allow more attempts
+      const maxAttempts = 30;
 
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      while (deletedCount < maxAttempts) {
         try {
-          // Check if any tiles with prefix exist without reloading first
-          const firstTile = this.tileRows.filter({ hasText: prefix }).first();
-          const tileExists = await firstTile.isVisible({ timeout: 2000 }).catch(() => false);
+          // Find matching tile
+          let matchingTile: Locator | null = null;
+          let tileName = '';
 
-          if (!tileExists) {
-            console.log(`No more tiles with prefix "${prefix}" found. Deleted ${deletedCount} tiles.`);
+          if (pattern) {
+            // Pattern matching: find first tile matching pattern
+            const count = await this.tileHeadingByPrefix.count();
+            for (let i = 0; i < count; i++) {
+              const text = await this.tileHeadingByPrefix.nth(i).textContent();
+              if (text && pattern.test(text.trim())) {
+                tileName = text.trim();
+                matchingTile = this.tileRows.filter({ hasText: tileName }).first();
+                if (await matchingTile.isVisible({ timeout: 2000 }).catch(() => false)) break;
+              }
+            }
+          } else {
+            matchingTile = this.tileRows.filter({ hasText: prefix }).first();
+          }
+
+          if (!matchingTile || !(await matchingTile.isVisible({ timeout: 2000 }).catch(() => false))) {
+            console.log(`No more matching tiles found. Deleted ${deletedCount} tiles.`);
             break;
           }
 
-          console.log(`Deleting tile ${deletedCount + 1} with prefix "${prefix}"`);
-
-          // Click the three dots menu for the first tile with the prefix
-          await this.clickThreeDotsForTileStartingWith(prefix);
-
-          // Wait for menu to appear
-          await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
-
-          // Select Delete option
-          await this.selectOptionFromTileMenuDropdown('Delete');
-
-          // Wait for confirmation dialog
-          await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
-
-          // Confirm deletion
-          await this.clickConfirmDeleteButton();
-
-          // Wait for the confirmation dialog to close
-          await this.confirmDeleteButton.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
-
-          deletedCount++;
-        } catch (error) {
-          console.error(`Deletion attempt ${attempt + 1} failed:`, error);
-
-          // Try to close any open dropdowns or modals
-          try {
-            await this.page.keyboard.press('Escape');
-            await this.page
-              .waitForSelector('[role="menu"], [role="dialog"]', { state: 'hidden', timeout: 2000 })
-              .catch(() => {});
-          } catch (closeError) {
-            console.error('Failed to close dropdown/modal:', closeError);
+          // Get tile name for logging
+          if (!tileName) {
+            tileName =
+              (await matchingTile
+                .locator('h3')
+                .first()
+                .textContent()
+                .catch(() => '')) || '';
           }
 
-          // Reload the page if we're getting errors to get back to a good state
-          if (attempt > 0 && attempt % 3 === 0) {
-            try {
-              console.log('Reloading page to reset state...');
-              // Check if page is still open before reloading
-              if (!this.page.isClosed()) {
-                await this.page.reload({ waitUntil: 'domcontentloaded' });
-                await this.tileRows
-                  .first()
-                  .waitFor({ state: 'attached', timeout: 10000 })
-                  .catch(() => {});
-              } else {
-                console.log('Page is closed, skipping reload');
-                break;
-              }
-            } catch (reloadError) {
-              console.error('Failed to reload page:', reloadError);
-              // If reload fails, likely page is closed, break the loop
-              break;
-            }
+          // Delete the tile
+          await matchingTile.locator(this.showMoreButtonSelector).first().click();
+          await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
+          await this.selectOptionFromTileMenuDropdown('Delete');
+          await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
+          await this.clickConfirmDeleteButton();
+          await this.confirmDeleteButton.waitFor({ state: 'hidden', timeout: 10000 });
+
+          // Wait for tile to be removed from DOM
+          await matchingTile.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+          await this.page.waitForTimeout(500); // Small delay for DOM update
+
+          deletedCount++;
+          console.log(`Deleted tile ${deletedCount}: ${tileName}`);
+        } catch (error) {
+          console.error(`Deletion attempt ${deletedCount + 1} failed:`, error);
+          await this.page.keyboard.press('Escape').catch(() => {});
+
+          // Reload periodically or if many failures
+          if (deletedCount > 0 && deletedCount % 5 === 0 && !this.page.isClosed()) {
+            await this.page.reload({ waitUntil: 'domcontentloaded' });
+            await this.tileRows
+              .first()
+              .waitFor({ state: 'attached', timeout: 10000 })
+              .catch(() => {});
+          } else if (deletedCount === 0) {
+            // If first attempt fails, check if no tiles exist
+            const hasTiles = await this.tileRows
+              .first()
+              .isVisible({ timeout: 2000 })
+              .catch(() => false);
+            if (!hasTiles) break;
           }
         }
       }
 
-      console.log(`Completed deletion process. Total tiles deleted: ${deletedCount}`);
+      console.log(`Completed. Total tiles deleted: ${deletedCount}`);
     });
   }
 
