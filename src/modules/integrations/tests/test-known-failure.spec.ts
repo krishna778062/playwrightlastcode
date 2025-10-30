@@ -7,17 +7,6 @@ import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('known Failures Demo', { tag: [IntegrationsSuiteTags.ABSOLUTE] }, () => {
   test(
-    'should pass normally',
-    {
-      tag: [TestPriority.P1, TestGroupType.SANITY, '@demo-pass'],
-    },
-    async ({ page }) => {
-      await page.goto('data:text/html,<h1>Hello World</h1>');
-      await page.waitForSelector('h1');
-    }
-  );
-
-  test(
     'should pass and be removed from known failures',
     {
       tag: [TestPriority.P2, TestGroupType.SANITY, '@demo-known-fail'],
@@ -44,18 +33,6 @@ test.describe('known Failures Demo', { tag: [IntegrationsSuiteTags.ABSOLUTE] }, 
     async ({ page }) => {
       await page.goto('data:text/html,<h1>Hello India</h1>');
       await page.waitForSelector('h1');
-    }
-  );
-
-  test(
-    'should fail due to actual regression',
-    {
-      tag: [TestPriority.P1, TestGroupType.SANITY, '@demo-fail'],
-    },
-    async ({ page }) => {
-      // This test case failed due to actual regression so it will be counted as actual failure
-      await page.goto('https://httpstat.in/500');
-      await page.waitForSelector('h1', { timeout: 5000 });
     }
   );
 
