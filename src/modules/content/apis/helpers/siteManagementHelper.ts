@@ -71,8 +71,8 @@ export class SiteManagementHelper {
       access: 'public',
       name: finalSiteName,
       category: {
-        categoryId: categoryObj!.categoryId,
-        name: categoryObj!.name,
+        categoryId: categoryObj.categoryId,
+        name: categoryObj.name,
       },
       ...overrides,
     });
