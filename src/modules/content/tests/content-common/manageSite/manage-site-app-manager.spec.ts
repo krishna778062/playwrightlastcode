@@ -54,7 +54,7 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickSortByButton();
-      await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+      await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       await manageContentPage.actions.scheduledTagVisibleInManageContent();
       await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
       await manageContentPage.actions.hoverOnFirstDropDownOption();

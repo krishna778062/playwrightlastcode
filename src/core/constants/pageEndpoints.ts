@@ -77,6 +77,7 @@ export const PAGE_ENDPOINTS = {
   SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
+  ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
@@ -88,4 +89,10 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  USER_SYNCING: '/manage/app/people/user-syncing',
+
+  //Polls settings page
+  POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
+  //Poll listening page
+  POLLS_LISTING_PAGE: '/polls',
 };

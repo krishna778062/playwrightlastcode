@@ -39,7 +39,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         const { tileType, app, apiAction, previewButton, nextButton } = DEFAULT_CUSTOM_APP_TILE_CONFIG;
@@ -136,7 +136,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
-        const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
@@ -159,7 +159,7 @@ test.describe(
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
         // enter tile name and description
-        const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
@@ -201,7 +201,7 @@ test.describe(
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
         // enter tile name and description
-        const tileName = `Test Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
@@ -554,7 +554,7 @@ test.describe(
 
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        const tileName = `Empty Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Empty Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Empty Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
@@ -590,7 +590,7 @@ test.describe(
 
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
-        const tileName = `Empty Save Tile ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Empty Save Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Empty Save Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
@@ -709,7 +709,8 @@ test.describe(
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
         // Delete all test tiles created during test runs (cleanup)
-        await customAppTilesPage.deleteAllTilesWithPrefix('Test Tile');
+        // Match tiles ending with "Test" followed by space and 6 alphanumeric characters (e.g., "Test L1nBHx")
+        await customAppTilesPage.deleteAllTilesWithPrefix('', /.*\bTest\s[a-zA-Z0-9]{6}$/);
       }
     );
   }
