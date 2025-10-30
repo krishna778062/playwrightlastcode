@@ -1,4 +1,4 @@
-import { expect, FrameLocator, Locator, Page } from '@playwright/test';
+import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
 
@@ -16,7 +16,7 @@ export class PieChartComponent extends BaseComponent {
       has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
     super(page, container);
-    this.toolTipContainer = this.rootLocator.locator('highcharts-tooltip-container');
+    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
@@ -38,10 +38,10 @@ export class PieChartComponent extends BaseComponent {
   /**
    * Verifies the tool tip container is visible
    */
-  async verifyToolTipContainerIsVisible(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.rootLocator.locator('[data-highcharts-chart=3]').locator('g'), {
+  async waitForToolTipContainerToBeVisible(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
       timeout: 30_000,
-      assertionMessage: 'ToolTip container should be visible',
+      stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
 
@@ -60,15 +60,17 @@ export class PieChartComponent extends BaseComponent {
   async validateValuesShownInToolTipAreAsExpected(params: {
     labelsAndValues: { keyText: string; expectedValue: string }[];
   }): Promise<void> {
-    const { labelsAndValues } = params;
-    for (const { keyText, expectedValue } of labelsAndValues) {
-      const toolTipBlock = this.getToolTipBlockWithKeyTextAs(keyText);
-      const toolTipValue = toolTipBlock.locator("[class*='chart-tooltip-value']");
-      await expect(
-        toolTipValue,
-        `Value shown in tool tip for key text ${keyText} should be ${expectedValue}`
-      ).toHaveText(expectedValue.toString());
-    }
+    await test.step(`Validate values shown in tool tip are as expected for metric ${this.metricTitle} and labels and values are as expected: ${params.labelsAndValues}`, async () => {
+      const { labelsAndValues } = params;
+      for (const { keyText, expectedValue } of labelsAndValues) {
+        const toolTipBlock = this.getToolTipBlockWithKeyTextAs(keyText);
+        const toolTipValue = toolTipBlock.locator("[class*='chart-tooltip-value']");
+        await expect(
+          toolTipValue,
+          `Value shown in tool tip for key text ${keyText} should be ${expectedValue}`
+        ).toHaveText(expectedValue.toString());
+      }
+    });
   }
 
   /**
@@ -78,6 +80,22 @@ export class PieChartComponent extends BaseComponent {
   async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
     const chartLabel = this.getChartLabelLocatorWithLabelAs(label);
     await chartLabel.hover();
+  }
+
+  /**
+   * Normalizes text by removing invisible characters and normalizing whitespace.
+   * Handles optional whitespace around punctuation (parentheses, dashes, etc.)
+   * @param text - The text to normalize
+   * @returns Normalized text
+   */
+  private normalizeText(text: string): string {
+    return text
+      .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width spaces and other invisible characters
+      .replace(/\s*\(\s*/g, '(') // Normalize spaces before opening parenthesis: "1 (" or "1(" -> "1("
+      .replace(/\s*\)\s*/g, ')') // Normalize spaces around closing parenthesis: " )" or ")" -> ")"
+      .replace(/\s*-\s*/g, ' - ') // Normalize spaces around dashes: "-" or " -" or "- " -> " - "
+      .replace(/\s+/g, ' ') // Collapse multiple whitespace characters into a single space
+      .trim();
   }
 
   /**
@@ -94,6 +112,13 @@ export class PieChartComponent extends BaseComponent {
   async verifySegmentLabelDataPointsAreAsExpected(params: { label: string; expectedText: string }): Promise<void> {
     const { label, expectedText } = params;
     const chartLabel = this.getChartLabelLocatorWithLabelAs(label);
-    await expect(chartLabel, `Segment label ${label} should display text: ${expectedText}`).toHaveText(expectedText);
+    const actualText = await chartLabel.textContent();
+    const normalizedActual = this.normalizeText(actualText || '');
+    const normalizedExpected = this.normalizeText(expectedText);
+
+    expect(
+      normalizedActual,
+      `Segment label ${label} should display text: ${expectedText}, but got: ${actualText}`
+    ).toBe(normalizedExpected);
   }
 }

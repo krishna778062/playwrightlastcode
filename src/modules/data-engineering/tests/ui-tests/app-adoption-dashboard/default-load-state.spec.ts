@@ -232,6 +232,18 @@ test.describe(
             expectedText: `${data.behaviour} - ${data.count} (${data.percentage}%)`,
           });
         }
+
+        //verify tooltip is visible for each segment
+        for (const data of visibleSegments) {
+          await userEngagementBreakdownMetric.hoverOverSegmentLabelWithLabelAs(data.behaviour);
+          await userEngagementBreakdownMetric.waitForToolTipContainerToBeVisible();
+          await userEngagementBreakdownMetric.validateValuesShownInToolTipAreAsExpected({
+            labelsAndValues: [
+              { keyText: 'Total Count:', expectedValue: data.count.toString() },
+              { keyText: 'Adoption Behaviour', expectedValue: data.behaviour },
+            ],
+          });
+        }
       }
     );
   }
