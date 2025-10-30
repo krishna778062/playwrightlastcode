@@ -4,9 +4,11 @@ import { contentTestFixture as test, users } from '@content/fixtures/contentFixt
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
+import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
   '@FeedPost - Restrict feed posting permission to managers only',
@@ -22,120 +24,111 @@ test.describe(
     };
 
     test(
-      'public | SCM and Member see restriction message on dashboard',
+      'public | private | unlisted | SCM and Member see restriction message on dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Public_Site_Permission_Restriction'],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          '@Public_Site_Permission_Restriction @Private_Site_Permission_Restriction @Unlisted_Site_Permission_Restriction',
+        ],
       },
       async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
-        const created = await appManagerApiFixture.siteManagementHelper.createPublicSite({
+        // Increase timeout to 5 minutes for merged test covering all three site types
+        test.setTimeout(300000);
+
+        tagTest(test.info(), {
+          description: 'SCM and Member see restriction message on dashboard for public',
+          zephyrTestId: 'CONT-37172',
+          storyId: 'CONT-37172',
+        });
+
+        const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        const publicSite = await appManagerApiFixture.siteManagementHelper.createPublicSite({
           waitForSearchIndex: true,
         });
-        const siteId = created.siteId;
+        const publicSiteId = publicSite.siteId;
 
         // Use UI automation to set feed posting permission
-        const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
         await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          siteId,
+          publicSiteId,
           'managersOnly',
           manageSitePage
         );
 
-        const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
+          siteId: publicSiteId,
           userId,
           role: SitePermission.CONTENT_MANAGER,
         });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
+        await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
 
-        // As Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
-          userId,
-          role: SitePermission.MEMBER,
-        });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
-      }
-    );
-
-    test(
-      'private | SCM and Member see restriction message on dashboard',
-      {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Private_Site_Permission_Restriction'],
-      },
-      async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
-        const created = await appManagerApiFixture.siteManagementHelper.createPrivateSite({
+        const privateSite = await appManagerApiFixture.siteManagementHelper.createPrivateSite({
           waitForSearchIndex: true,
         });
-        const siteId = created.siteId;
+        const privateSiteId = privateSite.siteId;
+
+        // Reset page to home before navigation to ensure clean state
+        await appManagerFixture.page.goto(PAGE_ENDPOINTS.HOME_PAGE, { waitUntil: 'domcontentloaded' });
 
         // Use UI automation to set feed posting permission
-        const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
+        const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
         await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          siteId,
+          privateSiteId,
           'managersOnly',
-          manageSitePage
+          managePrivateSitePage
         );
-
-        const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
+          siteId: privateSiteId,
           userId,
           role: SitePermission.CONTENT_MANAGER,
         });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
+        await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
 
         // As Member
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
+          siteId: privateSiteId,
           userId,
           role: SitePermission.MEMBER,
         });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
-      }
-    );
+        await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
 
-    test(
-      'unlisted | SCM and Member see restriction message on dashboard',
-      {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Unlisted_Site_Permission_Restriction'],
-      },
-      async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
         // Unlisted sites don't appear in public search, so skip waitForSearchIndex to avoid timeout
-        const created = await appManagerApiFixture.siteManagementHelper.createUnlistedSite({
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.createUnlistedSite({
           waitForSearchIndex: false,
         });
-        const siteId = created.siteId;
+        const unlistedSiteId = unlistedSite.siteId;
+
+        // Reset page to home before navigation to ensure clean state
+        await appManagerFixture.page.goto(PAGE_ENDPOINTS.HOME_PAGE, { waitUntil: 'domcontentloaded' });
 
         // Use UI automation to set feed posting permission
-        const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
+        const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);
         await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          siteId,
+          unlistedSiteId,
           'managersOnly',
-          manageSitePage
+          manageUnlistedSitePage
         );
-
-        const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
+          siteId: unlistedSiteId,
           userId,
           role: SitePermission.CONTENT_MANAGER,
         });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
+        await verifyRestrictionForUser(unlistedSiteId, standardUserFixture.page);
 
         // As Member
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId,
+          siteId: unlistedSiteId,
           userId,
           role: SitePermission.MEMBER,
         });
-        await verifyRestrictionForUser(siteId, standardUserFixture.page);
+        await verifyRestrictionForUser(unlistedSiteId, standardUserFixture.page);
       }
     );
   }
