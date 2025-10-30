@@ -19,6 +19,18 @@
 export type TenantKey = 'primary' | 'secondary';
 export type EnvironmentKey = 'qa' | 'uat' | 'test';
 
+export const mailosaurValues: {
+  mailosaurApiKey: string;
+  mailosaurServerId: string;
+  mailosaurEmail: string;
+  mailosaurPhone: string;
+} = {
+  mailosaurApiKey: '3G0mJzdusG2e4QKWsyupr2emWMQaMZi2',
+  mailosaurServerId: 'bie7v7vm',
+  mailosaurEmail: 'green@bie7v7vm.mailosaur.net',
+  mailosaurPhone: '+12029891336',
+};
+
 /**
  * Get caller function information for debugging
  */
@@ -130,21 +142,24 @@ export const config = {
       newUxEnabled: false,
       orgId: 'a925141d-2dd4-4d18-b65f-723273302065',
       // OTP credentials for Mailosaur
-      mailosaurApiKey: 'RuhqTyBb8hp7JtPT',
-      mailosaurServerId: 'znl8uqcc',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
     test: {
       tenantName: 'Frontline Secondary TEST',
-      frontendBaseUrl: 'https://frontline.test.simpplr.xyz',
-      apiBaseUrl: 'https://frontline-api.test.simpplr.xyz',
-      appManagerEmail: 'meenakshi.joshi@simpplr.com',
-      appManagerPassword: 'Simp@123',
+      frontendBaseUrl: 'https://frontline-dnd.test.simpplr.xyz',
+      apiBaseUrl: 'https://frontline-dnd-api.test.simpplr.xyz',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Informa@1234',
       endUserEmail: 'yashi.gupta@simpplr.com',
       endUserPassword: 'Simp@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
-      orgId: 'd0ca1b4e-1b83-4223-8f5d-fa78fa75b01a',
+      orgId: '3b170730-d660-4ec4-a600-55959d19fc29',
+      // OTP credentials for Mailosaur
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
     uat: {
       tenantName: 'Frontline Secondary UAT',
