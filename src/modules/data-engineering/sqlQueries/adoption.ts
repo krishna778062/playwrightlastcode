@@ -209,4 +209,35 @@ export const AdoptionSql = {
            where td.TENANT_CODE = '{tenantCode}' AND 
            REPORTING_MONTH = '{reportingMonth}'
   `,
+
+  /**
+   * User Engagement Breakdown Query Template
+   * Returns user engagement breakdown data
+   */
+  USER_ENGAGEMENT_BREAKDOWN: `
+        select USER_MARKED_UNDER_CATEGORY as behaviour, 
+            count(USER_MARKED_UNDER_CATEGORY) as count from  
+            (  select user_code , case when max(category)=4 and max(logged_in)=1 then 'Contributor' 
+                when max(category)=3 and max(logged_in)=1 then 'Participant' 
+                when max(category)=2 and max(logged_in)=1 then 'Observer' 
+                else 'No logins' end as user_marked_under_category from  
+                (select user_code,case when is_contributor=true then 4 
+                when is_participant=true then 3 
+                when is_observer=true then 2 
+                else 1  end as category, 
+                case when has_logged_in='TRUE' then 1 
+                else 0 end as logged_in 
+                from SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua inner join 
+                SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u on u.code=dua.user_code
+                where reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+                and u.status_code='US001' and dua.tenant_code ='{tenantCode}' 
+                {locationFilter}
+                {departmentFilter}
+                {segmentFilter}
+                {userCategoryFilter}
+                {companyNameFilter}
+            ) 
+        group by user_code) 
+        group by USER_MARKED_UNDER_CATEGORY;
+  `,
 };
