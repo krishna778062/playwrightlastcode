@@ -145,6 +145,7 @@ export const frontlineTestFixture = test.extend<
         email: config.appManagerEmail,
         password: config.appManagerPassword,
       });
+      await page.close();
       await use(context);
       await context.close();
     },
@@ -229,6 +230,7 @@ export const frontlineTestFixture = test.extend<
         email: config.endUserEmail,
         password: config.endUserPassword,
       });
+      await page.close();
       await use(context);
       await context.close();
     },
