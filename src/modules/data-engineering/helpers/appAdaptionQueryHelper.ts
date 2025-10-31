@@ -1,3 +1,5 @@
+import { format, parseISO } from 'date-fns';
+
 import { GroupByOnUserParameter } from '../constants/filters';
 import { PeriodFilterTimeRange } from '../constants/periodFilterTimeRange';
 import { AdoptionSql } from '../sqlQueries/adoption';
@@ -24,6 +26,12 @@ export interface UserEngagementBreakdownData {
   behaviour: string;
   count: number;
   percentage: number;
+}
+
+export interface AdoptionRateUserLoginData {
+  reportingDate: string; // MM/DD/YYYY format (e.g., '10/02/2025')
+  userLogins: number;
+  adoptionRate: string; // Percentage with 2 decimal places (e.g., '5.71%')
 }
 
 export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
@@ -569,5 +577,56 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformUserEngagementBreakdownResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results for adoption rate user login data
+   * Converts data to UI-friendly format matching tooltip display:
+   * - Reporting date: MM/DD/YYYY format
+   * - User logins: numeric value
+   * - Adoption rate: percentage rounded to 2 decimal places with % symbol
+   * @param rawResults - Raw results from database query
+   * @returns Transformed data in UI format
+   */
+  private transformAdoptionRateUserLoginResults(rawResults: any[]): AdoptionRateUserLoginData[] {
+    return rawResults.map(result => {
+      // Convert LOGIN_DATE from YYYY-MM-DD to MM/DD/YYYY format
+      const loginDate = parseISO(result.LOGIN_DATE);
+      const reportingDate = format(loginDate, 'MM/dd/yyyy');
+
+      // Extract numeric value from PERCENT string (e.g., '5.714300%' -> 5.7143)
+      const percentString = result.PERCENT || '0%';
+      const percentValue = parseFloat(percentString.replace('%', ''));
+
+      // Round to 2 decimal places and format as percentage string
+      const adoptionRate = `${Math.round(percentValue * 100) / 100}%`;
+
+      return {
+        reportingDate,
+        userLogins: Number(result.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE),
+        adoptionRate,
+      };
+    });
+  }
+
+  /**
+   * Gets adoption rate user login data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<AdoptionRateUserLoginData[]> - Adoption rate user login data in UI format
+   */
+  async getAdoptionRateUserLoginDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<AdoptionRateUserLoginData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: AdoptionSql.ADOPTION_RATE_USER_LOGIN,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    const transformedResults = this.transformAdoptionRateUserLoginResults(rawResults);
+    console.log(`----> The adoption rate user login data is  `, transformedResults);
+    return transformedResults;
   }
 }
