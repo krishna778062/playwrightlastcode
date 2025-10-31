@@ -13,6 +13,10 @@ import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentP
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { ContentFeatureTags, SortOptionLabels } from '@/src/modules/content/constants';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('manage Site Tests', () => {
@@ -53,7 +57,7 @@ test.describe('manage Site Tests', () => {
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturesPage.actions.clickOnContentCard();
       await manageContentPage.actions.clickSortByButton();
-      await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+      await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       await manageContentPage.actions.scheduledTagVisibleInManageContent();
       await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
       await manageContentPage.actions.hoverOnFirstDropDownOption();

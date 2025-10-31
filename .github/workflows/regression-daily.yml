@@ -29,6 +29,7 @@ jobs:
             frontline,
             content-settings,
             alert-notification,
+            employee-listening,
           ] # de is short for data-engineering
         environment: [qa]
     env:
