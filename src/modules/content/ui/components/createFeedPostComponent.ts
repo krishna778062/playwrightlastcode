@@ -390,9 +390,6 @@ export class CreateFeedPostComponent
       console.log(`Attempting to add site mention: @${siteName}`);
       await this.typeInElement(this.feedEditor, ` @${siteName}`);
 
-      // Wait a bit for the dropdown to appear
-      await this.page.waitForTimeout(2000);
-
       // Check if the site name appears in the dropdown
       const siteLocator = this.addSiteNameFromList(siteName);
       const isVisible = await siteLocator.isVisible().catch(() => false);
@@ -565,7 +562,6 @@ export class CreateFeedPostComponent
     await test.step('Verify feed restriction message is visible on dashboard', async () => {
       // Wait for page to load
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(2000);
 
       // Use filter with hasText to find paragraph containing the message text
       // hasText checks if the element or its children contain the text
