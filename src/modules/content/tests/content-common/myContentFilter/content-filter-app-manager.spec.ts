@@ -269,7 +269,35 @@ test.describe(
     test(
       'verify app manager should be able to filter the content for the content status as Published and Unpublished',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25058'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'verify app manager should be able to filter the content for the content status as Published and Unpublished',
+          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
+          zephyrTestId: 'CONT-25058',
+          storyId: 'CONT-25058',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.assertions.verifyManageContentListItemCount(16);
+        await manageContentPage.actions.clickShowMoreButton();
+        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+      }
+    );
+
+    test(
+      'verify application manager should be able to apply bulk options on selecting the Select All option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25063'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
