@@ -376,16 +376,50 @@ export class AudiencePage extends BasePage {
 
   // ========== CATEGORY BEHAVIOR VERIFICATION METHODS ==========
 
-  // Verify clicking Cancel button prevents category creation
+  // Verify clicking Cancel button prevents category creation (CREATE modal)
   async verifyCategoryCancelButtonBehavior(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
     await this.addCategoryModal.verifyCategoryCancelButtonBehavior();
   }
 
-  // Verify clicking Close (X) button prevents category creation
+  // Verify clicking Close (X) button prevents category creation (CREATE modal)
   async verifyCategoryCloseButtonBehavior(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
     await this.addCategoryModal.verifyCategoryCloseButtonBehavior();
+  }
+
+  // Verify clicking Cancel button prevents category update (EDIT modal)
+  async verifyEditCategoryCancelButtonBehavior(categoryName: string): Promise<void> {
+    await test.step(`Verify Cancel button behavior in Edit category modal for: ${categoryName}`, async () => {
+      // Open edit modal for the existing category
+      await this.openEditCategoryModal(categoryName);
+
+      // Fill new name (different from original to verify it doesn't get saved)
+      const newCategoryName = `CancelTest_${Date.now()}`;
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newCategoryName);
+
+      // Click cancel
+      await this.editCategoryModal.clickCancelButton();
+      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
+    });
+  }
+
+  // Verify clicking Close (X) button prevents category update (EDIT modal)
+  async verifyEditCategoryCloseButtonBehavior(categoryName: string): Promise<void> {
+    await test.step(`Verify Close button behavior in Edit category modal for: ${categoryName}`, async () => {
+      // Open edit modal for the existing category
+      await this.openEditCategoryModal(categoryName);
+
+      // Fill new name (different from original to verify it doesn't get saved)
+      const newCategoryName = `CloseTest_${Date.now()}`;
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newCategoryName);
+
+      // Click close
+      await this.editCategoryModal.clickCloseButton();
+      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
+    });
   }
 
   // Verify specific category name is not present in the categories list
@@ -594,14 +628,20 @@ export class AudiencePage extends BasePage {
       await expect(this.typeSelectInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.typeSelectInput).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
 
-      // Try to select by label first
-      try {
-        await this.typeSelectInput.selectOption({ label: typeLabel });
-      } catch (error) {
-        // Fallback to value if label select fails
-        console.log(`Failed to select by label "${typeLabel}", trying by value...`);
-        await this.typeSelectInput.selectOption(typeLabel);
-      }
+      // Wait for the specific option to be available in the dropdown
+      await this.page.waitForFunction(
+        ({ testId, optionValue }) => {
+          const select = document.querySelector(`[data-testid="${testId}"]`) as HTMLSelectElement | null;
+          if (!select) return false;
+          // Check if the option exists by value
+          return Array.from(select.options).some(opt => opt.value === optionValue);
+        },
+        { testId: 'SelectInput', optionValue: typeLabel },
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
+      // Select by value directly
+      await this.typeSelectInput.selectOption(typeLabel);
     });
   }
 
@@ -610,9 +650,30 @@ export class AudiencePage extends BasePage {
    */
   async chooseAdGroup(optionLabelOrValue: string): Promise<void> {
     await test.step(`Choose AD Group: ${optionLabelOrValue}`, async () => {
-      await this.adGroupSelectInput.selectOption({ label: optionLabelOrValue }).catch(async () => {
+      // Wait for the select input to be visible and enabled
+      await expect(this.adGroupSelectInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.adGroupSelectInput).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
+      // Wait for the specific option to be available in the dropdown
+      await this.page.waitForFunction(
+        ({ selectId, optionValue }) => {
+          const select = document.querySelector(selectId) as HTMLSelectElement | null;
+          if (!select) return false;
+          // Check if the option exists by label or value
+          return Array.from(select.options).some(
+            opt => opt.value === optionValue || opt.textContent?.trim() === optionValue
+          );
+        },
+        { selectId: '#groups_0_subGroups_0_adGroup', optionValue: optionLabelOrValue },
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
+      // Try to select by label first, then fallback to value
+      try {
+        await this.adGroupSelectInput.selectOption({ label: optionLabelOrValue });
+      } catch {
         await this.adGroupSelectInput.selectOption(optionLabelOrValue);
-      });
+      }
     });
   }
 
