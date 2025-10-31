@@ -367,6 +367,48 @@ test.describe(
       }
     );
     test(
+      'verify the bulk action in manage site content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23981'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify the bulk action in manage site content',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
+          zephyrTestId: 'CONT-23981',
+          storyId: 'CONT-23981',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await appManagerFixture.page.reload();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await appManagerFixture.page.reload();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        const contentNames = await manageContentPage.actions.getAllContentNames();
+        console.log('contentNames', contentNames);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+        await manageContentPage.assertions.searchAllContentsInGlobalSearchBar(contentNames);
+      }
+    );
+    test(
       'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-20532'],
