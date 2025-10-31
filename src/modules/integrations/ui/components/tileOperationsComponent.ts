@@ -83,6 +83,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly greenhouseImage: Locator;
   readonly jobId: RegExp;
   readonly Published: RegExp;
+  readonly lessonsPattern: RegExp;
+  readonly registeredOnPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -171,6 +173,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
     this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
     this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+
+    // Workday: patterns for lessons count and registered date line
+    this.lessonsPattern = /^\d+\s+Lessons?$/;
+    this.registeredOnPattern =
+      /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
   }
 
   /**
@@ -831,6 +838,33 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(
         firstRecord.getByText(this.Published).first(),
         'Published text should be visible in the first record'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Workday pending learning courses tile shows course title, lessons count, and registered date
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await test.step(`Verify pending learning courses tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Pick any visible course row (container) that has a heading and supporting paragraphs
+      const row = tile
+        .locator('[data-testid="container"]')
+        .filter({ has: this.page.locator('h3') })
+        .first();
+      await expect(row, 'A course row should be visible').toBeVisible();
+
+      // Course name as heading level 3
+      await expect(row.getByRole('heading', { level: 3 }).first(), 'Course name should be visible').toBeVisible();
+
+      // Verify lessons count like "7 Lessons" and the Registered on line
+      await expect(row.getByText(this.lessonsPattern).first(), 'Lessons count should be visible').toBeVisible();
+      await expect(
+        row.getByText(this.registeredOnPattern).first(),
+        'Registered on date should be visible'
       ).toBeVisible();
     });
   }
