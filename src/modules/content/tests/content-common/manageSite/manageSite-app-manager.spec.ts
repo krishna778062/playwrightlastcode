@@ -367,14 +367,14 @@ test.describe(
     test(
       'verify published stamp and its options menu on approved content under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20536'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20534'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify published stamp and its options menu on approved content under Content tab in Manage Site',
-          zephyrTestId: 'CONT-20536',
-          storyId: 'CONT-20536',
+          zephyrTestId: 'CONT-20534',
+          storyId: 'CONT-20534',
         });
 
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
