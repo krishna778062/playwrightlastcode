@@ -4,10 +4,10 @@ import { contentTestFixture as test, users } from '@content/fixtures/contentFixt
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
+import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
@@ -71,7 +71,7 @@ test.describe(
         const privateSiteId = privateSite.siteId;
 
         // Reset page to home before navigation to ensure clean state
-        await appManagerFixture.page.goto(PAGE_ENDPOINTS.HOME_PAGE, { waitUntil: 'domcontentloaded' });
+        await new NewHomePage(appManagerFixture.page).loadPage();
 
         // Use UI automation to set feed posting permission
         const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
@@ -104,7 +104,7 @@ test.describe(
         const unlistedSiteId = unlistedSite.siteId;
 
         // Reset page to home before navigation to ensure clean state
-        await appManagerFixture.page.goto(PAGE_ENDPOINTS.HOME_PAGE, { waitUntil: 'domcontentloaded' });
+        await new NewHomePage(appManagerFixture.page).loadPage();
 
         // Use UI automation to set feed posting permission
         const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);

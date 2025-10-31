@@ -247,7 +247,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       if (isSelected !== 'true') {
         await this.clickOnElement(this.setupTab);
       }
-      await this.page.waitForLoadState('domcontentloaded');
       // Wait for feed permissions section to be visible (radio buttons)
       await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible', timeout: 10000 });
     });

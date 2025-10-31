@@ -1005,7 +1005,6 @@ export class SiteManagementHelper {
         const { PAGE_ENDPOINTS } = await import('@/src/core/constants/pageEndpoints');
         const manageSitePageUrl = `/${PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId)}`;
         await manageSitePage.page.goto(manageSitePageUrl);
-        await manageSitePage.page.waitForLoadState('domcontentloaded');
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(permission);
         return { success: true, method: 'ui' };
