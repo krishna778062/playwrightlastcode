@@ -36,4 +36,6 @@ export const FEED_TEST_DATA = {
     fileSize: 13116,
     mimeType: 'image/jpeg',
   },
+  MAX_FILE_UPLOAD_LIMIT: 10,
+  FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
 } as const;

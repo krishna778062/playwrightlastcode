@@ -77,6 +77,7 @@ export const PAGE_ENDPOINTS = {
   SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
+  ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
