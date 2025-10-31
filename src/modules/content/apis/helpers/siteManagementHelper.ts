@@ -71,8 +71,8 @@ export class SiteManagementHelper {
       access: 'public',
       name: finalSiteName,
       category: {
-        categoryId: categoryObj!.categoryId,
-        name: categoryObj!.name,
+        categoryId: categoryObj.categoryId,
+        name: categoryObj.name,
       },
       ...overrides,
     });
@@ -510,7 +510,7 @@ export class SiteManagementHelper {
     return await test.step(`Getting ${count} non-featured sites`, async () => {
       // Fetch both lists in parallel for better performance
       const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'mySites', size: 1000 }),
+        this.getListOfSites({ filter: 'active', size: 1000 }),
         this.getListOfSites({ filter: 'featured', size: 1000 }),
       ]);
 
@@ -692,53 +692,17 @@ export class SiteManagementHelper {
     return { siteId, name: siteName };
   }
 
-  async getSiteBySpecificName(
-    Name: string,
-    options?: {
-      hasPages?: boolean;
-      hasEvents?: boolean;
-      hasAlbums?: boolean;
-      hasDashboard?: boolean;
-      landingPage?: string;
-      name?: string;
-      isOwner?: boolean;
-      isMembershipAutoApproved?: boolean;
-      isBroadcast?: boolean;
-      waitForSearchIndex?: boolean;
-    }
-  ): Promise<{
+  async getSiteBySpecificName(Name: string): Promise<{
     siteId: string;
     name: string;
-    authorName?: string;
-    memberCount?: number;
-    managerCount?: number;
-    followerCount?: number;
-    isPublic?: boolean;
-    isPrivate?: boolean;
-    isActive?: boolean;
   }> {
     const siteListResponse = await this.getListOfSites({ sortBy: 'alphabetical' });
     console.log('siteListResponse', siteListResponse.result.listOfItems);
-    let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true && site.name === Name);
+    const siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true && site.name === Name);
     let siteId: string | undefined, siteName: string | undefined;
 
-    if (siteDetails) {
-      // Check if the existing site matches the required options
-      const matchesRequirements =
-        (options?.hasPages === undefined || siteDetails.hasPages === options.hasPages) &&
-        (options?.hasEvents === undefined || siteDetails.hasEvents === options.hasEvents) &&
-        (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
-
-      if (matchesRequirements) {
-        siteId = siteDetails.siteId;
-        siteName = siteDetails.name;
-
-        console.log(`Found site with name '${Name}': ${siteName} (${siteId})`);
-      } else {
-        console.log(`Site '${Name}' found but doesn't match requirements`);
-        siteDetails = undefined; // Reset to undefined so we create a new site
-      }
-    }
+    siteDetails?.siteId;
+    siteDetails?.name;
 
     if (!siteId) {
       throw new Error(`No site found with name '${Name}'`);

@@ -245,9 +245,7 @@ test.describe(
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteBySpecificName('All Employees', {
-          hasPages: true,
-        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteBySpecificName('All Employees');
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
