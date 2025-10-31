@@ -264,15 +264,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
       // Look for and click Save/Update button if it exists
       const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
-      const saveButtonVisible = await saveButton.isVisible().catch(() => false);
-      if (saveButtonVisible) {
-        await saveButton.click();
-        await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-        await this.page.waitForTimeout(1000);
-      } else {
-        // If no save button, assume auto-save and wait for changes to propagate
-        await this.page.waitForTimeout(2000);
-      }
+      await this.verifier.verifyTheElementIsVisible(saveButton, {
+        assertionMessage: 'Save/Update button should be visible',
+        timeout: 5000,
+      });
+      await saveButton.click();
+      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     });
   }
 }
