@@ -147,4 +147,10 @@ export class PeopleDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     const finalQuery = PeopleSql.PROFILE_COMPLETENESS.replace('{tenantCode}', this.orgId);
     return await this.executeQuery(finalQuery);
   }
+
+  async getProfileCompletenessUserLevelDataFromDB(): Promise<any[]> {
+    // Profile completeness user-level data for CSV validation (time-independent)
+    const finalQuery = PeopleSql.PROFILE_COMPLETENESS_USER_LEVEL.replace('{tenantCode}', this.orgId);
+    return await this.executeQuery(finalQuery);
+  }
 }

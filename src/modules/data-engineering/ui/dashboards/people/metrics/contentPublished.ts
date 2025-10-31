@@ -1,7 +1,9 @@
 import { FrameLocator, Page } from '@playwright/test';
 
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
+import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
 import { TabluarMetricsComponent } from '@/src/modules/data-engineering/ui/components/tabluarMetricsComponent';
+import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
 
 export enum ContentPublishedColumns {
   NAME = 'Name',
@@ -29,5 +31,52 @@ export class ContentPublished extends TabluarMetricsComponent {
 
   async verifyDataIsLoaded(): Promise<void> {
     await this.verifyTabluarDataIsLoaded();
+  }
+
+  // Downloads CSV and validates it against Snowflake data
+  async downloadAndValidateContentPublishedCSV(
+    snowflakeData: Array<{
+      Name: string;
+      'Published content': number;
+    }>,
+    selectedPeriod: PeriodFilterTimeRange,
+    customDates?: { customStartDate: string; customEndDate: string }
+  ): Promise<{ filePath: string; fileName: string }> {
+    const { filePath, fileName } = await this.downloadDataAsCSV();
+
+    try {
+      const validationConfig: CSVValidationConfig = {
+        csvPath: filePath,
+        expectedDBData: snowflakeData as any,
+        metricName: PEOPLE_METRICS.CONTENT_PUBLISHED.title,
+        selectedPeriod,
+        ...(customDates || {}),
+        expectedHeaders: [
+          'Name',
+          'Email',
+          'Company name',
+          'Segment',
+          'Division',
+          'Department',
+          'City',
+          'State',
+          'Country',
+          'User category',
+          'Count',
+        ],
+        transformations: {
+          headerMapping: {
+            Name: 'Name',
+            Count: 'Published content',
+          },
+        },
+      };
+
+      await CSVValidationUtil.validateAndAssert(validationConfig);
+      return { filePath, fileName };
+    } finally {
+      // Clean up the downloaded CSV file
+      CSVValidationUtil.cleanup(filePath);
+    }
   }
 }

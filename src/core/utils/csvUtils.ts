@@ -81,7 +81,7 @@ export class CSVUtils {
       throw new Error(`CSV file has insufficient lines - expected at least 4 lines, got ${lines.length}`);
     }
 
-    const headerLine = lines[3]; // Line 4 (0-indexed)
+    const headerLine = lines[3];
     if (!headerLine?.includes(',')) {
       throw new Error(`Line 4 does not contain valid headers: "${headerLine}"`);
     }
@@ -177,7 +177,7 @@ export class CSVUtils {
         dateRange: metadata.dateRange,
         createdOn: metadata.createdOn,
         headers,
-        dataStartRow: 4, // Line 5 (0-indexed)
+        dataStartRow: 4,
       },
       data,
     };

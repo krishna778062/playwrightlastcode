@@ -1,4 +1,3 @@
-import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -6,8 +5,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { PeopleDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
+import { DateHelper } from '../../../helpers/dateHelper';
 import { PeopleDashboard } from '../../../ui/dashboards/people/peopleDashboard';
 
 import {
@@ -17,12 +18,13 @@ import {
 } from '@/src/modules/data-engineering/helpers/dashboardSetupHelper';
 
 test.describe(
-  'people dashboard - Static Period Filter Impact Validation',
+  'people dashboard - Custom Period Filter Impact Validation',
   {
-    tag: [DataEngineeringTestSuite.PEOPLE, '@period-filter-impact', '@static-period'],
+    tag: [DataEngineeringTestSuite.PEOPLE, '@period-filter-impact', '@custom-period'],
   },
   () => {
-    const periodFilterTimeRange = PeriodFilterTimeRange.LAST_36_MONTHS;
+    // Dynamic custom date range
+    const customDateRange = DateHelper.createTestCustomDateRange();
 
     let testEnvironment: {
       page: Page;
@@ -32,57 +34,47 @@ test.describe(
     };
     let testFiltersConfig: FilterOptions;
 
-    test.beforeAll('Setup People Dashboard with static period filter', async ({ browser }) => {
-      // Setup dashboard using dedicated method
+    test.beforeAll('Setup People Dashboard with custom period filter', async ({ browser }) => {
       testEnvironment = await setupPeopleDashboardForTest(browser, UserRole.APP_MANAGER);
 
-      // Define unified filter configuration for static period (Last 36 months)
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
-        timePeriod: periodFilterTimeRange,
+        timePeriod: PeriodFilterTimeRange.CUSTOM,
+        customStartDate: customDateRange.startDate,
+        customEndDate: customDateRange.endDate,
       };
 
       const { analyticsFiltersComponent } = testEnvironment.peopleDashboard;
-
-      // Apply filters using unified configuration (People dashboard only has period filter)
       await analyticsFiltersComponent.applyFiltersFromConfig(testFiltersConfig);
     });
 
     test.afterAll('Cleanup People Dashboard', async () => {
-      // Cleanup using helper
       await cleanupDashboardTesting(testEnvironment);
     });
 
     test(
-      `verify Total Users metric data validation when period filter is changed to ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-users'],
-      },
+      'verify Total Users metric data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-users', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer Total users in People dashboard responds to period filter change',
+          description: 'To verify the answer Total users in People dashboard responds to custom period',
           zephyrTestId: 'DE-25869',
           storyId: 'DE-24673',
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected metric value from Snowflake with filters applied
         const expectedMetricValue = await peopleQueryHelper.getTotalUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // UI validation
         const totalUsersMetric = testEnvironment.peopleDashboard.totalUsers;
         await totalUsersMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
     test(
-      `verify Departments metric data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments'],
-      },
+      'verify Departments metric data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Departments in People dashboard',
@@ -91,13 +83,10 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected metric value from Snowflake with filters applied
         const expectedMetricValue = await peopleQueryHelper.getDepartmentsCountDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // UI validation
         const departmentsMetric = testEnvironment.peopleDashboard.totalDepartments;
         await departmentsMetric.verifyMetricIsLoaded();
         await departmentsMetric.verifyMetricValue(expectedMetricValue);
@@ -105,10 +94,8 @@ test.describe(
     );
 
     test(
-      `verify Locations metric data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations'],
-      },
+      'verify Locations metric data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Location in People dashboard',
@@ -117,13 +104,10 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected metric value from Snowflake with filters applied
         const expectedMetricValue = await peopleQueryHelper.getLocationsCountDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // UI validation
         const locationsMetric = testEnvironment.peopleDashboard.totalLocations;
         await locationsMetric.verifyMetricIsLoaded();
         await locationsMetric.verifyMetricValue(expectedMetricValue);
@@ -131,10 +115,8 @@ test.describe(
     );
 
     test(
-      `verify User Category metric data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-category'],
-      },
+      'verify User Category metric data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-category', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer User Category in People dashboard',
@@ -143,25 +125,19 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected metric value from Snowflake with filters applied
         const expectedMetricValue = await peopleQueryHelper.getUserCategoryCountDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // UI validation
         const userCategoryMetric = testEnvironment.peopleDashboard.totalUserCategories;
         await userCategoryMetric.verifyMetricIsLoaded();
         await userCategoryMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
-    // Tabular data validations
     test(
-      `verify Content Published tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published'],
-      },
+      'verify Content Published tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Content published in People dashboard',
@@ -171,52 +147,18 @@ test.describe(
 
         const { peopleQueryHelper } = testEnvironment;
 
-        // Get expected data from Snowflake with filters applied
         const contentPublishedData = await peopleQueryHelper.getContentPublishedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const contentPublishedMetric = testEnvironment.peopleDashboard.contentPublished;
         await contentPublishedMetric.verifyUIDataMatchesWithSnowflakeData(contentPublishedData);
       }
     );
 
     test(
-      `verify Content Published CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published-csv'],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify CSV download and validation for Content published in People Dashboard',
-          zephyrTestId: 'DE-25883',
-          storyId: 'DE-25908',
-        });
-
-        const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
-        const contentPublishedData = await peopleQueryHelper.getContentPublishedDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        // Download CSV and validate
-        const contentPublishedMetric = testEnvironment.peopleDashboard.contentPublished;
-        const { filePath, fileName } = await contentPublishedMetric.downloadAndValidateContentPublishedCSV(
-          contentPublishedData,
-          testFiltersConfig.timePeriod
-        );
-
-        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
-      }
-    );
-
-    test(
-      `verify Favorites Received tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received'],
-      },
+      'verify Favorites Received tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Favorites received in People dashboard',
@@ -225,23 +167,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const favoritesReceivedData = await peopleQueryHelper.getFavoritesReceivedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const favoritesReceivedMetric = testEnvironment.peopleDashboard.favoritesReceived;
         await favoritesReceivedMetric.verifyUIDataMatchesWithSnowflakeData(favoritesReceivedData);
       }
     );
 
     test(
-      `verify Favorites Received CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received-csv'],
-      },
+      'verify Favorites Received CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Favorites received in People Dashboard',
@@ -250,7 +187,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const favoritesReceivedData = await peopleQueryHelper.getFavoritesReceivedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -258,18 +194,16 @@ test.describe(
         const favoritesReceivedMetric = testEnvironment.peopleDashboard.favoritesReceived;
         const { filePath, fileName } = await favoritesReceivedMetric.downloadAndValidateFavoritesReceivedCSV(
           favoritesReceivedData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Reactions Made tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made'],
-      },
+      'verify Reactions Made tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Reactions made in People dashboard',
@@ -278,23 +212,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const reactionsMadeData = await peopleQueryHelper.getReactionsMadeDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const reactionsMadeMetric = testEnvironment.peopleDashboard.reactionsMade;
         await reactionsMadeMetric.verifyUIDataMatchesWithSnowflakeData(reactionsMadeData);
       }
     );
 
     test(
-      `verify Reactions Made CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made-csv'],
-      },
+      'verify Reactions Made CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Reactions made in People Dashboard',
@@ -303,7 +232,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const reactionsMadeData = await peopleQueryHelper.getReactionsMadeDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -311,18 +239,16 @@ test.describe(
         const reactionsMadeMetric = testEnvironment.peopleDashboard.reactionsMade;
         const { filePath, fileName } = await reactionsMadeMetric.downloadAndValidateReactionsMadeCSV(
           reactionsMadeData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Reactions Received tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received'],
-      },
+      'verify Reactions Received tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Reactions received in People dashboard',
@@ -331,23 +257,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const reactionsReceivedData = await peopleQueryHelper.getReactionsReceivedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const reactionsReceivedMetric = testEnvironment.peopleDashboard.reactionsReceived;
         await reactionsReceivedMetric.verifyUIDataMatchesWithSnowflakeData(reactionsReceivedData);
       }
     );
 
     test(
-      `verify Reactions Received CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received-csv'],
-      },
+      'verify Reactions Received CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Reactions received in People Dashboard',
@@ -356,7 +277,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const reactionsReceivedData = await peopleQueryHelper.getReactionsReceivedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -364,18 +284,16 @@ test.describe(
         const reactionsReceivedMetric = testEnvironment.peopleDashboard.reactionsReceived;
         const { filePath, fileName } = await reactionsReceivedMetric.downloadAndValidateReactionsReceivedCSV(
           reactionsReceivedData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Feed Posts and Content Comments tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments'],
-      },
+      'verify Feed Posts and Content Comments tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Feed posts and content comments in People dashboard',
@@ -384,23 +302,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const feedPostsAndCommentsData = await peopleQueryHelper.getFeedPostsAndCommentsDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const feedPostsAndCommentsMetric = testEnvironment.peopleDashboard.feedPostsAndComments;
         await feedPostsAndCommentsMetric.verifyUIDataMatchesWithSnowflakeData(feedPostsAndCommentsData);
       }
     );
 
     test(
-      `verify Feed Posts and Content Comments CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments-csv'],
-      },
+      'verify Feed Posts and Content Comments CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description:
@@ -410,7 +323,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const feedPostsAndCommentsData = await peopleQueryHelper.getFeedPostsAndCommentsDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -418,18 +330,16 @@ test.describe(
         const feedPostsAndCommentsMetric = testEnvironment.peopleDashboard.feedPostsAndComments;
         const { filePath, fileName } = await feedPostsAndCommentsMetric.downloadAndValidateFeedPostsAndCommentsCSV(
           feedPostsAndCommentsData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Replies tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
-      },
+      'verify Replies tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Replies in People dashboard',
@@ -438,23 +348,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const repliesData = await peopleQueryHelper.getRepliesDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const repliesMetric = testEnvironment.peopleDashboard.replies;
         await repliesMetric.verifyUIDataMatchesWithSnowflakeData(repliesData);
       }
     );
 
     test(
-      `verify Replies CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-csv'],
-      },
+      'verify Replies CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Replies in People Dashboard',
@@ -463,7 +368,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const repliesData = await peopleQueryHelper.getRepliesDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -471,18 +375,16 @@ test.describe(
         const repliesMetric = testEnvironment.peopleDashboard.replies;
         const { filePath, fileName } = await repliesMetric.downloadAndValidateRepliesCSV(
           repliesData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Replies from Other Users tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users'],
-      },
+      'verify Replies from Other Users tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Replies from other users in People dashboard',
@@ -491,23 +393,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const repliesFromOtherUsersData = await peopleQueryHelper.getRepliesFromOtherUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const repliesFromOtherUsersMetric = testEnvironment.peopleDashboard.repliesFromOtherUsers;
         await repliesFromOtherUsersMetric.verifyUIDataMatchesWithSnowflakeData(repliesFromOtherUsersData);
       }
     );
 
     test(
-      `verify Replies from Other Users CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users-csv'],
-      },
+      'verify Replies from Other Users CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Replies from other users in People Dashboard',
@@ -516,26 +413,23 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const repliesFromOtherUsersData = await peopleQueryHelper.getRepliesFromOtherUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        const repliesFromOtherUsersMetric = testEnvironment.peopleDashboard.repliesFromOtherUsers;
-        const { filePath, fileName } = await repliesFromOtherUsersMetric.downloadAndValidateRepliesFromOtherUsersCSV(
+        const metric = testEnvironment.peopleDashboard.repliesFromOtherUsers;
+        const { filePath, fileName } = await metric.downloadAndValidateRepliesFromOtherUsersCSV(
           repliesFromOtherUsersData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
-
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
     test(
-      `verify Shares Received tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares-received'],
-      },
+      'verify Shares Received tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares-received', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Shares received in People dashboard',
@@ -544,23 +438,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const sharesReceivedData = await peopleQueryHelper.getSharesReceivedDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const sharesReceivedMetric = testEnvironment.peopleDashboard.sharesReceived;
         await sharesReceivedMetric.verifyUIDataMatchesWithSnowflakeData(sharesReceivedData);
       }
     );
 
     test(
-      `verify Profile Views tabular data validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views'],
-      },
+      'verify Profile Views tabular data validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer Profile views in People dashboard',
@@ -569,23 +458,18 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
-        // Get expected data from Snowflake with filters applied
         const profileViewsData = await peopleQueryHelper.getProfileViewsDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
 
-        // Verify the same data is displayed in the dashboard
         const profileViewsMetric = testEnvironment.peopleDashboard.profileViews;
         await profileViewsMetric.verifyUIDataMatchesWithSnowflakeData(profileViewsData);
       }
     );
 
     test(
-      `verify Profile Views CSV download and validation for period as ${periodFilterTimeRange}`,
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views-csv'],
-      },
+      'verify Profile Views CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views-csv', '@custom-period'] },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify CSV download and validation for Profile views in People Dashboard',
@@ -594,7 +478,6 @@ test.describe(
         });
 
         const { peopleQueryHelper } = testEnvironment;
-
         const profileViewsData = await peopleQueryHelper.getProfileViewsDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
@@ -602,13 +485,37 @@ test.describe(
         const profileViewsMetric = testEnvironment.peopleDashboard.profileViews;
         const { filePath, fileName } = await profileViewsMetric.downloadAndValidateProfileViewsCSV(
           profileViewsData,
-          testFiltersConfig.timePeriod
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
+        );
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
+      }
+    );
+    test(
+      'verify Content Published CSV download and validation - custom date range',
+      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published-csv', '@custom-period'] },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Content published in People Dashboard',
+          zephyrTestId: 'DE-25883',
+          storyId: 'DE-25908',
+        });
+
+        const { peopleQueryHelper } = testEnvironment;
+
+        const contentPublishedData = await peopleQueryHelper.getContentPublishedDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        const contentPublishedMetric = testEnvironment.peopleDashboard.contentPublished;
+        const { filePath, fileName } = await contentPublishedMetric.downloadAndValidateContentPublishedCSV(
+          contentPublishedData,
+          PeriodFilterTimeRange.CUSTOM,
+          { customStartDate: customDateRange.startDate, customEndDate: customDateRange.endDate }
         );
 
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
-
-    // Note: Profile Completeness is time-independent, so it's not included in period filter tests
   }
 );

@@ -27,6 +27,9 @@ export interface CSVValidationConfig {
   metricName: string;
   selectedPeriod: PeriodFilterOption;
   expectedHeaders: string[];
+  // Optional when selectedPeriod is CUSTOM
+  customStartDate?: string;
+  customEndDate?: string;
   // Transformation-based configuration
   transformations: {
     // CSV header → DB field mapping
@@ -182,7 +185,11 @@ export class CSVValidationUtil {
 
     try {
       //step1: generate expected date range
-      const expectedDateRange = DateHelper.generateExpectedCSVDateRange(selectedPeriod as any);
+      const expectedDateRange = DateHelper.generateExpectedCSVDateRange(
+        selectedPeriod as any,
+        config.customStartDate as any,
+        config.customEndDate as any
+      );
       console.log(`Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
 
       const metadataValidation = await CSVUtils.validateReportMetadata(metricName, expectedDateRange, csvPath);

@@ -64,7 +64,7 @@ export const PeopleSql = {
 
   /**
    * Content Published Query Template
-   * Returns top 5 users who published the most content in the period
+   * Returns all users who published content in the period
    * Column aliases match UI table headers exactly
    */
   CONTENT_PUBLISHED: `
@@ -78,13 +78,12 @@ export const PeopleSql = {
       and c.content_first_published_date between '{startDate}' and '{endDate}'
     group by u.code
     having count(distinct c.code) > 0
-    order by count(distinct c.code) desc
-    limit 5;
+    order by count(distinct c.code) desc;
   `,
 
   /**
    * Favorites Received Query Template
-   * Returns top 5 users with most favorited profiles/content/feed posts and content comments in the period
+   * Returns all users with favorited profiles/content/feed posts and content comments in the period
    * Column aliases match UI table headers exactly
    */
   FAVORITES_RECEIVED: `
@@ -100,13 +99,12 @@ export const PeopleSql = {
       and i.interaction_entity_code <> 'ET000'
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Reactions Made Query Template
-   * Returns top 5 users who reacted the most to content/feed posts and content comments/replies in the period
+   * Returns all users who reacted to content/feed posts and content comments/replies in the period
    * Column aliases match UI table headers exactly
    */
   REACTIONS_MADE: `
@@ -121,13 +119,12 @@ export const PeopleSql = {
       and i.interaction_type_code = 'IT002'
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Reactions Received Query Template
-   * Returns top 5 users who received the most reactions on content/feed posts and content comments/replies in the period
+   * Returns all users who received reactions on content/feed posts and content comments/replies in the period
    * Column aliases match UI table headers exactly
    */
   REACTIONS_RECEIVED: `
@@ -142,13 +139,12 @@ export const PeopleSql = {
       and i.interaction_type_code = 'IT002'
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Feed Posts and Content Comments Query Template
-   * Returns top 5 users who made most feed posts and content comments in the period
+   * Returns all users who made feed posts and content comments in the period
    * Column aliases match UI table headers exactly
    */
   FEED_POSTS_AND_COMMENTS: `
@@ -164,13 +160,12 @@ export const PeopleSql = {
       and i.interaction_type_code in ('IT004', 'IT008')
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Replies Query Template
-   * Returns top 5 users who replied the most in feeds in the period
+   * Returns all users who replied in feeds in the period
    * Column aliases match UI table headers exactly
    */
   REPLIES: `
@@ -185,13 +180,12 @@ export const PeopleSql = {
       and i.interaction_type_code in ('IT007')
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Replies from Other Users Query Template
-   * Returns top 5 users with most replies on their feed posts and content comments in the period
+   * Returns all users with replies on their feed posts and content comments in the period
    * Column aliases match UI table headers exactly
    */
   REPLIES_FROM_OTHER_USERS: `
@@ -206,13 +200,12 @@ export const PeopleSql = {
       and i.interaction_type_code in ('IT007')
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Shares Received Query Template
-   * Returns top 5 users whose content/feed posts and content comments were most shared in the period
+   * Returns all users whose content/feed posts and content comments were shared in the period
    * Column aliases match UI table headers exactly
    */
   SHARES_RECEIVED: `
@@ -227,13 +220,12 @@ export const PeopleSql = {
       and i.interaction_type_code in ('IT003')
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
    * Profile Views Query Template
-   * Returns top 5 users with most viewed profiles in the period
+   * Returns all users with viewed profiles in the period
    * Column aliases match UI table headers exactly
    */
   PROFILE_VIEWS: `
@@ -249,8 +241,7 @@ export const PeopleSql = {
       and i.interaction_entity_code = 'ET001'
     group by u.code
     having count(i.code) > 0
-    order by count(i.code) desc
-    limit 5;
+    order by count(i.code) desc;
   `,
 
   /**
@@ -268,5 +259,43 @@ export const PeopleSql = {
     from simpplr_common_tenant.udl.vw_user_as_is
     where tenant_code = '{tenantCode}'
       and status_code = 'US001';
+  `,
+
+  /**
+   * Profile Completeness User-Level Query Template
+   * Returns all users with their profile completeness fields for CSV validation
+   * Note: This query is time-independent (shows current state)
+   */
+  PROFILE_COMPLETENESS_USER_LEVEL: `
+    select
+      u."FULL_NAME" as "Name",
+      u."EMAIL" as "Email",
+      u."COMPANY_NAME" as "Company name",
+      u."SEGMENT_NAME" as "Segment",
+      u."DIVISION" as "Division",
+      u."DEPARTMENT" as "Department",
+      u."CITY" as "City",
+      u."STATE" as "State",
+      u."COUNTRY" as "Country",
+      u."USER_CATEGORY_NAME" as "User category",
+      '' as "Is App Manager ?",
+      extract(epoch from date_trunc('day', u."USER_CREATED_DATETIME"))::bigint as "Day(User Created Datetime)",
+      case when u."USER_ACTIVE_DATETIME" is not null then extract(epoch from date_trunc('day', u."USER_ACTIVE_DATETIME"))::bigint else null end as "Day(User Active Datetime)",
+      '' as "About text",
+      '' as "Birthday date",
+      '' as "Phone number",
+      '' as "Profile image"
+    from simpplr_common_tenant.udl.vw_user_as_is u
+    inner join simpplr_common_tenant.udl.vw_ref_user_status_as_is s
+      on u."STATUS_CODE" = s."CODE"
+    where u."TENANT_CODE" = '{tenantCode}'
+      and lower(s."DESCRIPTION") = 'active'
+    group by
+      u."CODE", u."FULL_NAME", u."EMAIL", u."COMPANY_NAME", u."SEGMENT_NAME",
+      u."DIVISION", u."DEPARTMENT", u."CITY", u."STATE", u."COUNTRY",
+      u."USER_CATEGORY_NAME", u."IS_APP_MANAGER", u."USER_CREATED_DATETIME",
+      u."USER_ACTIVE_DATETIME", u."HAS_ABOUT", u."HAS_BIRTH_DATE",
+      u."HAS_PHONE_NUMBER", u."HAS_PROFILE_IMAGE"
+    order by u."FULL_NAME" asc nulls last;
   `,
 };
