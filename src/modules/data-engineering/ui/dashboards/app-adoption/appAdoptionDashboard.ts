@@ -6,6 +6,7 @@ import {
 import { Page, test } from '@playwright/test';
 
 import { AdoptionLeadersMetrics } from './metrics/adoptionLeadersMetrics';
+import { AdoptionRateUserLoginMetrics } from './metrics/adoptionRateUserLoginMetrics';
 import { AppWebPageViewMetrics } from './metrics/appWebPageViewMetrics';
 import { UserEngagementBreakdownMetric } from './metrics/userEngagementBreakdown';
 
@@ -20,6 +21,7 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
   readonly adoptionLeadersMetrics: AdoptionLeadersMetrics;
   readonly appWebPageViewsMetrics: AppWebPageViewMetrics;
   readonly userEngagementBreakdownMetric: UserEngagementBreakdownMetric;
+  readonly adoptionRateUserLoginMetrics: AdoptionRateUserLoginMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ADOPTION_DASHBOARD);
@@ -29,6 +31,7 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
     this.adoptionLeadersMetrics = new AdoptionLeadersMetrics(page, this.thoughtSpotIframe);
     this.appWebPageViewsMetrics = new AppWebPageViewMetrics(page, this.thoughtSpotIframe);
     this.userEngagementBreakdownMetric = new UserEngagementBreakdownMetric(page, this.thoughtSpotIframe);
+    this.adoptionRateUserLoginMetrics = new AdoptionRateUserLoginMetrics(page, this.thoughtSpotIframe);
   }
 
   /**
