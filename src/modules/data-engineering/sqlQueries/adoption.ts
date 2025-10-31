@@ -240,4 +240,37 @@ export const AdoptionSql = {
         group by user_code) 
         group by USER_MARKED_UNDER_CATEGORY;
   `,
+
+  /**
+   * Adoption Rate User Login Query Template
+   * Returns adoption rate user login data
+   */
+  ADOPTION_RATE_USER_LOGIN: `
+        SELECT  
+            COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code END) 
+        AS users_who_logged_in_at_least_once, 
+            MAX(COUNT(DISTINCT dua.user_code)) OVER () AS total_users, 
+            CONCAT( 
+                
+                    (COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code 
+        END)::numeric  
+                    / NULLIF(MAX(COUNT(DISTINCT dua.user_code)) OVER (), 0)) * 100, '%' 
+            ) AS percent, 
+            TO_CHAR(DATE(dua.reporting_date), 'YYYY-MM-DD') AS login_date, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD, YYYY') AS date_format, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD') AS date_format_day 
+        FROM SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua 
+        INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u  
+            ON dua.user_code = u.code 
+        WHERE reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+          AND dua.tenant_code = '{tenantCode}' 
+          AND u.status_code = 'US001' 
+          {locationFilter}
+          {departmentFilter}
+          {segmentFilter}
+          {userCategoryFilter}
+          {companyNameFilter}
+        GROUP BY dua.reporting_date 
+        ORDER BY dua.reporting_date;
+  `,
 };
