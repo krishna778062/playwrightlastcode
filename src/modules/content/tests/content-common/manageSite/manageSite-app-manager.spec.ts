@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
+import { SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -239,6 +239,7 @@ test.describe(
           storyId: 'CONT-23737',
         });
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteBySpecificName('All Employees');
+        console.log('siteInfo', siteInfo);
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -252,23 +253,23 @@ test.describe(
         await manageSitesComponent.clickOnInsideContentButtonAction();
         await siteDetailsPage.actions.clickOnContentTab();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
         await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(OnboardingOption.NOT_ONBOARDING);
+        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
-        await onboardingComponent.selectOnboardingOption(OnboardingOption.SITE_ONBOARDING);
+        await onboardingComponent.selectOnboardingOption(TagOption.SITE_ONBOARDING);
         await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyTagIsVisibleOnContent(OnboardingOption.SITE_ONBOARDING_TAG);
+        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.selectOnboardingOption(OnboardingOption.NOT_ONBOARDING);
+        await onboardingComponent.selectOnboardingOption(TagOption.NOT_ONBOARDING);
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(OnboardingOption.SITE_ONBOARDING_TAG);
+        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
   }

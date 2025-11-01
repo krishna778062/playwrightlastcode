@@ -1,4 +1,4 @@
-export enum OnboardingOption {
+export enum TagOption {
   ORG_ONBOARDING = 'Org onboarding Promote this',
   SITE_ONBOARDING = 'Site onboarding Promote this',
   NOT_ONBOARDING = 'Not onboarding Do not promote',

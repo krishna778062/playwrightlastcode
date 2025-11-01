@@ -475,7 +475,7 @@ export class SiteManagementHelper {
    */
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: options?.size || 16,
+      size: options?.size || 100,
       filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'createdNewest',
       ...options,
@@ -699,16 +699,12 @@ export class SiteManagementHelper {
     const siteListResponse = await this.getListOfSites({ sortBy: 'alphabetical' });
     console.log('siteListResponse', siteListResponse.result.listOfItems);
     const siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true && site.name === Name);
-    let siteId: string | undefined, siteName: string | undefined;
 
-    siteDetails?.siteId;
-    siteDetails?.name;
-
-    if (!siteId) {
+    if (!siteDetails?.siteId) {
       throw new Error(`No site found with name '${Name}'`);
     }
 
-    return { siteId, name: siteName || '' };
+    return { siteId: siteDetails.siteId, name: siteDetails.name };
   }
 
   async getSiteAuthorNameAndEventStartDate(): Promise<{
