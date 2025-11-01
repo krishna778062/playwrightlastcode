@@ -14,14 +14,14 @@ test.describe(
   },
   () => {
     test(
-      'validate Segments API Response, Performance, and Snowflake Data Match',
+      'validate segments API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@segments'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate segments API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-SEGMENTS-001',
+          description: 'Validate segments API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26533',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
@@ -56,14 +56,14 @@ test.describe(
     );
 
     test(
-      'validate Departments API Response, Performance, and Snowflake Data Match',
+      'validate departments API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate departments API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-DEPARTMENTS-001',
+          description: 'Validate departments API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26534',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
@@ -101,14 +101,14 @@ test.describe(
     );
 
     test(
-      'validate Locations API Response, Performance, and Snowflake Data Match',
+      'validate locations API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate locations API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-LOCATIONS-001',
+          description: 'Validate locations API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26535',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
@@ -146,14 +146,14 @@ test.describe(
     );
 
     test(
-      'validate User Categories API Response, Performance, and Snowflake Data Match',
+      'validate user categories API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-categories'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate user categories API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-USER-CATEGORIES-001',
+          description: 'Validate user categories API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26536',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
@@ -191,14 +191,14 @@ test.describe(
     );
 
     test(
-      'validate Company Names API Response, Performance, and Snowflake Data Match',
+      'validate company names API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@company-names'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate company names API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-COMPANY-NAMES-001',
+          description: 'Validate company names API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26537',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
@@ -236,14 +236,14 @@ test.describe(
     );
 
     test(
-      'validate Divisions API Response, Performance, and Snowflake Data Match',
+      'validate divisions API response, performance, and snowflake data match',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@divisions'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate divisions API response, performance, and Snowflake data match',
-          zephyrTestId: 'API-DIVISIONS-001',
+          description: 'Validate divisions API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26538',
         });
 
         const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
