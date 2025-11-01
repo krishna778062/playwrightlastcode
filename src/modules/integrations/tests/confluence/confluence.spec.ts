@@ -60,6 +60,69 @@ test.describe(
     );
 
     test(
+      'verify Confluence Custom knowledge base name with blank value',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-11020',
+        });
+
+        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+
+        // Navigate to Support and Ticketing page
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        // Select Custom Knowledge Base Radio Button
+        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('');
+        await supportAndTicketingPage.assertions.verifyCustomKnowledgeBaseNameIsRequired();
+        await supportAndTicketingPage.actions.selectDefaultKnowledgeBase();
+      }
+    );
+
+    test(
+      'verify Confluence Custom knowledge base name with Same Name as Default',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.CONFLUENCE,
+          '@confluenceKnowledgeBaseNameWithSameNameAsDefault',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-11019',
+        });
+
+        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+
+        // Navigate to Support and Ticketing page
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        // Select Custom Knowledge Base Radio Button
+        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Confluence knowledge base');
+        await supportAndTicketingPage.actions.reloadPageAndWait();
+
+        // Search for Overview
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm('Overview', {
+          stepInfo: `Searching with term "Overview" and intent is to find the content`,
+        });
+
+        await globalSearchResultPage.verifyThePageIsLoaded();
+        // Verify Confluence Knowledge Base Name in Search Results
+        await new ConfluenceHelper(appManagerFixture.page).verifyConfluenceKnowledgeBaseNameInSearchResults(
+          'Confluence knowledge base',
+          globalSearchResultPage
+        );
+      }
+    );
+
+    test(
       'verify Confluence Custom knowledge base name',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
@@ -105,6 +168,7 @@ test.describe(
 
         // Select Custom Knowledge Base Radio Button
         await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Test Knowledge Base');
+        await supportAndTicketingPage.actions.reloadPageAndWait();
 
         // Search for Overview
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm('Overview', {
@@ -121,62 +185,6 @@ test.describe(
         // Cleanup
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
-        await supportAndTicketingPage.actions.selectDefaultKnowledgeBase();
-      }
-    );
-
-    test(
-      'verify Confluence Custom knowledge base name with Same Name as Default',
-      {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-11019',
-        });
-
-        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
-
-        // Navigate to Support and Ticketing page
-        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
-
-        // Select Custom Knowledge Base Radio Button
-        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Confluence knowledge base');
-
-        // Search for Overview
-        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm('Overview', {
-          stepInfo: `Searching with term "Overview" and intent is to find the content`,
-        });
-
-        await globalSearchResultPage.verifyThePageIsLoaded();
-        // Verify Confluence Knowledge Base Name in Search Results
-        await new ConfluenceHelper(appManagerFixture.page).verifyConfluenceKnowledgeBaseNameInSearchResults(
-          'Confluence knowledge base',
-          globalSearchResultPage
-        );
-      }
-    );
-
-    test(
-      'verify Confluence Custom knowledge base name with blank value',
-      {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-11020',
-        });
-
-        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
-
-        // Navigate to Support and Ticketing page
-        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
-        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
-
-        // Select Custom Knowledge Base Radio Button
-        await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('');
-        await supportAndTicketingPage.assertions.verifyCustomKnowledgeBaseNameIsRequired();
         await supportAndTicketingPage.actions.selectDefaultKnowledgeBase();
       }
     );

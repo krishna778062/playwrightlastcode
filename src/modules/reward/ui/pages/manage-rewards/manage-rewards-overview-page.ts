@@ -3,12 +3,13 @@ import { DialogBox } from '@rewards-components/common/dialog-box';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
 import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
-import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { CSVUtils } from '@core/utils/csvUtils';
+
+import { FileUtil } from '@/src/core/utils';
 
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
@@ -611,24 +612,47 @@ export class ManageRewardsOverviewPage extends BasePage {
 
   async verifyTheActivityTableForGiftCard(): Promise<void> {
     // Validate CSV download and content
-    const csvUtils = new CSVUtils('./downloads');
     await test.step('Validate the new Entry in the Downloaded CSV file:', async () => {
-      // Trigger and capture download
-      const [download] = await Promise.all([
-        this.page.waitForEvent('download'),
-        this.clickOnElement(this.activityTableDownloadCSVButton, {
-          stepInfo: 'Clicking on Download CSV button',
-        }),
-      ]);
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await this.downloadAndSaveFile(
+        () =>
+          this.clickOnElement(this.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
 
-      // Save in downloads folder
-      await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
-      // Validate last row column value
-      const validationResult = await csvUtils.validateRowValue('last', 16, 'APPROVED');
-      expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
-      // Remove the downloaded CSV file after validation
-      const fs = await import('fs');
-      fs.unlinkSync(csvUtils.getLatestCSV());
+      try {
+        // Validate headers
+        const csvHeaders = [
+          'Date time',
+          'Redeemer name',
+          'Redeemer email',
+          'Redeemer department',
+          'Redeemer location',
+          'Redeemer payroll currency',
+          'Reward class',
+          'Reward type',
+          'Reward category',
+          'Reward',
+          'Reward currency',
+          'Reward value',
+          'Exchange rate',
+          'USD value',
+          'Point cost',
+          'Reward email',
+          'Transaction status',
+        ];
+        const headersValidation = await CSVUtils.validateHeaders(csvHeaders, csvFile.filePath);
+        expect(headersValidation.isValid, `Missing headers: ${headersValidation.missingHeaders}`).toBeTruthy();
+
+        // Validate last row column value
+        const validationResult = await CSVUtils.validateRowValue('last', 16, 'APPROVED', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
     });
   }
 

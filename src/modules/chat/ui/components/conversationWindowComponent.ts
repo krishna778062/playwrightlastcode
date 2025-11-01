@@ -128,6 +128,42 @@ export class ConversationWindowComponent extends BaseComponent {
     );
   }
 
+  async verifyMessageWithEmojieReactionIsPresentInListOfChatMessages(
+    message: string,
+    emojiCount: number,
+    options?: {
+      stepInfo?: string;
+      timeout?: number;
+    }
+  ) {
+    await test.step(
+      options?.stepInfo ?? `Verifying message: ${message} is present in the list of chat messages`,
+      async () => {
+        await expect(async () => {
+          let messageFoundInList: boolean = false;
+          const lastMessage = this.listChatMessagesComponent.last();
+          //fetch message
+          const messageText = await lastMessage.locator('section').locator('p').textContent();
+          if (messageText === message) {
+            messageFoundInList = true;
+          }
+          const count = await lastMessage
+            .locator("//div[contains(@class,'Base_reactionsLayout')]")
+            .locator('button')
+            .count();
+          console.log(`emoji count: ${count}`);
+          expect(count, `expecting emoji count: ${emojiCount} to be present in the list of chat messages`).toBe(
+            emojiCount
+          );
+
+          expect(messageFoundInList, `expecting message: ${message} to be present in the list of chat messages`).toBe(
+            true
+          );
+        }).toPass({ timeout: options?.timeout ?? TIMEOUTS.MEDIUM });
+      }
+    );
+  }
+
   async verifyEditedMessageIsPresentInListOfChatMessages(
     message: string,
     options?: {
