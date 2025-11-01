@@ -273,6 +273,24 @@ export class SocialCampaignHelper {
   }
 
   /**
+   * Gets campaign list via GET API with query parameters
+   * @param params - Optional query parameters for filtering
+   * @returns Promise<SocialCampaign[]>
+   */
+  async getCampaignList(params?: {
+    size?: number;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+    includeData?: 'full' | 'summary';
+    includeCount?: boolean;
+    status?: 'active' | 'inactive' | 'draft' | 'expired';
+  }): Promise<SocialCampaign[]> {
+    return await test.step(`Getting campaign list with params`, async () => {
+      const response = await this.getSocialCampaignService().getCampaignList(params);
+      return response.result?.listOfItems || [];
+    });
+  }
+  /**
    * Gets campaigns by recipient type
    * @param recipient - The recipient type ('everyone' or 'audience')
    * @returns Promise<SocialCampaign[]> - Campaigns with the specified recipient type

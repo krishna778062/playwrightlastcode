@@ -344,6 +344,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
+
+  async verifyAddToCampaignOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyAddToCampaignOptionVisibleInManageContent();
+  }
+
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
   }
@@ -356,9 +361,14 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
 
+  async clickOnOptionButton(option: ManageContentOptions): Promise<void> {
+    await this.manageContentComponent.clickOnOptionButton(option);
+  }
+
   async verifyPublishedStampVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
   }
+
   async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
   }

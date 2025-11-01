@@ -124,13 +124,7 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Private site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -161,13 +155,7 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Unlisted site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
