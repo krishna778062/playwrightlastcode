@@ -40,6 +40,7 @@
     "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
     "test:de": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
+    "test:de-api": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts",
     "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
     "test:integrations": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
     "test:integrations:p0": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
