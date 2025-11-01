@@ -16,6 +16,7 @@ on:
           - 'content'
           - 'content-settings'
           - 'de'
+          - 'de-api'
           - 'content-abac'
           - 'frontline'
           - 'integrations'
