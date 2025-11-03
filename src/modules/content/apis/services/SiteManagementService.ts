@@ -392,6 +392,20 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getListOfCategories(options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting list of categories via API', async () => {
+      const defaultOptions = {
+        includeSites: false,
+        size: 10000,
+        sortBy: 'alphabetical',
+      };
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfCategories, {
+        data: defaultOptions,
+      });
+      return await response.json();
+    });
+  }
+
   /**
    * Gets the membership list for a site
    * @param siteId - The site ID
