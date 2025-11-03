@@ -79,7 +79,7 @@ export class TopNavBarComponent extends BaseComponent {
 
   async clickSearchButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `topnavbar: clicking search button`, async () => {
-      await this.clickOnElement(this.globalSearchButton);
+      await this.clickOnElement(this.globalSearchButton, { timeout: 40_000 });
     });
   }
 

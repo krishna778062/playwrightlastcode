@@ -77,7 +77,7 @@ export class SidebarFilterComponent extends BaseComponent {
       .first();
 
     // Initialize show more button locator
-    this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
+    this.showMoreButton = this.page.locator('div[class*="IntranetSubFilter_showMoreButton"]').locator('button');
   }
 
   /**
@@ -94,10 +94,11 @@ export class SidebarFilterComponent extends BaseComponent {
         });
 
         if (!isFilterVisible) {
-          await this.verifier.verifyTheElementIsVisible(this.showMoreButton.last(), {
+          await this.verifier.verifyTheElementIsVisible(this.showMoreButton, {
             timeout: 10000,
             assertionMessage: `Verifying "Show more" button is visible before clicking`,
           });
+          await this.showMoreButton.scrollIntoViewIfNeeded();
           await this.clickOnElement(this.showMoreButton);
         }
 
