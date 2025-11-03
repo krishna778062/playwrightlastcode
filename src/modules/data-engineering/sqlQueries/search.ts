@@ -171,4 +171,18 @@ GROUP BY u.department
 ORDER BY total_searches DESC
 LIMIT 5;
 `,
+  Search_Usage_Volume_And_Click_Through_Rate: `
+SELECT
+    DATE(search_performed_datetime) AS search_date,
+    COUNT(DISTINCT s.code) AS total_search_count,
+    COUNT(sr.code) AS total_click_count
+FROM udl.search s
+LEFT JOIN udl.search_result_click sr
+    ON s.code = sr.search_code
+WHERE s.tenant_code = '{orgId}'
+  AND DATE(search_performed_datetime) >= '{startDate}'
+  AND DATE(search_performed_datetime) <= '{endDate}'
+GROUP BY DATE(search_performed_datetime)
+ORDER BY search_date DESC;
+`,
 };

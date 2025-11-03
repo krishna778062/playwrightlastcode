@@ -5,6 +5,7 @@ import { MostSearchesPerformedByDepartment } from './metrics/mostSearchesPerform
 import { NoResultSearchMetrics } from './metrics/noResultSearch';
 import { NoResultSearchQueries } from './metrics/noResultSearchQueries';
 import { SearchClickThroughRate } from './metrics/searchClickThroughRate';
+import { SearchUsageVolumeClickThroughRate } from './metrics/searchUsageVolumeClickThroughRate';
 import { TopClickthroughTypes } from './metrics/topClickthroughTypes';
 import { TopSearchQueries } from './metrics/topSearchQueries';
 import { TopSearchQueriesWithNoClickthrough } from './metrics/topSearchQueriesWithNoClickthrough';
@@ -19,6 +20,7 @@ export class SearchDashboard extends BaseAnalyticsDashboardPage {
   readonly searchClickThroughRate: SearchClickThroughRate;
   readonly noResultSearch: NoResultSearchMetrics;
   readonly averageSearchesPerLoggedInUser: AverageSearchesPerLoggedInUser;
+  readonly searchUsageVolumeAndClickThroughRate: SearchUsageVolumeClickThroughRate;
   readonly topSearchQueries: TopSearchQueries;
   readonly topSearchQueriesWithNoClickthrough: TopSearchQueriesWithNoClickthrough;
   readonly topClickthroughTypes: TopClickthroughTypes;
@@ -31,6 +33,7 @@ export class SearchDashboard extends BaseAnalyticsDashboardPage {
     this.searchClickThroughRate = new SearchClickThroughRate(page, this.thoughtSpotIframe);
     this.noResultSearch = new NoResultSearchMetrics(page, this.thoughtSpotIframe);
     this.averageSearchesPerLoggedInUser = new AverageSearchesPerLoggedInUser(page, this.thoughtSpotIframe);
+    this.searchUsageVolumeAndClickThroughRate = new SearchUsageVolumeClickThroughRate(page, this.thoughtSpotIframe);
     this.topSearchQueries = new TopSearchQueries(page, this.thoughtSpotIframe);
     this.topSearchQueriesWithNoClickthrough = new TopSearchQueriesWithNoClickthrough(page, this.thoughtSpotIframe);
     this.topClickthroughTypes = new TopClickthroughTypes(page, this.thoughtSpotIframe);

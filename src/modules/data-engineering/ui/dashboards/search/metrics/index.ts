@@ -3,6 +3,7 @@ export * from './mostSearchesPerformedByDepartment';
 export * from './noResultSearch';
 export * from './noResultSearchQueries';
 export * from './searchClickThroughRate';
+export * from './searchUsageVolumeClickThroughRate';
 export * from './topClickthroughTypes';
 export * from './topSearchQueries';
 export * from './topSearchQueriesWithNoClickthrough';
