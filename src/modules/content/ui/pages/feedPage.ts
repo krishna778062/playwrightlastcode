@@ -41,7 +41,7 @@ export interface IFeedActions {
     topicName: string;
     userName: string;
   }) => Promise<void>;
-  markPostAsFavourite: () => Promise<void>;
+  markPostAsFavourite: (postText?: string) => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
   clickInfoIcon: (fileId: string) => Promise<void>;
   verifyPreviewModalIsOpened: () => Promise<void>;
@@ -268,9 +268,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   //Favourite Post Methods
-  async markPostAsFavourite(): Promise<void> {
+  async markPostAsFavourite(postText?: string): Promise<void> {
     await test.step(`Marking post as favourite:`, async () => {
-      await this.listFeedComponent.markPostAsFavourite();
+      await this.listFeedComponent.markPostAsFavourite(postText);
     });
   }
 
