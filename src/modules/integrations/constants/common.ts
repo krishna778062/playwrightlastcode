@@ -13,6 +13,7 @@ export const ACTION_LABELS = {
   CONNECT_ACCOUNT: 'Connect account',
   DISCONNECT_ACCOUNT: 'Disconnect account',
   MY_SETTINGS: 'My settings',
+  APP_SETTINGS: 'App Settings',
   MARK_COMPLETE: 'Mark complete',
   COMPLETED: 'Completed',
 } as const;
