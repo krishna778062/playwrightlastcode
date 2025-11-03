@@ -413,11 +413,11 @@ test.describe(
     multiUserTileFixture(
       'Verify Disconnect ServiceNow account',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: ['INT-10438'],
+          zephyrTestId: ['INT-9712', 'INT-9708', 'INT-11131'],
           storyId: 'INT-28224',
         });
 
