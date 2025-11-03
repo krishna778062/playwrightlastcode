@@ -7,7 +7,6 @@ import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
-import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
@@ -18,7 +17,7 @@ test.describe(
   () => {
     const verifyRestrictionForUser = async (siteId: string, page: any) => {
       const siteDashboard = new SiteDashboardPage(page, siteId);
-      await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
       // Verify that restriction message is visible on dashboard
       await siteDashboard.assertions.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
     };
@@ -33,9 +32,6 @@ test.describe(
         ],
       },
       async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
-        // Increase timeout to 5 minutes for merged test covering all three site types
-        test.setTimeout(300000);
-
         tagTest(test.info(), {
           description: 'SCM and Member see restriction message on dashboard for public',
           zephyrTestId: 'CONT-37172',
@@ -45,7 +41,7 @@ test.describe(
         const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         const publicSite = await appManagerApiFixture.siteManagementHelper.createPublicSite({
-          waitForSearchIndex: true,
+          waitForSearchIndex: false,
         });
         const publicSiteId = publicSite.siteId;
 
@@ -66,12 +62,9 @@ test.describe(
         await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
 
         const privateSite = await appManagerApiFixture.siteManagementHelper.createPrivateSite({
-          waitForSearchIndex: true,
+          waitForSearchIndex: false,
         });
         const privateSiteId = privateSite.siteId;
-
-        // Reset page to home before navigation to ensure clean state
-        await new NewHomePage(appManagerFixture.page).loadPage();
 
         // Use UI automation to set feed posting permission
         const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
@@ -102,9 +95,6 @@ test.describe(
           waitForSearchIndex: false,
         });
         const unlistedSiteId = unlistedSite.siteId;
-
-        // Reset page to home before navigation to ensure clean state
-        await new NewHomePage(appManagerFixture.page).loadPage();
 
         // Use UI automation to set feed posting permission
         const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);

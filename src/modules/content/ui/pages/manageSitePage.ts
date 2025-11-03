@@ -240,7 +240,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Feed permissions are on the Setup tab, ensure it's active
       await this.verifier.verifyTheElementIsVisible(this.setupTab, {
         assertionMessage: 'Setup tab should be visible',
-        timeout: 10000,
+        timeout: 8000,
       });
       // Click Setup tab if not already active
       const isSelected = await this.setupTab.getAttribute('aria-selected');
@@ -248,7 +248,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         await this.clickOnElement(this.setupTab);
       }
       // Wait for feed permissions section to be visible (radio buttons)
-      await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible', timeout: 8000 });
     });
   }
 
@@ -257,7 +257,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       const radioButton = this.feedPostingPermissionRadio(permission);
       await this.verifier.verifyTheElementIsVisible(radioButton, {
         assertionMessage: `Feed posting permission radio button for "${permission}" should be visible`,
-        timeout: 10000,
+        timeout: 8000,
       });
       await radioButton.click({ force: true });
       await this.expect(radioButton).toBeChecked({ timeout: 5000 });
@@ -269,7 +269,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         timeout: 5000,
       });
       await saveButton.click();
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await this.page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
     });
   }
 }

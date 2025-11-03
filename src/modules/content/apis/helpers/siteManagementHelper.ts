@@ -1,5 +1,6 @@
 import { APIRequestContext, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -1002,9 +1003,7 @@ export class SiteManagementHelper {
   ): Promise<any> {
     return await test.step(`Setting site feed posting permission for site: ${siteId} to ${permission}`, async () => {
       if (manageSitePage) {
-        const { PAGE_ENDPOINTS } = await import('@/src/core/constants/pageEndpoints');
-        const manageSitePageUrl = `/${PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId)}`;
-        await manageSitePage.page.goto(manageSitePageUrl);
+        await manageSitePage.page.goto(`/${PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId)}`);
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(permission);
         return { success: true, method: 'ui' };
