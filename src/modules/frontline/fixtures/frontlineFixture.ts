@@ -1,121 +1,269 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-import { ApiClientFactory } from '@core/api/factories/apiClientFactory';
-import { LoginHelper } from '@core/helpers/loginHelper';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { LWOUserManagementService } from '../apis/services/LWOUserManagementService';
+import { QRManagementService } from '../apis/services/QRManagementService';
+import { getFrontlineTenantConfigFromCache, initializeFrontlineConfig } from '../config/frontlineConfig';
 
-import { QRManagementService } from '@/src/core/api/services/QRManagementService';
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { OTPUtils } from '@/src/core/utils/smsUtil';
 
-export type UserType = 'appManager' | 'endUser';
+export type UserType = 'appManager' | 'endUser' | 'promotionManager';
 
-export const users = {
-  appManager: {
-    email: process.env.APP_MANAGER_USERNAME || '',
-    password: process.env.APP_MANAGER_PASSWORD || '',
-  },
-  endUser: {
-    email: process.env.END_USER_USERNAME || '',
-    password: process.env.END_USER_PASSWORD || '',
-  },
+export const getUsers = () => {
+  const config = getFrontlineTenantConfigFromCache();
+  return {
+    appManager: {
+      email: config.appManagerEmail || '',
+      password: config.appManagerPassword || '',
+    },
+    endUser: {
+      email: config.endUserEmail || '',
+      password: config.endUserPassword || '',
+    },
+    promotionManager: {
+      email: config.promotionManagerEmail || '',
+      password: config.promotionManagerPassword || '',
+    },
+  } as const;
 };
 
 export const frontlineTestFixture = test.extend<
   {
-    appManagerContext: BrowserContext;
-    endUserContext: BrowserContext;
-    appManagerHomePage: NewUxHomePage | OldUxHomePage;
-    endUserHomePage: NewUxHomePage | OldUxHomePage;
+    // App manager browser context, Request Context + page
+    appManagerBrowserContext: BrowserContext;
     appManagersPage: Page;
+    appManagerHomePage: NewHomePage;
+    appManagerUINavigationHelper: NavigationHelper;
+
+    // Promotion manager browser context, Request Context + page
+    promotionManagerContext: BrowserContext;
+    promotionManagersPage: Page;
+    promotionManagerHomePage: NewHomePage;
+    promotionManagerUINavigationHelper: NavigationHelper;
+
+    // End user browser context, Request Context + page
+    endUserBrowserContext: BrowserContext;
     endUsersPage: Page;
+    endUserHomePage: NewHomePage;
+    endUserUINavigationHelper: NavigationHelper;
     loginAs: (userType: UserType) => Promise<void>;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
     qrManagementService: QRManagementService;
+    lwoUserManagementService: LWOUserManagementService;
+    otpUtils: OTPUtils;
+    config: ReturnType<typeof getFrontlineTenantConfigFromCache>;
+    tenantInitializer: void;
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  // Worker-scoped tenant initializer
+  tenantInitializer: [
+    async ({}, use) => {
+      // Check which project is running based on the test info
+      const testInfo = test.info();
+      const projectName = testInfo.project?.name || '';
+
+      // Initialize the correct tenant based on project
+      if (projectName === 'frontline-secondary') {
+        initializeFrontlineConfig('secondary');
+      } else {
+        initializeFrontlineConfig('primary');
+      }
+
+      await use(undefined);
+    },
+    { scope: 'worker' },
+  ],
+  // Worker-scoped API client - shared across all tests in worker
+  appManagerApiContext: [
+    async ({ tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(config.apiBaseUrl, {
+        email: config.appManagerEmail,
+        password: config.appManagerPassword,
       });
-      await use(appManagerApiClient);
+
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
     },
     { scope: 'worker' },
   ],
   qrManagementService: [
-    async ({ appManagerApiClient }, use) => {
-      const qrManagementService = new QRManagementService(appManagerApiClient.context);
+    async ({ appManagerApiContext, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const qrManagementService = new QRManagementService(appManagerApiContext, config.apiBaseUrl);
       await use(qrManagementService);
     },
     { scope: 'worker' },
   ],
-  appManagerContext: [
-    async ({ browser }, use, workerInfo) => {
+  lwoUserManagementService: [
+    async ({ appManagerApiContext, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const lwoUserManagementService = new LWOUserManagementService(appManagerApiContext, config.apiBaseUrl);
+      await use(lwoUserManagementService);
+    },
+    { scope: 'worker' },
+  ],
+
+  config: [
+    async ({ tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      await use(config);
+    },
+    { scope: 'worker' },
+  ],
+  otpUtils: [
+    async ({ tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+
+      // Only initialize OTP utils if Mailosaur credentials are available
+      if (config.mailosaurApiKey && config.mailosaurServerId) {
+        const otpUtils = new OTPUtils(config.mailosaurApiKey, config.mailosaurServerId);
+        await use(otpUtils);
+      } else {
+        // Provide a mock OTP utils if credentials are not available
+        const mockOtpUtils = {
+          getOTPFromSMS: async () => '123456',
+          getOTPFromEmail: async () => '123456',
+          generateTestEmail: () => 'test@example.com',
+        };
+        await use(mockOtpUtils as any);
+      }
+    },
+    { scope: 'worker' },
+  ],
+  appManagerBrowserContext: [
+    async ({ browser, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
       const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: config.appManagerEmail,
+        password: config.appManagerPassword,
+      });
       await use(context);
-      await context?.close();
+      await context.close();
     },
     { scope: 'test' },
   ],
-  appManagerHomePage: [
-    async ({ appManagerContext }, use, workerInfo) => {
-      const page = await appManagerContext.newPage();
-      const appManagerHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+  promotionManagerContext: [
+    async ({ browser, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      const promotionManagerHomePage = await LoginHelper.loginWithPassword(page, {
+        email: config.promotionManagerEmail,
+        password: config.promotionManagerPassword,
       });
-      await appManagerHomePage.verifyThePageIsLoaded();
-      await use(appManagerHomePage);
+      await promotionManagerHomePage.verifyThePageIsLoaded();
+      await use(context);
       await page.close();
     },
     { scope: 'test' },
   ],
-  appManagersPage: [
-    async ({ appManagerHomePage }, use, workerInfo) => {
-      await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-  endUserContext: [
-    async ({ browser }, use, workerInfo) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context?.close();
-    },
-    { scope: 'test' },
-  ],
-  endUserHomePage: [
-    async ({ endUserContext }, use, workerInfo) => {
-      const page = await endUserContext.newPage();
-      const endUserHomePage = await LoginHelper.loginWithPassword(page, {
-        email: getEnvConfig().endUserEmail!,
-        password: getEnvConfig().endUserPassword,
-      });
-      await endUserHomePage.verifyThePageIsLoaded();
-      await use(endUserHomePage);
+  promotionManagersPage: [
+    async ({ promotionManagerContext }, use) => {
+      const page = await promotionManagerContext.newPage();
+      await use(page);
       await page.close();
-    },
-    { scope: 'test' },
-  ],
-  endUsersPage: [
-    async ({ endUserHomePage }, use, workerInfo) => {
-      await use(endUserHomePage.page);
     },
     { scope: 'test' },
   ],
 
+  promotionManagerUINavigationHelper: [
+    async ({ promotionManagerHomePage }, use) => {
+      const promotionManagerUINavigationHelper = new NavigationHelper(promotionManagerHomePage.page);
+      await use(promotionManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
+  promotionManagerHomePage: [
+    async ({ promotionManagersPage }, use) => {
+      const homePage = new NewHomePage(promotionManagersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+    },
+    { scope: 'test' },
+  ],
+
+  appManagersPage: [
+    async ({ appManagerBrowserContext }, use) => {
+      const page = await appManagerBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerHomePage: [
+    async ({ appManagersPage }, use) => {
+      const homePage = new NewHomePage(appManagersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+      await appManagersPage.close();
+    },
+    { scope: 'test' },
+  ],
+
+  appManagerUINavigationHelper: [
+    async ({ appManagersPage }, use, _workerInfo) => {
+      const appManagerUINavigationHelper = new NavigationHelper(appManagersPage);
+      await use(appManagerUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
+
+  endUserBrowserContext: [
+    async ({ browser, tenantInitializer }, use) => {
+      const config = getFrontlineTenantConfigFromCache();
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await LoginHelper.loginWithPassword(page, {
+        email: config.endUserEmail,
+        password: config.endUserPassword,
+      });
+      await use(context);
+      await context.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUsersPage: [
+    async ({ endUserBrowserContext }, use) => {
+      const page = await endUserBrowserContext.newPage();
+      await use(page);
+      await page.close();
+    },
+    { scope: 'test' },
+  ],
+
+  endUserHomePage: [
+    async ({ endUsersPage }, use) => {
+      const homePage = new NewHomePage(endUsersPage);
+      await homePage.loadPage();
+      await homePage.verifyThePageIsLoaded();
+      await use(homePage);
+      await endUsersPage.close();
+    },
+    { scope: 'test' },
+  ],
+  endUserUINavigationHelper: [
+    async ({ endUsersPage }, use, _workerInfo) => {
+      const endUserUINavigationHelper = new NavigationHelper(endUsersPage);
+      await use(endUserUINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
   loginAs: async ({ page }, use) => {
     await use(async (userType: UserType) => {
+      const users = getUsers();
       await LoginHelper.loginWithPassword(page, users[userType]);
     });
   },

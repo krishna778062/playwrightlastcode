@@ -1,14 +1,14 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
-
-import { ApiClientFactory } from '../../../core/api/factories/apiClientFactory';
 import { Roles } from '../../../core/constants/roles';
 import { getEnvConfig } from '../../../core/utils/getEnvConfig';
+import { UserManagementService } from '../../platforms/apis/services/UserManagementService';
 import { MultiUserChatTestHelper } from '../helpers/multiUserChatTestHelper';
 import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
 import { ChatTestUser } from '../types/chat-test.type';
 
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
 /**
@@ -24,40 +24,44 @@ import { BrowserFactory } from '@/src/core/utils/browserFactory';
 export const dmTestFixture = test.extend<
   {
     user1Page: Page;
+    user1UINavigationHelper: NavigationHelper;
     user2Page: Page;
+    user2UINavigationHelper: NavigationHelper;
   },
   {
-    appManagerApiClient: AppManagerApiClient;
+    appManagerApiContext: APIRequestContext;
+    userManagementService: UserManagementService;
     endUsersForChat: ChatTestUser[];
     loggedInContexts: { [key: string]: BrowserContext };
   }
 >({
-  appManagerApiClient: [
-    async ({}, use, workerInfo) => {
-      console.log(`INFO: Setting up app manager client for worker => `, workerInfo.workerIndex);
-      const appManagerApiClient = await ApiClientFactory.createClient(AppManagerApiClient, {
-        type: 'credentials',
-        credentials: {
-          username: getEnvConfig().appManagerEmail,
-          password: getEnvConfig().appManagerPassword,
-        },
-        baseUrl: getEnvConfig().apiBaseUrl,
+  appManagerApiContext: [
+    async ({}, use) => {
+      const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().appManagerEmail,
+        password: getEnvConfig().appManagerPassword,
       });
-      await use(appManagerApiClient);
+      await use(appManagerApiContext);
+      await appManagerApiContext.dispose();
+    },
+    { scope: 'worker' },
+  ],
+  userManagementService: [
+    async ({ appManagerApiContext }, use) => {
+      const userManagementService = new UserManagementService(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      await use(userManagementService);
     },
     { scope: 'worker' },
   ],
   endUsersForChat: [
-    async ({ appManagerApiClient }, use) => {
-      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiClient);
+    async ({ appManagerApiContext, userManagementService }, use) => {
+      const chatGroupTestDataBuilder = new ChatGroupTestDataBuilder(appManagerApiContext, getEnvConfig().apiBaseUrl);
       const userBuilder = chatGroupTestDataBuilder.getUserBuilder();
       const endUsers = await userBuilder.addUsersToSystem(2, Roles.END_USER, 'Simpplr@2025');
       const usersWithChatIds: ChatTestUser[] = await Promise.all(
         endUsers.map(async user => ({
           ...user,
-          chatUserId: await appManagerApiClient
-            .getUserManagementService()
-            .getChatUserId(user.first_name, user.last_name),
+          chatUserId: await userManagementService.getChatUserId(user.first_name, user.last_name),
         }))
       );
       await use(usersWithChatIds);
@@ -83,12 +87,26 @@ export const dmTestFixture = test.extend<
     },
     { scope: 'test' },
   ],
+  user1UINavigationHelper: [
+    async ({ user1Page }, use, _workerInfo) => {
+      const user1UINavigationHelper = new NavigationHelper(user1Page);
+      await use(user1UINavigationHelper);
+    },
+    { scope: 'test' },
+  ],
   user2Page: [
     async ({ loggedInContexts, endUsersForChat }, use) => {
       const user2Context = loggedInContexts[endUsersForChat[1].email];
       const user2Page = await user2Context.newPage();
       await use(user2Page);
       await BrowserFactory.closePageGracefullyForUser(user2Page, endUsersForChat[1].fullName);
+    },
+    { scope: 'test' },
+  ],
+  user2UINavigationHelper: [
+    async ({ user2Page }, use, _workerInfo) => {
+      const user2UINavigationHelper = new NavigationHelper(user2Page);
+      await use(user2UINavigationHelper);
     },
     { scope: 'test' },
   ],

@@ -1,0 +1,403 @@
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { SiteDashboardPage } from '../../../ui/pages/sitePages';
+
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+
+interface FeedResponse {
+  result: {
+    feedId: string;
+    listOfFiles: Array<{
+      fileId: string;
+      provider: string;
+      size: number;
+      name: string;
+      type: string;
+    }>;
+  };
+  feedName: string;
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Creates required resources based on feed type (API only - no page objects needed)
+ * @param helpers - Required helper instances
+ * @param options - Configuration for what to create
+ * @returns Promise with created resources
+ */
+async function getPrerequisiteData(
+  helpers: {
+    siteManagementHelper: any;
+    contentManagementHelper: any;
+  },
+  testData: any
+) {
+  const resources: any = {};
+
+  // Create site only once, even if both createSite and createPage are true
+  if (testData.feedType === 'Site Feed') {
+    const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
+    resources.siteId = siteResult;
+  }
+
+  if (testData.feedType === 'Content Feed') {
+    const response = await helpers.contentManagementHelper.getContentId();
+    resources.contentId = response.contentId;
+    resources.siteId = response.siteId;
+  }
+
+  return resources;
+}
+
+// Common feed configuration for all test cases
+const commonFeedConfig = {
+  hasAttachment: false as const,
+  waitForSearchIndex: false,
+};
+
+// Test data for different feed types
+const feedTestData = [
+  {
+    feedType: 'Home Feed',
+    scope: 'public',
+    description: 'Verify user can add reply to Home Feed post',
+    storyId: 'CONT-39688',
+    ...commonFeedConfig,
+  },
+  {
+    feedType: 'Site Feed',
+    scope: 'site',
+    description: 'Verify user can add reply to Site Feed post',
+    storyId: 'CONT-39687',
+    ...commonFeedConfig,
+  },
+  {
+    feedType: 'Content Feed',
+    scope: 'site',
+    description: 'Verify user can add reply to Content Feed post',
+    storyId: 'CONT-26347',
+    ...commonFeedConfig,
+  },
+];
+
+// Data-driven test for different feed types
+for (const testData of feedTestData) {
+  test.describe(
+    `${testData.feedType} Tests`,
+    {
+      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+    },
+    () => {
+      let appManagerFeedPage: FeedPage;
+      let createdPostText: string;
+      let createdPostId: string;
+      let siteId: string;
+      let contentId: string;
+      let feedResponse: FeedResponse;
+      let siteDashboardPage: SiteDashboardPage;
+      let feedTestDataGenerated: any;
+      let replyText: string;
+      let contentPreviewPage: ContentPreviewPage;
+
+      test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
+        // Configure app governance settings and enable timeline comment post(feed)
+        await appManagerFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
+        // Initialize feed page
+        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const resources = await getPrerequisiteData(
+          {
+            siteManagementHelper: appManagerFixture.siteManagementHelper,
+            contentManagementHelper: appManagerFixture.contentManagementHelper,
+          },
+          testData
+        );
+
+        // Assign created resources
+        if (resources.siteId) {
+          siteId = resources.siteId;
+        }
+        if (resources.contentId) {
+          siteId = resources.siteId;
+          contentId = resources.contentId;
+        }
+
+        console.log('spec siteId: ', siteId);
+        console.log('spec contentId: ', contentId);
+
+        // Generate feed data based on feed type
+        switch (testData.feedType) {
+          case 'Home Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'public',
+              siteId: undefined,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          case 'Site Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          case 'Content Feed': {
+            feedTestDataGenerated = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              contentId: contentId,
+              withAttachment: testData.hasAttachment,
+              waitForSearchIndex: testData.waitForSearchIndex,
+            });
+            break;
+          }
+
+          default:
+            throw new Error(`Unknown feed type: ${testData.feedType}`);
+        }
+        // Create feed via API
+        feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+        createdPostText = feedTestDataGenerated.text;
+        createdPostId = feedResponse.result.feedId;
+        // Generate reply text
+        replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
+        console.log(`Created feed via API: ${feedResponse.result.feedId}`);
+
+        // Navigate to feed URL
+        if (testData.feedType === 'Content Feed') {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        } else if (testData.feedType === 'Site Feed') {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+        } else if (testData.feedType === 'Home Feed') {
+          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+        }
+        await appManagerFeedPage.assertions.validatePostText(createdPostText);
+      });
+
+      test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+        if (createdPostId) {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          createdPostId = '';
+        }
+      });
+
+      test(
+        `Verify user can add reply to ${testData.feedType} post`,
+        {
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
+        },
+        async ({}) => {
+          tagTest(test.info(), {
+            description: testData.description,
+            zephyrTestId: testData.storyId,
+            storyId: testData.storyId,
+          });
+
+          // Add reply to the feed post
+          await appManagerFeedPage.actions.addReplyToPost(replyText);
+
+          // Verify reply is associated with the correct post
+          await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+          // Click reply show more button
+          await appManagerFeedPage.actions.clickReplyShowMoreButton();
+
+          // Click delete button
+          await appManagerFeedPage.actions.clickOnDeleteReplyButton();
+
+          // Verify delete button is visible
+          await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
+        }
+      );
+    }
+  );
+}
+
+// Test case for CONT-30407: Verify user gets notified for replies on comments
+test.describe(
+  'feed Reply Notifications',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    let appManagerPostId: string;
+    let socialUserPostId: string;
+    let endUserInfo: { userId: string; fullName: string };
+    let socialUserInfo: { userId: string; fullName: string };
+
+    test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
+      // Configure app governance settings
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+
+      // Generate test data
+      const feedTestDataByAppManager = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
+
+      // Generate test data
+      const feedTestDataBySocialUser = TestDataGenerator.generateFeed({
+        scope: 'public',
+        siteId: undefined,
+        withAttachment: false,
+        waitForSearchIndex: false,
+      });
+
+      // Create feed via API as app manager
+      const appManagerFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataByAppManager);
+      appManagerPostId = appManagerFeedResponse.result.feedId;
+
+      // Create feed via API as app manager
+      const socialUserFeedResponse =
+        await socialCampaignManagerFixture.feedManagementHelper.createFeed(feedTestDataBySocialUser);
+      socialUserPostId = socialUserFeedResponse.result.feedId;
+
+      const [endUserData, socialUserData, appManagerData] = await Promise.all([
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.socialCampaignManager.email),
+        appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email),
+      ]);
+
+      endUserInfo = { userId: endUserData.userId, fullName: endUserData.fullName };
+      socialUserInfo = { userId: socialUserData.userId, fullName: socialUserData.fullName };
+
+      console.log(`Created feed via API: ${appManagerFeedResponse.result.feedId}`);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+      if (appManagerPostId) {
+        await appManagerFixture.feedManagementHelper.deleteFeed(appManagerPostId);
+        appManagerPostId = '';
+      }
+      if (socialUserPostId) {
+        await appManagerFixture.feedManagementHelper.deleteFeed(socialUserPostId);
+        socialUserPostId = '';
+      }
+    });
+
+    test(
+      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30407'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+          zephyrTestId: 'CONT-30407',
+          storyId: 'CONT-30407',
+        });
+
+        const appManagerReplyData = TestDataGenerator.generateSimpleReply();
+
+        const standardUserCommentData = TestDataGenerator.generateSimpleReply();
+
+        const appManageReplyOnSocialUserPostResponse = await appManagerFixture.feedManagementHelper.addComment(
+          socialUserPostId,
+          appManagerReplyData
+        );
+
+        // Standard user adds a comment to the feed post
+        const standardUserCommentResponse = await standardUserFixture.feedManagementHelper.addComment(
+          socialUserPostId,
+          standardUserCommentData
+        );
+
+        const standardUserReplyOnAppManagerPostData = await standardUserFixture.feedManagementHelper.addComment(
+          appManagerPostId,
+          standardUserCommentData
+        );
+
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        const notificationComponentSiteManager = await appManagerFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'Application Manager clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
+
+        // Verify notification message for mention in reply
+        const expectedNotificationMessage = `${endUserInfo.fullName} replied to your post "${standardUserCommentData.replyText}"`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        const expectedNotificationMessage2 = `${endUserInfo.fullName} also replied to ${socialUserInfo.fullName}'s post`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
+      }
+    );
+  }
+);
+
+// Test case for CONT-26348: Verify that application should allow user to edit the comment
+test.describe(
+  'comment Editing Tests',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    let appManagerFeedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string;
+    let originalReplyText: string;
+    let editedReplyText: string;
+
+    test(
+      'verify that application should allow user to edit the comment',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26348'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that application should allow user to edit the comment',
+          zephyrTestId: 'CONT-26348',
+          storyId: 'CONT-26348',
+        });
+
+        const { contentId, siteId, contentType } = await appManagerFixture.contentManagementHelper.getContentId();
+
+        const feedTestDataGenerated = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteId,
+          contentId: contentId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+
+        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+        createdPostId = feedResponse.result.feedId;
+        createdPostText = feedTestDataGenerated.text;
+        const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, contentId, contentType);
+        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
+        await contentPreviewPage.actions.editPost(createdPostText, updatedPostText);
+        await contentPreviewPage.assertions.waitForPostToBeVisible(updatedPostText);
+      }
+    );
+  }
+);

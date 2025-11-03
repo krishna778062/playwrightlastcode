@@ -1,16 +1,22 @@
-import { AppManagerApiClient } from '@api/clients/appManagerApiClient';
-import { test } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 
 import { Roles } from '@core/constants/roles';
 import { TestUser } from '@core/types/test.types';
-import { User } from '@core/types/user.type';
+import { User, UserWithLicenseAndDepartment } from '@core/types/user.type';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
-export class UserTestDataBuilder {
-  private readonly apiClient: AppManagerApiClient;
+import { getEnvConfig } from '../utils/getEnvConfig';
 
-  constructor(apiClient: AppManagerApiClient) {
-    this.apiClient = apiClient;
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
+
+export class UserTestDataBuilder {
+  readonly userManagementService: UserManagementService;
+
+  constructor(apiRequestContext: APIRequestContext, baseUrl?: string) {
+    this.userManagementService = new UserManagementService(
+      apiRequestContext,
+      baseUrl ? baseUrl : getEnvConfig().apiBaseUrl
+    );
   }
 
   /**
@@ -42,6 +48,38 @@ export class UserTestDataBuilder {
           role,
         });
       }
+    });
+    return createdUsers;
+  }
+
+  async addUsersWithEmpIdAndDepartmentToSystem(role: Roles, password: string = 'Password123'): Promise<TestUser[]> {
+    const createdUsers: TestUser[] = [];
+
+    await test.step(`Adding user with emp id and department with role ${role}`, async () => {
+      const user = TestDataGenerator.generateUserWithEmp();
+      const { userId } = await this.addAndActivateUserWithEmpIdAndDepartment(user, role, password);
+      createdUsers.push({
+        ...user,
+        userId,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      });
+    });
+    return createdUsers;
+  }
+
+  async addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(role: Roles): Promise<TestUser[]> {
+    const createdUsers: TestUser[] = [];
+
+    await test.step(`Adding user with emp id and department with role ${role}`, async () => {
+      const user = TestDataGenerator.generateUserWithEmp();
+      const { userId } = await this.addAndActivateUserWithEmpIdAndDepartmentWithoutPassword(user, role);
+      createdUsers.push({
+        ...user,
+        userId,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      });
     });
     return createdUsers;
   }
@@ -88,9 +126,41 @@ export class UserTestDataBuilder {
    */
   async addAndActivateUser(user: User, role: Roles, password: string): Promise<TestUser> {
     return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
-      const addUserResponse = await this.apiClient.getUserManagementService().addUser(user, role);
-      await this.apiClient.getUserManagementService().waitForUserToBeAdded(user.first_name, user.last_name);
-      await this.apiClient.getUserManagementService().activateUser(user.first_name, user.last_name, password);
+      const addUserResponse = await this.userManagementService.addUser(user, role);
+      await this.userManagementService.waitForUserToBeAdded(user.first_name, user.last_name);
+      await this.userManagementService.activateUser(user.first_name, user.last_name, password);
+      return {
+        ...user,
+        userId: addUserResponse.user_id,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      };
+    });
+  }
+
+  async addAndActivateUserWithEmpIdAndDepartment(
+    user: UserWithLicenseAndDepartment,
+    role: Roles,
+    password: string
+  ): Promise<TestUser> {
+    return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
+      const addUserResponse = await this.userManagementService.addUserWithEmpIdAndDepartment(user, role);
+      await this.userManagementService.activateUserWithEmpIdAndDepartment(user.first_name, user.last_name, password);
+      return {
+        ...user,
+        userId: addUserResponse.user_id,
+        fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      };
+    });
+  }
+
+  async addAndActivateUserWithEmpIdAndDepartmentWithoutPassword(
+    user: UserWithLicenseAndDepartment,
+    role: Roles
+  ): Promise<TestUser> {
+    return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
+      const addUserResponse = await this.userManagementService.addUserWithEmpIdAndDepartment(user, role);
       return {
         ...user,
         userId: addUserResponse.user_id,

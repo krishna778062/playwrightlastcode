@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
 
-import { User } from '@core/types/user.type';
+import { User, UserWithLicenseAndDepartment } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**
@@ -131,7 +131,7 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated user
    * @returns A User object with only emp
    */
-  static generateUserWithEmp(overrides?: Partial<User>): User {
+  static generateUserWithEmp(overrides?: Partial<UserWithLicenseAndDepartment>): UserWithLicenseAndDepartment {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
 
@@ -142,6 +142,8 @@ export class TestDataGenerator {
       email: '', // Empty string for compatibility
       mobile: 0, // Default value for compatibility
       emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
@@ -261,8 +263,9 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
-    return `${prefix} created at ${new Date().toISOString()}`;
+  static generateRandomString(prefix: string = 'Test String'): string {
+    const randomString = faker.lorem.word();
+    return `${prefix} ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -272,16 +275,17 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
-   * @param fileName Cover image file name
+   * @param imagePath Cover image file path
    * @param category Optional category for the page (if empty string generates random category)
    * @param overrides Optional properties to override in the generated page
    * @returns A PageCreationOptions object with random realistic data
    */
   static generatePage(
     contentType: PageContentType,
-    fileName: string,
+    imagePath: string,
     category?: string,
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
@@ -294,7 +298,7 @@ export class TestDataGenerator {
       category: finalCategory,
       contentType: contentType,
       coverImage: {
-        fileName,
+        imagePath,
         cropOptions: {
           widescreen: false,
           square: false,
@@ -648,7 +652,100 @@ export class TestDataGenerator {
     };
   }
 
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
+    };
+  }
+
   static generateValidLinkPair() {
     return faker.internet.url();
+  }
+
+  /**
+   * Generates test data for social campaigns with customizable options
+   * @param options Configuration options for the social campaign
+   * @returns Object with social campaign creation parameters
+   *
+   * @example
+   * // Generate campaign for everyone with default settings
+   * const everyoneCampaign = TestDataGenerator.generateSocialCampaign({ recipient: 'everyone' });
+   *
+   * // Generate campaign for specific audience
+   * const audienceCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'audience',
+   *   audienceId: 'audience123'
+   * });
+   *
+   * // Generate campaign with custom message and URL
+   * const customCampaign = TestDataGenerator.generateSocialCampaign({
+   *   recipient: 'everyone',
+   *   message: 'Custom campaign message',
+   *   url: 'https://www.example.com',
+   *   networks: ['fb', 'ln']
+   * });
+   */
+  static generateSocialCampaign(
+    options: {
+      recipient?: 'everyone' | 'audience';
+      message?: string;
+      url?: string;
+      networks?: string[];
+      audienceId?: string;
+    } = {}
+  ) {
+    const { recipient = 'everyone', message, url, networks = ['fb', 'ln', 'tw'], audienceId } = options;
+
+    const timestamp = Date.now().toString().slice(-4);
+    const randomId = Math.random().toString(36).substring(2, 6);
+
+    return {
+      recipient,
+      message: message || `Test Social Campaign ${timestamp}_${randomId} - ${faker.company.buzzPhrase()}`,
+      url: url || faker.internet.url(),
+      networks,
+      ...(audienceId && { audienceId }),
+    };
   }
 }

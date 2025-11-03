@@ -9,9 +9,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
+import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
   'airtable App Tiles Multi-user Tests',
@@ -60,7 +60,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
+      async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-24195',
           storyId: 'INT-23049',
@@ -73,7 +73,7 @@ test.describe(
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

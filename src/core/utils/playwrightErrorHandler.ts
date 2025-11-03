@@ -6,6 +6,8 @@ export enum PlaywrightAction {
   FILL_IN = 'fill in',
   TYPE_IN = 'type in',
   GET_ATTRIBUTE = 'get attribute',
+  DOWNLOAD = 'download',
+  SCAN = 'scan',
 }
 
 export class PlaywrightErrorHandler {
