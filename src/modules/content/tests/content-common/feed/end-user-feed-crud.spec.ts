@@ -186,27 +186,45 @@ test.describe(
         // Step 3: Click on "Share your thoughts" button (Create Post)
         await feedPage.actions.clickShareThoughtsButton();
 
-        // Step 4: Click on "Browse files" button
+        // Step 4: Enter post text
+        const videoPostText = TestDataGenerator.generateRandomText('Video Post', 3, true);
+        await feedPage.actions.enterFeedPostText(videoPostText);
+
+        // Step 5: Click on "Browse files" button
         await feedPage.actions.clickBrowseFilesButton();
 
-        // Step 5: Enter '.mp4' in 'Search files' field
+        // Step 6: Enter '.mp4' in 'Search files' field
         await feedPage.actions.searchForFileInLibrary('.mp4');
 
-        // Step 6: Select first result ".mp4" video
+        // Step 7: Select first result ".mp4" video
         await feedPage.actions.selectFileFromLibrary('.mp4');
 
-        // Step 7: Click "Attach" button
+        // Step 8: Click "Attach" button
         await feedPage.actions.clickAttachButton();
 
-        // Step 8: Verify the selected video appears as an attachment
+        // Step 9: Verify the selected video appears as an attachment
         await feedPage.assertions.verifyFileIsAttached('.mp4');
 
-        // Step 9: Click on "Post" button to publish
+        // Step 10: Click on "Post" button to publish
         await feedPage.actions.clickPostButton();
 
-        // Step 10: Verify the feed post is published successfully
-        // The post editor should close and Share thoughts button should be visible again
-        await feedPage.verifyThePageIsLoaded();
+        // Step 11: Verify the feed post is published successfully with the post text
+        await feedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Step 12: Verify video attachment is visible in the published feed post
+        // Note: Videos are displayed as a video container div, not as HTML <video> elements
+        const videoContainer = standardUserFixture.page
+          .locator('div[class*="postContent"]')
+          .filter({ hasText: videoPostText })
+          .locator('div[class*="videoFluid"]');
+
+        await feedPage.verifier.verifyTheElementIsVisible(videoContainer, {
+          timeout: 10000,
+          assertionMessage: 'Video container should be visible in the published feed post',
+        });
+
+        // Store post text for cleanup
+        createdPostText = videoPostText;
       }
     );
   }
