@@ -6,6 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 import { ServiceNowTicketsPage } from '@/src/modules/integrations/ui/pages/serviceNowTicketsPage';
 import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/supportAndTicketingPage';
@@ -31,9 +32,9 @@ test.describe(
         await adminHomeDashboard.loadPage();
         await adminHomeDashboard.verifyThePageIsLoaded();
         await adminHomeDashboard.enterServiceNowCredentials({
-          consumerKey: '3488c64de4b34dd8a6bddf91911aa1fe',
-          secretKey: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
-          url: 'https://dev275557.service-now.com',
+          consumerKey: SERVICE_NOW_VALUES.CONSUMER_KEY,
+          secretKey: SERVICE_NOW_VALUES.SECRET_KEY,
+          url: SERVICE_NOW_VALUES.URL,
         });
         await adminHomeDashboard.connectServiceNowAccount();
         const endUserServiceNow = new ExternalAppsPage(endUserPage);

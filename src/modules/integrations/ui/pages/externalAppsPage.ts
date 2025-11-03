@@ -5,6 +5,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ConfluenceHelper } from '@/src/modules/integrations/apis/helpers/confluenceHelper';
+import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 export interface IExternalAppsActions {
   navigateToExternalAppsPage: (userId?: string) => Promise<void>;
@@ -416,9 +417,9 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       } else {
         await test.step('Logging in to ServiceNow', async () => {
           await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.serviceNowUserName.fill('admin');
+          await this.serviceNowUserName.fill(SERVICE_NOW_VALUES.USER_NAME);
           await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.serviceNowPassword.fill('0=IPmAxD$x6f');
+          await this.serviceNowPassword.fill(SERVICE_NOW_VALUES.PASSWORD);
           await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
           await this.serviceNowLoginButton.click();
           await this.page.waitForLoadState('domcontentloaded');
