@@ -52,7 +52,10 @@
       "@alert-notification-env/*": ["./src/modules/alert-notification/env/*"],
       "@alert-notification-constants/*": ["./src/modules/alert-notification/constants/*"],
       "@alert-notification-test-data/*": ["src/modules/alert-notification/tests/test-data/*"],
-      "@employee-listening/*": ["./src/modules/employee-listening/*"]
+      "@employee-listening/*": ["./src/modules/employee-listening/*"],
+      "@recognition/*": ["./src/modules/recognition/*"],
+      "@recognition-pages/*": ["./src/modules/recognition/ui/pages/*"],
+      "@recognition-components/*": ["./src/modules/recognition/ui/components/*"]
     },
     "target": "ES2019",
     "module": "commonjs",

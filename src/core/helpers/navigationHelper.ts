@@ -25,6 +25,8 @@ import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-ab
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
+import { ManageRecognitionPage } from '@/src/modules/recognition/ui/pages/manage/manageRecognitionPage';
+import { RecognitionHubPage } from '@/src/modules/recognition/ui/pages/recognitionHubPage';
 
 export interface ICommonHomePageActions {
   searchForTerm: (searchTerm: string, options?: { stepInfo?: string }) => Promise<GlobalSearchResultPage>;
@@ -337,6 +339,35 @@ export class NavigationHelper {
     return await test.step(options?.stepInfo || 'Navigating to campaign analytics', async () => {
       const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
       await analyticsLandingPage.openCampaignAnalytics();
+    });
+  }
+
+  /**
+   * Navigates to the manage recognition page via the side nav bar
+   * @param options - The options for the step
+   * @returns The manage recognition page
+   */
+
+  async navigateToManageRecognitionViaSideNavBar(options?: { stepInfo?: string }): Promise<ManageRecognitionPage> {
+    return await test.step(options?.stepInfo || 'Navigating to manage recognition via side nav bar', async () => {
+      await this.sideNavBarComponent.clickRecognitionLinkInsideManageNavMenu();
+      const manageRecognitionPage = new ManageRecognitionPage(this.page);
+      await manageRecognitionPage.verifyThePageIsLoaded();
+      return manageRecognitionPage;
+    });
+  }
+
+  /**
+   * Navigates to the recognition hub page via the side nav bar
+   * @param options - The options for the step
+   * @returns The recognition hub page
+   */
+  async navigateToRecognitionHubViaSideNavBar(options?: { stepInfo?: string }): Promise<RecognitionHubPage> {
+    return await test.step(options?.stepInfo || 'Navigating to recognition hub via side nav bar', async () => {
+      await this.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
+      const recognitionHubPage = new RecognitionHubPage(this.page);
+      await recognitionHubPage.verifyThePageIsLoaded();
+      return recognitionHubPage;
     });
   }
 }
