@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class AddTileComponent extends BaseComponent {
+  readonly addContentTileOption: Locator;
   readonly addTileButton: Locator;
   readonly socialCampaignsButton: Locator;
   readonly showcaseRadioButton: Locator;
@@ -32,6 +33,11 @@ export class AddTileComponent extends BaseComponent {
     this.customSCButton = page.getByRole('button', { name: 'Custom SC' });
     this.customSCTitleInput = page.locator('input.ReactSelectInput-inputField');
     this.customSCTitleInputOption = (text: string) => page.locator(`div.u-textTruncate:has-text("${text}")`).first();
+    this.addContentTileOption = page.getByRole('button', { name: 'Add pages, events & albums' });
+  }
+
+  async clickingOnAddContentTileOption(): Promise<void> {
+    await this.clickOnElement(this.addContentTileOption);
   }
 
   async clickAddTileButton(): Promise<void> {
