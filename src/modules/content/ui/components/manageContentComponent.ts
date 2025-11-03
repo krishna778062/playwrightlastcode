@@ -2,12 +2,13 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { SortOptionLabels } from '@modules/content/constants';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export class ManageContentComponent extends BaseComponent {
+  readonly baseActionUtil: BaseActionUtil;
   readonly searchBar: Locator;
   readonly searchIconButton: Locator;
   readonly nothingToShowHereText: Locator;
@@ -57,6 +58,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly ellipsisButton: Locator;
   readonly manageContentListItems: Locator;
   readonly showMoreButton: Locator;
   readonly pageOption: Locator;
@@ -69,6 +71,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly checkBoxOfContent: Locator;
   constructor(page: Page) {
     super(page);
+    this.baseActionUtil = new BaseActionUtil(page);
     this.searchBar = page.locator("[aria-label='Search…']");
     this.searchIconButton = page.locator('.SearchField-submit');
     this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
@@ -129,6 +132,7 @@ export class ManageContentComponent extends BaseComponent {
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
     this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
+    this.ellipsisButton = page.locator('.OptionsMenu-panel-main').first();
     this.pageOption = page.getByText('Page', { exact: true });
     this.draftTag = page
       .locator('div')
@@ -328,6 +332,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
+      await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.publishButton);
     });
   }
@@ -751,7 +756,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

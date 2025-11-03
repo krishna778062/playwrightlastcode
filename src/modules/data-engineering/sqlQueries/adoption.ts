@@ -209,4 +209,68 @@ export const AdoptionSql = {
            where td.TENANT_CODE = '{tenantCode}' AND 
            REPORTING_MONTH = '{reportingMonth}'
   `,
+
+  /**
+   * User Engagement Breakdown Query Template
+   * Returns user engagement breakdown data
+   */
+  USER_ENGAGEMENT_BREAKDOWN: `
+        select USER_MARKED_UNDER_CATEGORY as behaviour, 
+            count(USER_MARKED_UNDER_CATEGORY) as count from  
+            (  select user_code , case when max(category)=4 and max(logged_in)=1 then 'Contributor' 
+                when max(category)=3 and max(logged_in)=1 then 'Participant' 
+                when max(category)=2 and max(logged_in)=1 then 'Observer' 
+                else 'No logins' end as user_marked_under_category from  
+                (select user_code,case when is_contributor=true then 4 
+                when is_participant=true then 3 
+                when is_observer=true then 2 
+                else 1  end as category, 
+                case when has_logged_in='TRUE' then 1 
+                else 0 end as logged_in 
+                from SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua inner join 
+                SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u on u.code=dua.user_code
+                where reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+                and u.status_code='US001' and dua.tenant_code ='{tenantCode}' 
+                {locationFilter}
+                {departmentFilter}
+                {segmentFilter}
+                {userCategoryFilter}
+                {companyNameFilter}
+            ) 
+        group by user_code) 
+        group by USER_MARKED_UNDER_CATEGORY;
+  `,
+
+  /**
+   * Adoption Rate User Login Query Template
+   * Returns adoption rate user login data
+   */
+  ADOPTION_RATE_USER_LOGIN: `
+        SELECT  
+            COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code END) 
+        AS users_who_logged_in_at_least_once, 
+            MAX(COUNT(DISTINCT dua.user_code)) OVER () AS total_users, 
+            CONCAT( 
+                
+                    (COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code 
+        END)::numeric  
+                    / NULLIF(MAX(COUNT(DISTINCT dua.user_code)) OVER (), 0)) * 100, '%' 
+            ) AS percent, 
+            TO_CHAR(DATE(dua.reporting_date), 'YYYY-MM-DD') AS login_date, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD, YYYY') AS date_format, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD') AS date_format_day 
+        FROM SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua 
+        INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u  
+            ON dua.user_code = u.code 
+        WHERE reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+          AND dua.tenant_code = '{tenantCode}' 
+          AND u.status_code = 'US001' 
+          {locationFilter}
+          {departmentFilter}
+          {segmentFilter}
+          {userCategoryFilter}
+          {companyNameFilter}
+        GROUP BY dua.reporting_date 
+        ORDER BY dua.reporting_date;
+  `,
 };
