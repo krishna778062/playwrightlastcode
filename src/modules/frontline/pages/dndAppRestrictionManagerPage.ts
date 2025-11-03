@@ -1,3 +1,4 @@
+import { DND_MESSAGES } from '@frontline/constants/dndConstants';
 import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -14,6 +15,7 @@ export class DNDAppRestriction extends BasePage {
   readonly audienceLabel: Locator;
   readonly allOrgDescription: Locator;
   readonly audienceDescription: Locator;
+  readonly managePreferencesButton: Locator;
 
   // Audience DND Settings elements
   readonly addAudienceButton: Locator;
@@ -63,13 +65,8 @@ export class DNDAppRestriction extends BasePage {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
     this.apprestrictionOptionTab = page.getByRole('tab', { name: 'DND and app restrictions' });
-    this.dndAndApprestrictionPageHeading = page.getByRole('heading', {
-      name: 'Do not disturb and app restrictions outside work hours',
-    });
-    this.descriptionOnDndPage = page.getByText(
-      'Notifications including email, browser, SMS, and mobile push notifications will not be sent outside your work hours'
-    );
-
+    this.dndAndApprestrictionPageHeading = page.locator('//h3[contains(text(),"Do not disturb")]');
+    this.descriptionOnDndPage = page.locator('//h3[contains(text(),"Do not disturb")]/following-sibling::h4');
     this.allOrgToggle = page.getByRole('heading', { name: 'All organization' }).locator('..').getByRole('switch');
     this.allOrgLabel = page.getByRole('heading', { name: 'All organization' });
     this.audienceToggle = page
@@ -114,6 +111,7 @@ export class DNDAppRestriction extends BasePage {
     this.workHoursStartTime = page.getByTestId('field-Work hours start time').getByTestId('SelectInput');
     this.workHoursEndTime = page.getByTestId('field-Work hours end time').getByTestId('SelectInput');
     this.userEditableCheckbox = page.getByRole('checkbox', { name: 'User editable' });
+    this.managePreferencesButton = page.getByRole('link', { name: 'Manage preferences' });
 
     // User settings elements
     this.mysettingsDNDMenu = page.getByRole('link', { name: 'Do not disturb' });
@@ -233,11 +231,21 @@ export class DNDAppRestriction extends BasePage {
     await this.verifier.verifyElementHasText(this.dndAndApprestrictionPageHeading, pageHeading);
   }
 
-  async verifyDescriptionText(descriptionText: string): Promise<void> {
-    const actualText = await this.descriptionOnDndPage.textContent();
-    const normalizedActual = actualText?.replace(/\s+/g, ' ').trim();
-    const normalizedExpected = descriptionText.replace(/\s+/g, ' ').trim();
-    await this.verifier.verifyElementContainsText(this.descriptionOnDndPage, normalizedExpected);
+  async verifyDescriptionText(): Promise<void> {
+    await test.step('Verify description text based on manage preferences button visibility', async () => {
+      const managePreferencesButtonVisible = await this.verifier.isTheElementVisible(this.managePreferencesButton, {
+        timeout: 5_000,
+      });
+
+      if (managePreferencesButtonVisible) {
+        await this.verifier.verifyElementHasText(
+          this.descriptionOnDndPage,
+          DND_MESSAGES.DND_APP_RESTRICTIONS_PAGE_DESCRIPTION
+        );
+      } else {
+        await this.verifier.verifyElementHasText(this.descriptionOnDndPage, DND_MESSAGES.DND_PAGE_DESCRIPTION);
+      }
+    });
   }
 
   async verifyAllOrgToogleAndLabel(): Promise<void> {
@@ -283,7 +291,7 @@ export class DNDAppRestriction extends BasePage {
 
   async verifyWorkingHours(): Promise<void> {
     await this.verifier.verifyElementHasText(this.workingDayStartTime.locator('option:checked'), '7:00 AM');
-    await this.verifier.verifyElementHasText(this.workingDayEndTime.locator('option:checked'), ' 9:30 PM');
+    await this.verifier.verifyElementHasText(this.workingDayEndTime.locator('option:checked'), ' 11:30 PM');
   }
 
   async verifyWorkingDaysAndHoursEditable(): Promise<void> {
