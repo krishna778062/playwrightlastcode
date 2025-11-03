@@ -1,10 +1,10 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { ListOfSocialCampaignComponent } from '@content/ui/components/listOfSocialCampaignComponent';
-import { ShareSocialCampaignComponent } from '@content/ui/components/shareSocialCampaignComponent';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 export interface ISocialCampaignPageActions {
   removeAllExistingCampaigns: () => Promise<void>;

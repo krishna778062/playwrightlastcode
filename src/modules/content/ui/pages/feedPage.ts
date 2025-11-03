@@ -13,10 +13,10 @@ import {
 } from '@content/ui/components/createQuestionComponent';
 import { FilePreviewComponent } from '@content/ui/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
-import { ShareSocialCampaignComponent } from '@content/ui/components/shareSocialCampaignComponent';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
