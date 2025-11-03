@@ -22,4 +22,5 @@ export enum ContentTestSuite {
   SOCIAL_CAMPAIGN = '@social-campaign',
   QUESTION_SETTINGS = '@question-settings',
   FEED_LAYOUT = '@feed-layout',
+  MUST_READ = '@must-read',
 }
