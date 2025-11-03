@@ -2,13 +2,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -22,9 +24,10 @@ test.describe(
   () => {
     let siteManagementHelper: SiteManagementHelper;
     let siteCategoriesPage: SiteCategoriesPage;
-    let usedSiteIds: string[] = []; // Track used site IDs across tests
-    let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
+    let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitesComponent: ManageSitesComponent;
+    let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
     async function getUniqueSite(
@@ -66,6 +69,7 @@ test.describe(
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
 
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
@@ -210,6 +214,42 @@ test.describe(
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
         await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
+      }
+    );
+
+    test(
+      'verify Scheduled stamp and its options menu under-manage site content tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23966'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-23966',
+          storyId: 'CONT-23966',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          hasPages: true,
+        });
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: {
+            publishAt: getTomorrowDateIsoString(),
+          },
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.scheduledTagVisibleInManageContent();
+        await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.actions.clickOnPublishButton();
       }
     );
   }
