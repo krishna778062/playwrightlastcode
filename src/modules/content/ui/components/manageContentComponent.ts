@@ -807,6 +807,10 @@ export class ManageContentComponent extends BaseComponent {
         return this.publishButton;
       case ManageContentOptions.MOVE:
         return this.moveButton;
+      case ManageContentOptions.ONBOARDING:
+        return this.onboardingOption;
+      case ManageContentOptions.ADD_TO_CAMPAIGN:
+        return this.addToCampaignOption;
       default:
         throw new Error(`Unknown option: ${option}`);
     }
@@ -834,20 +838,6 @@ export class ManageContentComponent extends BaseComponent {
       default:
         throw new Error(`Unknown tag: ${tag}`);
     }
-  }
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the published stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishedTag, {
-        assertionMessage: 'Published stamp should be visible',
-      });
-    });
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
-        assertionMessage: 'Unpublished stamp should be visible',
-      });
-    });
   }
 
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
