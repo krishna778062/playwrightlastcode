@@ -5,8 +5,8 @@ import { SortOptionLabels } from '@modules/content/constants';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
-import { ManageContentOptions, ManageContentTags } from '@/src/modules/content/constants/manageContentOptions';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { ManageContentOptions, ManageContentTags } from '@/src/modules/content/constants/manageContentOptions';
 
 export class ManageContentComponent extends BaseComponent {
   readonly baseActionUtil: BaseActionUtil;
