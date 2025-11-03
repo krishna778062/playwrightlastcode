@@ -224,7 +224,6 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
-        console.log('heading--------------', await (await this.getOtpSentToHeading(email)).textContent());
 
         if (lwoType === 'optional') {
           await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('email');
