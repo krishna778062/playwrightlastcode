@@ -19,7 +19,7 @@ test.describe(
     multiUserTileFixture(
       'Verify ServiceNow credentials can be connected',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P4, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -41,6 +41,11 @@ test.describe(
         await endUserServiceNow.verifyThePageIsLoaded();
         await endUserServiceNow.connectServiceNowAccount();
         await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+        const adminExternalAppsPage = new ExternalAppsPage(adminPage);
+        await adminExternalAppsPage.navigateToExternalAppsPage();
+        await adminExternalAppsPage.verifyThePageIsLoaded();
+        await adminExternalAppsPage.connectServiceNowAccount();
+        await adminExternalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
       }
     );
 

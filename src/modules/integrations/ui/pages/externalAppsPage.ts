@@ -404,16 +404,29 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       await this.getConnectButton(ExternalAppProvider.SERVICENOW).click();
       await this.page.waitForLoadState('domcontentloaded');
       await this.page.waitForTimeout(10000);
-      await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
-      await this.serviceNowUserName.fill('admin');
-      await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
-      await this.serviceNowPassword.fill('0=IPmAxD$x6f');
-      await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
-      await this.serviceNowLoginButton.click();
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
-      await this.allowAccessButton.click();
-      await this.page.waitForLoadState('domcontentloaded');
+
+      // Check if user is already logged in (allowAccessButton is visible)
+      const isAllowAccessVisible = await this.allowAccessButton.isVisible().catch(() => false);
+
+      if (isAllowAccessVisible) {
+        await test.step('User already logged in - clicking Allow Access', async () => {
+          await this.allowAccessButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+        });
+      } else {
+        await test.step('Logging in to ServiceNow', async () => {
+          await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowUserName.fill('admin');
+          await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowPassword.fill('0=IPmAxD$x6f');
+          await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowLoginButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+          await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.allowAccessButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+        });
+      }
       await expect(this.getDisconnectButton(ExternalAppProvider.SERVICENOW)).toBeVisible({ timeout: 10_000 });
     });
   }
