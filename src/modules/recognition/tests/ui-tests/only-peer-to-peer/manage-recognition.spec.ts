@@ -1,15 +1,13 @@
-import { RecognitionTabNames } from '@recognition/constants/tabNames';
 import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { RecognitionTabNames } from '@recognition-constants/genericEnums';
+import { RecognitionHubPage } from '@recognition-pages/recognitionHubPage';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { RecognitionHubPage } from '../../../ui/pages/recognitionHubPage';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 test.describe('manage recognition', () => {
   test(
@@ -85,11 +83,11 @@ test.describe('manage recognition', () => {
         'peer',
         PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
       );
-      await manageRecognitionPage.verifyPeerRecognitionAccessibleWhenP2PisActive();
-      await manageRecognitionPage.verifyBadgeTabAccessibleWhenP2PisActive();
-      await manageRecognitionPage.verifyTabNotAccessibleWhenP2PisActive(RecognitionTabNames.SPOT_AWARDS);
-      await manageRecognitionPage.verifyTabNotAccessibleWhenP2PisActive(RecognitionTabNames.MILESTONES);
-      await manageRecognitionPage.verifyTabNotAccessibleWhenP2PisActive(RecognitionTabNames.RECURRING_AWARDS);
+      await manageRecognitionPage.verifyPeerRecognitionAccessibleInP2POnlyMode();
+      await manageRecognitionPage.verifyBadgeTabAccessibleInP2POnlyMode();
+      await manageRecognitionPage.verifyTabNotAccessibleInP2POnlyMode(RecognitionTabNames.SPOT_AWARDS);
+      await manageRecognitionPage.verifyTabNotAccessibleInP2POnlyMode(RecognitionTabNames.MILESTONES);
+      await manageRecognitionPage.verifyTabNotAccessibleInP2POnlyMode(RecognitionTabNames.RECURRING_AWARDS);
     }
   );
 });
