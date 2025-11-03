@@ -34,9 +34,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly dialogHeadingLocator: Locator;
   readonly dialogMessageLocator: Locator;
   readonly setupChecklistPanel: Locator;
-  readonly completedStepIndicator: Locator;
-  readonly incompleteStepIndicator: Locator;
-  readonly stepTextLocator: Locator;
   readonly completedStepStatusIndicator: Locator;
   readonly incompleteStepStatusIndicator: Locator;
   readonly stepContainer: Locator;
@@ -65,11 +62,8 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.usernameInput = page.locator('input[name="username"]');
     this.passwordInput = page.locator('input[name="password"]');
     this.dialogHeadingLocator = page.locator('h4, [role="heading"]');
-    this.dialogMessageLocator = page.locator('p');
+    this.dialogMessageLocator = page.getByRole('dialog').locator('p');
     this.setupChecklistPanel = page.locator('button[aria-label*="setup checklist"]');
-    this.completedStepIndicator = page.locator('[data-testid="completedStepStatusIndicator"]');
-    this.incompleteStepIndicator = page.locator('[data-testid="incompleteStepStatusIndicator"]');
-    this.stepTextLocator = page.locator('p');
     this.completedStepStatusIndicator = page.locator('[data-testid="completedStepStatusIndicator"]');
     this.incompleteStepStatusIndicator = page.locator('[data-testid="incompleteStepStatusIndicator"]');
     this.stepContainer = page.locator('div[class*="Spacing-module__row__bvKBb"]:has(p)');

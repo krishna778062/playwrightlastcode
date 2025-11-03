@@ -30,6 +30,10 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly getConnectorIcon: (connector: string) => Locator;
   readonly getConnectionText: (username: string) => Locator;
 
+  // App tile dialog locators
+  readonly getAppButtonInPanel: (panelContent: Locator, appName: string) => Locator;
+  readonly getAppNameElementInPanel: (panelContent: Locator, appName: string) => Locator;
+
   constructor(page: Page) {
     super(page);
     this.editDashboardButton = page.getByRole('button', {
@@ -51,6 +55,12 @@ export class BaseAppTileComponent extends BaseComponent {
     this.connectorIconSelector = 'img[src*="{connector}/icon"]';
     this.getConnectorIcon = (connector: string) => this.dialog.locator(`img[src*="${connector.toLowerCase()}/icon"]`);
     this.getConnectionText = (username: string) => this.dialog.getByText(`Connected as ${username}`, { exact: false });
+
+    // Initialize app tile dialog locators
+    this.getAppButtonInPanel = (panelContent: Locator, appName: string) =>
+      panelContent.locator('button').filter({ hasText: appName });
+    this.getAppNameElementInPanel = (panelContent: Locator, appName: string) =>
+      panelContent.locator('p').filter({ hasText: new RegExp(`^${appName}$`, 'i') });
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button', { name: name, exact: true });
@@ -315,13 +325,13 @@ export class BaseAppTileComponent extends BaseComponent {
 
       // Look for the app in the enabled apps grid
       // The apps are displayed as buttons with the app name as text
-      const appButton = enabledAppsContent.locator('button').filter({ hasText: appName });
+      const appButton = this.getAppButtonInPanel(enabledAppsContent, appName);
 
       // Verify the app is NOT visible
       await expect(appButton).not.toBeVisible();
 
       // Also check for the app name in paragraph elements (as shown in the HTML)
-      const appNameElement = enabledAppsContent.locator('p').filter({ hasText: new RegExp(`^${appName}$`, 'i') });
+      const appNameElement = this.getAppNameElementInPanel(enabledAppsContent, appName);
       await expect(appNameElement).not.toBeVisible();
     });
   }
@@ -352,13 +362,13 @@ export class BaseAppTileComponent extends BaseComponent {
 
       // Look for the app in the available apps grid
       // The apps are displayed as buttons with the app name as text
-      const appButton = availableAppsContent.locator('button').filter({ hasText: appName });
+      const appButton = this.getAppButtonInPanel(availableAppsContent, appName);
 
       // Verify the app IS visible
       await expect(appButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
 
       // Also check for the app name in paragraph elements (as shown in the HTML)
-      const appNameElement = availableAppsContent.locator('p').filter({ hasText: new RegExp(`^${appName}$`, 'i') });
+      const appNameElement = this.getAppNameElementInPanel(availableAppsContent, appName);
       await expect(appNameElement).toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
@@ -389,7 +399,7 @@ export class BaseAppTileComponent extends BaseComponent {
       await expect(availableAppsContent).toBeVisible({ timeout: TIMEOUTS.SHORT });
 
       // Find the app button
-      const appButton = availableAppsContent.locator('button').filter({ hasText: appName });
+      const appButton = this.getAppButtonInPanel(availableAppsContent, appName);
       await expect(appButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
 
       // Wait for new page and click the app button
