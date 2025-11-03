@@ -71,7 +71,7 @@ test.describe('edit Topic', () => {
       await homeDashboardPage.assertions.verifyingCreatedPageIsVisibleInTile(randomPageName);
       await homeDashboardPage.actions.openingCreatedPageInTile(randomPageName);
       await contentPreviewPage.actions.unpublishingTheContent();
-      await contentPreviewPage.assertions.verifyUnpulishedContentToastMessage('Unpublished content successfully');
+      await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage('Unpublished content successfully');
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.assertions.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
