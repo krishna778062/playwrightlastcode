@@ -17,7 +17,7 @@ test.describe(
   () => {
     const verifyRestrictionForUser = async (siteId: string, page: any) => {
       const siteDashboard = new SiteDashboardPage(page, siteId);
-        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+      await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
       // Verify that restriction message is visible on dashboard
       await siteDashboard.assertions.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
     };
