@@ -636,6 +636,9 @@ export class CreateFeedPostComponent
       });
 
       console.log(`File containing "${fileName}" is successfully attached to the post`);
+    });
+  }
+
   async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
     await test.step('Verify edit and delete options are visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.editButton);
