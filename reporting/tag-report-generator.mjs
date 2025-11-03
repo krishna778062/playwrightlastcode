@@ -613,7 +613,8 @@ function generateStyles() {
     }
 
     /* Failed Tooltip */
-    .failed-card {
+    .failed-card,
+    a[href*="s:failed"] {
       position: relative;
     }
     
@@ -630,7 +631,8 @@ function generateStyles() {
       pointer-events: none;
     }
     
-    .failed-card:hover .failed-tooltip {
+    .failed-card:hover .failed-tooltip,
+    a[href*="s:failed"]:hover .failed-tooltip {
       opacity: 1;
       visibility: visible;
     }
@@ -716,52 +718,50 @@ function generateInteractiveCode() {
       const inputEl = document.getElementById('searchInput');
       const failureToggle = document.getElementById('failure-toggle');
 
-      const raw = (inputEl?.value || '').toLowerCase().trim();
-      const failOnly = !!(failureToggle && failureToggle.checked);
+      if (!inputEl) return;
 
-      console.log('=== FILTER DEBUG ===');
-      console.log('Toggle element:', failureToggle);
-      console.log('Toggle checked:', failOnly);
-      console.log('Search term:', raw);
+      const searchValue = (inputEl.value || '').trim();
+      const failOnly = !!(failureToggle && failureToggle.checked);
 
       const tbody = document.querySelector('#resultsTable tbody');
       if (!tbody) return;
 
-      const terms = raw ? raw.split(/[,\s]+/).filter(Boolean) : [];
+      // Split by comma first, then trim each term
+      const terms = searchValue
+        .split(',')
+        .map(term => term.toLowerCase().trim())
+        .filter(term => term.length > 0);
 
       const rows = Array.from(tbody.querySelectorAll('tr'));
-      let visible = 0;
-      let tagExists = false; // Track if any tag matches the search term
+      let visibleCount = 0;
+      let tagExists = false;
 
-      for (const row of rows) {
-        const tagName = (row.getAttribute('data-tag') || '').toLowerCase();
-        const hasFailures = row.getAttribute('data-has-failures') === 'true';
+      rows.forEach((row) => {
+        const tagAttr = row.getAttribute('data-tag') || '';
+        const tagNormalized = tagAttr.toLowerCase().replace(/^@/, '');
         const hasActualFailures = row.getAttribute('data-has-actual-failures') === 'true';
 
-        // Improved matching: case-insensitive and handles special characters better
-        const nameMatch = terms.length === 0 || terms.some(term => {
-          const normalizedTerm = term.toLowerCase().trim();
-          return tagName.includes(normalizedTerm) || 
-                 tagName.replace(/[^a-z0-9]/g, '').includes(normalizedTerm.replace(/[^a-z0-9]/g, ''));
-        });
-        
-        // When "Show failures only" is ON, only show tags with ACTUAL failures (excluding known failures)
-        const failMatch = !failOnly || hasActualFailures;
-
-        // Check if tag exists (regardless of failure status)
-        if (nameMatch) {
-          tagExists = true;
+        // Match if no search OR if tag contains ANY of the search terms (OR logic)
+        let isTagMatch = false;
+        if (terms.length === 0) {
+          isTagMatch = true;
+        } else {
+          isTagMatch = terms.some(term => tagNormalized.includes(term));
+          if (isTagMatch) {
+            tagExists = true;
+          }
         }
 
-        const shouldShow = nameMatch && failMatch;
-        row.style.display = shouldShow ? '' : 'none';
-        if (shouldShow) visible++;
+        const isFailureMatch = !failOnly || hasActualFailures;
+        const shouldDisplay = isTagMatch && isFailureMatch;
 
-        console.log('Row ' + tagName + ': hasFailures=' + hasFailures + ', hasActualFailures=' + hasActualFailures + ', failMatch=' + failMatch + ', nameMatch=' + nameMatch + ', shouldShow=' + shouldShow);
-      }
-
-      console.log('Total visible rows:', visible);
-      console.log('==================');
+        if (shouldDisplay) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
 
       const noResults = document.getElementById('noResults');
       const noResultsIcon = document.getElementById('noResultsIcon');
@@ -770,22 +770,22 @@ function generateInteractiveCode() {
       const tableWrap = document.getElementById('tableWrapper');
 
       if (noResults && tableWrap) {
-        if (visible === 0) {
+        if (visibleCount === 0) {
           // Update message and icon based on context
-          if (failOnly && !raw) {
+          if (failOnly && !searchValue) {
             // Only failure filter is active - show success icon
             noResultsIcon.textContent = '🎉';
             noResultsIcon.className = 'text-green-500 text-5xl mb-4';
             noResultsTitle.textContent = 'No fails';
             noResultsSubtitle.textContent = 'All tests passed successfully!';
-          } else if (failOnly && raw) {
+          } else if (failOnly && searchValue) {
             // Both failure filter and search are active
-            if (tagExists) {
+            if (tagExists) { // This variable is not defined in the new filterTable, so it will be removed.
               // Tag exists but has no failures - show success message
               noResultsIcon.textContent = '✅';
               noResultsIcon.className = 'text-green-500 text-5xl mb-4';
               noResultsTitle.textContent = 'Great! No failures found';
-              noResultsSubtitle.textContent = 'All "' + raw + '" tags are passing successfully!';
+              noResultsSubtitle.textContent = 'All "' + searchValue + '" tags are passing successfully!';
             } else {
               // Tag doesn't exist - show not found message
               noResultsIcon.textContent = '🔍';
@@ -793,7 +793,7 @@ function generateInteractiveCode() {
               noResultsTitle.textContent = 'No tags found';
               noResultsSubtitle.textContent = 'Try another search term';
             }
-          } else if (!failOnly && raw) {
+          } else if (!failOnly && searchValue) {
             // Only search is active
             noResultsIcon.textContent = '🔍';
             noResultsIcon.className = 'text-gray-400 text-5xl mb-4';
@@ -945,8 +945,18 @@ function generateInteractiveCode() {
       filterTable();
     }
 
+    // Make functions globally accessible
+    window.filterTable = filterTable;
+    window.clearSearch = clearSearch;
+    window.sortTable = sortTable;
+    
     // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', initializeTable);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeTable);
+    } else {
+      // DOM is already loaded, initialize immediately
+      initializeTable();
+    }
   `;
 }
 
@@ -1033,10 +1043,10 @@ export function generateHTML(
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 mb-8">
 
         <!-- TOTAL TESTS -->
-        <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
+        <a href="index.html" target="_blank" class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-indigo-600 uppercase mb-1">Total Tests</p>
           <p class="text-2xl font-extrabold text-indigo-700">${totalTests}</p>
-        </div>
+        </a>
 
         <!-- PASSED -->
         <a href="index.html#?q=s:passed" target="_blank" class="p-3 bg-pass-green/10 border border-pass-green/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
@@ -1045,7 +1055,7 @@ export function generateHTML(
         </a>
 
         <!-- FAILED -->
-        <div class="failed-card p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
+        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-fail-red uppercase mb-1">Failed</p>
           <p class="text-2xl font-extrabold text-fail-red">${totalFailed + totalKnownFailures}</p>
 
@@ -1060,12 +1070,12 @@ export function generateHTML(
               </div>
             </div>
           </div>
-        </div>
+        </a>
                 <!-- KNOWN FAILURES -->
-        <div class="p-3 bg-orange-100 border border-orange-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
+        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-orange-100 border border-orange-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
           <p class="text-xs font-semibold text-orange-600 uppercase mb-1">Known Failures</p>
           <p class="text-2xl font-extrabold text-orange-600">${totalKnownFailures}</p>
-        </div>
+        </a>
 
         <!-- SKIPPED -->
         <a href="index.html#?q=s:skipped" target="_blank" class="p-3 bg-gray-100 border border-gray-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
@@ -1118,7 +1128,6 @@ export function generateHTML(
               autocapitalize="off"
               autocorrect="off"
               spellcheck="false"
-              oninput="filterTable()"
             />
             <button class="clear-search" onclick="clearSearch()" aria-label="Clear search">×</button>
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -9,7 +9,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 //load all env variables from .env file for given module
 loadEnvVariablesForGivenModule(
-  (process.env.TEST_ENV as Environments) || Environments.QA,
+  (process.env.TEST_ENV as Environments) || Environments.UAT,
   process.env.MODULE_NAME || Modules.PLATFORMS
 );
 
