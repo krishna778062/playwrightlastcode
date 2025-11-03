@@ -350,10 +350,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
-  }
-
   /**
    * Unified function to verify any option visibility in manage content
    * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)

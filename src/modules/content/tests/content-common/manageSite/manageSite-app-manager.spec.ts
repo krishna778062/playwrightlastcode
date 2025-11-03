@@ -246,15 +246,15 @@ test.describe(
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteBySpecificName('All Employees');
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         await appManagerFixture.contentManagementHelper.createPage({
-          siteId: siteInfo.siteId,
+          siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
-        const DashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
-        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo.siteId);
+        const DashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo);
         await DashboardPage.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();

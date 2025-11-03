@@ -854,14 +854,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the add to campaign option is not visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.addToCampaignOption, {
-        assertionMessage: 'Add to campaign option should not be visible',
-      });
-    });
-  }
-
   async clickOnContentEditButton(): Promise<void> {
     await test.step('Clicking on content edit button', async () => {
       await this.clickOnElement(this.editButton);
