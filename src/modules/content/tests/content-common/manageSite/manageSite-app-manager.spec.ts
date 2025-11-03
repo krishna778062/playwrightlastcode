@@ -9,6 +9,8 @@ import {
   ContentFeatureTags,
   ContentStatus,
   ContentSuiteTags,
+  ManageContentOptions,
+  ManageContentTags,
   OnboardingOption,
   SortOptionLabels,
 } from '@/src/modules/content/constants';
@@ -80,7 +82,8 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
-
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -346,16 +349,16 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.albumName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyUnpublishOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
         await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnDeleteOption();
         await manageContentPage.actions.clickDeleteModalConfirmButton();
