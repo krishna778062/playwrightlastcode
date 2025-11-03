@@ -1,4 +1,4 @@
-import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -11,6 +11,17 @@ import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileMan
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
+interface TenantConfig {
+  tenantName: string;
+  frontendBaseUrl: string;
+  apiBaseUrl: string;
+  appManagerEmail: string;
+  appManagerPassword: string;
+  endUserEmail: string;
+  endUserPassword: string;
+}
+
+export type Options = { tenantConfig: TenantConfig };
 // API-only fixture type for API helpers and services
 export interface IntegrationsApiFixture {
   apiContext: APIRequestContext;
