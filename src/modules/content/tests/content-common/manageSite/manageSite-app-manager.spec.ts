@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -220,10 +220,10 @@ test.describe(
         await manageContentPage.actions.scheduledTagVisibleInManageContent();
         await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
       }
     );
@@ -256,7 +256,7 @@ test.describe(
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
         await manageContentPage.actions.clickOnOnboardingOption();
         await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
