@@ -359,6 +359,23 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
+  }
+
+  /**
+   * Unified function to verify any option visibility in manage content
+   * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
+   */
+  async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
+  }
+
+  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
+  }
+  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
+  }
+
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
