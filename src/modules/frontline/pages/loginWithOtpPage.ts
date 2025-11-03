@@ -37,9 +37,9 @@ export class LoginWithOtpPage extends BasePage {
     this.emailInput = page.getByRole('textbox', { name: 'Email ID' });
     this.optionalHeading = page.getByRole('heading', { name: 'Optional' });
     this.addMobileNumberOrEmailHeading = page.getByRole('heading', { name: 'Add mobile number or email' });
-    this.optionalFroceAddContactMessage = page.getByRole('heading', {
-      name: new RegExp(LWO_MESSAGES.OPTIONAL_FORCE_ADD_CONTACT_HEADING.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-    });
+    this.optionalFroceAddContactMessage = page.locator(
+      "//h1[text()='Add mobile number or email']/following-sibling::h4"
+    );
     this.mandatoryFroceAddContactMessage = page.getByRole('heading', {
       name: LWO_MESSAGES.MANDATORY_FORCE_ADD_CONTACT_HEADING,
     });
@@ -224,6 +224,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
+        console.log('heading--------------', await (await this.getOtpSentToHeading(email)).textContent());
 
         if (lwoType === 'optional') {
           await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('email');
