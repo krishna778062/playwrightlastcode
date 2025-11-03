@@ -236,4 +236,10 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.recognitionButton);
     });
   }
+
+  async verifyingCreateButtonIsVisible(): Promise<void> {
+    await test.step('Verifying Create button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
+    });
+  }
 }

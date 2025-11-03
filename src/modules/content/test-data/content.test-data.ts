@@ -38,6 +38,15 @@ export const CONTENT_TEST_DATA = {
     attachments: ['image1.jpg', 'testData.txt'],
   },
 
+  DEFAULT_EVENT_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Event`,
+    contentType: 'event',
+    description: 'Test event content for global search verification and validation',
+    location: 'Delhi, India',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  },
+
   TIMEOUTS: {
     DEFAULT: 30_000,
     UPLOAD: 60_000,
