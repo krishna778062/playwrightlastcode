@@ -5,9 +5,13 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import {
+  ManageContentOptions,
+  ManageContentTags,
+  OnboardingOption,
+  SortOptionLabels,
+} from '@/src/modules/content/constants';
 import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
-import { OnboardingOption } from '@/src/modules/content/constants/onboardingOptions';
-import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -28,8 +32,8 @@ test.describe(
   () => {
     let siteManagementHelper: SiteManagementHelper;
     let siteCategoriesPage: SiteCategoriesPage;
-    let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
+    let manageFeaturesPage: ManageFeaturesPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
@@ -76,7 +80,8 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
-
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -222,10 +227,10 @@ test.describe(
         await manageContentPage.actions.scheduledTagVisibleInManageContent();
         await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
       }
     );
@@ -258,7 +263,7 @@ test.describe(
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
         await manageContentPage.actions.clickOnOnboardingOption();
         await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(OnboardingOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
@@ -294,7 +299,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
@@ -302,7 +307,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnPublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await appManagerFixture.page.reload();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
