@@ -19,7 +19,7 @@ test.describe(
     multiUserTileFixture(
       'Verify ServiceNow credentials can be connected',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
