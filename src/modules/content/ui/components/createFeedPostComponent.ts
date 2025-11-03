@@ -52,12 +52,16 @@ export interface ICreateFeedPostActions {
   searchForFileInLibrary: (fileName: string) => Promise<void>;
   selectFileFromLibrary: (fileName: string) => Promise<void>;
   clickAttachButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
+  verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -75,6 +79,10 @@ export class CreateFeedPostComponent
   readonly editButton = this.page
     .locator("div[role='menuitem'] > div")
     .filter({ hasText: /^Edit$/ })
+    .first();
+  readonly deleteButton = this.page
+    .locator("div[role='menuitem'] > div")
+    .filter({ hasText: /^Delete$/ })
     .first();
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
 
@@ -266,7 +274,15 @@ export class CreateFeedPostComponent
       }
       await this.fileUploadInput.setInputFiles(filePaths);
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
-      await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      /*
+          If files are more than 10, verify the count of attached files is 10
+          because atmax 10 files are uploaded else verify the count of attached files is the number of files uploaded
+      */
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
 
       // Wait for all upload requests to complete
       await Promise.all(responsePromises);
@@ -334,8 +350,9 @@ export class CreateFeedPostComponent
    */
   async updatePostText(text: string): Promise<void> {
     await test.step('Update post text', async () => {
-      await this.feedEditor.clear();
-      await this.fillInElement(this.feedEditor, text);
+      const editor = this.feedEditor.first();
+      await editor.clear();
+      await this.fillInElement(editor, text);
     });
   }
 
@@ -619,6 +636,46 @@ export class CreateFeedPostComponent
       });
 
       console.log(`File containing "${fileName}" is successfully attached to the post`);
+  async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
+    await test.step('Verify edit and delete options are visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton);
+      await this.verifier.verifyTheElementIsVisible(this.deleteButton);
+    });
+  }
+  /**
+   * Verifies the count of attached files matches the expected count
+   * @param expectedCount - The expected number of attached files
+   */
+  async verifyAttachedFileCount(expectedCount: number): Promise<void> {
+    await test.step(`Verify attached file count is ${expectedCount}`, async () => {
+      await this.verifier.verifyCountOfElementsIsEqualTo(this.attachedFiles, expectedCount, {
+        timeout: 10000,
+        assertionMessage: `Expected ${expectedCount} attached files, but verification failed`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the update button is disabled
+   */
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await test.step('Verify update button is disabled', async () => {
+      await expect(this.updateButton).toBeDisabled();
+    });
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await test.step(`Add file to post: ${filePath}`, async () => {
+      await this.fileUploadInput.first().setInputFiles([filePath]);
+    });
+  }
+
+  /**
+   * Waits for file items to appear in the UI after upload
+   */
+  async waitForFileToAppear(): Promise<void> {
+    await test.step('Wait for file to appear in UI', async () => {
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: 5000 });
     });
   }
 }

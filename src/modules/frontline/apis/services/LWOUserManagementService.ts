@@ -35,7 +35,7 @@ export class LWOUserManagementService {
       expect(response.status()).toBe(200);
     });
   }
-  async setLWOAsOptional(verificationType: string) {
+  async setLWOSetting(verificationType: string) {
     let payload: any = '';
     if (verificationType === 'optional') {
       payload = { loginWithOtpEnabled: true, loginWithOtpVerificationType: 'optional' };

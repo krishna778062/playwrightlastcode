@@ -339,7 +339,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   async isIntegrationConnected(provider: ExternalAppProvider): Promise<boolean> {
     return await test.step(`Check if ${provider} integration is connected`, async () => {
       const integrationItem = this.getIntegrationItem(provider);
-      const statusIndicator = integrationItem.locator('p:has-text("Connected as")');
+      const statusIndicator = integrationItem.locator('button:has-text("Disconnect account")');
       return await statusIndicator.isVisible();
     });
   }

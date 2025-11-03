@@ -75,7 +75,7 @@ export class ServiceDeskPage extends BasePage {
       if (!serviceDeskUrl) {
         throw new Error('Service Desk URL not configured');
       }
-      await this.page.goto(`${serviceDeskUrl}/service-desk`);
+      await this.page.goto(`${serviceDeskUrl}/service-desk`, { waitUntil: 'domcontentloaded' });
       await this.verifyThePageIsLoaded();
     });
   }

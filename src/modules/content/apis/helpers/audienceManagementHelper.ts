@@ -75,14 +75,25 @@ export class AudienceManagementHelper {
       };
     }
 
-    const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
+    // Find an audience with a valid count (> 0)
+    const validAudiences = response.result.listOfItems.filter(
+      audience => audience.audienceCount && audience.audienceCount > 0
+    );
+
+    if (validAudiences.length === 0) {
+      throw new Error('No audiences with valid count found');
+    }
+
+    const randomIndex = Math.floor(Math.random() * validAudiences.length);
+    const selectedAudience = validAudiences[randomIndex];
+
     return {
-      audienceId: response.result.listOfItems[randomIndex].audienceId,
-      name: response.result.listOfItems[randomIndex].name,
-      count: response.result.listOfItems[randomIndex].audienceCount || 0,
-      description: response.result.listOfItems[randomIndex].description || '',
-      audienceRule: response.result.listOfItems[randomIndex].audienceRule || { AND: [] },
-      type: response.result.listOfItems[randomIndex].type || 'mixed',
+      audienceId: selectedAudience.audienceId,
+      name: selectedAudience.name,
+      count: selectedAudience.audienceCount!,
+      description: selectedAudience.description || '',
+      audienceRule: selectedAudience.audienceRule || { AND: [] },
+      type: selectedAudience.type || 'mixed',
     };
   }
 

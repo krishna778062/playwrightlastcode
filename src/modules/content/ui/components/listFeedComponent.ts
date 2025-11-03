@@ -32,7 +32,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+    this.page.locator("div[class*='postContent']").filter({ hasText: text });
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
@@ -181,12 +181,14 @@ export class ListFeedComponent extends BaseComponent {
    * @param expectedText - Expected text of the post
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    console.log('Waiting for post to be visible: ', expectedText);
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.getFeedTextLocator(expectedText).first();
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
+      await postLocator.scrollIntoViewIfNeeded().catch(() => {});
     });
   }
 
@@ -246,6 +248,18 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Validating post contains text: "${postText}"`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
+      });
+    });
+  }
+
+  /**
+   * Validates that a post contains the expected text
+   * @param postText - The expected text content to validate
+   */
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await test.step(`Validating post contains text: "${postText}"`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.postTextLocator(postText), {
+        assertionMessage: `Post "${postText}" should not be visible`,
       });
     });
   }
