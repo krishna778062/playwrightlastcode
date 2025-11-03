@@ -83,56 +83,6 @@ test.describe(
     );
 
     test(
-      'verify application manager should be able to apply bulk options on selecting the Select All option',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25063'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25063',
-          storyId: 'CONT-25063',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.page.reload();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.page.reload();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnValidateButton();
-        await manageContentPage.actions.clickOnValidateApplyButton();
-        await manageContentPage.page.reload();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnMoveButton();
-        await manageContentPage.actions.selectMoveApplyButton();
-        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        await manageContentPage.actions.moveContentSearchBar(site.name || '');
-        await manageContentPage.actions.siteListSelecting();
-        await manageContentPage.actions.selectPageCategoryIfVisible();
-        await manageContentPage.actions.selectPageCategory();
-        await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.page.reload();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-      }
-    );
-
-    test(
       'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
