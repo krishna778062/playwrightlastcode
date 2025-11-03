@@ -76,6 +76,10 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   readonly acceptButton: Locator;
   readonly customAppsListComponent: CustomAppsListComponent;
   readonly connectConfluenceButton: Locator;
+  readonly serviceNowUserName: Locator;
+  readonly serviceNowPassword: Locator;
+  readonly serviceNowLoginButton: Locator;
+  readonly allowAccessButton: Locator;
   private cachedUserId?: string;
 
   constructor(page: Page) {
@@ -94,6 +98,10 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
     this.customAppsListComponent = new CustomAppsListComponent(page);
     this.acceptButton = page.locator('button[type="submit"]');
     this.connectConfluenceButton = page.locator('button[aria-label="Connect your Atlassian Confluence account"]');
+    this.serviceNowUserName = page.locator('#user_name');
+    this.serviceNowPassword = page.locator('#user_password');
+    this.serviceNowLoginButton = page.locator('[id="sysverb_login"]');
+    this.allowAccessButton = page.locator('[name="oauth_auth_check_action"]').nth(1);
   }
 
   get actions(): IExternalAppsActions {
@@ -388,6 +396,25 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
         await this.navigateToExternalAppsPage();
       }
       await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async connectServiceNowAccount(): Promise<void> {
+    await test.step('Connect ServiceNow account', async () => {
+      await this.getConnectButton(ExternalAppProvider.SERVICENOW).click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
+      await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowUserName.fill('admin');
+      await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowPassword.fill('0=IPmAxD$x6f');
+      await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowLoginButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.allowAccessButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await expect(this.getDisconnectButton(ExternalAppProvider.SERVICENOW)).toBeVisible({ timeout: 10_000 });
     });
   }
 }

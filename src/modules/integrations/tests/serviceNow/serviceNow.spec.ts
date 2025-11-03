@@ -17,6 +17,34 @@ test.describe(
   },
   () => {
     multiUserTileFixture(
+      'Verify ServiceNow credentials can be connected',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-9699', 'INT-9700', 'INT-9971'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.enterServiceNowCredentials({
+          consumerKey: '3488c64de4b34dd8a6bddf91911aa1fe',
+          secretKey: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
+          url: 'https://dev275557.service-now.com',
+        });
+        await adminHomeDashboard.connectServiceNowAccount();
+        const endUserServiceNow = new ExternalAppsPage(endUserPage);
+        await endUserServiceNow.navigateToExternalAppsPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.connectServiceNowAccount();
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+      }
+    );
+
+    multiUserTileFixture(
       'Verify Service Now External Apps Page',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
@@ -379,6 +407,30 @@ test.describe(
         await endUserServiceNow.searchForTerm('Test');
         await endUserServiceNow.VerifyServiceNowKnowledgeBaseName('Test Knowledge Base');
         await adminHomeDashboard.selectServiceNowDefaultKnowledgeBaseName();
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify Disconnect ServiceNow account',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-10438'],
+          storyId: 'INT-28224',
+        });
+
+        const endUserServiceNow = new ExternalAppsPage(endUserPage);
+        await endUserServiceNow.navigateToExternalAppsPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+        await endUserServiceNow.disconnectIntegration(ExternalAppProvider.SERVICENOW);
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, false);
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.disconnectServiceNowAccount();
       }
     );
   }
