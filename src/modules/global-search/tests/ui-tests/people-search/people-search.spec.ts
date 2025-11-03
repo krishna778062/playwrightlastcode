@@ -128,7 +128,7 @@ test.describe(
     test(
       `verify people search with sidebar filter functionality`,
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -242,9 +242,9 @@ test.describe(
     );
 
     test(
-      `verify people subfilters visibility based on field display settings via API`,
+      `verify people subfilters visibility based on field display settings`,
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

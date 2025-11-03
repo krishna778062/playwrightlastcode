@@ -68,7 +68,9 @@ export class GlobalSearchResultPage extends BasePage {
       has: this.page.getByTestId('i-calendar'),
     });
 
-    this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+    this.appResultContainer = this.page
+      .locator("div[class*='AppItemList_appListTopWrapper']")
+      .or(this.page.locator("div[class*='ResultListWithSidebar_container']"));
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
     this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
