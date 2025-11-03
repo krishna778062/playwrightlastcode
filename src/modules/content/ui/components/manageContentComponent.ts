@@ -802,6 +802,8 @@ export class ManageContentComponent extends BaseComponent {
         return this.publishButton;
       case ManageContentOptions.MOVE:
         return this.moveButton;
+      case ManageContentOptions.ONBOARDING:
+        return this.onboardingOption;
       default:
         throw new Error(`Unknown option: ${option}`);
     }
