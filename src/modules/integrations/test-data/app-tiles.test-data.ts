@@ -178,3 +178,11 @@ export const GREENHOUSE_VALUES = {
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
 } as const;
+
+export const SERVICE_NOW_VALUES = {
+  USER_NAME: 'admin',
+  PASSWORD: '0=IPmAxD$x6f',
+  CONSUMER_KEY: '3488c64de4b34dd8a6bddf91911aa1fe',
+  SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
+  URL: 'https://dev275557.service-now.com',
+} as const;
