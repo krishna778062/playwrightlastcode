@@ -35,6 +35,65 @@ export function buildFeedTextJsonAndTextHtml(text: string) {
   };
 }
 
+export function buildFeedTextWithTopicMentions(text: string, topics: { id: string; name: string }[]) {
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [] as any[],
+    },
+  ];
+
+  // Add the main text
+  if (text) {
+    content[0].content.push({
+      type: 'text',
+      text: text + ' ',
+    });
+  }
+
+  // Add topic mentions
+  topics.forEach((topic, index) => {
+    content[0].content.push({
+      type: 'TopicMention',
+      attrs: {
+        id: topic.id,
+        label: topic.name,
+        type: 'topic',
+      },
+    });
+
+    if (index < topics.length - 1) {
+      content[0].content.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
+
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  const topicLinks = topics
+    .map(
+      topic =>
+        `<span data-type="topic" data-id="${topic.id}" data-label="${topic.name}"><a href="/topic/${topic.id}" target="_blank">#${topic.name}</a></span>`
+    )
+    .join(' ');
+
+  const textHtml = `<p>${text} ${topicLinks}</p>`;
+
+  return {
+    textJson,
+    textHtml,
+  };
+}
+
 /**
  * Creates a complete feed payload with the specified parameters
  * @param text - The text content for the feed post
