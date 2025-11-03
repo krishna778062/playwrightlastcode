@@ -82,7 +82,13 @@ test.describe(
       test(
         `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.EVENT_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.EVENT_CREATION,
+            `@${testData.storyId}`,
+          ],
         },
         async ({ appManagerFixture, standardUserFixture, appManagerApiContext }) => {
           tagTest(test.info(), {
@@ -99,10 +105,13 @@ test.describe(
             ContentType.EVENT
           );
           await standardUserFixture.homePage.verifyThePageIsLoaded();
-
+          const site = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            users.endUser.email
+          );
           // Navigate to event creation by standard user
           eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
-            ContentType.EVENT
+            ContentType.EVENT,
+            site.siteName
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator

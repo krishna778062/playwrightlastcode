@@ -1042,7 +1042,7 @@ export class SiteManagementHelper {
     }
   }
 
-  async getSiteInUserIsNotMemberOrOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+  async getSiteInUserIsNotMemberOrOwner(userId: string[]): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
       const siteListResponse = await this.getListOfSites({ filter: 'active' });
       if (siteListResponse.result.listOfItems.length) {
@@ -1050,23 +1050,56 @@ export class SiteManagementHelper {
         for (const site of siteListResponse.result.listOfItems) {
           const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
 
-          // Check if user is neither a member nor owner
-          const userMembership = memberListResponse.result.listOfItems.find(
-            (member: any) => member.peopleId === userId
-          );
+          // Check if all users are neither members nor owners
+          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
+          const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
 
-          if (!userMembership) {
+          if (allUsersNotMembers) {
             return { siteId: site.siteId, siteName: site.name };
           }
         }
       }
-      // If no site found where user is not a member/owner, create a new site
+      // If no site found where all users are not members/owners, create a new site
       return await this.createSite({
         accessType: SITE_TYPES.PUBLIC,
-        siteName: `Site for ${userId}`,
+        siteName: `Site for ${userId.join(', ')}`,
         category: { name: 'Public', categoryId: 'public' },
         waitForSearchIndex: true,
       });
+    });
+  }
+
+  /**
+   * Gets a private or unlisted site that has content (pages, events, or albums)
+   * @param accessType - The access type to search for ('private' or 'unlisted')
+   * @returns Promise with site details that has content
+   */
+  async getSiteWithContent(accessType: string, userId: string[]): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting ${accessType} site with content`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      const sites = siteListResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+      // Check each site to see if it has content and users are not members
+      for (const site of sites) {
+        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+        const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
+        const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
+
+        // Check if all users are not members AND site has content
+        if (allUsersNotMembers && (site.hasPages || site.hasEvents || site.hasAlbums)) {
+          console.log(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
+          return { siteId: site.siteId, siteName: site.name };
+        }
+      }
+
+      // If no site with content found, create a new one with pages enabled
+      console.log(`No ${accessType} site with content found, creating new site...`);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        hasPages: true,
+        waitForSearchIndex: true,
+      });
+
+      return { siteId: createdSite.siteId, siteName: createdSite.siteName };
     });
   }
 }

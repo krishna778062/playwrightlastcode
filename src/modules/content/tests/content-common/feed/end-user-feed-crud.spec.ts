@@ -7,8 +7,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 test.describe(
   '@FeedPost',
@@ -155,6 +157,89 @@ test.describe(
         await siteDashboardPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
         await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
+      }
+    );
+
+    test(
+      'sU : Verify that application should not allow user to view the Private or unlisted site content comment using link',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26362'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that application should not allow user to view the Private or unlisted site content comment using link',
+          zephyrTestId: 'CONT-26362',
+          storyId: 'CONT-26362',
+        });
+
+        const feedPage = new FeedPage(standardUserFixture.page);
+
+        // Test for Private site
+        await test.step('Verify access denied for Private site feed', async () => {
+          // Get private site with content
+          const privateSiteDetails = await appManagerFixture.siteManagementHelper.getPrivateOrUnlistedSiteWithContent(
+            SITE_TYPES.PRIVATE
+          );
+
+          // Create feed using app manager on private site
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'site',
+            siteId: privateSiteDetails.siteId,
+            waitForSearchIndex: false,
+          });
+
+          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+          createdPostId = feedResponse.result.feedId;
+
+          // Get feed link
+          const feedLink = API_ENDPOINTS.feed.feedURL(createdPostId);
+
+          // Try to access feed link with standard user
+          await standardUserFixture.page.goto(feedLink);
+
+          // Verify access denied page is visible
+          await feedPage.verifyAccessDeniedPageVisibility({
+            stepInfo: 'Verify access denied page is shown for private site feed',
+          });
+
+          // Cleanup
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          createdPostId = '';
+        });
+
+        // Test for Unlisted site
+        await test.step('Verify access denied for Unlisted site feed', async () => {
+          // Get unlisted site with content
+          const unlistedSiteDetails = await appManagerFixture.siteManagementHelper.getPrivateOrUnlistedSiteWithContent(
+            SITE_TYPES.UNLISTED
+          );
+
+          // Create feed using app manager on unlisted site
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'site',
+            siteId: unlistedSiteDetails.siteId,
+            waitForSearchIndex: false,
+          });
+
+          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+          createdPostId = feedResponse.result.feedId;
+
+          // Get feed link
+          const feedLink = API_ENDPOINTS.feed.feedURL(createdPostId);
+
+          // Try to access feed link with standard user
+          await standardUserFixture.page.goto(feedLink);
+
+          // Verify access denied page is visible
+          await feedPage.verifyAccessDeniedPageVisibility({
+            stepInfo: 'Verify access denied page is shown for unlisted site feed',
+          });
+
+          // Cleanup
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          createdPostId = '';
+        });
       }
     );
   }
