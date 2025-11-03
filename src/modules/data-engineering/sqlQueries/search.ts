@@ -82,8 +82,8 @@ WHERE s.tenant_code = '{orgId}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
 GROUP BY s.search_term
-ORDER BY COUNT(s.search_term) DESC
-LIMIT 5;
+ORDER BY COUNT(s.search_term) DESC, s.search_term ASC
+LIMIT 10;
 `,
   Top_Search_Queries_With_No_Clickthrough: `
 SELECT
@@ -101,8 +101,8 @@ WHERE s.tenant_code = '{orgId}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
 GROUP BY s.search_term
-ORDER BY total_search DESC
-LIMIT 5;
+ORDER BY total_search DESC, s.search_term ASC
+LIMIT 10;
 `,
   Top_Clickthrough_Types: `
 WITH total_clicks AS (
