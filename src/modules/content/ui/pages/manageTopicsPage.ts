@@ -16,6 +16,7 @@ export interface IManageTopicsPageActions {
   editTopicName: (topicName: string) => Promise<void>;
   clickOnUpdateButton: () => Promise<void>;
   searchingTopicInSearchBar: (topicName: string) => Promise<void>;
+  openingSearchedTopic: (topicName: string) => Promise<void>;
 }
 
 export interface IManageTopicsPageAssertions {
@@ -32,6 +33,9 @@ export class ManageTopicsPage extends BasePage {
   readonly verifiedTheSearhcedTopic: Locator = this.page.locator('[data-testid="dataGridRow"]').first();
   readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
   readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
+  // readonly clickingOnTopicHeading: Locator = this.page.getByRole('cell', { name: 'Topic' });
+  // readonly clickingOnTopicHeading: Locator = this.page.locator('.Table-cell').first();
+  // readonly clickingOnTopicHeading: this.page.locator('tr.Table-row a.Tag-text.type--500.type--b3.u-cursorPointer');
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_TOPICS_SCREEN);
@@ -49,7 +53,7 @@ export class ManageTopicsPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify governance page is visible', async () => {
+    await test.step('Verify manage topics page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageTopicsComponent.manageTopicsHeading, {
         assertionMessage: 'Manage topics page should be visible',
       });
@@ -113,6 +117,14 @@ export class ManageTopicsPage extends BasePage {
   async verifyingNothingToShowHereText(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
       assertionMessage: `Verify the nothing to show here text is visible`,
+    });
+  }
+
+  async openingSearchedTopic(topicName: string): Promise<void> {
+    await test.step('Opening the searched topic', async () => {
+      await this.clickOnElement(this.page.getByRole('link', { name: topicName }));
+      // await this.page.keyboard.press('Tab');
+      // await this.page.keyboard.press('Enter');
     });
   }
 }

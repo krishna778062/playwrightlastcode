@@ -33,6 +33,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
   verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
+  verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
@@ -70,6 +71,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
   readonly ellipsisButton = this.page.locator('[aria-label="Category option"]').first();
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
+  readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
@@ -206,6 +208,13 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.verifier.verifyTheElementIsVisible(this.checkValidateOption, {
         assertionMessage: 'Validate option should be visible on content preview page',
+      });
+    });
+  }
+  async verifyingAlbumHeadingOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying album heading on content preview page', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.albumHeading, {
+        assertionMessage: 'Album heading should be visible on content preview page',
       });
     });
   }
