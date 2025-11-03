@@ -65,9 +65,7 @@ export class DNDAppRestriction extends BasePage {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
     this.apprestrictionOptionTab = page.getByRole('tab', { name: 'DND and app restrictions' });
-    this.dndAndApprestrictionPageHeading = page.locator(
-      "//h3[contains(text(),'Do not disturb')]/following-sibling::h4"
-    );
+    this.dndAndApprestrictionPageHeading = page.locator("//h3[contains(text(),'Do not disturb')]");
     this.descriptionOnDndPage = page.locator("//h3[contains(text(),'Do not disturb')]/following-sibling::h4");
     this.allOrgToggle = page.getByRole('heading', { name: 'All organization' }).locator('..').getByRole('switch');
     this.allOrgLabel = page.getByRole('heading', { name: 'All organization' });
