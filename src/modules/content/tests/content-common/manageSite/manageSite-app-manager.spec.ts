@@ -5,7 +5,13 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { ContentStatus, OnboardingOption, SortOptionLabels } from '@/src/modules/content/constants';
+import {
+  ContentStatus,
+  ManageContentOptions,
+  ManageContentTags,
+  OnboardingOption,
+  SortOptionLabels,
+} from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
@@ -220,10 +226,10 @@ test.describe(
         await manageContentPage.actions.scheduledTagVisibleInManageContent();
         await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
       }
     );
@@ -256,7 +262,7 @@ test.describe(
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING_OPTION);
         await manageContentPage.actions.clickOnOnboardingOption();
         await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(OnboardingOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
@@ -292,7 +298,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyUnpublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
@@ -300,7 +306,7 @@ test.describe(
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnPublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyPublishedStampVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await appManagerFixture.page.reload();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);

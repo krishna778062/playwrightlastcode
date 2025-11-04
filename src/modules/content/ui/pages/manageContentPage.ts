@@ -349,31 +349,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
 
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
-  }
-
-  async verifyEditOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-  }
-  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-  }
-  async verifyUnpublishOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
-  }
-  async verifyMoveOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-  }
-  async verifyPublishOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
-  }
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
   }
+
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }

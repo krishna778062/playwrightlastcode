@@ -838,20 +838,6 @@ export class ManageContentComponent extends BaseComponent {
         throw new Error(`Unknown tag: ${tag}`);
     }
   }
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the published stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishedTag, {
-        assertionMessage: 'Published stamp should be visible',
-      });
-    });
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
-        assertionMessage: 'Unpublished stamp should be visible',
-      });
-    });
-  }
 
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
     await test.step('Verifying the add to campaign option is not visible in manage content', async () => {
