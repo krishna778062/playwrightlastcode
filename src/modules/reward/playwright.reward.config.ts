@@ -12,7 +12,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests'),
   testIgnore: '**/reward-settings/**',
-  workers: process.env.CI ? 1 : 1,
+  workers: process.env.CI ? 3 : 5,
   timeout: 180_000,
   expect: {
     timeout: 10_000,

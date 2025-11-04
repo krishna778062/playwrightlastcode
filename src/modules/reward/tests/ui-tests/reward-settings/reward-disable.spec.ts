@@ -52,7 +52,9 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
           expect(paraElements).toContain(
             `Users will no longer be able to give, receive or redeem points in ${appName}.`
           );
-          expect(paraElements).toContain("Type 'confirm' above to disable rewards and revoke points from wallets");
+          await expect(dialogBox.descriptionText.last()).toContainText(
+            /Type [‘'’]confirm[’']? above to disable rewards and revoke points from wallets/
+          );
         } else {
           console.log('Rewards are already disabled, skipping disable action.');
         }
@@ -206,7 +208,6 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
 
       await test.step('Set the Language as "French", And check the Disable message', async () => {
         await userProfile.mockAppConfigLanguage(manageRewardsPage.page, 3);
-        await manageRewardsPage.loadPage();
         await manageRewardsPage.disableRewardLink.waitFor({ state: 'visible', timeout: 15000 });
         const isDisableButtonVisible = await manageRewardsPage.verifier.isTheElementVisible(
           manageRewardsPage.disableRewardLink

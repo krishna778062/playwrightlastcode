@@ -44,11 +44,11 @@ export class RewardsIndividualAllowance extends BasePage {
       'Add individual monthly allowances for selected users'
     );
     // Action buttons
-    this.addIndividualAllowance = this.individualAllowance.locator('button[aria-label="Add individual allowances"]');
-    this.removeIndividualAllowance = this.individualAllowance.locator(
-      'button[aria-label="Remove individual allowances"]'
-    );
-    this.editIndividualAllowance = this.individualAllowance.locator('button[aria-label="Edit individual allowances"]');
+    this.addIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Add individual allowances' });
+    this.removeIndividualAllowance = this.individualAllowance.getByRole('button', {
+      name: 'Remove individual allowances',
+    });
+    this.editIndividualAllowance = this.individualAllowance.getByRole('link', { name: 'Edit individual allowances' });
 
     // Page container
     this.individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
@@ -79,7 +79,6 @@ export class RewardsIndividualAllowance extends BasePage {
     this.cancelButton = this.individualAllowanceContainer
       .locator('a[href="/manage/recognition/rewards/peer-gifting/allowances"]')
       .last();
-
     this.individualAllowancePageNeutralBox = page
       .locator('[class*="IndividualAllowances_flexCenter"] div[class*="Panel-module__panel"]')
       .nth(0);

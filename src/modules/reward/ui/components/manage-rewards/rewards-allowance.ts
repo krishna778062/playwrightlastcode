@@ -53,39 +53,47 @@ export class RewardsAllowance extends BasePage {
     super(page);
 
     // Allowance page elements
-    this.allowanceHeader = page.locator('[data-testid="allowance-header"]');
-    this.allowanceBackToAllowancePage = page.locator('[data-testid="back-to-allowance-page"]');
-    this.allowancePageHeading = page.locator('[data-testid="allowance-page-heading"]');
-    this.allowancePageDescriptionLine1 = page.locator('[data-testid="allowance-page-description-line1"]');
-    this.allowancePageDescriptionLine2 = page.locator('[data-testid="allowance-page-description-line2"]');
-    this.allowanceDeleteButton = page.locator('[data-testid="allowance-delete-button"]');
+    this.allowanceHeader = page.locator('[class*="PageContainer-module__headerInner"]');
+    this.allowanceBackToAllowancePage = this.allowanceHeader.locator('button span:has-text("Allowances")');
+    this.allowancePageHeading = this.allowanceHeader.locator('h1[class*="Typography-module"]');
+    this.allowancePageDescriptionLine1 = this.allowanceHeader.locator(
+      '[class*="TypographyBody-module"] p:nth-child(1)'
+    );
+    this.allowancePageDescriptionLine2 = this.allowanceHeader.locator(
+      '[class*="TypographyBody-module"] p:nth-child(2)'
+    );
+    this.allowanceDeleteButton = page.locator('button[aria-label*="Remove"]');
 
     // Dialog elements
-    this.dialogBoxTitle = page.locator('[data-testid="dialog-box-title"]');
-    this.dialogBoxConfirmationTextLine1 = page.locator('[data-testid="dialog-box-confirmation-line1"]');
-    this.dialogBoxConfirmationTextLine2 = page.locator('[data-testid="dialog-box-confirmation-line2"]');
-    this.dialogRemoveButton = page.locator('[data-testid="dialog-remove-button"]');
-    this.deleteUserAllowanceDialogBox = page.locator('[data-testid="delete-user-allowance-dialog"]');
+    this.deleteUserAllowanceDialogBox = page.getByRole('dialog');
+    this.dialogBoxTitle = this.deleteUserAllowanceDialogBox.getByRole('heading', { level: 2 });
+    this.dialogBoxConfirmationTextLine1 = this.deleteUserAllowanceDialogBox.locator('p[class*="module__heading3"]');
+    this.dialogBoxConfirmationTextLine2 = this.deleteUserAllowanceDialogBox.locator('p[class*="module__paragraph"]');
+    this.dialogRemoveButton = this.deleteUserAllowanceDialogBox.getByRole('button', { name: 'Remove' });
 
     // Toast elements
-    this.successToastContainer = page.locator('[data-testid="success-toast-container"]');
-    this.successToastBoxMessage = page.locator('[data-testid="success-toast-message"]');
-    this.successToastBoxIcon = page.locator('[data-testid="success-toast-icon"]');
-    this.successToastBoxClose = page.locator('[data-testid="success-toast-close"]');
+    this.successToastContainer = page.locator('div[class*="Toast-module__success"]'); // More stable container
+    this.successToastBoxMessage = this.successToastContainer.locator('p'); // Message
+    this.successToastBoxIcon = this.successToastContainer.locator('i[data-testid="i-checkLarge"]'); // Success icon
+    this.successToastBoxClose = this.successToastContainer.locator('button[aria-label="Dismiss"]'); // Close button
 
     // Action buttons
-    this.cancelButton = page.locator('[data-testid="cancel-button"]');
-    this.saveButton = page.locator('[data-testid="save-button"]');
+    this.saveButton = page.getByRole('button', { name: 'Save' });
+    this.cancelButton = page.getByRole('link', { name: 'Cancel' });
 
     // Monthly allowance illustration
-    this.monthlyAllowanceIllustration = page.locator('[data-testid="monthly-allowance-illustration"]');
-    this.monthlyAllowanceIllustrationDescriptionText = page.locator('[data-testid="monthly-allowance-description"]');
-    this.monthlyAllowanceIllustrationIndividualRow = page.locator('[data-testid="monthly-allowance-individual-row"]');
-    this.monthlyAllowanceIllustrationIndividualColumn = page.locator(
-      '[data-testid="monthly-allowance-individual-column"]'
+    this.monthlyAllowanceIllustration = page.locator('h3 + div table');
+    this.monthlyAllowanceIllustrationDescriptionText = page.getByText(
+      '*Monthly totals are for guidance only, based on latest edits and current active users.'
     );
-    this.monthlyAllowanceIllustrationAudienceRow = page.locator('[data-testid="monthly-allowance-audience-row"]');
-    this.monthlyAllowanceIllustrationAudienceColumn = page.locator('[data-testid="monthly-allowance-audience-column"]');
+    this.monthlyAllowanceIllustrationIndividualRow = this.monthlyAllowanceIllustration.locator(
+      'tr[data-testid="Individual allowances"]'
+    );
+    this.monthlyAllowanceIllustrationIndividualColumn = this.monthlyAllowanceIllustrationIndividualRow.locator('td');
+    this.monthlyAllowanceIllustrationAudienceRow = this.monthlyAllowanceIllustration.locator(
+      'tr[data-testid="Audience allowances"]'
+    );
+    this.monthlyAllowanceIllustrationAudienceColumn = this.monthlyAllowanceIllustrationAudienceRow.locator('td');
   }
 
   async visitAllowancePage(): Promise<void> {
