@@ -103,7 +103,6 @@ export class CreateFeedPostComponent
     this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
 
   // Share options section - for site feed sharing
-  readonly shareOptionDropdown = this.page.getByLabel('Post in');
   readonly selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
   readonly noResultsText = this.page.getByText('No results');
 
