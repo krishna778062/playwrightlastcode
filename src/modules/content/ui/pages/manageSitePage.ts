@@ -59,6 +59,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly siteName = this.page.locator('.type--title');
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private sideNavBarComponent: SideNavBarComponent;
@@ -217,6 +218,22 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.clickOnElement(this.clickingOnSearchButton);
   }
 
+  getSiteNameLocator(siteName: string): Locator {
+    return this.page.getByText(siteName, { exact: true });
+  }
+  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
+    // Handle both single site name and array of site names
+    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
+
+    let index = 0;
+    while (index < namesArray.length) {
+      const siteName = namesArray[index];
+      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
+        assertionMessage: 'Site name should be displayed on manage site page',
+      });
+      index++;
+    }
+  }
   async verifyNoSitesFound(siteName: string): Promise<void> {
     const noSitesFound = this.siteList.filter({ hasText: siteName });
     console.log('noSitesFound', noSitesFound);

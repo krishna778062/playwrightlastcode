@@ -25,6 +25,7 @@ test.describe(
     let siteCategoriesPage: SiteCategoriesPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSiteAppManagerPage: ManageSitePage;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -217,6 +218,36 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
+      }
+    );
+    test(
+      'to verify the site author name and event start date',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-26044',
+          storyId: 'CONT-26044',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+        });
+        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+
+        // Initialize ManageSitePage with first siteId for verification
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
+
+        // Verify all site names are displayed (method handles the loop internally)
+        await manageSiteAppManagerPage.verifySitesNamesAreDisplayed(siteNames);
       }
     );
   }
