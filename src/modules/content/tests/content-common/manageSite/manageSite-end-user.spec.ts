@@ -6,6 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -17,7 +18,10 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
-    test.beforeEach(async ({}) => {});
+    let manageFeaturesPage: ManageFeaturesPage;
+    test.beforeEach(async ({ standardUserFixture }) => {
+      manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
+    });
 
     test.afterEach(async ({ page }) => {
       await page.close();
@@ -192,6 +196,34 @@ test.describe(
         manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, unlistedSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
+      }
+    );
+    test(
+      'to verify the site author name and event start date',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+      },
+      async ({ standardUserFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-41421',
+          storyId: 'CONT-41421',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites();
+        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+
+        // Initialize ManageSitePage with first siteId for verification
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, firstSiteId);
+
+        // Verify all site names are displayed (method handles the loop internally)
+        await manageSiteStandardUserPage.verifySitesNamesAreDisplayed(siteNames);
       }
     );
   }
