@@ -53,7 +53,7 @@ async function navigateToContentFeedAsRole(
 }
 
 test.describe(
-  'feed Post Like/Unlike Multi-User Tests',
+  'feed Post Like/Unlike Multi-User Tests - Content Feed',
   {
     tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
   },
@@ -307,6 +307,212 @@ test.describe(
               await contentManagerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
               await contentManagerFeedPage.actions.unlikeFeedReply(createdReplyText);
               await contentManagerFeedPage.assertions.verifyReplyCanBeUnliked(createdReplyText);
+            });
+          })(),
+        ]);
+      }
+    );
+  }
+);
+
+test.describe(
+  'feed Post Like/Unlike Multi-User Tests - Site Feed',
+  {
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+  },
+  () => {
+    let siteFeedPostText: string;
+    let siteFeedReplyText: string;
+    let siteFeedSiteId: string;
+    const siteFeedSiteName = 'All Employees';
+
+    test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
+      // Configure app governance settings and enable timeline comment post(feed)
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+
+      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
+        accessType: SITE_TYPES.PUBLIC,
+      });
+
+      // Get user info for all roles
+      const siteOwnerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+      const siteManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+        users.siteManager.email
+      );
+
+      const endUserInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+      // Make appManager as Site Owner
+      try {
+        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: siteFeedSiteId,
+          userId: siteOwnerInfo.userId,
+          role: SitePermission.OWNER,
+        });
+      } catch (error) {
+        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
+      }
+
+      // Make siteManager as Site Manager
+      try {
+        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: siteFeedSiteId,
+          userId: siteManagerInfo.userId,
+          role: SitePermission.MANAGER,
+        });
+      } catch (error) {
+        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
+      }
+
+      // Make endUser as Content Manager
+      try {
+        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: siteFeedSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.CONTENT_MANAGER,
+        });
+      } catch (error) {
+        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
+      }
+    });
+
+    test(
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed',
+          zephyrTestId: 'CONT-24906',
+          storyId: 'CONT-24906',
+        });
+
+        // Generate feed test data using the test data generator
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteFeedSiteId,
+          withAttachment: false as const,
+          waitForSearchIndex: false,
+        });
+        siteFeedPostText = feedTestData.text;
+        siteFeedReplyText = TestDataGenerator.generateRandomText('Site Feed Reply', 3, true);
+
+        // Create feed based on test data via API
+        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+        console.log(`Created feed via API: ${feedResponse.result.feedId}`);
+
+        // Navigate all users to Site Feed via Site Dashboard → Feed Link in parallel
+        const [ownerFeedPage, managerFeedPage, contentFeedPage] = await Promise.all([
+          // Site Owner navigation
+          (async () => {
+            const siteOwnerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteFeedSiteId);
+            await siteOwnerDashboardPage.loadPage();
+            await siteOwnerDashboardPage.actions.clickOnFeedLink();
+            const feedPage = new FeedPage(appManagerFixture.page);
+            await feedPage.verifyThePageIsLoaded();
+            return feedPage;
+          })(),
+          // Site Manager navigation
+          (async () => {
+            const siteManagerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, siteFeedSiteId);
+            await siteManagerDashboardPage.loadPage();
+            await siteManagerDashboardPage.actions.clickOnFeedLink();
+            const feedPage = new FeedPage(siteManagerFixture.page);
+            await feedPage.verifyThePageIsLoaded();
+            return feedPage;
+          })(),
+          // Content Manager navigation
+          (async () => {
+            const contentManagerDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteFeedSiteId);
+            await contentManagerDashboardPage.loadPage();
+            await contentManagerDashboardPage.actions.clickOnFeedLink();
+            const feedPage = new FeedPage(standardUserFixture.page);
+            await feedPage.verifyThePageIsLoaded();
+            return feedPage;
+          })(),
+        ]);
+
+        // Create a reply to the post via UI (as Site Owner)
+        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText);
+        await ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText);
+
+        // Wait for posts to be visible on all pages in parallel
+        await Promise.all([
+          ownerFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
+          managerFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
+          contentFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
+        ]);
+
+        // Refresh pages for Site Manager and Content Manager to see the reply
+        await Promise.all([managerFeedPage.page.reload(), contentFeedPage.page.reload()]);
+
+        // Wait for pages to load after refresh
+        await Promise.all([managerFeedPage.verifyThePageIsLoaded(), contentFeedPage.verifyThePageIsLoaded()]);
+
+        // Wait for reply to be visible on all pages (with longer timeout for sync)
+        await Promise.all([
+          ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
+          managerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
+          contentFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
+        ]);
+
+        // Perform like/unlike operations in parallel for all user roles
+        await Promise.all([
+          // Site Owner like/unlike operations
+          (async () => {
+            await test.step('Site Owner: Perform like/unlike operations on post and reply', async () => {
+              await ownerFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await ownerFeedPage.actions.likeFeedPost(siteFeedPostText);
+              await ownerFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await ownerFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
+              await ownerFeedPage.actions.unlikeFeedPost(siteFeedPostText);
+              await ownerFeedPage.assertions.verifyPostCanBeUnliked(siteFeedPostText);
+              await ownerFeedPage.actions.likeFeedReply(siteFeedReplyText);
+              await ownerFeedPage.assertions.verifyReplyCanBeLiked(siteFeedReplyText);
+              await ownerFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
+              await ownerFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await ownerFeedPage.assertions.verifyReplyCanBeUnliked(siteFeedReplyText);
+            });
+          })(),
+          // Site Manager like/unlike operations
+          (async () => {
+            await test.step('Site Manager: Perform like/unlike operations on post and reply', async () => {
+              await managerFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await managerFeedPage.actions.likeFeedPost(siteFeedPostText);
+              await managerFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await managerFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
+              await managerFeedPage.actions.unlikeFeedPost(siteFeedPostText);
+              await managerFeedPage.assertions.verifyPostCanBeUnliked(siteFeedPostText);
+              await managerFeedPage.actions.likeFeedReply(siteFeedReplyText);
+              await managerFeedPage.assertions.verifyReplyCanBeLiked(siteFeedReplyText);
+              await managerFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
+              await managerFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await managerFeedPage.assertions.verifyReplyCanBeUnliked(siteFeedReplyText);
+            });
+          })(),
+          // Content Manager like/unlike operations
+          (async () => {
+            await test.step('Content Manager: Perform like/unlike operations on post and reply', async () => {
+              await contentFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await contentFeedPage.actions.likeFeedPost(siteFeedPostText);
+              await contentFeedPage.assertions.verifyPostCanBeLiked(siteFeedPostText);
+              await contentFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
+              await contentFeedPage.actions.unlikeFeedPost(siteFeedPostText);
+              await contentFeedPage.assertions.verifyPostCanBeUnliked(siteFeedPostText);
+              await contentFeedPage.actions.likeFeedReply(siteFeedReplyText);
+              await contentFeedPage.assertions.verifyReplyCanBeLiked(siteFeedReplyText);
+              await contentFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
+              await contentFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await contentFeedPage.assertions.verifyReplyCanBeUnliked(siteFeedReplyText);
             });
           })(),
         ]);
