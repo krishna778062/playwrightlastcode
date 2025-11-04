@@ -10,7 +10,7 @@ const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome']
 initializeRewardConfig('primary');
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests'),
   testIgnore: '**/reward-settings/**',
   workers: process.env.CI ? 3 : 5,
   timeout: 180_000,
@@ -23,7 +23,7 @@ export default defineConfig({
       use: {
         ...desktopChromeNoScale,
         headless: !!process.env.CI,
-        viewport: null,
+        viewport: { width: 1920, height: 1080 },
         launchOptions: {
           args: [
             '--start-maximized',
