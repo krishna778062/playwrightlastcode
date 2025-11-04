@@ -79,6 +79,7 @@ export const API_ENDPOINTS = {
     topics: '/v1/content/topics/manage/list',
     createTopic: '/v1/content/topics',
     contentListInSite: '/v1/content/sites/content/list',
+    onboarding: '/onboarding',
   },
 
   fileUpload: {

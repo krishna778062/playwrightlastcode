@@ -25,6 +25,13 @@ export const QR_MESSAGES = {
   TOGGLE_POPUP_TEXT:
     'QR codes promoting the mobile app cannot be marked disabled as they are directly mapped with App/Play store links.',
   SUCCESSFULLY_UPDATED_QR_CODE: 'Successfully updated QR code',
+  TEXT_BELOW_QR_CODES_POPUP_HEADING:
+    'Download the QR code and share it with your frontline audiences for seamless access, guided by the access controls you’ve configured.',
+  HELP_TEXT_BELOW_QR_NAME_FIELD: 'Name your QR code to make it easier to identify and manage later.',
+  HELP_TEXT_BELOW_DESCRIPTION_FIELD: 'Give your QR code some instructions so users understand the purpose behind it.',
+  HELP_TEXT_BELOW_VALID_TILL_FIELD:
+    'Set a validity period for this QR code. Once it expires, anyone who scans it will be unable to access the content.',
+  TEXT_BELOW_PREVIEW_QR_CODE_POPUP_HEADING: "You're previewing the QR code as it will appear when printed or shared.",
 } as const;
 
 export type QRMessage = (typeof QR_MESSAGES)[keyof typeof QR_MESSAGES];

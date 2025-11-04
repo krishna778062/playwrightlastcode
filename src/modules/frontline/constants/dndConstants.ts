@@ -10,6 +10,8 @@ export const DND_MESSAGES = {
   // Descriptions
   DND_PAGE_DESCRIPTION:
     'Notifications including email, browser, SMS, and mobile push notifications will not be sent outside your work hours, ensuring minimal distractions. Control notifications and app access outside of working hours to reduce distractions. Critical notifications will still reach users.View exclusion list',
+  DND_APP_RESTRICTIONS_PAGE_DESCRIPTION:
+    'Enable do not disturb to pause notifications outside work hours. Set app restrictions and manage notification preferences to set priority for delivery.',
   ALL_ORG_DESCRIPTION:
     'Apply these settings to everyone in your organization, except for users with manually defined working hours.',
   AUDIENCE_DESCRIPTION:
