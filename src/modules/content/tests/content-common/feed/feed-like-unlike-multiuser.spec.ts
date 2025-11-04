@@ -2,8 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../../ui/pages/sitePages';
-
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -13,61 +11,8 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-
-/**
- * Performs the complete like/unlike flow for a feed post
- * @param feedPage - The FeedPage instance
- * @param postText - The text of the post to like/unlike
- * @param roleName - The role name for test step context
- */
-async function performLikeUnlikePostFlow(feedPage: FeedPage, postText: string, roleName: string): Promise<void> {
-  await test.step(`${roleName}: Verify post can be liked`, async () => {
-    await feedPage.assertions.verifyPostCanBeLiked(postText);
-  });
-
-  await test.step(`${roleName}: Like feed post`, async () => {
-    await feedPage.actions.likeFeedPost(postText);
-  });
-
-  await test.step(`${roleName}: Verify post is liked and like count is visible`, async () => {
-    await feedPage.assertions.verifyPostCanBeLiked(postText);
-    await feedPage.assertions.verifyLikeCountOnPost(postText);
-  });
-
-  await test.step(`${roleName}: Unlike feed post`, async () => {
-    await feedPage.actions.unlikeFeedPost(postText);
-  });
-
-  await test.step(`${roleName}: Verify post is unliked`, async () => {
-    await feedPage.assertions.verifyPostCanBeUnliked(postText);
-  });
-}
-
-/**
- * Performs the complete like/unlike flow for a feed reply
- * @param feedPage - The FeedPage instance
- * @param replyText - The text of the reply to like/unlike
- * @param roleName - The role name for test step context
- */
-async function performLikeUnlikeReplyFlow(feedPage: FeedPage, replyText: string, roleName: string): Promise<void> {
-  await test.step(`${roleName}: Like feed reply`, async () => {
-    await feedPage.actions.likeFeedReply(replyText);
-  });
-
-  await test.step(`${roleName}: Verify reply is liked and like count is visible`, async () => {
-    await feedPage.assertions.verifyReplyCanBeLiked(replyText);
-    await feedPage.assertions.verifyLikeCountOnReply(replyText);
-  });
-
-  await test.step(`${roleName}: Unlike feed reply`, async () => {
-    await feedPage.actions.unlikeFeedReply(replyText);
-  });
-
-  await test.step(`${roleName}: Verify reply is unliked`, async () => {
-    await feedPage.assertions.verifyReplyCanBeUnliked(replyText);
-  });
-}
 
 /**
  * Navigates to the content feed page for a specific role
@@ -315,25 +260,56 @@ test.describe(
         });
 
         // Perform like/unlike operations in parallel for all user roles
-        await test.step('Perform like/unlike operations for all users', async () => {
-          await Promise.all([
-            // Site Owner like/unlike operations
-            (async () => {
-              await performLikeUnlikePostFlow(siteOwnerFeedPage, createdPostText, 'Site Owner');
-              await performLikeUnlikeReplyFlow(siteOwnerFeedPage, createdReplyText, 'Site Owner');
-            })(),
-            // Site Manager like/unlike operations
-            (async () => {
-              await performLikeUnlikePostFlow(siteManagerFeedPage, createdPostText, 'Site Manager');
-              await performLikeUnlikeReplyFlow(siteManagerFeedPage, createdReplyText, 'Site Manager');
-            })(),
-            // Content Manager like/unlike operations
-            (async () => {
-              await performLikeUnlikePostFlow(contentManagerFeedPage, createdPostText, 'Content Manager');
-              await performLikeUnlikeReplyFlow(contentManagerFeedPage, createdReplyText, 'Content Manager');
-            })(),
-          ]);
-        });
+        await Promise.all([
+          // Site Owner like/unlike operations
+          (async () => {
+            await test.step('Site Owner: Perform like/unlike operations on post and reply', async () => {
+              await siteOwnerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await siteOwnerFeedPage.actions.likeFeedPost(createdPostText);
+              await siteOwnerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await siteOwnerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
+              await siteOwnerFeedPage.actions.unlikeFeedPost(createdPostText);
+              await siteOwnerFeedPage.assertions.verifyPostCanBeUnliked(createdPostText);
+              await siteOwnerFeedPage.actions.likeFeedReply(createdReplyText);
+              await siteOwnerFeedPage.assertions.verifyReplyCanBeLiked(createdReplyText);
+              await siteOwnerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+              await siteOwnerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await siteOwnerFeedPage.assertions.verifyReplyCanBeUnliked(createdReplyText);
+            });
+          })(),
+          // Site Manager like/unlike operations
+          (async () => {
+            await test.step('Site Manager: Perform like/unlike operations on post and reply ', async () => {
+              await siteManagerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await siteManagerFeedPage.actions.likeFeedPost(createdPostText);
+              await siteManagerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await siteManagerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
+              await siteManagerFeedPage.actions.unlikeFeedPost(createdPostText);
+              await siteManagerFeedPage.assertions.verifyPostCanBeUnliked(createdPostText);
+              await siteManagerFeedPage.actions.likeFeedReply(createdReplyText);
+              await siteManagerFeedPage.assertions.verifyReplyCanBeLiked(createdReplyText);
+              await siteManagerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+              await siteManagerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await siteManagerFeedPage.assertions.verifyReplyCanBeUnliked(createdReplyText);
+            });
+          })(),
+          // Content Manager like/unlike operations
+          (async () => {
+            await test.step('Content Manager: Perform like/unlike operations on post and reply', async () => {
+              await contentManagerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await contentManagerFeedPage.actions.likeFeedPost(createdPostText);
+              await contentManagerFeedPage.assertions.verifyPostCanBeLiked(createdPostText);
+              await contentManagerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
+              await contentManagerFeedPage.actions.unlikeFeedPost(createdPostText);
+              await contentManagerFeedPage.assertions.verifyPostCanBeUnliked(createdPostText);
+              await contentManagerFeedPage.actions.likeFeedReply(createdReplyText);
+              await contentManagerFeedPage.assertions.verifyReplyCanBeLiked(createdReplyText);
+              await contentManagerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+              await contentManagerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await contentManagerFeedPage.assertions.verifyReplyCanBeUnliked(createdReplyText);
+            });
+          })(),
+        ]);
       }
     );
   }
