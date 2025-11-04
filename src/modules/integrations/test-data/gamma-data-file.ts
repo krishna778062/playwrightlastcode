@@ -52,6 +52,8 @@ export const WORKDAY_SYNC = {
   USER_PROVISIONING: 'User provisioning',
   LAST_RUN_STATUS: 'Success',
   FAILURE_RUN_STATUS: 'Failed',
+} as const;
+
 export const PEOPLE_TAB = {
   OPTION_NONE: 'None',
   BAMBOO_HR_OPTION: 'BambooHR',

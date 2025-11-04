@@ -8,11 +8,12 @@ import baseConfig from '../../../playwright.base.config';
 
 import { getIntegrationConfig, initializeIntegrationConfig } from './config/integration.config';
 
-initializeIntegrationConfig('workday'); //integration config is initialized for primary tenant
+initializeIntegrationConfig('azuresso'); //integration config is initialized for primary tenant
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests', 'workday-sso'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests', 'azure-sso'),
+  testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {
@@ -20,7 +21,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'integrations-workday-chromium',
+      name: 'integrations-azuresso-chromium',
       use: {
         headless: process.env.CI ? true : false,
         video: 'on-first-retry',

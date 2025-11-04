@@ -1,7 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/pages/basePage';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 import { WorkdaySyncComponent } from '@/src/modules/integrations/components/workdaySyncComponent';
 
 export class WorkdaySyncPage extends BasePage {
