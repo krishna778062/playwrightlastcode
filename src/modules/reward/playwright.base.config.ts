@@ -13,6 +13,7 @@ export default defineConfig({
     navigationTimeout: 30_000,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
+    headless: process.env.CI ? true : true,
   },
   reporter: [
     ['html', { open: process.env.CI ? 'never' : 'on-failure' }],
