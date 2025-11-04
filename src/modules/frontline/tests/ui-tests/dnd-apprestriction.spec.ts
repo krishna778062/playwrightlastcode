@@ -46,7 +46,7 @@ test.describe(
         await dndAppRestriction.navigateToDNDAppRestriction();
         await dndAppRestriction.verifySelectedOptionDND(DND_MESSAGES.DND_APP_RESTRICTIONS_TAB);
         await dndAppRestriction.verifyDndAndAppRestrictionPageHeading(DND_MESSAGES.DND_PAGE_HEADING);
-        await dndAppRestriction.verifyDescriptionText(DND_MESSAGES.DND_PAGE_DESCRIPTION);
+        await dndAppRestriction.verifyDescriptionText();
       }
     );
 

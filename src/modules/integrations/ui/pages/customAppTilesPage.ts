@@ -128,6 +128,8 @@ export class CustomAppTilesPage extends BasePage {
   readonly changeTileTypeMessage: Locator;
   readonly cancelButton: Locator;
   readonly confirmButton: Locator;
+  readonly dialogModule: Locator;
+  readonly dialogFooterButtonSelector: string;
 
   // Tile field elements
   readonly tileFieldLabel: Locator;
@@ -323,6 +325,8 @@ export class CustomAppTilesPage extends BasePage {
     this.changeTileTypeMessage = page.locator('[data-testid="change-tile-type-message"]');
     this.cancelButton = page.locator('button', { hasText: 'Cancel' });
     this.confirmButton = page.locator('button', { hasText: 'Confirm' });
+    this.dialogModule = page.locator('[class*="Dialog-module"]');
+    this.dialogFooterButtonSelector = '[class*="Dialog-module__footer"] button';
 
     // Tile field elements
     this.tileFieldLabel = page.locator('[data-testid="tile-field-label"]');
@@ -2378,6 +2382,27 @@ export class CustomAppTilesPage extends BasePage {
       await this.clickOnElement(radioElement, {
         stepInfo: `Select "${optionText}" option from "${fieldLabel}"`,
       });
+    });
+  }
+
+  /**
+   * Click a button within a specific dialog box
+   * This generic method helps distinguish buttons within dialogs from other buttons on the page
+   * @param dialogTitle - The title/heading text of the dialog (e.g., "Configure API action")
+   * @param buttonName - The name/text of the button to click (e.g., "Save", "Cancel", "Confirm")
+   * @param stepInfo - Optional custom step information for logging
+   */
+  async clickButtonInDialog(dialogTitle: string, buttonName: string, stepInfo?: string): Promise<void> {
+    const stepName = stepInfo || `Click ${buttonName} button in ${dialogTitle} dialog`;
+    await test.step(stepName, async () => {
+      // Wait for dialog to be visible
+      const dialog = this.dialogModule.first();
+      await dialog.waitFor({ state: 'visible', timeout: 10000 });
+      const button = this.page.locator(`${this.dialogFooterButtonSelector}:text("${buttonName}")`).last();
+      // Wait for button to be visible and enabled
+      await button.waitFor({ state: 'visible', timeout: 10000 });
+      await this.expect(button).toBeEnabled({ timeout: 10000 });
+      await this.clickOnElement(button, { stepInfo: stepName });
     });
   }
 }
