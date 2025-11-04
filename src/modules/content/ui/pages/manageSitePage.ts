@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
@@ -58,7 +58,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
   readonly siteList = this.page.locator('.type--title').first();
-  readonly siteName = this.page.locator('.type--title');
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private sideNavBarComponent: SideNavBarComponent;

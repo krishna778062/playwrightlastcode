@@ -255,6 +255,9 @@ test.describe(
 
         // Verify all site names are displayed (method handles the loop internally)
         await manageSiteAppManagerPage.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
       'to verify the onboarding option in manage site content',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23737'],
