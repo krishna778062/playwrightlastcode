@@ -868,4 +868,29 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       ).toBeVisible();
     });
   }
+
+  /**
+   * Verify "View all courses in Workday" link is visible AND clickable
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all courses in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile).toBeVisible({ timeout: 10_000 });
+
+      const viewAllLink = tile.getByRole('link', { name: 'View all courses in Workday' }).first();
+      const showMore = tile.locator(this.showMoreButton).first();
+
+      // Reveal the link by clicking Show more up to 3 times if needed
+      for (let i = 0; i < 3 && !(await viewAllLink.isVisible().catch(() => false)); i++) {
+        await this.clickOnElement(showMore);
+        await viewAllLink.waitFor({ state: 'visible', timeout: 2500 }).catch(() => {});
+      }
+      await expect(viewAllLink).toBeVisible({ timeout: 5_000 });
+      // Must open in a new tab and match expected URL
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup).toHaveURL(urlRegex);
+      await popup.close();
+    });
+  }
 }
