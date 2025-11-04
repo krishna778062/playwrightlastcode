@@ -131,7 +131,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
-    this.sentPattern = /Sent \d+ days? ago/;
+    this.sentPattern = /Sent \d+ (days?|hours?|minutes?|weeks?|months?|years?) ago/;
     this.courseId = /^[A-Z]-/;
     this.jobId = /Job ID:\s*\d+/;
     this.Published = /Published.*ago/;

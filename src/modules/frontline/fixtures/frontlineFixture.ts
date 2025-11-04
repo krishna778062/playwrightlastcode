@@ -39,7 +39,7 @@ export const frontlineTestFixture = test.extend<
     appManagerUINavigationHelper: NavigationHelper;
 
     // Promotion manager browser context, Request Context + page
-    promotionManagerContext: BrowserContext;
+    promotionManagerBrowserContext: BrowserContext;
     promotionManagersPage: Page;
     promotionManagerHomePage: NewHomePage;
     promotionManagerUINavigationHelper: NavigationHelper;
@@ -145,12 +145,13 @@ export const frontlineTestFixture = test.extend<
         email: config.appManagerEmail,
         password: config.appManagerPassword,
       });
+      await page.close();
       await use(context);
       await context.close();
     },
     { scope: 'test' },
   ],
-  promotionManagerContext: [
+  promotionManagerBrowserContext: [
     async ({ browser, tenantInitializer }, use) => {
       const config = getFrontlineTenantConfigFromCache();
       const context = await browser.newContext();
@@ -160,14 +161,15 @@ export const frontlineTestFixture = test.extend<
         password: config.promotionManagerPassword,
       });
       await promotionManagerHomePage.verifyThePageIsLoaded();
-      await use(context);
       await page.close();
+      await use(context);
+      await context.close();
     },
     { scope: 'test' },
   ],
   promotionManagersPage: [
-    async ({ promotionManagerContext }, use) => {
-      const page = await promotionManagerContext.newPage();
+    async ({ promotionManagerBrowserContext }, use) => {
+      const page = await promotionManagerBrowserContext.newPage();
       await use(page);
       await page.close();
     },
@@ -229,6 +231,7 @@ export const frontlineTestFixture = test.extend<
         email: config.endUserEmail,
         password: config.endUserPassword,
       });
+      await page.close();
       await use(context);
       await context.close();
     },
