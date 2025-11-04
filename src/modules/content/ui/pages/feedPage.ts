@@ -129,7 +129,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
-  private shareSocialCampaignComponent: ShareSocialCampaignComponent;
+  private shareComponent: ShareSocialCampaignComponent;
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
@@ -146,7 +146,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
-    this.shareSocialCampaignComponent = new ShareSocialCampaignComponent(page);
+    this.shareComponent = new ShareSocialCampaignComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.sortByFilter = this.page.locator('[id="feed_sort"]');
@@ -486,7 +486,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Selects "site feed" option from share dropdown in post creation
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
-    await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
+    await this.shareComponent.selectShareOptionAsSiteFeed();
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
