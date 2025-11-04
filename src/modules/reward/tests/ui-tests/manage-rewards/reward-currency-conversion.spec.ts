@@ -4,7 +4,6 @@ import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { getQuery } from '@rewards/utils/dbQuery';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsCurrencyConversionPage } from '@rewards-pages/manage-rewards/rewards-currency-conversion-page';
-import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -141,7 +140,6 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
       await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
 
       // Download the CSV
-      const csvUtils = new CSVUtils(path.resolve('./downloads'));
       await currencyConversionPage.verifier.verifyTheElementIsVisible(
         currencyConversionPage.csvDownloadButtonForUnsetCurrencyUsers
       );
@@ -152,18 +150,18 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
       const queryToRun = rawQuery.replace(/tenantCode/g, tenantCode);
       const dbRows: any[] = await executeQuery(queryToRun, 'reward');
       const dbCount = dbRows.length;
-      const csvCount = await csvUtils.getRowCount();
+      const csvCount = await CSVUtils.getRowCount(latestCsvPath);
       expect(dbCount, 'DB row count should match CSV row count').toBe(csvCount);
 
       // Validate all the Records from CSV with DB
-      const csvRows: Record<string, string>[] = await csvUtils.getAllRecords();
+      const csvRows = await CSVUtils.getAllRecords(latestCsvPath);
       //validate email header
       const headerKeys = Object.keys(csvRows[0]);
       const emailKey = headerKeys.find(h => h.toLowerCase().includes('email'));
       if (!emailKey) {
         throw new Error('Could not find an "email" column in CSV headers: ' + headerKeys.join(','));
       }
-      const csvEmails = csvRows.map(r => (r[emailKey] ?? '').trim()).filter(Boolean);
+      const csvEmails = csvRows.map(r => String(r[emailKey] ?? '').trim()).filter(Boolean);
       console.log('CSV emails count:', csvEmails.length);
 
       //Get the DB data
@@ -181,6 +179,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         console.error('Missing emails in CSV:', missingEmails);
       }
       expect(missingEmails.length, 'All DB emails should be present in CSV').toBe(0);
+      const csvUtils = new CSVUtils();
       await csvUtils.deleteTheDownloadedCSV(latestCsvPath);
     }
   );

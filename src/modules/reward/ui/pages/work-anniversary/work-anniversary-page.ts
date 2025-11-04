@@ -496,7 +496,6 @@ export class WorkAnniversaryPage extends BasePage {
   async validateTheCSVDataForPointsGiven(points: number, message: string) {
     // Original implementation from reference file:
     const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    const csvUtils = new CSVUtils('./downloads');
     await manageRecognitionPage.loadPage();
     await manageRecognitionPage.verifyThePageIsLoaded();
     await manageRecognitionPage.activityPointsGivenTable.click({ force: true });
@@ -506,15 +505,16 @@ export class WorkAnniversaryPage extends BasePage {
       manageRecognitionPage.activityTableDownloadCSVButton.click(),
     ]);
     // ✅ Save in downloads folder
-    await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+    const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+    await download.saveAs(csvFilePath);
     // ✅ Validate last row column value
-    let validationResult = await csvUtils.validateRowValue('last', 14, 'APPROVED');
+    let validationResult = await CSVUtils.validateRowValue('last', 14, 'APPROVED', csvFilePath);
     expect(validationResult.isMatch, `Expected "APPROVED" but got "${validationResult.actualValue}"`).toBeTruthy();
-    validationResult = await csvUtils.validateRowValue('last', 12, String(points));
+    validationResult = await CSVUtils.validateRowValue('last', 12, String(points), csvFilePath);
     expect(validationResult.isMatch, `Expected ${points} but got "${validationResult.actualValue}"`).toBeTruthy();
-    validationResult = await csvUtils.validateRowValue('last', 15, message);
+    validationResult = await CSVUtils.validateRowValue('last', 15, message, csvFilePath);
     expect(validationResult.isMatch, `Expected ${message} but got "${validationResult.actualValue}"`).toBeTruthy();
-    fs.unlinkSync(csvUtils.getLatestCSV());
+    fs.unlinkSync(csvFilePath);
   }
 
   verifyThePageIsLoaded(): Promise<void> {
