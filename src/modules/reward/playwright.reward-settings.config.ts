@@ -1,10 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import { getRewardTenantConfigFromCache, initializeRewardConfig } from '@rewards/config/rewardConfig';
+import baseConfig from '@rewards/playwright.base.config';
 import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
-
-import baseConfig from '../../../playwright.base.config';
 
 initializeRewardConfig('rewardSettings');
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];

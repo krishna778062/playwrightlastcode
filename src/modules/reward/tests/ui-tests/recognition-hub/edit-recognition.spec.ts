@@ -111,7 +111,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
-        expect(Number(newAvailablePoints) + 2).toBe(Number(availablePoints));
+        expect(Number(newAvailablePoints)).toBe(Number(availablePoints) - 2);
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,
           rewardPointsText,
@@ -193,7 +193,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const manageRecognitionPage = new ManageRewardsOverviewPage(recognitionHub.page);
         // Validate the new Entry in the Downloaded CSV file:
         await manageRecognitionPage.loadPage();
-        const csvUtils = new CSVUtils('./downloads');
         // ✅ Trigger and capture download
         const [download] = await Promise.all([
           manageRecognitionPage.page.waitForEvent('download'),
@@ -203,12 +202,13 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         ]);
 
         // ✅ Save in downloads folder
-        await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+        const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+        await download.saveAs(csvFilePath);
 
         // ✅ Validate last row column value
-        const validationResult = await csvUtils.validateRowValue('last', 14, 'REJECTED');
+        const validationResult = await CSVUtils.validateRowValue('last', 14, 'REJECTED', csvFilePath);
         expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
-        fs.unlinkSync(csvUtils.getLatestCSV());
+        fs.unlinkSync(csvFilePath);
       });
     }
   );
@@ -234,7 +234,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       const rewardOptionIndex = 3;
       await test.step('Visit the Recognition Hub and give one recognition', async () => {
         const existingOptions = await recognitionHub.visitRecognitionHub();
-        const availablePoints = await recognitionHub.pointsToGive.textContent();
+        await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
+        const availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         if (existingOptions.length < 2) {
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
@@ -248,7 +249,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         );
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
-        const newAvailablePoints = await recognitionHub.pointsToGive.textContent();
+        const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         expect(Number(newAvailablePoints)).toBe(Number(availablePoints) + 6);
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
           true,
@@ -316,6 +317,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         if (existingOptions.length < 2) {
           await recognitionHub.setupTheMultipleGiftingOptions();
         }
+        await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
+        availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         await recognitionHub.clickOnGiveRecognition();
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
@@ -326,7 +329,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         );
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
-        availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         const newAvailablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
         expect(Number(newAvailablePoints)).toBe(Number(availablePoints) + 6);
         await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -583,44 +585,42 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         storyId: 'RC-5355',
       });
 
+      let rewardPointsText: string;
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
         const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-        let rewardPointsText: string;
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
           email: process.env.RECOGNITION_USER_USERNAME!,
           password: process.env.RECOGNITION_USER_PASSWORD!,
         });
-        await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
-          const recognitionGiverName = process.env[`STANDARD_USER_FULL_NAME`];
-          await manageRecognitionPage.loadPage();
-          await manageRecognitionPage.verifyThePageIsLoaded();
-          await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
-          rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(recognitionGiverName!);
+        const recognitionGiverName = process.env[`STANDARD_USER_FULL_NAME`];
+        await manageRecognitionPage.loadPage();
+        await manageRecognitionPage.verifyThePageIsLoaded();
+        await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
+        rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(recognitionGiverName!);
+      });
+      await test.step('Navigate to the Recognition Post, Login with Standard User and validate Can not edit Reward point', async () => {
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+        const currentUrl = recognitionHub.page.url();
+        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+        await LoginHelper.loginWithPassword(appManagerFixture.page, {
+          email: process.env.STANDARD_USER_USERNAME!,
+          password: process.env.STANDARD_USER_PASSWORD!,
         });
-        await test.step('Navigate to the Recognition Post, Login with Standard User and validate Can not edit Reward point', async () => {
-          const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-          const currentUrl = recognitionHub.page.url();
-          await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-          await LoginHelper.loginWithPassword(appManagerFixture.page, {
-            email: process.env.STANDARD_USER_USERNAME!,
-            password: process.env.STANDARD_USER_PASSWORD!,
-          });
-          await recognitionHub.page.goto(currentUrl);
-          await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
-        });
-        await test.step('Edit the Recognition and validate', async () => {
-          const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-          await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
-          const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-          await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
-          await giveRecognitionModal.closeButton.click();
-          await recognitionHub.validateTheRewardElementsInRecognitionPost(
-            true,
-            rewardPointsText,
-            'Only visible to recipients, their managers and app administrators'
-          );
-        });
+        await recognitionHub.page.goto(currentUrl);
+        await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
+      });
+      await test.step('Edit the Recognition and validate', async () => {
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+        await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+        await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
+        await giveRecognitionModal.closeButton.click();
+        await recognitionHub.validateTheRewardElementsInRecognitionPost(
+          true,
+          rewardPointsText,
+          'Only visible to recipients, their managers and app administrators'
+        );
       });
     }
   );
@@ -675,7 +675,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         password: process.env.RECOGNITION_USER_PASSWORD!,
       });
       await recognitionHub.page.waitForTimeout(5000);
-      const csvUtils = new CSVUtils('./downloads');
 
       await test.step('Validate the new Entry in the Downloaded CSV file:', async () => {
         await manageRecognitionPage.loadPage();
@@ -688,12 +687,13 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         ]);
 
         // ✅ Save in downloads folder
-        await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+        const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+        await download.saveAs(csvFilePath);
 
         // ✅ Validate last row column value
-        const validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
-        expect(validationResult.isMatch, `Expected "25" but got "${validationResult.actualValue}"`).toBeTruthy();
-        fs.unlinkSync(csvUtils.getLatestCSV());
+        const validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFilePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+        fs.unlinkSync(csvFilePath);
       });
 
       await test.step('Edit the points for the last given Recognition post', async () => {
@@ -734,14 +734,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         ]);
 
         // ✅ Save in downloads folder
-        await download.saveAs(path.resolve('./downloads', download.suggestedFilename()));
+        const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+        await download.saveAs(csvFilePath);
 
         // ✅ Validate last row column value
-        let validationResult = await csvUtils.validateRowValue(1, 14, 'REJECTED');
+        let validationResult = await CSVUtils.validateRowValue(1, 14, 'REJECTED', csvFilePath);
         expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
-        validationResult = await csvUtils.validateRowValue('last', 14, 'PENDING');
+        validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFilePath);
         expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
-        fs.unlinkSync(csvUtils.getLatestCSV());
+        fs.unlinkSync(csvFilePath);
       });
     }
   );

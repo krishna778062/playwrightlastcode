@@ -1,17 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getRewardTenantConfigFromCache, initializeRewardConfig } from '@rewards/config/rewardConfig';
+import baseConfig from '@rewards/playwright.base.config';
 import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
-
-import baseConfig from '../../../playwright.base.config';
 
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
+initializeRewardConfig('primary');
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests'),
-  testIgnore: '**/api-tests/**',
+  testIgnore: '**/reward-settings/**',
   workers: process.env.CI ? 1 : 1,
   timeout: 180_000,
   expect: {
@@ -34,7 +34,7 @@ export default defineConfig({
             '--use-fake-device-for-media-stream',
           ],
         },
-        baseURL: getEnvConfig().frontendBaseUrl,
+        baseURL: getRewardTenantConfigFromCache().frontendBaseUrl,
       },
     },
   ],

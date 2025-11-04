@@ -1,8 +1,8 @@
 import { BrowserContext, Page, test } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { NewHomePage } from '@core/pages/newHomePage';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 // UI-only fixture type for browser and page components
 export interface RewardUiFixture {
@@ -15,16 +15,16 @@ export type RewardUserType = 'appManager' | 'recoManager' | 'standardUser';
 
 export const rewardUsers = {
   appManager: {
-    email: getEnvConfig().appManagerEmail,
-    password: getEnvConfig().appManagerPassword,
+    email: getRewardTenantConfigFromCache().appManagerEmail,
+    password: getRewardTenantConfigFromCache().appManagerPassword,
   },
   recoManager: {
-    email: process.env['RECOGNITION_USER_USERNAME'] || '',
-    password: process.env['RECOGNITION_USER_PASSWORD'] || '',
+    email: getRewardTenantConfigFromCache().recognitionManagerEmail,
+    password: getRewardTenantConfigFromCache().recognitionManagerPassword,
   },
   standardUser: {
-    email: process.env['STANDARD_USER_USERNAME'] || '',
-    password: process.env['STANDARD_USER_PASSWORD'] || '',
+    email: getRewardTenantConfigFromCache().endUserEmail,
+    password: getRewardTenantConfigFromCache().endUserPassword,
   },
 } as const;
 
