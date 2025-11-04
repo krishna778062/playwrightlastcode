@@ -179,10 +179,19 @@ export const integrationsFixture = base.extend<
     { scope: 'test' },
   ],
 
-  // Convenience fixture for just the page
+  // Convenience fixture for just the page (UI-only, no API required)
   appManagerPage: [
-    async ({ appManagerUiFixture }, use) => {
-      await use(appManagerUiFixture.page);
+    async ({ browser, tenantConfig }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      await LoginHelper.loginWithPassword(page, {
+        email: tenantConfig.appManagerEmail,
+        password: tenantConfig.appManagerPassword,
+      });
+
+      await use(page);
+      await context.close();
     },
     { scope: 'test' },
   ],

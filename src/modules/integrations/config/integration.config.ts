@@ -85,10 +85,10 @@ export const config = {
   workday: {
     qa: {
       tenantName: 'Workday Tenant',
-      frontendBaseUrl: ' https://workday.qa.simpplr.xyz/',
-      apiBaseUrl: 'https://workday-auto-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
+      frontendBaseUrl: 'https://workday.qa.simpplr.xyz',
+      apiBaseUrl: 'https://workday.qa.simpplr.xyz',
+      appManagerEmail: 'akanksha.kumari@simpplr.com',
+      appManagerPassword: 'pass@1234',
       endUserEmail: 'sonali.gupta@simpplr.com',
       endUserPassword: 'simpplr001',
     },
