@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
@@ -55,7 +55,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
-  readonly siteCell: Locator;
   readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
   readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
@@ -74,8 +73,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
-    // Initialize locator from component
-    this.siteCell = page.getByRole('cell', { name: 'Name' });
+    this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
     this.manageSitesComponent = new ManageSitesComponent(page);
@@ -199,10 +197,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   // NEW METHODS - from develop
   async clickOnUpdateCategory(): Promise<void> {
-    await test.step('Clicking on update category', async () => {
-      await this.hoverOverElementInJavaScript(this.ellipses);
-      await this.clickOnElement(this.clickOnUpdateCategoryOption);
-    });
+    await this.updateSiteCategoryComponent.hoverOverElementInJavaScript(this.updateSiteCategoryComponent.ellipses);
   }
 
   async clickOnCancelOption(): Promise<void> {
@@ -210,9 +205,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async clickOnSites(): Promise<void> {
-    await test.step('Clicking on sites', async () => {
-      await this.clickOnElement(this.sideNavBarComponent.sitesButton);
-    });
+    await this.manageSitesComponent.clickOnSiteAction();
   }
 
   async updatingCategoryToUncategorized(categoryName: string): Promise<void> {
@@ -220,14 +213,27 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async searchForSite(siteName: string): Promise<void> {
-    await this.clickOnElement(this.clickOnSearchBar);
-    await this.page.getByPlaceholder('Search').nth(1).fill(siteName);
-    await this.clickOnElement(this.clickingOnSearchButton);
+    await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
+  getSiteNameLocator(siteName: string): Locator {
+    return this.page.getByText(siteName, { exact: true });
+  }
+  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
+    // Handle both single site name and array of site names
+    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
+
+    let index = 0;
+    while (index < namesArray.length) {
+      const siteName = namesArray[index];
+      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
+        assertionMessage: 'Site name should be displayed on manage site page',
+      });
+      index++;
+    }
+  }
   async verifyNoSitesFound(siteName: string): Promise<void> {
     const noSitesFound = this.siteList.filter({ hasText: siteName });
-    console.log('noSitesFound', noSitesFound);
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
     });
