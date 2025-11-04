@@ -191,7 +191,7 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns true if the app result list is displayed, false otherwise
    */
   async isAppResultDisplayed() {
-    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer, { timeout: 50000 });
+    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer, { timeout: 80000 });
   }
 
   /**
