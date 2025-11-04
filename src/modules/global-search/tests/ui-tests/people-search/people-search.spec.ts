@@ -128,7 +128,7 @@ test.describe(
     test(
       `verify people search with sidebar filter functionality`,
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
