@@ -55,7 +55,8 @@
       "@employee-listening/*": ["./src/modules/employee-listening/*"],
       "@recognition/*": ["./src/modules/recognition/*"],
       "@recognition-pages/*": ["./src/modules/recognition/ui/pages/*"],
-      "@recognition-components/*": ["./src/modules/recognition/ui/components/*"]
+      "@recognition-components/*": ["./src/modules/recognition/ui/components/*"],
+      "@recognition-constants/*": ["./src/modules/recognition/constants/*"]
     },
     "target": "ES2019",
     "module": "commonjs",
