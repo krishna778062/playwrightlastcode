@@ -206,7 +206,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-ORG-CHART-VISIBILITY',
+          zephyrTestId: 'SEN-19660',
         });
 
         // Store original app config settings
@@ -248,7 +248,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-PEOPLE-SUBFILTER-VISIBILITY-API',
+          zephyrTestId: 'SEN-19662',
         });
 
         const fieldConfigHelper = new PeopleFieldConfigurationHelper(appManagerFixture.appConfigurationService);
