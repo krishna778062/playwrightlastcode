@@ -329,7 +329,7 @@ test.describe(
       }
     );
     test(
-      'verify Show more is visible after 4 courses for pending learning courses from Docebo on a tile on  Site Dashboard',
+      'verify Show more is visible after 4 courses for pending learning courses from Greenhouse on a tile on Site Dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
