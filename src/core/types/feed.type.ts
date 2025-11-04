@@ -17,6 +17,7 @@ export interface CreateFeedPostPayload {
   ignoreToxic: boolean;
   type: string;
   variant: string;
+  listOfTopics?: { id: string; name: string }[];
 }
 
 export interface FeedAuthor {

@@ -273,6 +273,9 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.recognitionLink, {
         stepInfo: `clicking recognition link inside manage side navigation menu`,
       });
+  async verifyingCreateButtonIsVisible(): Promise<void> {
+    await test.step('Verifying Create button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
     });
   }
 }
