@@ -43,6 +43,7 @@ export interface IEventCreationAssertions {
     verifyOutlookCalendar?: boolean;
     verifyRsvpToggle?: boolean;
   }) => Promise<void>;
+  verifyLanguageDropdown: () => Promise<void>;
 }
 
 export class EventCreationPage extends BasePage implements IEventCreationActions, IEventCreationAssertions {
@@ -64,6 +65,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly submitButton: Locator;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
+  readonly languageDropdown: Locator;
+  readonly closeAlertDialogButton: Locator;
 
   constructor(page: Page, siteId?: string) {
     super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId ?? ''));
@@ -93,6 +96,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       .nth(0);
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
     this.imageCropper = new ImageCropperComponent(page);
+    this.languageDropdown = page.getByLabel('Page language');
+    this.closeAlertDialogButton = page.getByRole('button', { name: 'Close' });
   }
 
   get actions(): IEventCreationActions {
@@ -375,6 +380,13 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
           timeout: 10000,
         });
       }
+    });
+  }
+  async verifyLanguageDropdown(): Promise<void> {
+    await test.step('Verify language dropdown', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.languageDropdown, {
+        assertionMessage: 'Language dropdown should be visible',
+      });
     });
   }
 }

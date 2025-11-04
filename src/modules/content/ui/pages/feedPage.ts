@@ -83,6 +83,12 @@ export interface IFeedActions {
   addFileToPost: (filePath: string) => Promise<void>;
   waitForFileToAppear: () => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  applyFormattingAndEnterText: (
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ) => Promise<void>;
+  addLink: (linkText: string, linkUrl: string) => Promise<void>;
+  selectEmoji: (emojiIndex?: number) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -649,5 +655,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async uploadFiles(files: string[]): Promise<void> {
     await this.createFeedPostComponent.uploadFiles(files);
+  }
+
+  async applyFormattingAndEnterText(
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.applyFormattingAndEnterText(formatType, text);
+  }
+
+  async addLink(linkText: string, linkUrl: string): Promise<void> {
+    await this.createFeedPostComponent.addLink(linkText, linkUrl);
+  }
+
+  async selectEmoji(emojiIndex: number = 1): Promise<void> {
+    await this.createFeedPostComponent.selectEmoji(emojiIndex);
   }
 }

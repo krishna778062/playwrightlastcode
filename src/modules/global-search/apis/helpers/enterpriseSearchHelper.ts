@@ -20,7 +20,13 @@ export class EnterpriseSearchHelper {
     valueToFind?: string;
     fieldToCheck?: string;
   }) {
-    const { apiClient, searchTerm, objectType, valueToFind, fieldToCheck = 'title' } = params;
+    const {
+      apiClient,
+      searchTerm,
+      objectType,
+      valueToFind,
+      fieldToCheck = objectType === 'feed' ? 'excerpt' : 'title',
+    } = params;
 
     await test.step(`Waiting for search results to be visible for search term ${searchTerm}`, async () => {
       await expect(
@@ -36,7 +42,23 @@ export class EnterpriseSearchHelper {
           );
           // Find the specific item by checking the specified field for the value
           const valueToSearch = valueToFind || searchTerm;
-          const resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
+
+          // For feeds, try multiple possible field names
+          let resultItem;
+          if (objectType === 'feed') {
+            resultItem = result.find(
+              (eachItem: any) =>
+                eachItem.item.excerpt?.includes(valueToSearch) ||
+                eachItem.item.text?.includes(valueToSearch) ||
+                eachItem.item.title?.includes(valueToSearch) ||
+                eachItem.item.textHtml?.includes(valueToSearch) ||
+                eachItem.item.textJson?.includes(valueToSearch)
+            );
+          } else {
+            resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
+          }
+
+          console.log('Found result item:', resultItem);
           expect(resultItem).toBeDefined();
         },
         {
