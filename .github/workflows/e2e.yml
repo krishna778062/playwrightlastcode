@@ -15,6 +15,7 @@ on:
           - 'reward'
           - 'content'
           - 'content-settings'
+          - 'content-studio'
           - 'de'
           - 'content-abac'
           - 'frontline'
@@ -49,8 +50,6 @@ on:
           - 'uat'
           - 'test'
           - 'dev'
-          - 'prodUS'
-          - 'prodEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
@@ -170,11 +169,6 @@ jobs:
         run: |
           npm run generate-report:custom test-results/test-results.json
 
-      - name: Generate Tag Report
-        if: always()
-        run: |
-          npm run generate-tag-report
-
       - name: Upload Report to S3
         if: always()
         run: |
@@ -205,15 +199,11 @@ jobs:
           echo ""
           echo "📊 Test Report Links:"
           echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
-          echo "🏷️ Latest Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html"
           echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
-          echo "📅 Timestamped Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html"
 
           # Store report links for Slack notification
           echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
-          echo "LATEST_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
           echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
-          echo "TIMESTAMPED_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
 
       - name: Parse Test Results
         if: always()
@@ -225,34 +215,12 @@ jobs:
             FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
-            
-            # Count known failures from annotations
-            KNOWN_FAILED=$(node -e "
-              const fs = require('fs');
-              const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
-              const knownFailed = data.suites.flatMap(s => 
-                s.suites.flatMap(ss => 
-                  ss.specs.flatMap(sp => 
-                    sp.tests.filter(t => 
-                      t.status === 'unexpected' && 
-                      t.annotations.some(a => a.type === 'known_failure')
-                    )
-                  )
-                )
-              ).length;
-              console.log(knownFailed);
-            ")
-            
-            # Calculate actual failures (excluding known failures)
-            ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
           else
             TOTAL_TESTS=0
             PASSED_TESTS=0
             FAILED_TESTS=0
             SKIPPED_TESTS=0
             FLAKY_TESTS=0
-            KNOWN_FAILED=0
-            ACTUAL_FAILED=0
           fi
 
           echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
@@ -260,11 +228,9 @@ jobs:
           echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
           echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
           echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
-          echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
-          echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
 
           echo "Test Results:"
-          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS, Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
       - name: Send Slack Notification
         if: always()
@@ -272,11 +238,7 @@ jobs:
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
-            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-            else
-              MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-            fi
+            MESSAGE="🧪 *UI Automation Suite* - \`${{ inputs.module_name }}\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.FAILED_TESTS }} ❌ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
             # Send to Slack using curl
             curl -X POST -H 'Content-type: application/json' \
