@@ -268,11 +268,16 @@ export class SideNavBarComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async clickRecognitionLinkInsideManageNavMenu(options?: TestOptions): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking recognition link inside manage side navigation menu`, async () => {
-      await this.clickOnElement(this.manageNavMenu, { stepInfo: `clicking manage side navigation menu` });
-      await this.clickOnElement(this.recognitionLink, {
-        stepInfo: `clicking recognition link inside manage side navigation menu`,
+    await test.step(options?.stepInfo || 'Clicking recognition link inside manage side navigation menu', async () => {
+      await this.clickOnElement(this.manageNavMenu, {
+        stepInfo: 'Clicking manage side navigation menu',
       });
+      await this.clickOnElement(this.recognitionLink, {
+        stepInfo: 'Clicking recognition link inside manage side navigation menu',
+      });
+    });
+  }
+
   async verifyingCreateButtonIsVisible(): Promise<void> {
     await test.step('Verifying Create button is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.createSection.first());
