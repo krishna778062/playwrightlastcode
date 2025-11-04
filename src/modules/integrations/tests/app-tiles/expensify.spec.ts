@@ -56,7 +56,7 @@ test.describe(
     test(
       'verify that App Manager is able to connect Expensify from Manage->Integrations',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ page }) => {
         tagTest(test.info(), {
@@ -533,7 +533,7 @@ test.describe(
     test(
       'disconnect expensify and verify tile shows unavailable connection message',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -580,7 +580,7 @@ test.describe(
     test(
       'verify add tile modal for expensify apptile on home dashboard',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -613,7 +613,7 @@ test.describe(
     test(
       'verify disabling Expensify connector removes tiles and moves app to available apps',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
