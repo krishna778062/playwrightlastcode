@@ -224,6 +224,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       index++;
     }
   }
+  async hoverOnFirstSiteName(): Promise<void> {
+    await this.manageSitesComponent.hoverOnFirstSiteNameAction();
+  }
   async verifyNoSitesFound(siteName: string): Promise<void> {
     const noSitesFound = this.siteList.filter({ hasText: siteName });
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {

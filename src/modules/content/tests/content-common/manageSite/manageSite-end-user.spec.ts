@@ -3,9 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { EditSitePage } from '../../../ui/pages/editSitePage';
+
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -19,6 +22,7 @@ test.describe(
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitesComponent: ManageSitesComponent;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
     });
@@ -224,6 +228,29 @@ test.describe(
 
         // Verify all site names are displayed (method handles the loop internally)
         await manageSiteStandardUserPage.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26503'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+
+        manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
+        const editSitePage = new EditSitePage(standardUserFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
       }
     );
   }

@@ -8,8 +8,10 @@ import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteMan
 import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -300,6 +302,27 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+    test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26503'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const editSitePage = new EditSitePage(appManagerFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
       }
     );
   }
