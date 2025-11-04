@@ -16,7 +16,7 @@ import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
@@ -129,7 +129,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
-  private shareComponent: ShareSocialCampaignComponent;
+  private shareSocialCampaignComponent: ShareComponent;
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
@@ -146,7 +146,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
-    this.shareComponent = new ShareSocialCampaignComponent(page);
+    this.shareSocialCampaignComponent = new ShareComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.sortByFilter = this.page.locator('[id="feed_sort"]');
@@ -486,7 +486,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Selects "site feed" option from share dropdown in post creation
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
-    await this.shareComponent.selectShareOptionAsSiteFeed();
+    await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {

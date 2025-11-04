@@ -4,7 +4,7 @@ import { ListOfSocialCampaignComponent } from '@content/ui/components/listOfSoci
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 export interface ISocialCampaignPageActions {
   removeAllExistingCampaigns: () => Promise<void>;
@@ -42,7 +42,7 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
   readonly popularLink: Locator;
   readonly expiredLink: Locator;
   private listOfSocialCampaignComponent: ListOfSocialCampaignComponent;
-  private shareSocialCampaignComponent: ShareSocialCampaignComponent;
+  private shareSocialCampaignComponent: ShareComponent;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SOCIAL_CAMPAIGNS_PAGE);
@@ -52,7 +52,7 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     this.popularLink = page.locator('a', { hasText: /^Popular$/ });
     this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
     this.listOfSocialCampaignComponent = new ListOfSocialCampaignComponent(page);
-    this.shareSocialCampaignComponent = new ShareSocialCampaignComponent(page);
+    this.shareSocialCampaignComponent = new ShareComponent(page);
   }
 
   get actions(): ISocialCampaignPageActions {

@@ -5,7 +5,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
-import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 export interface ITopicDetailsPageActions {
   clickAndVerifyTheCreatedAlbum: (albumName: string) => Promise<void>;
@@ -32,7 +32,7 @@ export interface ITopicDetailsPageAssertions {
 export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActions, ITopicDetailsPageAssertions {
   private contentPreviewPage: ContentPreviewPage;
   private baseActionUtil: BaseActionUtil;
-  private shareSocialCampaignComponent: ShareSocialCampaignComponent;
+  private shareSocialCampaignComponent: ShareComponent;
   readonly clickingOnFeedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly editOption: Locator = this.page.getByText('Edit');
@@ -52,7 +52,7 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
     super(page, PAGE_ENDPOINTS.getTopicDetailsPage(topicId));
     this.contentPreviewPage = new ContentPreviewPage(page);
     this.baseActionUtil = new BaseActionUtil(page);
-    this.shareSocialCampaignComponent = new ShareSocialCampaignComponent(page);
+    this.shareSocialCampaignComponent = new ShareComponent(page);
   }
 
   get actions(): ITopicDetailsPageActions {
