@@ -243,14 +243,14 @@ test.describe(
           includeCount: true,
           status: 'active',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteBySpecificName('All Employees');
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
-          siteId: siteInfo.siteId,
+          siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
         await siteDashboardPage.loadPage();
-        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo.siteId);
+        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo);
         await manageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
         await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
         await manageContentPage.actions.clickSortByButton();
