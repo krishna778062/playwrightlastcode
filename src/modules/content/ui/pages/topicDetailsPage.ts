@@ -5,7 +5,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
-import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareSocialCampaignComponent';
+import { ShareSocialCampaignComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 export interface ITopicDetailsPageActions {
   clickAndVerifyTheCreatedAlbum: (albumName: string) => Promise<void>;
