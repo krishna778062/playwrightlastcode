@@ -63,6 +63,23 @@ export interface IFeedActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
+  clickOnCommentIcon: () => Promise<void>;
+  clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickEditOption: () => Promise<void>;
+  createPost: (text: string) => Promise<void>;
+  updatePostText: (text: string) => Promise<void>;
+  removeAttachedFile: (index?: number) => Promise<void>;
+  clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
+  applyFormattingAndEnterText: (
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ) => Promise<void>;
+  addLink: (linkText: string, linkUrl: string) => Promise<void>;
+  selectEmoji: (emojiIndex?: number) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -90,6 +107,10 @@ export interface IFeedAssertions {
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
+  verifyAttachedFileCount: (count: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -102,6 +123,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly optionLocator: Locator;
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
+  readonly celebrityFeedBlocks: Locator;
+  readonly newHireFeedBlocks: Locator;
+  readonly commentIcon: Locator;
+  readonly commentOptionsMenu: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -116,6 +141,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     // Feed filter dropdown
     this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
+    this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
+    this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
+    this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
+    this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
   }
 
   get actions(): IFeedActions {
@@ -459,5 +488,97 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
       assertionMessage: 'Feed section should not be visible',
     });
+  }
+
+  async verifySmartFeedBlocksAreNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.celebrityFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+  }
+
+  async clickOnCommentIcon(): Promise<void> {
+    await test.step('Click on comment icon', async () => {
+      await this.clickOnElement(this.commentIcon);
+    });
+  }
+
+  async clickOnCommentOptionsMenu(commentText: string): Promise<void> {
+    await test.step(`Click on comment options menu for: ${commentText}`, async () => {
+      const commentElement = this.page.locator(`text=${commentText}`).first();
+      const optionsButton = commentElement.locator('..').getByRole('button', { name: 'Options' });
+      await this.clickOnElement(optionsButton);
+    });
+  }
+
+  async verifyCommentOptionsMenuVisible(expectedOptions: string[]): Promise<void> {
+    await test.step(`Verify comment options menu contains: ${expectedOptions.join(', ')}`, async () => {
+      for (const option of expectedOptions) {
+        await this.verifier.verifyTheElementIsVisible(this.commentOptionsMenu.getByRole('button', { name: option }), {
+          assertionMessage: `Comment option "${option}" should be visible`,
+        });
+      }
+    });
+  }
+
+  async verifyAttachedFileCount(count: number): Promise<void> {
+    await this.createFeedPostComponent.verifyAttachedFileCount(count);
+  }
+
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await this.createFeedPostComponent.verifyUpdateButtonDisabled();
+  }
+
+  async openPostOptionsMenu(postText: string): Promise<void> {
+    await this.createFeedPostComponent.openPostOptionsMenu(postText);
+  }
+
+  async clickEditOption(): Promise<void> {
+    await this.createFeedPostComponent.clickEditOption();
+  }
+
+  async createPost(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  async updatePostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.updatePostText(text);
+  }
+
+  async removeAttachedFile(index: number = 0): Promise<void> {
+    await this.createFeedPostComponent.removeAttachedFile(index);
+  }
+
+  async clickUpdateButton(): Promise<void> {
+    await this.createFeedPostComponent.clickUpdateButton();
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await this.createFeedPostComponent.addFileToPost(filePath);
+  }
+
+  async waitForFileToAppear(): Promise<void> {
+    await this.createFeedPostComponent.waitForFileToAppear();
+  }
+
+  async uploadFiles(files: string[]): Promise<void> {
+    await this.createFeedPostComponent.uploadFiles(files);
+  }
+
+  async applyFormattingAndEnterText(
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.applyFormattingAndEnterText(formatType, text);
+  }
+
+  async addLink(linkText: string, linkUrl: string): Promise<void> {
+    await this.createFeedPostComponent.addLink(linkText, linkUrl);
+  }
+
+  async selectEmoji(emojiIndex: number = 1): Promise<void> {
+    await this.createFeedPostComponent.selectEmoji(emojiIndex);
   }
 }

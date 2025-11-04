@@ -1,8 +1,9 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 
 export interface IActions {
@@ -15,10 +16,10 @@ export interface IActions {
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
   clickFilterButton: () => Promise<void>;
-  clickSiteSearchBar: (siteName: string) => Promise<void>;
+  selectSiteSearchBar: (siteName: string) => Promise<void>;
   clickOnTheSiteName: () => Promise<void>;
   clickSortByButton: () => Promise<void>;
-  selectCreatedNewestOption: () => Promise<void>;
+  selectSortOption: (sortBy: SortOptionLabels) => Promise<void>;
   selectPageCategoryIfVisible: () => Promise<void>;
   selectPageCategory: () => Promise<void>;
   clickOnContent: () => Promise<void>;
@@ -27,6 +28,9 @@ export interface IActions {
   verifyingValidationRequiredBarState: () => Promise<void>;
   clickOnCancel: () => Promise<void>;
   addPublishContentFilter: () => Promise<void>;
+  openContentDetailsPage: () => Promise<void>;
+  selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
+  clickOnOnboardingOption: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -38,16 +42,32 @@ export interface IAssertions {
   verifySiteName: () => Promise<void>;
   verifySiteNameLink: () => Promise<void>;
   scheduledTagVisibleInManageContent: () => Promise<void>;
+  verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
+  checkValidateOptionInBulkActions: () => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
   private manageContentComponent: ManageContentComponent;
-
+  readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+  readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
+  readonly validateOption: Locator = this.page.getByText('Validate');
   static actions: any;
+
+  // Expose locators for unified verification
+  readonly editButton: Locator;
+  readonly deleteButton: Locator;
+  readonly unpublishButton: Locator;
+  readonly publishButton: Locator;
+  readonly moveButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
+    this.editButton = this.manageContentComponent.editButton;
+    this.deleteButton = this.manageContentComponent.deleteButton;
+    this.unpublishButton = this.manageContentComponent.unpublishButton;
+    this.publishButton = this.manageContentComponent.publishButton;
+    this.moveButton = this.manageContentComponent.moveButton;
   }
 
   async load(): Promise<void> {
@@ -140,9 +160,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnValidateButton(): Promise<void> {
     await this.manageContentComponent.selectValidateButton();
   }
+  async clickOnValidateApplyButton(): Promise<void> {
+    await this.manageContentComponent.clickOnValidateApplyButton();
+  }
 
   async clickOnFirstDropDownOption(): Promise<void> {
     await this.manageContentComponent.selectFirstDropDownOption();
+  }
+  async hoverOnFirstDropDownOption(): Promise<void> {
+    await this.manageContentComponent.hoverOnFirstDropDownOption();
   }
 
   async checkPublishOption(): Promise<void> {
@@ -162,9 +188,22 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickFilterButton(): Promise<void> {
     await this.manageContentComponent.clickFilterButton();
   }
+  async selectSiteSearchBar(siteName: string): Promise<void> {
+    await this.manageContentComponent.selectSiteSearchBar(siteName);
+  }
   async clickSiteSearchBar(siteName: string): Promise<void> {
     await this.manageContentComponent.clickSiteSearchBar(siteName);
   }
+  async selectCreatedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectCreatedNewestOption();
+  }
+  async selectCreateNewestPublishedOption(): Promise<void> {
+    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
+  }
+  async selectTheStatusFilter(status: string): Promise<void> {
+    await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();
   }
@@ -189,8 +228,19 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-  async selectCreatedNewestOption(): Promise<void> {
-    await this.manageContentComponent.selectCreatedNewestOptionByText();
+
+  async selectEditedNewestOption(): Promise<void> {
+    await this.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
+  }
+  async selectEditedOldestOption(): Promise<void> {
+    await this.selectSortOption(SortOptionLabels.MODIFIED_OLDEST);
+  }
+  /**
+   * Parameterized function to select any sort option by SortOptionLabels enum
+   * @param sortBy - The sort option to select
+   */
+  async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
+    await this.manageContentComponent.selectSortOption(sortBy);
   }
 
   async selectPageCategory(): Promise<void> {
@@ -229,5 +279,101 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async applyButtonShouldBeDisabled(): Promise<void> {
     await this.manageContentComponent.applyButtonShouldBeDisabled();
+  }
+  async checkValidateOptionInBulkActions(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCheckbox);
+    console.log('clicking on checkbox');
+    await this.clickOnElement(this.clickOnBulkOptions);
+    console.log('clicking on bulk options');
+    await this.verifier.verifyTheElementIsVisible(this.validateOption, {
+      assertionMessage: 'Validate option should be visible in bulk actions',
+    });
+    console.log('validate option should be visible in bulk actions');
+  }
+  async openContentDetailsPage(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCheckbox);
+    await this.page.keyboard.press('Tab');
+    await this.page.keyboard.press('Enter');
+  }
+
+  async selectContentManagedBy(managedBy: string): Promise<void> {
+    await this.manageContentComponent.selectContentFilter(managedBy);
+  }
+
+  async selectContentFilterByType(filterType: 'manageByme' | 'authorByMe'): Promise<void> {
+    await this.manageContentComponent.selectContentFilterByType(filterType);
+  }
+  async verifyCreatedAtDateVisibleInManageContent(createdAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyCreatedAtDateVisibleInManageContent(createdAtDate);
+  }
+  async verifyEditedAtDateVisibleInManageContent(editedAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyEditedAtDateVisibleInManageContent(editedAtDate);
+  }
+  async verifyPublishedAtDateVisibleInManageContent(publishedAtDate: string): Promise<void> {
+    await this.manageContentComponent.verifyPublishedAtDateVisibleInManageContent(publishedAtDate);
+  }
+  async verifyTagVisibleInManageContent(tag: ManageContentTags): Promise<void> {
+    await this.manageContentComponent.verifyTagVisibleInManageContent(tag);
+  }
+
+  async verifyContentDetailsVisibility(pageName: string): Promise<void> {
+    await this.manageContentComponent.verifyContentDetailsVisibility(pageName);
+  }
+
+  async verifyAllCreatedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllCreatedAtDatesFromArray(dates);
+  }
+
+  async verifyAllPublishedAtDatesFromArray(dates: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllPublishedAtDatesFromArray(dates);
+  }
+  async getAllContentNames(): Promise<string[]> {
+    return await this.manageContentComponent.getAllContentNames();
+  }
+  async searchAllContentsInGlobalSearchBar(contentNames: string[]): Promise<void> {
+    await this.manageContentComponent.searchAllContentsInGlobalSearchBar(contentNames);
+  }
+
+  async verifyManageContentListItemCount(expectedCount: number): Promise<void> {
+    await this.manageContentComponent.verifyManageContentListItemCount(expectedCount);
+  }
+
+  async clickShowMoreButton(): Promise<void> {
+    await this.manageContentComponent.clickShowMoreButton();
+  }
+
+  async selectPageOption(): Promise<void> {
+    await this.manageContentComponent.selectPageOption();
+  }
+  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+  }
+
+  /**
+   * Unified function to verify any option visibility in manage content
+   * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
+   */
+  async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
+  }
+
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
+  }
+
+  async clickOnContentEditButton(): Promise<void> {
+    await this.manageContentComponent.clickOnContentEditButton();
+  }
+  async UpdatedPageName(pageName: string): Promise<void> {
+    await this.manageContentComponent.UpdatedPageName(pageName);
+  }
+  async clickOnPublishChangesButton(): Promise<void> {
+    await this.manageContentComponent.clickOnPublishChangesButton();
+  }
+  async clickOnDeleteOption(): Promise<void> {
+    await this.manageContentComponent.clickOnDeleteOption();
+  }
+  async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
+    await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
   }
 }

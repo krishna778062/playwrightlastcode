@@ -1,6 +1,6 @@
 import { APIRequestContext } from '@playwright/test';
 
-import { Audience, CreateAudienceRequest, CreateAudienceResponse } from '@core/types/audience.types';
+import { Audience, AudienceRule, CreateAudienceRequest, CreateAudienceResponse } from '@core/types/audience.types';
 
 import { AudienceManagementService } from '@/src/modules/content/apis/services/AudienceManagementService';
 
@@ -49,7 +49,14 @@ export class AudienceManagementHelper {
    * @returns Promise<string> - Random audience ID
    * @throws Error if no audiences found
    */
-  async getRandomAudienceId(size: number = 16): Promise<string> {
+  async getRandomAudienceId(size: number = 16): Promise<{
+    audienceId: string;
+    name: string;
+    count: string | number;
+    description: string;
+    audienceRule: AudienceRule;
+    type: string;
+  }> {
     const response = await this.getAllAudiences(size);
     if (response.result.listOfItems.length === 0) {
       const newAudience = await this.createAudience({
@@ -58,11 +65,36 @@ export class AudienceManagementHelper {
         type: 'mixed',
         audienceRule: { AND: [] },
       });
-      return newAudience.result.audienceId;
+      return {
+        audienceId: newAudience.result.audienceId,
+        name: newAudience.result.name,
+        count: newAudience.result.audienceMemberCount,
+        description: newAudience.result.description,
+        audienceRule: newAudience.result.audienceRule,
+        type: newAudience.result.type,
+      };
     }
 
-    const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
-    return response.result.listOfItems[randomIndex].audienceId;
+    // Find an audience with a valid count (> 0)
+    const validAudiences = response.result.listOfItems.filter(
+      audience => audience.audienceCount && audience.audienceCount > 0
+    );
+
+    if (validAudiences.length === 0) {
+      throw new Error('No audiences with valid count found');
+    }
+
+    const randomIndex = Math.floor(Math.random() * validAudiences.length);
+    const selectedAudience = validAudiences[randomIndex];
+
+    return {
+      audienceId: selectedAudience.audienceId,
+      name: selectedAudience.name,
+      count: selectedAudience.audienceCount!,
+      description: selectedAudience.description || '',
+      audienceRule: selectedAudience.audienceRule || { AND: [] },
+      type: selectedAudience.type || 'mixed',
+    };
   }
 
   /**
@@ -86,6 +118,16 @@ export class AudienceManagementHelper {
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
     return await this.audienceManagementService.createAudience(request);
+  }
+
+  /**
+   * Updates an existing audience
+   * @param audienceId - ID of the audience to update
+   * @param request - Audience update request data
+   * @returns Promise<CreateAudienceResponse>
+   */
+  async updateAudience(audienceId: string, request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    return await this.audienceManagementService.updateAudience(audienceId, request);
   }
 
   /**

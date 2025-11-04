@@ -15,6 +15,7 @@ export const CONNECTOR_IDS = {
   DOCUSIGN: 'e7926584-1a7b-47a5-b8a1-c59f0701df39',
   DOCEBO: 'db7f4f18-16e7-443b-9d72-ae68d146e854',
   MONDAY_DOT_COM: '46cae9fc-78b9-4f30-916d-ccd6d8eff802',
+  WORKDAY: 'af4ed833-9514-466d-a6a5-752f26456adf',
 } as const;
 
 /**
@@ -37,6 +38,7 @@ export const TILE_IDS = {
   DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS: 'c9368b20-00c3-40d7-b08e-20bc48be72ac',
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
+  WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
 } as const;
 
 /**
@@ -95,12 +97,14 @@ export const REDIRECT_URLS = {
   AIRTABLE: 'https://airtable.com/',
   UKG_PRO: 'https://et19.ultipro.com/',
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
-  OUTLOOK_CALENDAR: 'https://login.microsoftonline.com/',
+  OUTLOOK_CALENDAR: 'https://outlook.office365.com',
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
   ASANA: 'https://app.asana.com/',
+  GREENHOUSE: 'https://job-boards.greenhouse.io/',
+  WORKDAY: 'https://impl.wd12.myworkday.com/',
 } as const;
 
 /**
@@ -169,6 +173,16 @@ export const EXPENSIFY_VALUES = {
 export const GREENHOUSE_VALUES = {
   JOB_TYPE: 'Job type',
   ALL: 'All',
+  EXTERNAL: 'External',
+  INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+} as const;
+
+export const SERVICE_NOW_VALUES = {
+  USER_NAME: 'admin',
+  PASSWORD: '0=IPmAxD$x6f',
+  CONSUMER_KEY: '3488c64de4b34dd8a6bddf91911aa1fe',
+  SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
+  URL: 'https://dev275557.service-now.com',
 } as const;

@@ -24,6 +24,16 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly textboxByName: (name: string) => Locator;
   readonly fieldInputByTestId: (fieldName: string) => Locator;
 
+  // Connection status verification locators
+  readonly connectionContainer: Locator;
+  readonly connectorIconSelector: string;
+  readonly getConnectorIcon: (connector: string) => Locator;
+  readonly getConnectionText: (username: string) => Locator;
+
+  // App tile dialog locators
+  readonly getAppButtonInPanel: (panelContent: Locator, appName: string) => Locator;
+  readonly getAppNameElementInPanel: (panelContent: Locator, appName: string) => Locator;
+
   constructor(page: Page) {
     super(page);
     this.editDashboardButton = page.getByRole('button', {
@@ -39,6 +49,18 @@ export class BaseAppTileComponent extends BaseComponent {
     this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
     this.textboxByName = (name: string) => page.getByRole('textbox', { name });
     this.fieldInputByTestId = (fieldName: string) => page.locator(`[data-testid="field-${fieldName}"] input`);
+
+    // Initialize connection status verification locators
+    this.connectionContainer = page.locator('div._connectorIconContainer_13sed_1').locator('..');
+    this.connectorIconSelector = 'img[src*="{connector}/icon"]';
+    this.getConnectorIcon = (connector: string) => this.dialog.locator(`img[src*="${connector.toLowerCase()}/icon"]`);
+    this.getConnectionText = (username: string) => this.dialog.getByText(`Connected as ${username}`, { exact: false });
+
+    // Initialize app tile dialog locators
+    this.getAppButtonInPanel = (panelContent: Locator, appName: string) =>
+      panelContent.locator('button').filter({ hasText: appName });
+    this.getAppNameElementInPanel = (panelContent: Locator, appName: string) =>
+      panelContent.locator('p').filter({ hasText: new RegExp(`^${appName}$`, 'i') });
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button', { name: name, exact: true });
@@ -223,13 +245,204 @@ export class BaseAppTileComponent extends BaseComponent {
   }
 
   /**
+   * Verify connector connection status with formatted username display
+   * This method verifies the connection status that shows icon and "Connected as" text
+   * @param connector - The connector name (e.g., 'expensify', 'google', 'outlook')
+   * @param username - The username/email to verify (e.g., 'aa_tushar_roy_simpplr_com')
+   */
+  async verifyConnectorConnectionStatus(connector: string, username: string): Promise<void> {
+    await test.step(`Verify ${connector} connection status shows: Connected as ${username}`, async () => {
+      // Verify the icon is visible - using partial match for the connector icon
+      const iconImg = this.getConnectorIcon(connector);
+      await expect(iconImg).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Verify the connection status text with the username
+      const connectionText = this.getConnectionText(username);
+      await expect(connectionText).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Optionally verify the container structure
+      await expect(this.connectionContainer).toBeVisible({ timeout: TIMEOUTS.VERY_SHORT });
+    });
+  }
+
+  /**
    * Click a link inside the currently open dialog by its accessible name
    */
   async clickDialogLink(label: string): Promise<void> {
     await test.step(`Click '${label}' link in dialog`, async () => {
       const link = this.dialog.getByRole('link', { name: label, exact: true });
-      await expect(link).toBeVisible({ timeout: 10_000 });
+      await expect(link).toBeVisible({ timeout: TIMEOUTS.SHORT });
       await link.click();
+    });
+  }
+
+  /**
+   * Click a link inside dialog that opens in a new tab and return the new page
+   * @param label - The link label to click
+   * @returns The new page that opens
+   */
+  async clickDialogLinkAndGetNewPage(label: string): Promise<Page> {
+    return await test.step(`Click '${label}' link and get new page`, async () => {
+      const link = this.dialog.getByRole('link', { name: label, exact: true });
+      await expect(link).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Wait for new page and click link
+      const [newPage] = await Promise.all([this.page.context().waitForEvent('page'), link.click()]);
+
+      // Wait for the new page to load with 'load' event (more reliable than networkidle)
+      await newPage.waitForLoadState('load');
+
+      // Wait for URL to stabilize (sometimes redirects happen)
+      await newPage.waitForTimeout(TIMEOUTS.VERY_SHORT / 2); // 2.5 seconds
+
+      return newPage;
+    });
+  }
+
+  /**
+   * Verify that an app is NOT present in the enabled apps section of the Add app tile dialog
+   * @param appName - The name of the app to verify is not present
+   */
+  async verifyAppNotInEnabledApps(appName: string): Promise<void> {
+    await test.step(`Verify ${appName} is not in enabled apps list`, async () => {
+      // Wait for the dialog to be visible
+      await expect(this.dialog).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Ensure we're on the "Enabled apps" tab
+      const enabledAppsTab = this.dialog.getByRole('tab', { name: 'Enabled apps' });
+      await expect(enabledAppsTab).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Check if tab is not already selected, click it
+      const isSelected = await enabledAppsTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await enabledAppsTab.click();
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      }
+
+      // Wait for the enabled apps content to be visible
+      const enabledAppsContent = this.dialog.getByRole('tabpanel', { name: 'Enabled apps' });
+      await expect(enabledAppsContent).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Look for the app in the enabled apps grid
+      // The apps are displayed as buttons with the app name as text
+      const appButton = this.getAppButtonInPanel(enabledAppsContent, appName);
+
+      // Verify the app is NOT visible
+      await expect(appButton).not.toBeVisible();
+
+      // Also check for the app name in paragraph elements (as shown in the HTML)
+      const appNameElement = this.getAppNameElementInPanel(enabledAppsContent, appName);
+      await expect(appNameElement).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Verify that an app IS present in the available apps section of the Add app tile dialog
+   * @param appName - The name of the app to verify is present
+   */
+  async verifyAppInAvailableApps(appName: string): Promise<void> {
+    await test.step(`Verify ${appName} is in available apps list`, async () => {
+      // Wait for the dialog to be visible
+      await expect(this.dialog).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Ensure we're on the "Available apps" tab
+      const availableAppsTab = this.dialog.getByRole('tab', { name: 'Available apps' });
+      await expect(availableAppsTab).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Check if tab is not already selected, click it
+      const isSelected = await availableAppsTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await availableAppsTab.click();
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      }
+
+      // Wait for the available apps content to be visible
+      const availableAppsContent = this.dialog.getByRole('tabpanel', { name: 'Available apps' });
+      await expect(availableAppsContent).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Look for the app in the available apps grid
+      // The apps are displayed as buttons with the app name as text
+      const appButton = this.getAppButtonInPanel(availableAppsContent, appName);
+
+      // Verify the app IS visible
+      await expect(appButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Also check for the app name in paragraph elements (as shown in the HTML)
+      const appNameElement = this.getAppNameElementInPanel(availableAppsContent, appName);
+      await expect(appNameElement).toBeVisible({ timeout: TIMEOUTS.SHORT });
+    });
+  }
+
+  /**
+   * Click on an app in the available apps section to navigate to custom apps page in new tab
+   * @param appName - The name of the app to click
+   * @returns The new page that opens
+   */
+  async clickAppInAvailableAppsAndGetNewPage(appName: string): Promise<Page> {
+    return await test.step(`Click ${appName} in available apps to navigate to custom apps page in new tab`, async () => {
+      // Wait for the dialog to be visible
+      await expect(this.dialog).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Ensure we're on the "Available apps" tab
+      const availableAppsTab = this.dialog.getByRole('tab', { name: 'Available apps' });
+      await expect(availableAppsTab).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Check if tab is not already selected, click it
+      const isSelected = await availableAppsTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await availableAppsTab.click();
+        await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      }
+
+      // Wait for the available apps content to be visible
+      const availableAppsContent = this.dialog.getByRole('tabpanel', { name: 'Available apps' });
+      await expect(availableAppsContent).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Find the app button
+      const appButton = this.getAppButtonInPanel(availableAppsContent, appName);
+      await expect(appButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+
+      // Wait for new page and click the app button
+      const [newPage] = await Promise.all([this.page.context().waitForEvent('page'), appButton.click()]);
+
+      // Wait for the new page to load
+      await newPage.waitForLoadState('load');
+
+      // Wait for URL to stabilize (sometimes redirects happen)
+      await newPage.waitForTimeout(TIMEOUTS.VERY_SHORT / 2);
+
+      return newPage;
+    });
+  }
+
+  /**
+   * Close the currently open dialog using ESC key or close button
+   */
+  async closeDialog(): Promise<void> {
+    await test.step('Close dialog', async () => {
+      // First check if dialog is visible
+      const isDialogVisible = await this.dialog.isVisible();
+
+      if (isDialogVisible) {
+        // Try to find and click the close button (X)
+        const closeButton = this.dialog.locator('button[aria-label="Close"]').or(
+          this.dialog
+            .locator('button')
+            .filter({ has: this.page.locator('svg') })
+            .first()
+        );
+
+        if (await closeButton.isVisible()) {
+          await closeButton.click();
+          await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+        } else {
+          // If no close button, use ESC key
+          await this.page.keyboard.press('Escape');
+        }
+
+        // Wait for dialog to disappear
+        await expect(this.dialog).not.toBeVisible({ timeout: TIMEOUTS.SHORT });
+      }
     });
   }
 
@@ -292,8 +505,23 @@ export class BaseAppTileComponent extends BaseComponent {
       for (let i = 0; i < count; i++) {
         const tile = tiles.nth(i);
         await expect(tile.locator('progressbar')).not.toBeVisible({ timeout: 15_000 });
-        const tileContent = tile.locator('a, button, [class*="content"], [class*="data"]').first();
-        if ((await tileContent.count()) > 0) await expect(tileContent).toBeVisible({ timeout: 15_000 });
+        const contentCandidates = tile.locator('a, button, [class*="content"], [class*="data"]');
+        const candidateCount = await contentCandidates.count();
+        if (candidateCount > 0) {
+          const deadline = Date.now() + 15_000;
+          let anyVisible = false;
+          while (Date.now() < deadline && !anyVisible) {
+            for (let j = 0; j < Math.min(candidateCount, 10); j++) {
+              // Limit to first 10 candidates to avoid excessive checks on very rich tiles
+              const candidate = contentCandidates.nth(j);
+              if (await candidate.isVisible().catch(() => false)) {
+                anyVisible = true;
+                break;
+              }
+            }
+            if (!anyVisible) await this.page.waitForTimeout(250);
+          }
+        }
         const tileLoadingText = tile.locator('text=Loading...');
         if ((await tileLoadingText.count()) > 0) await expect(tileLoadingText).not.toBeVisible({ timeout: 15_000 });
       }

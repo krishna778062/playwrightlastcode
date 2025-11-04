@@ -99,6 +99,15 @@ export class SiteDashboard {
   }
 
   /**
+   * Verify connector connection status with formatted username display
+   * @param connector - The connector name (e.g., 'expensify', 'google', 'outlook')
+   * @param username - The username/email to verify (e.g., 'aa_tushar_roy_simpplr_com')
+   */
+  async verifyConnectorConnectionStatus(connector: string, username: string): Promise<void> {
+    await this.appTileComponent.verifyConnectorConnectionStatus(connector, username);
+  }
+
+  /**
    * Click the 'My settings' link in the Add tile modal
    */
   async clickDialogLink(label: string): Promise<void> {
@@ -362,11 +371,15 @@ export class SiteDashboard {
     appName: string,
     tileName: string,
     fieldName: string,
-    url: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string,
+    fieldStatus: string,
     destination: string
   ): Promise<void> {
     await this.addTile(tileTitle, appName, tileName, destination, {
-      fields: [{ name: fieldName, value: url }],
+      fields: [{ name: fieldName, value: fieldValue }],
+      radioOptionsWithValues: [{ fieldName: fieldName2, option: fieldValue2, value: fieldStatus }],
     });
   }
 
@@ -571,5 +584,36 @@ export class SiteDashboard {
     await this.addTile(tileTitle, appName, tileName, destination, {
       radioOptions: [{ fieldName: fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
     });
+  }
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   */
+  async addAppManagerDefinedWithOptions(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'Site manager defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
+  }
+  /**
+   * Verify Workday pending learning courses tile data
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyPendingLearningCoursesTileData(tileTitle);
+  }
+  /**
+   * Verify Greenhouse tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
   }
 }

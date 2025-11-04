@@ -4,6 +4,27 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { ConfluenceHelper } from '@/src/modules/integrations/apis/helpers/confluenceHelper';
+import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+
+export interface IExternalAppsActions {
+  navigateToExternalAppsPage: (userId?: string) => Promise<void>;
+  disconnectIntegration: (provider: ExternalAppProvider) => Promise<void>;
+  connectGoogleAccountIntegration: (provider: ExternalAppProvider, email?: string, password?: string) => Promise<void>;
+  connectConfluenceServiceAccount: (incorrectCredentials?: boolean) => Promise<void>;
+}
+
+export interface IExternalAppsAssertions {
+  verifyThePageIsLoaded: () => Promise<void>;
+  verifyIntegrationNotConnected: (provider: ExternalAppProvider) => Promise<void>;
+  verifyIntegrationIsConnected: (provider: ExternalAppProvider, expectedStatus: boolean) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyGoogleCalendarDisconnectModalTexts: (confirmModal: Locator) => Promise<void>;
+  getConnectionStatus: (provider: ExternalAppProvider) => Promise<boolean>;
+  isIntegrationConnected: (provider: ExternalAppProvider) => Promise<boolean>;
+  getConnectedIntegrationsCount: () => Promise<number>;
+  getAllIntegrationsCount: () => Promise<number>;
+}
 
 export enum ExternalAppCategory {
   CALENDAR = 'Calendar',
@@ -41,7 +62,7 @@ export enum ExternalAppStatus {
   DISCONNECTED = 'Disconnected',
 }
 
-export class ExternalAppsPage extends BasePage {
+export class ExternalAppsPage extends BasePage implements IExternalAppsActions, IExternalAppsAssertions {
   readonly externalAppsTabPanel: Locator;
   readonly calendarSection: Locator;
   readonly fileStorageSection: Locator;
@@ -53,7 +74,14 @@ export class ExternalAppsPage extends BasePage {
   readonly connectedStatusIndicators: Locator;
   readonly disconnectButtons: Locator;
   readonly connectButtons: Locator;
+  readonly acceptButton: Locator;
   readonly customAppsListComponent: CustomAppsListComponent;
+  readonly connectConfluenceButton: Locator;
+  readonly serviceNowUserName: Locator;
+  readonly serviceNowPassword: Locator;
+  readonly serviceNowLoginButton: Locator;
+  readonly allowAccessButton: Locator;
+  private cachedUserId?: string;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.EXTERNAL_APPS_PAGE);
@@ -69,6 +97,20 @@ export class ExternalAppsPage extends BasePage {
     this.disconnectButtons = page.locator('button[aria-label*="Disconnect"]');
     this.connectButtons = page.locator('button[aria-label*="Connect"]');
     this.customAppsListComponent = new CustomAppsListComponent(page);
+    this.acceptButton = page.locator('button[type="submit"]');
+    this.connectConfluenceButton = page.locator('button[aria-label="Connect your Atlassian Confluence account"]');
+    this.serviceNowUserName = page.locator('#user_name');
+    this.serviceNowPassword = page.locator('#user_password');
+    this.serviceNowLoginButton = page.locator('[id="sysverb_login"]');
+    this.allowAccessButton = page.locator('[name="oauth_auth_check_action"]').nth(1);
+  }
+
+  get actions(): IExternalAppsActions {
+    return this;
+  }
+
+  get assertions(): IExternalAppsAssertions {
+    return this;
   }
 
   /**
@@ -84,11 +126,16 @@ export class ExternalAppsPage extends BasePage {
   async navigateToExternalAppsPage(userId?: string): Promise<void> {
     await test.step('Navigate to external apps page', async () => {
       if (!userId) {
-        userId = await this.page.evaluate(() => {
-          return (window as any).Simpplr?.CurrentUser?.uid;
-        });
-        if (!userId) {
-          throw new Error('Could not get current user ID from Simpplr.CurrentUser.uid');
+        if (this.cachedUserId) {
+          userId = this.cachedUserId;
+        } else {
+          userId = await this.page.evaluate(() => {
+            return (window as any).Simpplr?.CurrentUser?.uid;
+          });
+          if (!userId) {
+            throw new Error('Could not get current user ID from Simpplr.CurrentUser.uid');
+          }
+          this.cachedUserId = userId;
         }
       }
       const url = PAGE_ENDPOINTS.EXTERNAL_APPS_PAGE.replace(':userId', userId);
@@ -301,8 +348,87 @@ export class ExternalAppsPage extends BasePage {
   async isIntegrationConnected(provider: ExternalAppProvider): Promise<boolean> {
     return await test.step(`Check if ${provider} integration is connected`, async () => {
       const integrationItem = this.getIntegrationItem(provider);
-      const statusIndicator = integrationItem.locator('ConnectedServices-module');
+      const statusIndicator = integrationItem.locator('button:has-text("Disconnect account")');
       return await statusIndicator.isVisible();
+    });
+  }
+
+  // verify integration is connected
+  async verifyIntegrationIsConnected(provider: ExternalAppProvider, expectedStatus: boolean): Promise<void> {
+    await test.step(`Verify ${provider} integration is ${expectedStatus ? 'connected' : 'disconnected'}`, async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      let isConnected = await this.isIntegrationConnected(provider);
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          await this.navigateToExternalAppsPage();
+          await this.verifyThePageIsLoaded();
+          isConnected = await this.isIntegrationConnected(provider);
+          if (isConnected === expectedStatus) {
+            break;
+          }
+          await this.page.waitForTimeout(5000);
+        } catch (error) {
+          if (attempt === 3) throw error;
+        }
+      }
+      expect(isConnected).toBe(expectedStatus);
+    });
+  }
+
+  async connectConfluenceServiceAccount(incorrectCredentials: boolean = false): Promise<void> {
+    await test.step('Connect Confluence service account', async () => {
+      await this.connectConfluenceButton.click();
+
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.verifyThePageIsLoaded();
+      await this.acceptButton.waitFor({ state: 'visible', timeout: 10000 });
+      const currentUrl = this.page.url();
+      const isConsentPage = currentUrl.includes('/oauth2/authorize/server/consent');
+
+      if (isConsentPage) {
+        await this.acceptButton.click();
+      } else {
+        const confluenceHelper = new ConfluenceHelper(this.page);
+        await confluenceHelper.handleConfluenceLogin(incorrectCredentials);
+      }
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
+      if (incorrectCredentials) {
+        await this.navigateToExternalAppsPage();
+      }
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async connectServiceNowAccount(): Promise<void> {
+    await test.step('Connect ServiceNow account', async () => {
+      await this.getConnectButton(ExternalAppProvider.SERVICENOW).click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
+
+      // Check if user is already logged in (allowAccessButton is visible)
+      const isAllowAccessVisible = await this.allowAccessButton.isVisible().catch(() => false);
+
+      if (isAllowAccessVisible) {
+        await test.step('User already logged in - clicking Allow Access', async () => {
+          await this.allowAccessButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+        });
+      } else {
+        await test.step('Logging in to ServiceNow', async () => {
+          await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowUserName.fill(SERVICE_NOW_VALUES.USER_NAME);
+          await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowPassword.fill(SERVICE_NOW_VALUES.PASSWORD);
+          await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowLoginButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+          await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.allowAccessButton.click();
+          await this.page.waitForLoadState('domcontentloaded');
+        });
+      }
+      await expect(this.getDisconnectButton(ExternalAppProvider.SERVICENOW)).toBeVisible({ timeout: 10_000 });
     });
   }
 }

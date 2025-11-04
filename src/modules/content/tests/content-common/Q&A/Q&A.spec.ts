@@ -5,10 +5,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../../ui/pages/sitePages/siteDashboardPage';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
   '@Q&A - Question and Answer functionality',
@@ -91,6 +91,30 @@ test.describe(
         const questionResult = await siteDashboardPage.actions.createAndPostQuestion({ title: questionTitle });
         createdPostId = questionResult.questionId!;
         await siteDashboardPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
+      }
+    );
+
+    test(
+      'verify User creates a question for content feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-34095'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify User creates a question for content feed',
+          zephyrTestId: 'CONT-34095',
+          storyId: 'CONT-34095',
+        });
+
+        const contentId = await appManagerFixture.contentManagementHelper.getContentId();
+        const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, contentId.siteId);
+        // And Click "Question"
+        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.actions.clickQuestionButton();
+        const questionTitle = TestDataGenerator.generateRandomText();
+        const questionResult = await contentPreviewPage.actions.createAndPostQuestion({ title: questionTitle });
+        createdPostId = questionResult.questionId!;
+        await contentPreviewPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
       }
     );
   }

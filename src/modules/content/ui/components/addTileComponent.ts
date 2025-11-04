@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class AddTileComponent extends BaseComponent {
+  readonly addContentTileOption: Locator;
   readonly addTileButton: Locator;
   readonly socialCampaignsButton: Locator;
   readonly showcaseRadioButton: Locator;
@@ -32,6 +33,11 @@ export class AddTileComponent extends BaseComponent {
     this.customSCButton = page.getByRole('button', { name: 'Custom SC' });
     this.customSCTitleInput = page.locator('input.ReactSelectInput-inputField');
     this.customSCTitleInputOption = (text: string) => page.locator(`div.u-textTruncate:has-text("${text}")`).first();
+    this.addContentTileOption = page.getByRole('button', { name: 'Add pages, events & albums' });
+  }
+
+  async clickingOnAddContentTileOption(): Promise<void> {
+    await this.clickOnElement(this.addContentTileOption);
   }
 
   async clickAddTileButton(): Promise<void> {
@@ -108,12 +114,12 @@ export class AddTileComponent extends BaseComponent {
     }
   }
 
-  async clickAddToSiteButton(): Promise<string> {
+  async clickAddToSiteButton(siteId: string): Promise<string> {
     return await test.step(`Submitting event and wait for submit api response`, async () => {
       const tileResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.addToSiteButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.tile.create) &&
+          response.url().includes(API_ENDPOINTS.tile.siteCreate(siteId)) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
         {

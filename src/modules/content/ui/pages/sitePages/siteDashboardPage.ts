@@ -14,6 +14,9 @@ import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedC
 export interface ISiteDashboardActions {
   navigateToManageSite: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
+  clickOnOptionsMenu: (commentText: string) => Promise<void>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
+  deletePost: (postText: string) => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnEditDashboard: () => Promise<void>;
@@ -25,7 +28,7 @@ export interface ISiteDashboardActions {
   enterTileTitle: (tileTitle: string) => Promise<void>;
   setCustomSCTitle: (title: string) => Promise<void>;
   clickAddToHomeButton: () => Promise<string>;
-  clickAddToSiteButton: () => Promise<string>;
+  clickAddToSiteButton: (siteId: string) => Promise<string>;
   clickShareThoughtsButton: () => Promise<void>;
   clickQuestionButton: () => Promise<void>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
@@ -38,6 +41,8 @@ export interface ISiteDashboardAssertions {
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyAddContentButtonIsNotVisible: () => Promise<void>;
+  verifyAddContentButtonIsVisible: () => Promise<void>;
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
@@ -48,6 +53,9 @@ export interface ISiteDashboardAssertions {
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
+  validatePostNotVisible: (postText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -61,6 +69,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
   readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
     this.page.getByRole('button', { name: socialCampaignName }).first();
+  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
   readonly shareThoughtsButton: Locator;
 
   // Components
@@ -161,6 +170,14 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 
+  async verifyAddContentButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify add content button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+
   async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
     await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
   }
@@ -232,6 +249,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
+  async verifyAddContentButtonIsVisible(): Promise<void> {
+    await test.step('Verify add content button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
   async verifySocialCampaignNameInTheDisplayed(socialCampaignName: string): Promise<void> {
     await test.step('Verifying social campaign name is displayed in the displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.socialCampaignNameInTileList(socialCampaignName), {
@@ -267,6 +291,10 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     return this.createQuestionComponent.createAndPostQuestion(options);
   }
 
+  async clickOnOptionsMenu(commentText: string): Promise<void> {
+    await this.listFeedComponent.openPostOptionsMenu(commentText);
+  }
+
   async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
     await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
   }
@@ -275,8 +303,8 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
   }
 
-  async clickAddToSiteButton(): Promise<string> {
-    return this.addTileComponent.clickAddToSiteButton();
+  async clickAddToSiteButton(siteId: string): Promise<string> {
+    return this.addTileComponent.clickAddToSiteButton(siteId);
   }
 
   async verifyFeedSectionIsVisible(): Promise<void> {
@@ -289,5 +317,29 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
       assertionMessage: 'Feed section should not be visible',
     });
+  }
+
+  async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyEditAndDeleteOptionsVisible(commentText);
+  }
+
+  async editPost(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText);
+  }
+
+  async deletePost(postText: string): Promise<void> {
+    await test.step(`Deleting post with text: ${postText}`, async () => {
+      await this.listFeedComponent.openPostOptionsMenu(postText);
+      await this.listFeedComponent.clickDeleteOption();
+      await this.listFeedComponent.confirmDelete();
+    });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
+  }
+
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostNotVisible(postText);
   }
 }

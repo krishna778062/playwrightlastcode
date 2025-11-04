@@ -80,6 +80,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly expensifyStatusTag: Locator;
   readonly expensifyApproverTag: Locator;
   readonly expensifyLastUpdatedText: Locator;
+  readonly greenhouseImage: Locator;
+  readonly jobId: RegExp;
+  readonly Published: RegExp;
+  readonly lessonsPattern: RegExp;
+  readonly registeredOnPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -109,6 +114,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.doceboImage = page.locator('img[src*="docebo"]');
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
+    this.greenhouseImage = page.locator('img[src*="greenhouse"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -125,8 +131,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
-    this.sentPattern = /Sent \d+ days? ago/;
+    this.sentPattern = /Sent \d+ (days?|hours?|minutes?|weeks?|months?|years?) ago/;
     this.courseId = /^[A-Z]-/;
+    this.jobId = /Job ID:\s*\d+/;
+    this.Published = /Published.*ago/;
 
     // Schedule tile locators
     this.scheduleContainer = page
@@ -165,6 +173,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
     this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
     this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+
+    // Workday: patterns for lessons count and registered date line
+    this.lessonsPattern = /^\d+\s+Lessons?$/;
+    this.registeredOnPattern =
+      /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
   }
 
   /**
@@ -800,6 +813,59 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Verify progress percentages are present
       const progress = tile.locator(this.goalProgress);
       await expect(progress.first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Greenhouse tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Greenhouse tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Greenhouse tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.greenhouseImage), 'Greenhouse image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.jobId).first(),
+        'Job ID should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.Published).first(),
+        'Published text should be visible in the first record'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Workday pending learning courses tile shows course title, lessons count, and registered date
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await test.step(`Verify pending learning courses tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Pick any visible course row (container) that has a heading and supporting paragraphs
+      const row = tile
+        .locator('[data-testid="container"]')
+        .filter({ has: this.page.locator('h3') })
+        .first();
+      await expect(row, 'A course row should be visible').toBeVisible();
+
+      // Course name as heading level 3
+      await expect(row.getByRole('heading', { level: 3 }).first(), 'Course name should be visible').toBeVisible();
+
+      // Verify lessons count like "7 Lessons" and the Registered on line
+      await expect(row.getByText(this.lessonsPattern).first(), 'Lessons count should be visible').toBeVisible();
+      await expect(
+        row.getByText(this.registeredOnPattern).first(),
+        'Registered on date should be visible'
+      ).toBeVisible();
     });
   }
 }

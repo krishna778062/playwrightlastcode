@@ -196,7 +196,7 @@ for (const testData of feedTestData) {
         } else if (testData.feedType === 'Home Feed') {
           await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
         }
-        //await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await appManagerFeedPage.assertions.validatePostText(createdPostText);
       });
 
       test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {

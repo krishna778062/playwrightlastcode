@@ -160,6 +160,10 @@ test.describe(
         await manageQRPage.clickSaveAndVisit();
         await manageQRPage.verifyManagePage();
         await manageQRPage.verifyQRName(qrDetails.qrName);
+        await manageQRPage.verifyEyeIconForQR(qrDetails.qrName);
+        await manageQRPage.clickEyeIconForQR(qrDetails.qrName);
+        await manageQRPage.verifyPopupDisplayedByHeader(PopupType.PreviewPopup);
+        await manageQRPage.verifyQRImageDisplayOnPreview();
       }
     );
 
@@ -220,6 +224,9 @@ test.describe(
         await manageQRPage.verifyContentSearchBoxText();
 
         await manageQRPage.enterAndSelectContent();
+        await manageQRPage.clickOnNextButton();
+        await manageQRPage.clickDialogCloseButton();
+        await manageQRPage.verifyDialogPopupIsClosed();
         await manageQRPage.clickOnNextButton();
         await manageQRPage.verifyPromoteContentPageHeading();
 

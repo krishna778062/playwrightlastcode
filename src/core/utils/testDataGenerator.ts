@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { User } from '@core/types/user.type';
+import { User, UserWithLicenseAndDepartment } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
@@ -131,7 +131,7 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated user
    * @returns A User object with only emp
    */
-  static generateUserWithEmp(overrides?: Partial<User>): User {
+  static generateUserWithEmp(overrides?: Partial<UserWithLicenseAndDepartment>): UserWithLicenseAndDepartment {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
 
@@ -142,6 +142,8 @@ export class TestDataGenerator {
       email: '', // Empty string for compatibility
       mobile: 0, // Default value for compatibility
       emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
@@ -262,7 +264,8 @@ export class TestDataGenerator {
 
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test String'): string {
-    return `${prefix} created at ${new Date().toISOString()}`;
+    const randomString = faker.lorem.word();
+    return `${prefix} ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {

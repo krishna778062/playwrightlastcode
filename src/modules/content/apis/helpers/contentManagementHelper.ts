@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext } from '@playwright/test';
 
+import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 import { SiteManagementService } from '../services/SiteManagementService';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
@@ -10,6 +11,7 @@ import {
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { ContentSortBy, DateField } from '@/src/modules/content/constants';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -90,6 +92,80 @@ export class ContentManagementHelper {
     };
   }
 
+  async getContentCreatedAtDetails(
+    sortBy: ContentSortBy,
+    options?: { size?: number; filter?: string; status?: string }
+  ): Promise<string[] | null> {
+    const size = options?.size || 1000;
+    const filter = options?.filter || 'owned';
+    const status = options?.status || 'published';
+
+    const siteListResponse = await this.contentManagementService.getContentList({
+      sortBy: sortBy,
+      size: size,
+      contribution: 'all',
+      filter: filter, // Match curl command parameter
+      status: status, // Match curl command parameter
+    });
+
+    // Determine which date field to use based on sort type
+    let dateField: DateField;
+    if (sortBy === ContentSortBy.PUBLISHED_NEWEST || sortBy === ContentSortBy.PUBLISHED_OLDEST) {
+      dateField = DateField.PUBLISH_AT; // API returns publishAt field
+    } else if (sortBy === ContentSortBy.MODIFIED_NEWEST || sortBy === ContentSortBy.MODIFIED_OLDEST) {
+      dateField = DateField.MODIFIED_AT; // Use 'modifiedAt' for modified sorts
+    } else {
+      dateField = DateField.CREATED_AT;
+    }
+
+    // Get all items from the API response
+    const items = siteListResponse.result.listOfItems;
+
+    // Extract dates from items (limit to last 16-17 items)
+    const dates: string[] = [];
+    const maxItems = Math.min(items.length, 17); // Get up to 17 items
+
+    for (let i = 0; i < maxItems; i++) {
+      const item = items[i];
+      let targetDate: string;
+
+      if (dateField === DateField.CREATED_AT) {
+        targetDate = item.createdAt;
+      } else if (dateField === DateField.PUBLISH_AT) {
+        targetDate = item.publishAt;
+      } else if (dateField === DateField.MODIFIED_AT) {
+        targetDate = item.modifiedAt;
+      } else {
+        continue;
+      }
+
+      if (targetDate) {
+        const date = new Date(targetDate);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Check if the date is today using UTC comparison
+        if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+          dates.push('Today');
+        }
+        // Check if the date is yesterday using UTC comparison
+        else if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+          dates.push('Yesterday');
+        }
+        // For other dates, return formatted date
+        else {
+          const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
+          const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+          dates.push(formattedDate);
+        }
+      } else {
+      }
+    }
+
+    return dates.length > 0 ? dates : null;
+  }
+
   /**
    * Creates a new site (by category name) and an album within that site.
    * Returns site details along with the created album details.
@@ -100,13 +176,34 @@ export class ContentManagementHelper {
   async createAlbum(params: {
     siteId: string;
     imageName: string;
-    options?: { albumName?: string; contentDescription?: string; accessType?: SITE_TYPES };
+    options?: {
+      albumName?: string;
+      contentDescription?: string;
+      accessType?: SITE_TYPES;
+      listOfTopics?: string[];
+      waitForSearchIndex?: boolean;
+    };
   }) {
+    const { options = {} } = params;
     const fileId = await this.imageUploaderService.uploadImageAndGetFileId(params.imageName);
     const finalAlbumName =
       params.options?.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
     const finalContentDescription = params.options?.contentDescription || 'AutomateAlbumDescription';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'album');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (params.options?.listOfTopics && params.options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = params.options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
     const albumResult = await this.contentManagementService.addNewAlbumContent(params.siteId, {
       title: finalAlbumName,
       body,
@@ -114,12 +211,15 @@ export class ContentManagementHelper {
       publishAt: getTodayDateIsoString(),
       coverImageMediaId: fileId,
       listOfAlbumMedia: [{ id: fileId, description: '' }],
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-      apiClient: this.contentManagementService.httpClient,
-      searchTerm: finalAlbumName,
-      objectType: 'content',
-    });
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalAlbumName,
+        objectType: 'content',
+      });
+    }
     const createdContent = {
       siteId: params.siteId,
       contentId: albumResult.albumId,
@@ -146,6 +246,7 @@ export class ContentManagementHelper {
       waitForSearchIndex?: boolean;
       publishAt?: string;
       publishTo?: string;
+      listOfTopics?: string[];
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -153,6 +254,20 @@ export class ContentManagementHelper {
     const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
     const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
     const pageResult = await this.contentManagementService.addNewPageContent(siteId, {
       title: finalPageName,
       body,
@@ -163,6 +278,7 @@ export class ContentManagementHelper {
       },
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
       ...(options.publishAt && { publishAt: options.publishAt }),
       ...(options.publishTo && { publishTo: options.publishTo }),
     });
@@ -174,6 +290,7 @@ export class ContentManagementHelper {
         objectType: 'content',
       });
     }
+
     const createdContent = {
       siteId,
       contentId: pageResult.pageId,
@@ -210,6 +327,8 @@ export class ContentManagementHelper {
       location?: string;
       eventSync?: EventSyncPayload;
       rsvp?: RsvpPayload;
+      listOfTopics?: string[];
+      waitForSearchIndex?: boolean;
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -217,6 +336,20 @@ export class ContentManagementHelper {
     const finalContentDescription = options.contentDescription || 'AutomateEventDescription';
     const finalLocation = options.location || 'Gurgaon';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'event');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
     const eventResult = await this.contentManagementService.addNewEventContent(siteId, {
       title: finalEventName,
       body,
@@ -226,14 +359,17 @@ export class ContentManagementHelper {
       endsAt: getTomorrowDateIsoString(),
       timezoneIso: 'Asia/Kolkata',
       location: finalLocation,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
       ...(options.eventSync && { eventSync: options.eventSync }),
       ...(options.rsvp && { rsvp: options.rsvp }),
     });
-    await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-      apiClient: this.contentManagementService.httpClient,
-      searchTerm: finalEventName,
-      objectType: 'content',
-    });
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalEventName,
+        objectType: 'content',
+      });
+    }
     const createdContent = {
       siteId,
       contentId: eventResult.eventId,
@@ -265,6 +401,15 @@ export class ContentManagementHelper {
     } else {
       console.log('No content ID or site ID provided for deletion');
     }
+  }
+
+  /**
+   * Creates a new topic
+   * @param topicName - The name of the topic to create
+   * @returns The created topic information
+   */
+  async createTopic(topicName: string): Promise<{ topicId: string; name: string }> {
+    return await this.contentManagementService.createTopic(topicName);
   }
 
   /**

@@ -73,7 +73,9 @@ export class SiteManagementService implements ISiteManagementOperations {
   async addNewSite(overrides: Partial<SiteCreationPayload> = {}) {
     return await test.step(`Adding new site using API`, async () => {
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
-      const siteName = `AutomateUI_Test_${randomNum}`;
+      // Make site name unique even when provided in overrides
+      const baseName = overrides.name || 'AutomateUI_Test';
+      const siteName = `${baseName}_${randomNum}`;
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
       // Always include as true, only override if explicitly provided
@@ -87,6 +89,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         ...defaultSitePayload,
         ...optionalParams,
         ...overrides,
+        name: siteName, // Use the unique name
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,
@@ -258,6 +261,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
+        sortBy: options.sortBy || 'createdNewest',
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
@@ -385,6 +389,20 @@ export class SiteManagementService implements ISiteManagementOperations {
         console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
         throw error;
       }
+    });
+  }
+
+  async getListOfCategories(options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting list of categories via API', async () => {
+      const defaultOptions = {
+        includeSites: false,
+        size: 10000,
+        sortBy: 'alphabetical',
+      };
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfCategories, {
+        data: defaultOptions,
+      });
+      return await response.json();
     });
   }
 
