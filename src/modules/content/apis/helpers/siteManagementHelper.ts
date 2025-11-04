@@ -1,6 +1,5 @@
 import { APIRequestContext, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
