@@ -61,6 +61,14 @@ test.describe(
         });
         await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
 
+        // As Member
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId,
+          role: SitePermission.MEMBER,
+        });
+        await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
+
         const privateSite = await appManagerApiFixture.siteManagementHelper.createPrivateSite({
           waitForSearchIndex: false,
         });
