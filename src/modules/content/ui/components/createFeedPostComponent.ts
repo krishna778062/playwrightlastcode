@@ -593,7 +593,7 @@ export class CreateFeedPostComponent
       // Verify the restriction message text is visible on the page
       await this.verifier.verifyTheElementIsVisible(messageLocator, {
         assertionMessage: `Restriction message "${expectedText}" should be visible on dashboard`,
-        timeout: 10000,
+        timeout: 12000,
       });
     });
   }

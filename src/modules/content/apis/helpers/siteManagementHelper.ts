@@ -987,33 +987,6 @@ export class SiteManagementHelper {
   }
 
   /**
-   * Sets the site feed posting permission policy using UI automation
-   * @param siteId - The site ID
-   * @param permission - Posting permission value
-   * @param manageSitePage - Optional ManageSitePage instance for UI automation.
-   */
-  async setSiteFeedPostingPermission(
-    siteId: string,
-    permission: 'managersOnly' | 'everyone',
-    manageSitePage?: {
-      page: any;
-      clickDashboardAndFeedTab: () => Promise<void>;
-      setFeedPostingPermission: (permission: 'managersOnly' | 'everyone') => Promise<void>;
-    }
-  ): Promise<any> {
-    return await test.step(`Setting site feed posting permission for site: ${siteId} to ${permission}`, async () => {
-      if (manageSitePage) {
-        await manageSitePage.page.goto(`/${PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId)}`);
-        await manageSitePage.clickDashboardAndFeedTab();
-        await manageSitePage.setFeedPostingPermission(permission);
-        return { success: true, method: 'ui' };
-      } else {
-        console.log(`Failed to set feed posting permission via UI. Please use API automation method instead.`);
-      }
-    });
-  }
-
-  /**
    * Removes a specific carousel item from a site
    * @param siteId - The site ID containing the carousel item
    * @param carouselItemId - The carousel item ID to remove

@@ -47,11 +47,9 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
-        await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          publicSiteId,
-          'managersOnly',
-          manageSitePage
-        );
+        await manageSitePage.loadPage();
+        await manageSitePage.clickDashboardAndFeedTab();
+        await manageSitePage.setFeedPostingPermission('managersOnly');
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
@@ -76,11 +74,9 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
-        await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          privateSiteId,
-          'managersOnly',
-          managePrivateSitePage
-        );
+        await managePrivateSitePage.loadPage();
+        await managePrivateSitePage.clickDashboardAndFeedTab();
+        await managePrivateSitePage.setFeedPostingPermission('managersOnly');
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
@@ -106,11 +102,9 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);
-        await appManagerApiFixture.siteManagementHelper.setSiteFeedPostingPermission(
-          unlistedSiteId,
-          'managersOnly',
-          manageUnlistedSitePage
-        );
+        await manageUnlistedSitePage.loadPage();
+        await manageUnlistedSitePage.clickDashboardAndFeedTab();
+        await manageUnlistedSitePage.setFeedPostingPermission('managersOnly');
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
