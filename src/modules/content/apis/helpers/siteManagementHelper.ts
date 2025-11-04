@@ -692,30 +692,6 @@ export class SiteManagementHelper {
     return { siteId, name: siteName };
   }
 
-  async getSiteBySpecificName(name: string): Promise<{
-    siteId: string;
-    name: string;
-    authorName?: string;
-    memberCount?: number;
-    managerCount?: number;
-    followerCount?: number;
-    isPublic?: boolean;
-    isPrivate?: boolean;
-    isActive?: boolean;
-  }> {
-    const siteListResponse = await this.getListOfSites({ sortBy: 'alphabetical' });
-    const target = name?.trim().toLowerCase();
-    const siteDetails = siteListResponse.result.listOfItems.find(
-      site => site.isActive === true && site.name?.trim().toLowerCase() === target
-    );
-
-    if (!siteDetails) {
-      throw new Error(`No site found with name '${name}'`);
-    }
-
-    return { siteId: siteDetails.siteId, name: siteDetails.name };
-  }
-
   async getSiteAuthorNameAndEventStartDate(): Promise<{
     siteId: string;
     authorName?: string;
@@ -748,9 +724,7 @@ export class SiteManagementHelper {
   }
 
   /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
+
    */
   /**
    * Checks if a site has a valid coverImage
