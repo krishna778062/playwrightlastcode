@@ -44,6 +44,8 @@ export const PAGE_ENDPOINTS = {
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
   getEditPage: (siteId: string, contentId: string) => `/site/${siteId}/page/${contentId}/edit`,
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  getTopicDetailsPage: (topicId: string) => `/topic/${topicId}`,
+  getProfileScreenPage: (peopleId: string) => `/people/${peopleId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   MANAGE_TOPICS_SCREEN: 'manage/topics',
