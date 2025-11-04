@@ -60,7 +60,7 @@ test.describe(
     test(
       'verify Apps Search results for a new app',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck', '@test'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
