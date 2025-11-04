@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsSuiteTags, TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -294,6 +294,75 @@ test.describe(
         // Verify tile content structure
         await siteDashboard.verifyGreenhouseContentStructure(createdTileTitle);
         await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.GREENHOUSE);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify Show more is visible after 4 courses for pending learning courses from Greenhouse on a tile',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28910',
+          storyId: 'INT-24587',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Greenhouse report ${faker.string.alphanumeric({ length: 6 })}`;
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+    test(
+      'verify Show more is visible after 4 courses for pending learning courses from Docebo on a tile on  Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28911',
+          storyId: 'INT-24587',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Greenhouse report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
         createdTileTitle = undefined;
       }
     );
