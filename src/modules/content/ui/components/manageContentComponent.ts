@@ -70,6 +70,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly publishConfirmButton: Locator;
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
+  readonly onboardingOption: Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -151,6 +152,7 @@ export class ManageContentComponent extends BaseComponent {
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
+    this.onboardingOption = page.getByText('Onboarding', { exact: true });
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
@@ -392,6 +394,19 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async clickOnOnboardingOption(): Promise<void> {
+    await test.step(`Clicking on the onboarding option`, async () => {
+      await this.clickOnElement(this.onboardingOption);
+    });
+  }
+
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the onboarding option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.onboardingOption, {
+        assertionMessage: 'Onboarding option should be visible',
+      });
+    });
+  }
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
@@ -650,12 +665,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
-    });
-  }
-
   async selectContentFilter(managedBy: string): Promise<void> {
     await test.step('Selecting the content filter', async () => {
       await this.contentFilter.selectOption(managedBy);
@@ -798,6 +807,10 @@ export class ManageContentComponent extends BaseComponent {
         return this.publishButton;
       case ManageContentOptions.MOVE:
         return this.moveButton;
+      case ManageContentOptions.ONBOARDING:
+        return this.onboardingOption;
+      case ManageContentOptions.ADD_TO_CAMPAIGN:
+        return this.addToCampaignOption;
       default:
         throw new Error(`Unknown option: ${option}`);
     }
@@ -825,20 +838,6 @@ export class ManageContentComponent extends BaseComponent {
       default:
         throw new Error(`Unknown tag: ${tag}`);
     }
-  }
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the published stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.publishedTag, {
-        assertionMessage: 'Published stamp should be visible',
-      });
-    });
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the unpublished stamp is visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.unpublishedTag, {
-        assertionMessage: 'Unpublished stamp should be visible',
-      });
-    });
   }
 
   async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
@@ -898,6 +897,12 @@ export class ManageContentComponent extends BaseComponent {
       }
 
       console.log(`✓ Verified ${actualCount} checkboxes are selected`);
+    });
+  }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
     });
   }
 }
