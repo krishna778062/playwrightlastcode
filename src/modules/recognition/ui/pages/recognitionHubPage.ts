@@ -1,9 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export class RecognitionHubPage extends BasePage {
   readonly recognitionHeader: Locator;
