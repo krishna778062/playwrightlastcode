@@ -39,8 +39,8 @@ test.describe(
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       try {
-        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
         await lwoUserManagementService.setLWOSetting('optional');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
       } catch (error) {
         throw error;
       }
@@ -329,7 +329,7 @@ test.describe(
     });
 
     test(
-      'scenario: Verify already added and activated user try to login with email/employee number as login identifiers,when LWO is set as optional',
+      'scenario: Verify activated user try to login with email as login identifiers,when LWO is set as optional',
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
