@@ -79,11 +79,17 @@ jobs:
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ inputs.module_name || 'chat' }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set module name for reporting
+        id: set-module-name
+        run: |
+          echo "MODULE_NAME=${{ inputs.module_name || 'chat' }}" >> $GITHUB_ENV
+          echo "Module name set for reporting: ${{ inputs.module_name || 'chat' }}"
+          echo "Note: Tenant-specific detection will happen in test execution step"
 
       - name: Create Calendar Secrets JSON
         run: |
@@ -114,7 +120,9 @@ jobs:
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
+          MODULE_NAME="${{ inputs.module_name || 'chat' }}"
           ALL_TAGS=()
+          INTEGRATION_TENANT=""
 
           # Add priority filter (skip if "all")
           [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
@@ -130,16 +138,54 @@ jobs:
             done
           fi
 
+          # Auto-detect integration tenant based on tags
+          if [ "$MODULE_NAME" == "integrations" ]; then
+            # Check all tags (including feature_tags) for tenant-specific tags
+            # Use exact tag matching to avoid false positives
+            ALL_TAGS_STRING="${ALL_TAGS[*]} $FEATURE_TAGS"
+            
+            # Check for workday-sync tag (exact match or as part of a tag)
+            if echo "$ALL_TAGS_STRING" | grep -qE "@workday-sync|@workday\b"; then
+              INTEGRATION_TENANT="workday"
+              echo "✅ Detected @workday-sync tag - using workday tenant config"
+            # Check for okta-group tag
+            elif echo "$ALL_TAGS_STRING" | grep -qE "@okta-group|@okta\b"; then
+              INTEGRATION_TENANT="okta"
+              echo "✅ Detected @okta-group tag - using okta tenant config"
+            # Check for ad-group tag (only for AD group integration tests, not Azure SSO tenant)
+            # Note: @ad-group tests use primary tenant, not azuresso tenant
+            # Azure SSO tenant is only for tests in azure-sso directory
+            elif echo "$ALL_TAGS_STRING" | grep -qE "@azuresso\b"; then
+              INTEGRATION_TENANT="azuresso"
+              echo "✅ Detected @azuresso tag - using azuresso tenant config"
+            else
+              echo "ℹ️ No tenant-specific tag detected - using default integrations config"
+            fi
+          fi
+
+          # Determine npm script based on detected tenant
+          if [ -n "$INTEGRATION_TENANT" ]; then
+            NPM_SCRIPT="test:integrations:$INTEGRATION_TENANT"
+            echo "Using tenant-specific script: $NPM_SCRIPT"
+            # Update MODULE_NAME for reporting with tenant info
+            echo "MODULE_NAME=$MODULE_NAME:$INTEGRATION_TENANT" >> $GITHUB_ENV
+            echo "Updated MODULE_NAME for reporting: $MODULE_NAME:$INTEGRATION_TENANT"
+          else
+            NPM_SCRIPT="test:$MODULE_NAME"
+            echo "Using standard module script: $NPM_SCRIPT"
+          fi
+
           echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
+          echo "Debug: IntegrationTenant=$INTEGRATION_TENANT"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
+            npm run $NPM_SCRIPT -- --workers=${{ inputs.workers }}
           else
             GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            npm run $NPM_SCRIPT -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
           fi
 
       - name: Upload test report to github artifact backup
