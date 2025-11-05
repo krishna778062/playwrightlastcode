@@ -6,6 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { USER_STATUS } from '@/src/core/constants/status';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe('direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
@@ -23,6 +24,21 @@ test.describe('direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.D
       await Promise.all([user1ChatPage.loadPage({ timeout: 40_000 }), user2ChatPage.loadPage({ timeout: 40_000 })]);
     }
   );
+
+  test.afterEach('after each', async ({ endUsersForChat, userManagementService }) => {
+    // Deactivate users after each test
+    for (const user of endUsersForChat) {
+      if (user.email) {
+        try {
+          const userId = await userManagementService.getUserId(user.email);
+          console.log(`Deactivating user ${user.email} with userId: ${userId}`);
+          await userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
+        } catch (error) {
+          console.log(`Failed to deactivate user ${user.email}: ${error}`);
+        }
+      }
+    }
+  });
 
   test(
     'verify that user 1 can open direct message with user 2 and they both are able to send message to each other',

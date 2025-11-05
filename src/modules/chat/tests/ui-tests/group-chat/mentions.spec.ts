@@ -4,6 +4,7 @@ import { CHAT_SUITE_TAGS } from '@chat/constants/testTags';
 import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 
+import { USER_STATUS } from '@/src/core/constants/status';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe('group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
@@ -20,9 +21,21 @@ test.describe('group Chat Mentions', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () =
     await Promise.all([user1ChatPage.loadPage({ timeout: 40_000 }), user2ChatPage.loadPage({ timeout: 40_000 })]);
   });
 
-  test.afterEach(async () => {
+  test.afterEach('after each', async ({ endUsersForChat, userManagementService }) => {
     await user1ChatPage?.page?.close();
     await user2ChatPage?.page?.close();
+    // Deactivate users after each test
+    for (const user of endUsersForChat) {
+      if (user.email) {
+        try {
+          const userId = await userManagementService.getUserId(user.email);
+          console.log(`Deactivating user ${user.email} with userId: ${userId}`);
+          await userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
+        } catch (error) {
+          console.log(`Failed to deactivate user ${user.email}: ${error}`);
+        }
+      }
+    }
   });
 
   test('verify user is able to mention the same group in group chat and both users sees the message', async ({
