@@ -21,6 +21,7 @@ import {
   PageCreationPage,
   SiteCreationPage,
 } from '@/src/modules/content/ui';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
@@ -146,6 +147,18 @@ export class NavigationHelper {
   async clickOnFeedSideMenu(): Promise<void> {
     await test.step('Clicking on application', async () => {
       await this.sideNavBarComponent.clickOnFeedSideMenu.click();
+    });
+  }
+
+  async clickOnFavoritePeopleSection(): Promise<void> {
+    await test.step('Clicking on favourite people section', async () => {
+      await this.sideNavBarComponent.favoritePeopleSection.click();
+    });
+  }
+
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on org chart button', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
     });
   }
 
@@ -327,7 +340,12 @@ export class NavigationHelper {
       await analyticsLandingPage.openRecognitionAnalytics();
     });
   }
-
+  async navigateToORGChart(options?: TestOptions): Promise<FavoritesPage> {
+    return await test.step(options?.stepInfo || 'Navigating to ORG chart', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
+      return new FavoritesPage(this.page);
+    });
+  }
   /**
    * Navigates to the campaign analytics page
    * @param options - The options for the step

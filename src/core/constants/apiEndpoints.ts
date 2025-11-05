@@ -52,6 +52,7 @@ export const API_ENDPOINTS = {
   },
 
   site: {
+    people: '/v1/identity/people',
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',

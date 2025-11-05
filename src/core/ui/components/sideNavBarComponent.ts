@@ -9,6 +9,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
   readonly feedLink: Locator;
   readonly homeLink: Locator;
+  readonly orgChartButton: Locator;
 
   readonly sitesButton: Locator;
   readonly navigateOnApplication: Locator;
@@ -17,7 +18,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickOnManageFeature: Locator;
   readonly clickOnFeedSideMenu: Locator;
   readonly clickingOnHome: Locator;
-
+  readonly favoritePeopleSection: Locator;
   //analytics section
   readonly analyticsButton: Locator;
   readonly appAnalyticsButton: Locator;
@@ -38,6 +39,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageRolesButton: Locator;
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
+  readonly peopleButton: Locator;
 
   //social campaigns section
   readonly socialCampaignsElement: Locator;
@@ -78,6 +80,9 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
+    this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
   }
 
   /**
@@ -224,6 +229,11 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.analyticsButton);
     });
   }
+  async clickOnFavoritePeopleSection(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Favourite People Section`, async () => {
+      await this.clickOnElement(this.favoritePeopleSection);
+    });
+  }
 
   async openManageCampaigns(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Manage Campaigns`, async () => {
@@ -234,6 +244,13 @@ export class SideNavBarComponent extends BaseComponent {
   async openRecognitionAnalytics(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Recognition Analytics`, async () => {
       await this.clickOnElement(this.recognitionButton);
+    });
+  }
+
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Org chart button`, async () => {
+      await this.hoverOverElementInJavaScript(this.peopleButton);
+      await this.clickOnElement(this.orgChartButton);
     });
   }
 

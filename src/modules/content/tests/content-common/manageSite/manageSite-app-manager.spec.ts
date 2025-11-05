@@ -10,12 +10,15 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -31,6 +34,9 @@ test.describe(
     let manageSiteAppManagerPage: ManageSitePage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
+    let favoritesPage: FavoritesPage;
+    let orgChartPage: ORGChartPage;
+    let userProfilePage: UserProfilePage;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -75,6 +81,10 @@ test.describe(
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
+      favoritesPage = new FavoritesPage(appManagerFixture.page);
+      orgChartPage = new ORGChartPage(appManagerFixture.page);
+      userProfilePage = new UserProfilePage(appManagerFixture.page);
+
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -300,6 +310,32 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+    test(
+      'to verify the UI of favorite people section',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-26450'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the people follow in site about members and followers tab',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
+          zephyrTestId: 'CONT-26450',
+          storyId: 'CONT-26450',
+        });
+        await appManagerFixture.navigationHelper.clickOnFavoritePeopleSection();
+        await favoritesPage.actions.clickOnPeopleButton();
+        const getPeopleList = await appManagerApiFixture.siteManagementHelper.getListOfPeople();
+        const peopleNames = getPeopleList.result.listOfItems.map((item: any) =>
+          `${item.firstName || ''} ${item.lastName || ''}`.trim()
+        );
+        await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
+        await appManagerFixture.navigationHelper.clickOnOrgChartButton();
+        await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.actions.clickOnViewProfileButton();
+        await userProfilePage.actions.clickOnFollowersTab();
+        await userProfilePage.assertions.verifyContactInformation();
       }
     );
   }

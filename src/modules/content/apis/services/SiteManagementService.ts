@@ -12,6 +12,7 @@ import {
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
+import { PeopleListResponse } from '@/src/core/types/people.type';
 import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
 
 const defaultSitePayload: SiteCreationPayload = {
@@ -62,6 +63,18 @@ export class SiteManagementService implements ISiteManagementOperations {
         categoryId: json.result.listOfItems[0].categoryId,
         name: json.result.listOfItems[0].name,
       };
+    });
+  }
+
+  async getListOfPeople(options?: { size?: number; filter?: string }): Promise<PeopleListResponse> {
+    return await test.step(`Getting list of people using API`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.people, {
+        data: {
+          filter: options?.filter || 'favorites',
+          size: options?.size || 100,
+        },
+      });
+      return await this.httpClient.parseResponse<PeopleListResponse>(response);
     });
   }
 
