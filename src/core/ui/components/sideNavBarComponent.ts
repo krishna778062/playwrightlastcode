@@ -38,10 +38,11 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageRolesButton: Locator;
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
-
+  readonly peopleButton: Locator;
   //social campaigns section
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly favoriteButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -78,6 +79,8 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
   }
 
   /**
@@ -234,6 +237,17 @@ export class SideNavBarComponent extends BaseComponent {
   async openRecognitionAnalytics(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Recognition Analytics`, async () => {
       await this.clickOnElement(this.recognitionButton);
+    });
+  }
+
+  async clickOnPeople(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on People`, async () => {
+      await this.clickOnElement(this.peopleButton);
+    });
+  }
+  async clickOnFavorite(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
+      await this.clickOnElement(this.favoriteButton);
     });
   }
 }

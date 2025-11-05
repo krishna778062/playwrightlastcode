@@ -21,6 +21,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_USERS_PAGE: '/manage/users',
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
+  FAVORITE_PAGE: '/favorites/sites',
   LOGOUT: '/logout',
 
   // abac pages
@@ -41,6 +42,7 @@ export const PAGE_ENDPOINTS = {
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
   getEditPage: (siteId: string, contentId: string) => `/site/${siteId}/page/${contentId}/edit`,
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  getProfileScreenPage: (peopleId: string) => `/people/${peopleId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   MANAGE_TOPICS_SCREEN: 'manage/topics',
