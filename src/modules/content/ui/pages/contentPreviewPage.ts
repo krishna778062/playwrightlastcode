@@ -43,6 +43,7 @@ export interface IContentPreviewPageAssertions {
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -310,5 +311,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await test.step('Click on Option menu button', async () => {
       await this.clickOnElement(this.optionMenuDropdown);
     });
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
 }
