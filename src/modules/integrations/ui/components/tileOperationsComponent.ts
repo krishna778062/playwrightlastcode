@@ -569,7 +569,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify schedule tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
 
       // Verify schedule entries exist
       const schedules = tile.locator(this.scheduleContainer);
@@ -866,6 +866,33 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         row.getByText(this.registeredOnPattern).first(),
         'Registered on date should be visible'
       ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify "View all courses in Workday" link is visible AND clickable
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all courses in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
+
+      const viewAllLink = tile.getByRole('link', { name: 'View all courses in Workday' }).first();
+      const showMore = tile.locator(this.showMoreButton).first();
+
+      // Reveal the link by clicking Show more up to 3 times if needed
+      for (let i = 0; i < 3 && !(await viewAllLink.isVisible().catch(() => false)); i++) {
+        await this.clickOnElement(showMore);
+        await viewAllLink.waitFor({ state: 'visible', timeout: 2500 }).catch(() => {});
+      }
+      await expect(viewAllLink, `'View all courses in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
+      // Must open in a new tab and match expected URL
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
+      await popup.close();
     });
   }
 }
