@@ -353,7 +353,7 @@ test.describe(
           await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           category,
-          siteName: `Site Deactivation Test Site ${faker.string.alphanumeric({ length: 6 })}`,
+          siteName: `DeactivationTestSite ${faker.string.alphanumeric({ length: 3 })}`,
         });
 
         const siteId = dedicatedTestSite.siteId;
@@ -533,12 +533,16 @@ test.describe(
         );
 
         const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
-        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const authorEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(authorEventSyncResult);
 
         const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
-        const endUserVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const endUserVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(endUserVerificationResult);
       }

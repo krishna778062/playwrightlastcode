@@ -251,6 +251,7 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
+          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -267,11 +268,10 @@ test.describe(
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
 
-        const category =
-          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        // const category =
+        //   await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
-          category,
-          siteName: `Outlook Deact Test ${faker.string.alphanumeric({ length: 6 })}`,
+          siteName: `Outlook DeactTest${faker.string.alphanumeric({ length: 3 })}`,
         });
 
         const siteId = dedicatedTestSite.siteId;
