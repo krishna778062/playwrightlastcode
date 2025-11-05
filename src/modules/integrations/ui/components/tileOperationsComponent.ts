@@ -875,7 +875,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await test.step(`Verify 'View all courses in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
 
       const viewAllLink = tile.getByRole('link', { name: 'View all courses in Workday' }).first();
       const showMore = tile.locator(this.showMoreButton).first();
