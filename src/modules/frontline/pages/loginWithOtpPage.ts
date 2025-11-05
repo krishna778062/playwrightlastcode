@@ -303,7 +303,7 @@ export class LoginWithOtpPage extends BasePage {
     await this.clickOnElement(this.sendOtpToVerifyButton);
 
     // Verify correct verification page based on type & LWO type
-    await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO('mobile');
+    await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(identifierType);
 
     // Get and enter OTP
     await this.page.waitForTimeout(8000);
