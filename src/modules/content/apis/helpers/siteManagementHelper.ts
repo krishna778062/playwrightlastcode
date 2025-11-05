@@ -482,7 +482,7 @@ export class SiteManagementHelper {
    */
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: options?.size || 16,
+      size: options?.size || 100,
       filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'createdNewest',
       ...options,
