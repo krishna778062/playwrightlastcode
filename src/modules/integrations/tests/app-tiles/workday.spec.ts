@@ -207,5 +207,61 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    test(
+      'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27857',
+          storyId: 'INT-26436',
+        });
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify "View all courses in Workday" button is displayed and then click on it and verify the page is redirected to the Workday portal
+        await homeDashboard.verifyViewAllCoursesInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+      }
+    );
+
+    test(
+      'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22870',
+          storyId: 'INT-26436',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Workday',
+          'Display pending learning courses',
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify "View all courses in Workday" button is displayed and then click on it and verify the page is redirected to the Workday portal
+        await siteDashboard.verifyViewAllCoursesInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );

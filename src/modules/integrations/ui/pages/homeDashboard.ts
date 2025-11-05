@@ -841,4 +841,11 @@ export class HomeDashboard extends BasePage {
     const message = MESSAGES.getAppConnectionUnavailableMessage(appName);
     await this.verifyTileMessage(tileTitle, message);
   }
+
+  /**
+   * Verify the "View all courses in Workday" link is visible on the tile
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
+  }
 }
