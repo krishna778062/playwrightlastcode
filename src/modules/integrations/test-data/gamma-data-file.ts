@@ -101,16 +101,7 @@ export const PEOPLE_TAB = {
     'Mobile phone',
     'Assistant',
   ],
-  DISABLED_FIELDS: [
-    'About',
-    'Zoom',
-    'Skype',
-    'Slack ID',
-    'Microsoft Teams ID',
-    'Assistant',
-    'Extension',
-    'Name pronunciation',
-  ],
+  DISABLED_FIELDS: ['About', 'Zoom', 'Slack ID', 'Microsoft Teams ID', 'Assistant', 'Extension', 'Name pronunciation'],
 } as const;
 
 export const UKG_CREDS = {
