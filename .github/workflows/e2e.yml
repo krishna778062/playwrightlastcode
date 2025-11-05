@@ -15,6 +15,7 @@ on:
           - 'reward'
           - 'content'
           - 'content-settings'
+          - 'content-studio'
           - 'de'
           - 'content-abac'
           - 'frontline'
