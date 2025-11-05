@@ -41,6 +41,8 @@ export interface ISiteDashboardAssertions {
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyAddContentButtonIsNotVisible: () => Promise<void>;
+  verifyAddContentButtonIsVisible: () => Promise<void>;
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
@@ -67,6 +69,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
   readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
     this.page.getByRole('button', { name: socialCampaignName }).first();
+  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
   readonly shareThoughtsButton: Locator;
 
   // Components
@@ -167,6 +170,14 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 
+  async verifyAddContentButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify add content button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+
   async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
     await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
   }
@@ -238,6 +249,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
+  async verifyAddContentButtonIsVisible(): Promise<void> {
+    await test.step('Verify add content button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
   async verifySocialCampaignNameInTheDisplayed(socialCampaignName: string): Promise<void> {
     await test.step('Verifying social campaign name is displayed in the displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.socialCampaignNameInTileList(socialCampaignName), {
