@@ -173,7 +173,7 @@ export class OutlookCalendarHelper {
       expectFound?: boolean;
     } = {}
   ): Promise<{ found: boolean; event?: OutlookCalendarEvent; attempts: number }> {
-    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
+    const { maxAttempts = 12, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
 
     console.log(`[Outlook Calendar] Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`);
 
