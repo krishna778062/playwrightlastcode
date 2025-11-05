@@ -12,7 +12,7 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPageWithHarness();
+    await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
@@ -205,6 +205,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no allowances and gifting options
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(false, false, false);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsAndAllowancesError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsAndAllowancesError).toHaveText(
         'You need to add gifting options and allowances to enable peer gifting'
@@ -217,6 +218,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no gifting options
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(false, false, true);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsError).toHaveText(
         'You need to add gifting options to enable peer gifting'
@@ -229,6 +231,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no allowances
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(false, true, false);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addAllowancesError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addAllowancesError).toHaveText(
         'You need to add allowances to enable peer gifting'
@@ -241,6 +244,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test enabled peer gifting with gifting options and allowances
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(true, true, true);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsAndAllowancesError).not.toBeVisible();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsError).not.toBeVisible();
       await expect(manageRewardsPage.peerGifting.addAllowancesError).not.toBeVisible();
@@ -355,7 +359,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Navigate to Peer Gifting tab
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expectSingleApiCall();
 
       // Reload page

@@ -170,21 +170,24 @@ export class RewardsPeerGifting extends BasePage {
   /**
    * Mock peer gifting API response
    */
-  async mockThePeerGiftingApiResponse(
-    peerGiftingEnabled: boolean,
-    hasAllowances: boolean,
-    hasGiftingOptions: boolean
-  ): Promise<void> {
+  async mockThePeerGiftingApiResponse(peerGifting: boolean, giftingOptions: boolean, allowance: boolean) {
+    const now = new Date();
+    const baseResponse = {
+      optionType: 'POINTS',
+      options: giftingOptions
+        ? [{ amount: 1 }, { amount: 2 }, { amount: 3 }, { amount: 4 }, { amount: 5 }, { amount: 6 }]
+        : [],
+      peerGiftingEnabled: peerGifting,
+      peerGiftingDisabledAt: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      isPeerGiftingOptionsConfigured: giftingOptions,
+      enabled: true, // Keeping Reward enabled as true
+      isUserAllowancesConfigured: allowance,
+    };
     await this.page.route('**/recognition/admin/rewards/config/peer', async route => {
-      const mockResponse = {
-        peerGiftingEnabled,
-        hasAllowances,
-        hasGiftingOptions,
-      };
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(mockResponse),
+        body: JSON.stringify(baseResponse),
       });
     });
   }
