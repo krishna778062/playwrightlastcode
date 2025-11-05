@@ -19,6 +19,7 @@ export class AppsLinksComponents extends BaseComponent {
   readonly editButton: Locator;
   readonly deleteButton: Locator;
   readonly addLink: Locator;
+  readonly addLinksButton: Locator;
   readonly apps_json: { name: string; url: string; img: string }[];
   readonly linkURLInputField: Locator;
   readonly linkLabelInputField: Locator;
@@ -26,6 +27,7 @@ export class AppsLinksComponents extends BaseComponent {
   readonly linksButton: Locator;
   readonly urlInput: Locator;
   readonly labelInput: Locator;
+  readonly jsonData: { name: string; url: string; img: string }[];
   constructor(page: Page) {
     super(page);
     this.viewExampleButton = this.page.getByText('View example');
@@ -44,6 +46,7 @@ export class AppsLinksComponents extends BaseComponent {
     this.editButton = this.page.getByRole('button', { name: 'Edit links' });
     this.deleteButton = this.page.getByRole('button', { name: 'delete' });
     this.addLink = this.page.getByRole('button', { name: 'Add' });
+    this.addLinksButton = this.page.getByRole('button', { name: 'Add links' });
     this.linkURLInputField = this.page.getByPlaceholder('Link URL');
     this.linkLabelInputField = this.page.getByPlaceholder('Link label');
     this.crossButton = this.page
@@ -71,6 +74,18 @@ export class AppsLinksComponents extends BaseComponent {
     this.linksButton = this.page.locator('p', { hasText: 'Links' });
     this.urlInput = this.page.getByPlaceholder('Link URL');
     this.labelInput = this.page.getByPlaceholder('Link label');
+    this.jsonData = [
+      {
+        name: 'Google Drive',
+        url: 'http://google.com/drive',
+        img: 'https://www.gstatic.com/images/branding/product/1x/drive_96dp.png',
+      },
+      {
+        name: 'Microsoft 365',
+        url: 'https://office.com',
+        img: 'https://affinityit.co.uk/uploads/images/content/_large/Microsoft_365_-_New_Website.png',
+      },
+    ];
   }
 
   async getHeaderLocator(headerName: string): Promise<Locator> {
@@ -206,6 +221,7 @@ export class AppsLinksComponents extends BaseComponent {
     const newTabURL = newTab.url();
     expect(newTabURL, 'expecting to contain').toContain(url);
     await newTab.close();
+    await this.page.waitForTimeout(10000);
   }
 
   async verifyOrgLinks(name: string): Promise<void> {
@@ -293,7 +309,7 @@ export class AppsLinksComponents extends BaseComponent {
   }
 
   async verifyButtonInsideCustomLinks(button: string): Promise<void> {
-    const name = this.page.getByLabel(`'${button}'`);
+    const name = this.addLinksButton;
     await expect(name, 'expecting this to be visible').toBeVisible();
   }
 
@@ -330,7 +346,6 @@ export class AppsLinksComponents extends BaseComponent {
     const sameURL = await this.spanTextLocator(label);
     const message = await this.spanTextLocator(label);
     await expect(sameURL, 'expecting this to be visible').toBeVisible();
-    await this.urlInput.clear();
     await expect(message, 'expecting this to be visible').toBeVisible();
   }
 
@@ -377,12 +392,11 @@ export class AppsLinksComponents extends BaseComponent {
     await this.clickSaveButton();
   }
 
-  async addAppsFromCustomJson(customJsonOption: string, appsJsonData?: any): Promise<void> {
+  async addAppsFromCustomJson(customJsonOption: string): Promise<void> {
     await this.appsIntegrationDropdown.selectOption({ label: customJsonOption });
     await this.customJsonInputField.clear();
     await this.customJsonInputField.click();
-    const jsonString = JSON.stringify(appsJsonData, null, 2);
-    await this.customJsonInputField.fill(jsonString);
+    await this.customJsonInputField.fill(JSON.stringify(this.jsonData, null, 2));
   }
 
   async verifySubTabsInsideLinksVisibility(header: string, subTab: string, status: string): Promise<void> {
@@ -393,5 +407,13 @@ export class AppsLinksComponents extends BaseComponent {
     } else {
       await expect(visiblility, `${subTab} is not visible`).toBeVisible();
     }
+  }
+
+  async addDuplicateCustomApps(): Promise<void> {
+    await this.customJsonInputField.clear();
+    await this.customJsonInputField.click();
+    await this.customJsonInputField.fill(JSON.stringify(this.apps_json, null, 2));
+    await this.saveButton.click();
+    await this.page.waitForTimeout(3000);
   }
 }

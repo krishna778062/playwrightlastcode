@@ -150,8 +150,8 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.addDuplicateLinks(label, url);
   }
 
-  async addAppsFromCustomJson(customJsonOption: string, appsJsonData?: any): Promise<void> {
-    return this.appslinksComponent.addAppsFromCustomJson(customJsonOption, appsJsonData);
+  async addAppsFromCustomJson(customJsonOption: string): Promise<void> {
+    return this.appslinksComponent.addAppsFromCustomJson(customJsonOption);
   }
 
   async navigateTo(url: string): Promise<void> {
@@ -169,5 +169,9 @@ export class AppsLinksPage extends BasePage {
    */
   async verifyToastMessage(message: string): Promise<void> {
     return this.appslinksComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async addDuplicateCustomApps(): Promise<void> {
+    return this.appslinksComponent.addDuplicateCustomApps();
   }
 }

@@ -74,4 +74,9 @@ export const MESSAGES = {
   UNSAVED_CHANGES_MESSAGE: 'You have unsaved changes. Do you want to leave?',
   REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
   REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
+  APPS_DUPLICATE_MESSAGE: 'App name and url in custom JSON should be unique',
+  NO_FAVORITES_APP: 'No favorite apps available',
+  NO_FAVORITES_LINK: 'No favorite links available',
+  SAVE_APPS_FAVORITE: 'Save apps as favorites to access them quickly',
+  SAVE_LINKS_FAVORITE: 'Save links as favorites to access them quickly',
 } as const;
