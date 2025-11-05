@@ -372,12 +372,7 @@ test.describe(
           password: userDetails.endUserPassword,
         });
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(
-          otpUtils,
-          mailosaurValues.mailosaurPhone,
-          'mobile',
-          'optional'
-        );
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );
   }
@@ -453,12 +448,7 @@ test.describe(
           password: userDetails.endUserPassword,
         });
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(
-          otpUtils,
-          mailosaurValues.mailosaurPhone,
-          'mobile',
-          'mandatory'
-        );
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );
   }

@@ -196,8 +196,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
-
-        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO('email');
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
@@ -217,7 +216,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(phone), {
           timeout: TIMEOUTS.MEDIUM,
         });
-        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO('mobile');
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         console.log('otpMobile--------------', otpMobile);
@@ -278,8 +277,7 @@ export class LoginWithOtpPage extends BasePage {
   async addEmailOrMobileBasedOnIdentifiers(
     otpUtils: OTPUtils,
     identifier: string,
-    identifierType: 'email' | 'mobile',
-    lwoType: 'optional' | 'mandatory'
+    identifierType: 'email' | 'mobile'
   ): Promise<void> {
     await test.step('Navigating to force add contact page', async () => {
       await this.page.waitForURL(/login\/force-add-contact/, {
@@ -288,7 +286,6 @@ export class LoginWithOtpPage extends BasePage {
     });
 
     let otpValue = '';
-    const expectedHeader = identifierType === 'mobile' ? 'Add mobile number' : 'Add email address';
 
     await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
 
