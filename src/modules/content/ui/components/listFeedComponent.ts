@@ -225,8 +225,8 @@ export class ListFeedComponent extends BaseComponent {
     // Scroll into view if needed
     await locator.scrollIntoViewIfNeeded();
 
-    // Ensure element is enabled
-    await locator.waitFor({ state: 'visible', timeout: 1000 });
+    // // Ensure element is enabled
+    // await locator.waitFor({ state: 'visible', timeout: 1000 });
   }
 
   /**
@@ -235,17 +235,11 @@ export class ListFeedComponent extends BaseComponent {
    * @param isReply - Whether this is a reply (true) or post (false)
    */
   private async waitForLikeActionComplete(text: string, isReply: boolean): Promise<void> {
-    // Wait for any feed-related API response (like/unlike actions typically trigger feed updates)
-    // Note: Like actions might not have a specific endpoint, so we wait for the like count to update
-    // We'll wait for the like count element to appear/update, which indicates the action completed
-
     const likeCountLocator = isReply ? this.likeCountLocatorForReply(text) : this.likeCountLocator(text);
 
-    // Wait for like count to stabilize (either appear if it didn't exist, or update if it did)
-    // We use a timeout to ensure we don't wait forever if the count doesn't change
     try {
       // Wait for the element to be visible, or wait a bit if it doesn't exist (0 likes)
-      await likeCountLocator.waitFor({ state: 'visible', timeout: 1000 }).catch(() => {
+      await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
         // If element doesn't exist, it might be 0 likes - that's okay, just wait a bit
         return Promise.resolve();
       });
@@ -605,7 +599,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Like feed reply: ${replyText}`, async () => {
       // Ensure reply is visible first
       await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
-        timeout: 1500,
         assertionMessage: `Reply "${replyText}" should be visible`,
       });
 
@@ -630,7 +623,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Unlike feed reply: ${replyText}`, async () => {
       // Ensure reply is visible first
       await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
-        timeout: 1500,
         assertionMessage: `Reply "${replyText}" should be visible`,
       });
 
@@ -664,7 +656,7 @@ export class ListFeedComponent extends BaseComponent {
       if (expectedCount === 0 || expectedCount === undefined) {
         // Try to wait for element, but don't fail if it doesn't exist (0 likes)
         try {
-          await likeCountLocator.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {
+          await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
             // Element doesn't exist - likely 0 likes, which is valid
             return;
           });
@@ -676,7 +668,7 @@ export class ListFeedComponent extends BaseComponent {
         }
       } else {
         // If we expect a count > 0, wait for element to be visible
-        await likeCountLocator.waitFor({ state: 'visible', timeout: 5000 });
+        await likeCountLocator.waitFor({ state: 'visible' });
       }
 
       // Check if like count element exists
@@ -701,7 +693,7 @@ export class ListFeedComponent extends BaseComponent {
       // If expected count is provided, verify it matches
       if (expectedCount !== undefined) {
         // Wait for text content to be available and stable
-        await likeCountLocator.waitFor({ state: 'visible', timeout: 1000 });
+        await likeCountLocator.waitFor({ state: 'visible' });
         const countText = await likeCountLocator.textContent();
         // Extract number from text like "1 reaction" or just "1"
         const match = countText?.match(/(\d+)/);
@@ -722,7 +714,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Verify like count on reply: ${replyText}`, async () => {
       // Ensure reply is visible first
       await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
-        timeout: 1000,
         assertionMessage: `Reply "${replyText}" should be visible`,
       });
 
@@ -733,7 +724,7 @@ export class ListFeedComponent extends BaseComponent {
       if (expectedCount === 0 || expectedCount === undefined) {
         // Try to wait for element, but don't fail if it doesn't exist (0 likes)
         try {
-          await likeCountLocator.waitFor({ state: 'visible', timeout: 1000 }).catch(() => {
+          await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
             // Element doesn't exist - likely 0 likes, which is valid
             return;
           });
@@ -745,7 +736,7 @@ export class ListFeedComponent extends BaseComponent {
         }
       } else {
         // If we expect a count > 0, wait for element to be visible
-        await likeCountLocator.waitFor({ state: 'visible', timeout: 1000 });
+        await likeCountLocator.waitFor({ state: 'visible' });
       }
 
       // Check if like count element exists
@@ -770,7 +761,7 @@ export class ListFeedComponent extends BaseComponent {
       // If expected count is provided, verify it matches
       if (expectedCount !== undefined) {
         // Wait for text content to be available and stable
-        await likeCountLocator.waitFor({ state: 'visible', timeout: 1000 });
+
         const countText = await likeCountLocator.textContent();
         // Extract number from text (for replies it's just the number like "1")
         const match = countText?.match(/(\d+)/);
@@ -800,7 +791,6 @@ export class ListFeedComponent extends BaseComponent {
       const postLocator = this.getPostByUserLocator(userName);
       // Reuse the same pattern as waitForPostToBeVisible
       await this.verifier.verifyTheElementIsVisible(postLocator, {
-        timeout: 1000,
         assertionMessage: `Post by user "${userName}" should be visible`,
       });
       await postLocator.scrollIntoViewIfNeeded().catch(() => {});
