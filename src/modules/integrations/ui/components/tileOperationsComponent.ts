@@ -569,7 +569,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify schedule tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
 
       // Verify schedule entries exist
       const schedules = tile.locator(this.scheduleContainer);
@@ -885,11 +885,13 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         await this.clickOnElement(showMore);
         await viewAllLink.waitFor({ state: 'visible', timeout: 2500 }).catch(() => {});
       }
-      await expect(viewAllLink).toBeVisible({ timeout: 5_000 });
+      await expect(viewAllLink, `'View all courses in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
       // Must open in a new tab and match expected URL
       const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
       const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
-      await expect(popup).toHaveURL(urlRegex);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
       await popup.close();
     });
   }
