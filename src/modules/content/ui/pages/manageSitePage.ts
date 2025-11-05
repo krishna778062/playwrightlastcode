@@ -282,7 +282,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         assertionMessage: 'Save/Update button should be visible',
       });
       await saveButton.click();
-      await this.page.waitForLoadState('networkidle').catch(() => {});
     });
   }
 }
