@@ -4,7 +4,6 @@ import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 
-import { USER_STATUS } from '@/src/core/constants/status';
 import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
 import { MessageCardComponent } from '@/src/modules/chat/ui/components/messageCardComponent';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
@@ -23,21 +22,6 @@ test.describe(
       user2 = endUsersForChat[1];
       user1ChatPage = new ChatAppPage(user1Page);
       await user1ChatPage.loadPage({ timeout: 40_000 });
-    });
-
-    test.afterEach('after each', async ({ endUsersForChat, userManagementService }) => {
-      // Deactivate users after each test
-      for (const user of endUsersForChat) {
-        if (user.email) {
-          try {
-            const userId = await userManagementService.getUserId(user.email);
-            console.log(`Deactivating user ${user.email} with userId: ${userId}`);
-            await userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
-          } catch (error) {
-            console.log(`Failed to deactivate user ${user.email}: ${error}`);
-          }
-        }
-      }
     });
 
     test(

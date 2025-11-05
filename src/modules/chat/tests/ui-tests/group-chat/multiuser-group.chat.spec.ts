@@ -7,7 +7,6 @@ import { MessageEmojis } from '@core/constants/messageEmojis';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 
-import { USER_STATUS } from '@/src/core/constants/status';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe('group Chat with multiple users', { tag: [CHAT_SUITE_TAGS.GROUP_CHAT] }, () => {
@@ -28,21 +27,6 @@ test.describe('group Chat with multiple users', { tag: [CHAT_SUITE_TAGS.GROUP_CH
       multiUserChatTest = new MultiUserChatTestHelper(browser);
     }
   );
-
-  test.afterEach('after each', async ({ endUsersForChat, userManagementService }) => {
-    // Deactivate users after each test
-    for (const user of endUsersForChat) {
-      if (user.email) {
-        try {
-          const userId = await userManagementService.getUserId(user.email);
-          console.log(`Deactivating user ${user.email} with userId: ${userId}`);
-          await userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
-        } catch (error) {
-          console.log(`Failed to deactivate user ${user.email}: ${error}`);
-        }
-      }
-    }
-  });
 
   test(
     'verify user 1 and user 2 should be able to exchange messages, reply on message thread and react on message',
