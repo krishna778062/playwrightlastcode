@@ -14,6 +14,7 @@ import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileMan
 import { ExternalSearchManagementService } from '@/src/modules/global-search/apis/services/ExternalSearchManagementService';
 import { IntranetFileHelper } from '@/src/modules/global-search/ui/helpers/intranetFileHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { AppConfigurationService } from '@/src/modules/platforms/apis/services/AppConfigurationService';
 import { ExpertiseManagementService } from '@/src/modules/platforms/apis/services/ExpertiseManagementService';
 
 // API-only fixture type for API helpers and services
@@ -28,6 +29,7 @@ export interface SearchApiFixture {
   externalSearchManagementService: ExternalSearchManagementService;
   expertiseManagementService: ExpertiseManagementService;
   identityManagementHelper: IdentityManagementHelper;
+  appConfigurationService: AppConfigurationService;
 }
 
 // UI-only fixture type for browser and page components
@@ -53,6 +55,7 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
   const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const expertiseManagementService = new ExpertiseManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const appConfigurationService = new AppConfigurationService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
@@ -65,6 +68,7 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
     externalSearchManagementService,
     expertiseManagementService,
     identityManagementHelper,
+    appConfigurationService,
   };
 }
 
