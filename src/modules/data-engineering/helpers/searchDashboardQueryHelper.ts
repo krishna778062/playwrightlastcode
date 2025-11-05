@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 
 import { BaseAnalyticsQueryHelper } from './baseAnalyticsQueryHelper';
 import { FilterOptions } from './baseAnalyticsQueryHelper';
-import { DateHelper, PeriodFilterOption } from './dateHelper';
+import { PeriodFilterOption } from './dateHelper';
 import { SnowflakeHelper } from './snowflakeHelper';
 
 /**
@@ -33,20 +33,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<number> {
     return await test.step(`Get total search volume from database`, async () => {
-      // Replace date placeholders
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-      // Replace all placeholders (using global regex for multiple occurrences)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
 
       if (result.length === 0) {
         return 0;
@@ -75,20 +69,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<string> {
     return await test.step(`Get search click through rate from database`, async () => {
-      // Replace date placeholders
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-      // Replace all placeholders (using global regex for multiple occurrences)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
 
       if (result.length === 0) {
         return '0 (0%)';
@@ -106,20 +94,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<string> {
     return await test.step(`Get no results search from database`, async () => {
-      // Replace date placeholders
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-      // Replace all placeholders (using global regex for multiple occurrences)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
 
       if (result.length === 0) {
         return '0 (0%)';
@@ -137,21 +119,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<number> {
     return await test.step(`Get average searches per logged in user from database`, async () => {
-      const { startDate, endDate } = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-
-      // Use regular expressions to replace all occurrences
-      query = query
-        .replace(/\{tenantCode\}/g, this.orgId)
-        .replace(/\{startDate\}/g, startDate)
-        .replace(/\{endDate\}/g, endDate)
-        .replace(/\{locationFilter\}/g, '') // No filters applied
-        .replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       if (!result || result.length === 0) return 0;
 
       // Snowflake might return uppercased identifiers -> FINAL_RATIO
@@ -181,20 +156,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<any[]> {
     return await test.step(`Get top search queries from database`, async () => {
-      // Replace date placeholders
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-      // Replace all placeholders (using global regex for multiple occurrences)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -222,20 +191,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     forCSVValidation: boolean = false
   ): Promise<any[]> {
     return await test.step(`Get top search queries with no clickthrough from database`, async () => {
-      // Replace date placeholders
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-      // Replace all placeholders (using global regex for multiple occurrences)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
 
       // If CSV validation is requested, convert percentage to decimal format
       if (forCSVValidation) {
@@ -294,21 +257,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<any[]> {
     return await test.step(`Get top clickthrough types from database`, async () => {
-      // Replace date placeholders using regular expressions
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-
-      // Replace all occurrences using regular expressions
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -330,21 +286,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<any[]> {
     return await test.step(`Get no result search queries from database`, async () => {
-      // Replace date placeholders using regular expressions
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-
-      // Replace all occurrences using regular expressions
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -366,21 +315,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<any[]> {
     return await test.step(`Get most searches performed by department from database`, async () => {
-      // Replace date placeholders using regular expressions
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-
-      // Replace all occurrences using regular expressions
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -402,21 +344,14 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     customEndDate?: string
   ): Promise<any[]> {
     return await test.step(`Get search usage volume and click through rate from database`, async () => {
-      // Replace date placeholders using regular expressions
-      const dateReplacements = DateHelper.getDateReplacements(
-        timePeriod as PeriodFilterOption,
+      const filterBy: FilterOptions = {
+        tenantCode: this.orgId,
+        timePeriod: timePeriod as PeriodFilterOption,
         customStartDate,
-        customEndDate
-      );
-
-      // Replace all occurrences using regular expressions (needed for queries with multiple date references)
-      query = query.replace(/\{tenantCode\}/g, this.orgId);
-      query = query.replace(/\{startDate\}/g, dateReplacements.startDate);
-      query = query.replace(/\{endDate\}/g, dateReplacements.endDate);
-      query = query.replace(/\{locationFilter\}/g, ''); // No filters applied
-      query = query.replace(/\{departmentFilter\}/g, ''); // No filters applied
-
-      const result = await this.executeQuery(query);
+        customEndDate,
+      };
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -489,23 +424,8 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    */
   async getAverageSearchesPerLoggedInUserFromDBWithFilters(query: string, filterBy: FilterOptions): Promise<number> {
     return await test.step(`Get average searches per logged in user from database with filters`, async () => {
-      // Handle date replacements internally (similar to getAverageSearchesPerLoggedInUserFromDB)
-      const dateReplacements = DateHelper.getDateReplacements(
-        filterBy.timePeriod,
-        filterBy.customStartDate,
-        filterBy.customEndDate
-      );
-
-      // Use regular expressions to replace ALL occurrences (important for queries with multiple subqueries)
-      // This query has both q1 and q2 subqueries with the same placeholders
-      query = query
-        .replace(/\{tenantCode\}/g, filterBy.tenantCode)
-        .replace(/\{startDate\}/g, dateReplacements.startDate)
-        .replace(/\{endDate\}/g, dateReplacements.endDate)
-        .replace(/\{locationFilter\}/g, this.addLocationFilter(filterBy.locations))
-        .replace(/\{departmentFilter\}/g, this.addDepartmentFilter(filterBy.departments));
-
-      const result = await this.executeQuery(query);
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
 
       if (!result || result.length === 0) return 0;
 
@@ -587,23 +507,8 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    */
   async getTopClickthroughTypesFromDBWithFilters(query: string, filterBy: FilterOptions): Promise<any[]> {
     return await test.step(`Get top clickthrough types from database with filters`, async () => {
-      // Handle date replacements internally (similar to getTopClickthroughTypesFromDB)
-      const dateReplacements = DateHelper.getDateReplacements(
-        filterBy.timePeriod,
-        filterBy.customStartDate,
-        filterBy.customEndDate
-      );
-
-      // Use regular expressions to replace ALL occurrences (important for queries with CTEs and multiple placeholders)
-      // This query has placeholders in both the CTE (WITH clause) and the main SELECT statement
-      query = query
-        .replace(/\{tenantCode\}/g, filterBy.tenantCode)
-        .replace(/\{startDate\}/g, dateReplacements.startDate)
-        .replace(/\{endDate\}/g, dateReplacements.endDate)
-        .replace(/\{locationFilter\}/g, this.addLocationFilter(filterBy.locations))
-        .replace(/\{departmentFilter\}/g, this.addDepartmentFilter(filterBy.departments));
-
-      const result = await this.executeQuery(query);
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }
@@ -616,13 +521,6 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    */
   async getNoResultSearchQueriesFromDBWithFilters(query: string, filterBy: FilterOptions): Promise<any[]> {
     return await test.step(`Get no result search queries from database with filters`, async () => {
-      // Handle date replacements internally
-      const dateReplacements = DateHelper.getDateReplacements(
-        filterBy.timePeriod,
-        filterBy.customStartDate,
-        filterBy.customEndDate
-      );
-
       // Get base filter strings (they use 'u' alias by default)
       const baseLocationFilter = this.addLocationFilter(filterBy.locations);
       const baseDepartmentFilter = this.addDepartmentFilter(filterBy.departments);
@@ -633,13 +531,7 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
       const locationFilterU3 = baseLocationFilter.replace(/u\.location/g, 'u3.location');
       const departmentFilterU3 = baseDepartmentFilter.replace(/u\.department/g, 'u3.department');
 
-      // Replace tenantCode and dates globally first
-      query = query
-        .replace(/\{tenantCode\}/g, filterBy.tenantCode)
-        .replace(/\{startDate\}/g, dateReplacements.startDate)
-        .replace(/\{endDate\}/g, dateReplacements.endDate);
-
-      // Replace placeholders in first subquery (u2) - must be done before main query replacement
+      // Replace placeholders in first subquery (u2) - must be done before base helper replacement
       // Match the first subquery pattern: SELECT COUNT(*) ... FROM udl.search s2 ... INNER JOIN udl.user u2
       query = query.replace(
         /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u2[\s\S]*?WHERE[\s\S]*?)\{locationFilter\}/,
@@ -650,7 +542,7 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
         `$1${departmentFilterU2}`
       );
 
-      // Replace placeholders in second subquery (u3) - must be done before main query replacement
+      // Replace placeholders in second subquery (u3) - must be done before base helper replacement
       // Match the second subquery pattern: SELECT COUNT(*) ... FROM udl.search s3 ... INNER JOIN udl.user u3
       query = query.replace(
         /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u3[\s\S]*?WHERE[\s\S]*?)\{locationFilter\}/,
@@ -661,11 +553,10 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
         `$1${departmentFilterU3}`
       );
 
-      // Replace remaining placeholders in main query (u) - these should be left after subquery replacements
-      query = query.replace(/\{locationFilter\}/g, baseLocationFilter);
-      query = query.replace(/\{departmentFilter\}/g, baseDepartmentFilter);
+      // Now use base helper to replace tenantCode, dates, and remaining filters (u alias)
+      const transformedQuery = await this.transformQueryWithFilters({ baseQuery: query, filterBy });
 
-      const result = await this.executeQuery(query);
+      const result = await this.executeQuery(transformedQuery);
       return result;
     });
   }

@@ -148,22 +148,23 @@ export abstract class BaseAnalyticsQueryHelper {
       filterBy.customEndDate
     );
 
-    // Replace all placeholders in base query
+    // Replace all placeholders in base query using global regex (g flag) to handle multiple occurrences
+    // This is important for queries with multiple subqueries or CTEs that have the same placeholders
     let query = baseQuery
-      .replace('{tenantCode}', filterBy.tenantCode)
-      .replace('{startDate}', dateReplacements.startDate)
-      .replace('{endDate}', dateReplacements.endDate)
-      .replace('{locationFilter}', this.addLocationFilter(filterBy.locations))
-      .replace('{departmentFilter}', this.addDepartmentFilter(filterBy.departments))
-      .replace('{segmentFilter}', this.addSegmentFilter(filterBy.segments))
-      .replace('{companyNameFilter}', this.addCompanyNameFilter(filterBy.companyName));
+      .replace(/\{tenantCode\}/g, filterBy.tenantCode)
+      .replace(/\{startDate\}/g, dateReplacements.startDate)
+      .replace(/\{endDate\}/g, dateReplacements.endDate)
+      .replace(/\{locationFilter\}/g, this.addLocationFilter(filterBy.locations))
+      .replace(/\{departmentFilter\}/g, this.addDepartmentFilter(filterBy.departments))
+      .replace(/\{segmentFilter\}/g, this.addSegmentFilter(filterBy.segments))
+      .replace(/\{companyNameFilter\}/g, this.addCompanyNameFilter(filterBy.companyName));
 
     // Handle user category mapping and replacement
     if (filterBy.userCategories && filterBy.userCategories.length > 0) {
       const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
-      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(userCategoryCodes));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(userCategoryCodes));
     } else {
-      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(filterBy.userCategories));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(filterBy.userCategories));
     }
 
     return query;
