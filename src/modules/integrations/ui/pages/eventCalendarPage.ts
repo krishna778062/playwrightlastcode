@@ -155,20 +155,22 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
 
   // function to select the calendar view
   async selectCalendarView(view: 'Week' | 'Month'): Promise<void> {
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.clickOnElement(this.arrowDownIconButton, {
-      stepInfo: 'Click on down arrow icon button',
-    });
+    await test.step(`Select calendar view: ${view}`, async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.clickOnElement(this.arrowDownIconButton, {
+        stepInfo: 'Click on down arrow icon button',
+      });
 
-    if (view === 'Week') {
-      await this.clickOnElement(this.calendarWeekViewDropdownOption, {
-        stepInfo: 'Click on the calendar week view dropdown option',
-      });
-    } else {
-      await this.clickOnElement(this.calendarMonthViewDropdownOption, {
-        stepInfo: 'Click on the calendar month view dropdown option',
-      });
-    }
+      if (view === 'Week') {
+        await this.clickOnElement(this.calendarWeekViewDropdownOption, {
+          stepInfo: 'Click on the calendar week view dropdown option',
+        });
+      } else {
+        await this.clickOnElement(this.calendarMonthViewDropdownOption, {
+          stepInfo: 'Click on the calendar month view dropdown option',
+        });
+      }
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -213,69 +215,81 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
 
   // function to verify visible of todaysDate depending on parameter passed
   async verifyVisibilityOfTodaysDate(expectedVisible: boolean): Promise<void> {
-    if (expectedVisible) {
-      await this.verifier.verifyTheElementIsVisible(this.todaysDate, {
-        timeout: 10_000,
-        assertionMessage: 'Verifying that the today date is visible',
-      });
-    } else {
-      await this.verifier.verifyTheElementIsNotVisible(this.todaysDate, {
-        timeout: 10_000,
-        assertionMessage: 'Verifying that the today date is not visible',
-      });
-    }
+    await test.step(`Verify today's date visibility: ${expectedVisible}`, async () => {
+      if (expectedVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.todaysDate, {
+          timeout: 10_000,
+          assertionMessage: 'Verifying that the today date is visible',
+        });
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(this.todaysDate, {
+          timeout: 10_000,
+          assertionMessage: 'Verifying that the today date is not visible',
+        });
+      }
+    });
   }
 
   // write a function in which i can pass left and right arrow button locator and count to press right and left arrow buttons
   async pressRightAndLeftArrowButtons(pressRightCount: number, pressLeftCount: number): Promise<void> {
-    for (let i = 0; i < pressRightCount; i++) {
-      await this.clickOnElement(this.rightIconButton, {
-        stepInfo: 'Click on right arrow button',
-      });
-    }
-    for (let i = 0; i < pressLeftCount; i++) {
-      await this.clickOnElement(this.leftIconButton, {
-        stepInfo: 'Click on left arrow button',
-      });
-    }
+    await test.step(`Press right arrow button ${pressRightCount} times and left arrow button ${pressLeftCount} times`, async () => {
+      for (let i = 0; i < pressRightCount; i++) {
+        await this.clickOnElement(this.rightIconButton, {
+          stepInfo: 'Click on right arrow button',
+        });
+      }
+      for (let i = 0; i < pressLeftCount; i++) {
+        await this.clickOnElement(this.leftIconButton, {
+          stepInfo: 'Click on left arrow button',
+        });
+      }
+    });
   }
 
   // google and outlook test event verification
   async verifyGoogleTestEvent(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.googleTesteventLocator, {
-      timeout: 10_000,
-      assertionMessage: 'Verifying that the google test event is visible',
+    await test.step('Verify Google test event is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.googleTesteventLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Verifying that the google test event is visible',
+      });
     });
   }
   async verifyOutlookTestEvent(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.outlookTesteventLocator, {
-      timeout: 10_000,
-      assertionMessage: 'Verifying that the outlook test event is visible',
+    await test.step('Verify Outlook test event is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.outlookTesteventLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Verifying that the outlook test event is visible',
+      });
     });
   }
 
   async verifyGoogleAndOutlookTestEvents(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.getXMoreTodaysDateLocator(), {
-      timeout: 60_000,
-      assertionMessage: 'Verifying that the x more todays date is visible',
+    await test.step('Verify Google and Outlook test events are visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getXMoreTodaysDateLocator(), {
+        timeout: 60_000,
+        assertionMessage: 'Verifying that the x more todays date is visible',
+      });
+      await this.clickOnElement(this.getXMoreTodaysDateLocator(), {
+        stepInfo: 'Click on the x more todays date',
+      });
+      await this.verifyGoogleTestEvent();
+      await this.verifyOutlookTestEvent();
     });
-    await this.clickOnElement(this.getXMoreTodaysDateLocator(), {
-      stepInfo: 'Click on the x more todays date',
-    });
-    await this.verifyGoogleTestEvent();
-    await this.verifyOutlookTestEvent();
   }
 
   async verifyTwentyFourHourSlots(expectedPresent: boolean): Promise<void> {
-    if (expectedPresent) {
-      const twentyfourHoursCount = await this.twentyfourHoursLocator.count();
-      expect(twentyfourHoursCount).toBe(24);
-    } else {
-      // verify that the twenty four hour slots are not present
-      await this.verifier.verifyTheElementIsNotVisible(this.twentyfourHoursLocator, {
-        timeout: 10_000,
-        assertionMessage: 'Verifying that the twenty four hour slots are not present',
-      });
-    }
+    await test.step(`Verify twenty-four hour slots ${expectedPresent ? 'are present' : 'are not present'}`, async () => {
+      if (expectedPresent) {
+        const twentyfourHoursCount = await this.twentyfourHoursLocator.count();
+        expect(twentyfourHoursCount).toBe(24);
+      } else {
+        // verify that the twenty four hour slots are not present
+        await this.verifier.verifyTheElementIsNotVisible(this.twentyfourHoursLocator, {
+          timeout: 10_000,
+          assertionMessage: 'Verifying that the twenty four hour slots are not present',
+        });
+      }
+    });
   }
 }
