@@ -14,7 +14,7 @@
  * console.log(config.tenant.appManagerPassword);
  */
 
-export type TenantKey = 'primary' | 'contentSettings';
+export type TenantKey = 'primary' | 'contentSettings' | 'contentAbac';
 export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prod';
 
 /**
@@ -133,6 +133,38 @@ export const config = {
       newUxEnabled: true,
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+  },
+  contentAbac: {
+    qa: {
+      tenantName: 'Content ABAC',
+      frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
+      apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'diksha.gaur@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'abac-qa-org-id',
+      socialCampaignManagerEmail: 'diksha.gaur@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    uat: {
+      tenantName: 'Content ABAC',
+      frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
+      apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'diksha.gaur@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'abac-qa-org-id',
+      socialCampaignManagerEmail: 'diksha.gaur@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
   },
