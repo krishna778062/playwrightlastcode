@@ -1,5 +1,6 @@
 export * from './acg';
-export * from './featureOwnersMenuOptions';
+export * from './audience';
+export * from './featureOwners';
 export * from './fieldValidation';
 export * from './popupButtons';
 export * from './testTags';

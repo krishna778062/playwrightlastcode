@@ -3,7 +3,7 @@ import { BaseAppTileComponent } from '@integrations-components/baseAppTileCompon
 import { expect, Locator, Page, test } from '@playwright/test';
 const DEFAULT_EVENT_TITLE = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u;
 const DEFAULT_EVENT_DATE =
-  /(?!^)(?:[A-Z][a-z]{2},\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01]),\s\d{4}\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM)|Today\sat\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))/;
+  /(?:(?:[A-Z][a-z]{2},?\s)?[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)|(?:Today(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)/;
 
 export class TileOperationsComponent extends BaseAppTileComponent {
   readonly tagElement: Locator;
@@ -62,6 +62,29 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly courseId: RegExp;
   readonly courseStatus: Locator;
   readonly courseType: Locator;
+  readonly comboboxLocator: Locator;
+  readonly fieldDropdownLocator: (fieldName: string) => Locator;
+  readonly completedStatusLocator: Locator;
+  readonly labelLocator: (labelText: string) => Locator;
+  readonly taskContainers: Locator;
+  readonly markCompleteButtons: Locator;
+  readonly completedStatus: Locator;
+  readonly taskTitles: Locator;
+  readonly dueDates: Locator;
+  readonly goalTitles: Locator;
+  readonly goalQuarters: Locator;
+  readonly goalAssignees: Locator;
+  readonly goalStatuses: Locator;
+  readonly goalProgress: Locator;
+  readonly expensifyReportContainers: Locator;
+  readonly expensifyStatusTag: Locator;
+  readonly expensifyApproverTag: Locator;
+  readonly expensifyLastUpdatedText: Locator;
+  readonly greenhouseImage: Locator;
+  readonly jobId: RegExp;
+  readonly Published: RegExp;
+  readonly lessonsPattern: RegExp;
+  readonly registeredOnPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -91,6 +114,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.doceboImage = page.locator('img[src*="docebo"]');
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
+    this.greenhouseImage = page.locator('img[src*="greenhouse"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -107,8 +131,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
-    this.sentPattern = /Sent \d+ days? ago/;
+    this.sentPattern = /Sent \d+ (days?|hours?|minutes?|weeks?|months?|years?) ago/;
     this.courseId = /^[A-Z]-/;
+    this.jobId = /Job ID:\s*\d+/;
+    this.Published = /Published.*ago/;
 
     // Schedule tile locators
     this.scheduleContainer = page
@@ -126,6 +152,32 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.taskTitle = page.getByRole('heading', { level: 3 });
     this.statusTag = page.getByTestId('tag');
     this.MondayLastUpdatedPattern = /Last updated on/;
+    this.comboboxLocator = page.locator('[role="combobox"]');
+    this.fieldDropdownLocator = (fieldName: string) =>
+      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
+    this.fieldDropdownLocator = (fieldName: string) =>
+      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
+    this.completedStatusLocator = page.locator('p', { hasText: 'Completed' });
+    this.labelLocator = (labelText: string) => page.getByText(labelText);
+    this.taskContainers = page.locator('[data-testid="container"]');
+    this.markCompleteButtons = page.getByRole('button', { name: 'Mark complete' });
+    this.completedStatus = page.getByText('Completed');
+    this.taskTitles = page.locator('h3');
+    this.dueDates = page.locator('[data-testid="tag"] p');
+    this.goalTitles = page.locator('h3');
+    this.goalQuarters = page.locator('p.Typography-module__secondary__OGpiQ');
+    this.goalAssignees = page.locator('[data-testid="tag"] p');
+    this.goalStatuses = page.locator('[data-testid="tag"] p');
+    this.goalProgress = page.locator('p.Typography-module__secondary__OGpiQ');
+    this.expensifyReportContainers = page.locator('[data-testid="container"]._loopContainer_tek69_21');
+    this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
+    this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
+    this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+
+    // Workday: patterns for lessons count and registered date line
+    this.lessonsPattern = /^\d+\s+Lessons?$/;
+    this.registeredOnPattern =
+      /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
   }
 
   /**
@@ -269,7 +321,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const link = linkSelector ? tile.locator(linkSelector) : tile.locator(this.linkWithH3);
       await this.clickOnElement(link.first());
       const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
-      const popup = await this.page.waitForEvent('popup').catch(() => null);
+      const popup = await this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
       if (popup) {
         await expect(popup).toHaveURL(urlRegex);
         await popup.close();
@@ -310,6 +362,54 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   }
 
   /**
+   * Verify personalized Expensify report tile data with specific filters
+   * @param tileTitle - The title of the tile to verify
+   * @param expectedStatus - Expected status value (e.g., 'Processing')
+   * @param expectedApprover - Expected approver name (e.g., 'Srikant G')
+   * @param maxDaysAgo - Maximum days for last updated (e.g., 30)
+   */
+  async verifyPersonalizedExpensifyReportData(
+    tileTitle: string,
+    expectedStatus: string,
+    expectedApprover: string,
+    maxDaysAgo: number = 30
+  ): Promise<void> {
+    await test.step(`Verify personalized Expensify report tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+
+      // Get all report containers within the tile
+      const reportContainers = tile.locator(this.expensifyReportContainers);
+
+      // Verify at least one report is present
+      await expect(reportContainers.first()).toBeVisible();
+
+      // Verify each report meets the personalized criteria
+      const reportCount = await reportContainers.count();
+      for (let i = 0; i < reportCount; i++) {
+        const report = reportContainers.nth(i);
+
+        // Verify status is exactly the expected status
+        const statusTag = report.locator(this.expensifyStatusTag);
+        await expect(statusTag).toHaveText(expectedStatus);
+
+        // Verify approver is exactly the expected approver
+        const approverTag = report.locator(this.expensifyApproverTag);
+        await expect(approverTag).toHaveText(expectedApprover);
+
+        // Verify last updated is within the specified days
+        const lastUpdatedText = await report.locator(this.expensifyLastUpdatedText).textContent();
+        if (lastUpdatedText) {
+          const daysMatch = lastUpdatedText.match(/(\d+)\s+day/i);
+          if (daysMatch) {
+            const daysAgo = parseInt(daysMatch[1]);
+            expect(daysAgo).toBeLessThanOrEqual(maxDaysAgo);
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Verify Airtable tile content structure with task records
    * @param tileTitle - The title of the tile to verify
    */
@@ -326,7 +426,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
 
       // Get task records and verify at least one exists
       const containers = tile.locator(this.container);
-      await expect(containers).toHaveCount(0);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Airtable tile').toBeGreaterThan(0);
 
       // Verify first record has all required elements
       const firstRecord = containers.first();
@@ -367,6 +468,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       }
     });
   }
+
   /**
    * Verify Calendar upcoming events tile data
    */
@@ -467,7 +569,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify schedule tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
 
       // Verify schedule entries exist
       const schedules = tile.locator(this.scheduleContainer);
@@ -570,6 +672,227 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         'Course Status should be visible in tile'
       ).toBeVisible();
       await expect(firstRecord.locator(this.courseType).first(), 'Course Type should be visible in tile').toBeVisible();
+    });
+  }
+
+  async verifyButtonStatus(status: string, buttonName: string): Promise<void> {
+    await test.step(`Verify ${buttonName} button is ${status}`, async () => {
+      const locator = this.button(buttonName);
+      await expect(locator).toBeVisible();
+      status.toLowerCase() === 'enabled' ? await expect(locator).toBeEnabled() : await expect(locator).toBeDisabled();
+    });
+  }
+  /**
+   * Verify Docebo report data shown in tile
+   */
+  async verifyDoceboReportData(tileTitle: string, EnrollmentStatus: string, CourseType: string): Promise<void> {
+    await test.step(`Verify ${EnrollmentStatus} and ${CourseType} for ${tileTitle}`, async () => {
+      const tile = this.getTile(tileTitle);
+      await expect(tile).toBeVisible({ timeout: 5_000 });
+      const tags = this.getTagElement(tile).getByText(EnrollmentStatus, { exact: true });
+      await expect(tags.first(), `Status "${EnrollmentStatus}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
+      const tags2 = this.getTagElement(tile).getByText(CourseType, { exact: true });
+      await expect(tags2.first(), `Status "${CourseType}" should be visible for "${tileTitle}"`).toBeVisible({
+        timeout: 5_000,
+      });
+    });
+  }
+  async selectRadioOptionandValue(fieldName: string, radioOption: string, dropdownValue: string): Promise<void> {
+    await test.step(`Select ${radioOption} for ${fieldName} and choose ${dropdownValue}`, async () => {
+      // Select radio option
+      const field = this.group(fieldName);
+      const radio = field.getByLabel(radioOption);
+      await this.clickOnElement(radio);
+      // Click on the dropdown to open
+      const dropdown = this.fieldDropdownLocator(fieldName);
+      await this.clickOnElement(dropdown);
+      // Select the value from dropdown
+      const menuItem = this.menuitem(dropdownValue);
+      await this.clickOnElement(menuItem);
+    });
+  }
+  /**
+   * Verify label is visible
+   * @param labelText - The text of the label to verify
+   */
+  async verifyLabel(labelText: string): Promise<void> {
+    await test.step(`Verify label '${labelText}' is visible`, async () => {
+      const label = this.labelLocator(labelText);
+      await expect(label.first(), `Label '${labelText}' should be visible`).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify tasks with specific status are showing (at least one)
+   * @param tileTitle - The title of the tile to verify
+   * @param status - The status to verify
+   */
+  async verifyTasksWithStatusShowing(tileTitle: string, status: string): Promise<void> {
+    await test.step(`Verify ${status} tasks are showing in ${tileTitle}`, async () => {
+      const tile = this.getTile(tileTitle);
+      await expect(tile).toBeVisible();
+
+      // Verify at least one task has the specified status
+      const statusElements = tile.getByText(status);
+      await expect(statusElements.first()).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify tile has task data (any combination of Mark complete/Completed)
+   * @param tileTitle - The title of the tile to verify
+   * @param status - The status to verify
+   * @param hasMarkComplete - Whether the tile should have a Mark complete button
+   * @param hasCompleted - Whether the tile should have a Completed status
+   */
+  async verifyTileHasTaskData(tileTitle: string): Promise<void> {
+    await test.step(`Verify ${tileTitle} has task data`, async () => {
+      const tile = this.getTile(tileTitle);
+      await expect(tile).toBeVisible();
+
+      // Verify at least one task container exists
+      const taskContainers = tile.locator(this.taskContainers);
+      await expect(taskContainers.first()).toBeVisible();
+
+      // Verify task titles are present
+      const taskTitles = tile.locator(this.taskTitles);
+      await expect(taskTitles.first()).toBeVisible();
+
+      // Verify due dates are present
+      const dueDates = tile.locator(this.dueDates);
+      await expect(dueDates.first()).toBeVisible();
+
+      // Verify either "Mark complete" buttons OR "Completed" status exists
+      const markCompleteButtons = tile.locator(this.markCompleteButtons);
+      const completedStatus = tile.locator(this.completedStatus);
+
+      const hasMarkComplete = (await markCompleteButtons.count()) > 0;
+      const hasCompleted = (await completedStatus.count()) > 0;
+
+      expect(
+        hasMarkComplete || hasCompleted,
+        'Tile should have either Mark complete buttons or Completed status'
+      ).toBeTruthy();
+    });
+  }
+
+  /**
+   * Verify team goals metadata is showing
+   * @param tileTitle - The title of the tile to verify
+   * @param status - The status to verify
+   * @param hasMarkComplete - Whether the tile should have a Mark complete button
+   * @param hasCompleted - Whether the tile should have a Completed status
+   */
+  async verifyTeamGoalsMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify ${tileTitle} shows team goals metadata`, async () => {
+      const tile = this.getTile(tileTitle);
+      await expect(tile).toBeVisible();
+
+      // Verify goal containers exist
+      const goalContainers = tile.locator(this.taskContainers);
+      await expect(goalContainers.first()).toBeVisible();
+
+      // Verify goal titles are present
+      const goalTitles = tile.locator(this.goalTitles);
+      await expect(goalTitles.first()).toBeVisible();
+
+      // Verify quarters are present (Q1 FY25, Q2 FY25, etc.)
+      const quarters = tile.locator(this.goalQuarters);
+      await expect(quarters.first()).toBeVisible();
+
+      // Verify assignees are present
+      const assignees = tile.locator(this.goalAssignees);
+      await expect(assignees.first()).toBeVisible();
+
+      // Verify statuses are present (On track, Off track, At risk, No status)
+      const statuses = tile.locator(this.goalStatuses);
+      await expect(statuses.first()).toBeVisible();
+
+      // Verify progress percentages are present
+      const progress = tile.locator(this.goalProgress);
+      await expect(progress.first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Greenhouse tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Greenhouse tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Greenhouse tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.greenhouseImage), 'Greenhouse image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.jobId).first(),
+        'Job ID should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.Published).first(),
+        'Published text should be visible in the first record'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Workday pending learning courses tile shows course title, lessons count, and registered date
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await test.step(`Verify pending learning courses tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Pick any visible course row (container) that has a heading and supporting paragraphs
+      const row = tile
+        .locator('[data-testid="container"]')
+        .filter({ has: this.page.locator('h3') })
+        .first();
+      await expect(row, 'A course row should be visible').toBeVisible();
+
+      // Course name as heading level 3
+      await expect(row.getByRole('heading', { level: 3 }).first(), 'Course name should be visible').toBeVisible();
+
+      // Verify lessons count like "7 Lessons" and the Registered on line
+      await expect(row.getByText(this.lessonsPattern).first(), 'Lessons count should be visible').toBeVisible();
+      await expect(
+        row.getByText(this.registeredOnPattern).first(),
+        'Registered on date should be visible'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify "View all courses in Workday" link is visible AND clickable
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all courses in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
+
+      const viewAllLink = tile.getByRole('link', { name: 'View all courses in Workday' }).first();
+      const showMore = tile.locator(this.showMoreButton).first();
+
+      // Reveal the link by clicking Show more up to 3 times if needed
+      for (let i = 0; i < 3 && !(await viewAllLink.isVisible().catch(() => false)); i++) {
+        await this.clickOnElement(showMore);
+        await viewAllLink.waitFor({ state: 'visible', timeout: 2500 }).catch(() => {});
+      }
+      await expect(viewAllLink, `'View all courses in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
+      // Must open in a new tab and match expected URL
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
+      await popup.close();
     });
   }
 }

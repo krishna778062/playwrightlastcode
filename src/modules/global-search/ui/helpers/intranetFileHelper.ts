@@ -101,11 +101,13 @@ export class IntranetFileHelper {
       const uploadedFileId = fileDetails.fileId;
       const fileAuthorName = fileDetails.authorName;
 
-      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: this.siteManagementService.httpClient,
-        searchTerm: uploadedFileName,
-        objectType: 'file',
+      // Track uploaded file for cleanup
+      this.uploadedFiles.push({
+        fileId: uploadedFileId,
+        siteId: siteId,
       });
+
+      console.log(`📁 File tracked for cleanup: ${uploadedFileId} (Total: ${this.uploadedFiles.length})`);
 
       return {
         uploadedFileName: uploadedFileName,

@@ -1,0 +1,220 @@
+import { test } from '../../../fixtures/loginFixture';
+import { AwarenessCheckPage } from '../../../pages/mustRead/awarenessCheckPage';
+import { ContentPreviewPage } from '../../../pages/mustRead/contentPreviewPage';
+import { EMPLOYEE_LISTENING_TEST_DATA } from '../../../test-data/awarenessCheck';
+
+import { TestPriority } from '@/src/core/constants/testPriority';
+import { TestGroupType } from '@/src/core/constants/testType';
+import { tagTest } from '@/src/core/utils/testDecorator';
+
+test.describe('must Read and Awareness Check Content Functionality', () => {
+  let createdContentId: string;
+  let createdSiteId: string;
+  let contentTitle: string;
+
+  test.beforeEach(
+    'create test content for Awareness Check testing',
+    async ({ appManagerApiFixture, appManagersPage }) => {
+      const siteId = process.env.SITE_ID;
+      if (!siteId) {
+        throw new Error('SITE_ID environment variable is not defined');
+      }
+
+      const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'news',
+        },
+        options: {
+          contentDescription: 'This content tests Must Read and Awareness Check functionality for admin and end users.',
+        },
+      });
+
+      createdContentId = pageDetails.contentId;
+      createdSiteId = siteId;
+      contentTitle = pageDetails.pageName;
+
+      console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
+      await contentPreviewPage.verifyThePageIsLoaded();
+      await contentPreviewPage.clickOnSkipThisStepButton();
+    }
+  );
+
+  test.afterAll('Cleanup test content', async ({ appManagerApiFixture }) => {
+    if (createdContentId && createdSiteId) {
+      try {
+        await appManagerApiFixture.contentManagementHelper.deleteContent(createdSiteId, createdContentId);
+        console.log(`Cleaned up test content: ${createdContentId}`);
+      } catch (error) {
+        console.warn(`Failed to cleanup content:`, error);
+      }
+    }
+  });
+  test(
+    'verify admin can create awareness check with single question',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+    },
+    async ({ appManagersPage }) => {
+      tagTest(test.info(), {
+        description: 'Verify admin can create awareness check with single question',
+        zephyrTestId: 'LS-3582',
+        storyId: 'Awareness Check Creation',
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
+
+      await contentPreviewPage.selectMustReadFromMenuOptions();
+
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
+
+      await awarenessCheckPage.enableAwarenessCheck();
+
+      await awarenessCheckPage.selectAudience('India');
+
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
+
+      await awarenessCheckPage.clickOnMakeMustReadButton();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
+    }
+  );
+
+  test(
+    'verify admin can create awareness check with multiple questions',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+    },
+    async ({ appManagersPage }) => {
+      tagTest(test.info(), {
+        description: 'Verify admin can create awareness check with multiple questions',
+        zephyrTestId: 'LS-3249',
+        storyId: 'Awareness Check Creation',
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
+
+      await contentPreviewPage.selectMustReadFromMenuOptions();
+
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
+
+      await awarenessCheckPage.enableAwarenessCheck();
+
+      await awarenessCheckPage.selectAudience('India');
+
+      await awarenessCheckPage.enterAwarenessQuestions(EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE);
+
+      await awarenessCheckPage.clickOnMakeMustReadButton();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE[0].question
+      );
+    }
+  );
+
+  test(
+    'verify admin can edit awareness check question',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+    },
+    async ({ appManagersPage }) => {
+      tagTest(test.info(), {
+        description: 'Verify admin can create awareness check with single question',
+        zephyrTestId: 'LS-4951',
+        storyId: 'Awareness Check Creation',
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
+
+      await contentPreviewPage.selectMustReadFromMenuOptions();
+
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
+
+      await awarenessCheckPage.enableAwarenessCheck();
+
+      await awarenessCheckPage.selectAudience('India');
+
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
+
+      await awarenessCheckPage.clickOnMakeMustReadButton();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
+
+      await contentPreviewPage.closeSurveyPrompt();
+
+      await awarenessCheckPage.clickOnAwarenessThreeDots();
+
+      await awarenessCheckPage.clickOnEditAwarenessCheck();
+
+      await awarenessCheckPage.editAwarenessQuestions([
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE,
+      ]);
+
+      await awarenessCheckPage.updateAwarenessCheckButton.click();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE.question
+      );
+    }
+  );
+
+  test(
+    'verify admin can remove awareness check question',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+    },
+    async ({ appManagersPage }) => {
+      tagTest(test.info(), {
+        description: 'Verify admin can create awareness check with single question',
+        zephyrTestId: 'LS-4952',
+        storyId: 'Awareness Check Creation',
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
+
+      await contentPreviewPage.selectMustReadFromMenuOptions();
+
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
+
+      await awarenessCheckPage.enableAwarenessCheck();
+
+      await awarenessCheckPage.selectAudience('India');
+
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
+
+      await awarenessCheckPage.clickOnMakeMustReadButton();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
+
+      await contentPreviewPage.closeSurveyPrompt();
+
+      await awarenessCheckPage.clickOnAwarenessThreeDots();
+
+      await awarenessCheckPage.clickOnRemoveAwarenessCheck();
+
+      await awarenessCheckPage.removeAwarenessCheck();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsRemoved(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
+    }
+  );
+});

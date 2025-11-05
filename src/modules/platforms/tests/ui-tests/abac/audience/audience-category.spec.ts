@@ -301,11 +301,14 @@ test.describe('audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Verify cancel button behavior
-      await audiencePage.verifyCategoryCancelButtonBehavior();
+      await audiencePage.verifyEditCategoryCancelButtonBehavior(testCategoryName);
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
 
+      // Reload page to ensure clean state for next test
+      await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
+
       // Verify close button behavior
-      await audiencePage.verifyCategoryCloseButtonBehavior();
+      await audiencePage.verifyEditCategoryCloseButtonBehavior(testCategoryName);
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
     }
   );

@@ -4,21 +4,27 @@ export const PAGE_ENDPOINTS = {
   CHATS_PAGE: '/chat/conversations',
   AUDIO_VIDEO_CALL_PAGE: '/call',
   FEATURED_SITES_PAGE: '/sites/featured',
+  MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
+  SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
+  RECOGNITION_HUB: '/recognition',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
+  CONTENT_SITES: '/v1/content/sites',
+  CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
+  IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
@@ -36,7 +42,10 @@ export const PAGE_ENDPOINTS = {
   getAlbumCreationPage: (siteId: string) => `/site/${siteId}/album/add`,
   getEventCreationPage: (siteId: string) => `/site/${siteId}/event/add`,
   getPageCreationPage: (siteId: string) => `/site/${siteId}/page/add`,
+  getEditPage: (siteId: string, contentId: string) => `/site/${siteId}/page/${contentId}/edit`,
   getFeedPage: (feedId: string) => `/feed/${feedId}`,
+  getTopicDetailsPage: (topicId: string) => `/topic/${topicId}`,
+  getProfileScreenPage: (peopleId: string) => `/people/${peopleId}`,
   APPLICATION_SETTINGS: 'manage/app/setup/general',
   GOVERNANCE_SCREEN: 'manage/app/setup/governance',
   MANAGE_TOPICS_SCREEN: 'manage/topics',
@@ -45,8 +54,10 @@ export const PAGE_ENDPOINTS = {
   MANAGE_FEATURE: 'manage-features',
   MANAGE_CONTENT: 'manage/content',
   MANAGE_CONTENT_APPLY_API: '/manage',
+  MANAGE_CONTENT_STATUS_API: '/manage/content/status',
   MANAGE_CONTENT_MOVE_API: '/v1/page',
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
+  CONTENT_PAGE_UPDATE_API: 'action=update',
 
   MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
@@ -65,13 +76,25 @@ export const PAGE_ENDPOINTS = {
   DOMAIN_NAMES_PAGE: '/manage/app/integrations/domains',
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
+  SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  SERVICE_NOW_TICKETS_PAGE: '/servicenow',
+  USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
+  ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
   //analytics pages
-  ANALYTICS_PAGE: '/analytics-landing',
-  APP_ANALYTICS_PAGE: '/analytics',
+  ANALYTICS_LANDING_PAGE: '/analytics-landing',
+  APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
   SOCIAL_CAMPAIGNS_PAGE: '/campaigns/latest',
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
+  SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
+  APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  USER_SYNCING: '/manage/app/people/user-syncing',
+
+  //Polls settings page
+  POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
+  //Poll listening page
+  POLLS_LISTING_PAGE: '/polls',
 };

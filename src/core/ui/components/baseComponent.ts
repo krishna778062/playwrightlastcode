@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 
@@ -18,5 +18,11 @@ export class BaseComponent extends BaseActionUtil {
   // Components don't have pages to load, so provide a no-op implementation
   async verifyThePageIsLoaded(): Promise<void> {
     // No-op for components - they don't have pages to verify
+  }
+
+  async scrollToComponent(): Promise<void> {
+    await test.step('Scroll to component', async () => {
+      await this.rootLocator.scrollIntoViewIfNeeded();
+    });
   }
 }

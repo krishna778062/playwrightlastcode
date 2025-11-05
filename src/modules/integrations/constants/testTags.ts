@@ -19,6 +19,15 @@ export enum IntegrationsSuiteTags {
   CUSTOM_APP_TILES = '@customAppTiles',
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
+  ASANA = '@asanaAppTiles',
+  SERVICENOW = '@serviceNow',
+  CONFLUENCE = '@confluence',
+  GREENHOUSE = '@greenhouseAppTiles',
+  RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  UKG_SYNCING = '@ukgSync',
+  WORKDAY = '@workdayAppTiles',
+  HOTJAR = '@hotjar',
+  WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
 }
 
 export enum IntegrationsFeatureTags {
@@ -28,6 +37,10 @@ export enum IntegrationsFeatureTags {
   EVENT_SYNC = '@EventSync',
   GOOGLE_CALENDAR_EVENTS_SYNC = '@google-calendar-eventsync',
   OUTLOOK_CALENDAR_EVENTS_SYNC = '@outlook-calendar-eventsync',
+  CONFLUENCE = '@confluence',
+  RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
+  HOTJAR = '@hotjar',
+  WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
 }
 
 export const TEST_TAGS = {
@@ -49,16 +62,26 @@ export const TEST_TAGS = {
   UKG_WFM: IntegrationsSuiteTags.UKG_WFM,
   UKG_PRO: IntegrationsSuiteTags.UKG_PRO,
   GOOGLE_CALENDAR_APPTILES: IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES,
-  OUTLOOK_CALENDAR_APPTILES: IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES,
   DOCUSIGN: IntegrationsSuiteTags.DOCUSIGN,
   MONDAY_DOT_COM: IntegrationsSuiteTags.MONDAY_DOT_COM,
   DOCEBO: IntegrationsSuiteTags.DOCEBO,
   CUSTOM_APP_TILES: IntegrationsSuiteTags.CUSTOM_APP_TILES,
   SHOW_MORE: IntegrationsSuiteTags.SHOW_MORE,
   PERSONALIZATION: IntegrationsSuiteTags.PERSONALIZATION,
+  ASANA: IntegrationsSuiteTags.ASANA,
+  SERVICENOW: IntegrationsSuiteTags.SERVICENOW,
+  GREENHOUSE: IntegrationsSuiteTags.GREENHOUSE,
+  CONFLUENCE: IntegrationsSuiteTags.CONFLUENCE,
+  RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+  UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
+  WORKDAY: IntegrationsSuiteTags.WORKDAY,
+  HOTJAR: IntegrationsSuiteTags.HOTJAR,
+  WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  PEOPLE_TAB = '@people',
+  UKG_SYNCING = '@ukg-syncing',
 }

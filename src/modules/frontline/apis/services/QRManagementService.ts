@@ -12,7 +12,7 @@ export class QRManagementService implements IQRManagementOperations {
   ) {
     this.httpClient = new HttpClient(context, baseUrl);
   }
-  deleteQRByName(qrName: string): Promise<void> {
+  deleteQRByName(_qrName: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
   async getListOfQRCodes(pageSize: number = 16): Promise<{ count: number; qrCodes: any[] }> {
@@ -28,10 +28,10 @@ export class QRManagementService implements IQRManagementOperations {
     });
     return result;
   }
-  isQRCodeExists(qrName: string): Promise<boolean> {
+  isQRCodeExists(_qrName: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  async createQR(qrType: 'AppPromotion' | 'Content', qrName: string, qrDescription: string): Promise<void> {
+  async createQR(qrType: 'AppPromotion' | 'Content', qrName: string, qrDescription: string): Promise<string> {
     let qrTypeID: string = '';
     if (qrType === 'AppPromotion') {
       qrTypeID = await this.getAppPromotionQRId();
@@ -49,6 +49,7 @@ export class QRManagementService implements IQRManagementOperations {
     // Validate that qrTypeID is not empty before proceeding
     if (!(!qrTypeID || qrTypeID.trim() === '')) {
       await this.createQRUsingAPI(qrTypeID, qrName, qrDescription);
+      return qrTypeID; // Return the QR code ID
     } else {
       throw new Error(`Failed to get QR Type ID for QR type: ${qrType}. QR Type ID cannot be empty.`);
     }

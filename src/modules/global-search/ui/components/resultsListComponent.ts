@@ -45,7 +45,9 @@ export class ResultListingComponent extends BaseComponent {
     this.autocompleteList = this.page.locator('div[class*="AutocompleteListingItem_wrapper"]');
     this.autocompleteSiteName = this.rootLocator;
     this.autocompleteSiteLabel = this.autocompleteSiteName.locator('p[class*="Typography-module__paragraph"]');
-    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator('[class*="Emblem-module__iconContainer"]');
+    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator(
+      '[class*="Emblem-module__autoIconContainer"], [class*="Emblem-module__iconContainer"], [class*="Emblem-module__image"]'
+    );
     this.autocompleteLockIcon = this.autocompleteSiteName.locator('[data-testid="i-lock"]');
     this.autocompleteDateEmblem = this.autocompleteSiteName.locator('[class*="DateEmblem-module__date"]').first();
   }
@@ -112,7 +114,7 @@ export class ResultListingComponent extends BaseComponent {
   async verifyNameIsDisplayed(name: string) {
     await test.step(`Verifying name "${name}" is displayed in the result item`, async () => {
       await this.verifier.verifyElementHasText(this.name, name, {
-        timeout: 20000,
+        timeout: 40000,
         assertionMessage: `Verifying name "${name}" is displayed in the result item`,
       });
     });

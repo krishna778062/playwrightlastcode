@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { ProfileDropdownComponent } from './profileDropdownComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
@@ -22,8 +23,9 @@ export class TopNavBarComponent extends BaseComponent {
   readonly notificationsButton: Locator;
 
   //profile settings section
+  readonly viewProfileButton: Locator;
   readonly profileSettingsButton: Locator;
-
+  readonly xButtonToClearGlobalSearchBar: Locator;
   constructor(
     page: Page,
     readonly isNewUxEnabled = true
@@ -46,11 +48,13 @@ export class TopNavBarComponent extends BaseComponent {
     this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
 
     //search section
-    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
+    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]').first();
     this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
+    this.viewProfileButton = this.page.getByLabel('View profile');
+    this.xButtonToClearGlobalSearchBar = this.page.getByRole('button', { name: 'Clear' });
   }
 
   /**
@@ -74,10 +78,25 @@ export class TopNavBarComponent extends BaseComponent {
       await this.typeInElement(this.globalSearchInputBox, searchTerm, { timeout: 80_000 });
     });
   }
+  async clickOnXButtonToClearGlobalSearchBarInput(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `topnavbar: clicking x button to clear global search bar input`, async () => {
+      await this.clickOnElement(this.xButtonToClearGlobalSearchBar);
+    });
+  }
 
   async clickSearchButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `topnavbar: clicking search button`, async () => {
-      await this.clickOnElement(this.globalSearchButton);
+      const globalSearchResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.globalSearchButton, { delay: 2_000, timeout: 30_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.search.enterprise) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 40_000,
+        }
+      );
+      return globalSearchResponse;
     });
   }
 

@@ -1,16 +1,33 @@
 import { Page, test } from '@playwright/test';
 
+import {
+  CreateQuestionComponent,
+  QuestionOptions,
+  QuestionResult,
+} from '@content/ui/components/createQuestionComponent';
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
-  checkCommentOption: () => Promise<void>;
+  verifyCommentOptionIsNotVisible: () => Promise<void>;
+  unpublishingTheContent: () => Promise<void>;
+  publishingTheContent: () => Promise<void>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
+  clickShareThoughtsButton: () => Promise<void>;
+  clickQuestionButton: () => Promise<void>;
+  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
+  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  clickOnOptionMenuButton: () => Promise<void>;
+  clickOnMustReadButton: () => Promise<void>;
+  clickOnMustReadModalCancelButton: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -18,18 +35,26 @@ export interface IContentPreviewPageAssertions {
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
   verifyContentHasSubmitForApprovalButton: () => Promise<void>;
+  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
+  verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
+  verifyUnpublishedContentToastMessage: (toastMessage: string) => Promise<void>;
+  verifyCommentOptionIsNotVisible: () => Promise<void>;
+  verifyCommentOptionIsVisible: () => Promise<void>;
+  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyMustReadModalIsNotVisible: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
   // Additional locators for promotion and verification
   readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
-
+  readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
   // Action locators
   readonly sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
   readonly closeModalButton = this.page.getByTestId('close-modal-button');
   readonly versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
-  readonly optionMenuDropdown = this.page.getByTestId('option-menu-dropdown');
+  readonly optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
   readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
   readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
   readonly contentStatus = (status: string) =>
@@ -44,14 +69,22 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly rejectButton = this.page.locator('span:has-text("Reject")');
   readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
   readonly submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
-
-  // Assertion locators
   readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
   readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
+  readonly ellipsisButton = this.page.locator('button[aria-label="Category option"]').first();
+  readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
+  readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
+  readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
+  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
+  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
   private contentDetailsComponent: ContentDetailsComponent;
+  private createFeedPostComponent: CreateFeedPostComponent;
+  private listFeedComponent: ListFeedComponent;
+  private createQuestionComponent: CreateQuestionComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
@@ -60,6 +93,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     );
     this.promotePageModal = new PromotePageModal(page);
     this.contentDetailsComponent = new ContentDetailsComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.listFeedComponent = new ListFeedComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 
   // Actions
@@ -162,9 +199,116 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       });
     });
   }
-  async checkCommentOption(): Promise<void> {
+  async verifyCommentOptionIsNotVisible(): Promise<void> {
     await test.step('Checking comment option', async () => {
       await this.contentDetailsComponent.checkCommentOption.isHidden();
+    });
+  }
+
+  async verifyValidateOptionOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying validate option on content preview page', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.verifier.verifyTheElementIsVisible(this.checkValidateOption, {
+        assertionMessage: 'Validate option should be visible on content preview page',
+      });
+    });
+  }
+  async verifyingAlbumHeadingOnContentPreviewPage(): Promise<void> {
+    await test.step('Verifying album heading on content preview page', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.albumHeading, {
+        assertionMessage: 'Album heading should be visible on content preview page',
+      });
+    });
+  }
+  async unpublishingTheContent(): Promise<void> {
+    await test.step('Unpublishing the content', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.clickOnElement(this.unpublishButton);
+    });
+  }
+  async verifyUnpublishedContentToastMessage(toastMessage: string): Promise<void> {
+    await test.step('Verifying unpublished content toast message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(toastMessage), {
+        assertionMessage: `Unpublished content toast message "${toastMessage}" should be visible`,
+      });
+    });
+  }
+  async publishingTheContent(): Promise<void> {
+    await test.step('Publishing the content', async () => {
+      await this.clickOnElement(this.publishButton);
+    });
+  }
+  async verifyCommentOptionIsVisible(): Promise<void> {
+    await test.step('Checking comment option', async () => {
+      await this.contentDetailsComponent.checkCommentOption.isVisible();
+    });
+  }
+
+  async editPost(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText);
+  }
+
+  async waitForPostToBeVisible(expectedText: string): Promise<void> {
+    await this.listFeedComponent.waitForPostToBeVisible(expectedText);
+  }
+
+  /**
+   * Clicks the share thoughts button to open post editor
+   */
+  async clickShareThoughtsButton(): Promise<void> {
+    await test.step('Click on Share your thoughts button', async () => {
+      await this.clickOnElement(this.shareThoughtsButton);
+    });
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await this.createFeedPostComponent.clickQuestionButton();
+  }
+
+  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
+    return this.createQuestionComponent.createAndPostQuestion(options);
+  }
+
+  async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
+    await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
+    await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  /**
+   * Clicks on the Must Read button to open the Must Read modal
+   */
+  async clickOnMustReadButton(): Promise<void> {
+    await test.step('Click on Must Read button', async () => {
+      await this.clickOnElement(this.mustReadButton);
+    });
+  }
+
+  /**
+   * Clicks on the Cancel button in the Must Read modal
+   */
+  async clickOnMustReadModalCancelButton(): Promise<void> {
+    await test.step('Click on Must Read modal cancel button', async () => {
+      await this.clickOnElement(this.mustReadModalCancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the Must Read modal is not visible
+   */
+  async verifyMustReadModalIsNotVisible(): Promise<void> {
+    await test.step('Verify Must Read modal is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mustReadModal, {
+        assertionMessage: 'Must Read modal should not be visible',
+      });
+    });
+  }
+
+  async clickOnOptionMenuButton(): Promise<void> {
+    await test.step('Click on Option menu button', async () => {
+      await this.clickOnElement(this.optionMenuDropdown);
     });
   }
 }

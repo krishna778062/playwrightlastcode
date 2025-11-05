@@ -16,6 +16,7 @@ import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
@@ -56,13 +57,38 @@ export interface IFeedActions {
   addReplyToPost: (replyText: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
-  selectPostsToMe: () => Promise<void>;
-  selectPostDate: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
   clickAskQuestionButton: () => Promise<string>;
   clickQuestionButton: () => Promise<void>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  clickOnShowOption: (optionValue: string) => Promise<void>;
+  clickOnSortByOption: (optionValue: string) => Promise<void>;
+  selectShareOptionAsSiteFeed: () => Promise<void>;
+  searchForSiteName: (siteName: string) => Promise<void>;
+  enterFeedPostText: (text: string) => Promise<void>;
+  clickBrowseFilesButton: () => Promise<void>;
+  searchForFileInLibrary: (fileName: string) => Promise<void>;
+  selectFileFromLibrary: (fileName: string) => Promise<void>;
+  clickAttachButton: () => Promise<void>;
+  clickPostButton: () => Promise<void>;
+  clickOnCommentIcon: () => Promise<void>;
+  clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickEditOption: () => Promise<void>;
+  createPost: (text: string) => Promise<void>;
+  updatePostText: (text: string) => Promise<void>;
+  removeAttachedFile: (index?: number) => Promise<void>;
+  clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
+  applyFormattingAndEnterText: (
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ) => Promise<void>;
+  addLink: (linkText: string, linkUrl: string) => Promise<void>;
+  selectEmoji: (emojiIndex?: number) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -83,6 +109,19 @@ export interface IFeedAssertions {
   verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
+  verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyNoResultMessage: () => Promise<void>;
+  verifyFileIsAttached: (fileName: string) => Promise<void>;
+  verifyQuestionButtonIsVisible: () => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
+  verifyAttachedFileCount: (count: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -90,7 +129,16 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
+  private shareSocialCampaignComponent: ShareComponent;
   readonly shareThoughtsButton: Locator;
+  readonly feedFilterSelect: Locator;
+  readonly optionLocator: Locator;
+  readonly sortByLocator: Locator;
+  readonly sortByFilter: Locator;
+  readonly celebrityFeedBlocks: Locator;
+  readonly newHireFeedBlocks: Locator;
+  readonly commentIcon: Locator;
+  readonly commentOptionsMenu: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -98,8 +146,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
+    this.shareSocialCampaignComponent = new ShareComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.sortByFilter = this.page.locator('[id="feed_sort"]');
+    this.sortByLocator = this.page.getByLabel('Sort by');
+    // Feed filter dropdown
+    this.feedFilterSelect = this.page.locator('select[id="feed_filter"]');
+    this.optionLocator = this.page.getByLabel('Show', { exact: true });
+    this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
+    this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
+    this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
+    this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
   }
 
   get actions(): IFeedActions {
@@ -329,13 +387,39 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifySortByRecentActivity();
   }
 
-  async selectPostsToMe(): Promise<void> {
-    await this.listFeedComponent.selectPostsToMe();
+  async clickOnShowOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.feedFilterSelect, {
+        assertionMessage: 'Feed filter dropdown should be visible',
+      });
+
+      // Click on the select element to open dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+
+      // Find and click the specific option
+      await this.optionLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.feedFilterSelect);
+    });
   }
 
-  async selectPostDate(): Promise<void> {
-    await this.listFeedComponent.selectPostDate();
+  async clickOnSortByOption(optionValue: string): Promise<void> {
+    await test.step(`Click on show option: ${optionValue}`, async () => {
+      // Wait for the select element to be present
+      await this.verifier.verifyTheElementIsVisible(this.sortByFilter, {
+        assertionMessage: 'Sort by dropdown should be visible',
+      });
+      await this.clickOnElement(this.sortByFilter);
+
+      await this.sortByLocator.selectOption(`${optionValue}`);
+
+      // Click on select again to close dropdown
+      await this.clickOnElement(this.sortByFilter);
+    });
   }
+
   /**
    * Clicks the share thoughts button to open post editor
    */
@@ -380,5 +464,211 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async verifyCampaignLinkNotDisplayed(linkText: string, description: string): Promise<void> {
+    await this.listFeedComponent.verifyCampaignLinkNotDisplayed(linkText, description);
+  }
+
+  async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
+    await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
+  }
+
+  async verifySocialCampaignShareButtonIsVisible(description: string): Promise<void> {
+    await this.listFeedComponent.verifySocialCampaignShareButtonIsVisible(description);
+  }
+
+  /**
+   * Clicks on a specific option in the feed filter dropdown
+   * @param optionValue - The text value of the option to select
+   */
+  /**
+   * Selects "site feed" option from share dropdown in post creation
+   */
+  async selectShareOptionAsSiteFeed(): Promise<void> {
+    await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
+  }
+
+  async verifyQuestionButtonIsNotVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+  }
+
+  /**
+   * Searches for a site name without selecting it (to verify access)
+   * @param siteName - The site name to search for
+   */
+  async searchForSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForSiteName(siteName);
+  }
+
+  /**
+   * Verifies "No results" message is displayed when searching for inaccessible sites
+   */
+  async verifyNoResultMessage(): Promise<void> {
+    await this.createFeedPostComponent.verifyNoResultMessage();
+  }
+
+  /**
+   * Enters text into the post editor
+   * @param text - The text to enter in the post
+   */
+  async enterFeedPostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  /**
+   * Clicks the "browse files" button to open file library
+   */
+  async clickBrowseFilesButton(): Promise<void> {
+    await this.createFeedPostComponent.clickBrowseFilesButton();
+  }
+
+  /**
+   * Searches for a file in the file library
+   * @param fileName - The name of the file to search for (e.g., ".mp4")
+   */
+  async searchForFileInLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForFileInLibrary(fileName);
+  }
+
+  /**
+   * Selects a file from the file library by clicking its checkbox
+   * @param fileName - The name of the file to select
+   */
+  async selectFileFromLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.selectFileFromLibrary(fileName);
+  }
+
+  /**
+   * Clicks the "Attach" button to attach selected files from library
+   */
+  async clickAttachButton(): Promise<void> {
+    await this.createFeedPostComponent.clickAttachButton();
+  }
+
+  /**
+   * Verifies that a file is attached to the post
+   * @param fileName - The name of the file to verify
+   */
+  async verifyFileIsAttached(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFileIsAttached(fileName);
+  }
+
+  /**
+   * Clicks the Post button to publish the feed post
+   */
+  async clickPostButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostButton();
+  }
+
+  /**
+   * Verifies that the Question button is visible in the post editor
+   */
+  async verifyQuestionButtonIsVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
+  }
+
+  async verifySmartFeedBlocksAreNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.celebrityFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
+      assertionMessage: 'Smart feed blocks should not be visible',
+    });
+  }
+
+  async clickOnCommentIcon(): Promise<void> {
+    await test.step('Click on comment icon', async () => {
+      await this.clickOnElement(this.commentIcon);
+    });
+  }
+
+  async clickOnCommentOptionsMenu(commentText: string): Promise<void> {
+    await test.step(`Click on comment options menu for: ${commentText}`, async () => {
+      const commentElement = this.page.locator(`text=${commentText}`).first();
+      const optionsButton = commentElement.locator('..').getByRole('button', { name: 'Options' });
+      await this.clickOnElement(optionsButton);
+    });
+  }
+
+  async verifyCommentOptionsMenuVisible(expectedOptions: string[]): Promise<void> {
+    await test.step(`Verify comment options menu contains: ${expectedOptions.join(', ')}`, async () => {
+      for (const option of expectedOptions) {
+        await this.verifier.verifyTheElementIsVisible(this.commentOptionsMenu.getByRole('button', { name: option }), {
+          assertionMessage: `Comment option "${option}" should be visible`,
+        });
+      }
+    });
+  }
+
+  async verifyAttachedFileCount(count: number): Promise<void> {
+    await this.createFeedPostComponent.verifyAttachedFileCount(count);
+  }
+
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await this.createFeedPostComponent.verifyUpdateButtonDisabled();
+  }
+
+  async openPostOptionsMenu(postText: string): Promise<void> {
+    await this.createFeedPostComponent.openPostOptionsMenu(postText);
+  }
+
+  async clickEditOption(): Promise<void> {
+    await this.createFeedPostComponent.clickEditOption();
+  }
+
+  async createPost(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  async updatePostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.updatePostText(text);
+  }
+
+  async removeAttachedFile(index: number = 0): Promise<void> {
+    await this.createFeedPostComponent.removeAttachedFile(index);
+  }
+
+  async clickUpdateButton(): Promise<void> {
+    await this.createFeedPostComponent.clickUpdateButton();
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await this.createFeedPostComponent.addFileToPost(filePath);
+  }
+
+  async waitForFileToAppear(): Promise<void> {
+    await this.createFeedPostComponent.waitForFileToAppear();
+  }
+
+  async uploadFiles(files: string[]): Promise<void> {
+    await this.createFeedPostComponent.uploadFiles(files);
+  }
+
+  async applyFormattingAndEnterText(
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.applyFormattingAndEnterText(formatType, text);
+  }
+
+  async addLink(linkText: string, linkUrl: string): Promise<void> {
+    await this.createFeedPostComponent.addLink(linkText, linkUrl);
+  }
+
+  async selectEmoji(emojiIndex: number = 1): Promise<void> {
+    await this.createFeedPostComponent.selectEmoji(emojiIndex);
   }
 }

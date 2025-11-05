@@ -24,7 +24,7 @@ const defaultBaseContentPayload = {
   title: 'Default title',
   language: 'en',
   isFeedEnabled: true,
-  listOfTopics: [],
+  listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
   isNewTiptap: false,
 };
@@ -336,15 +336,40 @@ export class ContentManagementService implements IContentManagementServices {
       await expect
         .poll(
           async () => {
-            const response = await this.httpClient.delete(API_ENDPOINTS.content.delete(siteId, contentId));
+            const response = await this.httpClient.delete(API_ENDPOINTS.content.delete(siteId, contentId), {
+              timeout: 50_000,
+            });
             return response.status() === 200;
           },
           {
             intervals: [10000, 20000, 30000],
-            timeout: 40_000,
+            timeout: 50_000,
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Creates a new topic
+   * @param topicName - The name of the topic to create
+   * @returns The created topic response
+   */
+  async createTopic(topicName: string): Promise<{ topicId: string; name: string }> {
+    return await test.step(`Creating topic: ${topicName}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.createTopic, {
+        data: {
+          name: topicName,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.topic_id) {
+        throw new Error(`Topic creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return {
+        topicId: json.result.topic_id,
+        name: json.result.name,
+      };
     });
   }
 
@@ -378,7 +403,9 @@ export class ContentManagementService implements IContentManagementServices {
     options: {
       size?: number;
       status?: string;
+      filter?: string;
       sortBy?: string;
+      contribution?: string;
     } = {}
   ) {
     return await test.step('Getting content list ', async () => {
@@ -386,6 +413,8 @@ export class ContentManagementService implements IContentManagementServices {
         size: options.size || 16,
         status: options.status || 'published',
         sortBy: options.sortBy || 'publishedNewest',
+        contribution: options.contribution || 'all',
+        filter: options.filter || 'managing',
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

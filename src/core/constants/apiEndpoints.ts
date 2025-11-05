@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     roles: {
       list: '/v1/identity/accounts/roles/list',
     },
+    tiles: {
+      create: '/v1/content/tiles',
+    },
     groups: {
       create: '/v1/chat/conversations',
       addMembers: `/v1/chat/members`,
@@ -55,10 +58,14 @@ export const API_ENDPOINTS = {
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
+    carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    deleteCarouselItem: (siteId: string, carouselItemId: string) =>
+      `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
 
   content: {
@@ -70,7 +77,9 @@ export const API_ENDPOINTS = {
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    createTopic: '/v1/content/topics',
     contentListInSite: '/v1/content/sites/content/list',
+    onboarding: '/onboarding',
   },
 
   fileUpload: {
@@ -98,12 +107,18 @@ export const API_ENDPOINTS = {
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    shareToFeed: (campaignId: string, sharedWith: string) =>
+      `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
+  },
+  tile: {
+    create: '/v1/content/tiles',
+    siteCreate: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -130,6 +145,8 @@ export const API_ENDPOINTS = {
     contentTilesList: '/v1/content/tiles/list',
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+    calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
+    integrationDomains: '/v1/account/integration-domains',
   },
 } as const;
 
