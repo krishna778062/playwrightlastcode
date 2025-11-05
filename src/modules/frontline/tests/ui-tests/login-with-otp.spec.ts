@@ -320,6 +320,15 @@ test.describe(
     });
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteMobileOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+    test.afterAll(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
       await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
         userDetails.endUserEmpId,
@@ -390,7 +399,16 @@ test.describe(
         throw error;
       }
     });
-    test.afterEach(async ({ page, lwoUserManagementService }) => {
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteMobileOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+    test.afterAll(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
       await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
