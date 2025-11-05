@@ -2,8 +2,8 @@ import { APIRequestContext } from '@playwright/test';
 import { test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
+import { PLATFORM_API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
 
 /**
  * Service for managing application configuration settings
@@ -103,7 +103,7 @@ export class AppConfigurationService {
       });
 
       const response = await this.httpClient.post(
-        `${API_ENDPOINTS.identity.configureFields}?operation=user_sync_fields`,
+        `${PLATFORM_API_ENDPOINTS.identity.configureFields}?operation=user_sync_fields`,
         {
           data: updatedAllFields,
           headers: {
@@ -129,7 +129,7 @@ export class AppConfigurationService {
     const stepDescription = description || `Get people field configuration`;
 
     return await test.step(stepDescription, async () => {
-      const response = await this.httpClient.get(API_ENDPOINTS.identity.configureFields);
+      const response = await this.httpClient.get(PLATFORM_API_ENDPOINTS.identity.configureFields);
 
       if (!response.ok()) {
         throw new Error(`Failed to get people field configuration: ${response.status()} ${response.statusText()}`);
