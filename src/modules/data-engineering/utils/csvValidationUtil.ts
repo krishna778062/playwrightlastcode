@@ -26,6 +26,8 @@ export interface CSVValidationConfig {
   expectedDBData: DBRecord[];
   metricName: string;
   selectedPeriod: PeriodFilterOption;
+  customStartDate?: string; // Required if selectedPeriod is CUSTOM
+  customEndDate?: string; // Optional, defaults to current date if not provided
   expectedHeaders: string[];
   // Transformation-based configuration
   transformations: {
@@ -182,7 +184,11 @@ export class CSVValidationUtil {
 
     try {
       //step1: generate expected date range
-      const expectedDateRange = DateHelper.generateExpectedCSVDateRange(selectedPeriod as any);
+      const expectedDateRange = DateHelper.generateExpectedCSVDateRange(
+        selectedPeriod as any,
+        config.customStartDate,
+        config.customEndDate
+      );
       console.log(`Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
 
       const metadataValidation = await CSVUtils.validateReportMetadata(metricName, expectedDateRange, csvPath);
@@ -218,7 +224,7 @@ export class CSVValidationUtil {
       const reportData = await CSVUtils.parseReportCSV(csvPath);
       result.summary.csvRecordCount = reportData.data.length;
 
-      //step4.5: transform CSV data to DB format
+      //step5: transform CSV data to DB format
       console.log('Info:Transforming CSV data to DB format...');
       const transformedCSVData = this.transformCSVToDBFormat(reportData.data, transformations);
       console.log(`Info: Transformed ${transformedCSVData.length} CSV records to DB format`);

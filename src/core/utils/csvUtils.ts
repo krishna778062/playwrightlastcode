@@ -70,7 +70,41 @@ export class CSVUtils {
   }
 
   /**
-   * Get the headers from a report CSV file (Line 4)
+   * Find the header line index, skipping filter metadata lines
+   * @param lines - Array of CSV lines
+   * @param startIndex - Index to start searching from (default: 3 for line 4)
+   * @returns Index of the header line
+   */
+  private static findHeaderLineIndex(lines: string[], startIndex = 3): number {
+    const filterMetadataPatterns = [
+      '"Department:',
+      '"Location:',
+      '"Segment Name:',
+      '"User Category:',
+      '"Company Name:',
+      '"Period:',
+    ];
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line) continue;
+
+      // Skip filter metadata lines
+      if (filterMetadataPatterns.some(pattern => line.startsWith(pattern))) {
+        continue;
+      }
+
+      // Header line contains commas
+      if (line.includes(',')) {
+        return i;
+      }
+    }
+
+    throw new Error(`Could not find header line in CSV file after line ${startIndex + 1}`);
+  }
+
+  /**
+   * Get the headers from a report CSV file (after metadata and filter lines)
    * @param csvPath - Path to the CSV file
    * @returns Array of header strings
    */
@@ -81,12 +115,10 @@ export class CSVUtils {
       throw new Error(`CSV file has insufficient lines - expected at least 4 lines, got ${lines.length}`);
     }
 
-    const headerLine = lines[3]; // Line 4 (0-indexed)
-    if (!headerLine?.includes(',')) {
-      throw new Error(`Line 4 does not contain valid headers: "${headerLine}"`);
-    }
+    const headerLineIndex = this.findHeaderLineIndex(lines);
+    const headerLine = lines[headerLineIndex];
 
-    console.log(`Debug: Headers found at line 4: [${headerLine}]`);
+    console.log(`Debug: Headers found at line ${headerLineIndex + 1}: [${headerLine}]`);
     console.log(
       `Debug: Headers split: [${headerLine
         .split(',')
@@ -97,7 +129,7 @@ export class CSVUtils {
   }
 
   /**
-   * Get the data records from a report CSV file (Lines 5+)
+   * Get the data records from a report CSV file (after headers)
    * @param csvPath - Path to the CSV file
    * @returns Array of data records
    */
@@ -108,8 +140,11 @@ export class CSVUtils {
       return []; // No data records
     }
 
-    // Create CSV content starting from headers (Line 4)
-    const csvDataLines = lines.slice(3); // From line 4 onwards
+    // Find the header line index (accounting for filter metadata lines)
+    const headerLineIndex = this.findHeaderLineIndex(lines);
+
+    // Create CSV content starting from headers
+    const csvDataLines = lines.slice(headerLineIndex); // From header line onwards
     const csvDataContent = csvDataLines.join('\n');
 
     // Parse the data portion
@@ -169,7 +204,10 @@ export class CSVUtils {
     const headers = this.getHeadersFromReportCSV(csvPath);
     const data = this.getDataRecordsFromReportCSV(csvPath);
 
-    console.log(`Found headers at line 4: [${headers.join(', ')}]`);
+    // Find the actual header line index (accounting for filter metadata lines)
+    const headerLineIndex = this.findHeaderLineIndex(lines);
+
+    console.log(`Found headers at line ${headerLineIndex + 1}: [${headers.join(', ')}]`);
 
     return {
       metadata: {
@@ -177,7 +215,7 @@ export class CSVUtils {
         dateRange: metadata.dateRange,
         createdOn: metadata.createdOn,
         headers,
-        dataStartRow: 4, // Line 5 (0-indexed)
+        dataStartRow: headerLineIndex + 1, // Data starts after header line (1-indexed)
       },
       data,
     };
