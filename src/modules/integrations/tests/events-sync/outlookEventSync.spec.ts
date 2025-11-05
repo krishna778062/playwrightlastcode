@@ -271,7 +271,7 @@ test.describe(
           await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           category,
-          siteName: `Outlook Site Deactivation Test ${faker.string.alphanumeric({ length: 6 })}`,
+          siteName: `Outlook Deact Test ${faker.string.alphanumeric({ length: 6 })}`,
         });
 
         const siteId = dedicatedTestSite.siteId;

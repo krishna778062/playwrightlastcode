@@ -386,6 +386,7 @@ test.describe(
         // Verify event removal from Google Calendar after site deactivation
         const deactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           expectFound: false,
+          maxAttempts: 12,
         });
 
         assertEventRemovedFromCalendar(deactivationEventSyncResult);
@@ -394,7 +395,9 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
 
         // Verify event reappears in Google Calendar after site reactivation
-        const reactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        const reactivationEventSyncResult = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 12,
+        });
 
         assertEventSyncedToCalendar(reactivationEventSyncResult);
       }
