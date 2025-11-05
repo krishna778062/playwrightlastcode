@@ -219,6 +219,33 @@ export class TestDataGenerator {
       ...overrides,
     };
   }
+  /**
+   * Generates a user with only email as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only email
+   */
+  static generateUserWithEmpIdAndGivenEmail(
+    email: string,
+    overrides?: Partial<UserWithLicenseAndDepartment>
+  ): UserWithLicenseAndDepartment {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: email,
+      mobile: 0, // Default value for compatibility
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
 
   /**
    * Generates multiple random users

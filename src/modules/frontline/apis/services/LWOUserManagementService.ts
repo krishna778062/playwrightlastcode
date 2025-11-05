@@ -42,7 +42,7 @@ export class LWOUserManagementService {
     } else {
       payload = { loginWithOtpEnabled: true, loginWithOtpVerificationType: 'mandatory' };
     }
-    await test.step(`Create QR Using API`, async () => {
+    await test.step(`Set LWO Setting to`, async () => {
       const response = await this.httpClient.put(API_ENDPOINTS.appConfig.appConfig + '/app.security.lwo', {
         data: payload,
       });
