@@ -174,8 +174,8 @@ test.describe(
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       try {
-        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
         await lwoUserManagementService.setLWOSetting('mandatory');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
       } catch (error) {
         throw error;
       }
@@ -309,11 +309,11 @@ test.describe(
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       try {
+        await lwoUserManagementService.setLWOSetting('optional');
         await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
           'email',
           'employee_number',
         ]);
-        await lwoUserManagementService.setLWOSetting('optional');
       } catch (error) {
         throw error;
       }
