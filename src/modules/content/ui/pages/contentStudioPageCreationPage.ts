@@ -1,6 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { IPageCreationActions, IPageCreationAssertions, PageCreationPage } from './pageCreationPage';
+import { AddCoverImageComponent } from '@content/ui/components/addCoverImageComponent';
+import { IPageCreationActions, IPageCreationAssertions, PageCreationPage } from '@content/ui/pages/pageCreationPage';
 
 export interface IContentStudioPageCreationActions extends IPageCreationActions {
   clickAddCoverImageIcon: () => Promise<void>;
@@ -17,23 +18,15 @@ export class ContentStudioPageCreationPage
 {
   // Cover image modal locators
   readonly addCoverImageIcon: Locator;
-  readonly browseTab: Locator;
-  readonly urlTab: Locator;
-  readonly unsplashTab: Locator;
-  readonly activeTab: Locator;
   readonly coverTitleInput: Locator;
-  readonly tabsOptions: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => Locator;
+  readonly addCoverImageComponent: AddCoverImageComponent;
 
   constructor(page: Page, siteId?: string) {
     super(page, siteId);
     // Cover image modal locators
     this.addCoverImageIcon = page.getByRole('button', { name: 'Add cover image' });
-    this.browseTab = page.getByRole('tab', { name: 'Browse' });
-    this.urlTab = page.getByRole('tab', { name: 'URL' });
-    this.unsplashTab = page.getByRole('tab', { name: 'Unsplash' });
-    this.activeTab = page.locator('[role="tab"][aria-selected="true"]');
     this.coverTitleInput = page.locator("textarea[name='cover-title']");
-    this.tabsOptions = (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => page.getByRole('button', { name: tab });
+    this.addCoverImageComponent = new AddCoverImageComponent(page);
   }
 
   get actions(): IContentStudioPageCreationActions {
@@ -69,11 +62,6 @@ export class ContentStudioPageCreationPage
    * @param tab - The tab name to verify ('Upload', 'Browse', 'URL', or 'Unsplash')
    */
   async verifyCoverImageModalTabIsVisible(tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash'): Promise<void> {
-    await test.step(`Verify ${tab} tab is visible in cover image modal`, async () => {
-      const tabLocator = this.tabsOptions(tab);
-      await this.verifier.verifyTheElementIsVisible(tabLocator, {
-        assertionMessage: `${tab} tab should be visible`,
-      });
-    });
+    await this.addCoverImageComponent.verifyCoverImageModalTabIsVisible(tab);
   }
 }
