@@ -3,8 +3,10 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { FeedMode } from '@core/types/feedManagement.types';
 
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
   buildFeedTextJsonAndTextHtml,
+  buildFeedTextWithTopicMentions,
   FeedManagementService,
 } from '@/src/modules/content/apis/services/FeedManagementService';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
@@ -16,11 +18,13 @@ interface CreatedFeed {
 export class FeedManagementHelper {
   private feeds: CreatedFeed[] = [];
   readonly feedManagementService: FeedManagementService;
+  readonly contentManagementService: ContentManagementService;
   constructor(
     readonly appManagerApiContext: APIRequestContext,
     readonly baseUrl: string
   ) {
     this.feedManagementService = new FeedManagementService(appManagerApiContext, baseUrl);
+    this.contentManagementService = new ContentManagementService(appManagerApiContext, baseUrl);
   }
 
   /**
@@ -73,6 +77,7 @@ export class FeedManagementHelper {
           mimeType?: undefined;
           filePath?: undefined;
           options?: { waitForSearchIndex?: boolean };
+          listOfTopics?: string[];
         }
       | {
           scope: string;
@@ -85,13 +90,40 @@ export class FeedManagementHelper {
           mimeType: string;
           filePath: string; // Required when withAttachment is true
           options?: { waitForSearchIndex?: boolean };
+          listOfTopics?: string[];
         }
   ) {
     const stepMessage = params.withAttachment ? 'Creating a new feed with attachments' : 'Creating a new feed';
 
     return await test.step(stepMessage, async () => {
       const feedName = params.text || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Feed`;
-      const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(feedName);
+
+      // Build text with topic mentions if topics are provided
+      let textJson: string;
+      let textHtml: string;
+
+      if (params.listOfTopics && params.listOfTopics.length > 0) {
+        // Get topic IDs for proper mention formatting
+        const topicList = await this.contentManagementService.getTopicList();
+        const topicObjects = params.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find((t: { name: string }) => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+
+        const { textJson: topicTextJson, textHtml: topicTextHtml } = buildFeedTextWithTopicMentions(
+          feedName,
+          topicObjects
+        );
+        textJson = topicTextJson;
+        textHtml = topicTextHtml;
+      } else {
+        const { textJson: baseTextJson, textHtml: baseTextHtml } = buildFeedTextJsonAndTextHtml(feedName);
+        textJson = baseTextJson;
+        textHtml = baseTextHtml;
+      }
 
       // Use Playwright's polling mechanism for retry
       const response = await this.createFeedWithRetry(async () => {
