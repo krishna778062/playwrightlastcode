@@ -8,9 +8,9 @@ import {
 } from '@/src/core/types/siteManagement.types';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
   siteId: string;
@@ -1019,7 +1019,7 @@ export class SiteManagementHelper {
     return { siteId: createdSite.siteId, siteName: createdSite.siteName };
   }
 
-  async getSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+  async getSiteWithUserAsOwner(userId: string, accessType?: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
     const siteListResponse = await this.getListOfSites({ filter: 'active' });
     if (siteListResponse.result.listOfItems.length) {
       const memberListResponse = await this.siteManagementService.getSiteMembershipList(
