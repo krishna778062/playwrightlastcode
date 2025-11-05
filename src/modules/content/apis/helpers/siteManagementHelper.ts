@@ -1066,7 +1066,7 @@ export class SiteManagementHelper {
           console.log('memberListResponse', memberListResponse.result.listOfItems);
 
           // Check if all users are neither members nor owners
-          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.id);
+          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
           const allUsersNotMembers = userId.every(userId => !memberPeopleIds.includes(userId));
 
           if (allUsersNotMembers) {
@@ -1077,7 +1077,7 @@ export class SiteManagementHelper {
       // If no site found where all users are not members/owners, create a new site
       return await this.createSite({
         accessType: accessType,
-        waitForSearchIndex: true,
+        waitForSearchIndex: false, // Disable search indexing to avoid timeout issues
       });
     });
   }
