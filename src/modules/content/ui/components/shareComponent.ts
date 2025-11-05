@@ -2,19 +2,16 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
-export interface IShareSocialCampaignComponentActions {
+export interface IShareComponentActions {
   clickShareToFeedButton: () => Promise<void>;
   enterShareDescription: (description: string) => Promise<void>;
   enterSiteName: (siteName: string) => Promise<void>;
   clickShareButton: () => Promise<void>;
 }
 
-export interface IShareSocialCampaignComponentAssertions {}
+export interface IShareComponentAssertions {}
 
-export class ShareSocialCampaignComponent
-  extends BaseComponent
-  implements IShareSocialCampaignComponentActions, IShareSocialCampaignComponentAssertions
-{
+export class ShareComponent extends BaseComponent implements IShareComponentActions, IShareComponentAssertions {
   readonly shareToFeedButton!: Locator;
   readonly shareOptionDropdown!: Locator;
   readonly shareDescriptionInput!: Locator;
@@ -32,11 +29,11 @@ export class ShareSocialCampaignComponent
     this.enterSiteNameInput = page.locator('div:has-text("Select site") + div >> input');
   }
 
-  get actions(): IShareSocialCampaignComponentActions {
+  get actions(): IShareComponentActions {
     return this;
   }
 
-  get assertions(): IShareSocialCampaignComponentAssertions {
+  get assertions(): IShareComponentAssertions {
     return this;
   }
 
