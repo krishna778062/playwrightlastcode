@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
@@ -208,6 +208,22 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
+  getSiteNameLocator(siteName: string): Locator {
+    return this.page.getByText(siteName, { exact: true });
+  }
+  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
+    // Handle both single site name and array of site names
+    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
+
+    let index = 0;
+    while (index < namesArray.length) {
+      const siteName = namesArray[index];
+      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
+        assertionMessage: 'Site name should be displayed on manage site page',
+      });
+      index++;
+    }
+  }
   async verifyNoSitesFound(siteName: string): Promise<void> {
     const noSitesFound = this.siteList.filter({ hasText: siteName });
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
