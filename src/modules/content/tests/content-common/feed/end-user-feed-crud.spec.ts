@@ -7,7 +7,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -122,14 +121,17 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
       },
-      async ({ appManagerFixture, standardUserFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Test feed post creation, editing and deletion with file attachments',
           zephyrTestId: 'CONT-26611',
           storyId: 'CONT-26611',
         });
 
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(users.endUser.email);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(
+          users.endUser.email,
+          SITE_TYPES.PRIVATE
+        );
 
         const feedTestData = TestDataGenerator.generateFeed({
           scope: 'site',
@@ -165,7 +167,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26362'],
       },
-      async ({ appManagerFixture, standardUserFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify that application should not allow user to view the Private or unlisted site content comment using link',
@@ -173,12 +175,16 @@ test.describe(
           storyId: 'CONT-26362',
         });
 
-        const feedPage = new FeedPage(standardUserFixture.page);
-
         // Test for Private site
         await test.step('Verify access denied for Private site feed', async () => {
+          // Get user ID from email
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
           // Get private site with content
-          const privateSiteDetails = await appManagerFixture.siteManagementHelper.getPrivateOrUnlistedSiteWithContent(
+          const privateSiteDetails = await appManagerApiFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [endUserInfo.userId],
             SITE_TYPES.PRIVATE
           );
 
@@ -189,29 +195,35 @@ test.describe(
             waitForSearchIndex: false,
           });
 
-          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+          const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
           createdPostId = feedResponse.result.feedId;
 
-          // Get feed link
-          const feedLink = API_ENDPOINTS.feed.feedURL(createdPostId);
+          // Create feedPage object and navigate to the feed page
+          const feedPage = new FeedPage(standardUserFixture.page, createdPostId);
+          await test.step('Load feed page with standard user for private site feed', async () => {
+            await standardUserFixture.page.goto(feedPage.url);
+          });
 
-          // Try to access feed link with standard user
-          await standardUserFixture.page.goto(feedLink);
-
-          // Verify access denied page is visible
-          await feedPage.verifyAccessDeniedPageVisibility({
+          // Verify page not found page is visible
+          await feedPage.assertions.verifyPageNotFoundVisibility({
             stepInfo: 'Verify access denied page is shown for private site feed',
           });
 
           // Cleanup
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';
         });
 
         // Test for Unlisted site
         await test.step('Verify access denied for Unlisted site feed', async () => {
+          // Get user ID from email
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
           // Get unlisted site with content
-          const unlistedSiteDetails = await appManagerFixture.siteManagementHelper.getPrivateOrUnlistedSiteWithContent(
+          const unlistedSiteDetails = await appManagerApiFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [endUserInfo.userId],
             SITE_TYPES.UNLISTED
           );
 
@@ -222,22 +234,22 @@ test.describe(
             waitForSearchIndex: false,
           });
 
-          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+          const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
           createdPostId = feedResponse.result.feedId;
 
-          // Get feed link
-          const feedLink = API_ENDPOINTS.feed.feedURL(createdPostId);
+          // Create feedPage object and navigate to the feed page
+          const feedPage = new FeedPage(standardUserFixture.page, createdPostId);
+          await test.step('Load feed page with standard user for unlisted site feed', async () => {
+            await standardUserFixture.page.goto(feedPage.url);
+          });
 
-          // Try to access feed link with standard user
-          await standardUserFixture.page.goto(feedLink);
-
-          // Verify access denied page is visible
-          await feedPage.verifyAccessDeniedPageVisibility({
+          // Verify page not found page is visible
+          await feedPage.assertions.verifyPageNotFoundVisibility({
             stepInfo: 'Verify access denied page is shown for unlisted site feed',
           });
 
           // Cleanup
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';
         });
       }

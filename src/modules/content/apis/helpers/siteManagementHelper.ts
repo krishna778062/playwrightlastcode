@@ -1019,40 +1019,48 @@ export class SiteManagementHelper {
     return { siteId: createdSite.siteId, siteName: createdSite.siteName };
   }
 
-  async getSiteWithUserAsOwner(userId: string, accessType?: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
-    const siteListResponse = await this.getListOfSites({ filter: 'active' });
-    if (siteListResponse.result.listOfItems.length) {
-      const memberListResponse = await this.siteManagementService.getSiteMembershipList(
-        siteListResponse.result.listOfItems[0].siteId
-      );
-      if (
-        memberListResponse.result.listOfItems.find(
+  async getSiteWithUserAsOwner(userId: string, accessType: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+
+    if (activeSites.length) {
+      // Iterate through all active sites to find one where the user is an owner
+      for (const site of activeSites) {
+        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+        const isOwner = memberListResponse.result.listOfItems.find(
           (member: any) => member.peopleId === userId && member.isOwner === true
-        )
-      ) {
-        return {
-          siteId: memberListResponse.result.listOfItems[0].siteId,
-          siteName: memberListResponse.result.listOfItems[0].name,
-        };
-      } else {
-        return await this.createSiteWithUserAsOwner(userId);
+        );
+        if (isOwner) {
+          return {
+            siteId: site.siteId,
+            siteName: site.name,
+          };
+        }
       }
+      // If no site found where user is owner, create a new one
+      return await this.createSiteWithUserAsOwner(userId);
     } else {
       return await this.createSiteWithUserAsOwner(userId);
     }
   }
 
-  async getSiteInUserIsNotMemberOrOwner(userId: string[]): Promise<{ siteId: string; siteName: string }> {
+  async getSiteInUserIsNotMemberOrOwner(
+    userId: string[],
+    accessType: SITE_TYPES
+  ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: 'active' });
-      if (siteListResponse.result.listOfItems.length) {
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+      if (activeSites.length) {
         // Iterate through each site and check membership
-        for (const site of siteListResponse.result.listOfItems) {
+        for (const site of activeSites) {
           const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
 
+          console.log('memberListResponse', memberListResponse.result.listOfItems);
+
           // Check if all users are neither members nor owners
-          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
-          const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
+          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.id);
+          const allUsersNotMembers = userId.every(userId => !memberPeopleIds.includes(userId));
 
           if (allUsersNotMembers) {
             return { siteId: site.siteId, siteName: site.name };
@@ -1061,9 +1069,7 @@ export class SiteManagementHelper {
       }
       // If no site found where all users are not members/owners, create a new site
       return await this.createSite({
-        accessType: SITE_TYPES.PUBLIC,
-        siteName: `Site for ${userId.join(', ')}`,
-        category: { name: 'Public', categoryId: 'public' },
+        accessType: accessType,
         waitForSearchIndex: true,
       });
     });

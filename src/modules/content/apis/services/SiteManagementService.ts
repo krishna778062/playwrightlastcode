@@ -6,6 +6,7 @@ import {
   SiteListOptions,
   SiteListResponse,
   SiteMembershipAction,
+  SiteMembershipListResponse,
   SiteMembershipResponse,
   SitePermission,
 } from '@core/types/siteManagement.types';
@@ -409,7 +410,10 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the membership list response
    */
-  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+  async getSiteMembershipList(
+    siteId: string,
+    options?: { size?: number; type?: string }
+  ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
         size: 16,
