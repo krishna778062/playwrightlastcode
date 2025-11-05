@@ -10,10 +10,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
-import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 test.describe(
   `event Creation by Standard user  and Approval/Rejection by Application Manager`,
@@ -90,7 +88,7 @@ test.describe(
             `@${testData.storyId}`,
           ],
         },
-        async ({ appManagerFixture, standardUserFixture, appManagerApiContext }) => {
+        async ({ appManagerFixture, standardUserFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -105,13 +103,18 @@ test.describe(
             ContentType.EVENT
           );
           await standardUserFixture.homePage.verifyThePageIsLoaded();
-          const site = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
             users.endUser.email
+          );
+          const site = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [endUserInfo.userId],
+            SITE_TYPES.PUBLIC
           );
           // Navigate to event creation by standard user
           eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
             ContentType.EVENT,
-            site.siteName
+            { siteName: site.siteName }
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator
@@ -167,11 +170,9 @@ test.describe(
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
-          const identityManagementHelper = new IdentityManagementHelper(
-            appManagerApiContext,
-            getContentConfigFromCache().tenant.apiBaseUrl
+          const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.appManager.email
           );
-          const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + eventCreationOptions.title + '"';
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
