@@ -333,9 +333,10 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+          '@siteDeactivationReactivation',
         ],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, testSiteName }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Google Calendar event sync',
@@ -349,14 +350,8 @@ test.describe(
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
 
-        const category =
-          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
-        const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
-          category,
-          siteName: `DeactivationTestSite ${faker.string.alphanumeric({ length: 3 })}`,
-        });
-
-        const siteId = dedicatedTestSite.siteId;
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
+        const siteId = testSite.siteId;
 
         const eventTitle = `${EVENT_CONFIGS.SITE_DEACTIVATION.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
