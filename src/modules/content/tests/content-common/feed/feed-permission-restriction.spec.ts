@@ -1,4 +1,6 @@
+import { FeedPostingPermission } from '@content/constants/feedPostingPermission';
 import { SitePageTab } from '@content/constants/sitePageEnums';
+import { SITE_TYPES } from '@content/constants/siteTypes';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
@@ -40,7 +42,7 @@ test.describe(
 
         const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
-        const publicSite = await appManagerApiFixture.siteManagementHelper.createPublicSite({
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
           waitForSearchIndex: false,
         });
         const publicSiteId = publicSite.siteId;
@@ -49,7 +51,7 @@ test.describe(
         const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
         await manageSitePage.loadPage();
         await manageSitePage.clickDashboardAndFeedTab();
-        await manageSitePage.setFeedPostingPermission('managersOnly');
+        await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
@@ -67,7 +69,7 @@ test.describe(
         });
         await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
 
-        const privateSite = await appManagerApiFixture.siteManagementHelper.createPrivateSite({
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
           waitForSearchIndex: false,
         });
         const privateSiteId = privateSite.siteId;
@@ -76,7 +78,7 @@ test.describe(
         const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
         await managePrivateSitePage.loadPage();
         await managePrivateSitePage.clickDashboardAndFeedTab();
-        await managePrivateSitePage.setFeedPostingPermission('managersOnly');
+        await managePrivateSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
@@ -95,7 +97,7 @@ test.describe(
         await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
 
         // Unlisted sites don't appear in public search, so skip waitForSearchIndex to avoid timeout
-        const unlistedSite = await appManagerApiFixture.siteManagementHelper.createUnlistedSite({
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           waitForSearchIndex: false,
         });
         const unlistedSiteId = unlistedSite.siteId;
@@ -104,7 +106,7 @@ test.describe(
         const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);
         await manageUnlistedSitePage.loadPage();
         await manageUnlistedSitePage.clickDashboardAndFeedTab();
-        await manageUnlistedSitePage.setFeedPostingPermission('managersOnly');
+        await manageUnlistedSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
         // As Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
