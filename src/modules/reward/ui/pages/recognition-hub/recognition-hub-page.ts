@@ -233,7 +233,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async insufficientPointErrorMessageIsDisplaying(): Promise<boolean> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
-    return await giveRecognitionDialogBox.insufficientPointErrorMessage.isVisible();
+    return await this.verifier.isTheElementVisible(giveRecognitionDialogBox.insufficientPointErrorMessage);
   }
 
   /**
@@ -242,7 +242,7 @@ export class RecognitionHubPage extends BasePage {
   async minimumPointErrorMessageIsDisplaying(): Promise<boolean> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
     await giveRecognitionDialogBox.minimumPointErrorMessage.scrollIntoViewIfNeeded();
-    return await giveRecognitionDialogBox.minimumPointErrorMessage.isVisible();
+    return await this.verifier.isTheElementVisible(giveRecognitionDialogBox.minimumPointErrorMessage);
   }
 
   /**

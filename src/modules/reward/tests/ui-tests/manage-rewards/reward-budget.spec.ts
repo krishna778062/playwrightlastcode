@@ -758,7 +758,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         timeout: 20000,
       });
       if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Rewards overview') {
-        if (await manageRewardsPage.disableRewardLink.isVisible()) {
+        if (await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.disableRewardLink)) {
           await manageRewardsPage.disableTheRewards();
         } else {
           console.log('Rewards are already disabled, skipping disable action.');
@@ -861,7 +861,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         const _appName = await manageRewardsPage.page.evaluate(() => {
           return (window as any).Simpplr?.Settings?.appName;
         });
-        if (await manageRewardsPage.disableRewardLink.isVisible()) {
+        if (await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.disableRewardLink)) {
           await manageRewardsPage.disableTheRewards();
         } else {
           console.log('Rewards are already disabled, skipping disable action.');

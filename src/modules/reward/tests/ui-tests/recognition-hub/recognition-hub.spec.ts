@@ -214,7 +214,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await shareModal.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container)) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -355,7 +355,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }

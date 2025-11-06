@@ -203,7 +203,7 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
 
       // Validate exchange rate in API
-      await manageRewardsPage.activityPanelFiltersButton.last().isVisible();
+      await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.activityPanelFiltersButton.last());
       await rewardGiftingOptionsPage.loadPage();
       await rewardGiftingOptionsPage.validateExchangeRateValueInAPI(newValue);
     }
@@ -233,9 +233,12 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/overview');
 
       // Disable rewards if needed
-      const isDisableRewardButtonDisplayed = await manageRewardsPage.disableRewardLink.isVisible({
-        timeout: 15000,
-      });
+      const isDisableRewardButtonDisplayed = await manageRewardsPage.verifier.isTheElementVisible(
+        manageRewardsPage.disableRewardLink,
+        {
+          timeout: 15000,
+        }
+      );
       if (isDisableRewardButtonDisplayed) {
         await manageRewardsPage.clickOnElement(manageRewardsPage.disableRewardLink, {
           stepInfo: 'Clicking on disable rewards link',
@@ -300,7 +303,9 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       });
       await rewardGiftingOptionsPage.exchangeRateSelectDropdown.waitFor({ state: 'detached' });
       await expect(manageRewardsPage.disableRewardLink).not.toBeAttached();
-      const isVisible = await rewardGiftingOptionsPage.exchangeRateSelectDropdown.isVisible().catch(() => false);
+      const isVisible = await rewardGiftingOptionsPage.verifier.isTheElementVisible(
+        rewardGiftingOptionsPage.exchangeRateSelectDropdown
+      );
       expect(isVisible).toBeFalsy();
 
       // Re-enable rewards
