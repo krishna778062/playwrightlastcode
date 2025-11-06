@@ -19,6 +19,7 @@ export interface IManageTopicsPageActions {
   openingSearchedTopic: (topicName: string) => Promise<void>;
   clickOnDeleteTopic: () => Promise<void>;
   clickCancelButton: () => Promise<void>;
+  getTopicNameFromList: () => Promise<string>;
 }
 
 export interface IManageTopicsPageAssertions {
@@ -29,7 +30,7 @@ export interface IManageTopicsPageAssertions {
   verifyDeleteTopicPopupIsVisible: () => Promise<void>;
   verifyTopicIsVisible: (topicName: string) => Promise<void>;
 }
-export class ManageTopicsPage extends BasePage {
+export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
   private manageTopicsComponent: ManageTopicsComponent;
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
@@ -160,5 +161,9 @@ export class ManageTopicsPage extends BasePage {
         assertionMessage: `Topic "${topicName}" should be visible`,
       });
     });
+  }
+
+  async getTopicNameFromList(): Promise<string> {
+    return await this.manageTopicsComponent.getTopicNameFromList();
   }
 }
