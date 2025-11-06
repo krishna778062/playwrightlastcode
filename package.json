@@ -30,8 +30,8 @@
     "test:content-studio:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-studio.config.ts --grep=@smoke",
     "test:content-abac": "cross-env MODULE_NAME=content-abac npx playwright test --config=src/modules/content-abac/playwright.content-abac.config.ts",
     "test:reward": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward-settings": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward-settings.config.ts",
     "test:reward:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
-    "test:reward:qa": "cross-env TEST_ENV=qa MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
     "test": "npm run test:interactive",
@@ -53,7 +53,9 @@
     "test:alert-notification:smoke": "cross-env MODULE_NAME=alert-notification npx playwright test --config=src/modules/alert-notification/playwright.alert-notification.config.ts --grep=@smoke",
     "test:employee-listening": "cross-env MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:employee-listening:test": "cross-env TEST_ENV=test MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
-    "test:employee-listening:qa": "cross-env TEST_ENV=qa MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts"
+    "test:employee-listening:qa": "cross-env TEST_ENV=qa MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
+    "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
+    "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts"
   },
   "keywords": [],
   "author": "",
