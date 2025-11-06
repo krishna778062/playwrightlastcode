@@ -39,6 +39,7 @@ export const TILE_IDS = {
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
   WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
+  WORKDAY_APPLY_FOR_TIMEOFF: '61da175c-f777-4456-8512-715e7808b657',
 } as const;
 
 /**
@@ -177,4 +178,12 @@ export const GREENHOUSE_VALUES = {
   INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+} as const;
+
+export const SERVICE_NOW_VALUES = {
+  USER_NAME: 'admin',
+  PASSWORD: '0=IPmAxD$x6f',
+  CONSUMER_KEY: '3488c64de4b34dd8a6bddf91911aa1fe',
+  SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
+  URL: 'https://dev275557.service-now.com',
 } as const;

@@ -1,6 +1,10 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { OnboardingOption } from '@modules/content/constants';
+import { Locator, Page, Response, test } from '@playwright/test';
+
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { TagOption } from '@modules/content/constants';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -25,6 +29,13 @@ export class OnboardingComponent extends BaseComponent {
   }
 
   async selectOnboardingOption(option: OnboardingOption): Promise<void> {
+  selectOnboardingRadioButton(option: TagOption): Locator {
+    return this.page.getByRole('radio', { name: option });
+  }
+  verifyOnboardingTabVisible(tabName: string): Locator {
+    return this.page.getByText(tabName).first();
+  }
+  async selectOnboardingOption(option: TagOption): Promise<void> {
     await test.step(`Select onboarding option: ${option}`, async () => {
       await this.checkElement(this.selectOnboardingRadioButton(option));
     });
@@ -35,6 +46,12 @@ export class OnboardingComponent extends BaseComponent {
     });
   }
   async verifyAlreadySelectedOnboardingOptionVisible(option: OnboardingOption): Promise<void> {
+  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
+    await test.step(`Verify tag is visible on content: ${option}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.verifyOnboardingTabVisible(option));
+    });
+  }
+  async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
     await test.step(`Verify already selected onboarding option is visible: ${option}`, async () => {
       await this.selectOnboardingRadioButton(option).isChecked();
     });
@@ -50,11 +67,25 @@ export class OnboardingComponent extends BaseComponent {
     });
   }
   async verifyTagShouldNotBeVisibleOnContent(option: OnboardingOption): Promise<void> {
+      await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.saveButton),
+        (response: Response) =>
+          response.url().includes(API_ENDPOINTS.content.onboarding) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+    });
+  }
+  async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag should not be visible on content: ${option}`, async () => {
       const textContent = await this.contentOuterDiv.textContent();
       console.log('textContent', textContent);
       if (textContent && textContent.includes(option)) {
         await this.verifier.verifyTheElementIsNotVisible(this.verifyTabVisible(option));
+        await this.verifier.verifyTheElementIsNotVisible(this.verifyOnboardingTabVisible(option));
       }
     });
   }

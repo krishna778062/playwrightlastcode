@@ -9,6 +9,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { EventSyncDestination } from '@/src/core/types/contentManagement.types';
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { getTestSiteByName } from '@/src/modules/integrations/apis/helpers/eventSyncTestHelpers';
 import {
   createAppManagerOutlookCalendarHelper,
   createEndUserOutlookCalendarHelper,
@@ -52,13 +53,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.DELETE_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
@@ -123,14 +118,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.UNPUBLISH_REPUBLISH.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
@@ -203,14 +191,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const originalEventTitle = `${OUTLOOK_EVENT_CONFIGS.EDIT_TEST.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
@@ -270,9 +251,10 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
+          '@siteDeactivationReactivation',
         ],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, testSiteName }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
           description: 'Test site deactivation/reactivation impact on Outlook Calendar event sync',
@@ -286,14 +268,8 @@ test.describe(
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
 
-        const category =
-          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
-        const dedicatedTestSite = await appManagerFixture.siteManagementHelper.createPublicSite({
-          category,
-          siteName: `Outlook Site Deactivation Test ${faker.string.alphanumeric({ length: 6 })}`,
-        });
-
-        const siteId = dedicatedTestSite.siteId;
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
+        const siteId = testSite.siteId;
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.SITE_DEACTIVATION.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
 
@@ -358,14 +334,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const eventTitle = `${OUTLOOK_EVENT_CONFIGS.SYNC_TOGGLE.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
@@ -442,14 +411,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
@@ -520,14 +482,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
@@ -617,14 +572,7 @@ test.describe(
 
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await appManagerFixture.userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         // Add end user as site member (while site is public)
@@ -698,14 +646,7 @@ test.describe(
         );
         const appManagerEmail = getEnvConfig().appManagerEmail;
         const organizerId = await userManagementService.getUserId(appManagerEmail);
-
-        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
-        const testSite = sitesResponse.result.listOfItems.find((site: any) => site.name === testSiteName);
-
-        if (!testSite) {
-          throw new Error(`Test site "${testSiteName}" not found`);
-        }
-
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
         const siteId = testSite.siteId;
 
         // End user from QA env who will RSVP as non-member

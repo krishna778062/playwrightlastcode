@@ -16,6 +16,7 @@ import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
@@ -63,6 +64,14 @@ export interface IFeedActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
+  selectShareOptionAsSiteFeed: () => Promise<void>;
+  searchForSiteName: (siteName: string) => Promise<void>;
+  enterFeedPostText: (text: string) => Promise<void>;
+  clickBrowseFilesButton: () => Promise<void>;
+  searchForFileInLibrary: (fileName: string) => Promise<void>;
+  selectFileFromLibrary: (fileName: string) => Promise<void>;
+  clickAttachButton: () => Promise<void>;
+  clickPostButton: () => Promise<void>;
   clickOnCommentIcon: () => Promise<void>;
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
@@ -74,6 +83,12 @@ export interface IFeedActions {
   addFileToPost: (filePath: string) => Promise<void>;
   waitForFileToAppear: () => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  applyFormattingAndEnterText: (
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ) => Promise<void>;
+  addLink: (linkText: string, linkUrl: string) => Promise<void>;
+  selectEmoji: (emojiIndex?: number) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -98,6 +113,8 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyNoResultMessage: () => Promise<void>;
+  verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
@@ -112,6 +129,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
+  private shareSocialCampaignComponent: ShareComponent;
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
@@ -128,6 +146,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
+    this.shareSocialCampaignComponent = new ShareComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.sortByFilter = this.page.locator('[id="feed_sort"]');
@@ -463,11 +482,88 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Clicks on a specific option in the feed filter dropdown
    * @param optionValue - The text value of the option to select
    */
+  /**
+   * Selects "site feed" option from share dropdown in post creation
+   */
+  async selectShareOptionAsSiteFeed(): Promise<void> {
+    await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
+  }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
 
+  /**
+   * Searches for a site name without selecting it (to verify access)
+   * @param siteName - The site name to search for
+   */
+  async searchForSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForSiteName(siteName);
+  }
+
+  /**
+   * Verifies "No results" message is displayed when searching for inaccessible sites
+   */
+  async verifyNoResultMessage(): Promise<void> {
+    await this.createFeedPostComponent.verifyNoResultMessage();
+  }
+
+  /**
+   * Enters text into the post editor
+   * @param text - The text to enter in the post
+   */
+  async enterFeedPostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  /**
+   * Clicks the "browse files" button to open file library
+   */
+  async clickBrowseFilesButton(): Promise<void> {
+    await this.createFeedPostComponent.clickBrowseFilesButton();
+  }
+
+  /**
+   * Searches for a file in the file library
+   * @param fileName - The name of the file to search for (e.g., ".mp4")
+   */
+  async searchForFileInLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForFileInLibrary(fileName);
+  }
+
+  /**
+   * Selects a file from the file library by clicking its checkbox
+   * @param fileName - The name of the file to select
+   */
+  async selectFileFromLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.selectFileFromLibrary(fileName);
+  }
+
+  /**
+   * Clicks the "Attach" button to attach selected files from library
+   */
+  async clickAttachButton(): Promise<void> {
+    await this.createFeedPostComponent.clickAttachButton();
+  }
+
+  /**
+   * Verifies that a file is attached to the post
+   * @param fileName - The name of the file to verify
+   */
+  async verifyFileIsAttached(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFileIsAttached(fileName);
+  }
+
+  /**
+   * Clicks the Post button to publish the feed post
+   */
+  async clickPostButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostButton();
+  }
+
+  /**
+   * Verifies that the Question button is visible in the post editor
+   */
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
   }
@@ -559,5 +655,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async uploadFiles(files: string[]): Promise<void> {
     await this.createFeedPostComponent.uploadFiles(files);
+  }
+
+  async applyFormattingAndEnterText(
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.applyFormattingAndEnterText(formatType, text);
+  }
+
+  async addLink(linkText: string, linkUrl: string): Promise<void> {
+    await this.createFeedPostComponent.addLink(linkText, linkUrl);
+  }
+
+  async selectEmoji(emojiIndex: number = 1): Promise<void> {
+    await this.createFeedPostComponent.selectEmoji(emojiIndex);
   }
 }

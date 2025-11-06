@@ -1,10 +1,10 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { ContentType } from '@content/constants/contentType';
-
-import { AlbumCreationPage } from '../pages/albumCreationPage';
-import { EventCreationPage } from '../pages/eventCreationPage';
-import { PageCreationPage } from '../pages/pageCreationPage';
+import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
+import { ContentStudioPageCreationPage } from '@content/ui/pages/contentStudioPageCreationPage';
+import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
@@ -219,8 +219,14 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async completeContentCreationForm(
     contentOption: ContentType,
-    options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number; isFromHomePage?: boolean }
-  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
+    options?: {
+      siteName?: string;
+      templateName?: string;
+      recentlyUsedSiteIndex?: number;
+      isFromHomePage?: boolean;
+      isFromStudio?: boolean;
+    }
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage | ContentStudioPageCreationPage> {
     /**
      * First select the content type option
      * Then select the site if provided
@@ -229,7 +235,7 @@ export class AddContentModalComponent extends BaseComponent {
      * Then click the add button
      * Based on the content type, it will open the relevant content creation page
      */
-    let contentCreationPage: PageCreationPage | AlbumCreationPage | EventCreationPage;
+    let contentCreationPage: PageCreationPage | AlbumCreationPage | EventCreationPage | ContentStudioPageCreationPage;
 
     if (options?.siteName) {
       await this.selectSiteToAddContentFromDropdown(options.siteName);
@@ -268,7 +274,12 @@ export class AddContentModalComponent extends BaseComponent {
     switch (contentOption) {
       case ContentType.PAGE:
         if (siteId) {
-          contentCreationPage = new PageCreationPage(this.page, siteId);
+          // Return ContentStudioPageCreationPage if isFromStudio option is true, otherwise PageCreationPage
+          if (options?.isFromStudio) {
+            contentCreationPage = new ContentStudioPageCreationPage(this.page, siteId);
+          } else {
+            contentCreationPage = new PageCreationPage(this.page, siteId);
+          }
         } else {
           throw new Error('Site id not found in the url');
         }

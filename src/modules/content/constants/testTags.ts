@@ -13,6 +13,8 @@ export enum ContentSuiteTags {
   QUESTION_SETTINGS = '@question-settings',
   SOCIAL_CAMPAIGN = '@social-campaign',
   MY_CONTENT_FILTER = '@my-content-filter',
+  ENABLE_DISABLE_CONTENT_SUBMISSIONS = '@enable-disable-content-submissions',
+  LANGUAGE_IN_CONTENT = '@language-in-content',
 }
 
 export enum ContentFeatureTags {
@@ -29,7 +31,10 @@ export enum ContentFeatureTags {
   HOME_FEED = '@home-feed',
   MANAGE_TOPICS = '@manage-topics',
   EDIT_TOPICS = '@edit-topics',
+  CONTENT_HOME_DASHBOARD_TILES = '@content-home-dashboard-tiles',
   SEARCH_TOPICS = '@search-topics',
+  TOPIC_DETAILS_CONTENT = '@topic-details-content',
+  TOPIC_DETAILS_FEED = '@topic-details-feed',
   CONT_38912 = '@cont-38912',
   MANAGE_SITE = '@manage-site',
   MY_CONTENT_FILTER = '@my-content-filter',
