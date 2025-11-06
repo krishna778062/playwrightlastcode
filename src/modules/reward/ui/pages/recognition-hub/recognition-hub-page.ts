@@ -421,18 +421,16 @@ export class RecognitionHubPage extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
-    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().endsWith('/recognition/v1/tenant/config') &&
-          res.request().resourceType() === 'xhr' &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      this.loadPage(), // action that triggers API
-      this.verifyThePageIsLoaded(),
-    ]);
+    const recognitionHub = new RecognitionHubPage(this.page);
+    const waitForConfig = recognitionHub.page.waitForResponse(
+      res =>
+        res.url().endsWith('/recognition/v1/tenant/config') &&
+        res.request().resourceType() === 'xhr' &&
+        res.status() === 200 &&
+        res.request().method() === 'GET'
+    );
+    await this.loadPage(); // triggers API
+    const apiResponse = await waitForConfig;
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
     console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
@@ -441,11 +439,13 @@ export class RecognitionHubPage extends BasePage {
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
+    await this.verifyThePageIsLoaded();
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await this.loadPage();
+      await recognitionHub.navigateToRecognitionHub();
     }
   }
 
