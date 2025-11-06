@@ -22,8 +22,14 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
   const githubSecretsPath = path.resolve(PROJECT_ROOT, 'githubSecrets.json');
 
   // Load main environment file first
+  // Skip loading if file doesn't exist (some modules use config files instead of .env files)
   if (!FileUtil.fileExists(envPath)) {
-    throw new Error(`Environment file not found at this given path: ${envPath}`);
+    log.info(`Environment file not found at ${envPath}. Skipping env loading (module may use config files instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return; // Exit early if env file doesn't exist
   }
   dotenv.config({ path: envPath });
 
