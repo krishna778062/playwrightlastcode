@@ -9,7 +9,7 @@ export class ManageTopicsComponent extends BaseComponent {
   readonly clickOnEditTopicOption: Locator;
   readonly clickOnDeleteTopicOption: Locator;
   readonly ellipses: Locator;
-  readonly deleteTopicPopup: Locator;
+  readonly deleteTopicHeading: Locator;
   readonly cancelButton: Locator;
   readonly deleteConfirmButton: Locator;
   readonly listOfTopic: Locator;
@@ -21,7 +21,7 @@ export class ManageTopicsComponent extends BaseComponent {
     this.clickOnEditTopicOption = page.getByRole('button', { name: 'Edit' });
     this.clickOnDeleteTopicOption = page.getByRole('button', { name: 'Delete' });
     this.ellipses = page.locator('[aria-label="Category option"]').first();
-    this.deleteTopicPopup = page.locator('[role="dialog"]').filter({ hasText: /delete.*topic/i });
+    this.deleteTopicHeading = page.getByRole('heading', { name: 'Delete topic', level: 2 });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     this.deleteConfirmButton = page.getByRole('button', { name: /delete/i }).filter({ hasText: /delete/i });
     this.listOfTopic = page.locator('td.Table-cell div a');
@@ -46,7 +46,7 @@ export class ManageTopicsComponent extends BaseComponent {
   }
   async verifyDeleteTopicPopupIsVisible(): Promise<void> {
     await test.step('Verify delete topic popup is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.deleteTopicPopup, {
+      await this.verifier.verifyTheElementIsVisible(this.deleteTopicHeading, {
         assertionMessage: 'Delete topic popup should be visible',
       });
     });
