@@ -24,6 +24,7 @@ import {
   TEST_EMAILS,
 } from '../test-data/notification-customization.test-data';
 
+import { EmailUtils } from '@/src/core/utils/emailUtil';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { appManagerFixture as test } from '@/src/modules/alert-notification/tests/fixtures/fixtures';
 
@@ -2097,7 +2098,8 @@ test.describe(
           zephyrTestId: 'INT-290',
           storyId: 'INT-24252',
         });
-
+        const emailUtils = new EmailUtils(process.env.MAILOSAUR_API_KEY!, process.env.MAILOSAUR_SERVER_ID!);
+        const randomTestEmail = await emailUtils.generateUniqueEmailAddress(); //with mailosaur domain and server key
         // Generate unique English subject for the customization
         const englishSubject = NotificationTestDataGenerator.generateCustomSubjectLine(
           TEMPLATE_DATA.MUST_READ.SINGLE_TEMPLATE
@@ -2133,25 +2135,30 @@ test.describe(
         await notificationCustomizationPage.manageTranslationComponent.waitForTranslationToComplete();
 
         // Verify the Custom subject line is non-empty (the translated subject is captured for email verification)
-        await notificationCustomizationPage.manageTranslationComponent.verifyAndGetTranslatedSubject(LANGUAGES.HINDI);
+        const udpatedTranslatedSubject =
+          await notificationCustomizationPage.manageTranslationComponent.verifyAndGetTranslatedSubject(LANGUAGES.HINDI);
 
         // Choose the test recipient option "Different email address"
         await notificationCustomizationPage.manageTranslationPage.selectDifferentEmailAddress();
 
         // Enter a reachable test email address
-        await notificationCustomizationPage.manageTranslationPage.fillEmailAddress(TEST_EMAILS.SINGLE_VALID);
+        await notificationCustomizationPage.manageTranslationPage.fillEmailAddress(randomTestEmail);
 
         // Click "Send test"
         await notificationCustomizationPage.manageTranslationPage.clickSendTestButton();
 
-        // Verify the UI shows a success confirmation/toast for sending the test email
-        await notificationCustomizationPage.verifyToastMessage(
-          ALERT_NOTIFICATION_MESSAGES.CUSTOM_EMAIL_SUBJECT_TEST_SENT
-        );
+        // // Verify the UI shows a success confirmation/toast for sending the test email
+        // await notificationCustomizationPage.verifyToastMessage(
+        //   ALERT_NOTIFICATION_MESSAGES.CUSTOM_EMAIL_SUBJECT_TEST_SENT
+        // );
 
         // Note: Email verification would require email service API integration
         // The translated subject (<expectedSubject>) is captured above for verification
         // In a real scenario, the email inbox would be checked to verify the subject matches
+        await emailUtils.verifyEmailIsInInboxWithThisSubject({
+          sentTo: randomTestEmail,
+          subject: udpatedTranslatedSubject,
+        });
 
         // Click "Cancel" to return to listing without saving
         await notificationCustomizationPage.clickButton(MANAGE_TRANSLATIONS_TEXT.CANCEL_BUTTON);
