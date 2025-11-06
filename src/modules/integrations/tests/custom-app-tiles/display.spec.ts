@@ -19,7 +19,7 @@ import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAp
 test.describe(
   'display App Tiles Management',
   {
-    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE, IntegrationsSuiteTags.DISPLAY],
   },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
@@ -189,7 +189,7 @@ test.describe(
     );
 
     test(
-      'verify display tile with container and text',
+      'verify display tile save and publish',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
@@ -214,12 +214,13 @@ test.describe(
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
 
         // Drag container and text blocks
-        await customAppTilesPage.dragToCanvas('Container');
         await customAppTilesPage.dragToCanvas('Text');
 
         // Save and preview
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_SAVED_DRAFT);
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PUBLISH);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_PUBLISHED);
       }
     );
 
@@ -1007,7 +1008,7 @@ test.describe(
 
         // Delete all display test tiles created during test runs
         // Match tiles that don't start with "Form" and end with "Test" followed by space and 6 alphanumeric characters
-        await customAppTilesPage.deleteAllTilesWithPrefix('', /^(?!Form).*Test\s[a-zA-Z0-9]{6}$/);
+        await customAppTilesPage.deleteAllTilesWithPrefix('', /.*\bTest\s[a-zA-Z0-9]{6}$/);
       }
     );
   }

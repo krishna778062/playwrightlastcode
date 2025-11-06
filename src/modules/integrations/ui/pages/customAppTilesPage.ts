@@ -126,6 +126,13 @@ export class CustomAppTilesPage extends BasePage {
   readonly createCustomAppTileHeader: Locator;
   readonly tileBuilderStep: Locator;
   readonly detailsStep: Locator;
+  readonly radioButtonSelector: string;
+  readonly tabSelectorWithPanel: string;
+  readonly tabSelectorWithoutPanel: string;
+  readonly accordionTriggerSelector: string;
+  readonly buttonRole: string;
+  readonly linkRole: string;
+  readonly headingRole: string;
   readonly apiResponseDialog: Locator;
   readonly apiResponseStatusContainer: Locator;
   readonly apiResponseSuccessIndicator: Locator;
@@ -142,7 +149,6 @@ export class CustomAppTilesPage extends BasePage {
   readonly editableTextElements: Locator;
   readonly textContainerElements: Locator;
   readonly imageSelectDropdown: Locator;
-  readonly styleTextOption: Locator;
   readonly detailsButton: Locator;
 
   /**
@@ -150,7 +156,7 @@ export class CustomAppTilesPage extends BasePage {
    * @param buttonName - The name/text of the button (string or RegExp)
    */
   getButton(buttonName: string | RegExp): Locator {
-    return this.page.getByRole('button', { name: buttonName });
+    return this.page.getByRole(this.buttonRole as any, { name: buttonName });
   }
 
   /**
@@ -158,7 +164,8 @@ export class CustomAppTilesPage extends BasePage {
    * @param value - The value of the radio button
    */
   getRadioByValue(value: string): Locator {
-    return this.page.locator(`input[type="radio"][value="${value}"]`);
+    const selector = this.radioButtonSelector.replace('{value}', value);
+    return this.page.locator(selector);
   }
 
   /**
@@ -166,7 +173,7 @@ export class CustomAppTilesPage extends BasePage {
    * @param linkName - The name/text of the link (string or RegExp)
    */
   getLink(linkName: string | RegExp): Locator {
-    return this.page.getByRole('link', { name: linkName });
+    return this.page.getByRole(this.linkRole as any, { name: linkName });
   }
 
   /**
@@ -176,8 +183,8 @@ export class CustomAppTilesPage extends BasePage {
    */
   getHeading(headingText: string, level?: number): Locator {
     return level
-      ? this.page.getByRole('heading', { name: headingText, level })
-      : this.page.getByRole('heading', { name: headingText });
+      ? this.page.getByRole(this.headingRole as any, { name: headingText, level })
+      : this.page.getByRole(this.headingRole as any, { name: headingText });
   }
 
   /**
@@ -194,7 +201,7 @@ export class CustomAppTilesPage extends BasePage {
    * @param buttonName - The button name
    */
   getDialogButton(dialogLocator: Locator, buttonName: string): Locator {
-    return dialogLocator.getByRole('button', { name: buttonName });
+    return dialogLocator.getByRole(this.buttonRole as any, { name: buttonName });
   }
 
   /**
@@ -238,9 +245,12 @@ export class CustomAppTilesPage extends BasePage {
    * @param panelName - Optional panel name for context
    */
   getTabLocator(tabName: string, panelName?: string): Locator {
-    return panelName
-      ? this.page.locator(`div:has(h3:text-is("${panelName}")) button[role="tab"]:has-text("${tabName}")`).first()
-      : this.page.locator(`button[role="tab"]:has-text("${tabName}")`).first();
+    if (panelName) {
+      const selector = this.tabSelectorWithPanel.replace('{panelName}', panelName).replace('{tabName}', tabName);
+      return this.page.locator(selector).first();
+    }
+    const selector = this.tabSelectorWithoutPanel.replace('{tabName}', tabName);
+    return this.page.locator(selector).first();
   }
 
   /**
@@ -248,13 +258,27 @@ export class CustomAppTilesPage extends BasePage {
    * @param accordionTitle - The title of the accordion (e.g., "Target URL", "Image source")
    */
   getAccordionLocator(accordionTitle: string): Locator {
-    return this.page.locator(`button[class*="AccordionTrigger"]:has(p:has-text("${accordionTitle}"))`).first();
+    const selector = this.accordionTriggerSelector.replace('{accordionTitle}', accordionTitle);
+    return this.page.locator(selector).first();
   }
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APP_TILES_PAGE);
 
     this.appTileComponent = new BaseAppTileComponent(page);
+
+    // Initialize role strings first (before any methods that use them)
+    this.buttonRole = 'button';
+    this.linkRole = 'link';
+    this.headingRole = 'heading';
+
+    // Initialize selector patterns
+    this.radioButtonSelector = 'input[type="radio"][value="{value}"]';
+    this.tabSelectorWithPanel = 'div:has(h3:text-is("{panelName}")) button[role="tab"]:has-text("{tabName}")';
+    this.tabSelectorWithoutPanel = 'button[role="tab"]:has-text("{tabName}")';
+    this.accordionTriggerSelector = 'button[class*="AccordionTrigger"]:has(p:has-text("{accordionTitle}"))';
+    this.fieldSelector = '[data-testid="field-{fieldName}"]';
+    this.fieldRequiredError = ' is a required field';
 
     // Initialize selector strings
     this.showMoreButtonSelector = 'button[aria-label="Show more"]';
@@ -266,9 +290,9 @@ export class CustomAppTilesPage extends BasePage {
     // Use getButton helper
     this.clearSearchButton = this.getButton('Clear').first();
     // Be more specific to avoid matching "Apps & links" button
-    this.appsDropdown = this.getByTestId('pageContainer-page').getByRole('button', { name: 'Apps' });
-    this.statusDropdown = this.getButton(/Status/i).filter({
-      has: this.getLocator('.FilterGroup-module__pill__a50KR'),
+    this.appsDropdown = this.getByTestId('pageContainer-page').getByRole(this.buttonRole as any, { name: 'Apps' });
+    this.statusDropdown = this.getLocator('button.FilterGroup-module__pill__a50KR').filter({
+      hasText: /Status/i,
     });
     this.statusFilterLabels = this.getLocator('label');
     this.appsSearchInput = this.getLocator('input[aria-label="Search…"]');
@@ -336,7 +360,7 @@ export class CustomAppTilesPage extends BasePage {
     this.dialogFooterButtonSelector = '[class*="Dialog-module__footer"] button';
     this.firstTileRow = this.getLocator('tbody tr').first();
     // Will be set after cancelLinkButton is initialized
-    this.cancelButtonForVerification = this.getByRole('link', { name: 'Cancel' });
+    this.cancelButtonForVerification = this.getByRole(this.linkRole, { name: 'Cancel' });
     this.formBehaviorDropdownOptions = this.getLocator('select[aria-label="Form behavior"] option:not([disabled])');
     // Reuse existing locator instead of duplicating
     this.incompleteSettingsMessageLocator = this.getByTestId('incomplete-settings-message');
@@ -346,8 +370,6 @@ export class CustomAppTilesPage extends BasePage {
     this.buttonElement = this.getLocator('a, button');
     this.tileRowByPrefix = this.getLocator('tr');
     this.fieldContainer = this.getLocator('[data-testid^="field-"]');
-    this.fieldSelector = '[data-testid="field-{fieldName}"]';
-    this.fieldRequiredError = ' is a required field';
     this.displayCountOption = this.getByTestId('display-count-option');
     this.imageSizeOption = this.getByTestId('image-size-option').or(this.getLocator('option'));
     this.formBehaviorOption = this.getLocator('select[aria-label="Form behavior"] option');
@@ -363,11 +385,11 @@ export class CustomAppTilesPage extends BasePage {
     this.dynamicNextButton = this.getButton('Next');
     this.dynamicAppColumns = this.getLocator('td:nth-child(2)');
     this.optionByRole = this.getByRole('option');
-    this.buttonByRole = this.getByRole('button');
+    this.buttonByRole = this.getByRole(this.buttonRole);
     // Reuse existing locator instead of duplicating
     this.clearButtonByRole = this.clearSearchButton;
     // Use getLink helper for consistency
-    this.cancelLinkButton = this.getByRole('link', { name: 'Cancel', exact: true });
+    this.cancelLinkButton = this.getByRole(this.linkRole, { name: 'Cancel', exact: true });
     // Use getButton helper for consistency
     this.backToEditingButton = this.getButton('Back to editing');
     // Use getHeading helper for consistency
@@ -398,7 +420,6 @@ export class CustomAppTilesPage extends BasePage {
 
     // Inline locators moved to constructor
     this.imageSelectDropdown = this.page.locator('select:visible').first();
-    this.styleTextOption = this.page.locator(`text="{0}"`);
     this.detailsButton = this.page.locator('button').filter({ hasText: 'Details' }).first();
 
     // Now reuse cancelLinkButton for cancelButtonForVerification to avoid duplication
@@ -856,6 +877,8 @@ export class CustomAppTilesPage extends BasePage {
    */
   async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
     await test.step(`Select status filter: ${status}`, async () => {
+      // Wait for status dropdown to be visible before clicking
+      await this.expect(this.statusDropdown, 'Status dropdown should be visible').toBeVisible({ timeout: 10000 });
       await this.clickOnElement(this.statusDropdown);
 
       // Find and click the label containing the status text
@@ -872,6 +895,8 @@ export class CustomAppTilesPage extends BasePage {
    */
   async clearStatusFilter(): Promise<void> {
     await test.step('Clear status filter', async () => {
+      // Wait for status dropdown to be visible before clicking
+      await this.expect(this.statusDropdown, 'Status dropdown should be visible').toBeVisible({ timeout: 10000 });
       await this.clickOnElement(this.statusDropdown);
       await this.clearButtonByRole.click();
       await this.page.keyboard.press('Escape');
@@ -1208,7 +1233,8 @@ export class CustomAppTilesPage extends BasePage {
           await alternativeOption.click();
         } else {
           // Fallback to clicking on any visible element with the text
-          await this.styleTextOption.first().click();
+          const fallbackOption = this.page.getByText(size).first();
+          await fallbackOption.click();
         }
       } else {
         await menuOption.click();
