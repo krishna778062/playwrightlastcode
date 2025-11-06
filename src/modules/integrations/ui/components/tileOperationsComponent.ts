@@ -895,4 +895,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await popup.close();
     });
   }
+  /**
+   * Set Up tile with field selection
+   */
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.selectFromDropdown(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
 }

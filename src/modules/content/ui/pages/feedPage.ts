@@ -13,6 +13,7 @@ import {
 } from '@content/ui/components/createQuestionComponent';
 import { FilePreviewComponent } from '@content/ui/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
@@ -122,6 +123,7 @@ export interface IFeedAssertions {
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -129,7 +131,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
-  private shareSocialCampaignComponent: ShareComponent;
+  private shareComponent: ShareComponent;
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
@@ -139,6 +141,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly newHireFeedBlocks: Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
+  readonly pageNotFoundHeading: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -146,7 +149,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
-    this.shareSocialCampaignComponent = new ShareComponent(page);
+    this.shareComponent = new ShareComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.sortByFilter = this.page.locator('[id="feed_sort"]');
@@ -158,6 +161,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
+    this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
   }
 
   get actions(): IFeedActions {
@@ -486,7 +490,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Selects "site feed" option from share dropdown in post creation
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
-    await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
+    await this.shareComponent.selectShareOptionAsSiteFeed();
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
@@ -670,5 +674,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async selectEmoji(emojiIndex: number = 1): Promise<void> {
     await this.createFeedPostComponent.selectEmoji(emojiIndex);
+  }
+
+  async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pageNotFoundHeading, {
+        assertionMessage: 'Page not found heading should be visible',
+        timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
+    });
   }
 }
