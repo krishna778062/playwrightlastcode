@@ -61,6 +61,7 @@ export const PEOPLE_TAB = {
   MICROSOFT_ENTRA_ID_OPTION: 'Microsoft Entra ID',
   OKTA_OPTION: 'Okta',
   SIMPPLR_SERVICES_OPTION: 'Simpplr User Services',
+  NAME_PRONUNCIATION_FIELD: 'Name pronunciation',
   BAMBOOHR_USERNAME: 'sandboxes@merge.dev',
   BAMBOOHR_PASSWORD: 'BWQ@wyq_nqh7brf1xae',
   BAMBOOHR_URL: 'https://mergedevtest.bamboohr.com/',

@@ -139,5 +139,57 @@ test.describe(
         await peopleTab.verifySpecificFieldsUncheckedAndDisabledForProvisioning();
       }
     );
+
+    test(
+      'verify already integrated merge source does not display in merge open modal for integration',
+      {
+        tag: [TestPriority.P1],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-6994'],
+          storyId: 'INT-10943',
+        });
+        await peopleTab.clickOnTab('Integrations');
+        await peopleTab.clickOnTab('People data');
+        await peopleTab.clickOnAddIntegrationButton();
+        await peopleTab.searchBambooHRInModal(PEOPLE_TAB.BAMBOO_HR_OPTION);
+        await peopleTab.verifyNoResultsFoundMessage();
+      }
+    );
+
+    test(
+      'verify BambooHR is presented in provisioning source dropdown when integrated in People data page',
+      {
+        tag: [TestPriority.P1],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-9954', 'INT-8543'],
+          storyId: 'INT-10943',
+        });
+        await peopleTab.verifyBambooHROptionInProvisioningSource(PEOPLE_TAB.BAMBOO_HR_OPTION);
+        await peopleTab.verifyBambooHROptionInSyncingSource(PEOPLE_TAB.BAMBOO_HR_OPTION);
+      }
+    );
+
+    test(
+      'verify App manager is not able to toggle on/off and Always unchecked and disabled Pronunciation field under Sync column',
+      {
+        tag: [TestPriority.P1],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-11169', 'INT-11168'],
+          storyId: 'INT-10943',
+        });
+        await peopleTab.selectProvisioningSource(PEOPLE_TAB.SIMPPLR_SERVICES_OPTION);
+        await peopleTab.selectSyncingSource(PEOPLE_TAB.OPTION_NONE);
+        await peopleTab.verifyNamePronunciationFieldUncheckedAndDisabled();
+        await peopleTab.selectProvisioningSource(PEOPLE_TAB.GOOGLE_OPTION);
+        await peopleTab.selectSyncingSource(PEOPLE_TAB.OPTION_NONE);
+        await peopleTab.verifyNamePronunciationFieldUncheckedAndDisabled();
+      }
+    );
   }
 );

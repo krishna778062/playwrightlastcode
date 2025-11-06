@@ -130,4 +130,28 @@ export class PeopleTabPage extends BasePage {
   async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
     await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInEditableColumn();
   }
+
+  async clickOnAddIntegrationButton(): Promise<void> {
+    await this.peopleTabComponent.clickOnAddIntegrationButton();
+  }
+
+  async searchBambooHRInModal(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.searchBambooHRInModal(sourceName);
+  }
+
+  async verifyNoResultsFoundMessage(): Promise<void> {
+    await this.peopleTabComponent.verifyNoResultsFoundMessage();
+  }
+
+  async verifyBambooHROptionInProvisioningSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInProvisioningSource(sourceName);
+  }
+
+  async verifyBambooHROptionInSyncingSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInSyncingSource(sourceName);
+  }
+
+  async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldUncheckedAndDisabled();
+  }
 }

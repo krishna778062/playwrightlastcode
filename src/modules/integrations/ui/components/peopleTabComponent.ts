@@ -23,6 +23,10 @@ export class PeopleTabComponent extends BaseComponent {
   readonly refreshTokenInput: () => Locator;
   readonly wsdlUrlInput: () => Locator;
   readonly apiClientToggle: () => Locator;
+  readonly addIntegrationButton: () => Locator;
+  readonly integrationSelectionDialog: () => Locator;
+  readonly integrationSearchInput: () => Locator;
+  readonly noResultsFoundMessage: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -49,6 +53,10 @@ export class PeopleTabComponent extends BaseComponent {
     this.refreshTokenInput = () => this.rootLocator.getByLabel(/Refresh Token/i);
     this.wsdlUrlInput = () => this.rootLocator.getByLabel(/WSDL URL/i);
     this.apiClientToggle = () => this.rootLocator.getByLabel(/API client/i);
+    this.addIntegrationButton = () => this.rootLocator.locator('#add-integration button');
+    this.integrationSelectionDialog = () => this.page.getByRole('dialog').filter({ hasText: 'Select an integration' });
+    this.integrationSearchInput = () => this.page.getByRole('textbox', { name: 'Search Integration' });
+    this.noResultsFoundMessage = () => this.page.getByRole('heading', { name: 'No results found' });
   }
 
   private getFieldCheckbox(
@@ -385,5 +393,64 @@ export class PeopleTabComponent extends BaseComponent {
 
   async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
     await this.verifyNamePronunciationFieldIsEnabledInColumn('editable');
+  }
+
+  async clickOnAddIntegrationButton(): Promise<void> {
+    await test.step('Click on Add integration button', async () => {
+      await expect(this.addIntegrationButton(), 'expecting Add integration button to be visible').toBeVisible();
+      await this.addIntegrationButton().click();
+    });
+  }
+
+  async searchBambooHRInModal(sourceName: string): Promise<void> {
+    await test.step('Search for BambooHR in integration selection modal', async () => {
+      await expect(
+        this.integrationSelectionDialog(),
+        'expecting integration selection dialog to be visible'
+      ).toBeVisible();
+      await expect(this.integrationSearchInput(), 'expecting search input to be visible').toBeVisible();
+      await this.integrationSearchInput().fill(sourceName);
+      // Wait a moment for search results to appear
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  async verifyNoResultsFoundMessage(): Promise<void> {
+    await test.step('Verify "No results found" message appears', async () => {
+      await expect(this.noResultsFoundMessage(), 'expecting "No results found" message to be visible').toBeVisible();
+    });
+  }
+
+  async verifyBambooHROptionInProvisioningSource(sourceName: string): Promise<void> {
+    await test.step(`Verify ${sourceName} option is displayed in provisioning source dropdown`, async () => {
+      await expect(
+        this.provisioningSourceDropdown(),
+        'expecting provisioning source dropdown to be visible'
+      ).toBeVisible();
+      const options = await this.provisioningSourceDropdown().locator('option').allTextContents();
+      expect(options, `expecting ${sourceName} option to be present in provisioning source dropdown`).toContain(
+        sourceName
+      );
+    });
+  }
+
+  async verifyBambooHROptionInSyncingSource(sourceName: string): Promise<void> {
+    await test.step(`Verify ${sourceName} option is displayed in syncing source dropdown`, async () => {
+      await expect(this.syncingSourceDropdown(), 'expecting syncing source dropdown to be visible').toBeVisible();
+      const options = await this.syncingSourceDropdown().locator('option').allTextContents();
+      expect(options, `expecting ${sourceName} option to be present in syncing source dropdown`).toContain(sourceName);
+    });
+  }
+
+  async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
+    await test.step('Verify Name pronunciation field is unchecked and disabled for syncing', async () => {
+      const fieldName = PEOPLE_TAB.NAME_PRONUNCIATION_FIELD;
+      const syncingCheckbox = this.fieldSyncingCheckbox(fieldName);
+      const isSyncingChecked = await syncingCheckbox.isChecked();
+      const isSyncingDisabled = await syncingCheckbox.isDisabled();
+
+      expect(isSyncingChecked, `${fieldName} field should not be checked in syncing column`).toBe(false);
+      expect(isSyncingDisabled, `${fieldName} field should be disabled in syncing column`).toBe(true);
+    });
   }
 }
