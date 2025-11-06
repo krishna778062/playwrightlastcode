@@ -8,10 +8,14 @@ import { tagTest } from '@core/utils/testDecorator';
 import { mailosaurValues } from '../../config/frontlineConfig';
 
 import { Roles } from '@/src/core/constants/roles';
+import { USER_STATUS } from '@/src/core/constants/status';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { PropertiesFile } from '@/src/core/utils/propertiesFile';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
+import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 // Path to properties file for storing user details across workers
 const USER_DETAILS_FILE = 'src/modules/frontline/test-data/userDetails.properties';
@@ -302,9 +306,9 @@ test.describe(
 );
 
 test.describe(
-  'feature: login with otp test cases for email and employee number as login identifiers',
+  'feature: login with otp test cases for email and employee number as login identifiers and LWO is set as optional',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, '@meenakshi'],
   },
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
@@ -318,6 +322,7 @@ test.describe(
         throw error;
       }
     });
+
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
       await lwoUserManagementService.deleteMobileOnly(
@@ -327,13 +332,22 @@ test.describe(
         userDetails.endUserLastName
       );
     });
-    test.afterAll(async ({ lwoUserManagementService }) => {
+
+    test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
       await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName
+      );
+
+      const userId = await new UserManagementService(appManagerApiContext, config.apiBaseUrl).getUserId(
+        userDetails.endUserEmpId
+      );
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userId,
+        USER_STATUS.INACTIVE
       );
     });
 
@@ -375,12 +389,44 @@ test.describe(
         await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );
+
+    test(
+      'scenario: Verify user reaches to Home page, when click on skip for now from force add contact page',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description: 'Verify user reaches to Home page, when click on skip for now from force add contact page',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.skipVerificationPage();
+
+        // Verify navigation to home page
+        await page.waitForURL('/home', {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        const homePage = new NewHomePage(page);
+        await homePage.verifyThePageIsLoaded();
+      }
+    );
   }
 );
+
 test.describe(
   'feature: login with otp test cases for email and employee number as login identifiers for mandatory LWO',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, '@meenakshi'],
   },
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
@@ -403,13 +449,22 @@ test.describe(
         userDetails.endUserLastName
       );
     });
-    test.afterAll(async ({ lwoUserManagementService }) => {
+
+    test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
       await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName
+      );
+
+      const userId = await new UserManagementService(appManagerApiContext, config.apiBaseUrl).getUserId(
+        userDetails.endUserEmpId
+      );
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userId,
+        USER_STATUS.INACTIVE
       );
     });
 
@@ -449,6 +504,65 @@ test.describe(
         });
         const loginWithOtpPage = new LoginWithOtpPage(page);
         await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
+      }
+    );
+
+    test(
+      "scenario: Verify user reaches to Home page, when click on Don't show this again from force add contact page",
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description:
+            "Verify user reaches to Home page, when click on Don't show this again from force add contact page",
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.clickDontShowThisAgainButton();
+
+        // Verify navigation to home page
+        await page.waitForURL('/home', {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        const homePage = new NewHomePage(page);
+        await homePage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      "scenario: Verify user reaches to Home page after login,if clicked Don't show this again button in previous login",
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          description:
+            "Verify user reaches to Home page after login,if clicked Don't show this again button in previous login'",
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+
+        await page.waitForURL('/home', {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        const homePage = new NewHomePage(page);
+        await homePage.verifyThePageIsLoaded();
       }
     );
   }
