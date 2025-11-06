@@ -263,6 +263,9 @@ export class SideNavBarComponent extends BaseComponent {
     await test.step(options?.stepInfo || `side navbar: clicking Org chart button`, async () => {
       await this.hoverOverElementInJavaScript(this.peopleButton);
       await this.clickOnElement(this.orgChartButton);
+    });
+  }
+
   /**
    * Clicks on Recognition Link under home menu of side navigation bar
    * @param options - The options for the step
