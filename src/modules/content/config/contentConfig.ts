@@ -76,7 +76,7 @@ export const config = {
     qa: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://ui-automation-content.qa.simpplr.xyz',
-      apiBaseUrl: 'https://automation-ui-content-api.qa.simpplr.xyz',
+      apiBaseUrl: 'https://ui-automation-content-api.qa.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -91,7 +91,7 @@ export const config = {
     uat: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://ui-automation-content.uat.simpplr.xyz',
-      apiBaseUrl: 'https://automation-ui-content-api.uat.simpplr.xyz',
+      apiBaseUrl: 'https://ui-automation-content-api.uat.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
