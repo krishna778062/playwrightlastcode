@@ -2,7 +2,7 @@ import { NewHomePage } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { EditAudienceGroupModalPage } from '@/src/modules/content/ui/pages/editAudienceGroupModalPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturePage';
@@ -30,7 +30,7 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
   test(
     'verify Warning Message Appears After Changing Target Audience',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONT_38912, '@CONT-38912'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38912'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
