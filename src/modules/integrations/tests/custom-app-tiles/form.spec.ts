@@ -34,7 +34,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        const tileName = `Form Tile Test${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Form Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Form Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.clickCreateCustomAppTileButton();
