@@ -46,6 +46,7 @@ export const PLATFORM_API_ENDPOINTS = {
     expertises: '/v1/identity/expertises',
     endorseUser: (userId: string) => `/v1/identity/people/profile/${userId}/endorse`,
     unendorseUser: (userId: string) => `/v1/identity/people/profile/${userId}/unendorse`,
+    configureFields: '/v1/identity/configure-fields',
   },
   admin: {
     login: '/v2/identity/admin/login',

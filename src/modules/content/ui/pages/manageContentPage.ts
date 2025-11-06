@@ -30,6 +30,7 @@ export interface IActions {
   addPublishContentFilter: () => Promise<void>;
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
+  clickOnOnboardingOption: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -371,6 +372,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
   }
 
   async clickOnContentEditButton(): Promise<void> {

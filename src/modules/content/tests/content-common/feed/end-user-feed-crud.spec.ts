@@ -112,6 +112,123 @@ test.describe(
         // Step 4: Delete the post
         await feedPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
+        createdPostText = ''; // Clear post text as post is already deleted
+      }
+    );
+
+    test(
+      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-24150'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+          zephyrTestId: 'CONT-24150',
+          storyId: 'CONT-24150',
+        });
+
+        // Step 1: Get or reuse a private site that standard user is NOT a member of
+        // This will reuse an existing private site if available, or create a new one if needed
+        const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('private', {
+          waitForSearchIndex: false,
+        });
+        const privateSiteName = privateSiteResult.name;
+        console.log(`Using private site: ${privateSiteName}`);
+
+        // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
+        // This will reuse an existing unlisted site if available, or create a new one if needed
+        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('unlisted', {
+          waitForSearchIndex: false,
+        });
+        const unlistedSiteName = unlistedSiteResult.name;
+        console.log(`Using unlisted site: ${unlistedSiteName}`);
+
+        // Step 3: Standard User is already on Feed page (from beforeEach setup)
+
+        // Step 4: Click on "Share your thoughts" button
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Step 5: Create a post and send it to the editor
+        const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
+        await feedPage.actions.enterFeedPostText(initialPostText);
+
+        // Step 6: User select share option as "site feed"
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        // Step 7: Enter private site name which User is not member of
+        await feedPage.actions.searchForSiteName(privateSiteName);
+
+        // Step 8: Verify "No results" is getting displayed for private site
+        await feedPage.assertions.verifyNoResultMessage();
+
+        // Step 9: Close the dropdown and search again for unlisted site
+        await standardUserFixture.page.keyboard.press('Escape'); // Close the dropdown
+        await feedPage.actions.searchForSiteName(unlistedSiteName);
+
+        // Step 10: Verify "No results" is getting displayed for unlisted site
+        await feedPage.assertions.verifyNoResultMessage();
+      }
+    );
+
+    test(
+      'verify user is able to add video to a feed post using "Browse files"',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36599'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user is able to add video to a feed post using "Browse files"',
+          zephyrTestId: 'CONT-36599',
+          storyId: 'CONT-36599',
+        });
+
+        // Step 1: Standard User is already logged in via beforeEach
+        // Step 2: Feed page is already loaded via beforeEach
+
+        // Step 3: Click on "Share your thoughts" button (Create Post)
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Step 4: Enter post text
+        const videoPostText = TestDataGenerator.generateRandomText('Video Post', 3, true);
+        await feedPage.actions.enterFeedPostText(videoPostText);
+
+        // Step 5: Click on "Browse files" button
+        await feedPage.actions.clickBrowseFilesButton();
+
+        // Step 6: Enter '.mp4' in 'Search files' field
+        await feedPage.actions.searchForFileInLibrary('.mp4');
+
+        // Step 7: Select first result ".mp4" video
+        await feedPage.actions.selectFileFromLibrary('.mp4');
+
+        // Step 8: Click "Attach" button
+        await feedPage.actions.clickAttachButton();
+
+        // Step 9: Verify the selected video appears as an attachment
+        await feedPage.assertions.verifyFileIsAttached('.mp4');
+
+        // Step 10: Click on "Post" button to publish
+        await feedPage.actions.clickPostButton();
+
+        // Step 11: Verify the feed post is published successfully with the post text
+        await feedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Step 12: Verify video attachment is visible in the published feed post
+        // Note: Videos are displayed as a video container div, not as HTML <video> elements
+        const videoContainer = standardUserFixture.page
+          .locator('div[class*="postContent"]')
+          .filter({ hasText: videoPostText })
+          .locator('div[class*="videoFluid"]');
+
+        await feedPage.verifier.verifyTheElementIsVisible(videoContainer, {
+          timeout: 10000,
+          assertionMessage: 'Video container should be visible in the published feed post',
+        });
+
+        // Store post text for cleanup
+        createdPostText = videoPostText;
       }
     );
 

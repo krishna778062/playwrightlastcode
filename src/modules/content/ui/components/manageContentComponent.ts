@@ -2,13 +2,14 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { SortOptionLabels } from '@modules/content/constants';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { ManageContentOptions, ManageContentTags } from '@/src/modules/content/constants/manageContentOptions';
 
 export class ManageContentComponent extends BaseComponent {
+  readonly baseActionUtil: BaseActionUtil;
   readonly searchBar: Locator;
   readonly searchIconButton: Locator;
   readonly nothingToShowHereText: Locator;
@@ -58,6 +59,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly crossButton: Locator;
   readonly scheduledTag: Locator;
   readonly openingPanelMenu: Locator;
+  readonly ellipsisButton: Locator;
   readonly manageContentListItems: Locator;
   readonly showMoreButton: Locator;
   readonly pageOption: Locator;
@@ -68,8 +70,10 @@ export class ManageContentComponent extends BaseComponent {
   readonly publishConfirmButton: Locator;
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
+  readonly onboardingOption: Locator;
   constructor(page: Page) {
     super(page);
+    this.baseActionUtil = new BaseActionUtil(page);
     this.searchBar = page.locator("[aria-label='Search…']");
     this.searchIconButton = page.locator('.SearchField-submit');
     this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
@@ -130,6 +134,7 @@ export class ManageContentComponent extends BaseComponent {
     this.selectPublishOption = page.getByLabel('Status:');
     this.crossButton = page.getByRole('button', { name: 'Dismiss' }).first();
     this.scheduledTag = page.locator('[class="StampList"]:has-text("SCHEDULED")').first();
+    this.ellipsisButton = page.locator('.OptionsMenu-panel-main').first();
     this.pageOption = page.getByText('Page', { exact: true });
     this.draftTag = page
       .locator('div')
@@ -147,6 +152,7 @@ export class ManageContentComponent extends BaseComponent {
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
+    this.onboardingOption = page.getByText('Onboarding', { exact: true });
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
@@ -329,6 +335,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
+      await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.publishButton);
     });
   }
@@ -387,6 +394,19 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async clickOnOnboardingOption(): Promise<void> {
+    await test.step(`Clicking on the onboarding option`, async () => {
+      await this.clickOnElement(this.onboardingOption);
+    });
+  }
+
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await test.step('Verifying the onboarding option is visible in manage content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.onboardingOption, {
+        assertionMessage: 'Onboarding option should be visible',
+      });
+    });
+  }
   // has to fix this in next PR by aditya
   async checkPublishOption(): Promise<void> {
     await test.step(`Checking the publish option`, async () => {
@@ -645,12 +665,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
-    });
-  }
-
   async selectContentFilter(managedBy: string): Promise<void> {
     await test.step('Selecting the content filter', async () => {
       await this.contentFilter.selectOption(managedBy);
@@ -752,7 +766,7 @@ export class ManageContentComponent extends BaseComponent {
       await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.showMoreButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_SHOW_MORE_API) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
@@ -793,6 +807,8 @@ export class ManageContentComponent extends BaseComponent {
         return this.publishButton;
       case ManageContentOptions.MOVE:
         return this.moveButton;
+      case ManageContentOptions.ONBOARDING:
+        return this.onboardingOption;
       case ManageContentOptions.ADD_TO_CAMPAIGN:
         return this.addToCampaignOption;
       default:
@@ -916,6 +932,12 @@ export class ManageContentComponent extends BaseComponent {
       }
 
       console.log(`✓ Verified ${actualCount} checkboxes are selected`);
+    });
+  }
+
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
     });
   }
 }

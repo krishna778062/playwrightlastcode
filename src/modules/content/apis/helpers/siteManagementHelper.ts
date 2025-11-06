@@ -198,18 +198,21 @@ export class SiteManagementHelper {
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -404,9 +407,8 @@ export class SiteManagementHelper {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
-      filter: 'active',
       canManage: true,
-      sortBy: 'alphabetical',
+      filter: 'all',
     });
 
     // Search for the site by name
@@ -415,7 +417,12 @@ export class SiteManagementHelper {
     );
 
     if (existingSite) {
-      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
+      //check the status of the site if active then return the siteId
+      if (!existingSite.isActive) {
+        //activate the site
+        await this.siteManagementService.activateSite(existingSite.siteId);
+        console.log(`Activated site ${existingSite.name} (${existingSite.siteId})`);
+      }
       return existingSite.siteId;
     }
 
