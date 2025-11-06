@@ -25,6 +25,13 @@ test.describe(
     ],
   },
   () => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const calendarPage = new CalendarPage(appManagerFixture.page);
+      await calendarPage.actions.navigateToCalendarPage();
+      await calendarPage.actions.selectCalendarView('Week');
+      await calendarPage.actions.resetFiltersForEvents();
+    });
+
     test(
       'verify that user is able to see and select the weekly view option on events calendar page',
       {
@@ -245,8 +252,6 @@ test.describe(
 
         await calendarPage.actions.selectFiltersForEvents('No');
         await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(false, true);
-
-        await calendarPage.actions.resetFiltersForEvents();
       }
     );
 
@@ -439,9 +444,6 @@ test.describe(
 
         ariaLabel = await calendarPage.actions.selectGoogleEventColor('1');
         await calendarPage.assertions.verifyGoogleEventColor(ariaLabel);
-
-        // Reset filters
-        await calendarPage.actions.resetFiltersForEvents();
       }
     );
   }
