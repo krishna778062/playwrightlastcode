@@ -70,4 +70,6 @@ export const MESSAGES = {
   CHANGE_TILE_TYPE: 'Change tile type',
   CHANGE_TILE_TYPE_MESSAGE:
     'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
+  REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
+  REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
 } as const;
