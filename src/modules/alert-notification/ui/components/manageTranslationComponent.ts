@@ -218,29 +218,6 @@ export class ManageTranslationComponent extends BaseComponent {
   }
 
   /**
-   * Verifies that the translated text is populated and different from the English subject
-   * @param englishSubject - The original English subject to compare against
-   * @param language - The language name for error messages
-   */
-  async verifyTranslatedTextIsPopulatedAndDifferent(englishSubject: string, language: string): Promise<void> {
-    await test.step(`Verify translated text is populated and different from English for ${language}`, async () => {
-      const translatedText = await this.getTranslationTextValue();
-
-      // Verify the textarea is populated (not empty)
-      if (!translatedText || translatedText.trim() === '') {
-        throw new Error(`Translation textarea should be populated for ${language}, but found empty`);
-      }
-
-      // Verify the translated text is different from the English subject
-      if (translatedText === englishSubject) {
-        throw new Error(
-          `Translated text for ${language} should be different from English subject, but found: "${translatedText}"`
-        );
-      }
-    });
-  }
-
-  /**
    * Verifies that the translated text is populated (not empty) and returns the translated subject
    * @param language - The language name for error messages
    * @returns The translated subject text

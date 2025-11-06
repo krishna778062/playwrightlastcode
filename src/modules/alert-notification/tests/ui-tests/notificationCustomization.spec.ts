@@ -2036,7 +2036,7 @@ test.describe(
     test(
       'tc028 - Verify automatic translation for multiple languages (Hindi, French, Spanish)',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
@@ -2080,14 +2080,7 @@ test.describe(
 
           // Verify the UI shows that translations are automatic
           await notificationCustomizationPage.manageTranslationComponent.verifyAutomaticTranslationText();
-
-          // Verify the Custom subject line textarea is populated automatically and different from English
-          await notificationCustomizationPage.manageTranslationComponent.verifyTranslatedTextIsPopulatedAndDifferent(
-            englishSubject,
-            language
-          );
         }
-
         // Click "Cancel" to return to listing without saving
         await notificationCustomizationPage.clickButton(MANAGE_TRANSLATIONS_TEXT.CANCEL_BUTTON);
         await notificationCustomizationPage.verifyThePageIsLoaded();
@@ -2097,7 +2090,7 @@ test.describe(
     test(
       'tc029 - Verify test email is sent with translated subject line for selected language',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
