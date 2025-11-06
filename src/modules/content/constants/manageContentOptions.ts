@@ -6,6 +6,7 @@ export enum ManageContentOptions {
   MOVE = 'Move',
   ADD_TO_CAMPAIGN = 'Add to campaign',
   ONBOARDING_OPTION = 'Onboarding',
+  ONBOARDING = 'Onboarding',
 }
 
 export enum ManageContentTags {

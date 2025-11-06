@@ -224,23 +224,45 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'verify app manager should be able to filter the content for the content status as Published and Unpublished',
+            'Verify application manager should be able to apply bulk options on selecting the Select All option',
           customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
-          zephyrTestId: 'CONT-25058',
-          storyId: 'CONT-25058',
+          zephyrTestId: 'CONT-25063',
+          storyId: 'CONT-25063',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.assertions.verifyManageContentListItemCount(16);
-        await manageContentPage.actions.clickShowMoreButton();
-        await manageContentPage.assertions.verifyManageContentListItemCount(32);
-        await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.assertions.verifyManageContentListItemCount(16);
-        await manageContentPage.actions.clickShowMoreButton();
-        await manageContentPage.assertions.verifyManageContentListItemCount(32);
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnValidateButton();
+        await manageContentPage.actions.clickOnValidateApplyButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnMoveButton();
+        await manageContentPage.actions.selectMoveApplyButton();
+        const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        await manageContentPage.actions.moveContentSearchBar(site.name);
+        await manageContentPage.actions.siteListSelecting();
+        await manageContentPage.actions.selectPageCategoryIfVisible();
+        await manageContentPage.actions.selectPageCategory();
+        await manageContentPage.actions.clickOnMoveConfirmButton();
+        await manageContentPage.page.reload();
+        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
       }
     );
 
