@@ -5,14 +5,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import {
-  ManageContentOptions,
-  ManageContentTags,
-  OnboardingOption,
-  SortOptionLabels,
-} from '@/src/modules/content/constants';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -301,18 +295,18 @@ test.describe(
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
         await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(OnboardingOption.NOT_ONBOARDING);
+        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
-        await onboardingComponent.selectOnboardingOption(OnboardingOption.SITE_ONBOARDING);
+        await onboardingComponent.selectOnboardingOption(TagOption.SITE_ONBOARDING);
         await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyTagIsVisibleOnContent(OnboardingOption.SITE_ONBOARDING_TAG);
+        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.selectOnboardingOption(OnboardingOption.NOT_ONBOARDING);
+        await onboardingComponent.selectOnboardingOption(TagOption.NOT_ONBOARDING);
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(OnboardingOption.SITE_ONBOARDING_TAG);
+        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
 
