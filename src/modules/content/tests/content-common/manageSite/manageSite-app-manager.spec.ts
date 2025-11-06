@@ -5,14 +5,17 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { ManageContentOptions, SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -27,6 +30,9 @@ test.describe(
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let manageSitesComponent: ManageSitesComponent;
+    let manageSiteAppManagerPage: ManageSitePage;
+    let manageSitesComponent: ManageSitesComponent;
+    let onboardingComponent: OnboardingComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -71,6 +77,8 @@ test.describe(
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
 
+      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+      onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -250,6 +258,81 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
+      }
+    );
+    test(
+      'to verify the site author name and event start date',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-26044',
+          storyId: 'CONT-26044',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+        });
+        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+
+        // Initialize ManageSitePage with first siteId for verification
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
+
+        // Verify all site names are displayed (method handles the loop internally)
+        await manageSiteAppManagerPage.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
+      'to verify the onboarding option in manage site content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23737'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-23737',
+          storyId: 'CONT-23737',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        console.log('siteInfo', siteInfo);
+        await appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteInfo,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        const DashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo);
+        await DashboardPage.loadPage();
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSitesComponent.clickOnInsideContentButtonAction();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
+        await manageContentPage.actions.clickOnOnboardingOption();
+        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
+        await onboardingComponent.saveButtonShouldBeDisabled();
+        await onboardingComponent.selectOnboardingOption(TagOption.SITE_ONBOARDING);
+        await onboardingComponent.clickOnSaveButton();
+        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.clickOnOnboardingOption();
+        await onboardingComponent.selectOnboardingOption(TagOption.NOT_ONBOARDING);
+        await onboardingComponent.clickOnSaveButton();
+        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
+        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
   }

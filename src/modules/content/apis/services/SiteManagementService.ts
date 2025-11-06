@@ -72,8 +72,13 @@ export class SiteManagementService implements ISiteManagementOperations {
    */
   async addNewSite(overrides: Partial<SiteCreationPayload> = {}) {
     return await test.step(`Adding new site using API`, async () => {
-      const randomNum = Math.floor(Math.random() * 1000000 + 1);
-      const siteName = `AutomateUI_Test_${randomNum}`;
+      // Use the provided name as-is, or generate a unique one if not provided
+      const siteName =
+        overrides.name ||
+        (() => {
+          const randomNum = Math.floor(Math.random() * 1000000 + 1);
+          return `AutomateUI_Test_${randomNum}`;
+        })();
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
       // Always include as true, only override if explicitly provided
@@ -87,6 +92,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         ...defaultSitePayload,
         ...optionalParams,
         ...overrides,
+        name: siteName, // Use the unique name
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,

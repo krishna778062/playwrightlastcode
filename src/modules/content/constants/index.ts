@@ -9,5 +9,6 @@ export * from './pageContentType';
 export * from './sitePageEnums';
 export * from './siteTypes';
 export * from './sortOptionLabels';
+export * from './TagOptions';
 export * from './testSuite';
 export * from './testTags';
