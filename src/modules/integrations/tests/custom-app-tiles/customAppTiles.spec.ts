@@ -2,6 +2,8 @@ import { faker } from '@faker-js/faker';
 import {
   CUSTOM_APP_TILES_TEST_DATA,
   DEFAULT_CUSTOM_APP_TILE_CONFIG,
+  IMAGE_ASPECT_RATIO_1_1,
+  IMAGE_ASPECT_RATIO_16_9,
 } from '@integrations/test-data/customAppTiles.test-data';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
@@ -189,7 +191,7 @@ test.describe(
     test(
       'verify form tile with overlay behavior',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -209,20 +211,12 @@ test.describe(
         await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM);
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
-
-        // Configure API action to get form fields from user input
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await customAppTilesPage.page.waitForTimeout(2000);
         await customAppTilesPage.clickButton('Configure API action');
         await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
-
-        // Select "Get from user" option for all form fields (Email, Summary, Description)
-        await customAppTilesPage.selectRadioForField('Get from user', 'Email');
-        await customAppTilesPage.selectRadioForField('Get from user', 'Summary');
-        await customAppTilesPage.selectRadioForField('Get from user', 'Description');
-
-        await customAppTilesPage.clickButtonInDialog(
-          CUSTOM_APP_TILES_TEST_DATA.BUTTONS.CONFIGURE_API_ACTION,
-          CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE
-        );
+        // Configure form fields to get from user input
+        await customAppTilesPage.configureFormFieldsAsUserInput('Get from user', ['Email', 'Summary', 'Description']);
 
         // Verify both display options are available (inline vs overlay)
         await customAppTilesPage.verifyDisplayDropdownOptions(
@@ -699,9 +693,320 @@ test.describe(
     );
 
     test(
+      'verify unsaved changes popup appears on cancel with changes om preview button',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-UNSAVED-CHANGES',
+          storyId: 'INT-UNSAVED-CHANGES',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Cancel Pop Message Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Cancel Pop Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Navigate to Tile Builder and add content to create unsaved changes
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Drag container and image blocks
+        await customAppTilesPage.dragToCanvas('Image');
+
+        // Click on Preview button
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
+
+        // Click Cancel link to trigger the unsaved changes dialog and capture it
+        const dialog = await customAppTilesPage.clickCancelLinkWithUnsavedChanges();
+
+        // Verify the popup is shown with correct message from constants
+        await customAppTilesPage.verifyUnsavedChangesDialog(dialog, MESSAGES.UNSAVED_CHANGES_MESSAGE);
+
+        // Dismiss the dialog (click Cancel to stay on page)
+        await dialog.dismiss();
+      }
+    );
+
+    test(
+      'verify unsaved changes popup appears on cancel with changes',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-UNSAVED-CHANGES',
+          storyId: 'INT-UNSAVED-CHANGES',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        await customAppTilesPage.clickCreateCustomAppTileButton();
+
+        const tileName = `Cancel Pop Message Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Cancel Pop Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.enterTileName(tileName);
+        await customAppTilesPage.enterTileDescription(tileDescription);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
+        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
+
+        // Navigate to Tile Builder and add content to create unsaved changes
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
+
+        // Drag container and image blocks
+        await customAppTilesPage.dragToCanvas('Image');
+
+        // Click Cancel link to trigger the unsaved changes dialog and capture it
+        const dialog = await customAppTilesPage.clickCancelLinkWithUnsavedChanges();
+
+        // Verify the popup is shown with correct message from constants
+        await customAppTilesPage.verifyUnsavedChangesDialog(dialog, MESSAGES.UNSAVED_CHANGES_MESSAGE);
+
+        // Dismiss the dialog (click Cancel to stay on page)
+        await dialog.dismiss();
+      }
+    );
+
+    test(
+      'back to edit page from preview page',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-BACK-TO-EDIT',
+          storyId: 'INT-BACK-TO-EDIT',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const tileName = `Back to Edit Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Back to Edit Description ${faker.lorem.sentence()}`;
+
+        // Create a custom app tile and navigate to tile builder
+        await customAppTilesPage.createCustomAppTile(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        // Drag an image block into canvas
+        await customAppTilesPage.dragToCanvas('Image');
+
+        // Click on Preview button to go to preview page
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
+
+        // Verify we're on preview page by checking for Back to editing button
+        await customAppTilesPage.verifyBackToEditingButtonVisible();
+
+        // Navigate back to edit page and verify
+        await customAppTilesPage.navigateBackToEditPage();
+      }
+    );
+
+    test(
+      'verify tile type change confirmation',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25967',
+          storyId: 'INT-25967',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Generate unique tile data
+        const tileName = `Tile Type Change Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Tile Type Change Description ${faker.lorem.sentence()}`;
+
+        // Create a custom app tile and navigate to tile builder
+        await customAppTilesPage.createCustomAppTile(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        // Get and verify API response
+        await customAppTilesPage.getAndVerifySuccessfulAPIResponse([/issues/, /id/]);
+
+        // Drag a text block into canvas
+        await customAppTilesPage.dragToCanvas('Text');
+
+        // Change tile type to Form after saving (this will verify the dialog and confirm the change)
+        await customAppTilesPage.changeTileTypeAfterSaving(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM, true);
+      }
+    );
+
+    test(
+      'verify image configuration with different sizes',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-19706',
+          storyId: 'INT-19706',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Generate unique tile data
+        const tileName = `Image Configuration Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Image Configuration Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.createCustomAppTile(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        // Drag container and image blocks
+        await customAppTilesPage.dragToCanvas('Image');
+
+        // Upload image
+        await customAppTilesPage.uploadFile('Jira_Custom_App.jpg', 'image');
+        await customAppTilesPage.getAndVerifySuccessfulAPIResponse([/issues/, /id/]);
+
+        // Test Small size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.SMALL);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.SMALL_IMAGE_SIZE.WIDTH}px`);
+
+        // Test Large size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.LARGE);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.LARGE_IMAGE_SIZE.WIDTH}px`);
+
+        // Test Medium size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.MEDIUM);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.MEDIUM_IMAGE_SIZE.WIDTH}px`);
+
+        // Test target URL
+        await customAppTilesPage.clickTab('Data', 'Image');
+        await customAppTilesPage.enterTargetUrl(CUSTOM_APP_TILES_TEST_DATA.EXTERNAL_URLS.GOOGLE);
+
+        // Click on Preview button
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
+
+        // Verify image container width in preview page
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.MEDIUM_IMAGE_SIZE.WIDTH}px`);
+
+        // Click on image to verify it opens URL in new tab
+        await customAppTilesPage.verifyNewTabUrlContains(CUSTOM_APP_TILES_TEST_DATA.EXTERNAL_URLS.GOOGLE);
+
+        await customAppTilesPage.navigateBackToEditPage();
+
+        //publish the tile and verify toast message
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PUBLISH);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_PUBLISHED);
+      }
+    );
+
+    test(
+      'verify image configuration with different ',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-IMAGE-CONFIGURATION-WITH-DIFFERENT-SIZES',
+          storyId: 'INT-IMAGE-CONFIGURATION-WITH-DIFFERENT-SIZES',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Generate unique tile data
+        const tileName = `Image Configuration Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Image Configuration Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.createCustomAppTile(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        // Drag container and image blocks
+        await customAppTilesPage.dragToCanvas('Image');
+
+        // Upload image
+        await customAppTilesPage.uploadFile('Jira_Custom_App.jpg', 'image');
+        await customAppTilesPage.getAndVerifySuccessfulAPIResponse([/issues/, /id/]);
+
+        // Test Small size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.SMALL);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.SMALL_IMAGE_SIZE.WIDTH}px`);
+        await customAppTilesPage.switchAspectRatio('1:1');
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_1_1.SMALL_IMAGE_SIZE.WIDTH}px`);
+
+        // Test Large size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.LARGE);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_1_1.LARGE_IMAGE_SIZE.WIDTH}px`);
+        await customAppTilesPage.switchAspectRatio('16:9');
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.LARGE_IMAGE_SIZE.WIDTH}px`);
+
+        // Test Medium size
+        await customAppTilesPage.selectImageSize(CUSTOM_APP_TILES_TEST_DATA.IMAGE_SIZES.MEDIUM);
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_16_9.MEDIUM_IMAGE_SIZE.WIDTH}px`);
+        await customAppTilesPage.switchAspectRatio('1:1');
+        await customAppTilesPage.verifyImageContainerWidth(`${IMAGE_ASPECT_RATIO_1_1.MEDIUM_IMAGE_SIZE.WIDTH}px`);
+      }
+    );
+
+    test(
+      'verify text style heights change for Data large, medium and small',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-TEXT-STYLE-HEIGHT-VERIFICATION',
+          storyId: 'INT-TEXT-STYLE-HEIGHT-VERIFICATION',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Generate unique tile data
+        const tileName = `Text Style Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Text Style Description ${faker.lorem.sentence()}`;
+
+        await customAppTilesPage.createCustomAppTile(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        // Drag text element to canvas
+        await customAppTilesPage.dragToCanvas('Text');
+
+        // Verify text style heights change correctly for all sizes
+        await customAppTilesPage.verifyTextStyleHeights();
+      }
+    );
+
+    test(
       'clean up test tiles',
       {
-        tag: [TestPriority.P3],
+        tag: [TestPriority.P1],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

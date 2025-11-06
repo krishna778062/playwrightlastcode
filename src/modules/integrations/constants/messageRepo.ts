@@ -70,4 +70,5 @@ export const MESSAGES = {
   CHANGE_TILE_TYPE: 'Change tile type',
   CHANGE_TILE_TYPE_MESSAGE:
     'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
+  UNSAVED_CHANGES_MESSAGE: 'You have unsaved changes. Do you want to leave?',
 } as const;
