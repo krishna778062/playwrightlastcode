@@ -224,7 +224,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
-        await siteDashboard.addTilewithAppManagerDefined(
+        await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,
@@ -285,7 +285,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
-        await siteDashboard.addTilewithAppManagerDefined(
+        await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,

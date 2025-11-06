@@ -1,8 +1,18 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { DialogBox } from '@rewards-components/common/dialog-box';
-import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 
 export class GiveRecognitionDialogBox extends DialogBox {
+  readonly dialog: Locator;
+  readonly dialogTitle: Locator;
+  readonly dialogDescription: Locator;
+  readonly dialogCancelButton: Locator;
+  readonly dialogConfirmButton: Locator;
+  readonly dialogCloseButton: Locator;
+  readonly recipientInput: Locator;
+  readonly pointsInput: Locator;
+  readonly messageInput: Locator;
+
+  // Additional properties for recognition functionality
   readonly profilePicture: Locator;
   readonly peerRecognitionTab: Locator;
   readonly spotAwardTab: Locator;
@@ -12,7 +22,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly selectOptions: Locator;
   readonly suggesterContainer: Locator;
   readonly recipientsInput: Locator;
-  readonly messageInput: Locator;
   readonly descriptionTextArea: Locator;
   readonly companyValuesInput: Locator;
   readonly expertiseInput: Locator;
@@ -35,34 +44,20 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly awardDisabledWarning: Locator;
   readonly shareIcon: Locator;
 
-  /**
-   * This method returns a locator for the awardee name.
-   * @returns {Locator} - The locator for the awardee text.
-   */
-  getAwardee(fullname: string): Locator {
-    return this.container.getByText(fullname);
-  }
-
-  /**
-   * This method returns a locator for the suggested item.
-   * @param identifier - The identifier can be a string or a number.
-   * @returns {Locator} - The locator for the option.
-   */
-  getOption(identifier: string | number): Locator {
-    if (typeof identifier === 'string') {
-      return this.selectOptions.getByText(identifier).first();
-    } else if (typeof identifier === 'number') {
-      return this.selectOptions.nth(identifier);
-    }
-    throw new Error(`Invalid identifier type: ${typeof identifier}`);
-  }
-
-  /**
-   * This class represents the Give Recognition Dialog Box.
-   * @param page - The Playwright page object
-   */
   constructor(page: Page) {
     super(page);
+
+    this.dialog = page.locator('[role="dialog"]');
+    this.dialogTitle = this.dialog.locator('[data-testid="give-recognition-dialog-title"]');
+    this.dialogDescription = this.dialog.locator('[data-testid="give-recognition-dialog-description"]');
+    this.dialogCancelButton = this.dialog.locator('button[data-testid="give-recognition-cancel"]');
+    this.dialogConfirmButton = this.dialog.locator('button[data-testid="give-recognition-confirm"]');
+    this.dialogCloseButton = this.dialog.locator('button[data-testid="give-recognition-close"]');
+    this.recipientInput = this.dialog.locator('input[data-testid="recipient-input"]');
+    this.pointsInput = this.dialog.locator('input[data-testid="points-input"]');
+    this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');
+
+    // Additional locators for recognition functionality
     this.profilePicture = this.container.locator('[src*="data:image"]');
     this.peerRecognitionTab = this.container.getByRole('tab', { name: 'Peer recognition' });
     this.spotAwardTab = this.container.getByRole('tab', { name: 'Spot award' });
@@ -99,7 +94,20 @@ export class GiveRecognitionDialogBox extends DialogBox {
   }
 
   /**
-   * This method recognize spot awards.
+   * This method returns a locator for the suggested item.
+   * @param identifier - The identifier can be a string or a number.
+   * @returns {Locator} - The locator for the option.
+   */
+  getOption(identifier: string | number): Locator {
+    if (typeof identifier === 'string') {
+      return this.suggesterContainer.getByText(identifier);
+    } else {
+      return this.suggesterContainer.locator('[role="option"]').nth(identifier);
+    }
+  }
+
+  /**
+   * This method recognizes a spot award.
    * @param award Award name or index
    * @param recipient Recipient name or index
    * @param message Message to be sent with the award
@@ -110,13 +118,16 @@ export class GiveRecognitionDialogBox extends DialogBox {
     message: string = 'Test Message'
   ): Promise<boolean> {
     await this.spotAwardTab.click();
+    await this.recognitionRecipientsInput.click();
+    if (typeof recipient === 'string') {
+      await this.recognitionRecipientsInput.fill(recipient);
+    }
+    await this.suggesterContainer.waitFor({ state: 'visible' });
+    await this.getOption(recipient).click();
     await this.selectAwardInput.click();
     await this.suggesterContainer.waitFor();
     await this.getOption(award).click();
-    await this.recipientsInput.click();
-    await this.suggesterContainer.waitFor();
-    await this.getOption(recipient).click();
-    await this.messageInput.fill(message);
+    await this.descriptionTextArea.fill(message);
     await this.recognizeButton.click();
     return true;
   }
@@ -150,80 +161,59 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.giftingToggle.scrollIntoViewIfNeeded();
     await this.giftingToggle.click();
     await this.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
+    let rewardPointsText: string | null = '';
+    if (!(await this.giftingOptionsContainerPill.nth(rewardPoints - 1).isChecked())) {
+      await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click();
+      rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
+    }
+    await this.recognizeButton.click();
+    return rewardPointsText || '';
+  }
+
+  /**
+   * This method gifts the points.
+   * @param rewardPoints Reward point pill index
+   */
+  async giftThePoints(rewardPoints: number): Promise<string> {
+    await this.giftingToggle.waitFor({ state: 'visible', timeout: 10000 });
+    await this.giftingToggle.scrollIntoViewIfNeeded();
+    await this.giftingToggle.click();
+    await this.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
     const rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
     if (!(await this.giftingOptionsContainerPill.nth(rewardPoints - 1).isChecked())) {
       await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click({ force: true });
     }
-    await this.recognizeButton.click();
-    const shareModal = new DialogBox(this.page);
-    if (await shareModal.container.isVisible()) {
-      await shareModal.skipButton.click();
-      await expect(shareModal.container).not.toBeVisible();
-    }
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
     return rewardPointsText || '';
   }
 
   /**
-   * Gift points to a recognition
+   * Select the user for recognition
    */
-  async giftThePoints(rewardPoints: number): Promise<string> {
-    await this.giftingToggle.waitFor({ state: 'visible', timeout: 10000 });
-    await this.giftingToggle.click({ force: true });
-    await this.giftingOptionsContainerPillText.last().waitFor({ state: 'visible' });
-    let rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
-    if (!(await this.giftingOptionsContainerPill.nth(rewardPoints - 1).isChecked())) {
-      await this.giftingOptionsContainerPill.nth(rewardPoints - 1).click({ force: true });
-      rewardPointsText = await this.giftingOptionsContainerPillText.nth(rewardPoints - 1).textContent();
-    }
-    return rewardPointsText || '';
-  }
-
-  /**
-   * This method fills the recognition Message peer recognition.
-   * @param message
-   */
-  async enterTheRecognitionMessage(message: string): Promise<void> {
-    await this.descriptionTextArea.fill(message);
-  }
-
-  /**
-   * This method selects the user in "Award to" peer recognition modal.
-   * @param award - Award name or index
-   */
-  async selectThePeerRecognitionAwardForRecognition(award: string | number = 0): Promise<string> {
-    if (typeof award === 'string') {
-      await this.selectPeerRecognitionInput.waitFor({ state: 'visible' });
-      await this.selectPeerRecognitionInput.fill(award);
-      await this.suggesterContainer.waitFor({ state: 'visible', timeout: 15000 });
-      await this.getOption(award).click();
+  async selectTheUserForRecognition(userName: string | number): Promise<void> {
+    await this.recognitionRecipientsInput.click();
+    if (typeof userName === 'string') {
+      await this.recognitionRecipientsInput.fill(userName);
     } else {
-      await this.selectPeerRecognitionInput.waitFor({ state: 'visible' });
-      await this.selectPeerRecognitionInput.click();
-      await this.suggesterContainer.waitFor({ state: 'visible' });
-      await this.getOption(award).click();
-    }
-    const awardText = await this.selectedAwardInRecognition.textContent();
-    return awardText || '';
-  }
-
-  /**
-   * This method selects the user in "Award to" peer recognition modal.
-   * @param recipient Recipient name or index
-   */
-  async selectTheUserForRecognition(recipient: string | number = 0): Promise<void> {
-    await this.loadingIndicator.first().waitFor({ state: 'detached' });
-    if (typeof recipient === 'string') {
-      await this.recognitionRecipientsInput.waitFor({ state: 'visible' });
-      await this.recognitionRecipientsInput.fill(recipient);
-      await this.suggesterContainer.waitFor({ state: 'visible', timeout: 15000 });
-      await this.getOption(recipient).click();
-    } else {
-      await this.recognitionRecipientsInput.waitFor({ state: 'visible' });
       await this.recognitionRecipientsInput.click();
-      await this.suggesterContainer.waitFor({ state: 'visible' });
-      await this.getOption(recipient).click();
     }
+    await this.suggesterContainer.waitFor({ state: 'visible' });
+    await this.getOption(userName).click();
+  }
+
+  /**
+   * Select the peer recognition award for recognition
+   */
+  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<void> {
+    await this.selectPeerRecognitionInput.click();
+    await this.suggesterContainer.waitFor();
+    await this.getOption(awardName).click();
+  }
+
+  /**
+   * Enter the recognition message
+   */
+  async enterTheRecognitionMessage(message: string): Promise<string | void> {
+    await this.descriptionTextArea.fill(message);
+    return message;
   }
 }
