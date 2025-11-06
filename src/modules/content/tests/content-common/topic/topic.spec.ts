@@ -217,4 +217,26 @@ test.describe('edit Topic', () => {
       await topicDetailsPage.assertions.verifyingSharePostToastMessage('Shared post successfully');
     }
   );
+
+  test(
+    'verify cancel behaviour of delete topic',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-40977'],
+    },
+    async ({ appManagerFixture, appManagerApiFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify cancel behaviour of delete topic',
+        zephyrTestId: 'CONT-40977',
+        storyId: 'CONT-40977',
+      });
+
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+      const topicName = await manageTopicsPage.getTopicNameFromList();
+      await manageTopicsPage.actions.clickOnDeleteTopic();
+      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
+      await manageTopicsPage.actions.clickCancelButton();
+      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName);
+    }
+  );
 });

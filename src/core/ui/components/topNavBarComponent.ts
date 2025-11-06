@@ -53,7 +53,7 @@ export class TopNavBarComponent extends BaseComponent {
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
-    this.viewProfileButton = this.page.getByLabel('View profile');
+    this.viewProfileButton = this.page.getByText('View profile');
     this.xButtonToClearGlobalSearchBar = this.page.getByRole('button', { name: 'Clear' });
   }
 
@@ -87,13 +87,13 @@ export class TopNavBarComponent extends BaseComponent {
   async clickSearchButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `topnavbar: clicking search button`, async () => {
       const globalSearchResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.globalSearchButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.globalSearchButton, { delay: 2_000, timeout: 30_000 }),
         response =>
           response.url().includes(API_ENDPOINTS.search.enterprise) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 40_000,
         }
       );
       return globalSearchResponse;

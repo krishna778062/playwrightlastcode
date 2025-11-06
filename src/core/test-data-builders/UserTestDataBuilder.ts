@@ -52,6 +52,30 @@ export class UserTestDataBuilder {
     return createdUsers;
   }
 
+  async addUsersToSystemWithGivenEmail(
+    count: number,
+    role: Roles,
+    password: string = 'Password123',
+    email: string
+  ): Promise<TestUser[]> {
+    const createdUsers: TestUser[] = [];
+
+    await test.step(`Adding ${count} users with role ${role}`, async () => {
+      for (let i = 0; i < count; i++) {
+        const user = TestDataGenerator.generateUserWithEmpIdAndGivenEmail(email);
+
+        const { userId } = await this.addAndActivateUser(user, role, password);
+        createdUsers.push({
+          ...user,
+          userId,
+          fullName: `${user.first_name} ${user.last_name}`,
+          role,
+        });
+      }
+    });
+    return createdUsers;
+  }
+
   async addUsersWithEmpIdAndDepartmentToSystem(role: Roles, password: string = 'Password123'): Promise<TestUser[]> {
     const createdUsers: TestUser[] = [];
 

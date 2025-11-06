@@ -537,4 +537,20 @@ export class CSVUtils {
     const records = await this.getAllRecords(csvPath);
     return records.length;
   }
+
+  /**
+   * Delete the specified downloaded CSV file
+   * @param filePath - Path to the CSV file to delete
+   */
+  async deleteTheDownloadedCSV(filePath?: string): Promise<void> {
+    try {
+      if (!filePath) return;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log('Deleted CSV:', filePath);
+      }
+    } catch (err) {
+      console.warn('Failed to delete CSV:', err);
+    }
+  }
 }

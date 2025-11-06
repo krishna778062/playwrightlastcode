@@ -18,8 +18,6 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test.beforeEach(async ({ appManagerFixture }) => {
     const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
-
-    // Get tenant code
     tenantCode = await appManagerFixture.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.accountId;
     });
@@ -111,20 +109,23 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await recognitionHub.reloadPage();
-      await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.checkTheGiftingOptionsAre(false);
 
       // Set distribution allowance as success using test helper
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      await recognitionHub.reloadPage();
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.clickOnGiveRecognition();
+      await recognitionHub.checkTheGiftingOptionsAre(true);
     }
   );
 
   test(
     "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -184,7 +185,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -207,14 +208,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       }
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await shareModal.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container)) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -348,14 +349,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       }
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsTextNew = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }

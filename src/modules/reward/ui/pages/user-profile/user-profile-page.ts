@@ -45,6 +45,11 @@ export class UserProfilePage extends BasePage {
       'button[aria-label="Allowance refreshing information"]'
     );
     this.allowanceRefreshingInfoIconTooltipText = page.locator('div[id*="tippy"]>div>p');
+
+    // Notification settings locators
+    this.notificationSettingSaveButton = page.getByRole('button', { name: 'Save' });
+    this.recognitionNotificationToggle = page.locator('input[name="recognition_notifications"]');
+    this.rewardsNotificationToggle = page.locator('input[name="rewards_notifications"]');
   }
 
   /**
@@ -189,5 +194,78 @@ export class UserProfilePage extends BasePage {
       'Your monthly allowance is refreshing and will be available soon'
     );
     await this.allowanceRefreshingInfoIcon.click({ force: true });
+  }
+
+  /**
+   * Mock the basic-app-config API and reload the page with new language
+   */
+  async mockAppConfigLanguage(page: Page, langCode: number): Promise<void> {
+    await page.route('**/v2/account/basic-app-config', async route => {
+      const originalResponse = await route.fetch();
+      const body = await originalResponse.json();
+
+      if (body?.result?.language !== undefined) {
+        body.result.language = langCode;
+      } else {
+        console.warn('⚠️ Could not find result.language in response, leaving unchanged');
+      }
+
+      await route.fulfill({
+        response: originalResponse,
+        body: JSON.stringify(body),
+        headers: {
+          ...originalResponse.headers(),
+          'content-type': 'application/json',
+        },
+      });
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+  }
+
+  /**
+   * Restore original behavior (disable API mocking)
+   */
+  async restoreAppConfigMock(page: Page): Promise<void> {
+    await page.unroute('**/v2/account/basic-app-config');
+    await page.reload();
+    console.log('✅ Restored API, mock disabled, page reloaded.');
+  }
+
+  // Notification settings locators
+  readonly notificationSettingSaveButton: Locator;
+  readonly recognitionNotificationToggle: Locator;
+  readonly rewardsNotificationToggle: Locator;
+
+  /**
+   * Navigate to current user profile notification settings
+   */
+  async navigateToCurrentUserProfileNotificationSetting(type: 'email' | 'browser' | 'mobile'): Promise<void> {
+    await this.navigateToCurrentUserProfile();
+    await this.page.goto(`/user/profile/notifications/${type}`);
+    await this.verifier.waitUntilPageHasNavigatedTo(`/user/profile/notifications/${type}`);
+  }
+
+  /**
+   * Set notification settings for recognition
+   */
+  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
+    const isChecked = await this.recognitionNotificationToggle.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.recognitionNotificationToggle, {
+        stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
+  }
+
+  /**
+   * Set notification settings for rewards
+   */
+  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
+    const isChecked = await this.rewardsNotificationToggle.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.rewardsNotificationToggle, {
+        stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
   }
 }
