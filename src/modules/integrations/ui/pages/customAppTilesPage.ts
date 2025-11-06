@@ -39,72 +39,50 @@ export class CustomAppTilesPage extends BasePage {
 
   // Selector strings for reusable components
   readonly showMoreButtonSelector: string;
-
-  // Page header elements
   readonly pageTitle: Locator;
   readonly createCustomAppTileButton: Locator;
   readonly backToTilesListLink: Locator;
-
-  // Search elements
   readonly searchInput: Locator;
   readonly clearSearchButton: Locator;
-
-  // Apps dropdown elements
   readonly appsDropdown: Locator;
   readonly statusDropdown: Locator;
   readonly statusFilterLabels: Locator;
   readonly appsSearchInput: Locator;
   readonly appOptionLabels: Locator;
-
-  // Tile list elements
   readonly tileRows: Locator;
   readonly noResultsHeading: Locator;
   readonly noResultsDescription: Locator;
   readonly showMoreButton: Locator;
   readonly resultCount: Locator;
-
-  // Tile management elements
   readonly tileMoreButton: Locator;
   readonly tileMenuOption: Locator;
   readonly confirmDeleteButton: Locator;
   readonly tileHeadingByPrefix: Locator;
   readonly tileStatusByName: Locator;
   readonly topTileName: Locator;
-
-  // Create tile form elements
   readonly tileNameInput: Locator;
   readonly tileDescriptionInput: Locator;
   readonly tileTypeSelect: Locator;
   readonly appSelect: Locator;
   readonly apiActionSelect: Locator;
   readonly tileBuilderStepper: Locator;
-
-  // Canvas and builder elements
   readonly canvasContainer: Locator;
   readonly imageTextRowsBlock: Locator;
   readonly containerBlock: Locator;
   readonly textBlock: Locator;
   readonly imageBlock: Locator;
   readonly formContainer: Locator;
-
-  // Canvas verification elements
   readonly formContainerSubmitButton: Locator;
   readonly formContainerButton: Locator;
-
-  // Data tab elements
   readonly dataTab: Locator;
   readonly tileBuilderTab: Locator;
   readonly initialDisplayCountDropdown: Locator;
-
-  // Image configuration elements
   readonly imageSizeDropdown: Locator;
   readonly imageContainer: Locator;
   readonly targetUrlInput: Locator;
   readonly imageWithHyperlink: Locator;
   readonly selectFromComputerButton: Locator;
   readonly imageUploadInput: Locator;
-
-  // Form configuration elements
   readonly configureApiActionButton: Locator;
   readonly apiActionWrapper: Locator;
   readonly apiActionWrapperEnabled: Locator;
@@ -112,32 +90,22 @@ export class CustomAppTilesPage extends BasePage {
   readonly addCustomAppLink: Locator;
   readonly createApiActionLink: Locator;
   readonly formBehaviorDropdown: Locator;
-
-  // Dialog and modal elements
   readonly dialogTitle: Locator;
   readonly dialogModule: Locator;
   readonly dialogFooterButtonSelector: string;
-
-  // Additional locators for methods
   readonly firstTileRow: Locator;
   readonly cancelButtonForVerification: Locator;
   readonly formBehaviorDropdownOptions: Locator;
   readonly incompleteSettingsMessageLocator: Locator;
-
-  // More locators for remaining methods
   readonly appColumns: Locator;
   readonly checkboxes: Locator;
   readonly reactSelectInput: Locator;
   readonly buttonElement: Locator;
   readonly tileRowByPrefix: Locator;
   readonly fieldContainer: Locator;
-
-  // Dynamic locators for dropdown options
   readonly displayCountOption: Locator;
   readonly imageSizeOption: Locator;
   readonly formBehaviorOption: Locator;
-
-  // Additional dynamic locators for methods
   readonly dynamicSourceLocator: Locator;
   readonly dynamicTileRow: Locator;
   readonly dynamicMoreButton: Locator;
@@ -146,11 +114,7 @@ export class CustomAppTilesPage extends BasePage {
   readonly dynamicTileHeader: Locator;
   readonly dynamicSaveButton: Locator;
   readonly dynamicNextButton: Locator;
-
-  // Additional locators for remaining methods
   readonly dynamicAppColumns: Locator;
-
-  // Additional locators for methods that were using inline locators
   readonly optionByRole: Locator;
   readonly buttonByRole: Locator;
   readonly clearButtonByRole: Locator;
@@ -160,22 +124,14 @@ export class CustomAppTilesPage extends BasePage {
   readonly createCustomAppTileHeader: Locator;
   readonly tileBuilderStep: Locator;
   readonly detailsStep: Locator;
-
-  // API Response dialog locators
   readonly apiResponseDialog: Locator;
   readonly apiResponseStatusContainer: Locator;
   readonly apiResponseSuccessIndicator: Locator;
   readonly apiResponseDoneButton: Locator;
   readonly apiResponseBody: Locator;
-
-  // Change Tile Type dialog locators (additional)
   readonly changeTileTypeDialog: Locator;
   readonly changeTileTypeDialogTitle: Locator;
-
-  // Apps dropdown specific locators
   readonly appsClearButton: Locator;
-
-  // Text style selection locators
   readonly styleDropdownSelectedValue: Locator;
   readonly styleDropdownControl: Locator;
   readonly styleDropdownOptions: Locator;
@@ -183,8 +139,6 @@ export class CustomAppTilesPage extends BasePage {
   readonly enabledTextComponent: Locator;
   readonly editableTextElements: Locator;
   readonly textContainerElements: Locator;
-
-  // Inline locators that were in methods
   readonly imageSelectDropdown: Locator;
   readonly styleTextOption: Locator;
   readonly detailsButton: Locator;
@@ -1294,8 +1248,6 @@ export class CustomAppTilesPage extends BasePage {
    * @param tabName - Tab name (e.g., "Data", "Appearance")
    * @param panelName - Optional: Panel name (e.g., "Image", "Container")
    * @example
-   * await page.clickTab("Data", "Image"); // Click Data tab in Image panel
-   * await page.clickTab("Appearance");     // Click Appearance tab globally
    */
   async clickTab(tabName: string, panelName?: string): Promise<void> {
     await test.step(`Click "${tabName}" tab${panelName ? ` in "${panelName}" panel` : ''}`, async () => {
@@ -1307,9 +1259,6 @@ export class CustomAppTilesPage extends BasePage {
    * Handle accordion actions (expand/collapse/toggle)
    * @param title - The accordion title (e.g., "Target URL", "Image source")
    * @param action - Action to perform: "expand" (default), "collapse", or "toggle"
-   * @example
-   * await page.accordion("Target URL"); // Expands if collapsed
-   * await page.accordion("Image source", "toggle"); // Toggles state
    */
   async accordion(title: string, action: 'expand' | 'collapse' | 'toggle' = 'expand'): Promise<void> {
     await test.step(`${action} "${title}" accordion`, async () => {
@@ -1331,9 +1280,7 @@ export class CustomAppTilesPage extends BasePage {
    */
   async enterTargetUrl(url: string): Promise<void> {
     await test.step(`Enter target URL: ${url}`, async () => {
-      // Ensure the Target URL accordion is expanded first
       await this.accordion('Target URL');
-      // Wait for the input to be visible after accordion expansion
       await this.targetUrlInput.waitFor({ state: 'visible', timeout: TIMEOUTS.ELEMENT_VISIBLE });
       await this.fillInElement(this.targetUrlInput, url);
     });
@@ -1355,7 +1302,6 @@ export class CustomAppTilesPage extends BasePage {
   async verifyNewTabUrlContains(expectedUrlPart: string): Promise<void> {
     await test.step(`Verify new tab URL contains: ${expectedUrlPart}`, async () => {
       const [newPage] = await Promise.all([this.page.context().waitForEvent('page'), this.clickOnImageWithHyperlink()]);
-
       await newPage.waitForLoadState();
       const currentUrl = newPage.url();
       this.expect(currentUrl, `Expected new tab URL to contain "${expectedUrlPart}"`).toContain(expectedUrlPart);
@@ -1421,14 +1367,12 @@ export class CustomAppTilesPage extends BasePage {
     });
   }
 
-  // Tile management
   /**
    * Click the three dots menu for a tile starting with the given prefix
    * @param prefix - The prefix to match tiles
    */
   async clickThreeDotsForTileStartingWith(prefix: string): Promise<void> {
     await test.step(`Click three dots for tile starting with: ${prefix}`, async () => {
-      // Get the first tile with the prefix to avoid strict mode violation
       const tileRow = this.dynamicTileRow.filter({ hasText: prefix }).first();
       const moreBtn = tileRow.locator(this.showMoreButtonSelector);
       await this.clickOnElement(moreBtn);
@@ -1836,12 +1780,8 @@ export class CustomAppTilesPage extends BasePage {
    */
   async selectRadioForField(optionText: string, fieldLabel: string): Promise<void> {
     await test.step(`Select "${optionText}" option from "${fieldLabel}"`, async () => {
-      // Find the field container by data-testid
       const fieldContainer = this.fieldContainer.filter({ hasText: fieldLabel });
-
-      // Use Playwright's getByRole to find the radio by its label text within the container
       const radioElement = fieldContainer.getByRole('radio', { name: optionText, exact: true });
-
       await this.clickOnElement(radioElement, {
         stepInfo: `Select "${optionText}" option from "${fieldLabel}"`,
       });
@@ -1856,7 +1796,6 @@ export class CustomAppTilesPage extends BasePage {
     for (const fieldName of fieldNames) {
       await this.selectRadioForField(formName, fieldName);
     }
-    // Click Save button in Configure API action dialog using JavaScript click
     await this.clickButton('Save');
   }
 
@@ -1865,14 +1804,8 @@ export class CustomAppTilesPage extends BasePage {
    */
   async forceClickDetailsStep(): Promise<void> {
     await test.step('Force click Details step', async () => {
-      // Direct approach: Find and click the Details button
-      // Wait for it to be attached to DOM
       await this.detailsButton.waitFor({ state: 'attached', timeout: TIMEOUTS.ELEMENT_LOAD });
-
-      // Force click without waiting for actionability
       await this.detailsButton.click({ force: true });
-
-      // Wait for navigation
       await this.page.waitForTimeout(TIMEOUTS.LONG_WAIT);
     });
   }
@@ -1936,23 +1869,12 @@ export class CustomAppTilesPage extends BasePage {
   async changeTileTypeAfterSaving(newTileType: string, confirmChange: boolean = true): Promise<void> {
     // Save current configuration
     await this.clickButton('Save');
-
-    // Wait for save to complete and UI to be ready
     await this.page.waitForTimeout(TIMEOUTS.SAVE_WAIT);
-
-    // Navigate back to Details step using force click
     await this.forceClickDetailsStep();
-
-    // Verify we're on Details step before changing type
     await this.page.waitForTimeout(TIMEOUTS.MEDIUM_WAIT);
-
     // Change tile type
     await this.selectTileType(newTileType);
-
-    // Wait for confirmation dialog
     await this.page.waitForTimeout(TIMEOUTS.SHORT_WAIT);
-
-    // Verify and handle the confirmation dialog
     await this.verifyChangeTileTypeDialog();
     await this.handleChangeTileTypeDialog(confirmChange ? 'confirm' : 'cancel');
   }

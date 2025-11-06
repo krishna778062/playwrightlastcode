@@ -17,7 +17,7 @@ import { integrationsFixture as test } from '@/src/modules/integrations/fixtures
 import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAppTilesPage';
 
 test.describe(
-  'custom App Tiles Management',
+  'display App Tiles Management',
   {
     tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -189,48 +189,37 @@ test.describe(
     );
 
     test(
-      'verify form tile with overlay behavior',
+      'verify display tile with container and text',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24557',
-          storyId: 'INT-24557',
+          zephyrTestId: 'INT-DISPLAY-001',
+          storyId: 'INT-DISPLAY-001',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
         // enter tile name and description
-        const tileName = `Test Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
-        const tileDescription = `Test Description ${faker.lorem.sentence()}`;
+        const tileName = `Display Container Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const tileDescription = `Display Container Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
         await customAppTilesPage.enterTileDescription(tileDescription);
-        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM);
+        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY);
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
+        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await customAppTilesPage.page.waitForTimeout(2000);
-        await customAppTilesPage.clickButton('Configure API action');
-        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
-        // Configure form fields to get from user input
-        await customAppTilesPage.configureFormFieldsAsUserInput('Get from user', ['Email', 'Summary', 'Description']);
 
-        // Verify both display options are available (inline vs overlay)
-        await customAppTilesPage.verifyDisplayDropdownOptions(
-          CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_TILE,
-          CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY
-        );
+        // Drag container and text blocks
+        await customAppTilesPage.dragToCanvas('Container');
+        await customAppTilesPage.dragToCanvas('Text');
 
-        // select display option in form behaviour
-        await customAppTilesPage.selectDisplayOptionInFormBehaviour(
-          CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY
-        );
-
-        // verify canvas is auto populated with button
-        await customAppTilesPage.verifyCanvasIsAutoPopulatedWithButton();
+        // Save and preview
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
+        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
       }
     );
 
@@ -1004,21 +993,21 @@ test.describe(
     );
 
     test(
-      'clean up test tiles',
+      'clean up display test tiles',
       {
-        tag: [TestPriority.P1],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-CLEANUP',
-          storyId: 'INT-CLEANUP',
+          zephyrTestId: 'INT-DISPLAY-CLEANUP',
+          storyId: 'INT-DISPLAY-CLEANUP',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        // Delete all test tiles created during test runs (cleanup)
-        // Match tiles ending with "Test" followed by space and 6 alphanumeric characters (e.g., "Test L1nBHx")
-        await customAppTilesPage.deleteAllTilesWithPrefix('', /.*\bTest\s[a-zA-Z0-9]{6}$/);
+        // Delete all display test tiles created during test runs
+        // Match tiles that don't start with "Form" and end with "Test" followed by space and 6 alphanumeric characters
+        await customAppTilesPage.deleteAllTilesWithPrefix('', /^(?!Form).*Test\s[a-zA-Z0-9]{6}$/);
       }
     );
   }
