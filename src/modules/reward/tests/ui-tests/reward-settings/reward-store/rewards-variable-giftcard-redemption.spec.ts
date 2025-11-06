@@ -27,6 +27,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
       const giftCardName = 'Airbnb';
       let limits: number[] = [];
 
+      // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
 

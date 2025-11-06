@@ -505,7 +505,7 @@ export class HomeDashboard extends BasePage {
   /**
    * Complete workflow to add an app tile with app manager defined settings
    */
-  async addTilewithAppManagerDefined(
+  async addTilewithDefinedSettings(
     tileTitle: string,
     appName: string,
     tileName: string,
@@ -847,5 +847,8 @@ export class HomeDashboard extends BasePage {
    */
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
+  }
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
   }
 }
