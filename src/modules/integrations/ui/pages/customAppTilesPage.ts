@@ -103,6 +103,8 @@ export class CustomAppTilesPage extends BasePage {
   readonly buttonElement: Locator;
   readonly tileRowByPrefix: Locator;
   readonly fieldContainer: Locator;
+  readonly fieldSelector: string;
+  readonly fieldRequiredError: string;
   readonly displayCountOption: Locator;
   readonly imageSizeOption: Locator;
   readonly formBehaviorOption: Locator;
@@ -344,6 +346,8 @@ export class CustomAppTilesPage extends BasePage {
     this.buttonElement = this.getLocator('a, button');
     this.tileRowByPrefix = this.getLocator('tr');
     this.fieldContainer = this.getLocator('[data-testid^="field-"]');
+    this.fieldSelector = '[data-testid="field-{fieldName}"]';
+    this.fieldRequiredError = ' is a required field';
     this.displayCountOption = this.getByTestId('display-count-option');
     this.imageSizeOption = this.getByTestId('image-size-option').or(this.getLocator('option'));
     this.formBehaviorOption = this.getLocator('select[aria-label="Form behavior"] option');
@@ -1877,5 +1881,34 @@ export class CustomAppTilesPage extends BasePage {
     await this.page.waitForTimeout(TIMEOUTS.SHORT_WAIT);
     await this.verifyChangeTileTypeDialog();
     await this.handleChangeTileTypeDialog(confirmChange ? 'confirm' : 'cancel');
+  }
+
+  /**
+   * Get a specific field locator by field name
+   * @param fieldName - The name of the field (e.g., 'Description', 'Email', 'Summary')
+   * @returns Locator for the field
+   */
+  getFieldLocator(fieldName: string): Locator {
+    const selector = this.fieldSelector.replace('{fieldName}', fieldName);
+    return this.page.locator(selector);
+  }
+
+  /**
+   * Get the required field error message for a specific field
+   * @param fieldName - The name of the field (e.g., 'Description', 'Email', 'Summary')
+   * @returns Locator for the required field error message
+   */
+  getRequiredFieldError(fieldName: string): Locator {
+    return this.getFieldLocator(fieldName).getByText(`${fieldName}${this.fieldRequiredError}`);
+  }
+
+  /**
+   * Verify that a required field error is visible
+   * @param fieldName - The name of the field (e.g., 'Description', 'Email', 'Summary')
+   */
+  async verifyRequiredFieldError(fieldName: string): Promise<void> {
+    await test.step(`Verify ${fieldName} required field error is visible`, async () => {
+      await expect(this.getRequiredFieldError(fieldName)).toBeVisible();
+    });
   }
 }

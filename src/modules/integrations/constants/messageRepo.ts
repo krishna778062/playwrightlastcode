@@ -67,6 +67,7 @@ export const MESSAGES = {
   INCOMPLETE_ERROR_SETTINGS: 'Incomplete error settings',
   SAVE_TILE_FAILED: 'Save tile failed',
   TILE_CANNOT_BE_EMPTY: 'Tile cannot be empty',
+  INVALID_BLOCK_DETAILS: 'One or more blocks have invalid details',
   CHANGE_TILE_TYPE: 'Change tile type',
   CHANGE_TILE_TYPE_MESSAGE:
     'Changing the tile type will reset the current canvas configuration. Do you want to continue?',

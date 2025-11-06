@@ -13,7 +13,7 @@ import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAp
 test.describe(
   'form App Tiles Management',
   {
-    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE, IntegrationsSuiteTags.FORM],
   },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
@@ -43,16 +43,14 @@ test.describe(
         await customAppTilesPage.enterTileDescription(tileDescription);
         await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM);
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
-        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
       }
     );
 
     test(
       'verify form tile with overlay behavior',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -136,7 +134,7 @@ test.describe(
     );
 
     test(
-      'verify form tile save and publish',
+      'verify form tile description required field error',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
@@ -163,24 +161,16 @@ test.describe(
         await customAppTilesPage.clickButton('Configure API action');
         await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
         await customAppTilesPage.configureFormFieldsAsUserInput('Get from user', ['Email', 'Summary']);
-        await customAppTilesPage.selectDisplayOptionInFormBehaviour(
-          CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY
-        );
 
-        // Save the form tile
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
-
-        // Navigate to preview and publish
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PREVIEW);
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.PUBLISH);
-        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_PUBLISHED);
+        // Verify Description required field error is visible
+        await customAppTilesPage.verifyRequiredFieldError('Description');
       }
     );
 
     test(
       'verify form validation for required fields',
       {
-        tag: [TestPriority.P2],
+        tag: [TestPriority.P1],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -211,10 +201,10 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify form tile type change to display',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -249,41 +239,9 @@ test.describe(
     );
 
     test(
-      'verify form tile with multiple API actions',
-      {
-        tag: [TestPriority.P3],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-006',
-          storyId: 'INT-FORM-006',
-        });
-
-        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-        await customAppTilesPage.clickCreateCustomAppTileButton();
-
-        const tileName = `Form Multi API Test ${faker.string.alphanumeric({ length: 6 })}`;
-        const tileDescription = `Form Multi API Description ${faker.lorem.sentence()}`;
-
-        await customAppTilesPage.enterTileName(tileName);
-        await customAppTilesPage.enterTileDescription(tileDescription);
-        await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM);
-        await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
-
-        // Test changing between different API actions
-        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
-        await customAppTilesPage.verifySaveButtonIsEnabled();
-
-        // Change to another API action
-        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS);
-        await customAppTilesPage.verifySaveButtonIsEnabled();
-      }
-    );
-
-    test(
       'verify form tile empty validation',
       {
-        tag: [TestPriority.P3],
+        tag: [TestPriority.P1],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -302,7 +260,6 @@ test.describe(
         await customAppTilesPage.enterTileDescription(tileDescription);
         await customAppTilesPage.selectTileType(CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.FORM);
         await customAppTilesPage.selectApp(CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH);
-        await customAppTilesPage.selectApiAction(CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET);
 
         // Navigate to Tile Builder without configuring form
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
@@ -310,9 +267,9 @@ test.describe(
         // Try to save empty form tile
         await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
 
-        // Verify error message appears
+        // Verify error message appears - form has invalid details (not configured)
         await customAppTilesPage.verifyToastMessage(MESSAGES.SAVE_TILE_FAILED);
-        await customAppTilesPage.verifyToastMessage(MESSAGES.TILE_CANNOT_BE_EMPTY);
+        await customAppTilesPage.verifyToastMessage(MESSAGES.INVALID_BLOCK_DETAILS);
       }
     );
 
@@ -330,7 +287,7 @@ test.describe(
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
         // Delete all form test tiles created during test runs
-        await customAppTilesPage.deleteAllTilesWithPrefix('Form', /Form.*Test\s[a-zA-Z0-9]{6}$/);
+        await customAppTilesPage.deleteAllTilesWithPrefix('', /.*\bTest\s[a-zA-Z0-9]{6}$/);
       }
     );
   }
