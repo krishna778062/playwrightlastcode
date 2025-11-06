@@ -23,11 +23,10 @@ test.describe(
     let manageSiteStandardUserPage: ManageSitePage;
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
+    let manageFeaturesPage: ManageFeaturesPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
-    let manageFeaturesPage: ManageFeaturesPage;
-    test.beforeEach(async ({ standardUserFixture }) => {
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
     });
 
@@ -244,6 +243,9 @@ test.describe(
         await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.OWNED);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
+      }
+    );
+
     test(
       'to verify the site author name and event start date',
       {
