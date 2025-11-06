@@ -150,7 +150,7 @@ test.describe(
     test(
       'verify that user is able use all the filters under weekly view',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         test.setTimeout(300000);
@@ -253,7 +253,7 @@ test.describe(
     test(
       'verify that user is able to see events based on selected or connected calendar type',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         test.setTimeout(300000);
@@ -327,7 +327,7 @@ test.describe(
     test(
       'verify that clicking on Today button navigates back to todays date in weekly calendar view',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -368,7 +368,7 @@ test.describe(
     test(
       'verify that Outlook event with RSVP Yes is visible when RSVP Yes filter is applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         test.setTimeout(300000);
