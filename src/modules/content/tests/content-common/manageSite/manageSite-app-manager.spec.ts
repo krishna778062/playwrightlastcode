@@ -7,6 +7,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
   CONTENT_VALIDATION_PERIOD_TIME,
+  ContentStatus,
   ManageContentOptions,
   ManageContentTags,
   SortOptionLabels,
@@ -359,6 +360,21 @@ test.describe(
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
           ManageContentTags.VALIDATION_REQUIRED
         );
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.clickOnValidateButton();
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.assertions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(
+          ManageContentOptions.UNPUBLISH
+        );
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
       }
     );
   }
