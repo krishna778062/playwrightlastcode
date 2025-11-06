@@ -6,7 +6,6 @@ import {
   SiteListOptions,
   SiteListResponse,
   SiteMembershipAction,
-  SiteMembershipListResponse,
   SiteMembershipResponse,
   SitePermission,
 } from '@core/types/siteManagement.types';
@@ -66,6 +65,17 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
+    return await test.step(`Accepting membership request for site: ${siteId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.acceptMembershipRequest(siteId), {
+        data: {
+          action: 'approve',
+          request_id: requestId,
+        },
+      });
+      return await response.json();
+    });
+  }
   /**
    * Adds a new site using the API
    * @param overrides - The overrides to use for the site creation
@@ -73,13 +83,8 @@ export class SiteManagementService implements ISiteManagementOperations {
    */
   async addNewSite(overrides: Partial<SiteCreationPayload> = {}) {
     return await test.step(`Adding new site using API`, async () => {
-      // Use the provided name as-is, or generate a unique one if not provided
-      const siteName =
-        overrides.name ||
-        (() => {
-          const randomNum = Math.floor(Math.random() * 1000000 + 1);
-          return `AutomateUI_Test_${randomNum}`;
-        })();
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `AutomateUI_Test_${randomNum}`;
       const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
 
       // Always include as true, only override if explicitly provided
@@ -93,7 +98,6 @@ export class SiteManagementService implements ISiteManagementOperations {
         ...defaultSitePayload,
         ...optionalParams,
         ...overrides,
-        name: siteName, // Use the unique name
         category: {
           ...defaultSitePayload.category,
           ...overrides.category,
@@ -136,6 +140,59 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getFollowersAndFollowingList(userId: string, size: number = 100): Promise<any> {
+    return await test.step(`Getting followers and following list for user: ${userId}`, async () => {
+      const allResults: any[] = [];
+      let nextPageToken: number | undefined = undefined;
+      let hasMorePages = true;
+      let lastResponse: any = null;
+
+      while (hasMorePages) {
+        const response = await this.httpClient.get(
+          API_ENDPOINTS.identity.followersAndFollowingList(userId, size, nextPageToken)
+        );
+        if (!response.ok()) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(
+            `Failed to get followers and following list. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+          );
+        }
+        const json = await response.json();
+        lastResponse = json;
+        console.log('followersAndFollowingList response:', json);
+
+        // Merge results by type
+        if (json.result && Array.isArray(json.result)) {
+          for (const item of json.result) {
+            const existingItem = allResults.find(r => r.type === item.type);
+            if (existingItem) {
+              // Append to existing list
+              existingItem.listOfItems = [...existingItem.listOfItems, ...item.listOfItems];
+              existingItem.count = String(parseInt(existingItem.count) + item.listOfItems.length);
+              existingItem.nextPageToken = item.nextPageToken;
+            } else {
+              // Add new item
+              allResults.push({ ...item });
+            }
+          }
+
+          // Check if there's a nextPageToken for any type
+          const followingItem = json.result.find((item: any) => item.type === 'following');
+          nextPageToken = followingItem?.nextPageToken;
+          hasMorePages = nextPageToken !== undefined && nextPageToken !== null;
+        } else {
+          hasMorePages = false;
+        }
+      }
+
+      return {
+        status: lastResponse?.status || 'success',
+        responseTimeStamp: lastResponse?.responseTimeStamp,
+        message: lastResponse?.message || 'Retrieved list successfully',
+        result: allResults,
+      };
+    });
+  }
   /**
    * Deactivates a site using the API
    * @param siteId - The id of the site to deactivate
@@ -281,6 +338,104 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
+  async approveContent(siteId: string, contentId: string): Promise<void> {
+    return await test.step(`Approving content: ${contentId} for site: ${siteId}`, async () => {
+      // First, get the content details to get all required fields
+      const getResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId));
+      const contentData = await getResponse.json();
+
+      if (!getResponse.ok() || contentData.status !== 'success') {
+        throw new Error(`Failed to get content details. Status: ${getResponse.status()}`);
+      }
+
+      const content = contentData.result;
+
+      // Prepare the approval payload with all required fields from the existing content
+      const approvalPayload = {
+        authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
+        contentSubType: content.contentSubType || content.type || 'general',
+        contentType: content.type || 'page',
+        listOfFiles: content.listOfFiles || [],
+        publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),
+        body: content.body || '',
+        imgCaption: content.imgCaption || '',
+        isRestricted: content.isRestricted || false,
+        publishingStatus: content.status === 'published' ? 'immediate' : content.publishingStatus || 'immediate',
+        listOfInlineImages: content.listOfInlineImages || [],
+        listOfInlineVideos: content.listOfInlineVideos || [],
+        summary: content.summary || null,
+        readTimeInMin: content.readTimeInMin || 1,
+        publishTo: content.publishTo || null,
+        bodyHtml: content.bodyHtml || `<p>${content.excerpt || ''}</p>`,
+        imgLayout: content.imgLayout || 'small',
+        isMaximumWidth: content.isMaximumWidth || false,
+        isQuestionAnswerEnabled: content.isQuestionAnswerEnabled !== undefined ? content.isQuestionAnswerEnabled : true,
+        targetAudience: content.targetAudience || [],
+        title: content.title || '',
+        language: content.language || 'en-US',
+        isFeedEnabled: content.isFeedEnabled !== undefined ? content.isFeedEnabled : true,
+        listOfTopics: content.listOfTopics || [],
+        category: content.category
+          ? {
+              id: content.category.id || content.category.categoryId || '',
+              name: content.category.name || '',
+            }
+          : { id: '', name: 'Uncategorized' },
+        manualTransEnabled: content.manualTransEnabled || false,
+        // Event-specific fields
+        ...(content.startsAt && { startsAt: content.startsAt }),
+        ...(content.endsAt && { endsAt: content.endsAt }),
+        ...(content.timezoneIso && { timezoneIso: content.timezoneIso }),
+        ...(content.location && { location: content.location }),
+        ...(content.isAllDay !== undefined && { isAllDay: content.isAllDay }),
+        // Album-specific fields
+        ...(content.listOfAlbumMedia && { listOfAlbumMedia: content.listOfAlbumMedia }),
+        ...(content.coverImageMediaId && { coverImageMediaId: content.coverImageMediaId }),
+      };
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.approveContent(siteId, contentId), {
+        data: approvalPayload,
+      });
+      return await response.json();
+    });
+  }
+
+  async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
+    return await test.step(`Rejecting content: ${contentId} for site: ${siteId}`, async () => {
+      const rejectPayload = {
+        rejectionComment: rejectionComment || 'This is not good',
+        action: 'reject',
+      };
+
+      // Use action as query parameter similar to approveContent endpoint pattern
+      const endpointWithAction = `${API_ENDPOINTS.content.manageContent(siteId, contentId)}`;
+
+      console.log(`Attempting to reject content with payload: ${JSON.stringify(rejectPayload)}`);
+      const response = await this.httpClient.post(endpointWithAction, {
+        data: rejectPayload,
+      });
+
+      const json = await response.json();
+      console.log(
+        `rejectContent response status: ${response.status()}, response body: ${JSON.stringify(json, null, 2)}`
+      );
+
+      if (!response.ok() || json.status !== 'success') {
+        // Extract error details from errors array if present
+        const errors = json.errors || [];
+        const errorMessages = errors.map((err: any) => `${err.error_code}: ${err.message}`).join(', ');
+        const errorMessage = json.message || json.error || errorMessages || 'Unknown error';
+        const errorCode = json.errors?.[0]?.error_code || json.errorCode || json.code || 'N/A';
+
+        throw new Error(
+          `Failed to reject content. HTTP Status: ${response.status()}, Error Code: ${errorCode}, Message: ${errorMessage}, Full Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      console.log(`Successfully rejected content: ${contentId}`);
+      return json;
+    });
+  }
 
   /**
    * Unfeatures a site (removes it from featured sites)
@@ -416,10 +571,7 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the membership list response
    */
-  async getSiteMembershipList(
-    siteId: string,
-    options?: { size?: number; type?: string }
-  ): Promise<SiteMembershipListResponse> {
+  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
         size: 16,

@@ -176,6 +176,10 @@ export class SiteManagementHelper {
     });
   }
 
+  async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
+    await this.siteManagementService.acceptMembershipRequest(siteId, requestId);
+  }
+
   /**
    * Wrapper method to create a site with a specific access type.
    *
@@ -192,29 +196,24 @@ export class SiteManagementHelper {
     accessType: SITE_TYPES;
     waitForSearchIndex?: boolean;
   }) {
-    // Default waitForSearchIndex to false if not explicitly provided
-    const waitForSearchIndex = options.waitForSearchIndex ?? false;
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
         return await this.createPublicSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -328,6 +327,9 @@ export class SiteManagementHelper {
     };
   }
 
+  async getFollowersAndFollowingList(userId: string, size: number = 6): Promise<any> {
+    return await this.siteManagementService.getFollowersAndFollowingList(userId, size);
+  }
   /**
    * Gets a random site from the created sites.
    * @returns A random site from the sites created by this helper, or null if no sites exist.
@@ -409,8 +411,9 @@ export class SiteManagementHelper {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
+      filter: 'active',
       canManage: true,
-      filter: 'all',
+      sortBy: 'alphabetical',
     });
 
     // Search for the site by name
@@ -419,12 +422,7 @@ export class SiteManagementHelper {
     );
 
     if (existingSite) {
-      //check the status of the site if active then return the siteId
-      if (!existingSite.isActive) {
-        //activate the site
-        await this.siteManagementService.activateSite(existingSite.siteId);
-        console.log(`Activated site ${existingSite.name} (${existingSite.siteId})`);
-      }
+      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
       return existingSite.siteId;
     }
 
@@ -484,7 +482,7 @@ export class SiteManagementHelper {
    */
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: options?.size || 16,
+      size: options?.size || 1000,
       filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'createdNewest',
       ...options,
@@ -594,9 +592,6 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     let createdSite;
 
-    // Default waitForSearchIndex to false if not explicitly provided
-    const waitForSearchIndex = options?.waitForSearchIndex ?? false;
-
     // Prepare overrides with optional parameters
     const overrides = {
       ...options?.overrides,
@@ -618,7 +613,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: waitForSearchIndex,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       case SITE_TYPES.UNLISTED:
@@ -626,7 +621,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: waitForSearchIndex,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
         break;
       default:
@@ -634,7 +629,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: waitForSearchIndex,
+          waitForSearchIndex: options?.waitForSearchIndex,
         });
     }
 
@@ -660,7 +655,7 @@ export class SiteManagementHelper {
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
     }
-  ): Promise<{ siteId: string; name: string }> {
+  ): Promise<{ siteId: string; name: string; siteListResponse?: any[] }> {
     // Defensive check to ensure accessType is a string
     if (typeof accessType !== 'string') {
       throw new Error(
@@ -701,7 +696,113 @@ export class SiteManagementHelper {
       throw new Error(`No site found or created with access type ${accessType}`);
     }
 
-    return { siteId, name: siteName };
+    return { siteId, name: siteName, siteListResponse: siteListResponse.result.listOfItems };
+  }
+
+  /**
+   * Gets a site from the provided list where the current user (using this helper's API context) is NOT a member, owner, or manager
+   * Loops through sites until finding one where isManager: false, isMember: false, and isOwner: false
+   * @param sitesList - Array of sites from app manager to check
+   * @param options - Optional parameters to control site selection behavior
+   * @param options.allowIsMemberAbsent - If true, allows sites where isMember/isOwner/isManager fields are absent from payload
+   * @returns Promise containing the first site where user is not a member, owner, or manager
+   */
+  async getSitesWhereUserIsNotMemberOrOwner(
+    sitesList: any[],
+    options?: { allowIsMemberAbsent?: boolean }
+  ): Promise<{ siteId: string; name: string }> {
+    const allowIsMemberAbsent = options?.allowIsMemberAbsent ?? false;
+    return await test.step(`Finding site where user is not a member, owner, or manager`, async () => {
+      if (sitesList.length === 0) {
+        throw new Error('No sites provided to check');
+      }
+
+      // Loop through each site from the app manager's list
+      for (const site of sitesList) {
+        if (!site.siteId || !site.isActive) {
+          continue; // Skip invalid or inactive sites
+        }
+
+        try {
+          // Check this site using the current user's API context (standard user)
+          // This will return site details with membership info from the current user's perspective
+          const siteDetailsResponse = await this.siteManagementService.getSiteDetails(site.siteId);
+          const siteDetails = siteDetailsResponse.result;
+
+          // Debug logging to check membership values
+          console.log(`Checking site: ${siteDetails.name} (${site.siteId})`);
+          console.log(
+            `  isMember: ${siteDetails.isMember} (${typeof siteDetails.isMember}), present: ${'isMember' in siteDetails}`
+          );
+          console.log(
+            `  isOwner: ${siteDetails.isOwner} (${typeof siteDetails.isOwner}), present: ${'isOwner' in siteDetails}`
+          );
+          console.log(
+            `  isManager: ${siteDetails.isManager} (${typeof siteDetails.isManager}), present: ${'isManager' in siteDetails}`
+          );
+          console.log(
+            `  isFollower: ${siteDetails.isFollower} (${typeof siteDetails.isFollower}), present: ${'isFollower' in siteDetails}`
+          );
+          console.log(
+            `  isAccessRequested: ${siteDetails.isAccessRequested} (${typeof siteDetails.isAccessRequested}), present: ${'isAccessRequested' in siteDetails}`
+          );
+
+          // Check if user is NOT a member, owner, or manager
+          // Default behavior (allowIsMemberAbsent = false): Only accepts explicit false values (preserves existing behavior)
+          // When allowIsMemberAbsent = true: Also accepts sites where these fields are absent from payload
+          const isMemberCondition = allowIsMemberAbsent
+            ? siteDetails.isMember === false || !('isMember' in siteDetails)
+            : siteDetails.isMember === false; // Default: same as original behavior
+
+          const isOwnerCondition = allowIsMemberAbsent
+            ? siteDetails.isOwner === false || !('isOwner' in siteDetails)
+            : siteDetails.isOwner === false; // Default: same as original behavior
+
+          const isManagerCondition = allowIsMemberAbsent
+            ? siteDetails.isManager === false || !('isManager' in siteDetails)
+            : siteDetails.isManager === false; // Default: same as original behavior
+
+          const isFollowerCondition = allowIsMemberAbsent
+            ? siteDetails.isFollower === false || !('isFollower' in siteDetails)
+            : siteDetails.isFollower === false; // Default: same as original behavior
+
+          const isAccessRequestedCondition = allowIsMemberAbsent
+            ? siteDetails.isAccessRequested === false || !('isAccessRequested' in siteDetails)
+            : siteDetails.isAccessRequested === false; // Default: same as original behavior
+
+          console.log(
+            `  Conditions - isMember: ${isMemberCondition}, isOwner: ${isOwnerCondition}, isManager: ${isManagerCondition}, isFollower: ${isFollowerCondition}, isAccessRequested: ${isAccessRequestedCondition}`
+          );
+
+          if (
+            siteDetails &&
+            siteDetails.isActive === true &&
+            isMemberCondition &&
+            isOwnerCondition &&
+            isManagerCondition &&
+            isFollowerCondition &&
+            isAccessRequestedCondition
+          ) {
+            const isMemberAbsent = allowIsMemberAbsent && !('isMember' in siteDetails);
+            console.log(
+              `Found site where user is not a member/owner/manager${isMemberAbsent ? ' (fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
+            );
+            return {
+              siteId: siteDetails.siteId,
+              name: siteDetails.name,
+            };
+          }
+        } catch (error) {
+          console.warn(`Failed to check site ${site.siteId}:`, error);
+          // Continue to next site if this one fails
+          continue;
+        }
+      }
+
+      throw new Error(
+        `No site found where user is not a member, owner, or manager after checking ${sitesList.length} sites`
+      );
+    });
   }
 
   async getSiteAuthorNameAndEventStartDate(): Promise<{
@@ -735,6 +836,11 @@ export class SiteManagementHelper {
     throw new Error('No site found with cover image and hasEvents: true');
   }
 
+  /**
+   * Checks if a site has a valid coverImage
+   * @param site - Site object to check
+   * @returns Boolean indicating if the site has a valid coverImage
+   */
   /**
    * Checks if a site has a valid coverImage
    * @param site - Site object to check
@@ -1030,7 +1136,6 @@ export class SiteManagementHelper {
     );
     return { siteId: createdSite.siteId, siteName: createdSite.siteName };
   }
-
   async getSiteWithUserAsOwner(userId: string, accessType: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
     const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
@@ -1054,6 +1159,14 @@ export class SiteManagementHelper {
     } else {
       return await this.createSiteWithUserAsOwner(userId);
     }
+  }
+
+  async approveContent(siteId: string, contentId: string): Promise<any> {
+    return await this.siteManagementService.approveContent(siteId, contentId);
+  }
+
+  async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
+    return await this.siteManagementService.rejectContent(siteId, contentId, rejectionComment);
   }
 
   async getSiteInUserIsNotMemberOrOwner(
@@ -1084,40 +1197,6 @@ export class SiteManagementHelper {
         accessType: accessType,
         waitForSearchIndex: false, // Disable search indexing to avoid timeout issues
       });
-    });
-  }
-
-  /**
-   * Gets a private or unlisted site that has content (pages, events, or albums)
-   * @param accessType - The access type to search for ('private' or 'unlisted')
-   * @returns Promise with site details that has content
-   */
-  async getSiteWithContent(accessType: string, userId: string[]): Promise<{ siteId: string; siteName: string }> {
-    return await test.step(`Getting ${accessType} site with content`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-      const sites = siteListResponse.result.listOfItems.filter((site: any) => site.isActive === true);
-
-      // Check each site to see if it has content and users are not members
-      for (const site of sites) {
-        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
-        const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
-        const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
-
-        // Check if all users are not members AND site has content
-        if (allUsersNotMembers && (site.hasPages || site.hasEvents || site.hasAlbums)) {
-          console.log(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
-          return { siteId: site.siteId, siteName: site.name };
-        }
-      }
-
-      // If no site with content found, create a new one with pages enabled
-      console.log(`No ${accessType} site with content found, creating new site...`);
-      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
-        hasPages: true,
-        waitForSearchIndex: true,
-      });
-
-      return { siteId: createdSite.siteId, siteName: createdSite.siteName };
     });
   }
 }
