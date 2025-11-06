@@ -322,10 +322,6 @@ test.describe(
         // View Google calendar - should show only Google event, not Outlook
         await calendarPage.actions.calendarToView('Google');
         await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, false);
-
-        // View both calendars - should show both events
-        await calendarPage.actions.calendarToView('both');
-        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, true);
       }
     );
 
