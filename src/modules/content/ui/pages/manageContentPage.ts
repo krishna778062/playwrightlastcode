@@ -32,7 +32,6 @@ export interface IActions {
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
   verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
-  clickOnOnboardingOption: () => Promise<void>;
   verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
 }
@@ -358,11 +357,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
-
-  async clickOnOnboardingOption(): Promise<void> {
-    await this.manageContentComponent.clickOnOnboardingOption();
-  }
-
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
   }
