@@ -36,7 +36,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28723',
-          storyId: 'INT-28723',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -65,7 +64,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-18762',
-          storyId: 'INT-18762',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -88,7 +86,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-18764',
-          storyId: 'INT-18764',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -133,7 +130,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-18842',
-          storyId: 'INT-18842',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -155,7 +151,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-18846',
-          storyId: 'INT-18846',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -195,8 +190,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-DISPLAY-001',
-          storyId: 'INT-DISPLAY-001',
+          zephyrTestId: 'INT-28950',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -232,7 +226,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28707',
-          storyId: 'INT-24557',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
@@ -264,7 +257,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28709',
-          storyId: 'INT-28708',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
@@ -291,7 +283,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28710',
-          storyId: 'INT-28710',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
@@ -317,7 +308,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28711',
-          storyId: 'INT-28711',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
@@ -344,7 +334,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28712',
-          storyId: 'INT-28712',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
@@ -365,7 +354,6 @@ test.describe(
       async ({ appManagerUiFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28713',
-          storyId: 'INT-28713',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
@@ -386,7 +374,6 @@ test.describe(
       async ({ appManagerUiFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28714',
-          storyId: 'INT-28714',
         });
         const customAppTilesPage = new CustomAppTilesPage(appManagerUiFixture.page);
         await customAppTilesPage.clickCreateCustomAppTileButton();
@@ -404,7 +391,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28715',
-          storyId: 'INT-28715',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -444,7 +430,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28716',
-          storyId: 'INT-28716',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -468,7 +453,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28717',
-          storyId: 'INT-28717',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -502,7 +486,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28718',
-          storyId: 'INT-28718',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -534,7 +517,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28719',
-          storyId: 'INT-28719',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -570,7 +552,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28720',
-          storyId: 'INT-28720',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -606,7 +587,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28721',
-          storyId: 'INT-28721',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -642,7 +622,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-28722',
-          storyId: 'INT-28722',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -689,8 +668,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-UNSAVED-CHANGES',
-          storyId: 'INT-UNSAVED-CHANGES',
+          zephyrTestId: 'INT-28951',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -733,8 +711,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-UNSAVED-CHANGES',
-          storyId: 'INT-UNSAVED-CHANGES',
+          zephyrTestId: 'INT-28952',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -774,8 +751,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-BACK-TO-EDIT',
-          storyId: 'INT-BACK-TO-EDIT',
+          zephyrTestId: 'INT-28953',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -814,7 +790,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-25967',
-          storyId: 'INT-25967',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -851,7 +826,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-19706',
-          storyId: 'INT-19706',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -915,8 +889,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-IMAGE-CONFIGURATION-WITH-DIFFERENT-SIZES',
-          storyId: 'INT-IMAGE-CONFIGURATION-WITH-DIFFERENT-SIZES',
+          zephyrTestId: 'INT-28954',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -967,8 +940,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-TEXT-STYLE-HEIGHT-VERIFICATION',
-          storyId: 'INT-TEXT-STYLE-HEIGHT-VERIFICATION',
+          zephyrTestId: 'INT-28955',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1001,7 +973,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-DISPLAY-CLEANUP',
-          storyId: 'INT-DISPLAY-CLEANUP',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);

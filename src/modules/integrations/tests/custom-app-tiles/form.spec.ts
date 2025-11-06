@@ -29,8 +29,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-001',
-          storyId: 'INT-FORM-001',
+          zephyrTestId: 'INT-28945',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -55,7 +54,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-24557',
-          storyId: 'INT-24557',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -100,8 +98,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-002',
-          storyId: 'INT-FORM-002',
+          zephyrTestId: 'INT-28946',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -140,8 +137,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-003',
-          storyId: 'INT-FORM-003',
+          zephyrTestId: 'INT-28947',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -174,8 +170,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-004',
-          storyId: 'INT-FORM-004',
+          zephyrTestId: 'INT-28948',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -209,7 +204,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-FORM-005',
-          storyId: 'INT-FORM-005',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -245,8 +239,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-FORM-007',
-          storyId: 'INT-FORM-007',
+          zephyrTestId: 'INT-28949',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -281,7 +274,6 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-FORM-CLEANUP',
-          storyId: 'INT-FORM-CLEANUP',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
