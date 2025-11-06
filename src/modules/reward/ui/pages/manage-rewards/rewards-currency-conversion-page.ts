@@ -96,7 +96,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
   async validateAllUIElements(apiData: any): Promise<void> {
     // Validate page title
     await this.currencyConversionContainer.waitFor({ state: 'visible' });
-    await this.currencyConversionHeadingH1.isVisible();
+    await this.verifier.verifyTheElementIsVisible(this.currencyConversionHeadingH1);
     await expect(this.currencyConversionHeadingH1).toHaveText('Currency conversions');
 
     // Validate page description
@@ -173,7 +173,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
    */
   async isCurrencyInTable(currency: string): Promise<boolean> {
     const currencyRow = this.page.locator(`//td[contains(text(),"${currency}")]`);
-    return await currencyRow.isVisible();
+    return await this.verifier.isTheElementVisible(currencyRow);
   }
 
   /**

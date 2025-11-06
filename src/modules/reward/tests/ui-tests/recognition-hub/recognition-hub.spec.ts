@@ -19,8 +19,6 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   test.beforeEach(async ({ appManagerFixture }) => {
     const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
-
-    // Get tenant code
     tenantCode = await appManagerFixture.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.accountId;
     });
@@ -112,13 +110,16 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
       await recognitionHub.reloadPage();
-      await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.checkTheGiftingOptionsAre(false);
 
       // Set distribution allowance as success using test helper
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      await recognitionHub.reloadPage();
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.clickOnGiveRecognition();
+      await recognitionHub.checkTheGiftingOptionsAre(true);
     }
   );
 
@@ -215,7 +216,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await shareModal.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container)) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -356,7 +357,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await giveRecognitionModal.recognizeButton.click({ force: true });
 
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.container.isVisible()) {
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }

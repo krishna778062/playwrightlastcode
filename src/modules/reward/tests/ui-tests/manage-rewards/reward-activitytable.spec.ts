@@ -235,7 +235,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
       await giveRecognitionModal.recognizeButton.click({ force: true });
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -799,7 +799,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         giveRecognitionModal.recognizeButton.click({ force: true }),
       ]);
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -930,7 +930,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         giveRecognitionModal.recognizeButton.click({ force: true }),
       ]);
       const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.verifyTheElementIsVisible(shareModal.container, { timeout: 2000 })) {
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
         await shareModal.skipButton.click();
         await expect(shareModal.container).not.toBeVisible();
       }
@@ -941,7 +941,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Handle dialog box if it appears
       const dialogBox = new DialogBox(appManagerFixture.page);
-      if (await dialogBox.container.isVisible()) {
+      if (await manageRewardsOverviewPage.verifier.isTheElementVisible(dialogBox.container)) {
         await dialogBox.container.waitFor({ state: 'visible' });
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
