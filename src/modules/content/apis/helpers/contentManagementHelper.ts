@@ -384,6 +384,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located

@@ -4,4 +4,13 @@ export const MANAGE_CONTENT_TEST_DATA = {
   TITLE: faker.string.alphanumeric(20) + faker.string.numeric(10),
   MONTH_NAMES: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   UPDATED_PAGE_NAME: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page Updated`,
+  PAST_YEAR_DATE: getPastDate(),
 };
+
+function getPastDate() {
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+  oneYearAgo.setDate(oneYearAgo.getDate() + 5);
+  return oneYearAgo.toISOString();
+}

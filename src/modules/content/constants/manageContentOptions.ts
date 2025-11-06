@@ -13,4 +13,5 @@ export enum ManageContentTags {
   DRAFT = 'Draft',
   PUBLISHED = 'Published',
   UNPUBLISHED = 'Unpublished',
+  VALIDATION_REQUIRED = 'Validation required',
 }

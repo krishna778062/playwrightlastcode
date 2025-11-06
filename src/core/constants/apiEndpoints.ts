@@ -80,6 +80,8 @@ export const API_ENDPOINTS = {
     createTopic: '/v1/content/topics',
     contentListInSite: '/v1/content/sites/content/list',
     onboarding: '/onboarding',
+    updateDetails: (siteId: string, contentId: string) =>
+      `/v1/content/sites/${siteId}/content/${contentId}?action=update`,
   },
 
   fileUpload: {

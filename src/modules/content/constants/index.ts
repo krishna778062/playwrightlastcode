@@ -1,6 +1,7 @@
 export * from './contentSortBy';
 export * from './contentStatus';
 export * from './contentType';
+export * from './contentValidationPeriodTime';
 export * from './dateField';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';

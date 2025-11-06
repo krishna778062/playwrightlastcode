@@ -9,6 +9,7 @@ export interface IGovernanceScreenPageActions {
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
   clickOnTimelineFeedDisabled: () => Promise<void>;
+  selectContentValidationPeriodTime: (time: string) => Promise<void>;
 }
 
 export interface IGovernanceScreenPageAssertions {}
@@ -23,6 +24,7 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   readonly successToastMessage: (message: string) => Locator;
   readonly clickOnContentSubmissions: Locator;
   readonly clickOnSave: Locator;
+  readonly clickOnContentValidationPeriodTime: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
@@ -35,6 +37,7 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.successToastMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.clickOnContentSubmissions = this.page.locator('#contentSubmissions');
     this.clickOnSave = this.page.getByRole('button', { name: 'Save' });
+    this.clickOnContentValidationPeriodTime = page.locator('#autoGovValidationPeriod');
   }
 
   get actions(): IGovernanceScreenPageActions {
@@ -92,6 +95,14 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
         stepInfo: 'Verify the changes confirmation toast message is visible',
       });
+    });
+  }
+
+  async selectContentValidationPeriodTime(time: string): Promise<void> {
+    await test.step('Clicking on content validation period time', async () => {
+      await this.clickOnElement(this.clickOnContentValidationPeriodTime);
+      await this.clickOnContentValidationPeriodTime.selectOption(time);
+      await this.clickOnElement(this.clickOnSave);
     });
   }
 

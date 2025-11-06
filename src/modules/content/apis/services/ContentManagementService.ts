@@ -166,6 +166,71 @@ export class ContentManagementService implements IContentManagementServices {
     }
     return categoryInfo;
   }
+  async updateContentDetails(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    return await test.step('Updating content details via API PUT request', async () => {
+      const contentResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId), {});
+      const contentResponseBody = await contentResponse.json();
+      const contentItem = (contentResponseBody.result || contentResponseBody) as any;
+
+      if (!contentItem?.id) {
+        throw new Error(`Content with ID ${contentId} not found`);
+      }
+
+      const formattedPublishAt = new Date(publishAt).toISOString();
+      const authoredById =
+        (contentItem.authoredBy as any)?.peopleId || (contentItem.authoredBy as any)?.id || contentItem.authoredBy;
+      const categoryId = contentItem.category?.id || contentItem.category?.categoryId;
+      const contentSubType = contentItem.contentSubType;
+      const bodyString =
+        typeof contentItem.body === 'string' ? contentItem.body : JSON.stringify(contentItem.body || '');
+
+      if (!authoredById || !categoryId || !contentSubType) {
+        throw new Error(
+          `Missing required fields: authoredBy=${!!authoredById}, category.id=${!!categoryId}, contentSubType=${!!contentSubType}`
+        );
+      }
+
+      const updatePayload = {
+        authoredBy: authoredById,
+        contentSubType: contentSubType,
+        listOfFiles: contentItem.listOfFiles || [],
+        publishAt: formattedPublishAt,
+        body: bodyString,
+        imgCaption: contentItem.imgCaption || '',
+        publishingStatus: contentItem.isScheduled ? 'scheduled' : 'immediate',
+        listOfInlineImages: contentItem.listOfInlineImages || [],
+        listOfInlineVideos: contentItem.listOfInlineVideos || [],
+        summary: contentItem.summary || null,
+        readTimeInMin: contentItem.readTimeInMin || 1,
+        publishTo: contentItem.publishTo || null,
+        bodyHtml: contentItem.bodyHtml || '',
+        imgLayout: contentItem.imgLayout || 'small',
+        isMaximumWidth: contentItem.isMaximumWidth || false,
+        isQuestionAnswerEnabled:
+          contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
+        targetAudience: contentItem.targetAudience || [],
+        title: contentItem.title || '',
+        isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
+        listOfTopics: contentItem.listOfTopics || [],
+        category: { id: categoryId, name: contentItem.category?.name || 'Uncategorized' },
+        manualTransEnabled: contentItem.manualTransEnabled || false,
+        contentType: contentItem.type || contentItem.contentType || 'page',
+        isRestricted: contentItem.isRestricted || false,
+        language: contentItem.language || 'en-US',
+      };
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
+        data: updatePayload,
+      });
+
+      if (!response.ok()) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to update content details. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+        );
+      }
+    });
+  }
 
   /**
    * Publishes new page content to a site.

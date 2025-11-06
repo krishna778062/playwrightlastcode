@@ -5,11 +5,21 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import {
+  CONTENT_VALIDATION_PERIOD_TIME,
+  ManageContentOptions,
+  ManageContentTags,
+  SortOptionLabels,
+  TagOption,
+} from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -26,8 +36,11 @@ test.describe(
   () => {
     let siteManagementHelper: SiteManagementHelper;
     let siteCategoriesPage: SiteCategoriesPage;
+    let applicationScreenPage: ApplicationScreenPage;
+    let manageApplicationPage: ManageApplicationPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let governanceScreenPage: GovernanceScreenPage;
     let manageSiteAppManagerPage: ManageSitePage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
@@ -71,10 +84,14 @@ test.describe(
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
+      applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
+      governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+
       // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -300,6 +317,48 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+
+    test(
+      'verify user able to apply validate action on selected content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20539'],
+      },
+      async ({ appManagerFixture, standardUserApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user able to apply validate action on selected content under Content tab in Manage Site',
+          customTags: [ContentFeatureTags.MANAGE_CONTENT],
+          zephyrTestId: 'CONT-20539',
+          storyId: 'CONT-20539',
+        });
+        await appManagerFixture.navigationHelper.openApplicationSettings();
+        await applicationScreenPage.actions.clickOnApplication();
+        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.actions.selectContentValidationPeriodTime(
+          CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
+        );
+        const siteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
+        });
+        console.log('pageInfo', pageInfo);
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
+          siteId,
+          pageInfo.contentId,
+          MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
+        );
+        await manageContentPageForStandardUser.actions.verifyValidationRequiredIsVisible();
+        await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
+          ManageContentTags.VALIDATION_REQUIRED
+        );
       }
     );
   }
