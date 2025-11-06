@@ -375,6 +375,7 @@ test.describe(
           ManageContentOptions.UNPUBLISH
         );
         await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
       }
     );
   }
