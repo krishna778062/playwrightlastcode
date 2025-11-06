@@ -22,6 +22,7 @@ import {
   SiteCreationPage,
 } from '@/src/modules/content/ui';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
+import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
@@ -214,9 +215,8 @@ export class NavigationHelper {
 
   async openCreateContentPageForContentType(
     contentType: ContentType,
-    siteName?: string,
-    options?: { stepInfo?: string }
-  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
+    options?: { stepInfo?: string; isFromStudio?: boolean; siteName?: string }
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage | ContentStudioPageCreationPage> {
     return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
       await this.sideNavBarComponent.clickOnCreateButton();
       const createComponent = new CreateComponent(this.page);
@@ -224,7 +224,8 @@ export class NavigationHelper {
       const addContentModal = await createComponent.selectContentTypeAndCreateContent(contentType);
       return await addContentModal.completeContentCreationForm(contentType, {
         isFromHomePage: true,
-        siteName: siteName,
+        siteName: options?.siteName,
+        isFromStudio: options?.isFromStudio || false,
       });
     });
   }
