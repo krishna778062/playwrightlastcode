@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
@@ -49,7 +50,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
-        process.env.STANDARD_USER_FULL_NAME,
+        getRewardTenantConfigFromCache().endUserName,
         'Test Message' + Math.floor(Math.random() * 1000),
         rewardOptionIndex
       );
@@ -65,8 +66,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       // Login with the standard user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: process.env.STANDARD_USER_USERNAME!,
-        password: process.env.STANDARD_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().endUserEmail!,
+        password: getRewardTenantConfigFromCache().endUserPassword!,
       });
       await recognitionHub.navigateToRecognitionHub();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -78,8 +79,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       // Login with the recognition user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: process.env.RECOGNITION_USER_USERNAME!,
-        password: process.env.RECOGNITION_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
       });
       await recognitionHub.navigateToRecognitionHub();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -195,7 +196,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName;
 
       // Disable the distribution
       await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
@@ -269,7 +270,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
-        process.env.ZEUS_RECOGNITION_FULLNAME,
+        getRewardTenantConfigFromCache().recognitionManagerName,
         'Test Message' + Math.floor(Math.random() * 1000),
         rewardOptionIndex
       );
@@ -341,7 +342,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
 
       // Create One more Recognition and validate revoke points is enabled
-      const recognizedUser = process.env.ZEUS_STANDARD_FULLNAME;
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
         await recognitionHub.setupTheMultipleGiftingOptions();

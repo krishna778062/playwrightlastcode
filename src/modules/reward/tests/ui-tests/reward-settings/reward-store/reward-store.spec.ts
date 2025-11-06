@@ -430,6 +430,8 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
       const pageB = await contextB.newPage();
       const rewardStoreB = new RewardsStore(pageB);
 
+      const { LoginHelper } = await import('@core/helpers/loginHelper');
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await rewardStoreB.loginAsStandardUserAndNavigateToRewardsStore();
       await rewardStoreB.selectDropdownByLabel(rewardStoreB.rewardCountry, 'United States');
 

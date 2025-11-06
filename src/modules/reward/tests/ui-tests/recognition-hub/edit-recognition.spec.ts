@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
@@ -50,7 +51,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -152,7 +153,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -243,7 +244,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -323,7 +324,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -341,8 +342,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Click on Edit', async () => {
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: process.env.RECOGNITION_USER_USERNAME!,
-          password: process.env.RECOGNITION_USER_PASSWORD!,
+          email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+          password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
         });
         await recognitionHub.visitRecognitionHub();
         await recognitionHub.verifyThePageIsLoaded();
@@ -397,8 +398,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Navigate to Recognition Hub and Click on Give recognition Modal', async () => {
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: process.env.STANDARD_USER_USERNAME!,
-          password: process.env.STANDARD_USER_PASSWORD!,
+          email: getRewardTenantConfigFromCache().endUserEmail!,
+          password: getRewardTenantConfigFromCache().endUserPassword!,
         });
       });
 
@@ -408,7 +409,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -464,7 +465,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
         const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-        const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
+        const recognitionGiverName = getRewardTenantConfigFromCache().appManagerName;
         await manageRecognitionPage.loadPage();
         await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
         const rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(
@@ -504,11 +505,11 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: process.env.RECOGNITION_USER_USERNAME!,
-          password: process.env.RECOGNITION_USER_PASSWORD!,
+          email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+          password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
         });
         const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-        const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
+        const recognitionGiverName = getRewardTenantConfigFromCache().appManagerName;
         await manageRecognitionPage.loadPage();
         await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
         const rewardPointsText = await manageRecognitionPage.openTheRecognitionCreatedBefore24Hrs(
@@ -548,7 +549,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await test.step('Click on Edit for the Recognition post which is published 24 hrs earlier', async () => {
         const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-        const recognitionGiverName = process.env[`APP_MANAGER_FULL_NAME`];
+        const recognitionGiverName = getRewardTenantConfigFromCache().appManagerName;
         await manageRecognitionPage.loadPage();
         await manageRecognitionPage.verifyThePageIsLoaded();
         await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
@@ -590,10 +591,10 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: process.env.RECOGNITION_USER_USERNAME!,
-          password: process.env.RECOGNITION_USER_PASSWORD!,
+          email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+          password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
         });
-        const recognitionGiverName = process.env[`STANDARD_USER_FULL_NAME`];
+        const recognitionGiverName = getRewardTenantConfigFromCache().endUserName;
         await manageRecognitionPage.loadPage();
         await manageRecognitionPage.verifyThePageIsLoaded();
         await expect(manageRecognitionPage.activityPanelTableRows.last()).toBeVisible();
@@ -604,8 +605,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const currentUrl = recognitionHub.page.url();
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
         await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: process.env.STANDARD_USER_USERNAME!,
-          password: process.env.STANDARD_USER_PASSWORD!,
+          email: getRewardTenantConfigFromCache().endUserEmail!,
+          password: getRewardTenantConfigFromCache().endUserPassword!,
         });
         await recognitionHub.page.goto(currentUrl);
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
@@ -656,7 +657,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          process.env.STANDARD_USER_FULL_NAME,
+          getRewardTenantConfigFromCache().endUserName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );
@@ -671,8 +672,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: process.env.RECOGNITION_USER_USERNAME!,
-        password: process.env.RECOGNITION_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
       });
       await recognitionHub.page.waitForTimeout(5000);
 

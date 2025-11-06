@@ -1,3 +1,4 @@
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition/manage-recognition-page';
@@ -74,9 +75,9 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
       await workAnniversaryPage.visit();
       const userIds = [
-        process.env.ZEUS_ADMIN_USERID,
-        process.env.ZEUS_RECOGNITION_USERID,
-        process.env.ZEUS_STANDARD_USERID,
+        getRewardTenantConfigFromCache().appManagerUserId,
+        getRewardTenantConfigFromCache().recognitionManagerUserId,
+        getRewardTenantConfigFromCache().endUserUserId,
       ].filter((id): id is string => id !== undefined);
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
@@ -117,7 +118,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
 
       await workAnniversaryPage.visit();
       const point = TestDataGenerator.getRandomNo(0, 30);
-      const userIds = [process.env.ZEUS_STANDARD_USERID].filter((id): id is string => id !== undefined);
+      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
       await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
@@ -169,7 +170,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
 
       await workAnniversaryPage.visit();
-      const userIds = [process.env.ZEUS_STANDARD_USERID].filter((id): id is string => id !== undefined);
+      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       const point = TestDataGenerator.getRandomNo(0, 30);
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
@@ -187,7 +188,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       await manageRecognitionPage.rewards.visit();
       await workAnniversaryPage.validateTheCSVDataForPointsGiven(
         point,
-        `Congratulations ${process.env.ZEUS_STANDARD_FULLNAME} on reaching your 1st work anniversary! We're grateful to have you as part of our company!`
+        `Congratulations ${getRewardTenantConfigFromCache().endUserName} on reaching your 1st work anniversary! We're grateful to have you as part of our company!`
       );
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
@@ -209,7 +210,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
 
       await workAnniversaryPage.visit();
-      const userIds = [process.env.ZEUS_STANDARD_USERID].filter((id): id is string => id !== undefined);
+      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       const point = 0;
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();

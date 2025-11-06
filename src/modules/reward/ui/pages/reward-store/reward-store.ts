@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import fs from 'fs';
@@ -536,8 +537,8 @@ export class RewardsStore extends BasePage {
     const { LoginHelper } = await import('@core/helpers/loginHelper');
     await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
     await LoginHelper.loginWithPassword(this.page, {
-      email: process.env.STANDARD_USER_USERNAME!,
-      password: process.env.STANDARD_USER_PASSWORD!,
+      email: getRewardTenantConfigFromCache().endUserEmail!,
+      password: getRewardTenantConfigFromCache().endUserEmail!,
     });
     await this.loadPage();
     await this.verifier.verifyTheElementIsVisible(this.header);

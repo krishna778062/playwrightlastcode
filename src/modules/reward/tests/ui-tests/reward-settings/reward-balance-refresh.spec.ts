@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
@@ -38,7 +39,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       let userAllowanceIsDisabled: boolean = false;
       let contextB: any;
       let pageB: any;
-      const userName2 = process.env.STANDARD_USER_FULL_NAME!;
+      const userName2 = getRewardTenantConfigFromCache().endUserName!;
 
       // User should be on Manage Rewards page
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
@@ -144,8 +145,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       await LoginHelper.logoutByNavigatingToLogoutPage(pageB);
       await LoginHelper.loginWithPassword(pageB, {
-        email: process.env.STANDARD_USER_USERNAME!,
-        password: process.env.STANDARD_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().endUserEmail!,
+        password: getRewardTenantConfigFromCache().endUserPassword!,
       });
 
       const recognitionHubB = new RecognitionHubPage(pageB);
@@ -161,7 +162,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const giveRecognitionModal = new GiveRecognitionDialogBox(pageB);
       const pointValueInRecognitionPost = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
-        process.env.RECOGNITION_USER_FULL_NAME,
+        getRewardTenantConfigFromCache().endUserName,
         'Test Message' + Math.floor(Math.random() * 1000),
         rewardOptionIndex
       );
@@ -219,8 +220,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await pageB.bringToFront();
       await LoginHelper.logoutByNavigatingToLogoutPage(pageB);
       await LoginHelper.loginWithPassword(pageB, {
-        email: process.env.STANDARD_USER_USERNAME!,
-        password: process.env.STANDARD_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().endUserEmail!,
+        password: getRewardTenantConfigFromCache().endUserPassword!,
       });
 
       await recognitionHubB.verifier.waitUntilElementIsVisible(recognitionHubB.pointsToGive, {
@@ -287,7 +288,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       let userAllowanceIsDisabled: boolean = false;
       let contextB: any;
       let pageB: any;
-      const userName2 = process.env.STANDARD_USER_FULL_NAME!;
+      const userName2 = getRewardTenantConfigFromCache().endUserName!;
 
       // User should be on Manage Rewards page
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
@@ -464,8 +465,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       await LoginHelper.logoutByNavigatingToLogoutPage(pageB);
       await LoginHelper.loginWithPassword(pageB, {
-        email: process.env.STANDARD_USER_USERNAME!,
-        password: process.env.STANDARD_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().endUserEmail!,
+        password: getRewardTenantConfigFromCache().endUserPassword!,
       });
 
       const recognitionHubB = new RecognitionHubPage(pageB);
@@ -482,7 +483,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const giveRecognitionModal = new GiveRecognitionDialogBox(pageB);
       const pointValueInRecognitionPost = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
         0,
-        process.env.RECOGNITION_USER_FULL_NAME,
+        getRewardTenantConfigFromCache().endUserName,
         'Test Message' + Math.floor(Math.random() * 1000),
         rewardOptionIndex
       );

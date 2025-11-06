@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { TestDbScenarios } from '@rewards/utils/testDatabaseHelper';
@@ -778,7 +779,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName || 'aishma enduser';
 
       // Visit the Recognition Hub and give one recognition
       const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -838,7 +839,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
         ).toBeTruthy();
 
-        const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+        const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
         validationResult = await CSVUtils.validateRowValue(
           'last',
           16,
@@ -854,7 +855,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
 
-      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+      const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
       await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
@@ -910,7 +911,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const recognizedUser = process.env.STANDARD_USER_FULL_NAME || 'aishma enduser';
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName || 'aishma enduser';
 
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
@@ -977,7 +978,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
         ).toBeTruthy();
 
-        const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+        const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
         validationResult = await CSVUtils.validateRowValue(
           'last',
           16,
@@ -993,7 +994,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
 
-      const appURL = process.env.FRONTEND_BASE_URL || 'https://reco.qa.simpplr.xyz';
+      const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
       await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
