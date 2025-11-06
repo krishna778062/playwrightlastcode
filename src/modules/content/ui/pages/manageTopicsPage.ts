@@ -17,6 +17,8 @@ export interface IManageTopicsPageActions {
   clickOnUpdateButton: () => Promise<void>;
   searchingTopicInSearchBar: (topicName: string) => Promise<void>;
   openingSearchedTopic: (topicName: string) => Promise<void>;
+  clickOnDeleteTopic: () => Promise<void>;
+  clickCancelButton: () => Promise<void>;
 }
 
 export interface IManageTopicsPageAssertions {
@@ -24,6 +26,8 @@ export interface IManageTopicsPageAssertions {
   verifyToastMessage: (expectedMessage: string) => Promise<void>;
   verifyingTheSearhcedTopicIsVisible: (topicName: string) => Promise<void>;
   verifyingNothingToShowHereText: () => Promise<void>;
+  verifyDeleteTopicPopupIsVisible: () => Promise<void>;
+  verifyTopicIsVisible: (topicName: string) => Promise<void>;
 }
 export class ManageTopicsPage extends BasePage {
   private manageTopicsComponent: ManageTopicsComponent;
@@ -125,6 +129,36 @@ export class ManageTopicsPage extends BasePage {
       await this.clickOnElement(this.page.getByRole('link', { name: topicName }));
       // await this.page.keyboard.press('Tab');
       // await this.page.keyboard.press('Enter');
+    });
+  }
+
+  async clickOnDeleteTopic(): Promise<void> {
+    await test.step('Clicking on delete topic from option menu', async () => {
+      await this.manageTopicsComponent.clickOnDeleteTopic();
+    });
+  }
+
+  async verifyDeleteTopicPopupIsVisible(): Promise<void> {
+    await test.step('Verify delete topic popup is visible', async () => {
+      await this.manageTopicsComponent.verifyDeleteTopicPopupIsVisible();
+    });
+  }
+
+  async clickCancelButton(): Promise<void> {
+    await test.step('Clicking on Cancel button in delete topic popup', async () => {
+      await this.manageTopicsComponent.clickCancelButton();
+    });
+  }
+
+  async verifyTopicIsVisible(topicName: string): Promise<void> {
+    await test.step(`Verify topic ${topicName} is visible`, async () => {
+      const topicLocator = this.page
+        .getByRole('link', { name: topicName })
+        .or(this.page.locator(`text=${topicName}`))
+        .first();
+      await this.verifier.verifyTheElementIsVisible(topicLocator, {
+        assertionMessage: `Topic "${topicName}" should be visible`,
+      });
     });
   }
 }

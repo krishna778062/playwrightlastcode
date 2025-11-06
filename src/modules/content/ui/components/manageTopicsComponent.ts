@@ -7,14 +7,24 @@ export class ManageTopicsComponent extends BaseComponent {
   readonly clickOnAddTopicDropdown: Locator;
   readonly clickOnAddTopicOption: Locator;
   readonly clickOnEditTopicOption: Locator;
+  readonly clickOnDeleteTopicOption: Locator;
   readonly ellipses: Locator;
+  readonly deleteTopicPopup: Locator;
+  readonly cancelButton: Locator;
+  readonly deleteConfirmButton: Locator;
+  readonly listOfTopic: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.manageTopicsHeading = page.getByRole('heading', { name: 'Manage topics' });
     this.clickOnAddTopicDropdown = page.getByRole('button', { name: 'Add topic' });
     this.clickOnAddTopicOption = page.getByRole('tablist').getByRole('button', { name: 'Add topic' });
     this.clickOnEditTopicOption = page.getByRole('button', { name: 'Edit' });
+    this.clickOnDeleteTopicOption = page.getByRole('button', { name: 'Delete' });
     this.ellipses = page.locator('[aria-label="Category option"]').first();
+    this.deleteTopicPopup = page.locator('[role="dialog"]').filter({ hasText: /delete.*topic/i });
+    this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+    this.deleteConfirmButton = page.getByRole('button', { name: /delete/i }).filter({ hasText: /delete/i });
+    this.listOfTopic = page.locator('td.Table-cell div a');
   }
   async clickOnAddTopic(): Promise<void> {
     await test.step('Clicking on add topic', async () => {
@@ -26,6 +36,35 @@ export class ManageTopicsComponent extends BaseComponent {
     await test.step('Clicking on edit topic', async () => {
       await this.hoverOverElementInJavaScript(this.ellipses);
       await this.clickOnElement(this.clickOnEditTopicOption);
+    });
+  }
+  async clickOnDeleteTopic(): Promise<void> {
+    await test.step('Clicking on delete topic from option menu', async () => {
+      await this.hoverOverElementInJavaScript(this.ellipses);
+      await this.clickOnElement(this.clickOnDeleteTopicOption);
+    });
+  }
+  async verifyDeleteTopicPopupIsVisible(): Promise<void> {
+    await test.step('Verify delete topic popup is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.deleteTopicPopup, {
+        assertionMessage: 'Delete topic popup should be visible',
+      });
+    });
+  }
+
+  async clickCancelButton(): Promise<void> {
+    await test.step('Clicking on Cancel button in delete topic popup', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  async getTopicNameFromList(): Promise<string> {
+    return await test.step('Get topic name from list', async () => {
+      const topicName = await this.listOfTopic.first().textContent();
+      if (!topicName) {
+        throw new Error('Topic name not found');
+      }
+      return topicName.trim();
     });
   }
 }
