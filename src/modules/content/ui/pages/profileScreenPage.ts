@@ -5,7 +5,9 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
-export interface IProfileScreenPageActions {}
+export interface IProfileScreenPageActions {
+  clickOnManageTopics: () => Promise<void>;
+}
 
 export interface IProfileScreenPageAssertions {
   verifyingUserNameOnProfileScreenPage: () => Promise<void>;
@@ -14,6 +16,9 @@ export interface IProfileScreenPageAssertions {
 export class ProfileScreenPage extends BasePage implements IProfileScreenPageActions, IProfileScreenPageAssertions {
   private baseActionUtil: BaseActionUtil;
   readonly copyProfileLinkOption: Locator = this.page.getByRole('button', { name: 'Copy profile link' });
+  readonly manageTopicsLink: Locator = this.page
+    .getByRole('link', { name: 'Manage Topics' })
+    .or(this.page.locator('a', { hasText: 'Manage Topics' }));
 
   constructor(page: Page, peopleId: string) {
     super(page, PAGE_ENDPOINTS.getProfileScreenPage(peopleId));
@@ -42,6 +47,12 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
       await this.verifier.verifyTheElementIsVisible(this.page.getByRole('heading', { name: loggedInUserName }), {
         assertionMessage: `User name "${loggedInUserName}" should be visible on profile screen page`,
       });
+    });
+  }
+
+  async clickOnManageTopics(): Promise<void> {
+    await test.step('Clicking on Manage Topics from profile page', async () => {
+      await this.clickOnElement(this.manageTopicsLink);
     });
   }
 }

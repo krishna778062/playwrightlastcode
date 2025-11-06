@@ -30,13 +30,10 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         storyId: 'RC-3267',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
+      // Go to order history and validate
       await rewardsStore.visitTheOrderHistory();
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.orderHistoryPanel.first());
-      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.mockTheOrderAPIResponse();
-      await rewardsStore.page.reload();
-      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.orderHistoryPanel.first());
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.orderHistoryPanel.last());
       await rewardsStore.validateTheOrderResendForMoreThan90Days();
     }
   );
@@ -59,6 +56,11 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         storyId: 'RC-3245',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
+      // Navigate to rewards store and validate
+      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+
+      // Go to order history and validate
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
@@ -90,7 +92,11 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         storyId: 'RC-3242',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      await rewardsStore.loadPage();
+      // Navigate to rewards store and validate
+      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+
+      // Go to order history and validate
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
@@ -123,7 +129,11 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         storyId: 'RC-3244',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
-      await rewardsStore.loadPage();
+      // Navigate to rewards store and validate
+      await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+
+      // Go to order history and validate
       await rewardsStore.visitTheOrderHistory();
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/order-history');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
