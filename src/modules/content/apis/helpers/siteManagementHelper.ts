@@ -192,27 +192,29 @@ export class SiteManagementHelper {
     accessType: SITE_TYPES;
     waitForSearchIndex?: boolean;
   }) {
+    // Default waitForSearchIndex to false if not explicitly provided
+    const waitForSearchIndex = options.waitForSearchIndex ?? false;
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
         return await this.createPublicSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
-          waitForSearchIndex: options.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -592,6 +594,9 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     let createdSite;
 
+    // Default waitForSearchIndex to false if not explicitly provided
+    const waitForSearchIndex = options?.waitForSearchIndex ?? false;
+
     // Prepare overrides with optional parameters
     const overrides = {
       ...options?.overrides,
@@ -613,7 +618,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
         break;
       case SITE_TYPES.UNLISTED:
@@ -621,7 +626,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
         break;
       default:
@@ -629,7 +634,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
     }
 
