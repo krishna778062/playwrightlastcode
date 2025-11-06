@@ -12,10 +12,14 @@ export const PAGE_ENDPOINTS = {
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
+  MANAGE_REWARDS_ALLOWANCE_PAGE: '/manage/recognition/rewards/peer-gifting/allowances',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
+  REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
+  CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
+  MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
