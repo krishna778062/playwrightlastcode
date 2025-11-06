@@ -13,6 +13,7 @@ on:
           - 'platforms'
           - 'global-search'
           - 'reward'
+          - 'reward-settings'
           - 'content'
           - 'content-settings'
           - 'content-studio'
@@ -20,6 +21,7 @@ on:
           - 'content-abac'
           - 'frontline'
           - 'integrations'
+          - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
       priority_filter:
@@ -226,16 +228,16 @@ jobs:
             FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
-            
+
             # Count known failures from annotations
             KNOWN_FAILED=$(node -e "
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
-              const knownFailed = data.suites.flatMap(s => 
-                s.suites.flatMap(ss => 
-                  ss.specs.flatMap(sp => 
-                    sp.tests.filter(t => 
-                      t.status === 'unexpected' && 
+              const knownFailed = data.suites.flatMap(s =>
+                s.suites.flatMap(ss =>
+                  ss.specs.flatMap(sp =>
+                    sp.tests.filter(t =>
+                      t.status === 'unexpected' &&
                       t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
@@ -243,7 +245,7 @@ jobs:
               ).length;
               console.log(knownFailed);
             ")
-            
+
             # Calculate actual failures (excluding known failures)
             ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
           else
