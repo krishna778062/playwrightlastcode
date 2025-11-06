@@ -366,7 +366,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyPublishOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
   }
-
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
