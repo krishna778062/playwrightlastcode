@@ -12,6 +12,9 @@ export class LoginWithOtpPage extends BasePage {
   readonly emailInput: Locator;
   readonly optionalHeading: Locator;
   readonly addMobileNumberOrEmailHeading: Locator;
+  readonly addMobileNumberHeading: Locator;
+  readonly addEmailAddressHeading: Locator;
+
   readonly optionalFroceAddContactMessage: Locator;
   readonly mandatoryFroceAddContactMessage: Locator;
   readonly countryCodeRequiredFor: Locator;
@@ -30,6 +33,8 @@ export class LoginWithOtpPage extends BasePage {
   readonly verifyButton: Locator;
   readonly resendOtpButton: Locator;
   readonly continueButton: Locator;
+  readonly mobileNumberForceAddContactMessage: Locator;
+  readonly emailForceAddContactMessage: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -37,6 +42,8 @@ export class LoginWithOtpPage extends BasePage {
     this.emailInput = page.getByRole('textbox', { name: 'Email ID' });
     this.optionalHeading = page.getByRole('heading', { name: 'Optional' });
     this.addMobileNumberOrEmailHeading = page.getByRole('heading', { name: 'Add mobile number or email' });
+    this.addMobileNumberHeading = page.getByRole('heading', { name: 'Add mobile number' });
+    this.mobileNumberForceAddContactMessage = page.getByText(LWO_MESSAGES.MOBILE_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
     this.optionalFroceAddContactMessage = page.locator(
       "//h1[text()='Add mobile number or email']/following-sibling::h4"
     );
@@ -60,6 +67,8 @@ export class LoginWithOtpPage extends BasePage {
     this.verifyButton = page.getByRole('button', { name: 'Verify' });
     this.resendOtpButton = page.getByRole('button', { name: 'Resend OTP' });
     this.continueButton = page.getByRole('button', { name: 'Continue' });
+    this.addEmailAddressHeading = page.getByRole('heading', { name: 'Add email address' });
+    this.emailForceAddContactMessage = page.getByText(LWO_MESSAGES.EMAIL_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
   }
 
   /**
@@ -187,8 +196,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
-
-        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO('email');
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
@@ -208,7 +216,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(phone), {
           timeout: TIMEOUTS.MEDIUM,
         });
-        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO('mobile');
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         console.log('otpMobile--------------', otpMobile);
@@ -246,5 +254,65 @@ export class LoginWithOtpPage extends BasePage {
         await this.clickOnElement(this.continueButton);
         break;
     }
+  }
+
+  async verifyForceAddContactPageForIdentifierTypeMobileOrEmail(verificationType: string): Promise<void> {
+    await test.step(`Verifying add force contact page is loaded for ${verificationType} LWO when login identifiers are email and employee number`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+      if (verificationType === 'mobile') {
+        await this.verifier.verifyTheElementIsVisible(this.addMobileNumberHeading);
+        await this.verifier.verifyTheElementIsVisible(this.mobileNumberForceAddContactMessage);
+        await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
+        await this.verifier.verifyTheElementIsVisible(this.mobileText);
+      } else if (verificationType === 'email') {
+        await this.verifier.verifyTheElementIsVisible(this.addEmailAddressHeading);
+        await this.verifier.verifyTheElementIsVisible(this.emailForceAddContactMessage);
+        await this.verifier.verifyTheElementIsVisible(this.emailText);
+      }
+      await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
+    });
+  }
+
+  async addEmailOrMobileBasedOnIdentifiers(
+    otpUtils: OTPUtils,
+    identifier: string,
+    identifierType: 'email' | 'mobile'
+  ): Promise<void> {
+    await test.step('Navigating to force add contact page', async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+
+    let otpValue = '';
+
+    await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+
+    await this.verifyForceAddContactPageForIdentifierTypeMobileOrEmail(identifierType);
+
+    if (identifierType === 'mobile') {
+      await this.fillInElement(this.mobileInput, identifier);
+    } else {
+      await this.fillInElement(this.emailInput, identifier);
+    }
+
+    await this.clickOnElement(this.sendOtpToVerifyButton);
+
+    // Verify correct verification page based on type & LWO type
+    await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(identifierType);
+
+    // Get and enter OTP
+    await this.page.waitForTimeout(8000);
+    otpValue =
+      identifierType === 'mobile'
+        ? await otpUtils.getOTPFromSMS(identifier)
+        : await otpUtils.getOTPFromEmail(identifier);
+
+    console.log(`${identifierType} OTP →`, otpValue);
+
+    await this.fillInElement(this.enterOtpInput, otpValue);
+    await this.clickOnElement(this.verifyButton);
+    await this.clickOnElement(this.continueButton);
   }
 }

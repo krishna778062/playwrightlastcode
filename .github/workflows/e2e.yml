@@ -20,6 +20,7 @@ on:
           - 'content-abac'
           - 'frontline'
           - 'integrations'
+          - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
       priority_filter:
