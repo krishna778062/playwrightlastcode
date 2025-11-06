@@ -21,8 +21,8 @@ import {
   PageCreationPage,
   SiteCreationPage,
 } from '@/src/modules/content/ui';
-import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
 import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
