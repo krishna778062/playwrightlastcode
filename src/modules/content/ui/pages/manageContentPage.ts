@@ -32,6 +32,7 @@ export interface IActions {
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
   verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
+  verifyAllContentsAreDeleted: (contentNames: string[]) => Promise<void>;
 }
 
 export interface IAssertions {
@@ -366,21 +367,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
   }
 
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
-  }
-
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
 
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
-  }
-  async clickOnOnboardingOption(): Promise<void> {
-    await this.manageContentComponent.clickOnOnboardingOption();
   }
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();

@@ -909,6 +909,9 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
         assertionMessage: `Content ${contentNames[0]} should not be visible`,
       });
+    });
+  }
+
   async clickOnValidateApplyButton(): Promise<void> {
     await test.step(`Clicking on validate apply button`, async () => {
       await this.clickOnElement(this.applyButton);
