@@ -2,7 +2,7 @@ import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export class BarChartComponent extends BaseComponent {
+export class VerticalBarChartComponent extends BaseComponent {
   readonly verticalAxisContainer: Locator;
   readonly horizontalAxisContainer: Locator;
   readonly verticalAxisLabel: Locator;
