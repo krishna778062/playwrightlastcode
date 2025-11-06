@@ -304,28 +304,27 @@ test.describe(
       }
     );
 
-    // Test for each site type: public, private, unlisted
-    const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
+    test(
+      'verify the site activate option in manage site user drop down sites for all site types',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26177'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify the site activate option in manage site user drop down sites for all site types',
+          customTags: [ContentFeatureTags.MANAGE_SITE],
+          zephyrTestId: 'CONT-26177',
+          storyId: 'CONT-26177',
+        });
 
-    for (const siteType of siteTypes) {
-      test(
-        `Verify the site activate option in manage site user drop down sites for ${siteType} site`,
-        {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26177'],
-        },
-        async ({ appManagerFixture, appManagerApiFixture }) => {
-          tagTest(test.info(), {
-            description: `Verify the site activate option in manage site user drop down sites for ${siteType} site`,
-            customTags: [ContentFeatureTags.MANAGE_SITE],
-            zephyrTestId: 'CONT-26177',
-            storyId: 'CONT-26177',
-          });
+        const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
+        const manageSitePage = new ManageSitePage(appManagerFixture.page);
+        await manageSitePage.loadPage();
 
+        for (const siteType of siteTypes) {
           const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType);
           const siteName = siteInfo.siteName;
 
-          const manageSitePage = new ManageSitePage(appManagerFixture.page);
-          await manageSitePage.loadPage();
           await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
           await manageSitePage.actions.selectFilterOption('All');
           await manageSitePage.actions.searchSite(siteName);
@@ -334,7 +333,7 @@ test.describe(
           await manageSitePage.assertions.verifyOptionIsVisibleInOptionsDropdown('Activate');
           await manageSitePage.assertions.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
         }
-      );
-    }
+      }
+    );
   }
 );
