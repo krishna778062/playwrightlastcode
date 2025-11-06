@@ -2,12 +2,14 @@ import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test'
 
 import { Roles } from '../../../core/constants/roles';
 import { getEnvConfig } from '../../../core/utils/getEnvConfig';
+import { PLATFORM_API_ENDPOINTS } from '../../platforms/apis/platformApiEndpoints';
 import { UserManagementService } from '../../platforms/apis/services/UserManagementService';
 import { MultiUserChatTestHelper } from '../helpers/multiUserChatTestHelper';
 import { ChatGroupTestDataBuilder } from '../test-data-builders/ChatGroupTestDataBuilder';
 import { ChatTestUser } from '../types/chat-test.type';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { USER_STATUS } from '@/src/core/constants/status';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
@@ -65,6 +67,26 @@ export const dmTestFixture = test.extend<
         }))
       );
       await use(usersWithChatIds);
+
+      // Cleanup: Deactivate users after worker is done
+      // Note: We call API directly without test.step() since we're in fixture teardown
+      for (const user of usersWithChatIds) {
+        if (user.userId) {
+          try {
+            console.log(`Deactivating user ${user.email} with userId: ${user.userId}`);
+            await userManagementService.httpClient.put(
+              PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(user.userId),
+              {
+                data: {
+                  status: USER_STATUS.INACTIVE,
+                },
+              }
+            );
+          } catch (error) {
+            console.log(`Failed to deactivate user ${user.email}: ${error}`);
+          }
+        }
+      }
     },
     { scope: 'worker' },
   ],
