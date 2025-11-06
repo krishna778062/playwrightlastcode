@@ -8,7 +8,6 @@ import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteMan
 import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -29,7 +28,6 @@ test.describe(
     let siteCategoriesPage: SiteCategoriesPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
-    let manageSitesComponent: ManageSitesComponent;
     let manageSiteAppManagerPage: ManageSitePage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;

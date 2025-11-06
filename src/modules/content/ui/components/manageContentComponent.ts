@@ -916,6 +916,9 @@ export class ManageContentComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.getContentNameLocator(contentName), {
         assertionMessage: 'Content should be visible',
       });
+    });
+  }
+
   async clickOnValidateApplyButton(): Promise<void> {
     await test.step(`Clicking on validate apply button`, async () => {
       await this.clickOnElement(this.applyButton);
