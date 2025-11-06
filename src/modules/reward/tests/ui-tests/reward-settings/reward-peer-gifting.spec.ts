@@ -48,10 +48,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Enable peer gifting with immediately
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRewardsPage.peerGifting.saveButton.click();
       await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
@@ -89,6 +86,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no allowances and gifting options
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(true, false, false);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsAndAllowancesError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsAndAllowancesError).toHaveText(
         'You need to add gifting options and allowances to enable peer gifting'
@@ -101,6 +99,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no gifting options
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(true, false, true);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addGiftingOptionsError).toHaveText(
         'You need to add gifting options to enable peer gifting'
@@ -113,6 +112,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Test disabled peer gifting with no allowances
       await manageRewardsPage.peerGifting.mockThePeerGiftingApiResponse(true, true, false);
       await manageRewardsPage.peerGifting.loadPage();
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await expect(manageRewardsPage.peerGifting.addAllowancesError).toBeVisible();
       await expect(manageRewardsPage.peerGifting.addAllowancesError).toHaveText(
         'You need to add allowances to enable peer gifting'
@@ -152,10 +152,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Disable peer gifting
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRewardsPage.peerGifting.saveButton.click();
       await expect(manageRewardsPage.peerGifting.disableDialog).toBeVisible();
@@ -173,10 +170,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Enable peer gifting
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRewardsPage.peerGifting.saveButton.click();
       await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
@@ -258,7 +252,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await expect(manageRewardsPage.peerGifting.giftingOptionGreenTick).toBeVisible();
       await expect(manageRewardsPage.peerGifting.allowanceGreenTick).toBeVisible();
       await expect(manageRewardsPage.peerGifting.giftingOptionIcon).toBeVisible();
-      await expect(manageRewardsPage.peerGifting.AllowanceIcon).toBeVisible();
+      await expect(manageRewardsPage.peerGifting.allowanceIcon).toBeVisible();
       await manageRewardsPage.peerGifting.removePeerGiftingApiMock();
     }
   );
@@ -284,10 +278,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Disable peer gifting
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRewardsPage.peerGifting.saveButton.click();
       await expect(manageRewardsPage.peerGifting.disableDialog).toBeVisible();
@@ -310,10 +301,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Enable peer gifting
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRewardsPage.peerGifting.saveButton.click();
       await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
@@ -400,10 +388,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });
@@ -500,10 +485,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });
@@ -551,10 +533,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });
@@ -651,10 +630,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });
@@ -702,10 +678,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });
@@ -802,10 +775,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
 
       await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
+      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
         stepInfo: 'Clicking on peer gifting toggle switch',
       });

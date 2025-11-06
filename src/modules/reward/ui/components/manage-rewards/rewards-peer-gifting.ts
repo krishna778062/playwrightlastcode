@@ -45,12 +45,13 @@ export class RewardsPeerGifting extends BasePage {
   readonly allowancesRequiredError: Locator;
 
   readonly giftingOptionsPanel: Locator;
-  readonly allowancePanel: Locator;
-  readonly giftingOptionGreenTick: Locator;
-  readonly allowanceGreenTick: Locator;
+  readonly giftingOptionsTitle: Locator;
   readonly giftingOptionIcon: Locator;
-  readonly AllowanceIcon: Locator;
-  private disabledRewardRewardsBudgetContainer: any;
+  readonly giftingOptionGreenTick: Locator;
+  readonly allowancePanel: Locator;
+  readonly allowanceGreenTick: Locator;
+  readonly allowanceTitle: Locator;
+  readonly allowanceIcon: Locator;
 
   constructor(page: Page) {
     super(page, '/manage/recognition/rewards/peer-gifting');
@@ -113,15 +114,17 @@ export class RewardsPeerGifting extends BasePage {
 
     //Gifting Options and Allowances locators
     this.giftingOptionsPanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(1)');
-    this.allowancePanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(3)');
     this.giftingOptionGreenTick = this.giftingOptionsPanel.locator('[class*="PanelActionItem_check"]');
-    this.allowanceGreenTick = this.allowancePanel.locator('[class*="PanelActionItem_check"]');
+    this.giftingOptionsTitle = this.giftingOptionsPanel.locator('h3');
     this.giftingOptionIcon = page.locator('[data-testid="i-giftWithSlider"]');
-    this.AllowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
+    this.allowancePanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(3)');
+    this.allowanceGreenTick = this.allowancePanel.locator('[class*="PanelActionItem_check"]');
+    this.allowanceTitle = this.allowancePanel.locator('h3');
+    this.allowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.peerGiftingHeading, {
+    await this.verifier.verifyTheElementIsVisible(this.allowanceTitle, {
       assertionMessage: 'Verify the Peer Gifting page is loaded',
     });
   }
@@ -129,14 +132,11 @@ export class RewardsPeerGifting extends BasePage {
   async selectThePeerGiftingEnableType(
     frequency: 'Immediately' | 'From the beginning of the next month'
   ): Promise<void> {
-    if (frequency === 'Immediately') {
-      if (!(await this.grantAllowancesRadioImmediately.isChecked())) {
-        await this.grantAllowancesRadioImmediately.click();
-      }
-    } else if (frequency === 'From the beginning of the next month') {
-      if (!(await this.grantAllowancesRadioNextMonth.isChecked())) {
-        await this.grantAllowancesRadioNextMonth.click();
-      }
+    const radio =
+      frequency === 'Immediately' ? this.grantAllowancesRadioImmediately : this.grantAllowancesRadioNextMonth;
+    const checked = await radio.isChecked();
+    if (!checked) {
+      await radio.click();
     }
   }
 

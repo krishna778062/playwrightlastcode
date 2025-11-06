@@ -16,9 +16,6 @@ export default defineConfig({
   testIgnore: '**/reward-settings/**',
   workers: process.env.CI ? 3 : 5,
   timeout: 180_000,
-  expect: {
-    timeout: 10_000,
-  },
   projects: [
     {
       name: 'Reward',

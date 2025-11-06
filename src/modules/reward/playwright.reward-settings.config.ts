@@ -15,9 +15,6 @@ export default defineConfig({
   // keep workers consistent for CI/local as you previously had
   workers: process.env.CI ? 1 : 1,
   timeout: 120_000,
-  expect: {
-    timeout: 10_000,
-  },
   projects: [
     {
       name: 'Reward Setting Cases',
