@@ -20,6 +20,9 @@ test.describe(
   () => {
     const AppName = 'Greenhouse';
     const tileName = 'Display job postings';
+    const Job_board_token = 'Job board token';
+    const Job_board_token_value = 'mergeapiintegrationsandbox';
+    const UserDefined = 'User defined';
     let createdTileTitle: string | undefined = undefined;
 
     test.afterEach(async ({ appManagerFixture }) => {
@@ -40,7 +43,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-25356', 'INT-25368'],
+          zephyrTestId: ['INT-25356', 'INT-25368', 'INT-25370'],
           storyId: 'INT-24587',
         });
 
@@ -230,7 +233,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-28686', 'INT-28687'],
+          zephyrTestId: ['INT-28686', 'INT-28687', 'INT-25372'],
           storyId: 'INT-24587',
         });
 
@@ -363,6 +366,74 @@ test.describe(
 
         // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify App Admin is able to add Greenhouse job postings from a tile on Home Dashboard with User Defined for Job Type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-25363'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UserDefined,
+          Job_board_token,
+          Job_board_token_value,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        await homeDashboard.setUpTile(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.verifyGreenhouseContentStructure(createdTileTitle);
+      }
+    );
+    test(
+      'verify App Admin is able to add Greenhouse job postings from a tile on Site Dashboard with User Defined for Job Type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-28923'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UserDefined,
+          Job_board_token,
+          Job_board_token_value,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.setUpTile(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyGreenhouseContentStructure(createdTileTitle);
         createdTileTitle = undefined;
       }
     );
