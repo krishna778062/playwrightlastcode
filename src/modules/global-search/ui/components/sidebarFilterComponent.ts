@@ -31,6 +31,9 @@ export class SidebarFilterComponent extends BaseComponent {
   private readonly peopleSubFilterInput: Locator;
   private readonly peopleSubFilterResetButton: Locator;
 
+  // Show more button locator
+  private readonly showMoreButton: Locator;
+
   constructor(
     page: Page,
     options: { filterText: string; iconType?: string; siteName?: string; globalFilterName?: string }
@@ -72,18 +75,35 @@ export class SidebarFilterComponent extends BaseComponent {
     this.peopleSubFilterResetButton = this.page
       .locator(`div:has(div:has-text("${this.filterName}")) button:has-text("Reset")`)
       .first();
+
+    // Initialize show more button locator
+    this.showMoreButton = this.page.locator('div[class*="IntranetSubFilter_showMoreButton"]').locator('button');
   }
 
   /**
    * Verifies the filter is displayed in the sidebar
+   * If the filter is not visible, clicks on "Show more" button and then verifies
    * @param options - Options for the step
    */
   async verifyFilterDisplayedInSidebar(options?: { stepInfo?: string }): Promise<void> {
     return await test.step(
       options?.stepInfo || `Verify ${this.filterText} filter is displayed in sidebar`,
       async () => {
+        const isFilterVisible = await this.verifier.isTheElementVisible(this.filterButton, {
+          timeout: 20000,
+        });
+
+        if (!isFilterVisible) {
+          await this.verifier.verifyTheElementIsVisible(this.showMoreButton, {
+            timeout: 10000,
+            assertionMessage: `Verifying "Show more" button is visible before clicking`,
+          });
+          await this.showMoreButton.scrollIntoViewIfNeeded();
+          await this.clickOnElement(this.showMoreButton);
+        }
+
         await this.verifier.verifyTheElementIsVisible(this.filterButton, {
-          timeout: 10000,
+          timeout: 50000,
           assertionMessage: `Verifying ${this.filterText} filter button is visible in sidebar`,
         });
       }
@@ -417,6 +437,22 @@ export class SidebarFilterComponent extends BaseComponent {
       await this.clickOnElement(peopleFilterItem);
       await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterResetButton, { timeout: 10000 });
       return this.originalCount;
+    });
+  }
+
+  /**
+   * Verifies the visibility of a people subfilter
+   * @param subFilterName - The name of the subfilter to verify
+   * @param shouldBeVisible - Whether the subfilter should be visible (true) or not visible (false)
+   */
+  async verifyPeopleSubFilterVisibility(subFilterName: string, shouldBeVisible: boolean): Promise<void> {
+    const visibilityText = shouldBeVisible ? 'is displayed' : 'is not displayed';
+    await test.step(`Verify ${subFilterName} people subfilter ${visibilityText}`, async () => {
+      if (shouldBeVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.peopleSubFilterButton.last(), { timeout: 40000 });
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(this.peopleSubFilterButton.last(), { timeout: 40000 });
+      }
     });
   }
 }

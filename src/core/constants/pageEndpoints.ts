@@ -30,6 +30,10 @@ export const PAGE_ENDPOINTS = {
   CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
   IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
+  // Recognition pages
+  MANAGE_RECOGNITION: '/manage/recognition',
+  MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
+
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
   AUDIENCE_RULE_PAGE: '/audiences/org/rules',

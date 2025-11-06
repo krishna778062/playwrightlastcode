@@ -202,7 +202,7 @@ export class GoogleCalendarHelper {
     attempts: number;
     mismatches?: string[];
   }> {
-    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary' } = options;
+    const { maxAttempts = 12, retryDelayMs = 10000, calendarId = 'primary' } = options;
 
     console.log(`[Google Calendar] Verifying details for "${eventTitle}"`);
 

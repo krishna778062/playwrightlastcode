@@ -16,10 +16,12 @@ on:
           - 'reward-settings'
           - 'content'
           - 'content-settings'
+          - 'content-studio'
           - 'de'
           - 'content-abac'
           - 'frontline'
           - 'integrations'
+          - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
       priority_filter:

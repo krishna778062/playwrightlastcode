@@ -28,6 +28,7 @@ jobs:
             content-abac,
             frontline,
             content-settings,
+            content-studio,
             alert-notification,
             employee-listening,
           ] # de is short for data-engineering
