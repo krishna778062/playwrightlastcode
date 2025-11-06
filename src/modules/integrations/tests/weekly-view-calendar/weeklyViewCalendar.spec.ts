@@ -12,6 +12,7 @@ import {
   createOutlookEventPayload,
 } from '@/src/modules/integrations/test-data/calendarEventSync.test-data';
 import { CalendarPage } from '@/src/modules/integrations/ui/pages/eventCalendarPage';
+import { EventDetailPage, RsvpOption } from '@/src/modules/integrations/ui/pages/eventDetailPage';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 test.describe(
@@ -80,13 +81,7 @@ test.describe(
     test(
       'verify that all the created events are visible on the respective dates under weekly view',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.SANITY,
-          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
-          '@INT-28441',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         test.setTimeout(300000);
@@ -118,18 +113,12 @@ test.describe(
 
         // Create Google Test Event with Google Calendar sync enabled
         const googleEventTitle = 'Google Test Event';
-        // duration is whole week
-        const startDate = new Date();
-        const endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const timezone = 'Asia/Kolkata';
+
         const googleEventPayload = createGoogleEventPayload({
           title: googleEventTitle,
           description: 'Test event for Google Calendar sync verification',
           location: 'Google Test Location',
           organizerId,
-          startDate,
-          endDate,
-          timezone,
         });
 
         await contentManagementHelper.contentManagementService.addNewEventContent(siteId, googleEventPayload);
@@ -141,9 +130,6 @@ test.describe(
           description: 'Test event for Outlook Calendar sync verification',
           location: 'Outlook Test Location',
           organizerId,
-          startDate,
-          endDate,
-          timezone,
         });
 
         await contentManagementHelper.contentManagementService.addNewEventContent(siteId, outlookEventPayload);
@@ -157,7 +143,305 @@ test.describe(
         await calendarPage.assertions.verifyTwentyFourHourSlots(true);
 
         // Verify both Google and Outlook test events are visible
-        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents();
+        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, true);
+      }
+    );
+
+    test(
+      'verify that user is able use all the filters under weekly view',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+      },
+      async ({ appManagerFixture }) => {
+        test.setTimeout(300000);
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28462',
+        });
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const contentManagementHelper = new ContentManagementHelper(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        // Create a test site for the events
+        const category =
+          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const testSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+          category,
+          siteName: `Calendar RSVP Test Site ${Date.now()}`,
+        });
+
+        const siteId = testSite.siteId;
+
+        // Create Google Test Event with Google Calendar sync enabled
+        const googleEventTitle = 'Google Test Event';
+
+        const googleEventPayload = createGoogleEventPayload({
+          title: googleEventTitle,
+          description: 'Test event for Google Calendar RSVP verification',
+          location: 'Google Test Location',
+          organizerId,
+        });
+
+        const googleEventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          googleEventPayload
+        );
+
+        // Create Outlook Test Event with Outlook Calendar sync enabled
+        const outlookEventTitle = 'Outlook Test Event';
+        const outlookEventPayload = createOutlookEventPayload({
+          title: outlookEventTitle,
+          description: 'Test event for Outlook Calendar RSVP verification',
+          location: 'Outlook Test Location',
+          organizerId,
+        });
+
+        const outlookEventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          outlookEventPayload
+        );
+
+        // Navigate to Google event detail page and RSVP as Yes
+        const googleEventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, googleEventResult.eventId);
+        await googleEventDetailPage.loadPage();
+        await googleEventDetailPage.assertions.verifyThePageIsLoaded();
+        await googleEventDetailPage.assertions.verifyEventTitle(googleEventTitle);
+        await googleEventDetailPage.actions.clickRsvpOption(RsvpOption.YES);
+        await googleEventDetailPage.assertions.verifyRsvpSelection('yes');
+
+        // Navigate to Outlook event detail page and RSVP as No
+        const outlookEventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, outlookEventResult.eventId);
+        await outlookEventDetailPage.loadPage();
+        await outlookEventDetailPage.assertions.verifyThePageIsLoaded();
+        await outlookEventDetailPage.assertions.verifyEventTitle(outlookEventTitle);
+        await outlookEventDetailPage.actions.clickRsvpOption(RsvpOption.NO);
+        await outlookEventDetailPage.assertions.verifyRsvpSelection('no');
+
+        // Navigate to weekly view calendar page
+        const calendarPage = new CalendarPage(appManagerFixture.page);
+        await calendarPage.actions.navigateToCalendarPage();
+
+        // Select week view
+        await calendarPage.actions.selectCalendarView('Week');
+        await calendarPage.assertions.verifyTwentyFourHourSlots(true);
+
+        // click on Yes No Filters
+        await calendarPage.actions.selectFiltersForEvents('Yes');
+        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, false);
+
+        await calendarPage.actions.navigateToCalendarPage();
+        await calendarPage.actions.selectCalendarView('Week');
+
+        // reset filters
+        await calendarPage.actions.resetFiltersForEvents();
+
+        await calendarPage.actions.selectFiltersForEvents('No');
+        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(false, true);
+
+        await calendarPage.actions.resetFiltersForEvents();
+      }
+    );
+
+    test(
+      'verify that user is able to see events based on selected or connected calendar type',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+      },
+      async ({ appManagerFixture }) => {
+        test.setTimeout(300000);
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28463',
+        });
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const contentManagementHelper = new ContentManagementHelper(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        // Create a test site for the events
+        const category =
+          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const testSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+          category,
+          siteName: `Calendar View Test Site ${Date.now()}`,
+        });
+
+        const siteId = testSite.siteId;
+
+        // Create Google Test Event with Google Calendar sync enabled
+        const googleEventTitle = 'Google Test Event';
+
+        const googleEventPayload = createGoogleEventPayload({
+          title: googleEventTitle,
+          description: 'Test event for Google Calendar view verification',
+          location: 'Google Test Location',
+          organizerId,
+        });
+
+        await contentManagementHelper.contentManagementService.addNewEventContent(siteId, googleEventPayload);
+
+        // Create Outlook Test Event with Outlook Calendar sync enabled
+        const outlookEventTitle = 'Outlook Test Event';
+        const outlookEventPayload = createOutlookEventPayload({
+          title: outlookEventTitle,
+          description: 'Test event for Outlook Calendar view verification',
+          location: 'Outlook Test Location',
+          organizerId,
+        });
+
+        await contentManagementHelper.contentManagementService.addNewEventContent(siteId, outlookEventPayload);
+
+        // Navigate to weekly view calendar page
+        const calendarPage = new CalendarPage(appManagerFixture.page);
+        await calendarPage.actions.navigateToCalendarPage();
+
+        // Select week view
+        await calendarPage.actions.selectCalendarView('Week');
+        await calendarPage.assertions.verifyTwentyFourHourSlots(true);
+
+        // View Google calendar - should show only Google event, not Outlook
+        await calendarPage.actions.calendarToView('Google');
+        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, false);
+
+        // View both calendars - should show both events
+        await calendarPage.actions.calendarToView('both');
+        await calendarPage.assertions.verifyGoogleAndOutlookTestEvents(true, true);
+      }
+    );
+
+    test(
+      'verify that clicking on Today button navigates back to todays date in weekly calendar view',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28972',
+        });
+
+        const calendarPage = new CalendarPage(appManagerFixture.page);
+
+        // Navigate to weekly view calendar page
+        await calendarPage.actions.navigateToCalendarPage();
+
+        // Select week view
+        await calendarPage.actions.selectCalendarView('Week');
+        await calendarPage.assertions.verifyTwentyFourHourSlots(true);
+        await calendarPage.assertions.verifyThePageIsLoaded();
+
+        // Verify today's date is visible initially
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(true);
+
+        // Move forward 4 weeks - today's date should not be visible
+        await calendarPage.actions.pressRightAndLeftArrowButtons(4, 0);
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(false);
+
+        // Click Today button - should navigate back to today's date
+        await calendarPage.actions.clickTodayButton();
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(true);
+
+        // Move backward 4 weeks - today's date should not be visible
+        await calendarPage.actions.pressRightAndLeftArrowButtons(0, 4);
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(false);
+
+        // Click Today button again - should navigate back to today's date
+        await calendarPage.actions.clickTodayButton();
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(true);
+      }
+    );
+
+    test(
+      'verify that Outlook event with RSVP Yes is visible when RSVP Yes filter is applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+      },
+      async ({ appManagerFixture }) => {
+        test.setTimeout(300000);
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28464',
+        });
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const contentManagementHelper = new ContentManagementHelper(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        // Create a test site for the events
+        const category =
+          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const testSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+          category,
+          siteName: `Calendar View Test Site ${Date.now()}`,
+        });
+
+        const siteId = testSite.siteId;
+
+        // Create Google Test Event with Google Calendar sync enabled
+        const googleEventTitle = 'Google Test Event';
+
+        const googleEventPayload = createGoogleEventPayload({
+          title: googleEventTitle,
+          description: 'Test event for Google Calendar view verification',
+          location: 'Google Test Location',
+          organizerId,
+        });
+
+        const googleEventResult = await contentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          googleEventPayload
+        );
+
+        // RSVP as Yes
+        const googleEventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, googleEventResult.eventId);
+        await googleEventDetailPage.loadPage();
+        await googleEventDetailPage.assertions.verifyThePageIsLoaded();
+        await googleEventDetailPage.assertions.verifyEventTitle(googleEventTitle);
+        await googleEventDetailPage.actions.clickRsvpOption(RsvpOption.YES);
+        await googleEventDetailPage.assertions.verifyRsvpSelection('yes');
+
+        // Navigate to weekly view calendar page
+        const calendarPage = new CalendarPage(appManagerFixture.page);
+        await calendarPage.actions.navigateToCalendarPage();
+
+        // Select week view
+        await calendarPage.actions.selectCalendarView('Week');
+        await calendarPage.assertions.verifyTwentyFourHourSlots(true);
+
+        await calendarPage.actions.calendarToView('Google');
+
+        // Apply RSVP Yes filter
+        await calendarPage.actions.selectFiltersForEvents('Yes');
+
+        let ariaLabel = await calendarPage.actions.selectGoogleEventColor('2');
+        await calendarPage.assertions.verifyGoogleEventColor(ariaLabel);
+
+        ariaLabel = await calendarPage.actions.selectGoogleEventColor('1');
+        await calendarPage.assertions.verifyGoogleEventColor(ariaLabel);
+
+        // Reset filters
+        await calendarPage.actions.resetFiltersForEvents();
       }
     );
   }
