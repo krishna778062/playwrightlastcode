@@ -8,7 +8,6 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -24,9 +23,10 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerApiContext, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(
