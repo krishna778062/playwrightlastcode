@@ -6,6 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integrations/ui/pages/externalAppsPage';
 import { ServiceNowTicketsPage } from '@/src/modules/integrations/ui/pages/serviceNowTicketsPage';
 import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/supportAndTicketingPage';
@@ -16,6 +17,39 @@ test.describe(
     tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.SERVICENOW],
   },
   () => {
+    multiUserTileFixture(
+      'Verify ServiceNow credentials can be connected',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-9699', 'INT-9700', 'INT-9971'],
+          storyId: 'INT-28224',
+        });
+
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.enterServiceNowCredentials({
+          consumerKey: SERVICE_NOW_VALUES.CONSUMER_KEY,
+          secretKey: SERVICE_NOW_VALUES.SECRET_KEY,
+          url: SERVICE_NOW_VALUES.URL,
+        });
+        await adminHomeDashboard.connectServiceNowAccount();
+        const endUserServiceNow = new ExternalAppsPage(endUserPage);
+        await endUserServiceNow.navigateToExternalAppsPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.connectServiceNowAccount();
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+        const adminExternalAppsPage = new ExternalAppsPage(adminPage);
+        await adminExternalAppsPage.navigateToExternalAppsPage();
+        await adminExternalAppsPage.verifyThePageIsLoaded();
+        await adminExternalAppsPage.connectServiceNowAccount();
+        await adminExternalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+      }
+    );
+
     multiUserTileFixture(
       'Verify Service Now External Apps Page',
       {
@@ -379,6 +413,30 @@ test.describe(
         await endUserServiceNow.searchForTerm('Test');
         await endUserServiceNow.VerifyServiceNowKnowledgeBaseName('Test Knowledge Base');
         await adminHomeDashboard.selectServiceNowDefaultKnowledgeBaseName();
+      }
+    );
+
+    multiUserTileFixture(
+      'Verify Disconnect ServiceNow account',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-9712', 'INT-9708', 'INT-11131'],
+          storyId: 'INT-28224',
+        });
+
+        const endUserServiceNow = new ExternalAppsPage(endUserPage);
+        await endUserServiceNow.navigateToExternalAppsPage();
+        await endUserServiceNow.verifyThePageIsLoaded();
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
+        await endUserServiceNow.disconnectIntegration(ExternalAppProvider.SERVICENOW);
+        await endUserServiceNow.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, false);
+        const adminHomeDashboard = new SupportAndTicketingPage(adminPage);
+        await adminHomeDashboard.loadPage();
+        await adminHomeDashboard.verifyThePageIsLoaded();
+        await adminHomeDashboard.disconnectServiceNowAccount();
       }
     );
   }

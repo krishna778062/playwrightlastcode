@@ -34,6 +34,7 @@ export interface IActions {
   verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
   verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
+  clickOnOnboardingOption: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -358,11 +359,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
 
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
-  }
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
+  async clickOnOnboardingOption(): Promise<void> {
+    await this.manageContentComponent.clickOnOnboardingOption();
   }
 
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {

@@ -48,6 +48,13 @@ export const MESSAGES = {
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
   getAppDisabledMessage: (appName: string) => `${appName} disabled`,
   getAppConnectedMessage: (appName: string) => `Connected to ${appName} successfully`,
+  getAppDisconnectedMessage: (appName: string) => `${appName} disconnected`,
+  getAppDisconnectingConfirmationMessage: (appName: string) =>
+    `Are you sure you want to disconnect the ${appName} account?`,
+  getAppConnectionUnavailableMessage: (appName: string) =>
+    `${appName} connection is currently unavailable. Contact your app manager.`,
+
+  getAppDisconnectingConfirmationMessageHomeAndSiteDashboardTiles: `Home and site dashboard tiles using this connection will be removed`,
   VALID_URL: 'This is not a valid URL',
   MISSING_FIELD: 'Please fill out this field',
   getAppPublishedMessage: (appName: string) => `${appName} published`,
@@ -63,4 +70,6 @@ export const MESSAGES = {
   CHANGE_TILE_TYPE: 'Change tile type',
   CHANGE_TILE_TYPE_MESSAGE:
     'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
+  REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
+  REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
 } as const;
