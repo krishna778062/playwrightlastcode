@@ -39,9 +39,6 @@ export const API_ENDPOINTS = {
     },
   },
   identity: {
-    validate: '/v2/identity/users/validate',
-    login: '/v2/identity/users/login',
-    people: '/v2/identity/people',
     followersAndFollowingList: (userId: string, size: number = 6, nextPageToken?: number) => {
       let url = `/v1/identity/people/follow/${userId}?size=${size}&types=followers&types=following`;
       if (nextPageToken !== undefined) {
@@ -49,6 +46,9 @@ export const API_ENDPOINTS = {
       }
       return url;
     },
+    validate: '/v2/identity/users/validate',
+    login: '/v2/identity/users/login',
+    people: '/v2/identity/people',
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
@@ -61,8 +61,6 @@ export const API_ENDPOINTS = {
   site: {
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
-    requestMembership: `membership/request`,
-    acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
     deactivate: '/v1/content/sites/attributes?attribute=status',
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
@@ -73,6 +71,8 @@ export const API_ENDPOINTS = {
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
     carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    requestMembership: `membership/request`,
+    acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
     deleteCarouselItem: (siteId: string, carouselItemId: string) =>
       `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
@@ -90,8 +90,10 @@ export const API_ENDPOINTS = {
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    createTopic: '/v1/content/topics',
     contentListInSite: '/v1/content/sites/content/list',
     manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
+    onboarding: '/onboarding',
   },
 
   fileUpload: {
