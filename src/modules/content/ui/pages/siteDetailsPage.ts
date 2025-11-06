@@ -4,7 +4,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SiteDetailsComponent } from '@/src/modules/content/ui/components/siteDetailsComponent';
-import { TargetAudienceComponent } from '@/src/modules/content-abac/ui/components/targetAudienceComponent';
+import { TargetAudienceComponent } from '@/src/modules/content/ui/components/targetAudienceComponent';
 
 export interface ISiteDetailsPageActions {
   removingAudienceGroup: () => Promise<void>;
