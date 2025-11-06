@@ -50,7 +50,7 @@ test.describe(
 
       async () => {
         tagTest(test.info(), {
-          zephyrTestId: ['INT-11067', 'INT-11068', 'INT-11162'],
+          zephyrTestId: ['INT-11067', 'INT-11068', 'INT-11162', 'INT-11163'],
           storyId: 'INT-10943',
         });
         await peopleTab.clickOnTab('Integrations');
