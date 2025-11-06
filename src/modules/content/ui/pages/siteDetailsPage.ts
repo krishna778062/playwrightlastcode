@@ -14,6 +14,7 @@ export interface ISiteDetailsPageActions {
 export interface ISiteDetailsPageAssertions {
   validatingCategory: () => Promise<void>;
   validatingCategoryToUncategorized: () => Promise<void>;
+  verifyThePageIsLoaded: () => Promise<void>;
 }
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;

@@ -1120,4 +1120,26 @@ export class SiteManagementHelper {
       return { siteId: createdSite.siteId, siteName: createdSite.siteName };
     });
   }
+
+  public async getDeactivatedSite(accessType: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: 'deactivated' });
+      console.log('Deactivated site list response', siteListResponse);
+      const site = siteListResponse.result.listOfItems.find(
+        (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
+      );
+      console.log('Deactivated site', site);
+      if (!site) {
+        //create a site and make it deactivated
+        const createdSite = await this.createSite({
+          accessType: accessType,
+          waitForSearchIndex: true,
+        });
+        await this.siteManagementService.deactivateSite(createdSite.siteId);
+        return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+      } else {
+        return { siteId: site.siteId, siteName: site.name };
+      }
+    });
+  }
 }

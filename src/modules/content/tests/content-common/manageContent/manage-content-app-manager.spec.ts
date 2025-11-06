@@ -18,7 +18,7 @@ import { DefaultScreenPage } from '@/src/modules/content/ui/pages/manageApplicat
 import { ManageApplicationPage } from '@/src/modules/content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -37,7 +37,7 @@ test.describe(
     let defaultScreenPage: DefaultScreenPage;
     let homeFeedPage: HomeFeedPage;
     let editPage: EditPagePage;
-    let manageSitePage: ManageSitePage;
+    let manageSitePage: ManageSiteSetUpPage;
     let siteDetailsPage: SiteDetailsPage;
     let siteDashboardPage: SiteDashboardPage;
     let contentPreviewPage: ContentPreviewPage;
@@ -52,7 +52,7 @@ test.describe(
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
       editPage = new EditPagePage(appManagerFixture.page, '', '');
       homePage = new NewHomePage(appManagerFixture.page);
-      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
       siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
       contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
