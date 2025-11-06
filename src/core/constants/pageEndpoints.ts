@@ -99,6 +99,7 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  MOBILE_DASHBOARD: '/analytics/mobile',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
