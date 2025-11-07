@@ -505,7 +505,7 @@ export class HomeDashboard extends BasePage {
   /**
    * Complete workflow to add an app tile with app manager defined settings
    */
-  async addTilewithAppManagerDefined(
+  async addTilewithDefinedSettings(
     tileTitle: string,
     appName: string,
     tileName: string,
@@ -847,5 +847,54 @@ export class HomeDashboard extends BasePage {
    */
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
+  }
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
+  }
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
+   */
+  async addAppManagerDefinedWithOptionsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTileEnableToggle(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
+  }
+  /**
+   * Complete workflow to add an app tile with flexible configuration
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param destination - The destination of the tile to add
+   * @param config - Optional configuration object for fields and options
+   */
+  async addTileEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    config?: {
+      fields?: Array<{ name: string; value: string }>;
+      radioOptions?: Array<{ fieldName: string; option: string }>;
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    }
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      if (config) {
+        await this.configureTileFields(config);
+      }
+      await this.tileOperationsComponent.enableToggleButton(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
   }
 }

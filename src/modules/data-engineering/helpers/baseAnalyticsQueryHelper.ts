@@ -131,6 +131,7 @@ export abstract class BaseAnalyticsQueryHelper {
   /**
    * Transforms a base query by adding filters and date replacements ONLY
    * Does NOT add GROUP BY or ORDER BY - assumes they're already in the base query
+   * Uses global replacement to handle placeholders that appear multiple times (e.g., in subqueries)
    * @param baseQuery - The metric-specific query (with SELECT clause and placeholders)
    * @param filterBy - Filter options (locations, departments, userCategories, etc.)
    */
@@ -160,7 +161,7 @@ export abstract class BaseAnalyticsQueryHelper {
       ? 'inner join simpplr_common_tenant.udl.vw_user_as_is as u on i.interacted_by_user_code = u.code and i.tenant_code = u.tenant_code'
       : '';
 
-    // Replace all placeholders in base query (use regex with global flag for multiple occurrences)
+    // Replace all placeholders in base query using global regex to handle multiple occurrences
     let query = baseQuery
       .replace(/{tenantCode}/g, filterBy.tenantCode)
       .replace(/{startDate}/g, dateReplacements.startDate)

@@ -10,6 +10,8 @@ export class PeopleListComponent extends ResultListingComponent {
   private readonly userThumbnailLocator: Locator;
   private readonly peopleLinkLocator: Locator;
   private readonly homePageLinkLocator: Locator;
+  private readonly orgChartIconLocator: Locator;
+  private readonly tooltipLocator: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -17,6 +19,8 @@ export class PeopleListComponent extends ResultListingComponent {
     this.userThumbnailLocator = this.rootLocator.locator('div[class*="UserEmblem-module"]');
     this.peopleLinkLocator = this.rootLocator.locator('span[class*="BreadcrumbItem-module"]:has-text("People")');
     this.homePageLinkLocator = this.rootLocator.locator('a[aria-label*="home"]');
+    this.orgChartIconLocator = this.rootLocator.locator('[data-testid="i-orgChart"]');
+    this.tooltipLocator = this.page.locator('[role="tooltip"]');
   }
 
   /**
@@ -97,6 +101,61 @@ export class PeopleListComponent extends ResultListingComponent {
       await this.verifier.waitUntilPageHasNavigatedTo(new RegExp('home'), {
         timeout: 20_000,
         stepInfo: `Verifying navigation with home page link`,
+      });
+    });
+  }
+
+  /**
+   * Verifies org chart icon visibility based on configuration
+   * @param shouldBeVisible - whether the org chart icon should be visible or not
+   */
+  async verifyOrgChartIconVisibility(shouldBeVisible: boolean) {
+    await test.step(`Verifying org chart icon is ${shouldBeVisible ? 'visible' : 'not visible'} in the people result item`, async () => {
+      if (shouldBeVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.orgChartIconLocator, {
+          timeout: 50000,
+          assertionMessage: `Verifying org chart icon is visible in the people result item`,
+        });
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(this.orgChartIconLocator, {
+          timeout: 20000,
+          assertionMessage: `Verifying org chart icon is not visible in the people result item`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies org chart icon tooltip text on mouse hover
+   * @param expectedTooltipText - the expected tooltip text
+   */
+  async verifyOrgChartIconTooltip(expectedTooltipText: string) {
+    await test.step(`Verifying org chart icon tooltip shows "${expectedTooltipText}"`, async () => {
+      await this.orgChartIconLocator.hover();
+      const tooltipWithText = this.tooltipLocator.filter({ hasText: expectedTooltipText });
+      await this.verifier.verifyTheElementIsVisible(tooltipWithText, {
+        timeout: 5000,
+        assertionMessage: `Verifying org chart icon tooltip shows "${expectedTooltipText}"`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on org chart icon and verifies navigation to org chart page
+   * @param userId - the user ID to verify in the org chart URL
+   */
+  async clickOrgChartIconAndVerifyNavigation(userId: string) {
+    await test.step(`Clicking org chart icon and verifying navigation to org chart page for user "${userId}"`, async () => {
+      await this.clickOnElement(this.orgChartIconLocator, {
+        timeout: 20000,
+        stepInfo: 'Clicking on org chart icon',
+      });
+
+      // Wait for navigation to org chart page with user ID
+      const orgChartUrlPattern = new RegExp(`orgchart.*${userId}`);
+      await this.verifier.waitUntilPageHasNavigatedTo(orgChartUrlPattern, {
+        timeout: 50_000,
+        stepInfo: `Verifying navigation to org chart page for user "${userId}"`,
       });
     });
   }

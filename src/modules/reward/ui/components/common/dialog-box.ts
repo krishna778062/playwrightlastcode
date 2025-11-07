@@ -1,8 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 
-import { BaseComponent } from '@core/components/baseComponent';
-
-export class DialogBox extends BaseComponent {
+export class DialogBox {
+  readonly page: Page;
   readonly container: Locator;
   readonly title: Locator;
   readonly closeButton: Locator;
@@ -23,12 +22,8 @@ export class DialogBox extends BaseComponent {
   readonly menuLoadingContainer: Locator;
   readonly shareButtonOnShareModal: Locator;
 
-  /**
-   * This is a dialog box class that contains locators and methods for the dialog box.
-   * @param { Page } page - The page object from Playwright
-   */
   constructor(page: Page) {
-    super(page);
+    this.page = page;
     this.container = page.locator('[role="dialog"][data-state="open"]');
     this.title = this.container.getByRole('heading');
     this.closeButton = this.container.getByRole('button', { name: 'Close' });
