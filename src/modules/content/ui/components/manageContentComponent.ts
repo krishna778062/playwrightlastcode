@@ -275,6 +275,11 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.unpublishButton);
     });
   }
+  async clickOnApply(): Promise<void> {
+    await test.step(`Clicking on the apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
 
   async selectApplyButton(): Promise<void> {
     await test.step(`Selecting the confirm unpublish button`, async () => {

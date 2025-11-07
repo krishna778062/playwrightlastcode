@@ -337,5 +337,34 @@ test.describe(
         await manageDeactivatedSitePage.loadPage();
       }
     );
+    test(
+      'to verify the bulk action from end user can activate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action from end user can activate the site',
+          zephyrTestId: 'CONT-26574',
+          storyId: 'CONT-26574',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageSitesComponent.clickOnUpdateCategoryButtonAction();
+        await manageContentPage.actions.clickOnApply();
+        await manageSiteAppManagerPage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
   }
 );

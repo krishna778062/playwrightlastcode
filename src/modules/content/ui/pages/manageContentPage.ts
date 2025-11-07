@@ -124,6 +124,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnApplyButton(): Promise<void> {
     await this.manageContentComponent.selectApplyButton();
   }
+  async clickOnApply(): Promise<void> {
+    await this.manageContentComponent.clickOnApply();
+  }
 
   async clickOnPublishButton(): Promise<void> {
     await this.manageContentComponent.selectPublishButton();

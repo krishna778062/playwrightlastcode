@@ -29,6 +29,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly clickOnUpdateCategoryButton: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
@@ -55,6 +56,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -253,6 +255,11 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async clickOnUpdateCategoryButtonAction(): Promise<void> {
+    await test.step('Click on the update category button', async () => {
+      await this.clickOnElement(this.clickOnUpdateCategoryButton);
+    });
+  }
   async markAsUnfavorite(membersName: string): Promise<void> {
     await test.step('Mark as Favorite', async () => {
       await this.clickOnElement(this.getFavoriteButtonForUser(membersName));
