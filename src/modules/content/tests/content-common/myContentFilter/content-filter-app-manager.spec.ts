@@ -6,6 +6,8 @@ import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
 import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage as ApplicationScreenPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
@@ -29,11 +31,11 @@ test.describe(
       'verify published status for scheduled page by app manager',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-33059'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33059'],
       },
       async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify published status for scheduled page by app manager',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-33059',
           storyId: 'CONT-33059',
         });
@@ -60,13 +62,12 @@ test.describe(
     test(
       'verify if Application Manager does not select any option from bulk options apply button should be disabled',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25065'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify if Application Manager does not select any option from bulk options apply button should be disabled',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25065',
           storyId: 'CONT-25065',
         });
@@ -81,12 +82,12 @@ test.describe(
       'verify application manager should be able to apply bulk options on selecting the Select All option',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25063'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25063',
           storyId: 'CONT-25063',
         });
@@ -130,13 +131,12 @@ test.describe(
     test(
       'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25099'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25099'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25099',
           storyId: 'CONT-25099',
         });
@@ -205,12 +205,11 @@ test.describe(
     test(
       'verify user should be able to filter the content on the "Created Date Oldest First" filter',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25057'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25057'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'verify user should be able to filter the content on the "Created Date Oldest First" filter',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25057',
           storyId: 'CONT-25057',
         });
@@ -233,12 +232,11 @@ test.describe(
     test(
       'verify user should be able to filter the content on the "Published Date Oldest First" filter',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25056'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25056'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'verify user should be able to filter the content on the "Published Date Oldest First" filter',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25056',
           storyId: 'CONT-25056',
         });
@@ -264,13 +262,12 @@ test.describe(
     test(
       'verify app manager should be able to filter the content for the content status as Published and Unpublished',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25058'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25058'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25063',
           storyId: 'CONT-25063',
         });
@@ -314,13 +311,12 @@ test.describe(
     test(
       'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25050'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25050'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25050',
           storyId: 'CONT-25050',
         });
