@@ -45,7 +45,8 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   readonly disconnectConfluenceButton: Locator;
   readonly disconnectServiceNowButton: Locator;
   readonly confirmButton: Locator;
-  readonly connectServiceAccountButton: Locator;
+  readonly connectServiceNowAccountButton: Locator;
+  readonly connectConfluenceServiceAccountButton: Locator;
   readonly serviceNowConnectServiceAccountButton: Locator;
   readonly confluenceChangeuserButton: Locator;
   readonly serviceNowChangeUserButton: Locator;
@@ -97,7 +98,9 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Disconnect account")]'
     );
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
-    this.connectServiceAccountButton = page.getByRole('button', { name: 'Connect service account' });
+    this.connectServiceNowAccountButton = page.locator('button:has-text("Connect service account")').first();
+    this.connectConfluenceServiceAccountButton = page.locator('button:has-text("Connect service account")').nth(1);
+
     this.serviceNowConnectServiceAccountButton = page.locator(
       'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Connect service account")]'
     );
@@ -191,7 +194,16 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       if (await this.saveButton.isEnabled()) {
         await this.saveButton.click();
       }
-      await this.connectServiceAccountButton.click();
+
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
+      await this.verifier.verifyTheElementIsVisible(this.connectConfluenceServiceAccountButton, {
+        timeout: 30_000,
+        assertionMessage: 'Verifying confluence service account is connected',
+      });
+      await this.connectConfluenceServiceAccountButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(4000);
 
       const confluenceHelper = new ConfluenceHelper(this.page);
       await confluenceHelper.handleConfluenceLogin();
@@ -230,7 +242,7 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
 
   async verifyConfluenceServiceAccountIsDisconnected(): Promise<void> {
     await test.step('Verify Atlassian Confluence is disconnected', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.connectServiceAccountButton, {
+      await this.verifier.verifyTheElementIsVisible(this.connectConfluenceServiceAccountButton, {
         timeout: 15_000,
         assertionMessage: 'Verifying connect confluence service account button is visible',
       });
@@ -626,7 +638,7 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       await this.confirmButton.waitFor({ state: 'visible', timeout: 15_000 });
       await this.confirmButton.click();
       await this.page.waitForLoadState('domcontentloaded');
-      await expect(this.connectServiceAccountButton).toBeVisible({ timeout: 10_000 });
+      await expect(this.connectServiceNowAccountButton).toBeVisible({ timeout: 10_000 });
     });
   }
 }
