@@ -1,7 +1,11 @@
 import { FrameLocator, Page, test } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
+import { DateHelper, PeriodFilterOption } from '../../../../helpers/dateHelper';
 import { LineChartComponent } from '../../../../ui/components/lineChartComponent';
+import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
+
+import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export interface SearchUsageVolumeClickThroughRateData {
   search_date: string;
@@ -96,5 +100,112 @@ export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     });
+  }
+
+  /**
+   * Verifies CSV data matches with Snowflake data
+   * Handles all CSV validation logic internally including data transformation
+   * @param snowflakeDataArray - Raw database data from Snowflake
+   * @param selectedPeriod - Selected period filter for validation
+   */
+  async verifyCSVDataMatchesWithSnowflakeData(
+    snowflakeDataArray: SearchUsageVolumeClickThroughRateData[],
+    selectedPeriod: string
+  ): Promise<void> {
+    await this.verifyDataIsLoaded();
+    const { filePath } = await this.downloadDataAsCSV();
+    console.log(`Downloaded data from UI should be saved at: ${filePath}`);
+
+    try {
+      // Get date range for the period filter
+      const dateReplacements = DateHelper.getDateReplacements(
+        selectedPeriod as PeriodFilterOption,
+        undefined,
+        undefined
+      );
+
+      // Parse start and end dates
+      const startDateStr = dateReplacements.startDate.split(' ')[0]; // Get YYYY-MM-DD part
+      const endDateStr = dateReplacements.endDate.split(' ')[0]; // Get YYYY-MM-DD part
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+
+      // Create a map of DB data by date (format: YYYY-MM-DD)
+      // Note: DB query only returns dates that have data (due to GROUP BY)
+      // Query helper now formats dates as YYYY-MM-DD strings, so we can use them directly
+      const dbDataMap = new Map<string, { total_search: number; total_clickthrough: number }>();
+      for (const item of snowflakeDataArray) {
+        // Query helper transforms data and formats search_date as YYYY-MM-DD string
+        const searchDate = item.search_date;
+        // Extract date key - query helper should have already formatted it as YYYY-MM-DD
+        let dateKey: string;
+        if (typeof searchDate === 'string') {
+          // Query helper formats as YYYY-MM-DD, but handle any edge cases
+          dateKey = searchDate.split('T')[0].split(' ')[0].trim();
+        } else if (searchDate instanceof Date) {
+          // Fallback if query helper didn't format it (shouldn't happen)
+          dateKey = `${searchDate.getFullYear()}-${String(searchDate.getMonth() + 1).padStart(2, '0')}-${String(searchDate.getDate()).padStart(2, '0')}`;
+        } else {
+          // Fallback for any other type
+          dateKey = String(searchDate).split('T')[0].split(' ')[0].trim();
+        }
+
+        dbDataMap.set(dateKey, {
+          total_search: item.total_search_count,
+          total_clickthrough: item.total_click_count,
+        });
+      }
+
+      // Generate all dates in the range and create complete dataset
+      const transformedData: Array<{
+        search_performed_datetime: string;
+        total_search: number;
+        total_clickthrough: number;
+      }> = [];
+
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+        const formattedDate = `${dateKey} 00:00:00`;
+
+        // Get data from DB map or use zeros
+        const dbData = dbDataMap.get(dateKey) || { total_search: 0, total_clickthrough: 0 };
+
+        transformedData.push({
+          search_performed_datetime: formattedDate,
+          total_search: dbData.total_search,
+          total_clickthrough: dbData.total_clickthrough,
+        });
+
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Sort by date descending (CSV order)
+      transformedData.sort((a, b) => b.search_performed_datetime.localeCompare(a.search_performed_datetime));
+
+      // Validate the data in the CSV matches with the data from snowflake
+      await CSVValidationUtil.validateAndAssert({
+        csvPath: filePath,
+        expectedDBData: transformedData as any,
+        metricName: 'Search usage volume and click through rate',
+        selectedPeriod: selectedPeriod,
+        expectedHeaders: ['Search performed datetime', 'Total search', 'Total clickthrough'],
+        transformations: {
+          headerMapping: {
+            'Search performed datetime': 'search_performed_datetime',
+            'Total search': 'total_search',
+            'Total clickthrough': 'total_clickthrough',
+          },
+          // No percentage fields or special transformations needed for this metric
+        },
+      });
+    } finally {
+      // Clean up CSV file
+      FileUtil.deleteTemporaryFile(filePath);
+    }
   }
 }

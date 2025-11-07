@@ -2,6 +2,9 @@ import { FrameLocator, Page } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
+import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
+
+import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export enum MostSearchesPerformedByDepartmentColumns {
   DEPARTMENT = 'Department',
@@ -48,5 +51,47 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
       dataMapper,
       MostSearchesPerformedByDepartmentColumns.DEPARTMENT
     );
+  }
+
+  /**
+   * Verifies CSV data matches with Snowflake data
+   * Handles all CSV validation logic internally including data transformation
+   * @param snowflakeDataArray - Raw database data from Snowflake (query helper handles transformation)
+   * @param selectedPeriod - Selected period filter for validation
+   */
+  async verifyCSVDataMatchesWithSnowflakeData(
+    snowflakeDataArray: MostSearchesPerformedByDepartmentData[],
+    selectedPeriod: string
+  ): Promise<void> {
+    await this.verifyDataIsLoaded();
+    const { filePath } = await this.downloadDataAsCSV();
+    console.log(`Downloaded data from UI should be saved at: ${filePath}`);
+
+    try {
+      // Validate the data in the CSV matches with the data from snowflake
+      await CSVValidationUtil.validateAndAssert({
+        csvPath: filePath,
+        expectedDBData: snowflakeDataArray as any,
+        metricName: 'Most searches performed by Department',
+        selectedPeriod: selectedPeriod,
+        expectedHeaders: [
+          'Department',
+          'Total search query volume',
+          'Unique user searching',
+          'Average searches per user',
+        ],
+        transformations: {
+          headerMapping: {
+            Department: 'department',
+            'Total search query volume': 'total_searches',
+            'Unique user searching': 'distinct_users',
+            'Average searches per user': 'avg_searches_per_user',
+          },
+        },
+      });
+    } finally {
+      // Clean up CSV file
+      FileUtil.deleteTemporaryFile(filePath);
+    }
   }
 }

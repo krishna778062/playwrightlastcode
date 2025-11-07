@@ -1,5 +1,4 @@
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
-import { SearchSql } from '@data-engineering/sqlQueries/search';
 import { Page, test } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -90,10 +89,9 @@ test.describe(
 
         // Get expected metric value from snowflake with all filters applied
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTotalSearchVolumeFromDBWithFilters(
-            SearchSql.Total_Search_Volume,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getTotalSearchVolumeFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         // UI validation
         const totalSearchVolumeMetric = testEnvironment.searchDashboard.totalSearchVolume;
@@ -117,10 +115,9 @@ test.describe(
 
         // Get expected metric value from snowflake with all filters applied
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getSearchClickThroughRateFromDBWithFilters(
-            SearchSql.Search_Click_Through_Rate,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getSearchClickThroughRateFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         // UI validation
         const searchClickThroughRateMetric = testEnvironment.searchDashboard.searchClickThroughRate;
@@ -144,10 +141,9 @@ test.describe(
 
         // Get expected metric value from snowflake with all filters applied
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultsSearchFromDBWithFilters(
-            SearchSql.No_Results_Search,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getNoResultsSearchFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         // UI validation
         const noResultsSearchMetric = testEnvironment.searchDashboard.noResultSearch;
@@ -170,31 +166,19 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters(
-            SearchSql.Most_Searches_Performed_By_Department,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected Most Searches Performed By Department Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => {
-          const avgSearchesPerUser = Number(item.AVG_SEARCHES_PER_USER || item.avg_searches_per_user);
-          return {
-            department: item.DEPARTMENT || item.department,
-            total_searches: Number(item.TOTAL_SEARCHES || item.total_searches),
-            distinct_users: Number(item.DISTINCT_USERS || item.distinct_users),
-            // Keep the value as-is from DB, let the component handle formatting
-            avg_searches_per_user: isNaN(avgSearchesPerUser) ? 0 : avgSearchesPerUser,
-          };
-        });
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const mostSearchesPerformedByDepartmentMetric =
           testEnvironment.searchDashboard.mostSearchesPerformedByDepartment;
         await mostSearchesPerformedByDepartmentMetric.verifyDataIsLoaded();
-        await mostSearchesPerformedByDepartmentMetric.verifyUIDataMatchesWithSnowflakeData(transformedData);
+        await mostSearchesPerformedByDepartmentMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
 
@@ -212,29 +196,18 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters(
-            SearchSql.Top_Search_Queries,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected Top Search Queries Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => {
-          const clickthroughValue = Number(item.CLICKTHROUGH || item.clickthrough);
-          return {
-            search_query: item.SEARCH_TERM || item.search_term,
-            total_search: Number(item.TOTAL_SEARCH || item.total_search),
-            clickthrough: isNaN(clickthroughValue) ? 0 : clickthroughValue,
-            success_rate: item.SUCCESS_RATE || item.success_rate,
-          };
-        });
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const topSearchQueriesMetric = testEnvironment.searchDashboard.topSearchQueries;
         await topSearchQueriesMetric.verifyDataIsLoaded();
-        await topSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(transformedData);
+        await topSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
 
@@ -252,30 +225,19 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters(
-            SearchSql.Top_Search_Queries_With_No_Clickthrough,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected Top Search Queries With No Clickthrough Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => {
-          const noClickCountValue = Number(item.NO_CLICK_COUNT || item.no_click_count);
-          return {
-            search_query: item.SEARCH_TERM || item.search_term,
-            total_search: Number(item.TOTAL_SEARCH || item.total_search),
-            no_click_count: isNaN(noClickCountValue) ? 0 : noClickCountValue,
-            no_click_rate: item.NO_CLICK_RATE || item.no_click_rate,
-          };
-        });
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const topSearchQueriesWithNoClickthroughMetric =
           testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
         await topSearchQueriesWithNoClickthroughMetric.verifyDataIsLoaded();
-        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(transformedData);
+        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
 
@@ -293,26 +255,18 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters(
-            SearchSql.Top_Clickthrough_Types,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected Top Clickthrough Types Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => ({
-          item_type: item.ITEM_TYPE || item.item_type,
-          click_count: Number(item.CLICK_COUNT || item.click_count),
-          total_clickthrough: Number(item.TOTAL_CLICKTHROUGH || item.total_clickthrough),
-          percentage: item.PERCENTAGE || item.percentage,
-        }));
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
         await topClickthroughTypesMetric.verifyDataIsLoaded();
-        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(transformedData);
+        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
 
@@ -330,26 +284,18 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters(
-            SearchSql.No_Result_Search_Queries,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected No Result Search Queries Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => ({
-          search_term: item.SEARCH_TERM || item.search_term,
-          failed_search_count: Number(item.FAILED_SEARCH_COUNT || item.failed_search_count),
-          total_search_count: Number(item.TOTAL_SEARCH_COUNT || item.total_search_count),
-          failure_percentage: Number(item.FAILURE_PERCENTAGE || item.failure_percentage),
-        }));
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
         await noResultSearchQueriesMetric.verifyDataIsLoaded();
-        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(transformedData);
+        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
 
@@ -367,38 +313,15 @@ test.describe(
         });
 
         // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters(
-            SearchSql.Search_Usage_Volume_And_Click_Through_Rate,
-            testFiltersConfig
-          );
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
 
         console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
 
-        // Transform the database results to match the expected format
-        const transformedData = expectedMetricValue.map((item: any) => {
-          const searchDate = item.SEARCH_DATE || item.search_date;
-          const totalSearchCount =
-            item.TOTAL_SEARCH_COUNT !== undefined && item.TOTAL_SEARCH_COUNT !== null
-              ? Number(item.TOTAL_SEARCH_COUNT)
-              : item.total_search_count !== undefined && item.total_search_count !== null
-                ? Number(item.total_search_count)
-                : 0;
-          const totalClickCount =
-            item.TOTAL_CLICK_COUNT !== undefined && item.TOTAL_CLICK_COUNT !== null
-              ? Number(item.TOTAL_CLICK_COUNT)
-              : item.total_click_count !== undefined && item.total_click_count !== null
-                ? Number(item.total_click_count)
-                : 0;
-
-          return {
-            search_date: searchDate,
-            total_search_count: isNaN(totalSearchCount) ? 0 : totalSearchCount,
-            total_click_count: isNaN(totalClickCount) ? 0 : totalClickCount,
-          };
-        });
-
-        // UI validation
+        // UI validation - component handles transformation internally
         const searchUsageVolumeAndClickThroughRateMetric =
           testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
         await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
@@ -411,7 +334,7 @@ test.describe(
         });
 
         // Verify line chart points with tooltips
-        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(transformedData);
+        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
       }
     );
   }
