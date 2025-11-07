@@ -1,10 +1,10 @@
 import { FrameLocator, Page } from '@playwright/test';
 
-import { BarChartComponent } from '../../../components/barChartComponent';
+import { VerticalBarChartComponent } from '../../../components/verticalBarChartComponent';
 
 import { SOCIAL_INTERACTION_METRICS } from '@/src/modules/data-engineering/constants/socialInteractionMetrics';
 
-export class ParticipantEngagementActivity extends BarChartComponent {
+export class ParticipantEngagementActivity extends VerticalBarChartComponent {
   constructor(page: Page, iframe: FrameLocator) {
     super(page, iframe, SOCIAL_INTERACTION_METRICS.PARTICIPANT_ENGAGEMENT_ACTIVITY.title);
   }
