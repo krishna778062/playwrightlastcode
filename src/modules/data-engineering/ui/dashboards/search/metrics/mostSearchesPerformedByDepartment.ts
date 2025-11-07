@@ -1,6 +1,7 @@
 import { FrameLocator, Page } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
+import { MostSearchesPerformedByDepartmentData } from '../../../../helpers/searchDashboardQueryHelper';
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
 import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
 
@@ -13,12 +14,8 @@ export enum MostSearchesPerformedByDepartmentColumns {
   AVERAGE_SEARCHES_PER_USER = 'Average searches per user',
 }
 
-export interface MostSearchesPerformedByDepartmentData {
-  department: string;
-  total_searches: number;
-  distinct_users: number;
-  avg_searches_per_user: number;
-}
+// Re-export the type for convenience
+export type { MostSearchesPerformedByDepartmentData };
 
 export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {

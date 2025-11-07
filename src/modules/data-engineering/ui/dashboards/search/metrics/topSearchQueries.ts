@@ -1,6 +1,7 @@
 import { FrameLocator, Page } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
+import { TopSearchQueriesData } from '../../../../helpers/searchDashboardQueryHelper';
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
 import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
 import { convertPercentageToDecimal } from '../../../../utils/percentageUtils';
@@ -14,12 +15,8 @@ export enum TopSearchQueriesColumns {
   CLICK_THROUGH_RATE = 'Click-through rate',
 }
 
-export interface TopSearchQueriesData {
-  search_query: string;
-  total_search: number;
-  clickthrough: number;
-  success_rate: string;
-}
+// Re-export the type for convenience
+export type { TopSearchQueriesData };
 
 export class TopSearchQueries extends TabluarMetricsComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {

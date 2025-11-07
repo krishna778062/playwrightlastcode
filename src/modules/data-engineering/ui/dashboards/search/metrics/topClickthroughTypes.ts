@@ -36,7 +36,7 @@ export class TopClickthroughTypes extends TabluarMetricsComponent {
     const dataMapper = (item: TopClickthroughTypesData) => ({
       [TopClickthroughTypesColumns.TYPE]: item.item_type,
       [TopClickthroughTypesColumns.TOTAL_CLICK_THROUGH]: item.click_count.toString(),
-      [TopClickthroughTypesColumns.PERCENTAGE_OF_CLICK_THROUGH_TYPES]: item.percentage,
+      [TopClickthroughTypesColumns.PERCENTAGE_OF_CLICK_THROUGH_TYPES]: String(item.percentage),
     });
 
     await this.compareUIDataWithDBRecords(snowflakeDataArray, dataMapper, TopClickthroughTypesColumns.TYPE);

@@ -41,7 +41,7 @@ export class TopSearchQueriesWithNoClickthrough extends TabluarMetricsComponent 
       [TopSearchQueriesWithNoClickthroughColumns.SEARCH_QUERY]: item.search_query,
       [TopSearchQueriesWithNoClickthroughColumns.TOTAL_SEARCH_QUERY_VOLUME]: item.total_search.toString(),
       [TopSearchQueriesWithNoClickthroughColumns.NO_CLICK_COUNT]: item.no_click_count.toString(),
-      [TopSearchQueriesWithNoClickthroughColumns.NO_CLICK_RATE]: item.no_click_rate,
+      [TopSearchQueriesWithNoClickthroughColumns.NO_CLICK_RATE]: String(item.no_click_rate),
     });
 
     await this.compareUIDataWithDBRecords(

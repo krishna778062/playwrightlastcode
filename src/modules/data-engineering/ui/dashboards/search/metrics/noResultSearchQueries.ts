@@ -1,6 +1,7 @@
 import { FrameLocator, Page } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
+import { NoResultSearchQueriesData } from '../../../../helpers/searchDashboardQueryHelper';
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
 import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
 
@@ -13,12 +14,8 @@ export enum NoResultSearchQueriesColumns {
   PERCENTAGE_OF_TOTAL_SEARCHES = 'Percentage of total searches',
 }
 
-export interface NoResultSearchQueriesData {
-  search_term: string;
-  failed_search_count: number;
-  total_search_count: number;
-  failure_percentage: number;
-}
+// Re-export the type for convenience
+export type { NoResultSearchQueriesData };
 
 export class NoResultSearchQueries extends TabluarMetricsComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {

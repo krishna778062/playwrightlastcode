@@ -2,16 +2,14 @@ import { FrameLocator, Page, test } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
 import { DateHelper, PeriodFilterOption } from '../../../../helpers/dateHelper';
+import { SearchUsageVolumeClickThroughRateData } from '../../../../helpers/searchDashboardQueryHelper';
 import { LineChartComponent } from '../../../../ui/components/lineChartComponent';
 import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
-export interface SearchUsageVolumeClickThroughRateData {
-  search_date: string;
-  total_search_count: number;
-  total_click_count: number;
-}
+// Re-export the type for convenience
+export type { SearchUsageVolumeClickThroughRateData };
 
 export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
@@ -142,12 +140,10 @@ export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
         if (typeof searchDate === 'string') {
           // Query helper formats as YYYY-MM-DD, but handle any edge cases
           dateKey = searchDate.split('T')[0].split(' ')[0].trim();
-        } else if (searchDate instanceof Date) {
-          // Fallback if query helper didn't format it (shouldn't happen)
-          dateKey = `${searchDate.getFullYear()}-${String(searchDate.getMonth() + 1).padStart(2, '0')}-${String(searchDate.getDate()).padStart(2, '0')}`;
         } else {
-          // Fallback for any other type
-          dateKey = String(searchDate).split('T')[0].split(' ')[0].trim();
+          // Fallback for any other type (shouldn't happen since query helper formats as string)
+          const dateStr = String(searchDate);
+          dateKey = dateStr.split('T')[0].split(' ')[0].trim();
         }
 
         dbDataMap.set(dateKey, {
