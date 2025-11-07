@@ -24,15 +24,39 @@ export class PieChartComponent extends BaseComponent {
   }
 
   /**
+   * Waits for the pie chart to be loaded and visible
+   */
+  async waitForChartToLoad(): Promise<void> {
+    await test.step(`Wait for pie chart to load for metric ${this.metricTitle}`, async () => {
+      // Wait for the container to be visible
+      await this.verifier.waitUntilElementIsVisible(this.rootLocator, {
+        timeout: 60_000,
+        stepInfo: `Wait for metric container to be visible for ${this.metricTitle}`,
+      });
+
+      // Wait for the chart series group to be present (indicates chart is rendered)
+      const chartSeriesGroup = this.rootLocator.locator("g[class*='highcharts-series-group']");
+      await this.verifier.waitUntilElementIsVisible(chartSeriesGroup, {
+        timeout: 60_000,
+        stepInfo: `Wait for chart series group to be visible for ${this.metricTitle}`,
+      });
+    });
+  }
+
+  /**
    * Verifies the number of segments visible on the pie chart
    * @param numberOfSegments - The number of segments to verify
    */
   async verifyNumberOfSegmentsVisibleonPieChartIs(numberOfSegments: number) {
     const chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
+
+    // Wait for chart to load first
+    await this.waitForChartToLoad();
+
     await expect(
       chartSegmentLocator,
       `Number of segments visible on pie chart should be ${numberOfSegments}`
-    ).toHaveCount(numberOfSegments);
+    ).toHaveCount(numberOfSegments, { timeout: 30_000 });
   }
 
   /**
