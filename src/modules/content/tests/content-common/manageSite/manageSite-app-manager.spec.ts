@@ -320,13 +320,12 @@ test.describe(
         const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
         const manageSitePage = new ManageSitePage(appManagerFixture.page);
         await manageSitePage.loadPage();
+        await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
+        await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
           const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType);
           const siteName = siteInfo.siteName;
-
-          await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
-          await manageSitePage.actions.selectFilterOption('All');
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();
           await manageSitePage.actions.clickOnOptionsDropdown(siteName);

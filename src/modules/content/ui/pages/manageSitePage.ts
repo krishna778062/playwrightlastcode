@@ -91,6 +91,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async searchSite(siteName: string): Promise<void> {
     await this.clickOnElement(this.searchSiteBar);
+    await this.searchSiteBar.clear();
     await this.fillInElement(this.searchSiteBar, siteName);
   }
 
