@@ -338,7 +338,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from end user can activate the site',
+      'to verify the bulk action from app manager can activate the site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
