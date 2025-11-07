@@ -26,7 +26,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly siteList = this.page.locator('.type--title').first();
   readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
   readonly siteReferenceEllipses = (siteName: string) =>
-    this.page.locator(`tr:has(h2:has-text("${siteName}")) [aria-label="Category option"]`);
+    this.page
+      .locator(`//h2[contains(text(),'${siteName}')]//following::button[@aria-label="Category option"])`)
+      .first();
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
