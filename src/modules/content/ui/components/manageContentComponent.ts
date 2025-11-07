@@ -338,7 +338,6 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
-      await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.publishButton);
     });
   }

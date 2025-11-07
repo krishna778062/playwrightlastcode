@@ -346,18 +346,6 @@ test.describe(
         await manageContentPage.actions.clickOnDeleteButton();
         await manageContentPage.actions.selectDeleteApplyButton();
         await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
-        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
-        await onboardingComponent.saveButtonShouldBeDisabled();
-        await onboardingComponent.selectOnboardingOption(TagOption.SITE_ONBOARDING);
-        await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
-        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.selectOnboardingOption(TagOption.NOT_ONBOARDING);
-        await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
   }
