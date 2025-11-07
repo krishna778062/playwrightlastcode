@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 import { Environments } from '@core/constants/environments';
+import { Modules } from '@core/constants/modules';
 import { log } from '@core/utils';
 
 import { PROJECT_ROOT } from '../constants/paths';
@@ -9,6 +10,16 @@ import { PROJECT_ROOT } from '../constants/paths';
 import { FileUtil } from './fileUtil';
 
 export function loadEnvVariablesForGivenModule(envName: Environments, moduleName: string) {
+  // Content module uses contentConfig.ts instead of .env files
+  if (moduleName === Modules.CONTENT) {
+    log.info(`Skipping env file loading for content module (uses contentConfig.ts instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
   // Resolve paths relative to project root
   const envPath = path.resolve(PROJECT_ROOT, `src/modules/${moduleName}/env/${envName}.env`);
   const googleCalendarSecretsPath = path.resolve(
@@ -22,14 +33,8 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
   const githubSecretsPath = path.resolve(PROJECT_ROOT, 'githubSecrets.json');
 
   // Load main environment file first
-  // Skip loading if file doesn't exist (some modules use config files instead of .env files)
   if (!FileUtil.fileExists(envPath)) {
-    log.info(`Environment file not found at ${envPath}. Skipping env loading (module may use config files instead).`, {
-      module: 'envLoader',
-      envName,
-      moduleName,
-    });
-    return; // Exit early if env file doesn't exist
+    throw new Error(`Environment file not found at this given path: ${envPath}`);
   }
   dotenv.config({ path: envPath });
 
