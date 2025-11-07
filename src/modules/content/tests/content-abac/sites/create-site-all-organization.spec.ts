@@ -1,3 +1,5 @@
+import { ManageSiteSetUpPage } from '../../../ui/pages/manageSiteSetUpPage';
+
 import { NewHomePage } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
@@ -9,7 +11,6 @@ import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-
 import { AddSiteScreenPage } from '@/src/modules/content/ui/pages/addSiteScreenPage';
 import { AudienceModalPage } from '@/src/modules/content/ui/pages/audienceModalPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturePage';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 
 /**
@@ -34,7 +35,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
   ] as const;
   let homePage: NewHomePage;
   let manageFeaturePage: ManageFeaturesPage;
-  let manageSitePage: ManageSitePage;
+  let manageSiteSetUpPage: ManageSiteSetUpPage;
   let addSiteScreenPage: AddSiteScreenPage;
   let audienceModalPage: AudienceModalPage;
 
@@ -42,7 +43,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
     await appManagerFixture.homePage.verifyThePageIsLoaded();
     homePage = new NewHomePage(appManagerFixture.page);
     manageFeaturePage = new ManageFeaturesPage(appManagerFixture.page);
-    manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+    manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
     addSiteScreenPage = new AddSiteScreenPage(appManagerFixture.page);
     audienceModalPage = new AudienceModalPage(appManagerFixture.page);
   });
@@ -101,7 +102,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturePage.actions.clickOnSitesCard();
-      await manageSitePage.actions.clickOnAddSite();
+      await manageSiteSetUpPage.actions.selectSite();
       await addSiteScreenPage.actions.clickOnBrowseButton();
       await audienceModalPage.actions.verifyingAudienceModalHeading();
       await audienceModalPage.assertions.clickOnAllOrganizationOption();

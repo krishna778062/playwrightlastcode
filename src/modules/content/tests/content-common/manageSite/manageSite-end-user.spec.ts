@@ -10,7 +10,7 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -20,7 +20,7 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_SITE],
   },
   () => {
-    let manageSiteStandardUserPage: ManageSitePage;
+    let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
@@ -56,7 +56,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, publicSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, publicSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, publicSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -84,7 +84,7 @@ test.describe(
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, siteInfo.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, siteInfo.siteId);
         await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -154,7 +154,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, privateSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -184,7 +184,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, unlistedSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, unlistedSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, unlistedSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -210,10 +210,10 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, firstSiteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
 
         // Verify all site names are displayed (method handles the loop internally)
-        await manageSiteStandardUserPage.verifySitesNamesAreDisplayed(siteNames);
+        await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );
     test(

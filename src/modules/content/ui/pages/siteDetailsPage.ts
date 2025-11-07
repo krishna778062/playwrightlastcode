@@ -19,6 +19,7 @@ export interface ISiteDetailsPageAssertions {
   verifyWarningMessage: () => Promise<void>;
   validatingCategory: () => Promise<void>;
   validatingCategoryToUncategorized: () => Promise<void>;
+  verifyThePageIsLoaded: () => Promise<void>;
 }
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;
