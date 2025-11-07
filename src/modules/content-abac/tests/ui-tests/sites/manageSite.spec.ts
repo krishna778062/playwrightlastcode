@@ -28,7 +28,7 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
     }
   );
 
-  test.afterEach('Site Clean up', async ({ siteManagementService }) => {});
+  test.afterEach('Site Clean up', async ({}) => {});
 
   test(
     'verify Warning Message Appears After Changing Target Audience',
