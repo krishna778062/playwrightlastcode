@@ -1142,6 +1142,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();

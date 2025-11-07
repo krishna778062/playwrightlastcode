@@ -11,6 +11,7 @@ import { Roles } from '@/src/core/constants/roles';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
 import { PropertiesFile } from '@/src/core/utils/propertiesFile';
+import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
 
 // Path to properties file for storing user details across workers
 const USER_DETAILS_FILE = 'src/modules/frontline/test-data/userDetails.properties';
@@ -26,6 +27,7 @@ function loadUserDetails() {
     endUserId: prop.getProperty('endUserId') || '',
     endUserFirstName: prop.getProperty('endUserFirstName') || '',
     endUserLastName: prop.getProperty('endUserLastName') || '',
+    endUserEmail: prop.getProperty('endUserEmail') || '',
   };
 }
 
@@ -35,8 +37,13 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
-    test.beforeAll(async ({ lwoUserManagementService }) => {
-      await lwoUserManagementService.setLWOSetting('optional'); // Set LWO as optional
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('optional');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
+      } catch (error) {
+        throw error;
+      }
     });
 
     test(
@@ -165,8 +172,13 @@ test.describe(
     tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
-    test.beforeAll(async ({ lwoUserManagementService }) => {
-      await lwoUserManagementService.setLWOSetting('mandatory'); // Set LWO as mandatory
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('mandatory');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers(['employee_number']);
+      } catch (error) {
+        throw error;
+      }
     });
 
     test(
@@ -284,6 +296,159 @@ test.describe(
           userDetails.endUserFirstName,
           userDetails.endUserLastName
         );
+      }
+    );
+  }
+);
+
+test.describe(
+  'feature: login with otp test cases for email and employee number as login identifiers',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+  },
+  () => {
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('optional');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
+          'email',
+          'employee_number',
+        ]);
+      } catch (error) {
+        throw error;
+      }
+    });
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteMobileOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+    test.afterAll(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailAndMobile(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+
+    test(
+      'scenario: Verify activated user try to login with email as login identifiers,when LWO is set as optional',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, lwoUserManagementService, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify already added and activated user try to login with email/employee number as login identifiers,when LWO is set as optional',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersToSystemWithGivenEmail(
+          1,
+          Roles.END_USER,
+          'Simpplr@2025',
+          mailosaurValues.mailosaurEmail
+        );
+
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.setProperty('endUserEmail', endUser[0].email);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
+      }
+    );
+  }
+);
+test.describe(
+  'feature: login with otp test cases for email and employee number as login identifiers for mandatory LWO',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+  },
+  () => {
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('mandatory');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
+          'email',
+          'employee_number',
+        ]);
+      } catch (error) {
+        throw error;
+      }
+    });
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteMobileOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+    test.afterAll(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailAndMobile(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+
+    test(
+      'scenario: Verify activated user try to login with email and employee number as login identifiers,when LWO is set as mandatory',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify already added and activated user try to login with email/employee number as login identifiers,when LWO is set as mandatory',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersToSystemWithGivenEmail(
+          1,
+          Roles.END_USER,
+          'Simpplr@2025',
+          mailosaurValues.mailosaurEmail
+        );
+
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.setProperty('endUserEmail', endUser[0].email);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );
   }

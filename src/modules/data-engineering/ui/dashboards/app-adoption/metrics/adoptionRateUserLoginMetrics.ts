@@ -5,9 +5,9 @@ import { DateHelper } from '@data-engineering/helpers/dateHelper';
 import { FrameLocator, Page, test } from '@playwright/test';
 import { addDays, format, parseISO } from 'date-fns';
 
-import { BarChartComponent } from '../../../components/barChartComponent';
+import { VerticalBarChartComponent } from '../../../components/verticalBarChartComponent';
 
-export class AdoptionRateUserLoginMetrics extends BarChartComponent {
+export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
   constructor(
     readonly page: Page,
     readonly thoughtSpotIframe: FrameLocator
