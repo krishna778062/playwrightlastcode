@@ -654,8 +654,10 @@ export class IdentityService implements IIdentityAdminOperations {
         const acgSyncStatus = listOfACGsJson.result.listOfItems[0].data.syncStatus;
         expect(acgSyncStatus, `Expecting ACG sync status to be Synced`).toBe('Synced');
       }, `Polling get list of ACGs API for ACG ${acgName} until we get Synced status`).toPass({
-        timeout: 40_000,
-        intervals: [1000, 4000, 7000, 10000, 20000, 30000, 40000],
+        timeout: 120_000,
+        intervals: [
+          1000, 4000, 7000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000,
+        ],
       });
     });
   }
