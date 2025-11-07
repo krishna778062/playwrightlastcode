@@ -28,6 +28,9 @@ export enum IntegrationsSuiteTags {
   WORKDAY = '@workdayAppTiles',
   HOTJAR = '@hotjar',
   WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
+  FORM = '@formAppTiles',
+  DISPLAY = '@displayAppTiles',
+  HYBRID = '@hybridAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
