@@ -34,6 +34,14 @@ export interface AdoptionRateUserLoginData {
   adoptionRate: string; // Percentage with 2 decimal places (e.g., '5.71%')
 }
 
+export interface UserLoginFrequencyDistributionData {
+  'No logins': number;
+  '1-3 times': number;
+  '4-7 times': number;
+  '8-10 times': number;
+  '10+ times': number;
+}
+
 export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   constructor(snowflakeHelper: SnowflakeHelper, orgId: string) {
     super(snowflakeHelper, orgId);
@@ -610,6 +618,31 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   }
 
   /**
+   * Transforms raw database results to typed UserLoginFrequencyDistributionData objects
+   * @param rawResults - Raw results from database query
+   * @returns UserLoginFrequencyDistributionData[] - Properly typed and transformed data
+   */
+  private transformUserLoginFrequencyDistributionResults(rawResults: any[]): UserLoginFrequencyDistributionData {
+    try {
+      const firstRow = rawResults[0];
+
+      // Map database keys to expected keys
+      // SQL query returns: '10+ times', '8-10 times', '4-7 times', '1-3 times', 'No logins'
+      // Fallback to old keys ('10+ visits', '8-10', '4-7', '1-3') for backward compatibility
+      return {
+        'No logins': Number(firstRow['No logins'] ?? 0),
+        '1-3 times': Number(firstRow['1-3 times'] ?? firstRow['1-3'] ?? 0),
+        '4-7 times': Number(firstRow['4-7 times'] ?? firstRow['4-7'] ?? 0),
+        '8-10 times': Number(firstRow['8-10 times'] ?? firstRow['8-10'] ?? 0),
+        '10+ times': Number(firstRow['10+ times'] ?? firstRow['10+ visits'] ?? 0),
+      };
+    } catch (error) {
+      console.error(`----> Error transforming user login frequency distribution data: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
    * Gets adoption rate user login data from database with filters.
    * @param filterBy - Filter options including time period and user filters
    * @returns Promise<AdoptionRateUserLoginData[]> - Adoption rate user login data in UI format
@@ -627,6 +660,28 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     const rawResults = await this.executeQuery(finalQuery);
     const transformedResults = this.transformAdoptionRateUserLoginResults(rawResults);
     console.log(`----> The adoption rate user login data is  `, transformedResults);
+    return transformedResults;
+  }
+
+  /**
+   * Gets user login frequency distribution data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<UserLoginFrequencyDistributionData[]> - User login frequency distribution data
+   */
+  async getUserLoginFrequencyDistributionDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<UserLoginFrequencyDistributionData> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: AdoptionSql.USER_LOGIN_FREQUENCY_DISTRIBUTION,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    console.log(`----> The user login frequency distribution data is  `, rawResults);
+    const transformedResults = this.transformUserLoginFrequencyDistributionResults(rawResults);
+    console.log(`----> The user login frequency distribution data is  `, transformedResults);
     return transformedResults;
   }
 }

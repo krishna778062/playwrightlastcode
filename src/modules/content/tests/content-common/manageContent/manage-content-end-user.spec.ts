@@ -4,7 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { NewHomePage } from '@/src/core';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -26,12 +26,11 @@ test.describe(
     test(
       'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25055'],
       },
       async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'Login as End User who is Site Owner/Manager of any site',
-          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-25055',
           storyId: 'CONT-25055',
         });

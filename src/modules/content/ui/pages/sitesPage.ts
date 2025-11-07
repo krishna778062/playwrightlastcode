@@ -21,7 +21,7 @@ export class SitesPage extends BasePage implements ISitesActions, ISitesAssertio
   readonly siteHeading = this.page.getByRole('heading', { name: 'Sites', exact: true });
 
   constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
+    super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
