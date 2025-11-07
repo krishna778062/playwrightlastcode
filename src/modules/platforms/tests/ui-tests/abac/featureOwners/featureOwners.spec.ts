@@ -308,7 +308,7 @@ test.describe(
       test(
         `Verify that clicking on owners count should trigger a popup displaying user info ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@featureOwners`, '@this-one'],
+          tag: [TestPriority.P1, `@featureOwners`],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {

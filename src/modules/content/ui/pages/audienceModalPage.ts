@@ -3,7 +3,7 @@ import { Page } from '@playwright/test';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { AudienceModalComponent } from '@/src/modules/content-abac/ui/components/audienceModalComponent';
+import { AudienceModalComponent } from '@/src/modules/content/ui/components/audienceModalComponent';
 
 export interface IAudienceModalActions {
   verifyingAudienceModalHeading: () => Promise<void>;
