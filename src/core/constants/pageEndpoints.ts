@@ -9,8 +9,6 @@ export const PAGE_ENDPOINTS = {
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
-  MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
-
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   MANAGE_REWARDS_ALLOWANCE_PAGE: '/manage/recognition/rewards/peer-gifting/allowances',
