@@ -1,7 +1,7 @@
-import { SiteCreationFormComponent } from '@content-abac/components/createSite/siteCreationFormComponent';
 import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { SiteCreationFormComponent } from '@/src/modules/content/ui/components/createSite/siteCreationFormComponent';
 
 export class CreateComponent extends BaseComponent {
   readonly createComponentContainer: Locator;

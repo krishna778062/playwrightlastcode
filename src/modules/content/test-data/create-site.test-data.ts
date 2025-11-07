@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
-import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
-import { SiteCreationUI } from '@/src/modules/content-abac/constants/siteCreation';
+import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation';
 
 export interface SiteTestData {
   name: string;

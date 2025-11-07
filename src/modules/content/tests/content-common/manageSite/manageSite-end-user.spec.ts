@@ -5,12 +5,13 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -23,6 +24,7 @@ test.describe(
     let manageSiteStandardUserPage: ManageSitePage;
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
+    let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageFeaturesPage: ManageFeaturesPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
@@ -36,12 +38,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Public site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'login as Standard User where user is Site Content Manager of Public site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -57,7 +58,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, publicSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, publicSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, publicSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -66,12 +67,11 @@ test.describe(
     test(
       'to verify the UI of Manage site content - End User',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the UI of Manage site content - End User',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-23740',
           storyId: 'CONT-23740',
         });
@@ -86,7 +86,7 @@ test.describe(
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, siteInfo.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, siteInfo.siteId);
         await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -135,18 +135,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Private site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Private site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -163,7 +156,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, privateSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -172,18 +165,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Unlisted site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Unlisted site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -200,7 +186,7 @@ test.describe(
         );
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, unlistedSite.siteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, unlistedSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, unlistedSite.siteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -249,12 +235,11 @@ test.describe(
     test(
       'to verify the site author name and event start date',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
       async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-41421',
           storyId: 'CONT-41421',
         });
@@ -268,10 +253,10 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, firstSiteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
 
         // Verify all site names are displayed (method handles the loop internally)
-        await manageSiteStandardUserPage.verifySitesNamesAreDisplayed(siteNames);
+        await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );
   }
