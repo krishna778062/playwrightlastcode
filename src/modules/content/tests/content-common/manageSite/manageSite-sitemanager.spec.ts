@@ -2,7 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -20,12 +20,11 @@ test.describe(
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-41476'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41476'],
       },
       async ({ siteManagerFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the site activate option in manage site user drop down sites for all site types',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-41476',
           storyId: 'CONT-41476',
         });
@@ -37,7 +36,9 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await siteManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType);
+          const siteInfo = await siteManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+          });
           const siteName = siteInfo.siteName;
 
           await manageSitePage.actions.searchSite(siteName);

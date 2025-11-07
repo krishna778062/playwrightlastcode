@@ -304,12 +304,11 @@ test.describe(
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26177'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Verify the site activate option in manage site user drop down sites for all site types',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-26177',
           storyId: 'CONT-26177',
         });
@@ -321,7 +320,7 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType);
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();

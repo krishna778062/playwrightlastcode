@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -26,6 +26,7 @@ export interface IManageSiteSetUpActions {
   clickOnSites: () => Promise<void>;
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
   searchForSite: (siteName: string) => Promise<void>;
+  selectSite: () => Promise<void>;
 }
 
 export interface IManageSiteSetUpAssertions {
@@ -52,6 +53,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
   );
   readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
+  readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
   readonly siteNameLocator = (siteName: string) => this.page.getByText(siteName, { exact: true });
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
@@ -211,5 +213,13 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
       });
       index++;
     }
+  }
+
+  async selectSite(): Promise<void> {
+    await test.step('Selecting the site', async () => {
+      await this.clickOnElement(this.selectASite);
+      await this.page.keyboard.press('Tab');
+      await this.page.keyboard.press('Enter');
+    });
   }
 }

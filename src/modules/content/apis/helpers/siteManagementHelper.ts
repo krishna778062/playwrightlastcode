@@ -1121,9 +1121,12 @@ export class SiteManagementHelper {
     });
   }
 
-  public async getDeactivatedSite(accessType: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
+  public async getDeactivatedSite(
+    accessType: SITE_TYPES,
+    options?: { size?: number }
+  ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: 'deactivated' });
+      const siteListResponse = await this.getListOfSites({ filter: 'deactivated', size: options?.size });
       console.log('Deactivated site list response', siteListResponse);
       const site = siteListResponse.result.listOfItems.find(
         (site: any) => site.access.toLowerCase() === accessType.toLowerCase()

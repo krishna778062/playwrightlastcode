@@ -6,13 +6,13 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { EditAudienceGroupModalPage } from '@/src/modules/content/ui/pages/editAudienceGroupModalPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturePage';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 
 test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_SITE] }, () => {
   let homePage: NewHomePage;
   let manageFeaturePage: ManageFeaturesPage;
-  let manageSitePage: ManageSitePage;
+  let manageSiteSetUpPage: ManageSiteSetUpPage;
   let siteDetailsPage: SiteDetailsPage;
   let editAudienceGroupModalPage: EditAudienceGroupModalPage;
 
@@ -20,7 +20,7 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
     await appManagerFixture.homePage.verifyThePageIsLoaded();
     homePage = new NewHomePage(appManagerFixture.page);
     manageFeaturePage = new ManageFeaturesPage(appManagerFixture.page);
-    manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+    manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
     siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
     editAudienceGroupModalPage = new EditAudienceGroupModalPage(appManagerFixture.page, '');
   });
@@ -40,7 +40,7 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturePage.actions.clickOnSitesCard();
-      await manageSitePage.actions.selectSite();
+      await manageSiteSetUpPage.actions.selectSite();
       await siteDetailsPage.actions.removingAudienceGroup();
       await editAudienceGroupModalPage.actions.clickingOnIUnderstandCheckbox();
       await editAudienceGroupModalPage.actions.clickingOnContinueButton();
