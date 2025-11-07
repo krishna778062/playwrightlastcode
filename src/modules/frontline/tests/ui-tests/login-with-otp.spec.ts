@@ -53,7 +53,7 @@ test.describe(
     test.afterAll(async ({ appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userDetails.endUserEmpId,
+        userDetails.endUserId,
         USER_STATUS.INACTIVE
       );
     });
@@ -196,7 +196,7 @@ test.describe(
     test.afterAll(async ({ appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userDetails.endUserEmpId,
+        userDetails.endUserId,
         USER_STATUS.INACTIVE
       );
     });
@@ -359,7 +359,7 @@ test.describe(
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userDetails.endUserEmpId,
+        userDetails.endUserId,
         USER_STATUS.INACTIVE
       );
     });
@@ -473,7 +473,7 @@ test.describe(
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userDetails.endUserEmpId,
+        userDetails.endUserId,
         USER_STATUS.INACTIVE
       );
     });
