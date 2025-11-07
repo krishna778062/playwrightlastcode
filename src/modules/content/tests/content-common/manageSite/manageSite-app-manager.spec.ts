@@ -12,8 +12,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
@@ -36,7 +34,6 @@ test.describe(
     let siteCategoriesPage: SiteCategoriesPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let manageSiteAppManagerPage: ManageSitePage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
@@ -317,7 +314,7 @@ test.describe(
     test(
       'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20538'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
