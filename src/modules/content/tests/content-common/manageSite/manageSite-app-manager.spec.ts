@@ -331,11 +331,7 @@ test.describe(
         });
         const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
         console.log('siteNames', siteNames);
-        const manageDeactivatedSitePage = new ManageSitePage(
-          appManagerFixture.page,
-          getListOfSitesResponse.result.listOfItems[0].siteId
-        );
-        await manageDeactivatedSitePage.loadPage();
+        await manageSiteAppManagerPage.loadPage();
       }
     );
     test(
@@ -359,13 +355,14 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
         await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
-        await manageSiteAppManagerPage.actions.updatingCategoryToUncategorized('Uncategorized');
-
+        const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {

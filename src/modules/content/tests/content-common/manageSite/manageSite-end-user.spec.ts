@@ -247,11 +247,8 @@ test.describe(
         });
         const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
         console.log('siteNames', siteNames);
-        const manageDeactivatedSitePage = new ManageSitePage(
-          standardUserFixture.page,
-          getListOfSitesResponse.result.listOfItems[0].siteId
-        );
-        await manageDeactivatedSitePage.loadPage();
+
+        await manageSiteStandardUserPage.loadPage();
       }
     );
     test(
@@ -275,11 +272,11 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteStandardUserPage = new ManageSitePage(standardUserFixture.page, firstSiteId);
         await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
         await manageSiteStandardUserPage.actions.updatingCategoryToUncategorized('Uncategorized');
       }
     );

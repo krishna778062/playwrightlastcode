@@ -1,14 +1,9 @@
-import { Locator, Page, test } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
-import { Page } from '@playwright/test';
-
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IManageSiteActions {
   clickOnOptionsDropdown: (siteName: string) => Promise<void>;
@@ -36,9 +31,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+  private manageSitesComponent: ManageSitesComponent;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
+    this.manageSitesComponent = new ManageSitesComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
