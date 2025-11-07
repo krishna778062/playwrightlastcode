@@ -251,8 +251,8 @@ test.describe(
           includeCount: true,
           status: 'active',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
-        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
