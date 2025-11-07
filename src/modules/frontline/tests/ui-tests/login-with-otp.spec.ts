@@ -50,6 +50,14 @@ test.describe(
       }
     });
 
+    test.afterAll(async ({ appManagerApiContext, config }) => {
+      const userDetails = loadUserDetails();
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userDetails.endUserEmpId,
+        USER_STATUS.INACTIVE
+      );
+    });
+
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as optional',
       {
@@ -185,6 +193,14 @@ test.describe(
       }
     });
 
+    test.afterAll(async ({ appManagerApiContext, config }) => {
+      const userDetails = loadUserDetails();
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userDetails.endUserEmpId,
+        USER_STATUS.INACTIVE
+      );
+    });
+
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as mandatory',
       {
@@ -308,7 +324,7 @@ test.describe(
 test.describe(
   'feature: login with otp test cases for email and employee number as login identifiers and LWO is set as optional',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, '@meenakshi'],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
@@ -342,11 +358,8 @@ test.describe(
         userDetails.endUserLastName
       );
 
-      const userId = await new UserManagementService(appManagerApiContext, config.apiBaseUrl).getUserId(
-        userDetails.endUserEmpId
-      );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userId,
+        userDetails.endUserEmpId,
         USER_STATUS.INACTIVE
       );
     });
@@ -426,7 +439,7 @@ test.describe(
 test.describe(
   'feature: login with otp test cases for email and employee number as login identifiers for mandatory LWO',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, '@meenakshi'],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
@@ -459,11 +472,8 @@ test.describe(
         userDetails.endUserLastName
       );
 
-      const userId = await new UserManagementService(appManagerApiContext, config.apiBaseUrl).getUserId(
-        userDetails.endUserEmpId
-      );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
-        userId,
+        userDetails.endUserEmpId,
         USER_STATUS.INACTIVE
       );
     });
