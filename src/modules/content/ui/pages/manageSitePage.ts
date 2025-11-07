@@ -1,4 +1,7 @@
 import { Page } from '@playwright/test';
+import { Page } from '@playwright/test';
+
+import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
