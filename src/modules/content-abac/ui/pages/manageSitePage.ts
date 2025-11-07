@@ -17,7 +17,7 @@ export class ManageSitePage extends BasePage {
   readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
 
   constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
+    super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
   }
 
   get actions(): IManageSiteActions {
