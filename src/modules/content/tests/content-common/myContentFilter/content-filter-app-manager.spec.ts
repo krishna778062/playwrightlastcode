@@ -306,13 +306,12 @@ test.describe(
     test(
       'verify application manager should be able to apply bulk options on selecting the Select All option',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25063'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-25063',
           storyId: 'CONT-25063',
         });
