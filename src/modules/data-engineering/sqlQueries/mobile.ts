@@ -203,4 +203,24 @@ export const MobileSql = {
       {userCategoryFilter}
       {companyNameFilter}
   `,
+
+  MOBILE_ADOPTION_RATE_CSV: `
+ select dua.user_code, u.full_name, u.email, u.title, u.company_name, u.division, u.department, u.city, u.state, u.country,
+ max(dua.reporting_date) as date_of_last_login
+ from SIMPPLR_COMMON_TENANT.UDL.VW_DAILY_USER_ADOPTION dua
+ inner join SIMPPLR_COMMON_TENANT.UDL.VW_USER_AS_IS u
+ on dua.user_code = u.code 
+ where dua.tenant_code = '{tenantCode}'
+ and dua.reporting_date <= '{endDate}' and dua.reporting_date >= '{startDate}'
+ and dua.total_logins_mobile > 0
+ and dua.is_user_active = true
+ and u.status_code = 'US001'
+ {locationFilter}
+ {departmentFilter}
+ {segmentFilter}
+ {userCategoryFilter}
+ {companyNameFilter}
+ group by 1,2,3,4,5,6,7,8,9,10
+ order by date_of_last_login desc;
+  `,
 };

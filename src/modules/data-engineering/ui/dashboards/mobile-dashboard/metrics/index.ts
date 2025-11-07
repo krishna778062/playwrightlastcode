@@ -1,4 +1,5 @@
 export * from './avgMobileContentViewsPerUserMetrics';
+export * from './mobileAdoptionRateMetrics';
 export * from './mobileContentViewersMetrics';
 export * from './mobileLoggedInUsersMetrics';
 export * from './totalMobileContentViewsMetrics';

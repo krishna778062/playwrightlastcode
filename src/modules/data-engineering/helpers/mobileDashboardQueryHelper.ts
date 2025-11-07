@@ -1,6 +1,25 @@
+import { format } from 'date-fns';
+
 import { MobileSql } from '../sqlQueries/mobile';
 
 import { BaseAnalyticsQueryHelper, FilterOptions, SnowflakeHelper } from '.';
+
+/**
+ * Interface for Mobile Adoption Rate data
+ * Note: userCode is used in SQL GROUP BY but excluded from CSV comparison
+ */
+export interface MobileAdoptionRateData {
+  fullName: string;
+  email: string;
+  title: string;
+  companyName: string;
+  division: string;
+  department: string;
+  city: string;
+  state: string;
+  country: string;
+  dateOfLastLogin: string;
+}
 
 export class MobileDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   constructor(snowflakeHelper: SnowflakeHelper, orgId: string) {
@@ -87,5 +106,47 @@ export class MobileDashboardQueryHelper extends BaseAnalyticsQueryHelper {
       filterBy,
     });
     return await this.getHeroMetricDataFromDB(finalQuery);
+  }
+
+  async getMobileAdoptionRateDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MobileAdoptionRateData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: MobileSql.MOBILE_ADOPTION_RATE_CSV,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMobileAdoptionRateResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results for mobile adoption rate data
+   * Note: user_code is excluded as it's only used in SQL GROUP BY, not in CSV
+   * @param rawResults - Raw results from database query
+   * @returns Transformed data in expected format (without userCode)
+   */
+  private transformMobileAdoptionRateResults(rawResults: any[]): MobileAdoptionRateData[] {
+    return rawResults.map(result => {
+      // Format date to YYYY-MM-DD to match CSV format
+      const dateOfLastLogin = result.DATE_OF_LAST_LOGIN
+        ? format(new Date(result.DATE_OF_LAST_LOGIN), 'yyyy-MM-dd')
+        : '';
+
+      return {
+        fullName: result.FULL_NAME || '',
+        email: result.EMAIL || '',
+        title: result.TITLE || 'Undefined',
+        companyName: result.COMPANY_NAME || 'Undefined',
+        division: result.DIVISION || 'Undefined',
+        department: result.DEPARTMENT || 'Undefined',
+        city: result.CITY || 'Undefined',
+        state: result.STATE || 'Undefined',
+        country: result.COUNTRY || 'Undefined',
+        dateOfLastLogin,
+      };
+    });
   }
 }

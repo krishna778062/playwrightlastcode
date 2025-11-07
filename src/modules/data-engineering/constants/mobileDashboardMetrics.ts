@@ -23,4 +23,8 @@ export const MOBILE_DASHBOARD_METRICS = {
     title: 'Unique mobile content views',
     subtitle: 'The number of unique mobile users who viewed your content',
   },
+  MOBILE_ADOPTION_RATE: {
+    title: 'Mobile adoption rate',
+    subtitle: 'Percentage of total users who logged in on mobile during the selected time period',
+  },
 } as const;
