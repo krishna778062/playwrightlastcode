@@ -1063,7 +1063,6 @@ export class SiteManagementHelper {
     return await this.siteManagementService.approveContent(siteId, contentId);
   }
 
-  async getSiteInUserIsNotMemberOrOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
   async getSiteInUserIsNotMemberOrOwner(
     userId: string[],
     accessType: SITE_TYPES

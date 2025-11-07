@@ -3,9 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
-import { ContentSortBy, ContentStatus } from '@/src/modules/content/constants';
-import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { ContentSortBy, ContentStatus, SortOptionLabels } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -30,7 +27,6 @@ test.describe(
     test(
       'verify published status for scheduled page by app manager',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-33059'],
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33059'],
       },
       async ({ appManagerApiFixture, appManagerFixture }) => {
@@ -81,7 +77,6 @@ test.describe(
     test(
       'verify application manager should be able to apply bulk options on selecting the Select All option',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-25065'],
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25063'],
       },
       async ({ appManagerFixture }) => {

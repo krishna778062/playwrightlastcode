@@ -12,8 +12,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -38,7 +36,6 @@ test.describe(
     let siteCategoriesPage: SiteCategoriesPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let manageSiteAppManagerPage: ManageSitePage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
@@ -270,6 +267,7 @@ test.describe(
         await manageSiteAppManagerPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );
+
     test(
       'to verify the onboarding option in manage site content',
       {
@@ -318,7 +316,7 @@ test.describe(
     test(
       'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20538'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -357,13 +355,12 @@ test.describe(
     test(
       'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MY_CONTENT_FILTER, '@CONT-20536'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20536'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
-          customTags: [ContentFeatureTags.MY_CONTENT_FILTER],
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
         });
@@ -401,7 +398,7 @@ test.describe(
     test(
       'verify published stamp and its options menu on approved content under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20534'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20534'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
@@ -434,34 +431,8 @@ test.describe(
         await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
       }
     );
+
     test(
-      'to verify the site author name and event start date',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
-      },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
-        tagTest(test.info(), {
-          description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
-          zephyrTestId: 'CONT-26044',
-          storyId: 'CONT-26044',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
-          sortBy: 'alphabetical',
-        });
-        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
-
-        // Initialize ManageSitePage with first siteId for verification
-        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
-        if (!firstSiteId) {
-          throw new Error('No sites found in the response');
-        }
-        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
-
-        // Verify all site names are displayed (method handles the loop internally)
-        await manageSiteAppManagerPage.verifySitesNamesAreDisplayed(siteNames);
       'verify the site activate option in manage site user drop down sites for all site types',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
