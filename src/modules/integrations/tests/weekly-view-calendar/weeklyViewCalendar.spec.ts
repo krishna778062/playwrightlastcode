@@ -91,7 +91,6 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
-        test.setTimeout(300000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28441',
         });
@@ -160,7 +159,6 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
-        test.setTimeout(300000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28462',
         });
@@ -261,7 +259,6 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
-        test.setTimeout(300000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28463',
         });
@@ -372,7 +369,6 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
-        test.setTimeout(300000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28464',
         });

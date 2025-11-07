@@ -407,13 +407,10 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
   async verifyGoogleTestEvent(expectedVisible: boolean, isXMoreTodaysDateVisible: boolean): Promise<void> {
     await test.step('Verify Google test event is visible', async () => {
       if (!isXMoreTodaysDateVisible && expectedVisible) {
-        await this.verifier.verifyTheElementIsVisible(
-          this.page.locator('xpath=//*[contains(text(), "Google Test Event")]'),
-          {
-            timeout: 10_000,
-            assertionMessage: 'Verifying that the google test event is visible',
-          }
-        );
+        await this.verifier.verifyTheElementIsVisible(this.page.getByText('Google Test Event'), {
+          timeout: 10_000,
+          assertionMessage: 'Verifying that the google test event is visible',
+        });
 
         await this.page.waitForLoadState('domcontentloaded');
         return;
@@ -435,13 +432,10 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
   async verifyOutlookTestEvent(expectedVisible: boolean, isXMoreTodaysDateVisible: boolean): Promise<void> {
     await test.step('Verify Outlook test event is visible', async () => {
       if (!isXMoreTodaysDateVisible && expectedVisible) {
-        await this.verifier.verifyTheElementIsVisible(
-          this.page.locator('xpath=//*[contains(text(), "Outlook Test Event")]'),
-          {
-            timeout: 10_000,
-            assertionMessage: 'Verifying that the outlook test event is visible',
-          }
-        );
+        await this.verifier.verifyTheElementIsVisible(this.page.getByText('Outlook Test Event'), {
+          timeout: 10_000,
+          assertionMessage: 'Verifying that the outlook test event is visible',
+        });
         return;
       }
       if (expectedVisible) {
