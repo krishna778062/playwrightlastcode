@@ -719,11 +719,13 @@ test.describe(
         const { peopleQueryHelper } = testEnvironment;
 
         const profileCompletenessUserLevelData = await peopleQueryHelper.getProfileCompletenessUserLevelDataFromDB();
+        const tenantDetails = await peopleQueryHelper.getTenantDetails();
 
         const profileCompletenessMetric = testEnvironment.peopleDashboard.profileCompleteness;
         const { filePath, fileName } = await profileCompletenessMetric.downloadAndValidateProfileCompletenessCSV(
           profileCompletenessUserLevelData,
-          testFiltersConfig.timePeriod
+          testFiltersConfig.timePeriod,
+          tenantDetails
         );
 
         console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);

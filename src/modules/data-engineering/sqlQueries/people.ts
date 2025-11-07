@@ -298,4 +298,17 @@ export const PeopleSql = {
       u."HAS_PHONE_NUMBER", u."HAS_PROFILE_IMAGE"
     order by u."FULL_NAME" asc nulls last;
   `,
+
+  /**
+   * Tenant Details Query Template
+   * Returns tenant feature flags for determining which columns should be displayed
+   */
+  TENANT_DETAILS: `
+    select 
+      is_segment_enabled,
+      is_people_category_enabled,
+      people_category_singular_name
+    from simpplr_common_tenant.udl.vw_tenant_details_as_is
+    where tenant_code = '{tenantCode}';
+  `,
 };

@@ -153,4 +153,21 @@ export class PeopleDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     const finalQuery = PeopleSql.PROFILE_COMPLETENESS_USER_LEVEL.replace('{tenantCode}', this.orgId);
     return await this.executeQuery(finalQuery);
   }
+
+  /**
+   * Gets tenant details including feature flags for segment and people category
+   * @returns Promise with is_segment_enabled, is_people_category_enabled, and people_category_singular_name
+   */
+  async getTenantDetails(): Promise<{
+    is_segment_enabled: boolean;
+    is_people_category_enabled: boolean;
+    people_category_singular_name: string | null;
+  }> {
+    const finalQuery = PeopleSql.TENANT_DETAILS.replace('{tenantCode}', this.orgId);
+    const results = await this.executeQuery(finalQuery);
+    if (results.length === 0) {
+      throw new Error(`Tenant details not found for tenant code: ${this.orgId}`);
+    }
+    return results[0];
+  }
 }
