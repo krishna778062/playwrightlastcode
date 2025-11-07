@@ -1,9 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BasePage } from '@core/ui/pages/basePage';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';

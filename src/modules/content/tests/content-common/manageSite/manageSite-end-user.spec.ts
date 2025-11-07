@@ -4,7 +4,6 @@ import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement
 import { tagTest } from '@core/utils/testDecorator';
 
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -220,7 +219,7 @@ test.describe(
     test(
       'to verify the bulk action activate in manage site user drop down',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-26576'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
