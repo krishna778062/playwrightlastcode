@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -36,12 +37,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Public site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_SITE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'login as Standard User where user is Site Content Manager of Public site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -66,12 +66,11 @@ test.describe(
     test(
       'to verify the UI of Manage site content - End User',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the UI of Manage site content - End User',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-23740',
           storyId: 'CONT-23740',
         });
@@ -135,18 +134,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Private site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Private site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -172,18 +164,11 @@ test.describe(
     test(
       'login as Standard User where user is Site Content Manager of Unlisted site',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentFeatureTags.MANAGE_SITE,
-          ContentFeatureTags.MANAGE_SITE,
-          '@CONT-29063',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Unlisted site',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
@@ -208,12 +193,11 @@ test.describe(
     test(
       'to verify the site author name and event start date',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
       async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-41421',
           storyId: 'CONT-41421',
         });

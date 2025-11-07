@@ -2,15 +2,15 @@ import { NewHomePage } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
-import { contentAbacTestFixture as test } from '@/src/modules/content-abac/fixtures/contentAbacFixture';
-import { SITE_CREATION_TEST_DATA } from '@/src/modules/content-abac/test-data/create-site.test-data';
-import { AddSiteScreenPage } from '@/src/modules/content-abac/ui/pages/addSiteScreenPage';
-import { AudienceModalPage } from '@/src/modules/content-abac/ui/pages/audienceModalPage';
-import { ManageFeaturesPage } from '@/src/modules/content-abac/ui/pages/manageFeaturePage';
-import { ManageSitePage } from '@/src/modules/content-abac/ui/pages/manageSitePage';
-import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
+import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-site.test-data';
+import { AddSiteScreenPage } from '@/src/modules/content/ui/pages/addSiteScreenPage';
+import { AudienceModalPage } from '@/src/modules/content/ui/pages/audienceModalPage';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturePage';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 
 /**
  * This test suite is used to test the site creation functionality via ABAC.
@@ -38,21 +38,18 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
   let addSiteScreenPage: AddSiteScreenPage;
   let audienceModalPage: AudienceModalPage;
 
-  test.beforeEach(
-    'Setting up the test environment for site creation',
-    async ({ appManagerHomePage, appManagerPage }) => {
-      await appManagerHomePage.verifyThePageIsLoaded();
-      homePage = new NewHomePage(appManagerPage);
-      manageFeaturePage = new ManageFeaturesPage(appManagerPage);
-      manageSitePage = new ManageSitePage(appManagerPage, '');
-      addSiteScreenPage = new AddSiteScreenPage(appManagerPage);
-      audienceModalPage = new AudienceModalPage(appManagerPage);
-    }
-  );
+  test.beforeEach('Setting up the test environment for site creation', async ({ appManagerFixture }) => {
+    await appManagerFixture.homePage.verifyThePageIsLoaded();
+    homePage = new NewHomePage(appManagerFixture.page);
+    manageFeaturePage = new ManageFeaturesPage(appManagerFixture.page);
+    manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+    addSiteScreenPage = new AddSiteScreenPage(appManagerFixture.page);
+    audienceModalPage = new AudienceModalPage(appManagerFixture.page);
+  });
 
-  test.afterEach('Site Clean up', async ({ siteManagementService }) => {
+  test.afterEach('Site Clean up', async ({ appManagerFixture }) => {
     if (siteId) {
-      await siteManagementService.deactivateSite(siteId);
+      await appManagerFixture.siteManagementService.deactivateSite(siteId);
     }
   });
 
@@ -60,19 +57,19 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
     test(
       `Verify user is able to create a ${site.siteType} site (ABAC)`,
       { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
-      async ({ appManagerHomePage, appManagerPage, appManagerUINavigationHelper }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'ABAC: Verify Target Audience and Subscriptions and create site',
           zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-38637' : 'CONT-37643',
           storyId: 'CONT-33515',
         });
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // STEP 1: Open site creation page via ABAC CreateComponent
-        await appManagerUINavigationHelper.openSiteCreationForm(true, {
+        await appManagerFixture.navigationHelper.openSiteCreationForm(true, {
           stepInfo: 'Opening site creation form via ABAC',
         });
-        const siteCreationPage = new SiteCreationPageAbac(appManagerPage);
+        const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
         // STEP 2: Verify site creation form structure and elements
         await siteCreationPage.assertions.verifySiteCreationFormStructure();
@@ -96,13 +93,13 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_TARGET_AUDIENCE],
     },
-    async ({ appManagerUINavigationHelper }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify UI shows Add target audience section when All Org is removed',
         zephyrTestId: 'CONT-35709',
         storyId: 'CONT-35709',
       });
-      await appManagerUINavigationHelper.openManageFeatureSectionInSideBar();
+      await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturePage.actions.clickOnSitesCard();
       await manageSitePage.actions.clickOnAddSite();
       await addSiteScreenPage.actions.clickOnBrowseButton();

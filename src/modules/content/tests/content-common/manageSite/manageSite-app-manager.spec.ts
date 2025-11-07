@@ -7,6 +7,8 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { BulkActionOptions, ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
@@ -88,12 +90,11 @@ test.describe(
     test(
       'verify different sites can share same page category name',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify different sites can share same page category name',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-24601',
           storyId: 'CONT-24601',
         });
@@ -151,12 +152,11 @@ test.describe(
     test(
       'to verify the favourite people from manage site people',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-24178',
           storyId: 'CONT-24178',
         });
@@ -195,7 +195,7 @@ test.describe(
     test(
       'verify Scheduled stamp and its options menu under-manage site content tab',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -230,12 +230,11 @@ test.describe(
     test(
       'to verify the site author name and event start date',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-26044',
           storyId: 'CONT-26044',
         });
@@ -260,7 +259,7 @@ test.describe(
     test(
       'to verify the onboarding option in manage site content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23737'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23737'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
