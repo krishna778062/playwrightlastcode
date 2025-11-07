@@ -1,10 +1,11 @@
+import { MOBILE_DASHBOARD_METRICS } from '@data-engineering/constants/mobileDashboardMetrics';
 import { FrameLocator, Page } from '@playwright/test';
 
 import { BaseMobilePieChartMetric } from './baseMobilePieChartMetric';
 
 export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
-    super(page, thoughtSpotIframe, 'Mobile content views by type');
+    super(page, thoughtSpotIframe, MOBILE_DASHBOARD_METRICS.MOBILE_CONTENT_VIEWS_BY_TYPE.title);
   }
 
   /**
