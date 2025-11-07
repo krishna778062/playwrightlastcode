@@ -131,6 +131,7 @@ export abstract class BaseAnalyticsQueryHelper {
   /**
    * Transforms a base query by adding filters and date replacements ONLY
    * Does NOT add GROUP BY or ORDER BY - assumes they're already in the base query
+   * Uses global replacement to handle placeholders that appear multiple times (e.g., in subqueries)
    * @param baseQuery - The metric-specific query (with SELECT clause and placeholders)
    * @param filterBy - Filter options (locations, departments, userCategories, etc.)
    */

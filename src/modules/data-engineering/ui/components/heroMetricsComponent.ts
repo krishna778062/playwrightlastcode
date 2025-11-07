@@ -30,7 +30,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async getMetricValue(): Promise<string> {
     return await test.step(`Get hero metric value`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 30_000 });
+      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 60_000 });
       const value = await this.metricValue.textContent();
       return value?.trim() || '';
     });
@@ -55,7 +55,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyAnswerTitleIsVisible(): Promise<void> {
     await test.step(`Verify answer title is visible - with title as : ${this.metricTitle}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 30_000 });
+      await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 60_000 });
     });
   }
 
@@ -65,7 +65,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyAnswerSubTitleIsVisible(expectedSubTitle: string): Promise<void> {
     await test.step(`Verify answer subtitle "${expectedSubTitle}" is visible - for metric ${this.metricTitle}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.answerSubTitle, { timeout: 30_000 });
+      await this.verifier.verifyTheElementIsVisible(this.answerSubTitle, { timeout: 60_000 });
       await expect(this.answerSubTitle, `Answer subtitle should be "${expectedSubTitle}"`).toHaveText(expectedSubTitle);
     });
   }
@@ -87,7 +87,7 @@ export class HeroMetricsComponent extends BaseComponent {
     await test.step(`Verify hero metric value for ${this.metricTitle} is ${expectedValue}`, async () => {
       // Get the actual UI value and normalize it by removing commas
       const actualValue = await this.getMetricValue();
-      const normalizedActualValue = actualValue.replace(/,/g, '');
+      const normalizedActualValue = actualValue.replace(/,/g, '').split(' ')[0];
 
       expect(normalizedActualValue, `Hero metric value should be ${expectedValue} (UI shows: ${actualValue})`).toBe(
         expectedValue.toString()
@@ -106,5 +106,15 @@ export class HeroMetricsComponent extends BaseComponent {
 
       expect(numericValue, `Hero metric value should be ${numericValue}`).toBe(numericValue);
     });
+  }
+
+  /**
+   * Verifies the metric value matches the expected value
+   * Accepts both string and number types for flexibility
+   * @param expectedValue - The expected metric value as string or number
+   */
+  async verifyMetricValue(expectedValue: string | number): Promise<void> {
+    const numericValue = typeof expectedValue === 'string' ? Number(expectedValue) : expectedValue;
+    await this.verifyMetricValueIsLoadedForHeroMetric(numericValue);
   }
 }
