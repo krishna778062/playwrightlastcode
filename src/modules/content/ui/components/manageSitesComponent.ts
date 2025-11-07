@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
@@ -28,7 +29,6 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
-
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
@@ -305,6 +305,25 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  getSiteFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
+    return this.page.getByText(bulkActionOption).first();
+  }
+
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await test.step('Select site filter by text', async () => {
+      const locator = this.getSiteFilterByTextLocator(bulkActionOption);
+      await this.clickOnElement(locator);
+    });
+  }
+  getFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
+    return this.page.locator('#react-select-2-listbox').getByText(bulkActionOption);
+  }
+  async selectFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await test.step('Select filter by text', async () => {
+      const filterByTextLocator = this.getFilterByTextLocator(bulkActionOption);
+      await this.clickOnElement(filterByTextLocator);
+    });
+  }
   async verifyAlbumTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify album tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
@@ -318,6 +337,30 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
       });
+    });
+  }
+
+  /**
+   * Gets the locator for a site row by exact site name
+   * @param siteName - The exact name of the site
+   * @returns Locator for the site row
+   */
+  getSiteRowByExactName(siteName: string): Locator {
+    return this.page
+      .locator('tr')
+      .filter({ has: this.page.locator('h2', { hasText: siteName }) })
+      .first();
+  }
+
+  /**
+   * Selects the checkbox for a site by its exact name
+   * @param siteName - The exact name of the site
+   */
+  async selectSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Selecting checkbox for site: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      const checkbox = siteRow.getByLabel('Select');
+      await this.clickOnElement(checkbox);
     });
   }
 }

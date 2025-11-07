@@ -3,6 +3,7 @@ import { Locator, Page } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
@@ -206,6 +207,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async searchForSite(siteName: string): Promise<void> {
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
+  }
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await this.manageSitesComponent.selectSiteFilterByText(bulkActionOption);
   }
 
   getSiteNameLocator(siteName: string): Locator {

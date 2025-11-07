@@ -3,9 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -19,8 +22,12 @@ test.describe(
   () => {
     let manageSiteStandardUserPage: ManageSitePage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitesComponent: ManageSitesComponent;
+    let manageContentPage: ManageContentPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
+      manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
+      manageContentPage = new ManageContentPage(standardUserFixture.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -224,6 +231,44 @@ test.describe(
 
         // Verify all site names are displayed (method handles the loop internally)
         await manageSiteStandardUserPage.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
+      'to verify the bulk action activate in manage site user drop down',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-26576'],
+      },
+      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'deactivated',
+        });
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnActivateButton();
+        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('siteNames', siteNames);
+        const manageDeactivatedSitePage = new ManageSitePage(
+          standardUserFixture.page,
+          getListOfSitesResponse.result.listOfItems[0].siteId
+        );
+        await manageDeactivatedSitePage.loadPage();
       }
     );
   }

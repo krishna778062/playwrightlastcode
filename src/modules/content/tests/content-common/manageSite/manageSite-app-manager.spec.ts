@@ -5,7 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import { BulkActionOptions, ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -300,6 +300,44 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+    test(
+      'to verify the bulk action activate in manage site user drop down',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-26576'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'deactivated',
+        });
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnActivateButton();
+        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('siteNames', siteNames);
+        const manageDeactivatedSitePage = new ManageSitePage(
+          appManagerFixture.page,
+          getListOfSitesResponse.result.listOfItems[0].siteId
+        );
+        await manageDeactivatedSitePage.loadPage();
       }
     );
   }

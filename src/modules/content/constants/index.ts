@@ -4,6 +4,7 @@ export * from './contentType';
 export * from './dateField';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';
+export * from './manageSiteOptions';
 export * from './pageContentType';
 export * from './sitePageEnums';
 export * from './siteTypes';

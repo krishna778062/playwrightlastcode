@@ -203,6 +203,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
+  async clickOnActivateButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateButton();
+  }
+  async clickOnActivateApplyButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateApplyButton();
+  }
 
   async authorNameShouldBeVisible(): Promise<void> {
     await this.manageContentComponent.authorNameShouldBeVisible();

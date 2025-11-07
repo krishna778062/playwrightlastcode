@@ -71,6 +71,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
+  readonly activateButton: Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -115,6 +116,7 @@ export class ManageContentComponent extends BaseComponent {
     this.siteName = page.locator(`[class="meta-link"]`).last();
     this.sortByButton = page.locator(`[name="sortBy"]`);
     this.statusField = page.locator('[name="status"]');
+    this.activateButton = page.getByText('Activate', { exact: true });
 
     this.pageCategorySelectorDropdown = page
       .locator('div')
@@ -345,7 +347,27 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.moveButton);
     });
   }
+  async clickOnActivateButton(): Promise<void> {
+    await test.step(`Clicking on the activate button`, async () => {
+      await this.clickOnElement(this.activateButton);
+    });
+  }
 
+  async clickOnActivateApplyButton(): Promise<void> {
+    await test.step(`Clicking on the activate button`, async () => {
+      const activateResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.applyButton, { delay: 2_000, force: true }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_ACTIVATE_API) &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return activateResponse;
+    });
+  }
   async moveContentSearchBar(siteName: string): Promise<void> {
     await test.step(`Moving the content search bar`, async () => {
       await this.clickOnElement(this.moveContentSearchBarField);
