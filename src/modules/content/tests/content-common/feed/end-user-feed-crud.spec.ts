@@ -24,9 +24,10 @@ test.describe(
 
     test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       await standardUserFixture.homePage.verifyThePageIsLoaded();
       await standardUserFixture.navigationHelper.clickOnGlobalFeed();

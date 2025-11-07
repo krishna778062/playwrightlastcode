@@ -268,6 +268,17 @@ test.describe(
           zephyrTestId: '11039',
         });
 
+        // verify app level connection
+        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
+
         // navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
         await externalAppsPage.actions.navigateToExternalAppsPage();
@@ -291,6 +302,17 @@ test.describe(
         tagTest(multiUserTileFixture.info(), {
           zephyrTestId: 'INT-11042, INT-11036',
         });
+
+        // verify app level connection
+        const supportAndTicketingPage = new SupportAndTicketingPage(adminPage);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Admin user - Verify Confluence is connected at app level
         const adminExternalAppsPage = new ExternalAppsPage(adminPage);
