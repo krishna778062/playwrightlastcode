@@ -65,6 +65,8 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
 
       const rewardsStore = new RewardsStore(standardUserFixture.page);
       const userProfilePage = new UserProfilePage(standardUserFixture.page);
+      await rewardsStore.loadPage();
+      await rewardsStore.verifyThePageIsLoaded();
       await rewardsStore.selectCountryAndRedeemGiftCard('United States', 'Amazon');
       await rewardsStore.navigateToUserProfileAndValidateViewOrders(userProfilePage);
     }

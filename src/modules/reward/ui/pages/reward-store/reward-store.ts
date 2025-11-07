@@ -326,6 +326,7 @@ export class RewardsStore extends BasePage {
    */
   async validateOrderHistoryForGiftCard(giftCard: string) {
     await this.visitTheOrderHistory();
+    await this.page.reload();
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first().locator(`img[alt^="${giftCard}"]`));
     await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard);
@@ -538,7 +539,7 @@ export class RewardsStore extends BasePage {
     await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
     await LoginHelper.loginWithPassword(this.page, {
       email: getRewardTenantConfigFromCache().endUserEmail!,
-      password: getRewardTenantConfigFromCache().endUserEmail!,
+      password: getRewardTenantConfigFromCache().endUserPassword!,
     });
     await this.loadPage();
     await this.verifier.verifyTheElementIsVisible(this.header);

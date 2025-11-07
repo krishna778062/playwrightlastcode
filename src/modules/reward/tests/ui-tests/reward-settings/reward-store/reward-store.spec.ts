@@ -431,12 +431,14 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
       const rewardStoreB = new RewardsStore(pageB);
 
       const { LoginHelper } = await import('@core/helpers/loginHelper');
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+      await LoginHelper.logoutByNavigatingToLogoutPage(pageB);
       await rewardStoreB.loginAsStandardUserAndNavigateToRewardsStore();
       await rewardStoreB.selectDropdownByLabel(rewardStoreB.rewardCountry, 'United States');
 
       // Switch to User B and navigate to the copiedUrl and check the gift card
       await pageB.goto(copiedUrl);
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+      await rewardStoreB.searchForGiftCard(giftCardProductName);
       await rewardStoreB.verifier.verifyElementContainsText(rewardStoreB.giftCardNames.first(), giftCardProductName);
 
       // Cleanup

@@ -124,7 +124,7 @@ export class RewardsPeerGifting extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.allowanceTitle, {
+    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsTitle, {
       assertionMessage: 'Verify the Peer Gifting page is loaded',
     });
   }
