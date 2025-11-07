@@ -201,7 +201,7 @@ test.describe(
         await customAppTilesPage.clickCreateCustomAppTileButton();
 
         // enter tile name and description
-        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         await customAppTilesPage.enterTileName(tileName);
@@ -219,7 +219,10 @@ test.describe(
         await customAppTilesPage.selectRadioForField('Get from user', 'Summary');
         await customAppTilesPage.selectRadioForField('Get from user', 'Description');
 
-        await customAppTilesPage.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE);
+        await customAppTilesPage.clickButtonInDialog(
+          CUSTOM_APP_TILES_TEST_DATA.BUTTONS.CONFIGURE_API_ACTION,
+          CUSTOM_APP_TILES_TEST_DATA.BUTTONS.SAVE
+        );
 
         // Verify both display options are available (inline vs overlay)
         await customAppTilesPage.verifyDisplayDropdownOptions(

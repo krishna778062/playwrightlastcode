@@ -112,7 +112,7 @@ test.describe(
 
         // Add tile, verify by both users, then remove
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
-        await adminHomeDashboard.addTilewithAppManagerDefined(
+        await adminHomeDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,
@@ -152,7 +152,7 @@ test.describe(
 
         // Add tile, verify by both users, then remove
         createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
-        await siteDashboard.addTilewithAppManagerDefined(
+        await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,

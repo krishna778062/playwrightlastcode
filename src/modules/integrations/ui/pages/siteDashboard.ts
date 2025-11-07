@@ -99,6 +99,15 @@ export class SiteDashboard {
   }
 
   /**
+   * Verify connector connection status with formatted username display
+   * @param connector - The connector name (e.g., 'expensify', 'google', 'outlook')
+   * @param username - The username/email to verify (e.g., 'aa_tushar_roy_simpplr_com')
+   */
+  async verifyConnectorConnectionStatus(connector: string, username: string): Promise<void> {
+    await this.appTileComponent.verifyConnectorConnectionStatus(connector, username);
+  }
+
+  /**
    * Click the 'My settings' link in the Add tile modal
    */
   async clickDialogLink(label: string): Promise<void> {
@@ -247,7 +256,7 @@ export class SiteDashboard {
   /**
    * Complete workflow to add an app tile
    */
-  async addTilewithAppManagerDefined(
+  async addTilewithDefinedSettings(
     tileTitle: string,
     appName: string,
     tileName: string,
@@ -606,5 +615,15 @@ export class SiteDashboard {
    */
   async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify the "View all courses in Workday" link is visible on the tile
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
+  }
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
   }
 }

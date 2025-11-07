@@ -8,9 +8,9 @@ import {
 } from '@/src/core/types/siteManagement.types';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Site {
   siteId: string;
@@ -192,24 +192,29 @@ export class SiteManagementHelper {
     accessType: SITE_TYPES;
     waitForSearchIndex?: boolean;
   }) {
+    // Default waitForSearchIndex to false if not explicitly provided
+    const waitForSearchIndex = options.waitForSearchIndex ?? false;
     switch (options.accessType) {
       case SITE_TYPES.PUBLIC:
         return await this.createPublicSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -404,9 +409,8 @@ export class SiteManagementHelper {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
       size: 1000, // Get a large number to ensure we find the site if it exists
-      filter: 'active',
       canManage: true,
-      sortBy: 'alphabetical',
+      filter: 'all',
     });
 
     // Search for the site by name
@@ -415,7 +419,12 @@ export class SiteManagementHelper {
     );
 
     if (existingSite) {
-      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
+      //check the status of the site if active then return the siteId
+      if (!existingSite.isActive) {
+        //activate the site
+        await this.siteManagementService.activateSite(existingSite.siteId);
+        console.log(`Activated site ${existingSite.name} (${existingSite.siteId})`);
+      }
       return existingSite.siteId;
     }
 
@@ -585,6 +594,9 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     let createdSite;
 
+    // Default waitForSearchIndex to false if not explicitly provided
+    const waitForSearchIndex = options?.waitForSearchIndex ?? false;
+
     // Prepare overrides with optional parameters
     const overrides = {
       ...options?.overrides,
@@ -606,7 +618,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
         break;
       case SITE_TYPES.UNLISTED:
@@ -614,7 +626,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
         break;
       default:
@@ -622,7 +634,7 @@ export class SiteManagementHelper {
           siteName,
           category: options?.category,
           overrides,
-          waitForSearchIndex: options?.waitForSearchIndex,
+          waitForSearchIndex: waitForSearchIndex,
         });
     }
 
@@ -1019,54 +1031,93 @@ export class SiteManagementHelper {
     return { siteId: createdSite.siteId, siteName: createdSite.siteName };
   }
 
-  async getSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
-    const siteListResponse = await this.getListOfSites({ filter: 'active' });
-    if (siteListResponse.result.listOfItems.length) {
-      const memberListResponse = await this.siteManagementService.getSiteMembershipList(
-        siteListResponse.result.listOfItems[0].siteId
-      );
-      if (
-        memberListResponse.result.listOfItems.find(
+  async getSiteWithUserAsOwner(userId: string, accessType: SITE_TYPES): Promise<{ siteId: string; siteName: string }> {
+    const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+
+    if (activeSites.length) {
+      // Iterate through all active sites to find one where the user is an owner
+      for (const site of activeSites) {
+        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+        const isOwner = memberListResponse.result.listOfItems.find(
           (member: any) => member.peopleId === userId && member.isOwner === true
-        )
-      ) {
-        return {
-          siteId: memberListResponse.result.listOfItems[0].siteId,
-          siteName: memberListResponse.result.listOfItems[0].name,
-        };
-      } else {
-        return await this.createSiteWithUserAsOwner(userId);
+        );
+        if (isOwner) {
+          return {
+            siteId: site.siteId,
+            siteName: site.name,
+          };
+        }
       }
+      // If no site found where user is owner, create a new one
+      return await this.createSiteWithUserAsOwner(userId);
     } else {
       return await this.createSiteWithUserAsOwner(userId);
     }
   }
 
-  async getSiteInUserIsNotMemberOrOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+  async getSiteInUserIsNotMemberOrOwner(
+    userId: string[],
+    accessType: SITE_TYPES
+  ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: 'active' });
-      if (siteListResponse.result.listOfItems.length) {
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+      if (activeSites.length) {
         // Iterate through each site and check membership
-        for (const site of siteListResponse.result.listOfItems) {
+        for (const site of activeSites) {
           const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
 
-          // Check if user is neither a member nor owner
-          const userMembership = memberListResponse.result.listOfItems.find(
-            (member: any) => member.peopleId === userId
-          );
+          console.log('memberListResponse', memberListResponse.result.listOfItems);
 
-          if (!userMembership) {
+          // Check if all users are neither members nor owners
+          const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
+          const allUsersNotMembers = userId.every(userId => !memberPeopleIds.includes(userId));
+
+          if (allUsersNotMembers) {
             return { siteId: site.siteId, siteName: site.name };
           }
         }
       }
-      // If no site found where user is not a member/owner, create a new site
+      // If no site found where all users are not members/owners, create a new site
       return await this.createSite({
-        accessType: SITE_TYPES.PUBLIC,
-        siteName: `Site for ${userId}`,
-        category: { name: 'Public', categoryId: 'public' },
+        accessType: accessType,
+        waitForSearchIndex: false, // Disable search indexing to avoid timeout issues
+      });
+    });
+  }
+
+  /**
+   * Gets a private or unlisted site that has content (pages, events, or albums)
+   * @param accessType - The access type to search for ('private' or 'unlisted')
+   * @returns Promise with site details that has content
+   */
+  async getSiteWithContent(accessType: string, userId: string[]): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting ${accessType} site with content`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      const sites = siteListResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+      // Check each site to see if it has content and users are not members
+      for (const site of sites) {
+        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+        const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
+        const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
+
+        // Check if all users are not members AND site has content
+        if (allUsersNotMembers && (site.hasPages || site.hasEvents || site.hasAlbums)) {
+          console.log(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
+          return { siteId: site.siteId, siteName: site.name };
+        }
+      }
+
+      // If no site with content found, create a new one with pages enabled
+      console.log(`No ${accessType} site with content found, creating new site...`);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        hasPages: true,
         waitForSearchIndex: true,
       });
+
+      return { siteId: createdSite.siteId, siteName: createdSite.siteName };
     });
   }
 }

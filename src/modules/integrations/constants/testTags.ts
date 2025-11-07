@@ -27,6 +27,7 @@ export enum IntegrationsSuiteTags {
   UKG_SYNCING = '@ukgSync',
   WORKDAY = '@workdayAppTiles',
   HOTJAR = '@hotjar',
+  WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
 }
 
 export enum IntegrationsFeatureTags {
@@ -39,6 +40,7 @@ export enum IntegrationsFeatureTags {
   CONFLUENCE = '@confluence',
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
   HOTJAR = '@hotjar',
+  WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
 }
 
 export const TEST_TAGS = {
@@ -74,6 +76,7 @@ export const TEST_TAGS = {
   UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
   HOTJAR: IntegrationsSuiteTags.HOTJAR,
+  WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
