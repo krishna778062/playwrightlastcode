@@ -482,7 +482,7 @@ test.describe(
     test(
       'verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
