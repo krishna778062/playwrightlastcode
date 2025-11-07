@@ -31,6 +31,7 @@ export enum IntegrationsSuiteTags {
   FORM = '@formAppTiles',
   DISPLAY = '@displayAppTiles',
   HYBRID = '@hybridAppTiles',
+  SALESFORCE = '@salesforceAppTiles',
 }
 
 export enum IntegrationsFeatureTags {
