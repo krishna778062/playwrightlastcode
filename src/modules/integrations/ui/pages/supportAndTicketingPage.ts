@@ -3,6 +3,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ConfluenceHelper } from '@/src/modules/integrations/apis/helpers/confluenceHelper';
+import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 export interface IConfluenceActions {
   connectConfluenceServiceAccount: () => Promise<void>;
@@ -17,6 +18,7 @@ export interface IConfluenceActions {
   changeUserServiceNowServiceAccount: () => Promise<void>;
   reconnectConfluenceServiceAccount: () => Promise<void>;
   reconnectServiceNowServiceAccount: () => Promise<void>;
+  reloadPageAndWait: () => Promise<void>;
 }
 
 export interface IConfluenceAssertions {
@@ -41,8 +43,11 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   readonly serviceNowSecretKey: Locator;
   readonly serviceNowUrl: Locator;
   readonly disconnectConfluenceButton: Locator;
+  readonly disconnectServiceNowButton: Locator;
   readonly confirmButton: Locator;
-  readonly connectServiceAccountButton: Locator;
+  readonly connectServiceNowAccountButton: Locator;
+  readonly connectConfluenceServiceAccountButton: Locator;
+  readonly serviceNowConnectServiceAccountButton: Locator;
   readonly confluenceChangeuserButton: Locator;
   readonly serviceNowChangeUserButton: Locator;
   readonly confluenceUrlInput: Locator;
@@ -63,18 +68,50 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   readonly serviceNowReconnectButton: Locator;
   readonly confluenceReconnectButton: Locator;
   readonly disconnectModalMessage: Locator;
+  readonly serviceNowCustomNameRadioButton: Locator;
+  readonly serviceNowDefaultNameRadioButton: Locator;
+  readonly serviceNowCustomNameInput: Locator;
+  readonly serviceNowKnowledgeBaseDefaultRadioButton: Locator;
+  readonly serviceNowKnowledgeBaseCustomRadioButton: Locator;
+  readonly serviceNowKnowledgeBaseNameInput: Locator;
+  readonly serviceNowIntegrationCheckbox: Locator;
+  readonly serviceNowUserName: Locator;
+  readonly serviceNowPassword: Locator;
+  readonly serviceNowLoginButton: Locator;
+  readonly allowAccessButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SUPPORT_TICKETING_PAGE);
+    this.serviceNowIntegrationCheckbox = page.locator('label[for="serviceNowIntegrated"]');
+    this.serviceNowConsumerKey = page.getByPlaceholder('Enter ServiceNow consumer key');
+    this.serviceNowSecretKey = page.getByPlaceholder('Enter ServiceNow secret key');
+    this.serviceNowUrl = page.getByPlaceholder('Enter ServiceNow URL');
+    this.serviceNowUserName = page.locator('#user_name');
+    this.serviceNowPassword = page.locator('#user_password');
+    this.serviceNowLoginButton = page.locator('[id="sysverb_login"]');
+    this.allowAccessButton = page.locator('[name="oauth_auth_check_action"]').nth(1);
     this.serviceNowButton = page.locator('[id="servicenow"]');
-    this.serviceNowConsumerKey = page.locator('[data-testid="field-ServiceNow consumer key"]');
-    this.serviceNowSecretKey = page.locator('[data-testid="field-ServiceNow secret key"]');
-    this.serviceNowUrl = page.locator('[data-testid="field-ServiceNow URL"]');
     this.disconnectConfluenceButton = page.locator(
       'h2:has-text("Atlassian Confluence") >> xpath=ancestor::div[contains(@class,"Panel-module__panel")]//button[contains(.,"Disconnect account")]'
     );
+    this.disconnectServiceNowButton = page.locator(
+      'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Disconnect account")]'
+    );
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
-    this.connectServiceAccountButton = page.getByRole('button', { name: 'Connect service account' });
+    this.connectServiceNowAccountButton = page.locator('button:has-text("Connect service account")').first();
+    this.connectConfluenceServiceAccountButton = page.locator('button:has-text("Connect service account")').nth(1);
+
+    this.serviceNowConnectServiceAccountButton = page.locator(
+      'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Connect service account")]'
+    );
+    this.serviceNowDefaultNameRadioButton = page.locator('#serviceNowTicketingNameRadiodefault'); // locator for the default name field in the ServiceNow Tickets Page
+    this.serviceNowCustomNameRadioButton = page.locator('#serviceNowTicketingNameRadiocustom'); // locator for the custom name field in the ServiceNow Tickets Page
+    this.serviceNowCustomNameInput = page.locator('#serviceNowTicketingName');
+    this.serviceNowKnowledgeBaseDefaultRadioButton = page.locator('#serviceNowKnowledgeBaseNameRadiodefault');
+    this.serviceNowKnowledgeBaseCustomRadioButton = page.locator('#serviceNowKnowledgeBaseNameRadiocustom');
+    this.serviceNowKnowledgeBaseNameInput = page.locator('#serviceNowKnowledgeBaseName');
+
+    // locator for the custom name input field in the ServiceNow Tickets Page
     this.confluenceChangeuserButton = page.locator(
       'h2:has-text("Atlassian Confluence") >> xpath=ancestor::div[contains(@class,"Panel-module__panel")]//button[contains(.,"Change user")]'
     );
@@ -157,7 +194,16 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
       if (await this.saveButton.isEnabled()) {
         await this.saveButton.click();
       }
-      await this.connectServiceAccountButton.click();
+
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(10000);
+      await this.verifier.verifyTheElementIsVisible(this.connectConfluenceServiceAccountButton, {
+        timeout: 30_000,
+        assertionMessage: 'Verifying confluence service account is connected',
+      });
+      await this.connectConfluenceServiceAccountButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(4000);
 
       const confluenceHelper = new ConfluenceHelper(this.page);
       await confluenceHelper.handleConfluenceLogin();
@@ -196,7 +242,7 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
 
   async verifyConfluenceServiceAccountIsDisconnected(): Promise<void> {
     await test.step('Verify Atlassian Confluence is disconnected', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.connectServiceAccountButton, {
+      await this.verifier.verifyTheElementIsVisible(this.connectConfluenceServiceAccountButton, {
         timeout: 15_000,
         assertionMessage: 'Verifying connect confluence service account button is visible',
       });
@@ -438,6 +484,161 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
         timeout: 15_000,
         assertionMessage: 'Verifying ServiceNow URL field is visible',
       });
+    });
+  }
+
+  async selectCustomNameAndFillValue(customName: string): Promise<void> {
+    await test.step(`Select custom name option and fill value: ${customName}`, async () => {
+      // Wait for elements to be ready
+      await this.serviceNowCustomNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.serviceNowCustomNameInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.serviceNowDefaultNameRadioButton.waitFor({ state: 'visible', timeout: 10_000 });
+      const isCustomAlreadyChecked = await this.serviceNowCustomNameRadioButton.isChecked();
+
+      if (isCustomAlreadyChecked) {
+        await test.step('Custom is already selected - switching to default first', async () => {
+          await this.serviceNowDefaultNameRadioButton.check();
+          await expect(this.serviceNowDefaultNameRadioButton).toBeChecked();
+          await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+          if (await this.saveButton.isEnabled()) {
+            await this.saveButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+          }
+        });
+      }
+
+      await this.serviceNowCustomNameRadioButton.check();
+      await expect(this.serviceNowCustomNameRadioButton).toBeChecked();
+      await this.serviceNowCustomNameInput.clear();
+      await this.serviceNowCustomNameInput.fill(customName);
+      await expect(this.serviceNowCustomNameInput).toHaveValue(customName);
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      if (await this.saveButton.isEnabled()) {
+        await this.saveButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+    });
+  }
+
+  async selectDefaultName(): Promise<void> {
+    await test.step('Select default name option', async () => {
+      await this.serviceNowDefaultNameRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowDefaultNameRadioButton.click();
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      if (await this.saveButton.isEnabled()) {
+        await this.saveButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+    });
+  }
+
+  async selectServiceNowCustomKnowledgeBaseName(customKnowledgeBaseName: string): Promise<void> {
+    await test.step(`Configure ServiceNow knowledge base with custom name: '${customKnowledgeBaseName}'`, async () => {
+      await this.serviceNowKnowledgeBaseCustomRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKnowledgeBaseCustomRadioButton.click();
+      await this.serviceNowKnowledgeBaseNameInput.fill(customKnowledgeBaseName);
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.saveButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async selectServiceNowDefaultKnowledgeBaseName(): Promise<void> {
+    await test.step('Select default service now knowledge base name option', async () => {
+      await this.serviceNowKnowledgeBaseDefaultRadioButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowKnowledgeBaseDefaultRadioButton.click();
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.saveButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  // reload the page and wait for the page to be loaded
+  async reloadPageAndWait(): Promise<void> {
+    await test.step('Reload page and wait for the page to be loaded', async () => {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async enterServiceNowCredentials(credentials: {
+    consumerKey: string;
+    secretKey: string;
+    url: string;
+  }): Promise<void> {
+    await test.step('Enter ServiceNow credentials', async () => {
+      await this.serviceNowIntegrationCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
+      let isChecked = await this.serviceNowIntegrationCheckbox.isChecked();
+
+      if (isChecked) {
+        await test.step('Uncheck ServiceNow integration checkbox', async () => {
+          await this.serviceNowIntegrationCheckbox.click();
+          await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+          if (await this.saveButton.isEnabled()) {
+            await this.saveButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+            // Verify checkbox is actually unchecked
+            await expect(this.serviceNowIntegrationCheckbox).not.toBeChecked();
+          }
+        });
+      }
+
+      await this.page.waitForTimeout(2000);
+      isChecked = await this.serviceNowIntegrationCheckbox.isChecked();
+
+      if (!isChecked) {
+        await test.step('Check ServiceNow integration checkbox', async () => {
+          await this.serviceNowIntegrationCheckbox.click();
+          await expect(this.serviceNowIntegrationCheckbox).toBeChecked({ timeout: 10_000 });
+          await this.serviceNowConsumerKey.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowConsumerKey.fill(credentials.consumerKey);
+
+          await this.serviceNowSecretKey.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowSecretKey.fill(credentials.secretKey);
+
+          await this.serviceNowUrl.waitFor({ state: 'visible', timeout: 15_000 });
+          await this.serviceNowUrl.fill(credentials.url);
+
+          if (await this.saveButton.isEnabled()) {
+            await this.saveButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+          }
+        });
+      }
+    });
+  }
+
+  async connectServiceNowAccount(): Promise<void> {
+    await test.step('Connect ServiceNow account', async () => {
+      await this.serviceNowConnectServiceAccountButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowConnectServiceAccountButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowUserName.fill(SERVICE_NOW_VALUES.USER_NAME);
+      await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowPassword.fill(SERVICE_NOW_VALUES.PASSWORD);
+      await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.serviceNowLoginButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.allowAccessButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await expect(this.disconnectServiceNowButton).toBeVisible({ timeout: 10_000 });
+    });
+  }
+
+  async disconnectServiceNowAccount(): Promise<void> {
+    await test.step('Disconnect ServiceNow account', async () => {
+      await this.disconnectServiceNowButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.disconnectServiceNowButton.click();
+      await this.verifier.verifyTheElementIsVisible(this.disconnectModalMessage, {
+        timeout: 15_000,
+        assertionMessage: 'Verifying disconnect modal message',
+      });
+      await this.confirmButton.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.confirmButton.click();
+      await this.page.waitForLoadState('domcontentloaded');
+      await expect(this.connectServiceNowAccountButton).toBeVisible({ timeout: 10_000 });
     });
   }
 }

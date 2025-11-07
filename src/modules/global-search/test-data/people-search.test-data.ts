@@ -38,6 +38,50 @@ export const PEOPLE_SEARCH_TEST_DATA = {
   },
 
   /**
+   * Org Chart configuration test data
+   */
+  orgChart: {
+    enabled: { orgChartEnabled: true },
+    disabled: { orgChartEnabled: false },
+    tooltipText: 'View in org chart',
+  },
+
+  /**
+   * Field configuration test data for people fields
+   */
+  fieldConfiguration: {
+    /**
+     * Field names to configure for testing
+     */
+    fieldsToTest: {
+      Department: 'department',
+      City: 'city',
+      State: 'state',
+      Country: 'country_name',
+    },
+
+    /**
+     * Helper function to create enable payload for a single field
+     * @param fieldData - The field data from GET request
+     * @returns Field object with is_displayable set to true
+     */
+    createEnablePayload: (fieldData: any) => ({
+      ...fieldData,
+      is_displayable: true,
+    }),
+
+    /**
+     * Helper function to create disable payload for a single field
+     * @param fieldData - The field data from GET request
+     * @returns Field object with is_displayable set to false
+     */
+    createDisablePayload: (fieldData: any) => ({
+      ...fieldData,
+      is_displayable: false,
+    }),
+  },
+
+  /**
    * Function to create complete update payload
    */
   createUpdatePayload: (currentUserData: any, updateFields: any) => ({

@@ -25,10 +25,10 @@ export const mailosaurValues: {
   mailosaurEmail: string;
   mailosaurPhone: string;
 } = {
-  mailosaurApiKey: 'RuhqTyBb8hp7JtPT',
-  mailosaurServerId: 'znl8uqcc',
-  mailosaurEmail: 'green@znl8uqcc.mailosaur.net',
-  mailosaurPhone: '+447457416481',
+  mailosaurApiKey: '3G0mJzdusG2e4QKWsyupr2emWMQaMZi2',
+  mailosaurServerId: 'bie7v7vm',
+  mailosaurEmail: 'green@bie7v7vm.mailosaur.net',
+  mailosaurPhone: '+12029891336',
 };
 
 /**

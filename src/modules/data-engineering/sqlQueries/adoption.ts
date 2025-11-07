@@ -94,6 +94,30 @@ export const AdoptionSql = {
   `,
 
   /**
+   * Debug query for App Web Page Views - 'App launch' record investigation
+   * Removes date filters to investigate why 'App launch' record is missing
+   */
+  APP_WEB_PAGE_VIEWS_DEBUG_APP_LAUNCH: `
+    select 
+      rp.code as page_group_code,
+      rp.description as page_description,
+      count(ia.code) as total_interactions,
+      count(distinct ia.interacted_by_user_code) as unique_users,
+      count(distinct case when u.status_code='US001' then ia.interacted_by_user_code end) as active_users,
+      min(ia.INTERACTION_DATETIME) as earliest_interaction,
+      max(ia.INTERACTION_DATETIME) as latest_interaction,
+      ia.INTERACTION_TYPE_CODE,
+      ia.tenant_code
+    from SIMPPLR_COMMON_TENANT.UDL.REF_PAGE_GROUP rp 
+    left join SIMPPLR_COMMON_TENANT.UDL.VW_INTERACTION ia on rp.code = ia.page_group_code 
+    left join SIMPPLR_COMMON_TENANT.UDL.vw_user_as_is u on ia.interacted_by_user_code=u.code 
+    where rp.description = 'App launch'
+      and ia.tenant_code = '{tenantCode}'
+    group by rp.code, rp.description, ia.INTERACTION_TYPE_CODE, ia.tenant_code
+    order by latest_interaction desc
+  `,
+
+  /**
    * Adoption Leaders by Department Query Template
    * Returns adoption data grouped by department
    */
@@ -184,5 +208,98 @@ export const AdoptionSql = {
            mtas.INSTANCE_TYPE_CODE=td.INSTANCE_TYPE_CODE 
            where td.TENANT_CODE = '{tenantCode}' AND 
            REPORTING_MONTH = '{reportingMonth}'
+  `,
+
+  /**
+   * User Engagement Breakdown Query Template
+   * Returns user engagement breakdown data
+   */
+  USER_ENGAGEMENT_BREAKDOWN: `
+        select USER_MARKED_UNDER_CATEGORY as behaviour, 
+            count(USER_MARKED_UNDER_CATEGORY) as count from  
+            (  select user_code , case when max(category)=4 and max(logged_in)=1 then 'Contributor' 
+                when max(category)=3 and max(logged_in)=1 then 'Participant' 
+                when max(category)=2 and max(logged_in)=1 then 'Observer' 
+                else 'No logins' end as user_marked_under_category from  
+                (select user_code,case when is_contributor=true then 4 
+                when is_participant=true then 3 
+                when is_observer=true then 2 
+                else 1  end as category, 
+                case when has_logged_in='TRUE' then 1 
+                else 0 end as logged_in 
+                from SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua inner join 
+                SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u on u.code=dua.user_code
+                where reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+                and u.status_code='US001' and dua.tenant_code ='{tenantCode}' 
+                {locationFilter}
+                {departmentFilter}
+                {segmentFilter}
+                {userCategoryFilter}
+                {companyNameFilter}
+            ) 
+        group by user_code) 
+        group by USER_MARKED_UNDER_CATEGORY;
+  `,
+
+  /**
+   * Adoption Rate User Login Query Template
+   * Returns adoption rate user login data
+   */
+  ADOPTION_RATE_USER_LOGIN: `
+        SELECT  
+            COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code END) 
+        AS users_who_logged_in_at_least_once, 
+            MAX(COUNT(DISTINCT dua.user_code)) OVER () AS total_users, 
+            CONCAT( 
+                
+                    (COUNT(DISTINCT CASE WHEN dua.has_logged_in = TRUE THEN dua.user_code 
+        END)::numeric  
+                    / NULLIF(MAX(COUNT(DISTINCT dua.user_code)) OVER (), 0)) * 100, '%' 
+            ) AS percent, 
+            TO_CHAR(DATE(dua.reporting_date), 'YYYY-MM-DD') AS login_date, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD, YYYY') AS date_format, 
+            TO_CHAR(DATE(dua.reporting_date), 'Mon DD') AS date_format_day 
+        FROM SIMPPLR_COMMON_TENANT.udl.vw_daily_user_adoption dua 
+        INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u  
+            ON dua.user_code = u.code 
+        WHERE reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+          AND dua.tenant_code = '{tenantCode}' 
+          AND u.status_code = 'US001' 
+          {locationFilter}
+          {departmentFilter}
+          {segmentFilter}
+          {userCategoryFilter}
+          {companyNameFilter}
+        GROUP BY dua.reporting_date 
+        ORDER BY dua.reporting_date;
+  `,
+
+  /**
+   * User Login Frequency Distribution Query Template
+   * Returns user login frequency distribution data
+   */
+  USER_LOGIN_FREQUENCY_DISTRIBUTION: `
+        With visits as (select sum(CASE 
+                WHEN HAS_LOGGED_IN THEN 1 
+                ELSE 0 END) as user_visits , user_code 
+        from udl.vw_daily_user_adoption dua  
+        INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u  
+            ON dua.user_code = u.code 
+        WHERE reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+          AND u.tenant_code = '{tenantCode}' 
+          AND u.status_code = 'US001' 
+          {locationFilter}
+          {companyNameFilter}
+          {departmentFilter}
+          {segmentFilter}
+          {userCategoryFilter}
+          group by user_code) 
+          select 
+          count(case when user_visits>10 then user_code end) as "10+ times", 
+          count(case when user_visits>=8 and user_visits<=10 then user_code end) as "8-10 times", 
+          count(case when user_visits>=4 and user_visits<=7 then user_code end) as "4-7 times", 
+          count(case when user_visits>=1 and user_visits<=3 then user_code end) as "1-3 times", 
+          count(case when user_visits<1 then user_code end) as "No logins", 
+          from visits; 
   `,
 };

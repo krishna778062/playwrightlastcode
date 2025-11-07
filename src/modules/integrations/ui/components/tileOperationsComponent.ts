@@ -80,6 +80,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly expensifyStatusTag: Locator;
   readonly expensifyApproverTag: Locator;
   readonly expensifyLastUpdatedText: Locator;
+  readonly greenhouseImage: Locator;
+  readonly jobId: RegExp;
+  readonly Published: RegExp;
+  readonly lessonsPattern: RegExp;
+  readonly registeredOnPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -109,6 +114,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.doceboImage = page.locator('img[src*="docebo"]');
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
+    this.greenhouseImage = page.locator('img[src*="greenhouse"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -125,8 +131,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.usedText = page.getByText(/Used: \d+(\.\d+)? hours/).first();
     this.balanceText = page.getByText(/Balance: \d+(\.\d+)? hours/).first();
     this.fromPattern = /From/;
-    this.sentPattern = /Sent \d+ days? ago/;
+    this.sentPattern = /Sent \d+ (days?|hours?|minutes?|weeks?|months?|years?) ago/;
     this.courseId = /^[A-Z]-/;
+    this.jobId = /Job ID:\s*\d+/;
+    this.Published = /Published.*ago/;
 
     // Schedule tile locators
     this.scheduleContainer = page
@@ -165,6 +173,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
     this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
     this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+
+    // Workday: patterns for lessons count and registered date line
+    this.lessonsPattern = /^\d+\s+Lessons?$/;
+    this.registeredOnPattern =
+      /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
   }
 
   /**
@@ -556,7 +569,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyScheduleTileMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify schedule tile metadata for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
-      await expect(tile).toBeVisible({ timeout: 10_000 });
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
 
       // Verify schedule entries exist
       const schedules = tile.locator(this.scheduleContainer);
@@ -800,6 +813,114 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Verify progress percentages are present
       const progress = tile.locator(this.goalProgress);
       await expect(progress.first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Greenhouse tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyGreenhouseTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Greenhouse tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Greenhouse tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      await expect(tile.locator(this.greenhouseImage), 'Greenhouse image should be visible in tile').toBeVisible();
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify first record has all required elements
+      const firstRecord = containers.first();
+      await expect(
+        firstRecord.getByText(this.jobId).first(),
+        'Job ID should be visible in the first record'
+      ).toBeVisible();
+      await expect(
+        firstRecord.getByText(this.Published).first(),
+        'Published text should be visible in the first record'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Workday pending learning courses tile shows course title, lessons count, and registered date
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await test.step(`Verify pending learning courses tile data for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Pick any visible course row (container) that has a heading and supporting paragraphs
+      const row = tile
+        .locator('[data-testid="container"]')
+        .filter({ has: this.page.locator('h3') })
+        .first();
+      await expect(row, 'A course row should be visible').toBeVisible();
+
+      // Course name as heading level 3
+      await expect(row.getByRole('heading', { level: 3 }).first(), 'Course name should be visible').toBeVisible();
+
+      // Verify lessons count like "7 Lessons" and the Registered on line
+      await expect(row.getByText(this.lessonsPattern).first(), 'Lessons count should be visible').toBeVisible();
+      await expect(
+        row.getByText(this.registeredOnPattern).first(),
+        'Registered on date should be visible'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify "View all courses in Workday" link is visible AND clickable
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all courses in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
+
+      const viewAllLink = tile.getByRole('link', { name: 'View all courses in Workday' }).first();
+      const showMore = tile.locator(this.showMoreButton).first();
+
+      // Reveal the link by clicking Show more up to 3 times if needed
+      for (let i = 0; i < 3 && !(await viewAllLink.isVisible().catch(() => false)); i++) {
+        await this.clickOnElement(showMore);
+        await viewAllLink.waitFor({ state: 'visible', timeout: 2500 }).catch(() => {});
+      }
+      await expect(viewAllLink, `'View all courses in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
+      // Must open in a new tab and match expected URL
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
+      await popup.close();
+    });
+  }
+  /**
+   * Set Up tile with field selection
+   */
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.selectFromDropdown(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  async enableToggleButton(tileTitle: string): Promise<void> {
+    await test.step(`Enable toggle button for '${tileTitle}'`, async () => {
+      const container = (await this.dialog.isVisible().catch(() => false))
+        ? this.dialog
+        : this.getTileContainers(tileTitle);
+      const toggleButton = container
+        .getByRole('switch', { name: /Make user editable/i })
+        .or(container.getByRole('switch'))
+        .first();
+      await expect(toggleButton).toBeVisible({ timeout: 30_000 });
+      if (
+        (await toggleButton.getAttribute('aria-checked')) !== 'true' &&
+        (await toggleButton.getAttribute('data-state')) !== 'checked'
+      ) {
+        await this.clickOnElement(toggleButton, { timeout: 30_000 });
+      }
     });
   }
 }

@@ -45,7 +45,7 @@ export class BaseVerificationUtil {
         timeout: options?.timeout || 8_000,
       });
       return true;
-    } catch (error) {
+    } catch {
       //if we want we can take screenshot here
       return false;
     }
@@ -95,6 +95,52 @@ export class BaseVerificationUtil {
         options?.assertionMessage
           ? `${options.assertionMessage}\n${error}`
           : `Verification failed: Element not enabled.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element is enabled
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsChecked(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be checked`).toBeChecked();
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not checked.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Verifies that the element is not checked
+   * @param locator - The locator to verify
+   * @param options - The options to pass to the verification
+   */
+  async verifyTheElementIsNotChecked(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not checked`).not.toBeChecked();
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element is checked.\n${error}`
       );
     }
   }
@@ -528,5 +574,53 @@ export class BaseVerificationUtil {
         timeout: options?.timeout || 8_000,
       });
     });
+  }
+
+  async verifyElementHasClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have class ${className}`).toHaveClass(
+        className,
+        {
+          timeout: options?.timeout || 8_000,
+        }
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not have expected class.\n${error}`
+      );
+    }
+  }
+
+  async verifyElementDoesNotHaveClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to not have class ${className}`
+      ).not.toHaveClass(className, {
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element has unexpected class.\n${error}`
+      );
+    }
   }
 }

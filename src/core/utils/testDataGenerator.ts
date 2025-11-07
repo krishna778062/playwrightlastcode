@@ -219,6 +219,33 @@ export class TestDataGenerator {
       ...overrides,
     };
   }
+  /**
+   * Generates a user with only email as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only email
+   */
+  static generateUserWithEmpIdAndGivenEmail(
+    email: string,
+    overrides?: Partial<UserWithLicenseAndDepartment>
+  ): UserWithLicenseAndDepartment {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: email,
+      mobile: 0, // Default value for compatibility
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
 
   /**
    * Generates multiple random users
@@ -264,8 +291,8 @@ export class TestDataGenerator {
 
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test String'): string {
-    const randomString = faker.string.alphanumeric(6);
-    return `${prefix}_ ${randomString}`;
+    const randomString = faker.lorem.word();
+    return `${prefix} ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -747,5 +774,36 @@ export class TestDataGenerator {
       networks,
       ...(audienceId && { audienceId }),
     };
+  }
+
+  /**
+   * Generates a random number between min and max (inclusive),
+   * excluding a single existing number.
+   * If no valid number is available, it throws an error.
+   *
+   * @param min Minimum number (inclusive)
+   * @param max Maximum number (inclusive)
+   * @param existingNumber The number to exclude
+   * @returns A unique random number
+   */
+  static getRandomNo(min: number, max: number, existingNumber?: number): number {
+    if (min > max) {
+      throw new Error('min cannot be greater than max');
+    }
+
+    const rangeSize = max - min + 1;
+
+    // If the range only has one number and existingNumber is equal to it, no unique number can be generated
+    if (existingNumber !== undefined && rangeSize <= 1 && existingNumber >= min && existingNumber <= max) {
+      throw new Error('No unique number can be generated in the given range');
+    }
+
+    let randomNumber: number;
+
+    do {
+      randomNumber = Math.floor(Math.random() * rangeSize) + min;
+    } while (existingNumber !== undefined && randomNumber === existingNumber);
+
+    return randomNumber;
   }
 }
