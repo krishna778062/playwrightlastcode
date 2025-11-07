@@ -285,20 +285,27 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
         stepInfo: 'Click on filter button',
       });
 
-      let isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
-        timeout: 10_000,
-      });
+      const maxAttempts = 8;
+      const pollingInterval = 2_000;
 
-      while (!isResetButtonVisible) {
-        await this.clickOnElement(this.filterButton, {
-          stepInfo: 'Click on filter button',
-          force: true,
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
+          timeout: 1_000,
         });
 
-        await this.page.waitForTimeout(2000);
-        isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
-          timeout: 10_000,
-        });
+        if (isResetButtonVisible) {
+          break;
+        }
+
+        if (attempt < maxAttempts) {
+          await this.clickOnElement(this.filterButton, {
+            stepInfo: 'Click on filter button',
+            force: true,
+          });
+          await this.page.waitForTimeout(pollingInterval);
+        } else {
+          throw new Error(`Reset button did not become visible after ${maxAttempts} attempts`);
+        }
       }
 
       await this.page.waitForTimeout(5000);
@@ -328,6 +335,9 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
   // write a function to select the passed filters
   async selectFiltersForEvents(filter: string): Promise<void> {
     await test.step(`Select filters: ${filter}`, async () => {
+      const maxAttempts = 8;
+      const pollingInterval = 2_000;
+
       await this.page.waitForTimeout(3000);
 
       await this.clickOnElement(this.filterButton, {
@@ -339,19 +349,24 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
       // Use exact text matching within the filter dialog to avoid "No" matching "Not required"
       const filterLocator = filterDialog.getByText(filter, { exact: true }).first();
 
-      let isFilterLocatorVisible = await this.verifier.isTheElementVisible(filterLocator, {
-        timeout: 10_000,
-      });
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const isFilterLocatorVisible = await this.verifier.isTheElementVisible(filterLocator, {
+          timeout: 3_000,
+        });
 
-      while (!isFilterLocatorVisible) {
-        await this.clickOnElement(this.filterButton, {
-          stepInfo: 'Click on filter button',
-          force: true,
-        });
-        await this.page.waitForTimeout(2000);
-        isFilterLocatorVisible = await this.verifier.isTheElementVisible(filterLocator, {
-          timeout: 10_000,
-        });
+        if (isFilterLocatorVisible) {
+          break;
+        }
+
+        if (attempt < maxAttempts) {
+          await this.clickOnElement(this.filterButton, {
+            stepInfo: 'Click on filter button',
+            force: true,
+          });
+          await this.page.waitForTimeout(pollingInterval);
+        } else {
+          throw new Error(`Filter locator "${filter}" did not become visible after ${maxAttempts} attempts`);
+        }
       }
 
       await this.clickOnElement(filterLocator, {
@@ -360,20 +375,24 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
 
       await this.page.waitForTimeout(2000);
 
-      let isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
-        timeout: 10_000,
-      });
-
-      while (!isResetButtonVisible) {
-        await this.clickOnElement(this.filterButton, {
-          stepInfo: 'Click on filter button',
-          force: true,
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
+          timeout: 3_000,
         });
 
-        await this.page.waitForTimeout(2000);
-        isResetButtonVisible = await this.verifier.isTheElementVisible(this.resetButton, {
-          timeout: 10_000,
-        });
+        if (isResetButtonVisible) {
+          break;
+        }
+
+        if (attempt < maxAttempts) {
+          await this.clickOnElement(this.filterButton, {
+            stepInfo: 'Click on filter button',
+            force: true,
+          });
+          await this.page.waitForTimeout(pollingInterval);
+        } else {
+          throw new Error(`Reset button did not become visible after ${maxAttempts} attempts`);
+        }
       }
 
       // click on reset button
