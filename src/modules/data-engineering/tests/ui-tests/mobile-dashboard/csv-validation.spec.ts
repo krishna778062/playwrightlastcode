@@ -44,10 +44,6 @@ test.describe(
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
         timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS,
-        // departments: ['Campaign', 'HR'],
-        // locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-        // userCategories: ['Adil Option1'],
-        // companyName: ['Simpplr'],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;
