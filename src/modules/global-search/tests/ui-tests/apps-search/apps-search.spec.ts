@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { generateUniqueTestData } from '@/src/modules/global-search/test-data/apps-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 test.describe(
   'test Global Search - Apps Search functionality',
@@ -90,6 +91,41 @@ test.describe(
 
         // Verify app link opens in new tab (URL doesn't need to be valid for our test case)
         await appResultItem.verifyAppLinkOpensInNewTab(uniqueTestData.appUrl);
+      }
+    );
+
+    test(
+      'verify app list in autocomplete suggestions dropdown',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-16499',
+        });
+
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(uniqueTestData.appName, {
+          stepInfo: `Typing "${uniqueTestData.appName}" in search input`,
+        });
+
+        const globalSearchResultPage = new GlobalSearchResultPage(appManagerFixture.page);
+        const appResult = await globalSearchResultPage.getAutocompleteAppItemByName(uniqueTestData.appName, {
+          stepInfo: `Getting app autocomplete item "${uniqueTestData.appName}"`,
+        });
+
+        // Verify app name is visible in autocomplete
+        await appResult.verifyAppNameIsVisibleInAutocomplete(uniqueTestData.appName, {
+          stepInfo: `Verifying app name "${uniqueTestData.appName}" is visible in autocomplete`,
+        });
+        await appResult.verifyIconIsDisplayedInAutocomplete(uniqueTestData.appIcon, {
+          stepInfo: `Verifying app icon is displayed in autocomplete with src "${uniqueTestData.appIcon}"`,
+        });
+
+        // Verify navigation in new tab
+        await appResult.verifyAppLinkOpensInNewTab(uniqueTestData.appUrl, {
+          stepInfo: `Verifying app link opens in new tab with URL "${uniqueTestData.appUrl}"`,
+        });
       }
     );
   }

@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { generateUniqueLinkTestData } from '@/src/modules/global-search/test-data/link-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 test.describe(
   'test Global Search - Link Search functionality',
@@ -69,6 +70,41 @@ test.describe(
 
         // Verify app link opens in new tab (URL doesn't need to be valid for our test case)
         await linkResultItem.verifyAppLinkOpensInNewTab(linkUrl);
+      }
+    );
+
+    test(
+      'verify link list in autocomplete suggestions dropdown',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-16517',
+        });
+
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(linkName, {
+          stepInfo: `Typing "${linkName}" in search input`,
+        });
+
+        const globalSearchResultPage = new GlobalSearchResultPage(appManagerFixture.page);
+        const linkResult = await globalSearchResultPage.getAutocompleteAppItemByName(linkName, {
+          stepInfo: `Getting link autocomplete item "${linkName}"`,
+        });
+
+        // Verify link name is visible in autocomplete
+        await linkResult.verifyAppNameIsVisibleInAutocomplete(linkName, {
+          stepInfo: `Verifying link name "${linkName}" is visible in autocomplete`,
+        });
+        await linkResult.verifyIconIsDisplayedInAutocomplete(linkUrl, {
+          stepInfo: 'Verifying link icon is displayed in autocomplete',
+        });
+
+        // Verify navigation in new tab
+        await linkResult.verifyAppLinkOpensInNewTab(linkUrl, {
+          stepInfo: `Verifying link opens in new tab with URL "${linkUrl}"`,
+        });
       }
     );
   }

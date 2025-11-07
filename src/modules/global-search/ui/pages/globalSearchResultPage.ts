@@ -36,6 +36,7 @@ export class GlobalSearchResultPage extends BasePage {
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
   readonly dismissButton: Locator;
+  readonly autocompleteAppList: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -72,6 +73,9 @@ export class GlobalSearchResultPage extends BasePage {
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
     this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
+
+    // App autocomplete locators
+    this.autocompleteAppList = this.page.locator('a[class*="AppList_hoverStyle"]');
   }
 
   /**
@@ -400,6 +404,26 @@ export class GlobalSearchResultPage extends BasePage {
       has: this.page.locator('h3', { hasText: searchTerm }),
     });
     return new AppsAndLinkContainerComponent(this.page, appResultToLocate);
+  }
+
+  /**
+   * Get specific app autocomplete item by name
+   * @param itemName - The app name to find
+   * @param options - Optional parameters including stepInfo
+   * @returns AppsAndLinkContainerComponent instance for the specific app item
+   */
+  async getAutocompleteAppItemByName(
+    itemName: string,
+    options?: { stepInfo?: string }
+  ): Promise<AppsAndLinkContainerComponent> {
+    return await test.step(options?.stepInfo || `Getting app autocomplete item by name "${itemName}"`, async () => {
+      // wait for autocompleteAppList to be visible
+      await this.verifier.waitUntilElementIsVisible(this.autocompleteAppList, { timeout: 40000 });
+      const specificItemLocator = this.autocompleteAppList.filter({
+        hasText: itemName,
+      });
+      return new AppsAndLinkContainerComponent(this.page, specificItemLocator);
+    });
   }
 
   /**
