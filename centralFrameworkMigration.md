@@ -51,6 +51,8 @@ I want you to:
    - Create placeholder objects for dialog boxes and modals
    - Use proper locator strategies for dynamic content
    - Implement proper error handling for missing elements
+
+10. Avoid test.step function in the spec file
 ```
 
 ## Key Migration Patterns

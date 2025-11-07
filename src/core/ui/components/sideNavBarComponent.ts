@@ -43,6 +43,12 @@ export class SideNavBarComponent extends BaseComponent {
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
 
+  //recognition section
+  readonly recognitionLink: Locator;
+  readonly recognitionFeature: Locator;
+  readonly homeNavMenu: Locator;
+  readonly manageNavMenu: Locator;
+
   constructor(page: Page) {
     super(page);
     this.createSection = page.locator('span', { hasText: 'Create' });
@@ -78,6 +84,12 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+
+    //recognition section
+    this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
+    this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
+    this.homeNavMenu = page.getByRole('menuitem', { name: 'Home' });
+    this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
   }
 
   /**
@@ -234,6 +246,41 @@ export class SideNavBarComponent extends BaseComponent {
   async openRecognitionAnalytics(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Recognition Analytics`, async () => {
       await this.clickOnElement(this.recognitionButton);
+    });
+  }
+
+  /**
+   * Clicks on Recognition Link under home menu of side navigation bar
+   * @param options - The options for the step
+   */
+  async clickRecognitionLinkUnderHomeNavMenu(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking recognition link under home side navigation menu`, async () => {
+      await this.clickOnElement(this.homeNavMenu, { stepInfo: `clicking home side navigation menu` });
+      await expect(this.recognitionLink, `expecting recognition link to be visible on side bar menu`).toBeVisible();
+      await this.clickOnElement(this.recognitionLink, {
+        stepInfo: `clicking recognition link under home side navigation menu`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on Recognition link inside manage menu of side navigation bar
+   * @param options - The options for the step
+   */
+  async clickRecognitionLinkInsideManageNavMenu(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking recognition link inside manage side navigation menu', async () => {
+      await this.clickOnElement(this.manageNavMenu, {
+        stepInfo: 'Clicking manage side navigation menu',
+      });
+      await this.clickOnElement(this.recognitionLink, {
+        stepInfo: 'Clicking recognition link inside manage side navigation menu',
+      });
+    });
+  }
+
+  async verifyingCreateButtonIsVisible(): Promise<void> {
+    await test.step('Verifying Create button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
     });
   }
 }

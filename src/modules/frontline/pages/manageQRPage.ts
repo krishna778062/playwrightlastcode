@@ -88,6 +88,12 @@ export class ManageQRPage extends BasePage {
   readonly downloadIcon: Locator;
   readonly toastMessage: Locator;
   private downloadedFilePath: string = '';
+  readonly textBelowPromoteContentViaQRPopupHeading: Locator;
+  readonly textBelowPreviewQRPopupHeading: Locator;
+  readonly helpTextBelowQRNameField: Locator;
+  readonly helpTextBelowDescriptionField: Locator;
+  readonly helpTextBelowValidTillField: Locator;
+  readonly dialogCloseButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
@@ -169,6 +175,12 @@ export class ManageQRPage extends BasePage {
     this.addContentDescription = page.getByRole('heading').locator('xpath=following-sibling::p');
     this.contentSearchBoxText = page.getByText(QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT);
     this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE);
+    this.textBelowPromoteContentViaQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_QR_CODES_POPUP_HEADING);
+    this.textBelowPreviewQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_PREVIEW_QR_CODE_POPUP_HEADING);
+    this.helpTextBelowQRNameField = page.getByText(QR_MESSAGES.HELP_TEXT_BELOW_QR_NAME_FIELD);
+    this.helpTextBelowDescriptionField = page.getByText(QR_MESSAGES.HELP_TEXT_BELOW_DESCRIPTION_FIELD);
+    this.helpTextBelowValidTillField = page.getByText(QR_MESSAGES.HELP_TEXT_BELOW_VALID_TILL_FIELD);
+    this.dialogCloseButton = page.getByRole('dialog').getByRole('button', { name: 'Close' });
 
     // Dynamic locators for QR operations
     this.qrRowByText = page.locator('tr');
@@ -245,11 +257,17 @@ export class ManageQRPage extends BasePage {
     await this.fillInElement(this.qrNameField, qrName, {
       stepInfo: `Fill QR name: ${qrName}`,
     });
+    await this.verifier.verifyTheElementIsVisible(this.helpTextBelowQRNameField, {
+      assertionMessage: 'Help text below QR name field should be visible',
+    });
   }
 
   async fillDescription(description: string) {
     await this.fillInElement(this.descriptionField, description, {
       stepInfo: `Fill description: ${description}`,
+    });
+    await this.verifier.verifyTheElementIsVisible(this.helpTextBelowDescriptionField, {
+      assertionMessage: 'Help text below description field should be visible',
     });
   }
 
@@ -278,6 +296,9 @@ export class ManageQRPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.promoteMobileAppPageHeading, {
       assertionMessage: 'Promote mobile app page heading should be visible',
     });
+    await this.verifier.verifyTheElementIsVisible(this.textBelowPromoteContentViaQRPopupHeading, {
+      assertionMessage: 'Text below Promote mobile app via QR page heading should be visible',
+    });
   }
 
   async verifyPromotionPopup() {
@@ -285,12 +306,18 @@ export class ManageQRPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.appPreviewQRPopupHeader, {
       assertionMessage: 'App preview popup header should be visible',
     });
+    await this.verifier.verifyTheElementIsVisible(this.textBelowPreviewQRPopupHeading, {
+      assertionMessage: 'Text below Promote mobile app via QR page heading should be visible',
+    });
   }
 
   async verifyPreviewPopup() {
     await this.contentPreviewQRPopupHeader.waitFor();
     await this.verifier.verifyTheElementIsVisible(this.contentPreviewQRPopupHeader, {
       assertionMessage: 'Content preview popup header should be visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.textBelowPreviewQRPopupHeading, {
+      assertionMessage: 'Text below Promote mobile app via QR page heading should be visible',
     });
   }
 
@@ -319,6 +346,39 @@ export class ManageQRPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.qrNameHeaderLocator.filter({ hasText: qrName }), {
       assertionMessage: `QR code with name "${qrName}" should be visible`,
     });
+  }
+
+  async verifyEyeIconForQR(qrName: string) {
+    const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+    const viewIcon = qrRow.getByLabel('View', { exact: true });
+    await this.verifier.verifyTheElementIsVisible(viewIcon, {
+      assertionMessage: `Eye icon (View button) should be visible for QR: ${qrName}`,
+    });
+  }
+
+  async clickEyeIconForQR(qrName: string) {
+    const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+    const viewIcon = qrRow.getByLabel('View', { exact: true });
+
+    // Set up listener for new tabs that might open when clicking View button
+    const newPagePromise = this.page
+      .context()
+      .waitForEvent('page', { timeout: 3000 })
+      .catch(() => null);
+
+    await this.clickOnElement(viewIcon, {
+      stepInfo: `Click on eye icon (View button) for QR: ${qrName}`,
+    });
+
+    // If a new tab opened unexpectedly, close it immediately
+    // The preview should appear as a modal/popup in the current tab, not a new tab
+    const newPage = await newPagePromise;
+    if (newPage) {
+      console.warn(`Unexpected new tab opened when clicking View button for QR: ${qrName}. Closing it.`);
+      await newPage.close();
+      // Wait a moment for the modal to appear after closing the new tab
+      await this.page.waitForTimeout(500);
+    }
   }
 
   async clickOnThreeDots(qrName: string) {
@@ -384,6 +444,9 @@ export class ManageQRPage extends BasePage {
 
   async enterAndSelectContent() {
     await this.enterContent.fill(ContentType.Page);
+    await this.verifier.verifyElementHasText(this.contentSearchBoxText, QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT, {
+      assertionMessage: 'Content search box text should have correct text',
+    });
     await this.selectFirstContent.click();
   }
 
@@ -395,7 +458,10 @@ export class ManageQRPage extends BasePage {
 
   async verifyContentQRModalHeading() {
     await this.verifier.verifyTheElementIsVisible(this.promoteContentQRModalHeading, {
-      assertionMessage: 'GPromote content via QR Modal heading should be visible',
+      assertionMessage: 'Promote content via QR Modal heading should be visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.textBelowPromoteContentViaQRPopupHeading, {
+      assertionMessage: 'Text below Promote content via QR page heading should be visible',
     });
   }
 
@@ -405,6 +471,9 @@ export class ManageQRPage extends BasePage {
    * @returns Promise that resolves when the date is selected
    */
   async selectDateFromToday(daysFromToday: number) {
+    await this.verifier.verifyTheElementIsVisible(this.helpTextBelowValidTillField, {
+      assertionMessage: 'Help text below valid till field should be visible',
+    });
     await this.clickOnElement(this.validTillDatePicker, {
       stepInfo: 'Click on Valid till date picker',
     });
@@ -430,6 +499,16 @@ export class ManageQRPage extends BasePage {
     await this.clickOnElement(this.nextButton, {
       stepInfo: 'Click on Next button',
     });
+
+    const prmoteContentHeadingVisible = await this.verifier.isTheElementVisible(this.promoteContentQRModalHeading, {
+      assertionMessage: 'Promote content heading should be visible',
+    });
+
+    if (!prmoteContentHeadingVisible) {
+      await this.clickOnElement(this.nextButton, {
+        stepInfo: 'Click on Next button',
+      });
+    }
   }
 
   async navigateToApplicationSetup() {
@@ -771,6 +850,10 @@ export class ManageQRPage extends BasePage {
   async verifyPromoteContentPageHeading(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.promoteContentQRPage, {
       assertionMessage: 'Promote content via QR page should be visible',
+    });
+
+    await this.verifier.verifyTheElementIsVisible(this.textBelowPromoteContentViaQRPopupHeading, {
+      assertionMessage: 'Help text below Promote content via QR page heading should be visible',
     });
   }
 
@@ -1223,6 +1306,18 @@ export class ManageQRPage extends BasePage {
   async verifyContentPromoteModalIsClosed(): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.promoteContentQRHeading, {
       assertionMessage: 'Content promote modal should be closed and not visible',
+    });
+  }
+
+  async clickDialogCloseButton(): Promise<void> {
+    await this.clickOnElement(this.dialogCloseButton, {
+      stepInfo: 'Click on close button (cross icon) in dialog popup',
+    });
+  }
+
+  async verifyDialogPopupIsClosed(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.promoteContentQRModalHeading, {
+      assertionMessage: 'Dialog popup should be closed and not visible',
     });
   }
 }

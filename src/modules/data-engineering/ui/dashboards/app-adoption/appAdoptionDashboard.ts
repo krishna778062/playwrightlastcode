@@ -6,7 +6,10 @@ import {
 import { Page, test } from '@playwright/test';
 
 import { AdoptionLeadersMetrics } from './metrics/adoptionLeadersMetrics';
+import { AdoptionRateUserLoginMetrics } from './metrics/adoptionRateUserLoginMetrics';
 import { AppWebPageViewMetrics } from './metrics/appWebPageViewMetrics';
+import { UserEngagementBreakdownMetric } from './metrics/userEngagementBreakdown';
+import { UserLoginFrequencyDistributionMetrics } from './metrics/userLoginFrequenceyDistributionMetrics';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseAnalyticsDashboardPage } from '@/src/modules/data-engineering/ui/pages/baseAnalyticsDashboardPage';
@@ -18,7 +21,9 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
   readonly contributorsAndParticipantsMetrics: ContributorsAndParticipantsMetrics;
   readonly adoptionLeadersMetrics: AdoptionLeadersMetrics;
   readonly appWebPageViewsMetrics: AppWebPageViewMetrics;
-
+  readonly userEngagementBreakdownMetric: UserEngagementBreakdownMetric;
+  readonly adoptionRateUserLoginMetrics: AdoptionRateUserLoginMetrics;
+  readonly adoptionRateUserLoginFrequencyDistributionMetrics: UserLoginFrequencyDistributionMetrics;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ADOPTION_DASHBOARD);
     this.totalUsersMetrics = new TotalUsersMetrics(page, this.thoughtSpotIframe);
@@ -26,6 +31,12 @@ export class AppAdoptionDashboard extends BaseAnalyticsDashboardPage {
     this.contributorsAndParticipantsMetrics = new ContributorsAndParticipantsMetrics(page, this.thoughtSpotIframe);
     this.adoptionLeadersMetrics = new AdoptionLeadersMetrics(page, this.thoughtSpotIframe);
     this.appWebPageViewsMetrics = new AppWebPageViewMetrics(page, this.thoughtSpotIframe);
+    this.userEngagementBreakdownMetric = new UserEngagementBreakdownMetric(page, this.thoughtSpotIframe);
+    this.adoptionRateUserLoginMetrics = new AdoptionRateUserLoginMetrics(page, this.thoughtSpotIframe);
+    this.adoptionRateUserLoginFrequencyDistributionMetrics = new UserLoginFrequencyDistributionMetrics(
+      page,
+      this.thoughtSpotIframe
+    );
   }
 
   /**
