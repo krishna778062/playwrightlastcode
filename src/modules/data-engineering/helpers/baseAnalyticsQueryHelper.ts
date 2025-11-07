@@ -131,6 +131,7 @@ export abstract class BaseAnalyticsQueryHelper {
   /**
    * Transforms a base query by adding filters and date replacements ONLY
    * Does NOT add GROUP BY or ORDER BY - assumes they're already in the base query
+   * Uses global replacement to handle placeholders that appear multiple times (e.g., in subqueries)
    * @param baseQuery - The metric-specific query (with SELECT clause and placeholders)
    * @param filterBy - Filter options (locations, departments, userCategories, etc.)
    */
@@ -148,22 +149,22 @@ export abstract class BaseAnalyticsQueryHelper {
       filterBy.customEndDate
     );
 
-    // Replace all placeholders in base query
+    // Replace all placeholders in base query using global regex to handle multiple occurrences
     let query = baseQuery
-      .replace('{tenantCode}', filterBy.tenantCode)
-      .replace('{startDate}', dateReplacements.startDate)
-      .replace('{endDate}', dateReplacements.endDate)
-      .replace('{locationFilter}', this.addLocationFilter(filterBy.locations))
-      .replace('{departmentFilter}', this.addDepartmentFilter(filterBy.departments))
-      .replace('{segmentFilter}', this.addSegmentFilter(filterBy.segments))
-      .replace('{companyNameFilter}', this.addCompanyNameFilter(filterBy.companyName));
+      .replace(/{tenantCode}/g, filterBy.tenantCode)
+      .replace(/{startDate}/g, dateReplacements.startDate)
+      .replace(/{endDate}/g, dateReplacements.endDate)
+      .replace(/{locationFilter}/g, this.addLocationFilter(filterBy.locations))
+      .replace(/{departmentFilter}/g, this.addDepartmentFilter(filterBy.departments))
+      .replace(/{segmentFilter}/g, this.addSegmentFilter(filterBy.segments))
+      .replace(/{companyNameFilter}/g, this.addCompanyNameFilter(filterBy.companyName));
 
     // Handle user category mapping and replacement
     if (filterBy.userCategories && filterBy.userCategories.length > 0) {
       const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
-      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(userCategoryCodes));
+      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(userCategoryCodes));
     } else {
-      query = query.replace('{userCategoryFilter}', this.addUserCategoryFilter(filterBy.userCategories));
+      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(filterBy.userCategories));
     }
 
     return query;
