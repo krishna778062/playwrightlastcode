@@ -4,7 +4,6 @@ import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -21,10 +20,9 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_SITE],
   },
   () => {
-    let manageSiteStandardUserPage: ManageSitePage;
+    let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
-    let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageFeaturesPage: ManageFeaturesPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
@@ -195,7 +193,7 @@ test.describe(
     test(
       'to verify the search content in manage site content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23736'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23736'],
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {

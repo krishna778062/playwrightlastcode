@@ -7,8 +7,6 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -74,10 +72,6 @@ test.describe(
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       siteCategoriesPage = new SiteCategoriesPage(appManagerFixture.page);
-      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
-      manageContentPage = new ManageContentPage(appManagerFixture.page);
-      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
-      onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
@@ -313,7 +307,7 @@ test.describe(
     test(
       'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20538'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -346,6 +340,10 @@ test.describe(
         await manageContentPage.actions.clickOnDeleteButton();
         await manageContentPage.actions.selectDeleteApplyButton();
         await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+      }
+    );
+
+    test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
