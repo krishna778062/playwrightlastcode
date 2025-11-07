@@ -1,13 +1,15 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
+
+import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
-import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
   // Old methods from ManageSitesComponent
+  clickOnAddSite: () => Promise<void>;
+  selectSite: () => Promise<void>;
   clickOnSite: () => Promise<void>;
   clickOnAboutTab: () => Promise<void>;
   clickOnTheMembersTab: () => Promise<void>;
@@ -45,31 +47,21 @@ export interface IManageSiteAssertions {
   verifyPageTabImageIsDisplayed: () => Promise<void>;
   // New methods from develop
   verifyNoSitesFound: (siteName: string) => Promise<void>;
-  // Add assertions as needed
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
-  // Locators from develop
-  readonly contentTab = this.page.locator(
-    'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
-  );
-  readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
-  readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
-  readonly clickOnSearchBar = this.page.getByRole('textbox', { name: 'Search sites…' });
-  readonly clickingOnSearchButton = this.page.locator('[type="submit"][aria-label="Search"]');
-  readonly siteList = this.page.locator('.type--title').first();
-
-  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
-  private sideNavBarComponent: SideNavBarComponent;
   private manageSitesComponent: ManageSitesComponent;
+  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
+  readonly addSite = this.page.getByRole('link', { name: 'Add site' });
+  readonly contentTab = this.page.getByTestId('content-tab');
+  readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
+  readonly siteList = this.page.locator('.type--title').first();
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
-    this.sideNavBarComponent = new SideNavBarComponent(page);
     this.manageSitesComponent = new ManageSitesComponent(page);
-    this.clickOnSite = this.clickOnSite.bind(this);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -81,7 +73,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   get actions(): IManageSiteActions {
     return this;
   }
-
   get assertions(): IManageSiteAssertions {
     return this;
   }
@@ -208,9 +199,20 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
-  getSiteNameLocator(siteName: string): Locator {
-    return this.page.getByText(siteName, { exact: true });
+  async clickOnAddSite(): Promise<void> {
+    await test.step('Clicking on add site', async () => {
+      await this.clickOnElement(this.addSite);
+    });
   }
+
+  async selectSite(): Promise<void> {
+    await test.step('Selecting the site', async () => {
+      await this.clickOnElement(this.selectASite);
+      await this.page.keyboard.press('Tab');
+      await this.page.keyboard.press('Enter');
+    });
+  }
+
   async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
     // Handle both single site name and array of site names
     const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
@@ -229,5 +231,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
     });
+  }
+
+  getSiteNameLocator(siteName: string): Locator {
+    return this.page.getByText(siteName, { exact: true });
   }
 }
