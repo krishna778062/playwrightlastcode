@@ -233,7 +233,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
       const createResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.createSiteButton, { delay: 5_000 }),
         response =>
           response.request().url() === getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url &&
           response.request().method() === 'POST' &&

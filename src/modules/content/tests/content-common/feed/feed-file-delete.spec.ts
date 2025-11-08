@@ -282,6 +282,7 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
           await appManagerFeedPage.actions.clickShowMoreButton();
           await appManagerFeedPage.actions.clickDeleteButton();
+          await appManagerFeedPage.reloadPage();
           await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
         }
       );

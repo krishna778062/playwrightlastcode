@@ -61,7 +61,7 @@ test.describe(
     test(
       'event Content Add attach file with all the Mandatory fields',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION, '@CONT-10824'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -102,14 +102,14 @@ test.describe(
         siteIdToPublishEvent = siteId;
         manualCleanupNeeded = true;
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           eventCreationOptions.title,
           "Created event successfully - it's published"
         );
+
+        // Initialize preview page and handle the promotion
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
     test(

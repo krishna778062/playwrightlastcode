@@ -295,21 +295,33 @@ export class SocialCampaignHelper {
   /**
    * Cleans up all campaigns created by this helper instance
    * This should be called in test cleanup to ensure proper resource management
+   * Uses API calls to delete campaigns, similar to site and content helpers
    */
   async cleanup(): Promise<void> {
-    console.log(`Cleaning up ${this.campaigns.length} social campaigns...`);
+    return await test.step('SocialCampaignHelper Cleanup', async () => {
+      console.log(`🧹🧹🧹 SocialCampaignHelper cleanup called - ${this.campaigns.length} campaigns tracked 🧹🧹🧹`);
 
-    for (const { campaignId, message } of this.campaigns) {
-      try {
-        await this.deleteCampaign(campaignId);
-        console.log(`Deleted campaign: ${message} (${campaignId})`);
-      } catch (error) {
-        console.warn(`Failed to delete campaign ${message} (${campaignId}):`, error);
+      if (this.campaigns.length === 0) {
+        return;
       }
-    }
 
-    // Clear the tracking array
-    this.campaigns = [];
+      // Create a copy of campaigns array to avoid issues if campaigns array is modified during deletion
+      const campaignsToDelete = [...this.campaigns];
+
+      for (const { campaignId, message } of campaignsToDelete) {
+        try {
+          // Use the service directly to ensure API call happens even if tracking fails
+          await this.socialCampaignService.deleteCampaign(campaignId);
+          console.log(`✅ Deleted campaign: ${message} (${campaignId})`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete campaign ${message} (${campaignId}):`, error);
+          // Continue with next campaign even if one fails
+        }
+      }
+
+      // Clear the tracking array after cleanup attempts
+      this.campaigns = [];
+    });
   }
 
   /**

@@ -290,7 +290,7 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test String'): string {
+  static generateRandomString(prefix: string = 'Test'): string {
     const randomString = faker.lorem.word();
     return `${prefix} ${randomString}`;
   }

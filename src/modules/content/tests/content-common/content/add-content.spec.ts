@@ -13,6 +13,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { ManageUsersPage } from '@/src/modules/content/ui/pages/manageUsersPage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 test.describe(
@@ -22,6 +23,7 @@ test.describe(
   },
   () => {
     let pageCreationPage: PageCreationPage;
+    let manageUsersPage: ManageUsersPage;
     let contentPreviewPage: ContentPreviewPage;
     let siteIdToPublishPage: string;
     let publishedPageId: string;
@@ -58,18 +60,24 @@ test.describe(
         const userEmail = users.endUser.email;
         const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
         userId = peopleInfo.userId;
-
+        await standardUserFixture.homePage.loadPage();
         // Get and assign Unlisted Sites Manager role
         roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
+        console.log('roleId :   ', roleId);
+        console.log('Roles.UNLISTED_SITES_MANAGER :   ', Roles.UNLISTED_SITES_MANAGER);
         await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
-
+        manageUsersPage = new ManageUsersPage(appManagerFixture.page);
+        await manageUsersPage.loadPage();
+        await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
+        await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           waitForSearchIndex: true,
           hasPages: true,
         });
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.loadPage();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -103,13 +111,13 @@ test.describe(
           publishedPageId,
           ContentType.PAGE
         );
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
 
