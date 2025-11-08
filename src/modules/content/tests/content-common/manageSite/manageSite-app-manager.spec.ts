@@ -6,7 +6,7 @@ import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -15,6 +15,7 @@ import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -30,7 +31,7 @@ test.describe(
     let siteCategoriesPage: SiteCategoriesPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
-    let manageSiteAppManagerPage: ManageSitePage;
+    let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
@@ -90,12 +91,11 @@ test.describe(
     test(
       'verify different sites can share same page category name',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify different sites can share same page category name',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-24601',
           storyId: 'CONT-24601',
         });
@@ -104,7 +104,7 @@ test.describe(
         const creatingSiteFirstPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteFirstPublicSite.siteId);
         await newSiteDashboard.loadPage();
-        const firstManageSitePageAppManagerSite = new ManageSitePage(
+        const firstManageSitePageAppManagerSite = new ManageSiteSetUpPage(
           appManagerFixture.page,
           creatingSiteFirstPublicSite.siteId
         );
@@ -117,11 +117,11 @@ test.describe(
         const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newSecondDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteSecondPublicSite.siteId);
         await newSecondDashboard.loadPage();
-        const manageSitePageSecondPublicSite = new ManageSitePage(
+        const manageSitePageSecondPublicSite = new ManageSiteSetUpPage(
           appManagerFixture.page,
           creatingSiteSecondPublicSite.siteId
         );
-        const secondManageSitePageAppManagerSite = new ManageSitePage(
+        const secondManageSitePageAppManagerSite = new ManageSiteSetUpPage(
           appManagerFixture.page,
           creatingSiteSecondPublicSite.siteId
         );
@@ -133,11 +133,11 @@ test.describe(
         const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
         const newThirdDashboard = new SiteDashboardPage(appManagerFixture.page, creatingSiteThirdPublicSite.siteId);
         await newThirdDashboard.loadPage();
-        const thirdManageSitePageAppManagerSite = new ManageSitePage(
+        const thirdManageSitePageAppManagerSite = new ManageSiteSetUpPage(
           appManagerFixture.page,
           creatingSiteThirdPublicSite.siteId
         );
-        const manageSitePageThirdPublicSite = new ManageSitePage(
+        const manageSitePageThirdPublicSite = new ManageSiteSetUpPage(
           appManagerFixture.page,
           creatingSiteThirdPublicSite.siteId
         );
@@ -153,12 +153,11 @@ test.describe(
     test(
       'to verify the favourite people from manage site people',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-29063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the favourite people from manage site people',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-24178',
           storyId: 'CONT-24178',
         });
@@ -173,7 +172,7 @@ test.describe(
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteId);
+        const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteId);
         await manageSitePageAppManagerSite.actions.clickOnAboutTab();
         await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
         await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
@@ -197,7 +196,7 @@ test.describe(
     test(
       'verify Scheduled stamp and its options menu under-manage site content tab',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -232,12 +231,11 @@ test.describe(
     test(
       'to verify the site author name and event start date',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26044'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-26044',
           storyId: 'CONT-26044',
         });
@@ -253,16 +251,16 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteAppManagerPage = new ManageSitePage(appManagerFixture.page, firstSiteId);
+        manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
 
         // Verify all site names are displayed (method handles the loop internally)
-        await manageSiteAppManagerPage.verifySitesNamesAreDisplayed(siteNames);
+        await manageSiteAppManagerPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );
     test(
       'to verify the onboarding option in manage site content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23737'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23737'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -323,6 +321,34 @@ test.describe(
         await editSitePage.actions.clickOnEditOption();
         await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
         await editSitePage.actions.clickOnUpdateButton();
+
+    test(
+      'verify the site activate option in manage site user drop down sites for all site types',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify the site activate option in manage site user drop down sites for all site types',
+          zephyrTestId: 'CONT-26177',
+          storyId: 'CONT-26177',
+        });
+
+        const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
+        const manageSitePage = new ManageSitePage(appManagerFixture.page);
+        await manageSitePage.loadPage();
+        await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
+        await manageSitePage.actions.selectFilterOption('All');
+
+        for (const siteType of siteTypes) {
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteName = siteInfo.siteName;
+          await manageSitePage.actions.searchSite(siteName);
+          await manageSitePage.actions.clickOnSearchButton();
+          await manageSitePage.actions.clickOnOptionsDropdown(siteName);
+          await manageSitePage.assertions.verifyOptionIsVisibleInOptionsDropdown('Activate');
+          await manageSitePage.assertions.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
+        }
       }
     );
   }
