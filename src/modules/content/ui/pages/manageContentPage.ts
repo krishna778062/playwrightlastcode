@@ -31,6 +31,10 @@ export interface IActions {
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
+  hoverOnFirstDropDownOption: () => Promise<void>;
+  verifyOptionVisibleInManageContent: (option: ManageContentOptions) => Promise<void>;
+  clickOnOptionButton: (option: ManageContentOptions) => Promise<void>;
+  verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
 }
 
 export interface IAssertions {
@@ -82,7 +86,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     });
   }
 
-  get actions() {
+  get actions(): IActions {
     return this;
   }
 

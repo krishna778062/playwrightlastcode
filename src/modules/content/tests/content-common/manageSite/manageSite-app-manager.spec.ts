@@ -33,6 +33,7 @@ test.describe(
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
+    let addToCampaignComponent: AddToCampaignComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -154,7 +155,7 @@ test.describe(
     test(
       'verify Scheduled stamp and its options menu under-manage site content tab',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -176,8 +177,8 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.scheduledTagVisibleInManageContent();
-        await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.scheduledTagVisibleInManageContent();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
@@ -249,6 +250,14 @@ test.describe(
           includeCount: true,
           status: 'active',
         });
+        if (campaigns.length === 0) {
+          throw new Error('No active campaigns found. Please create at least one campaign before running this test.');
+        }
+        // Use title if available, otherwise fall back to message
+        const campaignName = campaigns[0].title || campaigns[0].message;
+        if (!campaignName) {
+          throw new Error('Campaign has neither title nor message');
+        }
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
@@ -256,7 +265,7 @@ test.describe(
         });
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
         await siteDashboardPage.loadPage();
-        const manageSitePageAppManagerSite = new ManageSitePage(appManagerFixture.page, siteInfo);
+        const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo);
         await manageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
         await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
         await manageContentPage.actions.clickSortByButton();
@@ -267,7 +276,7 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
         await manageContentPage.actions.clickOnOptionButton(ManageContentOptions.ADD_TO_CAMPAIGN);
         await addToCampaignComponent.clickOnAddToCampaignInput();
-        await addToCampaignComponent.typeInAddToCampaignInput(campaigns[0].title || '');
+        await addToCampaignComponent.typeInAddToCampaignInput(campaignName);
         await addToCampaignComponent.clickOnSaveButton();
         await manageContentPage.verifyToastMessageIsVisibleWithText('Added content to campaign');
       }

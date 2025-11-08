@@ -27,9 +27,11 @@ export class AddToCampaignComponent extends BaseComponent {
     await test.step(`Typing in the add to campaign input`, async () => {
       // Type into the actual input element (React Select needs typing for search/filter)
       await this.typeInElement(this.addToCampaignInput, campaignName);
-      // Wait for and click the list item
+      // Wait a bit for React Select to filter and show results
+      await this.page.waitForTimeout(500);
+      // Wait for and click the list item - use a more flexible locator that matches partial text
       const listItem = this.getListItem(campaignName);
-      await listItem.waitFor({ state: 'visible' });
+      await listItem.waitFor({ state: 'visible', timeout: 10000 });
       await this.clickOnElement(listItem);
     });
   }
