@@ -895,4 +895,32 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await popup.close();
     });
   }
+  /**
+   * Set Up tile with field selection
+   */
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.selectFromDropdown(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  async enableToggleButton(tileTitle: string): Promise<void> {
+    await test.step(`Enable toggle button for '${tileTitle}'`, async () => {
+      const container = (await this.dialog.isVisible().catch(() => false))
+        ? this.dialog
+        : this.getTileContainers(tileTitle);
+      const toggleButton = container
+        .getByRole('switch', { name: /Make user editable/i })
+        .or(container.getByRole('switch'))
+        .first();
+      await expect(toggleButton).toBeVisible({ timeout: 30_000 });
+      if (
+        (await toggleButton.getAttribute('aria-checked')) !== 'true' &&
+        (await toggleButton.getAttribute('data-state')) !== 'checked'
+      ) {
+        await this.clickOnElement(toggleButton, { timeout: 30_000 });
+      }
+    });
+  }
 }
