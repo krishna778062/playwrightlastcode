@@ -39,8 +39,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
+  constructor(page: Page, siteId?: string) {
+    const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
+    super(page, pageUrl);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
