@@ -5,230 +5,56 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
+import { Page } from '@playwright/test';
+
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IManageSiteActions {
-  // Old methods from ManageSitesComponent
-  clickOnAddSite: () => Promise<void>;
-  selectSite: () => Promise<void>;
-  clickOnSite: () => Promise<void>;
-  clickOnAboutTab: () => Promise<void>;
-  clickOnTheMembersTab: () => Promise<void>;
-  hoverOnMembersName: (membersName: string) => Promise<void>;
-  clickOnTheFavouriteTabs: () => Promise<void>;
-  markAsUnfavorite: (membersName: string) => Promise<void>;
-  clickOnTheMemberButtonInAboutTab: () => Promise<void>;
-  clickOnTheAboutTab: () => Promise<void>;
-  clickOnTheManageSiteButton: () => Promise<void>;
-  clickOnThePageCategoryButton: () => Promise<void>;
-  searchEventInSearchBar: (eventName: string) => Promise<void>;
-  clickOntheMemberButton: () => Promise<void>;
-  clickOnInsideContentButton: () => Promise<void>;
-  // New methods from develop
-  clickOnUpdateCategory: () => Promise<void>;
-  clickOnCancelOption: () => Promise<void>;
-  clickOnSites: () => Promise<void>;
-  updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
-  searchForSite: (siteName: string) => Promise<void>;
+  clickOnOptionsDropdown: (siteName: string) => Promise<void>;
+  clickOnSearchButton: () => Promise<void>;
+  searchSite: (siteName: string) => Promise<void>;
+  selectFilterOption: (optionName: string) => Promise<void>;
+  clickOnFilterOptionsDropdownButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
-  // Old methods from ManageSitesComponent
-  checkIsUserMarkedAsFavorite: () => Promise<void>;
-  clickOnPeppleTab: () => Promise<void>;
-  verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
-  checkAuthorNameIsDisplayed: (authorName: string) => Promise<void>;
-  checkTheError: () => Promise<void>;
-  markAsFavoriteAndCheckRGBColor: (membersName: string) => Promise<void>;
-  checkMarkedAsFavoriteInPeopleList: (membersName: string) => Promise<void>;
-  checkMarkedAsFavoriteInPeopleListShouldNotBeVisible: (membersName: string) => Promise<void>;
-  clickOnLeaveButton: () => Promise<void>;
-  verifyEventsTabImageIsDisplayed: () => Promise<void>;
-  verifyAlbumTabImageIsDisplayed: () => Promise<void>;
-  verifyPageTabImageIsDisplayed: () => Promise<void>;
-  // New methods from develop
   verifyNoSitesFound: (siteName: string) => Promise<void>;
+  verifySiteIsDeactivated: (siteName: string, siteId: string, siteManagementHelper: any) => Promise<void>;
+  verifySiteIsActivated: (siteName: string, siteId: string, siteManagementHelper: any) => Promise<void>;
+  verifyThePageIsLoaded: () => Promise<void>;
+  verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
+  verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
-  private manageSitesComponent: ManageSitesComponent;
-  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
-  readonly addSite = this.page.getByRole('link', { name: 'Add site' });
-  readonly contentTab = this.page.getByTestId('content-tab');
-  readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
+  readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
+  readonly searchButton = this.page.locator('button[name="submitbutton"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
+  readonly siteReferenceEllipses = (siteName: string) =>
+    this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
+  readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
+  readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
-    this.manageSitesComponent = new ManageSitesComponent(page);
-    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
-    this.manageSitesComponent = new ManageSitesComponent(page);
+  constructor(page: Page) {
+    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.contentTab, {
-      assertionMessage: 'Content tab should be visible on manage site page',
+    await this.verifier.verifyTheElementIsVisible(this.searchSiteBar, {
+      assertionMessage: 'Search site bar should be visible on manage site page',
     });
   }
 
   get actions(): IManageSiteActions {
     return this;
   }
+
   get assertions(): IManageSiteAssertions {
     return this;
   }
 
-  // OLD METHODS - from ManageSitesComponent
-  async clickOnSite(): Promise<void> {
-    await this.manageSitesComponent.clickOnSiteAction();
-  }
-
-  async searchEventInSearchBar(eventName: string): Promise<void> {
-    await this.manageSitesComponent.searchEventInSearchBarAction(eventName);
-  }
-
-  async verifyEventsTabMatchesApiDate(startsAt: string): Promise<void> {
-    await this.manageSitesComponent.verifyEventsTabMatchesApiDate(startsAt);
-  }
-
-  async checkAuthorNameIsDisplayed(authorName: string | undefined): Promise<void> {
-    await this.manageSitesComponent.checkAuthorNameIsDisplayed(authorName);
-  }
-
-  async clickOnTheManageSiteButton(): Promise<void> {
-    await this.manageSitesComponent.clickOnTheManageSiteButtonAction();
-  }
-
-  async clickOnThePageCategoryButton(): Promise<void> {
-    await this.manageSitesComponent.clickOnThePageCategoryButtonAction();
-  }
-
-  async checkTheError(): Promise<void> {
-    await this.manageSitesComponent.checkTheErrorAction();
-  }
-
-  async clickOnAboutTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnAboutTabAction();
-  }
-
-  async clickOnTheMembersTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnTheMembersTabAction();
-  }
-
-  async hoverOnMembersName(membersName: string): Promise<void> {
-    await this.manageSitesComponent.hoverOnMembersName(membersName);
-  }
-
-  async markAsFavoriteAndCheckRGBColor(membersName: string): Promise<void> {
-    await this.manageSitesComponent.markAsFavoriteAndCheckRGBColor(membersName);
-  }
-
-  async checkIsUserMarkedAsFavorite(): Promise<void> {
-    await this.manageSitesComponent.checkIsUserMarkedAsFavorite();
-  }
-
-  async clickOnTheFavouriteTabs(): Promise<void> {
-    await this.manageSitesComponent.clickOnTheFavouriteTabsAction();
-  }
-
-  async clickOnPeppleTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnPeppleTabAction();
-  }
-
-  async checkMarkedAsFavoriteInPeopleList(membersName: string): Promise<void> {
-    await this.manageSitesComponent.checkMarkedAsFavoriteInPeopleList(membersName);
-  }
-
-  async markAsUnfavorite(membersName: string): Promise<void> {
-    await this.manageSitesComponent.markAsUnfavorite(membersName);
-  }
-
-  async clickOnTheAboutTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnTheAboutTabAction();
-  }
-
-  async clickOnTheMemberButtonInAboutTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnTheMemberButtonInAboutTabAction();
-  }
-
-  async checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName: string): Promise<void> {
-    await this.manageSitesComponent.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName);
-  }
-
-  async clickOntheMemberButton(): Promise<void> {
-    await this.manageSitesComponent.clickOntheMemberButtonAction();
-  }
-
-  async clickOnLeaveButton(): Promise<void> {
-    await this.manageSitesComponent.clickOnLeaveButtonAction();
-  }
-
-  async clickOnInsideContentButton(): Promise<void> {
-    await this.manageSitesComponent.clickOnInsideContentButtonAction();
-  }
-
-  async verifyEventsTabImageIsDisplayed(): Promise<void> {
-    await this.manageSitesComponent.verifyEventsTabImageIsDisplayed();
-  }
-
-  async verifyAlbumTabImageIsDisplayed(): Promise<void> {
-    await this.manageSitesComponent.verifyAlbumTabImageIsDisplayed();
-  }
-
-  async verifyPageTabImageIsDisplayed(): Promise<void> {
-    await this.manageSitesComponent.verifyPageTabImageIsDisplayed();
-  }
-
-  // NEW METHODS - from develop
-  async clickOnUpdateCategory(): Promise<void> {
-    await this.updateSiteCategoryComponent.hoverOverElementInJavaScript(this.updateSiteCategoryComponent.ellipses);
-  }
-
-  async clickOnCancelOption(): Promise<void> {
-    await this.updateSiteCategoryComponent.clickOnCancelOption();
-  }
-
-  async clickOnSites(): Promise<void> {
-    await this.manageSitesComponent.clickOnSiteAction();
-  }
-
-  async updatingCategoryToUncategorized(categoryName: string): Promise<void> {
-    await this.updateSiteCategoryComponent.updatingCategoryToUncategorized(categoryName);
-  }
-
-  async searchForSite(siteName: string): Promise<void> {
-    await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
-  }
-  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
-    await this.manageSitesComponent.selectSiteFilterByText(bulkActionOption);
-  }
-
-  async clickOnAddSite(): Promise<void> {
-    await test.step('Clicking on add site', async () => {
-      await this.clickOnElement(this.addSite);
-    });
-  }
-
-  async selectSite(): Promise<void> {
-    await test.step('Selecting the site', async () => {
-      await this.clickOnElement(this.selectASite);
-      await this.page.keyboard.press('Tab');
-      await this.page.keyboard.press('Enter');
-    });
-  }
-
-  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
-    // Handle both single site name and array of site names
-    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
-
-    let index = 0;
-    while (index < namesArray.length) {
-      const siteName = namesArray[index];
-      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
-        assertionMessage: 'Site name should be displayed on manage site page',
-      });
-      index++;
-    }
-  }
   async verifyNoSitesFound(siteName: string): Promise<void> {
     const noSitesFound = this.siteList.filter({ hasText: siteName });
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
@@ -236,7 +62,74 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     });
   }
 
-  getSiteNameLocator(siteName: string): Locator {
-    return this.page.getByText(siteName, { exact: true });
+  async verifySiteIsDeactivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
+    const { test } = await import('@playwright/test');
+    await test.step(`Verify site ${siteName} is deactivated`, async () => {
+      const siteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
+        filter: 'deactivated',
+        canManage: true,
+      });
+      const foundSite = siteDetails.result.listOfItems.find((s: any) => s.siteId === siteId);
+      if (!foundSite) {
+        throw new Error(`Site ${siteName} should be deactivated but was not found in deactivated sites list`);
+      }
+      if (foundSite.isActive !== false) {
+        throw new Error(`Site ${siteName} should have isActive=false but got isActive=${foundSite.isActive}`);
+      }
+    });
+  }
+
+  async verifySiteIsActivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
+    const { test } = await import('@playwright/test');
+    await test.step(`Verify site ${siteName} is activated`, async () => {
+      const activatedSiteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
+        filter: 'active',
+        canManage: true,
+      });
+      const activatedSite = activatedSiteDetails.result.listOfItems.find((s: any) => s.siteId === siteId);
+      if (!activatedSite) {
+        throw new Error(`Site ${siteName} should be activated but was not found in active sites list`);
+      }
+      if (activatedSite.isActive !== true) {
+        throw new Error(`Site ${siteName} should have isActive=true but got isActive=${activatedSite.isActive}`);
+      }
+    });
+  }
+
+  async searchSite(siteName: string): Promise<void> {
+    await this.clickOnElement(this.searchSiteBar);
+    await this.searchSiteBar.clear();
+    await this.fillInElement(this.searchSiteBar, siteName);
+  }
+
+  async clickOnSearchButton(): Promise<void> {
+    await this.clickOnElement(this.searchButton);
+  }
+
+  async clickOnOptionsDropdown(siteName: string): Promise<void> {
+    await this.clickOnElement(this.siteReferenceEllipses(siteName));
+  }
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await this.manageSitesComponent.selectSiteFilterByText(bulkActionOption);
+  }
+
+  async verifyOptionIsVisibleInOptionsDropdown(optionName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.optionsDropdown(optionName), {
+      assertionMessage: `${optionName} option should be visible in options dropdown`,
+    });
+  }
+
+  async verifyOptionIsNotVisibleInOptionsDropdown(optionName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.optionsDropdown(optionName), {
+      assertionMessage: `${optionName} option should not be visible in options dropdown`,
+    });
+  }
+
+  async selectFilterOption(optionName: string): Promise<void> {
+    await this.clickOnElement(this.filterOptionsDropdown(optionName));
+  }
+
+  async clickOnFilterOptionsDropdownButton(): Promise<void> {
+    await this.clickOnElement(this.reactSelectInput);
   }
 }
