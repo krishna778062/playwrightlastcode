@@ -63,7 +63,7 @@ test.describe(
 
         // Set feed posting permission to managers only
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
-        await manageSitePage.goToUrl(manageSitePage.url);
+        await manageSitePage.loadPage();
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 

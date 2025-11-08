@@ -1,37 +1,12 @@
-import { Locator, Page, test } from '@playwright/test';
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
-  // Old methods from ManageSitesComponent
-  clickOnSite: () => Promise<void>;
-  clickOnAboutTab: () => Promise<void>;
-  clickOnTheMembersTab: () => Promise<void>;
-  hoverOnMembersName: (membersName: string) => Promise<void>;
-  clickOnTheFavouriteTabs: () => Promise<void>;
-  markAsUnfavorite: (membersName: string) => Promise<void>;
-  clickOnTheMemberButtonInAboutTab: () => Promise<void>;
-  clickOnTheAboutTab: () => Promise<void>;
-  clickOnTheManageSiteButton: () => Promise<void>;
-  clickOnThePageCategoryButton: () => Promise<void>;
-  searchEventInSearchBar: (eventName: string) => Promise<void>;
-  clickOntheMemberButton: () => Promise<void>;
-  clickOnInsideContentButton: () => Promise<void>;
-  // New methods from develop
-  clickOnUpdateCategory: () => Promise<void>;
-  clickOnCancelOption: () => Promise<void>;
-  clickOnSites: () => Promise<void>;
-  updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
-  searchForSite: (siteName: string) => Promise<void>;
   clickDashboardAndFeedTab: () => Promise<void>;
   setFeedPostingPermission: (permission: FeedPostingPermission) => Promise<void>;
-
-export interface IManageSiteActions {
   clickOnOptionsDropdown: (siteName: string) => Promise<void>;
   clickOnSearchButton: () => Promise<void>;
   searchSite: (siteName: string) => Promise<void>;
