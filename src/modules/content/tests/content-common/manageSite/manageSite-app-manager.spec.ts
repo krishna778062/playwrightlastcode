@@ -331,12 +331,10 @@ test.describe(
         });
         const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
         console.log('siteNames', siteNames);
-        const manageDeactivatedSitePage = new ManageSitePage(
-          appManagerFixture.page,
-          getListOfSitesResponse.result.listOfItems[0].siteId
-        );
+        const manageDeactivatedSitePage = new ManageSitePage(appManagerFixture.page);
         await manageDeactivatedSitePage.loadPage();
-
+      }
+    );
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
@@ -356,7 +354,9 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+          });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();

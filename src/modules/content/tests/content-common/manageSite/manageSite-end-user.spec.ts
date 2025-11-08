@@ -10,6 +10,7 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -247,10 +248,7 @@ test.describe(
         });
         const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
         console.log('siteNames', siteNames);
-        const manageDeactivatedSitePage = new ManageSitePage(
-          standardUserFixture.page,
-          getListOfSitesResponse.result.listOfItems[0].siteId
-        );
+        const manageDeactivatedSitePage = new ManageSitePage(standardUserFixture.page);
         await manageDeactivatedSitePage.loadPage();
       }
     );
