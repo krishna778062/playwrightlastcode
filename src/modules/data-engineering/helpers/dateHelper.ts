@@ -245,8 +245,12 @@ export class DateHelper {
    * @param period - The period filter option from PeriodFilterTimeRange enum
    * @returns Expected date range string in CSV format (e.g., "From: 24 Oct 2024 at 00:00 (UTC) To: 23 Oct 2025 at 23:59 (UTC)")
    */
-  static generateExpectedCSVDateRange(period: PeriodFilterOption): string {
-    const dateReplacements = this.getDateReplacements(period);
+  static generateExpectedCSVDateRange(
+    period: PeriodFilterOption,
+    customStartDate?: string,
+    customEndDate?: string
+  ): string {
+    const dateReplacements = this.getDateReplacements(period, customStartDate, customEndDate);
 
     // Parse the start and end dates from the replacements
     const startDateStr = dateReplacements.startDate.split(' ')[0]; // Get YYYY-MM-DD part
