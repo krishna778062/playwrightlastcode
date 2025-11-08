@@ -51,7 +51,6 @@ test.describe(
         customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
         departments: ['Campaign', 'HR'],
         locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-        userCategories: ['Adil Option1'],
         companyName: ['Simpplr'],
         groupBy: GroupByOnUserParameter.LOCATION,
       };
