@@ -437,5 +437,73 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+    test(
+      'verify App Admin is able to add Greenhouse job postings from a tile on Home Dashboard with App Manager Defined for Jobtype and token and user editable toggle on',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-25365'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addAppManagerDefinedWithOptionsEnableToggle(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
+      }
+    );
+    test(
+      'verify App Admin is able to add Greenhouse job postings from a tile on Site Dashboard with Site Manager Defined for Jobtype and token and user editable toggle on',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-28965'],
+          storyId: 'INT-24587',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add,personalize,edit,verify
+        await siteDashboard.addAppManagerDefinedWithOptionsEnableToggle(
+          createdTileTitle,
+          AppName,
+          tileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          GREENHOUSE_VALUES.JOB_TYPE,
+          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeVisible(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );
