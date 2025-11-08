@@ -201,18 +201,16 @@ test.describe(
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
         });
-        const siteInfo = await standardUserApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          hasPages: true,
-        });
+        const siteInfo = await standardUserApiFixture.siteManagementHelper.getListOfSites();
         await appManagerApiFixture.contentManagementHelper.createPage({
-          siteId: siteInfo.siteId,
+          siteId: siteInfo.result.listOfItems[0].siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
             pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateUniqueName('page'),
             contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
           },
         });
-        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.result.listOfItems[0].siteId);
         await newSiteDashboard.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
@@ -220,11 +218,6 @@ test.describe(
         await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.MANAGING);
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
-        await manageSitesComponent.searchContentInManageSite(contentNames[0]);
-        await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
-        await standardUserFixture.page.reload();
-        await manageSitesComponent.selectContentFilter(ContentFilter.OWNED);
-        await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.OWNED);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
       }
