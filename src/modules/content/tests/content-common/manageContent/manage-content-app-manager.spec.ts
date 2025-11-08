@@ -31,7 +31,7 @@ test.describe(
   () => {
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let homePage: NewHomePage;
+    let _homePage: NewHomePage;
     let applicationScreenPage: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
@@ -39,7 +39,7 @@ test.describe(
     let editPage: EditPagePage;
     let manageSitePage: ManageSiteSetUpPage;
     let siteDetailsPage: SiteDetailsPage;
-    let siteDashboardPage: SiteDashboardPage;
+    let _siteDashboardPage: SiteDashboardPage;
     let contentPreviewPage: ContentPreviewPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
@@ -51,10 +51,10 @@ test.describe(
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
       editPage = new EditPagePage(appManagerFixture.page, '', '');
-      homePage = new NewHomePage(appManagerFixture.page);
+      _homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
-      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      _siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
       contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
     });
 
@@ -206,7 +206,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || '');
+        await manageContentPage.actions.clickSiteSearchBar(publicSite.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }
@@ -480,7 +480,7 @@ test.describe(
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
         const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        await manageContentPage.actions.moveContentSearchBar(site?.name || '');
+        await manageContentPage.actions.moveContentSearchBar(site.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();

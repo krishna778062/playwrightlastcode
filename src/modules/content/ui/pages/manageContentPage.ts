@@ -35,6 +35,37 @@ export interface IActions {
   verifyOptionVisibleInManageContent: (option: ManageContentOptions) => Promise<void>;
   clickOnOptionButton: (option: ManageContentOptions) => Promise<void>;
   verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
+  selectTheStatusFilter: (status: string) => Promise<void>;
+  clickOnSelectAllButton: () => Promise<void>;
+  applyButtonShouldBeDisabled: () => Promise<void>;
+  selectEditedNewestOption: () => Promise<void>;
+  selectEditedOldestOption: () => Promise<void>;
+  clickShowMoreButton: () => Promise<void>;
+  selectPageOption: () => Promise<void>;
+  verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnMoveButton: () => Promise<void>;
+  selectMoveApplyButton: () => Promise<void>;
+  moveContentSearchBar: (siteName: string) => Promise<void>;
+  siteListSelecting: () => Promise<void>;
+  clickOnMoveConfirmButton: () => Promise<void>;
+  clickOnDeleteButton: () => Promise<void>;
+  selectDeleteApplyButton: () => Promise<void>;
+  clickOnValidateButton: () => Promise<void>;
+  clickOnValidateApplyButton: () => Promise<void>;
+  clickOnFirstDropDownOption: () => Promise<void>;
+  checkPublishOption: () => Promise<void>;
+  clickDeleteOption: () => Promise<void>;
+  clickOnDeleteOption: () => Promise<void>;
+  clickDeleteModalConfirmButton: () => Promise<void>;
+  clickSiteSearchBar: (siteName: string) => Promise<void>;
+  selectSiteSearchBarOption: () => Promise<void>;
+  selectCreateNewestPublishedOption: () => Promise<void>;
+  getAllContentNames: () => Promise<string[]>;
+  verifyAddToCampaignOptionShouldNotBeVisibleInManageContent: () => Promise<void>;
+  clickOnContentEditButton: () => Promise<void>;
+  UpdatedPageName: (pageName: string) => Promise<void>;
+  clickOnPublishChangesButton: () => Promise<void>;
+  verifyAllContentsAreSelected: (expectedCount?: number) => Promise<void>;
 }
 
 export interface IAssertions {
