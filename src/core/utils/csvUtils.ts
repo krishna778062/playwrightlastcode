@@ -72,10 +72,10 @@ export class CSVUtils {
   /**
    * Find the header line index, skipping filter metadata lines
    * @param lines - Array of CSV lines
-   * @param startIndex - Index to start searching from (default: 3 for line 4)
+   * @param startIndex - Index to start searching from (default: 2 for line 3)
    * @returns Index of the header line
    */
-  private static findHeaderLineIndex(lines: string[], startIndex = 3): number {
+  private static findHeaderLineIndex(lines: string[], startIndex = 2): number {
     const filterMetadataPatterns = [
       '"Department:',
       '"Location:',
@@ -111,8 +111,8 @@ export class CSVUtils {
   public static getHeadersFromReportCSV(csvPath: string): string[] {
     const lines = this.getCSVLines(csvPath);
 
-    if (lines.length < 4) {
-      throw new Error(`CSV file has insufficient lines - expected at least 4 lines, got ${lines.length}`);
+    if (lines.length < 3) {
+      throw new Error(`CSV file has insufficient lines - expected at least 3 lines, got ${lines.length}`);
     }
 
     const headerLineIndex = this.findHeaderLineIndex(lines);
@@ -136,7 +136,7 @@ export class CSVUtils {
   public static getDataRecordsFromReportCSV(csvPath: string): CSVRow[] {
     const lines = this.getCSVLines(csvPath);
 
-    if (lines.length < 5) {
+    if (lines.length < 3) {
       return []; // No data records
     }
 
@@ -215,7 +215,7 @@ export class CSVUtils {
         dateRange: metadata.dateRange,
         createdOn: metadata.createdOn,
         headers,
-        dataStartRow: headerLineIndex + 1, // Data starts after header line (1-indexed)
+        dataStartRow: headerLineIndex + 1,
       },
       data,
     };
@@ -296,6 +296,8 @@ export class CSVUtils {
     console.log('Validating CSV headers...');
     const metadata = this.getReportMetadataFromCSV(csvPath);
     const actualHeaders = this.getHeadersFromReportCSV(csvPath);
+    const lines = this.getCSVLines(csvPath);
+    const headerLineIndex = this.findHeaderLineIndex(lines);
 
     const missingHeaders = expectedHeaders.filter((header: string) => !actualHeaders.includes(header));
     const unexpectedHeaders = actualHeaders.filter((header: string) => !expectedHeaders.includes(header));
@@ -333,7 +335,7 @@ export class CSVUtils {
         dateRange: metadata.dateRange,
         createdOn: metadata.createdOn,
         headers: actualHeaders,
-        dataStartRow: 4,
+        dataStartRow: headerLineIndex + 1,
       },
     };
   }
