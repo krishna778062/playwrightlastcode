@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -9,6 +9,7 @@ export interface IManageSiteActions {
   searchSite: (siteName: string) => Promise<void>;
   selectFilterOption: (optionName: string) => Promise<void>;
   clickOnFilterOptionsDropdownButton: () => Promise<void>;
+  setExternalFilesProvider: (provider: string) => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -30,8 +31,14 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
+  // Locators for setExternalFilesProvider method (CONT-24903)
+  readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
+  readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+  readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+  readonly boxFilesOption = this.page.getByText('Box files', { exact: true });
+
+  constructor(page: Page, siteId?: string) {
+    super(page, siteId ? PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -121,5 +128,40 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
+  }
+
+  /**
+   * Sets the External Files provider (e.g., "Box files")
+   * This method is added for CONT-24903
+   * @param provider - The name of the storage provider (e.g., "Box files")
+   */
+  async setExternalFilesProvider(provider: string): Promise<void> {
+    await test.step(`Set External Files provider to ${provider}`, async () => {
+      // Scroll to External Files section
+      await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+      // Wait for External Files section to be visible
+      await this.verifier.verifyTheElementIsVisible(this.externalFilesSection, {
+        assertionMessage: 'External Files section should be visible',
+      });
+
+      // Click on the React Select input or dropdown arrow to open dropdown
+      await this.verifier.verifyTheElementIsVisible(this.storageProviderInput, {
+        assertionMessage: 'Storage provider input should be visible',
+      });
+
+      await this.clickOnElement(this.storageProviderInput);
+
+      const providerOption = this.boxFilesOption;
+      await this.verifier.verifyTheElementIsVisible(providerOption, {
+        assertionMessage: 'Box files option should be visible',
+      });
+      await this.clickOnElement(providerOption);
+
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage: 'Save button should be visible',
+      });
+      await this.clickOnElement(this.saveButton);
+    });
   }
 }
