@@ -3,14 +3,15 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
+import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
+
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
-import { SiteDetailsPage } from '@/src/modules/content-abac/ui/pages/siteDetailsPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -214,12 +215,11 @@ test.describe(
     test(
       'to verify the people follow in site about members and followers tab',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-24063'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
       },
       async ({ appManagerApiFixture, standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the people follow in site about members and followers tab',
-          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-24063',
           storyId: 'CONT-24063',
         });
