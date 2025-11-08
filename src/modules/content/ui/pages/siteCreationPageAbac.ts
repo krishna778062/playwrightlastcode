@@ -1,9 +1,9 @@
-import { SiteCreationFormComponent } from '@content-abac/components/createSite/siteCreationFormComponent';
 import { expect, Page, test } from '@playwright/test';
 
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SiteType } from '@/src/modules/content-abac/constants/siteTypeABAC';
+import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
+import { SiteCreationFormComponent } from '@/src/modules/content/ui/components/createSite/siteCreationFormComponent';
 
 export interface ISiteCreationPageAssertions {
   verifySiteCreationFormStructure: () => Promise<void>;

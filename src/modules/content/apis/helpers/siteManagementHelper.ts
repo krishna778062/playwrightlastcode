@@ -1199,4 +1199,63 @@ export class SiteManagementHelper {
       });
     });
   }
+
+  /**
+   * Gets a private or unlisted site that has content (pages, events, or albums)
+   * @param accessType - The access type to search for ('private' or 'unlisted')
+   * @returns Promise with site details that has content
+   */
+  async getSiteWithContent(accessType: string, userId: string[]): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting ${accessType} site with content`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      const sites = siteListResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+      // Check each site to see if it has content and users are not members
+      for (const site of sites) {
+        const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
+        const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
+        const allUsersNotMembers = userId.every(user => !memberPeopleIds.includes(user));
+
+        // Check if all users are not members AND site has content
+        if (allUsersNotMembers && (site.hasPages || site.hasEvents || site.hasAlbums)) {
+          console.log(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
+          return { siteId: site.siteId, siteName: site.name };
+        }
+      }
+
+      // If no site with content found, create a new one with pages enabled
+      console.log(`No ${accessType} site with content found, creating new site...`);
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        hasPages: true,
+        waitForSearchIndex: true,
+      });
+
+      return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+    });
+  }
+
+  public async getDeactivatedSite(
+    accessType: SITE_TYPES,
+    options?: { size?: number }
+  ): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: 'deactivated', size: options?.size });
+      console.log('Deactivated site list response', siteListResponse);
+      const site = siteListResponse.result.listOfItems.find(
+        (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
+      );
+      console.log('Deactivated site', site);
+      if (!site) {
+        //create a site and make it deactivated
+        const createdSite = await this.createSite({
+          accessType: accessType,
+          waitForSearchIndex: true,
+        });
+        await this.siteManagementService.deactivateSite(createdSite.siteId);
+        return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+      } else {
+        return { siteId: site.siteId, siteName: site.name };
+      }
+    });
+  }
 }
