@@ -7,6 +7,7 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -214,12 +215,11 @@ test.describe(
     test(
       'to verify the site edit option in manage site user drop down sites',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_SITE, '@CONT-26503'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
       },
       async ({ standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site author name and event start date',
-          customTags: [ContentFeatureTags.MANAGE_SITE],
           zephyrTestId: 'CONT-26503',
           storyId: 'CONT-26503',
         });

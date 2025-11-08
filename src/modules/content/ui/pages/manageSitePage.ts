@@ -119,30 +119,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.clickOnElement(this.filterOptionsDropdown(optionName));
   }
 
-  getSiteNameLocator(siteName: string): Locator {
-    return this.page.getByText(siteName, { exact: true });
-  }
-  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
-    // Handle both single site name and array of site names
-    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
-
-    let index = 0;
-    while (index < namesArray.length) {
-      const siteName = namesArray[index];
-      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
-        assertionMessage: 'Site name should be displayed on manage site page',
-      });
-      index++;
-    }
-  }
-  async hoverOnFirstSiteName(): Promise<void> {
-    await this.manageSitesComponent.hoverOnFirstSiteNameAction();
-  }
-  async verifyNoSitesFound(siteName: string): Promise<void> {
-    const noSitesFound = this.siteList.filter({ hasText: siteName });
-    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
-      assertionMessage: 'No sites found should be visible on manage site page',
-    });
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
   }
