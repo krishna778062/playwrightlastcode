@@ -13,8 +13,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -45,7 +43,6 @@ test.describe(
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let governanceScreenPage: GovernanceScreenPage;
-    let manageSiteAppManagerPage: ManageSitePage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
@@ -325,12 +322,12 @@ test.describe(
     test(
       'verify user able to apply validate action on selected content under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20539'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_CONTENT, '@CONT-20539'],
       },
       async ({ appManagerFixture, standardUserApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'verify user able to apply validate action on selected content under Content tab in Manage Site',
-          customTags: [ContentFeatureTags.MANAGE_CONTENT],
+          customTags: [ContentSuiteTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-20539',
           storyId: 'CONT-20539',
         });
@@ -377,6 +374,9 @@ test.describe(
         );
         await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+      }
+    );
+    test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
