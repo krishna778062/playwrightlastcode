@@ -15,6 +15,7 @@ import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentP
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -33,10 +34,10 @@ test.describe(
     let manageFeaturesPage: ManageFeaturesPage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
-    let onboardingComponent: OnboardingComponent;
-    let favoritesPage: FavoritesPage;
-    let orgChartPage: ORGChartPage;
     let userProfilePage: UserProfilePage;
+    let orgChartPage: ORGChartPage;
+    let favoritesPage: FavoritesPage;
+    let onboardingComponent: OnboardingComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -81,11 +82,11 @@ test.describe(
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
-      favoritesPage = new FavoritesPage(appManagerFixture.page);
-      orgChartPage = new ORGChartPage(appManagerFixture.page);
       userProfilePage = new UserProfilePage(appManagerFixture.page);
-
+      orgChartPage = new ORGChartPage(appManagerFixture.page);
+      favoritesPage = new FavoritesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
+
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
     });
@@ -312,12 +313,11 @@ test.describe(
     test(
       'to verify the UI of favorite people section',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-26450'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26450'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the people follow in site about members and followers tab',
-          customTags: [ContentFeatureTags.MANAGE_CONTENT],
           zephyrTestId: 'CONT-26450',
           storyId: 'CONT-26450',
         });
@@ -333,7 +333,8 @@ test.describe(
         await orgChartPage.actions.clickOnViewProfileButton();
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
-
+      }
+    );
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {
@@ -353,7 +354,9 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+          });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();

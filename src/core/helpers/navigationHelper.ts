@@ -23,6 +23,7 @@ import {
 } from '@/src/modules/content/ui';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content/ui/components/globalCreateContainerComponent';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
@@ -342,10 +343,10 @@ export class NavigationHelper {
       await analyticsLandingPage.openRecognitionAnalytics();
     });
   }
-  async navigateToORGChart(options?: TestOptions): Promise<FavoritesPage> {
+  async navigateToORGChart(options?: TestOptions): Promise<ORGChartPage> {
     return await test.step(options?.stepInfo || 'Navigating to ORG chart', async () => {
       await this.sideNavBarComponent.clickOnOrgChartButton(options);
-      return new FavoritesPage(this.page);
+      return new ORGChartPage(this.page);
     });
   }
   /**
