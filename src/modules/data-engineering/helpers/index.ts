@@ -3,6 +3,7 @@ export * from './baseAnalyticsQueryHelper';
 export * from './dateHelper';
 export * from './mobileDashboardQueryHelper';
 export * from './pageHelper';
+export * from './peopleDashboardQueryHelper';
 export * from './searchDashboardQueryHelper';
 export * from './snowflakeHelper';
 export * from './socialInteractionQueryHelper';

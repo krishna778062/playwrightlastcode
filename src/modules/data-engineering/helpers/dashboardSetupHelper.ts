@@ -2,6 +2,7 @@ import { Browser, Page, test } from '@playwright/test';
 
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
+import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
@@ -10,6 +11,7 @@ import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpe
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
+import { PeopleDashboard } from '@/src/modules/data-engineering/ui/dashboards/people/peopleDashboard';
 import { SearchDashboard } from '@/src/modules/data-engineering/ui/dashboards/search/searchDashboard';
 import { SocialInteractionDashboard } from '@/src/modules/data-engineering/ui/dashboards/social-interaction/socialInteractionDashboard';
 
@@ -140,6 +142,45 @@ export async function setupAppAdoptionDashboardForTest(
     snowflakeHelper,
     appAdoptionQueryHelper,
   };
+}
+
+/**
+ * Sets up People Dashboard for testing
+ */
+export async function setupPeopleDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  peopleDashboard: PeopleDashboard;
+  peopleQueryHelper: PeopleDashboardQueryHelper;
+  snowflakeHelper: SnowflakeHelper;
+}> {
+  return await test.step('Setup People Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create people query helper
+    const orgId = process.env.ORG_ID || '';
+    if (!orgId) {
+      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
+    }
+    const peopleQueryHelper = new PeopleDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create people dashboard
+    const peopleDashboard = new PeopleDashboard(page);
+    //load people dashboard
+    await peopleDashboard.loadPage();
+
+    return {
+      page,
+      peopleDashboard,
+      peopleQueryHelper,
+      snowflakeHelper,
+    };
+  });
 }
 
 /**

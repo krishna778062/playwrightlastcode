@@ -3,5 +3,6 @@ export enum DataEngineeringTestSuite {
   ANALYTICS = '@analytics',
   SOCIAL_INTERACTION = '@social-interaction',
   SEARCH = '@search',
+  PEOPLE = '@people',
   MOBILE = '@mobile',
 }
