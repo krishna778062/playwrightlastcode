@@ -243,6 +243,8 @@ export class DateHelper {
   /**
    * Generates the expected CSV date range string format based on period filter
    * @param period - The period filter option from PeriodFilterTimeRange enum
+   * @param customStartDate - Custom start date (YYYY-MM-DD format), required if period is CUSTOM
+   * @param customEndDate - Custom end date (YYYY-MM-DD format), optional
    * @returns Expected date range string in CSV format (e.g., "From: 24 Oct 2024 at 00:00 (UTC) To: 23 Oct 2025 at 23:59 (UTC)")
    */
   static generateExpectedCSVDateRange(
