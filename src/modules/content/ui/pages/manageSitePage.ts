@@ -38,7 +38,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly boxFilesOption = this.page.getByText('Box files', { exact: true });
 
   constructor(page: Page, siteId?: string) {
-    super(page, siteId ? PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
+    super(page, siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
