@@ -12,10 +12,14 @@ export const PAGE_ENDPOINTS = {
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
+  MANAGE_REWARDS_ALLOWANCE_PAGE: '/manage/recognition/rewards/peer-gifting/allowances',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
+  REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
+  CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
+  MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
@@ -63,7 +67,8 @@ export const PAGE_ENDPOINTS = {
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
   CONTENT_PAGE_UPDATE_API: 'action=update',
 
-  MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  MANAGE_SITE_SETUP_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  MANAGE_SITE_PAGE: `manage/sites`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
@@ -95,6 +100,7 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  MOBILE_DASHBOARD: '/analytics/mobile',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page

@@ -274,5 +274,54 @@ test.describe(
         await adoptionRateUserLoginMetrics.verifyBarsWithTooltips(adoptionRateUserLoginData);
       }
     );
+
+    test(
+      'verify impact of applied filter on adoption rate - user login frequency distribution metric',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@adoption-rate-user-login-frequency-distribution-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify impact of applied filter on adoption rate - user login frequency distribution metric',
+          zephyrTestId: '',
+        });
+
+        const { appAdoptionDashboard, appAdoptionQueryHelper } = testEnvironment;
+        const { adoptionRateUserLoginFrequencyDistributionMetrics } = appAdoptionDashboard;
+
+        //hover on each bar and verify the tooltip is visible
+        await adoptionRateUserLoginFrequencyDistributionMetrics.scrollToComponent();
+
+        // Verify x-axis and y-axis labels based on filter (handles 7 days and 30 days)
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyChartLegendsAreAsExpected({
+          numberOfChartLegends: 5,
+          chartLegends: ['No logins', '1-3 times', '4-7 times', '8-10 times', '10+ times'],
+        });
+
+        // Get adoption rate user login data from database
+        const userLoginFrequencyDistributionData =
+          await appAdoptionQueryHelper.getUserLoginFrequencyDistributionDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log(`----> The user login frequency distribution data is  `, userLoginFrequencyDistributionData);
+
+        //
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyBarsWithTooltips(
+          userLoginFrequencyDistributionData
+        );
+
+        //veirfy i can click on legent to enable/disable
+        await adoptionRateUserLoginFrequencyDistributionMetrics.clickOnLegendWithLabelAs('No logins');
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyLegendWithLabelIsDisabled('No logins');
+        //verify the count of bars is reduced to 4
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyNumberOfBarsAreAsExpected({ numberOfBars: 4 });
+        //re-enable the legend
+        await adoptionRateUserLoginFrequencyDistributionMetrics.clickOnLegendWithLabelAs('No logins', { force: true });
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyLegendWithLabelIsEnabled('No logins');
+        //verify the count of bars is restored to 5
+        await adoptionRateUserLoginFrequencyDistributionMetrics.verifyNumberOfBarsAreAsExpected({ numberOfBars: 5 });
+      }
+    );
   }
 );

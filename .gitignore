@@ -42,3 +42,7 @@ coverage/
 .idea/
 
 downloads/
+
+# all debug csv and log files
+*.csv
+*.log
