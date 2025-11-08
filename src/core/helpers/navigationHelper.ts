@@ -21,9 +21,9 @@ import {
   PageCreationPage,
   SiteCreationPage,
 } from '@/src/modules/content/ui';
+import { CreateComponent as AbacCreateComponent } from '@/src/modules/content/ui/components/globalCreateContainerComponent';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
-import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
-import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
+import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 import { ManageRecognitionPage } from '@/src/modules/recognition/ui/pages/manage/manageRecognitionPage';

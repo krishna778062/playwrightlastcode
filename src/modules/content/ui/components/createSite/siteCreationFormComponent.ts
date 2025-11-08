@@ -1,4 +1,3 @@
-import { SiteCreationUI } from '@content-abac/constants/siteCreation';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { AccessSectionComponent } from './accessSectionComponent';
@@ -6,6 +5,7 @@ import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
 import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { SiteCreationUI } from '@/src/modules/content/constants/siteCreation';
 
 export class SiteCreationFormComponent extends BaseComponent {
   readonly modalContainer: Locator;

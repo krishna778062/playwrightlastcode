@@ -13,6 +13,7 @@ import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integratio
 
 const CreateAnotherRequest = 'Create another request';
 const Vacation = 'Vacation';
+const Wedding = 'Wedding';
 
 test.describe(
   'workday App Tiles Integration',
@@ -412,6 +413,40 @@ test.describe(
         await leaveForm.verifyMessageOnTile(MESSAGES.REQUESTED_TIME_OFF_ERROR_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REQUESTED_TIME_OFF_ERROR_LABEL);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify Edit amount button functionality for Workday Apply for Time Off on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, TestGroupType.SMOKE, '@workday-multiuser'],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22964',
+          storyId: 'INT-21182',
+        });
+
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile and open form
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
+
+        // Select current/next working day range 2 working days total
+        const workingDays = 2;
+        await leaveForm.selectLeaveDates(workingDays);
+        await leaveForm.selectTimeOffCategory(Wedding);
+        await leaveForm.verifyTotalDays(workingDays);
+
+        // Click Edit amount and verify split amounts
+        await leaveForm.verifyAmountValues(workingDays, workingDays, { unit: 'days', amountPerDay: 1 });
       }
     );
   }

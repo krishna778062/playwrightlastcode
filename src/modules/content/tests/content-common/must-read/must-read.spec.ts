@@ -1,6 +1,5 @@
 import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
-import { ContentFeatureTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -40,7 +39,7 @@ test.describe(
     test(
       'verify Must read Modal cancel button for Page, Event and Album Content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-21123'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
