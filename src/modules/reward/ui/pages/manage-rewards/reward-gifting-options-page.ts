@@ -4,6 +4,8 @@ import Error from 'es-errors';
 
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core';
+
 export class RewardGiftingOptionsPage extends BasePage {
   private giftingOptionsContainer: Locator;
   readonly rewardsOverview: Locator;
@@ -18,7 +20,7 @@ export class RewardGiftingOptionsPage extends BasePage {
   readonly exchangeRateSelectDropdown: Locator;
 
   constructor(page: Page) {
-    super(page, '/manage/recognition/rewards/peer-gifting/options');
+    super(page, PAGE_ENDPOINTS.REWARDS_GIFTING_OPTIONS_PAGE);
     this.rewardsOverview = page.locator('[href="/manage/recognition/rewards/overview"]');
     this.giftingOptionsContainer = page.locator('[class^="Rewards_content--"]');
     this.giftingOptionsHeader = this.giftingOptionsContainer.getByRole('heading', { name: 'Gifting options' });
@@ -149,7 +151,15 @@ export class RewardGiftingOptionsPage extends BasePage {
     await this.page.reload();
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsInputBox);
     return Promise.resolve(undefined);
+  }
+
+  /**
+   * Generate a random number between min and max (inclusive)
+   */
+  private getRandomNo(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }

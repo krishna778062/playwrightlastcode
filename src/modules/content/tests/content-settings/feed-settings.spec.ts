@@ -6,7 +6,7 @@ import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageContentPage } from '@content/ui/pages/manageContentPage';
 import { ManageFeaturesPage as ManageFeature } from '@content/ui/pages/manageFeaturesPage';
-import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
@@ -34,7 +34,7 @@ test.describe(
     let manageApplicationPage: ManageApplicationPage;
     let governanceScreenPage: GovernanceScreenPage;
     let manageContentPage: ManageContentPage;
-    let manageSitePage: ManageSitePage;
+    let manageSiteSetUpPage: ManageSiteSetUpPage;
     let siteDetailsPage: SiteDetailsPage;
 
     test.beforeEach('Setting up the environment', async ({ appManagerFixture }) => {
@@ -56,7 +56,7 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
-      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
       siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
       contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, '', '', '');
@@ -89,7 +89,7 @@ test.describe(
         await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
+        await manageSiteSetUpPage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
         await governanceScreenPage.loadPage();
@@ -103,7 +103,7 @@ test.describe(
         await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturePage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
+        await manageSiteSetUpPage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.assertions.verifyFeedSectionIsVisible();
       }
