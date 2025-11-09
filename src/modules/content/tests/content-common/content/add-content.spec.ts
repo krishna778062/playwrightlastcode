@@ -173,13 +173,12 @@ test.describe(
           publishedPageId,
           ContentType.PAGE
         );
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -236,13 +235,14 @@ test.describe(
           publishedPageId,
           ContentType.PAGE
         );
-        await contentPreviewPage.actions.handlePromotionPageStep();
 
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -311,13 +311,13 @@ test.describe(
           publishedPageId,
           ContentType.PAGE
         );
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
 

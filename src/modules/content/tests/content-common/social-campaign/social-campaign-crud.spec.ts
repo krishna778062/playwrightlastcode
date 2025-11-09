@@ -1110,7 +1110,7 @@ test.describe(
     test(
       'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14901'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
