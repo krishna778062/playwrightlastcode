@@ -101,6 +101,8 @@ export class GlobalSearchResultPage extends BasePage {
         return 'i-microsoftExcel';
       case 'mp4':
         return 'i-video';
+      case 'mov':
+        return 'i-video';
       default:
         return 'i-files';
     }
