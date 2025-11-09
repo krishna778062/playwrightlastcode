@@ -208,7 +208,6 @@ test.describe(
 
         // Verify share modal remains functional
         await endUserFeedPage.assertions.verifyShareModalIsFunctional();
-
       }
     );
   }

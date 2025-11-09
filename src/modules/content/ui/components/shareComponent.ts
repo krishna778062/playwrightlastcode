@@ -7,6 +7,7 @@ export interface IShareComponentActions {
   enterShareDescription: (description: string) => Promise<void>;
   enterSiteName: (siteName: string) => Promise<void>;
   clickShareButton: () => Promise<void>;
+  attemptImagePaste: () => Promise<void>;
 }
 
 export interface IShareComponentAssertions {
