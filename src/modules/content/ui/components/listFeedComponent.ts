@@ -253,7 +253,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(favoriteButton, {
         assertionMessage: `verify the favourite button is visible${postText ? ` for post "${postText}"` : ''}`,
       });
-      await this.clickOnElement(favoriteButton, { delay: 1000 });
+      await this.clickOnElement(favoriteButton);
     });
   }
 
@@ -267,7 +267,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(unfavoriteButtonForPost, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
-      await this.clickOnElement(unfavoriteButtonForPost, { delay: 1000 });
+      await this.clickOnElement(unfavoriteButtonForPost);
     });
   }
 
