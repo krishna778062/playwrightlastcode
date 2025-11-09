@@ -5,7 +5,6 @@ import { tagTest } from '@core/utils/testDecorator';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
@@ -126,25 +125,25 @@ test.describe(
     test(
       'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-26727'],
       },
       async ({ appManagerFixture, browser }) => {
         tagTest(test.info(), {
           description:
             'In Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
-          zephyrTestId: 'CONT-XXXXX', // Update with actual Zephyr test ID
-          storyId: 'CONT-XXXXX', // Update with actual story ID
+          zephyrTestId: 'CONT-26727',
+          storyId: 'CONT-26727',
         });
 
-        // Step 1: Login as Admin (already done in beforeEach via appManagerFixture)
-        await test.step('Step 1: Verify Admin is logged in and on Global Feed', async () => {
+        // Login as Admin (already done in beforeEach via appManagerFixture)
+        await test.step('Verify Admin is logged in and on Global Feed', async () => {
           await adminFeedPage.verifyThePageIsLoaded();
           console.log('Admin is logged in and on Global Feed');
         });
 
-        // Step 2: Create a Feed post with mentions, topics, and a message
-        await test.step('Step 2: Create a Feed post with mentions, topics, and a message', async () => {
-          const postText = TestDataGenerator.generateRandomText('Admin Feed Post', 3, true);
+        // Create a Feed post with mentions, topics, and a message
+        await test.step('Create a Feed post with mentions, topics, and a message', async () => {
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
           const embedUrl = 'https://www.youtube.com/watch?v=F_77M3ZZ1z8';
 
           // Click "Share your thoughts" button
@@ -164,25 +163,16 @@ test.describe(
 
           // Wait for post to be visible
           await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-          console.log(`Feed post created successfully: ${createdPostText}`);
-          console.log(`Post ID: ${createdPostId}`);
         });
 
-        // Step 3: Open Avatar Profile Menu and Logout
-        await test.step('Step 3: Logout via Avatar Profile Menu', async () => {
-          const topNavBar = new TopNavBarComponent(appManagerFixture.page);
-          await topNavBar.logout({ stepInfo: 'Logging out Admin user' });
-          console.log('Admin user logged out successfully');
-        });
+        const topNavBar = new TopNavBarComponent(appManagerFixture.page);
+        await topNavBar.logout({ stepInfo: 'Logging out Admin user' });
 
-        // Step 4: Login as EndUser
-        await test.step('Step 4: Login as EndUser and navigate to Global Feed', async () => {
+        // Login as EndUser
+        await test.step('Login as EndUser and navigate to Global Feed', async () => {
           // Create a new browser context and page for EndUser
           const endUserContext = await browser.newContext();
           const endUserPage = await endUserContext.newPage();
-
-          // Wait for page to be ready
-          await endUserPage.waitForLoadState('domcontentloaded');
 
           // Login as EndUser
           const endUserHomePage = await LoginHelper.loginWithPassword(endUserPage, {
@@ -204,44 +194,21 @@ test.describe(
           (endUserFeedPage as any).endUserContext = endUserContext;
         });
 
-        // Step 5: Click on "Share" button for the Feed post created by Admin
-        await test.step('Step 5: Click Share button on the Feed post created by Admin', async () => {
-          // Wait for the post to be visible
-          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        // Wait for the post to be visible
+        await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-          // Click Share button on the post
-          await endUserFeedPage.actions.clickShareButtonOnPost(createdPostText);
-          console.log('Share button clicked successfully');
+        // Click Share button on the post
+        await endUserFeedPage.actions.clickShareButtonOnPost(createdPostText);
+        await endUserFeedPage.assertions.verifyShareModalIsOpen();
+        // Attempt to paste an image (simulates user pasting image from clipboard)
+        await endUserFeedPage.actions.attemptImagePasteInShareModal();
 
-          // Verify share modal is open
-          await endUserFeedPage.assertions.verifyShareModalIsOpen();
-          console.log('Share modal is open');
-        });
+        // Verify no attachments are visible
+        await endUserFeedPage.assertions.verifyNoAttachmentsInShareModal();
 
-        // Step 6: In the Share Modal, attempt to copy-paste an image file into the tiptap editor
-        await test.step('Step 6: Attempt to paste image file into tiptap editor in share modal', async () => {
-          // Attempt to paste an image (simulates user pasting image from clipboard)
-          await endUserFeedPage.actions.attemptImagePasteInShareModal();
-          console.log('Image paste attempt completed');
-        });
+        // Verify share modal remains functional
+        await endUserFeedPage.assertions.verifyShareModalIsFunctional();
 
-        // Step 7: Verify that the user is unable to add or attach any media or file while sharing the post
-        await test.step('Step 7: Verify no attachment preview or media element appears after paste attempt', async () => {
-          // Verify no attachments are visible
-          await endUserFeedPage.assertions.verifyNoAttachmentsInShareModal();
-          console.log('Verified: No attachment preview or media elements are visible');
-
-          // Verify share modal remains functional
-          await endUserFeedPage.assertions.verifyShareModalIsFunctional();
-          console.log('Verified: Share modal remains functional');
-
-          // Verify only text, mentions, and topics can be included
-          // This is implicitly verified by the fact that:
-          // 1. No attachments appeared after paste
-          // 2. The editor is still functional for text input
-          // 3. The share button is still available
-          console.log('Verified: Only text, mentions, and topics can be included (no attachments allowed)');
-        });
       }
     );
   }
