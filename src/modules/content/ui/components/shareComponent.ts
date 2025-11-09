@@ -68,4 +68,23 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
       await this.shareOptionDropdown.selectOption('site');
     });
   }
+
+  /**
+   * Gets a locator for the "View Post" link in the share dialog
+   * @returns Locator for the View Post link in share dialog
+   */
+  readonly getViewPostLinkInShareDialog = (): Locator =>
+    this.page.getByRole('dialog').getByRole('link', { name: 'View Post' });
+
+  /**
+   * Verifies that "View Post" link is visible in the share dialog
+   */
+  async verifyViewPostLinkInShareDialog(): Promise<void> {
+    await test.step('Verify View Post link is visible in share dialog', async () => {
+      const viewPostLink = this.getViewPostLinkInShareDialog();
+      await this.verifier.verifyTheElementIsVisible(viewPostLink, {
+        assertionMessage: 'View Post link should be visible in share dialog',
+      });
+    });
+  }
 }
