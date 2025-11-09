@@ -90,6 +90,8 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  clickShareButtonOnPost: (postText: string) => Promise<void>;
+  attemptImagePasteInShareModal: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -124,6 +126,9 @@ export interface IFeedAssertions {
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyNoAttachmentsInShareModal: () => Promise<void>;
+  verifyShareModalIsFunctional: () => Promise<void>;
+  verifyShareModalIsOpen: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -681,6 +686,46 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsVisible(this.pageNotFoundHeading, {
         assertionMessage: 'Page not found heading should be visible',
         timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Clicks the Share button on a specific feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareButtonOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareButtonOnPost(postText);
+  }
+
+  /**
+   * Attempts to paste an image file into the tiptap editor in the share modal
+   */
+  async attemptImagePasteInShareModal(): Promise<void> {
+    await this.shareComponent.attemptImagePaste();
+  }
+
+  /**
+   * Verifies that no attachment preview or media elements are visible in the share modal
+   */
+  async verifyNoAttachmentsInShareModal(): Promise<void> {
+    await this.shareComponent.assertions.verifyNoAttachmentsInShareModal();
+  }
+
+  /**
+   * Verifies that the share modal remains functional after paste attempt
+   */
+  async verifyShareModalIsFunctional(): Promise<void> {
+    await this.shareComponent.assertions.verifyShareModalIsFunctional();
+  }
+
+  /**
+   * Verifies that the share modal is open
+   */
+  async verifyShareModalIsOpen(): Promise<void> {
+    await test.step('Verify share modal is open', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
+        assertionMessage: 'Share modal should be open',
       });
     });
   }
