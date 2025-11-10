@@ -106,6 +106,9 @@ export const REDIRECT_URLS = {
   ASANA: 'https://app.asana.com/',
   GREENHOUSE: 'https://job-boards.greenhouse.io/',
   WORKDAY: 'https://impl.wd12.myworkday.com/',
+  WORKDAY_INBOX_TASKS_REPORT:
+    'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
+  WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
 } as const;
 
 /**
