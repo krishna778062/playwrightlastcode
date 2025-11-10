@@ -18,6 +18,7 @@ on:
           - 'content-settings'
           - 'content-studio'
           - 'de'
+          - 'de-api'
           - 'content-abac'
           - 'frontline'
           - 'integrations'

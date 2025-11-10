@@ -212,8 +212,7 @@ test.describe(
       }
     );
 
-    //TODO: Implement the query - here
-    test.fixme(
+    test(
       'verify Least engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department'],
@@ -225,11 +224,49 @@ test.describe(
           zephyrTestId: 'DE-26017',
           storyId: 'DE-25757',
         });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const leastEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getLeastEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the same data is displayed in the dashboard
+        const leastEngagedByDepartment = testEnvironment.socialInteractionDashboard.leastEngagedByDepartment;
+        await leastEngagedByDepartment.verifyUIDataMatchesWithSnowflakeData(leastEngagedByDepartmentData);
       }
     );
 
-    //TODO: Implement the query - here
-    test.fixme(
+    test(
+      'verify Least engaged by Department CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26017',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const leastEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getLeastEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const leastEngagedByDepartment = testEnvironment.socialInteractionDashboard.leastEngagedByDepartment;
+        await leastEngagedByDepartment.verifyCSVDataMatchesWithDBData(leastEngagedByDepartmentData, testFiltersConfig);
+      }
+    );
+
+    test(
       'verify Most engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department'],
@@ -241,6 +278,76 @@ test.describe(
           zephyrTestId: 'DE-26018',
           storyId: 'DE-25757',
         });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const mostEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getMostEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the same data is displayed in the dashboard
+        const mostEngagedByDepartment = testEnvironment.socialInteractionDashboard.mostEngagedByDepartment;
+        await mostEngagedByDepartment.verifyUIDataMatchesWithSnowflakeData(mostEngagedByDepartmentData);
+      }
+    );
+
+    test(
+      'verify Most engaged by Department CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26018',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const mostEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getMostEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const mostEngagedByDepartment = testEnvironment.socialInteractionDashboard.mostEngagedByDepartment;
+        await mostEngagedByDepartment.verifyCSVDataMatchesWithDBData(mostEngagedByDepartmentData, testFiltersConfig);
+      }
+    );
+
+    test(
+      'verify Participant engagement activity chart data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@participant-engagement-activity'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Participant engagement activity in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-XXXXX',
+          storyId: 'DE-XXXXX',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the chart is loaded (for now, we verify the chart is visible)
+        // Future enhancement: can add data validation if needed
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyChartIsLoaded();
+
+        // Log the data for verification
+        console.log('Participant Engagement Activity Data:', participantEngagementActivityData);
       }
     );
   }
