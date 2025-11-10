@@ -56,7 +56,7 @@
     "test:employee-listening:qa": "cross-env TEST_ENV=qa MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form-designer.config.ts"
+    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts"
   },
   "keywords": [],
   "author": "",
