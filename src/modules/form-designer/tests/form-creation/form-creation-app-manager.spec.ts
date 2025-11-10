@@ -1,12 +1,11 @@
 import { test } from '@form-designer-fixtures/formFixture';
-import { FormCreationPage } from '@form-designer-pages/formCreation/formPage';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FormSuiteTags } from '../../constants/formTestTags';
-
+import { FormCreationPage } from '../../ui/pages/formCreation/formPage';
 test.describe(
   `form basic functionality by Application Manager`,
   {
