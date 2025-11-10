@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { FileUtil } from '@/src/core/utils/fileUtil';
@@ -317,28 +318,28 @@ test.describe(
             // Site Owner navigation
             (async () => {
               const siteOwnerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
-              await siteOwnerDashboardPage.loadPage();
+              await siteOwnerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await siteOwnerDashboardPage.actions.clickOnFeedLink();
               const feedPage = new FeedPage(appManagerFixture.page);
-              await feedPage.verifyThePageIsLoaded();
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
             })(),
             // Site Manager navigation
             (async () => {
               const siteManagerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, siteId);
-              await siteManagerDashboardPage.loadPage();
+              await siteManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await siteManagerDashboardPage.actions.clickOnFeedLink();
               const feedPage = new FeedPage(siteManagerFixture.page);
-              await feedPage.verifyThePageIsLoaded();
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
             })(),
             // Content Manager navigation
             (async () => {
               const contentManagerDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
-              await contentManagerDashboardPage.loadPage();
+              await contentManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await contentManagerDashboardPage.actions.clickOnFeedLink();
               const feedPage = new FeedPage(standardUserFixture.page);
-              await feedPage.verifyThePageIsLoaded();
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
             })(),
           ]);
@@ -354,21 +355,21 @@ test.describe(
           await Promise.all([
             // Site Owner favorite/unfavorite
             (async () => {
-              await ownerFeedPage.actions.markPostAsFavourite(createdPostText);
+              await ownerFeedPage.actions.markPostAsFavourite();
               await ownerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
               await ownerFeedPage.actions.removePostFromFavourite(createdPostText);
               await ownerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Site Manager favorite/unfavorite
             (async () => {
-              await managerFeedPage.actions.markPostAsFavourite(createdPostText);
+              await managerFeedPage.actions.markPostAsFavourite();
               await managerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
               await managerFeedPage.actions.removePostFromFavourite(createdPostText);
               await managerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Content Manager favorite/unfavorite
             (async () => {
-              await contentFeedPage.actions.markPostAsFavourite(createdPostText);
+              await contentFeedPage.actions.markPostAsFavourite();
               await contentFeedPage.assertions.verifyPostIsFavorited(createdPostText);
               await contentFeedPage.actions.removePostFromFavourite(createdPostText);
               await contentFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);

@@ -101,38 +101,6 @@ export class ListFeedComponent extends BaseComponent {
       .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
       .first();
 
-  /**
-   * Gets a locator for the post container
-   * @param postText - The text of the post to find container for
-   * @returns Locator for the post container
-   */
-  readonly getPostContainerLocator = (postText: string): Locator =>
-    this.page.locator('p').filter({ hasText: postText }).locator('..').locator('..').locator('..').locator('..');
-
-  /**
-   * Gets a locator for the like/react button within a specific post
-   * @param postText - The text of the post to find like button for
-   * @returns Locator for the like button
-   */
-  readonly getPostLikeButtonLocator = (postText: string): Locator =>
-    this.getPostContainerLocator(postText).getByRole('button', { name: 'React to this post' }).first();
-
-  /**
-   * Gets a locator for the favorite button within a specific post
-   * @param postText - The text of the post to find favorite button for
-   * @returns Locator for the favorite button
-   */
-  readonly getPostFavoriteButtonLocator = (postText: string): Locator =>
-    this.getPostContainerLocator(postText).getByRole('button', { name: 'Favorite this post' }).first();
-
-  /**
-   * Gets a locator for the unfavorite button within a specific post
-   * @param postText - The text of the post to find unfavorite button for
-   * @returns Locator for the unfavorite button
-   */
-  readonly getPostUnfavoriteButtonLocator = (postText: string): Locator =>
-    this.getPostContainerLocator(postText).getByRole('button', { name: 'Unfavorite this post' }).first();
-
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -142,7 +110,7 @@ export class ListFeedComponent extends BaseComponent {
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
-    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
@@ -233,52 +201,32 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async markPostAsFavourite(postText?: string): Promise<void> {
-    await test.step(`Mark post as favourite: ${postText || ''}`, async () => {
-      let likeButton: Locator;
-      let favoriteButton: Locator;
-
-      if (postText) {
-        // Use post-specific locators when postText is provided (for feed listing pages with multiple posts)
-        likeButton = this.getPostLikeButtonLocator(postText);
-        favoriteButton = this.getPostFavoriteButtonLocator(postText);
-      } else {
-        // Use page-level locators for backward compatibility (when only one post on page, e.g., direct feed URL)
-        likeButton = this.likeButton;
-        favoriteButton = this.favoriteButton;
-      }
-
-      await this.hoverOverElementInJavaScript(likeButton);
+  async markPostAsFavourite(): Promise<void> {
+    await test.step(`Mark post as favourite`, async () => {
+      await this.hoverOverElementInJavaScript(this.likeButton);
       //verify the favourite button is visible
-      await this.verifier.verifyTheElementIsVisible(favoriteButton, {
-        assertionMessage: `verify the favourite button is visible${postText ? ` for post "${postText}"` : ''}`,
+      await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
+        assertionMessage: `verify the favourite button is visible`,
       });
-      await this.clickOnElement(favoriteButton);
+      await this.clickOnElement(this.favoriteButton);
     });
   }
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
-      const likeButtonForPost = this.getPostLikeButtonLocator(postText);
-      const unfavoriteButtonForPost = this.getPostUnfavoriteButtonLocator(postText);
+      await this.hoverOverElementInJavaScript(this.likeButton);
 
-      await this.hoverOverElementInJavaScript(likeButtonForPost);
-
-      await this.verifier.verifyTheElementIsVisible(unfavoriteButtonForPost, {
+      await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
-      await this.clickOnElement(unfavoriteButtonForPost);
+      await this.clickOnElement(this.unfavoriteButton);
     });
   }
 
   async verifyPostIsFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is favorited: ${postText}`, async () => {
-      const likeButtonForPost = this.getPostLikeButtonLocator(postText);
-      const unfavoriteButtonForPost = this.getPostUnfavoriteButtonLocator(postText);
-
-      // Hover over the like button to reveal the unfavorite button
-      await this.hoverOverElementInJavaScript(likeButtonForPost);
-      await this.verifier.verifyTheElementIsVisible(unfavoriteButtonForPost, {
+      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
     });
@@ -286,12 +234,9 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      const likeButtonForPost = this.getPostLikeButtonLocator(postText);
-      const favoriteButtonForPost = this.getPostFavoriteButtonLocator(postText);
-
-      await this.hoverOverElementInJavaScript(likeButtonForPost);
-      await this.verifier.verifyTheElementIsVisible(favoriteButtonForPost, {
-        assertionMessage: `Post "${postText}" should be in unfavorited state`,
+      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
+        assertionMessage: `Post "${postText}" should be in favorited state`,
       });
     });
   }
