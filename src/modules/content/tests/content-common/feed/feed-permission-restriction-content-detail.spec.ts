@@ -8,6 +8,7 @@ import { SitePermission } from '@core/types/siteManagement.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 
@@ -63,7 +64,7 @@ test.describe(
 
         // Set feed posting permission to managers only
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
-        await manageSitePage.loadPage();
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 

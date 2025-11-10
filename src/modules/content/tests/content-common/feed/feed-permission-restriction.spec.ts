@@ -12,7 +12,8 @@ import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 
 test.describe(
   '@FeedPost - Restrict feed posting permission to managers only',
@@ -67,7 +68,7 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
-        await manageSitePage.loadPage();
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
@@ -94,7 +95,7 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const managePrivateSitePage = new ManageSitePage(appManagerFixture.page, privateSiteId);
-        await managePrivateSitePage.loadPage();
+        await managePrivateSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(privateSiteId));
         await managePrivateSitePage.clickDashboardAndFeedTab();
         await managePrivateSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
@@ -106,7 +107,7 @@ test.describe(
         });
         await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
 
-        // As Member
+        //As Member
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: privateSiteId,
           userId,
@@ -122,7 +123,7 @@ test.describe(
 
         // Use UI automation to set feed posting permission
         const manageUnlistedSitePage = new ManageSitePage(appManagerFixture.page, unlistedSiteId);
-        await manageUnlistedSitePage.loadPage();
+        await manageUnlistedSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(unlistedSiteId));
         await manageUnlistedSitePage.clickDashboardAndFeedTab();
         await manageUnlistedSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
@@ -168,7 +169,7 @@ test.describe(
 
         // Set feed posting permission to 'managersOnly' using UI automation
         const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
-        await manageSitePage.loadPage();
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
