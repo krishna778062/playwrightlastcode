@@ -6,7 +6,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { dragAndDrop } from '@/src/modules/form-designer/utils';
-
+// k single source of state constant
 declare global {
   // Stores the most recently entered form name for cross-test access
 }

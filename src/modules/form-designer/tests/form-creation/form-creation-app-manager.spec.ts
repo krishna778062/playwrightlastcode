@@ -1,12 +1,11 @@
-import { FormCreationPage } from '@form-designer/ui/pages/formCreation/formPage';
-import { formTestFixture } from '@form-designer-fixtures/formFixture';
-
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FormSuiteTags } from '../../constants/formTestTags';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
+import { formTestFixture } from '@/src/modules/form-designer/fixtures/formFixture';
+import { FormCreationPage } from '@/src/modules/form-designer/ui/pages/formCreation/formPage';
 
 formTestFixture.describe(
   `form basic functionality by Application Manager`,
