@@ -33,7 +33,7 @@ test.describe(
     test(
       '[FL-433] Verify content QR share option via promotion manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ promotionManagerHomePage }) => {
         tagTest(test.info(), {
@@ -59,7 +59,7 @@ test.describe(
     test(
       'scenario: Verify creation of app promotion QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -92,7 +92,7 @@ test.describe(
     test(
       'scenario: Verify delete app promotion QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -114,7 +114,7 @@ test.describe(
     test(
       'scenario: Verify delete content QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -136,7 +136,7 @@ test.describe(
     test(
       'scenario: Verify creation of content QR',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -385,7 +385,7 @@ test(
 test(
   '[FL-995] Verify UI elements on the Manage QR page',
   {
-    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
   },
   async ({ appManagerHomePage }) => {
     tagTest(test.info(), {
@@ -408,7 +408,7 @@ test(
 test(
   '[FL-996] Verify table headers and QR action icons (View, Download, More options) on the Manage QR page',
   {
-    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, FrontlineFeatureTags.HEALTHCHECK],
+    tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
   },
   async ({ appManagerHomePage }) => {
     tagTest(test.info(), {

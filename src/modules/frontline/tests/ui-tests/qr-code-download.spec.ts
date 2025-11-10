@@ -39,13 +39,15 @@ test.describe(
         } catch (error) {
           console.warn(`Cleanup failed for QR: ${qrDetails.qrCodeId}`, error);
         }
+        // Reset qrCodeId after cleanup to prevent it from being used in the next test
+        qrDetails.qrCodeId = undefined;
       }
     });
 
     test(
       '[FL-434] Verify content QR share option via Standard User',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ endUserHomePage }) => {
         tagTest(test.info(), {
@@ -118,7 +120,7 @@ test.describe(
     test(
       '[FL-453] Verify content QR Enable Status',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -154,7 +156,7 @@ test.describe(
     test(
       '[FL-212] Verify creation of content promotion QR from app manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

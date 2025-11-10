@@ -15,7 +15,7 @@ test.describe(
     test(
       '[FL-488] Verify Display of DND and App Restrictions Tab for App Manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.DND],
+        tag: [TestPriority.P1, FrontlineFeatureTags.DND, '@healthcheck'],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
@@ -75,7 +75,7 @@ test.describe(
     test(
       '[FL-358][FL-549] Verify display of user my settings when DND set for audience with source as Manual',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.DND],
+        tag: [TestPriority.P1, FrontlineFeatureTags.DND, '@healthcheck'],
       },
       async ({ endUserHomePage }) => {
         tagTest(test.info(), {
