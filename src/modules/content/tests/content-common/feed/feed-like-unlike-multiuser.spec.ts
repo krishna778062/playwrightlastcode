@@ -161,9 +161,9 @@ test.describe(
         await siteOwnerContentPreviewPage.loadPage();
 
         // Generate test data
-        const postText = TestDataGenerator.generateRandomText('Feed Post', 3, true);
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         createdPostText = postText;
-        createdReplyText = TestDataGenerator.generateRandomText('Feed Reply', 3, true);
+        createdReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
         // Click on "Share your thoughts or question" button
         await siteOwnerContentPreviewPage.actions.clickShareThoughtsButton();
@@ -404,7 +404,7 @@ test.describe(
           waitForSearchIndex: false,
         });
         siteFeedPostText = feedTestData.text;
-        siteFeedReplyText = TestDataGenerator.generateRandomText('Site Feed Reply', 3, true);
+        siteFeedReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
         // Create feed based on test data via API
         const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
