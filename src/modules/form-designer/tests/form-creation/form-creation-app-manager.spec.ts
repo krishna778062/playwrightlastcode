@@ -74,8 +74,8 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
-        await formCreationPage.veriftTitleAndDescriptionSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
+        await formCreationPage.verifyTitleAndDescriptionSectionIsVisible();
         await formCreationPage.verifyHeadingSectionIsVisible();
         await formCreationPage.verifyParagraphSectionIsVisible();
       }
@@ -94,7 +94,7 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.verifyShortTextSectionIsVisible();
         await formCreationPage.verifyLongTextSectionIsVisible();
         await formCreationPage.verifyNumberSectionIsVisible();
@@ -118,7 +118,7 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.verifyMultiSelectSectionIsVisible();
         await formCreationPage.verifySingleSelectSectionIsVisible();
         await formCreationPage.verifyDropDownSectionIsVisible();
@@ -137,7 +137,7 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.verifyFileUploadSectionIsVisible();
         await formCreationPage.verifyImageSectionIsVisible();
       }
@@ -156,7 +156,7 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.verifyRatingSectionIsVisible();
         await formCreationPage.verifyOpinionSectionIsVisible();
       }
@@ -176,14 +176,14 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.dragAndDropElement('Title & description');
         await formCreationPage.addHeadingIntoTitleAndDescription('Automation Test - Title & description Heading');
         await formCreationPage.addDescriptionIntoTitleAndDescription(
           'Automation Test - Title & description Description'
         );
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verfiyCopiedTitleAndDescriptionIsVisible();
+        await formCreationPage.verifyCopiedTitleAndDescriptionIsVisible();
         await formCreationPage.clickOnDeleteIcon();
         await formCreationPage.verifyTitleAndDescriptionComponentIsDeleted();
         // await formCreationPage.clickOnSettingsIcon();
@@ -202,12 +202,12 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.dragAndDropElement('Short text');
         await formCreationPage.addHeadingIntoComponent('Short Text', 'Automation Test - Short Text Description');
         // await formCreationPage.addDescriptionIntoComponent("Short Text","Automation Test - Short Text Description");
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verfiyCopiedComponentIsVisible('Short Text');
+        await formCreationPage.verifyCopiedComponentIsVisible('Short Text');
         await formCreationPage.clickOnDeleteIcon();
         await formCreationPage.verifyComponentIsDeleted('Short Text');
       }
@@ -226,11 +226,11 @@ test.describe(
         });
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.verfiyBlockSectionIsVisible();
+        await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.dragAndDropElement('Long text');
         await formCreationPage.addHeadingIntoComponent('Long Text', 'Automation Test - Long Text Description');
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verfiyCopiedComponentIsVisible('Long Text');
+        await formCreationPage.verifyCopiedComponentIsVisible('Long Text');
         await formCreationPage.clickOnDeleteIcon();
         await formCreationPage.verifyComponentIsDeleted('Long Text');
       }

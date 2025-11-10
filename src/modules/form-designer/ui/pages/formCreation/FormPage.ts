@@ -36,12 +36,13 @@ export class FormCreationPage extends BasePage {
   readonly rating: Locator;
   readonly opinion: Locator;
   readonly blockSection: Locator;
-  readonly heading_titleAnddescription: Locator;
-  readonly description_titleAnddescription: Locator;
-  readonly copy_icon: Locator;
-  readonly delete_icon: Locator;
-  readonly settings_icon: Locator;
-  readonly getDashboardlocator: (value: string) => Locator;
+  readonly headingTitleAndDescription: Locator;
+  readonly descriptionTitleAndDescription: Locator;
+  readonly copyIcon: Locator;
+  readonly deleteIcon: Locator;
+  readonly settingsIcon: Locator;
+  readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
+    this.page.locator(`//h3[text()='${value}']`).locator('..');
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
@@ -73,12 +74,12 @@ export class FormCreationPage extends BasePage {
     this.rating = this.page.getByRole('button', { name: 'Rating' });
     this.opinion = this.page.getByRole('button', { name: 'Opinion' });
     this.blockSection = this.page.getByRole('tab', { name: 'Blocks' });
-    this.heading_titleAnddescription = this.page.getByText('Add your form heading here');
-    this.description_titleAnddescription = this.page.getByText('Add your form description here');
-    this.copy_icon = this.page.getByRole('button', { name: 'Copy icon' });
-    this.delete_icon = this.page.getByRole('button', { name: 'Delete icon' });
-    this.settings_icon = this.page.getByRole('button', { name: 'Default Properties icon' });
-    this.getDashboardlocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
+    this.headingTitleAndDescription = this.page.getByText('Add your form heading here');
+    this.descriptionTitleAndDescription = this.page.getByText('Add your form description here');
+    this.copyIcon = this.page.getByRole('button', { name: 'Copy icon' });
+    this.deleteIcon = this.page.getByRole('button', { name: 'Delete icon' });
+    this.settingsIcon = this.page.getByRole('button', { name: 'Default Properties icon' });
+    this.getDashboardLocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -90,7 +91,7 @@ export class FormCreationPage extends BasePage {
   }
   async clickOnCreateFormButton(): Promise<void> {
     await test.step('Click on Create form button', async () => {
-      await this.createFormButton.click();
+      await this.clickOnElement(this.createFormButton);
     });
   }
 
@@ -162,20 +163,20 @@ export class FormCreationPage extends BasePage {
   async enterFormName(namePrefix = 'Automation Form '): Promise<void> {
     const name = `${namePrefix}${faker.string.alphanumeric({ length: 6 })}`;
     await test.step('Enter form name', async () => {
-      await this.formNameInput.fill(name);
+      await this.fillInElement(this.formNameInput, name);
       formCreationConstants.FORM_NAME = name;
     });
   }
 
   async clickOnSaveDraftButton(): Promise<void> {
     await test.step('Click on Save draft button', async () => {
-      await this.draftButton.click();
+      await this.clickOnElement(this.draftButton);
     });
   }
 
   async clickOnSaveButton(): Promise<void> {
     await test.step('Click on Save button', async () => {
-      await this.saveButton.click();
+      await this.clickOnElement(this.saveButton);
     });
   }
 
@@ -189,21 +190,21 @@ export class FormCreationPage extends BasePage {
   }
   async clickOnFormsTab(): Promise<void> {
     await test.step('Click on Forms tab', async () => {
-      await this.formsTab.click();
+      await this.clickOnElement(this.formsTab);
     });
   }
   async verifyTabOnFormDashboard(tabName: string): Promise<void> {
     await test.step('Verify tab on Form dashboard', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getDashboardlocator(tabName), { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.getDashboardLocator(tabName), { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
-          await this.getDashboardlocator(tabName).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          await this.getDashboardLocator(tabName).isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Tab should be visible'
         )
         .toBe(true);
     });
   }
-  async verfiyBlockSectionIsVisible(): Promise<void> {
+  async verifyBlockSectionIsVisible(): Promise<void> {
     await test.step('Verify block section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.blockSection, { timeout: TIMEOUTS.MEDIUM });
       test
@@ -211,7 +212,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
     });
   }
-  async veriftTitleAndDescriptionSectionIsVisible(): Promise<void> {
+  async verifyTitleAndDescriptionSectionIsVisible(): Promise<void> {
     await test.step('Verify title and description section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.titleAndDescriptionArea, { timeout: TIMEOUTS.MEDIUM });
       test
@@ -426,70 +427,73 @@ export class FormCreationPage extends BasePage {
 
     await test.step(`Add heading: ${headingText} to component: ${component}`, async () => {
       await this.verifier.verifyTheElementIsVisible(componentLocator, { timeout: TIMEOUTS.MEDIUM });
-      await componentLocator.click();
+      await this.clickOnElement(componentLocator);
       await this.page.getByRole('textbox', { name: /^Heading$/ }).fill(headingText);
     });
   }
   async addHeadingIntoTitleAndDescription(headingText: string): Promise<void> {
     await test.step('Add heading into title and description', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.heading_titleAnddescription, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.headingTitleAndDescription, { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
-          await this.heading_titleAnddescription.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          await this.headingTitleAndDescription.isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Heading in title and description section should be visible'
         )
         .toBe(true);
-      await this.heading_titleAnddescription.click();
-      await this.heading_titleAnddescription.fill(headingText);
+      await this.clickOnElement(this.headingTitleAndDescription);
+      await this.fillInElement(this.headingTitleAndDescription, headingText);
       formCreationConstants.FORM_HEADING = headingText;
     });
   }
   async addHeadingIntoComponent(componentName: string, headingText: string): Promise<void> {
     await test.step('Add heading into : ${componentName} component', async () => {
-      const component_heading = this.page.locator('span').filter({ hasText: componentName });
-      await this.verifier.verifyTheElementIsVisible(component_heading, { timeout: TIMEOUTS.MEDIUM });
+      const componentHeadingLocator = this.page.locator('span').filter({ hasText: componentName });
+      await this.verifier.verifyTheElementIsVisible(componentHeadingLocator, { timeout: TIMEOUTS.MEDIUM });
       test
-        .expect(await component_heading.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Heading section should be visible')
+        .expect(
+          await componentHeadingLocator.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Heading section should be visible'
+        )
         .toBe(true);
-      await component_heading.click();
-      await component_heading.fill(headingText);
+      await this.clickOnElement(componentHeadingLocator);
+      await this.fillInElement(componentHeadingLocator, headingText);
       formCreationConstants.FORM_HEADING = headingText;
     });
   }
   async addDescriptionIntoTitleAndDescription(descriptionText: string): Promise<void> {
     await test.step('Add description into title and description', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.description_titleAnddescription, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.descriptionTitleAndDescription, { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
-          await this.description_titleAnddescription.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          await this.descriptionTitleAndDescription.isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Description in title and description section should be visible'
         )
         .toBe(true);
-      await this.description_titleAnddescription.click();
-      await this.description_titleAnddescription.fill(descriptionText);
+      await this.clickOnElement(this.descriptionTitleAndDescription);
+      await this.fillInElement(this.descriptionTitleAndDescription, descriptionText);
       formCreationConstants.FORM_DESCRIPTION = descriptionText;
     });
   }
 
   async clickOnCopyIcon(): Promise<void> {
     await test.step('Click on copy icon', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.copy_icon, { timeout: TIMEOUTS.MEDIUM });
-      await this.copy_icon.click();
+      await this.verifier.verifyTheElementIsVisible(this.copyIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.copyIcon);
     });
   }
   async clickOnDeleteIcon(): Promise<void> {
     await test.step('Click on delete icon', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.delete_icon, { timeout: TIMEOUTS.MEDIUM });
-      await this.delete_icon.click();
+      await this.verifier.verifyTheElementIsVisible(this.deleteIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.deleteIcon);
     });
   }
   async clickOnSettingsIcon(): Promise<void> {
     await test.step('Click on settings icon', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.settings_icon, { timeout: TIMEOUTS.MEDIUM });
-      await this.settings_icon.click();
+      await this.verifier.verifyTheElementIsVisible(this.settingsIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.settingsIcon);
     });
   }
-  async verfiyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
+  async verifyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
     await test.step('Verify copied component is visible', async () => {
       const heading = formCreationConstants.FORM_HEADING;
       const description = formCreationConstants.FORM_DESCRIPTION;
@@ -520,7 +524,7 @@ export class FormCreationPage extends BasePage {
 
   async verifyTitleAndDescriptionComponentIsDeleted(): Promise<void> {
     await test.step('Verify component is deleted', async () => {
-      const secondHeading = this.heading_titleAnddescription.nth(1);
+      const secondHeading = this.headingTitleAndDescription.nth(1);
       await this.verifier.verifyTheElementIsNotVisible(secondHeading, { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
@@ -529,7 +533,7 @@ export class FormCreationPage extends BasePage {
         )
         .toBe(false);
     });
-    const secondDescription = this.description_titleAnddescription.nth(1);
+    const secondDescription = this.descriptionTitleAndDescription.nth(1);
     await this.verifier.verifyTheElementIsNotVisible(secondDescription, { timeout: TIMEOUTS.MEDIUM });
     test
       .expect(
@@ -553,7 +557,7 @@ export class FormCreationPage extends BasePage {
     });
   }
 
-  async verfiyCopiedComponentIsVisible(componentName: string): Promise<void> {
+  async verifyCopiedComponentIsVisible(componentName: string): Promise<void> {
     const heading = formCreationConstants.FORM_HEADING;
     if (!heading) {
       throw new Error('FORM_HEADING is not set');
@@ -569,13 +573,16 @@ export class FormCreationPage extends BasePage {
 
   async addDescriptionIntoComponent(componentName: string, descriptionText: string): Promise<void> {
     await test.step('Add description into : ${componentName} component', async () => {
-      const component_name = this.page.locator('span').filter({ hasText: componentName });
-      await this.verifier.verifyTheElementIsVisible(component_name, { timeout: TIMEOUTS.MEDIUM });
+      const componentNameLocator = this.page.locator('span').filter({ hasText: componentName });
+      await this.verifier.verifyTheElementIsVisible(componentNameLocator, { timeout: TIMEOUTS.MEDIUM });
       test
-        .expect(await component_name.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Description section should be visible')
+        .expect(
+          await componentNameLocator.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Description section should be visible'
+        )
         .toBe(true);
-      await component_name.click();
-      await component_name.fill(descriptionText);
+      await this.clickOnElement(componentNameLocator);
+      await this.fillInElement(componentNameLocator, descriptionText);
       formCreationConstants.FORM_DESCRIPTION = descriptionText;
     });
   }
