@@ -5,7 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FormSuiteTags } from '../../constants/formTestTags';
-import { FormCreationPage } from '../../ui/pages/formCreation/formPage';
+import { FormCreationPage } from '../../ui/pages/formCreation/FormPage';
 test.describe(
   `form basic functionality by Application Manager`,
   {
