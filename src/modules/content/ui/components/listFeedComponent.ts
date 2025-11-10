@@ -107,7 +107,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post container
    */
   readonly getPostContainerLocator = (postText: string): Locator =>
-    this.page.locator('p').filter({ hasText: postText }).locator('xpath=./ancestor::div[4]');
+    this.page.locator('p').filter({ hasText: postText }).locator('..').locator('..').locator('..').locator('..');
 
   /**
    * Gets a locator for the like/react button within a specific post
