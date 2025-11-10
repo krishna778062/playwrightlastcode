@@ -18,7 +18,10 @@ export class PieChartComponent extends BaseComponent {
       has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
     super(page, container);
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    // Tooltips in Highcharts are rendered at the iframe level, not scoped to individual charts
+    // When multiple charts exist, there can be multiple tooltip containers in the DOM
+    // We use .first() to get the first visible one, which should be the one for the chart we're interacting with
+    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]').first();
     this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
@@ -62,9 +65,15 @@ export class PieChartComponent extends BaseComponent {
 
   /**
    * Verifies the tool tip container is visible
+   * Note: Uses .first() to handle cases where multiple tooltip containers exist in the DOM
+   * (e.g., when multiple charts are present on the page)
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
+    // Get the first visible tooltip container to avoid strict mode violations
+    // when multiple charts are present on the page
+    const visibleTooltip = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]').first();
+
+    await this.verifier.waitUntilElementIsVisible(visibleTooltip, {
       timeout: TIMEOUTS.MEDIUM,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
