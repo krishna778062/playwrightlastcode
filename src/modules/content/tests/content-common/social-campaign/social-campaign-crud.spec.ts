@@ -30,6 +30,8 @@ test.describe(
     let addCampaignPage: AddCampaignPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
+      // Enable social campaign integrations
+      await appManagerFixture.socialCampaignHelper.enableSocialCampaign();
       // Reset cleanup flag for each test
       await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;

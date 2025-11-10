@@ -112,6 +112,7 @@ export const API_ENDPOINTS = {
     shareToFeed: (campaignId: string, sharedWith: string) =>
       `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
+    enableSettings: '/v1/account/appConfig/app.integrations.social.campaigns',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',

@@ -410,4 +410,17 @@ export class SocialCampaignHelper {
     };
     return this.shareCampaignToFeed(campaignId, shareData);
   }
+
+  /**
+   * Enables social campaign integrations (Facebook, LinkedIn, Twitter)
+   * @param settings - Optional settings to override defaults (all enabled by default)
+   * @returns Promise<any> - The response from the API
+   */
+  async enableSocialCampaign(settings?: {
+    facebookIntegrationEnabled?: boolean;
+    linkedinIntegrationEnabled?: boolean;
+    twitterIntegrationEnabled?: boolean;
+  }): Promise<any> {
+    return await this.getSocialCampaignService().enableSocialCampaign(settings);
+  }
 }
