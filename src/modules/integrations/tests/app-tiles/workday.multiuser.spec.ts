@@ -94,7 +94,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for Workday Apply Time Off tile on Home dashboard - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-multiuser'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -119,7 +119,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for Workday Apply Time Off tile on Site dashboard - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-multiuser'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
