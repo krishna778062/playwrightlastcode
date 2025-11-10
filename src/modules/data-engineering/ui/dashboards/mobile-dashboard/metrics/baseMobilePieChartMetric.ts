@@ -3,52 +3,43 @@ import { expect, FrameLocator, Locator, Page } from '@playwright/test';
 import { PieChartComponent } from '../../../components/pieChartComponent';
 
 /**
- * Base class for mobile dashboard pie chart metrics that need string-based label matching
+ * Base class for mobile dashboard pie chart metrics that need regex-based label matching
  * to avoid ambiguous matches (e.g., "Android logins" vs "Both iOS and android logins").
  *
  * This class provides:
- * - String-based locator that matches labels at the start of text (using startsWith, no regex)
+ * - Regex-based locator that matches labels at the start of text (using filter with regex)
  * - Enhanced text extraction with multiple fallbacks
  * - Duplicate text handling
  * - Text normalization
+ *
+ * Note: Using regex with filter() is synchronous and faster than async iteration,
+ * which prevents tooltip accumulation issues in CI environments where multiple charts exist.
  */
 export abstract class BaseMobilePieChartMetric extends PieChartComponent {
-  protected getChartLabelLocatorWithLabelAsOverride: (label: string) => Promise<Locator>;
-  private readonly allChartLabels: Locator;
+  protected getChartLabelLocatorWithLabelAsOverride: (label: string) => Locator;
 
   constructor(page: Page, thoughtSpotIframe: FrameLocator, metricTitle: string) {
     super(page, thoughtSpotIframe, metricTitle);
 
-    this.allChartLabels = this.rootLocator.locator(`g[class*='highcharts-data-label-color']`);
-
-    // Create a locator that matches the label at the start of the text
+    // Create a regex-based locator that matches the label at the start of the text
     // to avoid ambiguous matches (e.g., "Android logins" should not match "Both iOS and android logins")
     // Note: Can't override readonly property from base class, so we create a separate one
-    // This method uses string matching (startsWith) instead of regex for better performance and simplicity
-    // Since Playwright's filter doesn't support async functions, we iterate through all labels
-    // to find the one that starts with the given label (case-insensitive)
-    this.getChartLabelLocatorWithLabelAsOverride = async (label: string) => {
-      const labelLower = label.toLowerCase().trim();
-      const count = await this.allChartLabels.count();
-
-      for (let i = 0; i < count; i++) {
-        const text = await this.allChartLabels.nth(i).textContent();
-        const normalizedText = text?.toLowerCase().trim() ?? '';
-        if (normalizedText.startsWith(labelLower)) {
-          return this.allChartLabels.nth(i);
-        }
-      }
-
-      throw new Error(`Label "${label}" not found in chart labels`);
+    // Using regex with filter() is synchronous and faster than async iteration,
+    // which prevents tooltip accumulation issues in CI environments
+    this.getChartLabelLocatorWithLabelAsOverride = (label: string) => {
+      // Escape special regex characters in the label
+      const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regexPattern = new RegExp(`^${escapedLabel}`, 'i');
+      return this.rootLocator.locator(`g[class*='highcharts-data-label-color']`).filter({ hasText: regexPattern });
     };
   }
 
   /**
-   * Override hover method to use the string-based locator (startsWith matching)
+   * Override hover method to use the regex-based locator
    * Subclasses can override this to add additional logic (e.g., visibility waits)
    */
   async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
-    const chartLabel = await this.getChartLabelLocatorWithLabelAsOverride(label);
+    const chartLabel = this.getChartLabelLocatorWithLabelAsOverride(label);
     await chartLabel.hover();
   }
 
@@ -58,7 +49,7 @@ export abstract class BaseMobilePieChartMetric extends PieChartComponent {
    */
   async verifySegmentLabelDataPointsAreAsExpected(params: { label: string; expectedText: string }): Promise<void> {
     const { label, expectedText } = params;
-    const chartLabelGroup = await this.getChartLabelLocatorWithLabelAsOverride(label);
+    const chartLabelGroup = this.getChartLabelLocatorWithLabelAsOverride(label);
 
     // Wait for the element to be visible first (subclasses can override if not needed)
     await this.verifier
