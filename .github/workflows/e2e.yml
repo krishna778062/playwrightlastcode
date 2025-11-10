@@ -25,6 +25,7 @@ on:
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
+          - 'form-designer'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
