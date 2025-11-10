@@ -6,6 +6,7 @@ import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/tes
 import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-search/test-data/video-file-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 import { VideoListItemComponent } from '@/src/modules/global-search/ui/components/videoListItemComponent';
 
 for (const fileType of testData.fileTypes) {
@@ -121,6 +122,31 @@ for (const fileType of testData.fileTypes) {
           });
 
           await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+        }
+      );
+      test(
+        `verify Video File Autocomplete functionality`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
+        },
+        async ({ appManagerFixture }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-19659',
+          });
+
+          /** Type in search input */
+          await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(uploadedFileName, {
+            stepInfo: `Typing "${uploadedFileName}" in search input`,
+          });
+
+          const resultList = new ResultListingComponent(appManagerFixture.page);
+          await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+          const fileResult = resultList.getAutocompleteItemByName(uploadedFileName);
+
+          await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
+
+          await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
         }
       );
     }

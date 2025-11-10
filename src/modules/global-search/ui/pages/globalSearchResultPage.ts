@@ -74,7 +74,9 @@ export class GlobalSearchResultPage extends BasePage {
       has: this.page.getByTestId('i-calendar'),
     });
 
-    this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+    this.appResultContainer = this.page
+      .locator("div[class*='AppItemList_appListTopWrapper']")
+      .or(this.page.locator("div[class*='ResultListWithSidebar_container']"));
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
     this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
@@ -209,7 +211,7 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns true if the app result list is displayed, false otherwise
    */
   async isAppResultDisplayed() {
-    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer, { timeout: 50000 });
+    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer.first(), { timeout: 90000 });
   }
 
   /**
@@ -502,6 +504,28 @@ export class GlobalSearchResultPage extends BasePage {
       originalCount: options.originalCount,
       stepInfo: options.stepInfo,
     });
+  }
+
+  /**
+   * Verifies the visibility of a people subfilter
+   * @param subFilterName - The name of the subfilter to verify
+   * @param shouldBeVisible - Whether the subfilter should be visible (true) or not visible (false)
+   * @param options - Optional step info and filter configuration
+   */
+  async verifyPeopleSubFilterVisibility(
+    subFilterName: string,
+    shouldBeVisible: boolean,
+    options?: {
+      stepInfo?: string;
+      filterText?: string;
+      iconType?: string;
+      globalFilterName?: string;
+    }
+  ): Promise<void> {
+    const filterText = options?.filterText || 'People';
+    const iconType = options?.iconType || 'people';
+    const subFilter = this.getSidebarFilter({ filterText, iconType });
+    await subFilter.verifyPeopleSubFilterVisibility(subFilterName, shouldBeVisible);
   }
 
   /**

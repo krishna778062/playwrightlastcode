@@ -12,6 +12,9 @@ export class LoginWithOtpPage extends BasePage {
   readonly emailInput: Locator;
   readonly optionalHeading: Locator;
   readonly addMobileNumberOrEmailHeading: Locator;
+  readonly addMobileNumberHeading: Locator;
+  readonly addEmailAddressHeading: Locator;
+
   readonly optionalFroceAddContactMessage: Locator;
   readonly mandatoryFroceAddContactMessage: Locator;
   readonly countryCodeRequiredFor: Locator;
@@ -30,6 +33,14 @@ export class LoginWithOtpPage extends BasePage {
   readonly verifyButton: Locator;
   readonly resendOtpButton: Locator;
   readonly continueButton: Locator;
+  readonly mobileNumberForceAddContactMessage: Locator;
+  readonly emailForceAddContactMessage: Locator;
+  readonly dontShowThisAgainModal: Locator;
+  readonly dontShowThisAgainModalHeader: Locator;
+  readonly dontShowThisAgainModalBody: Locator;
+  readonly dontShowThisAgainModalCancelButton: Locator;
+  readonly dontShowThisAgainModalConfirmButton: Locator;
+  readonly dontShowThisAgainModalCloseButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -37,6 +48,8 @@ export class LoginWithOtpPage extends BasePage {
     this.emailInput = page.getByRole('textbox', { name: 'Email ID' });
     this.optionalHeading = page.getByRole('heading', { name: 'Optional' });
     this.addMobileNumberOrEmailHeading = page.getByRole('heading', { name: 'Add mobile number or email' });
+    this.addMobileNumberHeading = page.getByRole('heading', { name: 'Add mobile number' });
+    this.mobileNumberForceAddContactMessage = page.getByText(LWO_MESSAGES.MOBILE_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
     this.optionalFroceAddContactMessage = page.locator(
       "//h1[text()='Add mobile number or email']/following-sibling::h4"
     );
@@ -60,6 +73,20 @@ export class LoginWithOtpPage extends BasePage {
     this.verifyButton = page.getByRole('button', { name: 'Verify' });
     this.resendOtpButton = page.getByRole('button', { name: 'Resend OTP' });
     this.continueButton = page.getByRole('button', { name: 'Continue' });
+    this.addEmailAddressHeading = page.getByRole('heading', { name: 'Add email address' });
+    this.emailForceAddContactMessage = page.getByText(LWO_MESSAGES.EMAIL_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
+    this.dontShowThisAgainModal = page
+      .getByRole('dialog')
+      .filter({ hasText: LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER });
+    this.dontShowThisAgainModalHeader = this.dontShowThisAgainModal.getByRole('heading', {
+      name: LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER,
+    });
+    this.dontShowThisAgainModalBody = this.dontShowThisAgainModal.getByText(
+      LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_BODY
+    );
+    this.dontShowThisAgainModalCancelButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Cancel' });
+    this.dontShowThisAgainModalConfirmButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Confirm' });
+    this.dontShowThisAgainModalCloseButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Close' });
   }
 
   /**
@@ -82,38 +109,34 @@ export class LoginWithOtpPage extends BasePage {
     });
   }
 
-  async verifyAddForceContactPageIsLoadedForOptionalLWO(): Promise<void> {
-    await test.step('Verifying add force contact page is loaded for optional LWO', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
-      await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
-      await this.verifier.verifyTheElementIsVisible(this.optionalFroceAddContactMessage);
-      await this.verifier.verifyElementHasText(
-        this.optionalFroceAddContactMessage,
-        LWO_MESSAGES.OPTIONAL_FORCE_ADD_CONTACT_HEADING
-      );
-      await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
-      await this.verifier.verifyTheElementIsVisible(this.mobileText);
-      await this.verifier.verifyTheElementIsVisible(this.emailText);
-      await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
-      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
-    });
+  async verifyAddForceContactPageIsLoadedForOptionalorMandatoryLWO(lwoType: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
+    if (lwoType === 'optional') {
+      await test.step('Verifying add force contact page is loaded for optional LWO', async () => {
+        await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+        await this.verifier.verifyTheElementIsVisible(this.optionalFroceAddContactMessage);
+        await this.verifier.verifyElementHasText(
+          this.optionalFroceAddContactMessage,
+          LWO_MESSAGES.OPTIONAL_FORCE_ADD_CONTACT_HEADING
+        );
+        await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
+        await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
+      });
+    } else if (lwoType === 'mandatory') {
+      await test.step('Verifying add force contact page is loaded for mandatory LWO', async () => {
+        await this.verifier.verifyTheElementIsNotVisible(this.optionalHeading);
+        await this.verifier.verifyTheElementIsVisible(this.mandatoryFroceAddContactMessage);
+        await this.verifier.verifyTheElementIsNotVisible(this.skipForNowButton);
+        await this.verifier.verifyTheElementIsNotVisible(this.dontShowThisAgainButton);
+      });
+    }
+    await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
+    await this.verifier.verifyTheElementIsVisible(this.mobileText);
+    await this.verifier.verifyTheElementIsVisible(this.emailText);
   }
 
-  async verifyAddForceContactPageIsLoadedForMandatoryLWO(): Promise<void> {
-    await test.step('Verifying add force contact page is loaded for mandatory LWO', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.optionalHeading);
-      await this.verifier.verifyTheElementIsVisible(this.addMobileNumberOrEmailHeading);
-      await this.verifier.verifyTheElementIsVisible(this.mandatoryFroceAddContactMessage);
-      await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
-      await this.verifier.verifyTheElementIsVisible(this.mobileText);
-      await this.verifier.verifyTheElementIsVisible(this.emailText);
-      await this.verifier.verifyTheElementIsNotVisible(this.skipForNowButton);
-      await this.verifier.verifyTheElementIsNotVisible(this.dontShowThisAgainButton);
-    });
-  }
-
-  async verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO(verificationType: string): Promise<void> {
-    await test.step('Verifying email or mobile verification page is loaded for optional LWO', async () => {
+  async verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(verificationType: string): Promise<void> {
+    await test.step('Verifying email or mobile verification page is loaded for optional or mandatory LWO', async () => {
       await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
       if (verificationType === 'email') {
         await this.verifier.verifyTheElementIsVisible(this.emailVerificationHeading);
@@ -126,39 +149,10 @@ export class LoginWithOtpPage extends BasePage {
     });
   }
 
-  async verifyEmailOrMobileVerificationPageIsLoadedForMandatoryLWO(verificationType: string): Promise<void> {
-    await test.step('Verifying email or mobile verification page is loaded for mandatory LWO', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
-      if (verificationType === 'email') {
-        await this.verifier.verifyTheElementIsVisible(this.emailVerificationHeading);
-      } else if (verificationType === 'mobile') {
-        await this.verifier.verifyTheElementIsVisible(this.mobileVerificationHeading);
-      }
-      await this.verifier.verifyTheElementIsVisible(this.enterOtpInput);
-      await this.verifier.verifyTheElementIsVisible(this.verifyButton);
-      await this.verifier.verifyTheElementIsVisible(this.resendOtpButton);
-    });
-  }
-
-  async verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO(verificationType: string): Promise<void> {
-    await test.step('Verifying both mobile and email verification page is loaded for optional LWO', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
-      if (verificationType === 'mobile') {
-        await this.verifier.verifyTheElementIsVisible(this.step1Heading);
-        await this.verifier.verifyTheElementIsVisible(this.mobileVerificationHeading);
-      } else if (verificationType === 'email') {
-        // TODO: verify that error message should not be visible
-        await this.verifier.verifyTheElementIsVisible(this.step2Heading);
-        await this.verifier.verifyTheElementIsVisible(this.emailVerificationHeading);
-      }
-      await this.verifier.verifyTheElementIsVisible(this.enterOtpInput);
-      await this.verifier.verifyTheElementIsVisible(this.verifyButton);
-      await this.verifier.verifyTheElementIsVisible(this.resendOtpButton);
-    });
-  }
-
-  async verifyForBothMobileAndEmailVerificationPageIsLoadedForMandatoryLWO(verificationType: string): Promise<void> {
-    await test.step('Verifying both mobile and email verification page is loaded for mandatory LWO', async () => {
+  async verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalOrMandatoryLWO(
+    verificationType: string
+  ): Promise<void> {
+    await test.step('Verifying both mobile and email verification page is loaded for optional or mandatory LWO', async () => {
       await this.verifier.verifyTheElementIsVisible(this.backArrowButton);
       if (verificationType === 'mobile') {
         await this.verifier.verifyTheElementIsVisible(this.step1Heading);
@@ -210,11 +204,7 @@ export class LoginWithOtpPage extends BasePage {
 
     switch (enterType) {
       case 'email':
-        if (lwoType === 'optional') {
-          await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
-        } else {
-          await this.verifyAddForceContactPageIsLoadedForMandatoryLWO();
-        }
+        await this.verifyAddForceContactPageIsLoadedForOptionalorMandatoryLWO(lwoType);
         await this.fillInElement(this.emailInput, email);
         await this.clickOnElement(this.sendOtpToVerifyButton);
         // Wait for the verification page to load before verifying elements
@@ -224,12 +214,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
-
-        if (lwoType === 'optional') {
-          await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('email');
-        } else {
-          await this.verifyEmailOrMobileVerificationPageIsLoadedForMandatoryLWO('email');
-        }
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
@@ -238,11 +223,7 @@ export class LoginWithOtpPage extends BasePage {
         break;
 
       case 'mobile':
-        if (lwoType === 'optional') {
-          await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
-        } else {
-          await this.verifyAddForceContactPageIsLoadedForMandatoryLWO();
-        }
+        await this.verifyAddForceContactPageIsLoadedForOptionalorMandatoryLWO(lwoType);
         await this.fillInElement(this.mobileInput, phone);
         await this.clickOnElement(this.sendOtpToVerifyButton);
         // Wait for the verification page to load before verifying elements
@@ -253,12 +234,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(phone), {
           timeout: TIMEOUTS.MEDIUM,
         });
-
-        if (lwoType === 'optional') {
-          await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalLWO('mobile');
-        } else {
-          await this.verifyEmailOrMobileVerificationPageIsLoadedForMandatoryLWO('mobile');
-        }
+        await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         console.log('otpMobile--------------', otpMobile);
@@ -268,11 +244,7 @@ export class LoginWithOtpPage extends BasePage {
         break;
 
       case 'both':
-        if (lwoType === 'optional') {
-          await this.verifyAddForceContactPageIsLoadedForOptionalLWO();
-        } else {
-          await this.verifyAddForceContactPageIsLoadedForMandatoryLWO();
-        }
+        await this.verifyAddForceContactPageIsLoadedForOptionalorMandatoryLWO(lwoType);
         await this.fillInElement(this.mobileInput, phone);
         await this.fillInElement(this.emailInput, email);
         await this.clickOnElement(this.sendOtpToVerifyButton);
@@ -284,11 +256,7 @@ export class LoginWithOtpPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
 
-        if (lwoType === 'optional') {
-          await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('mobile');
-        } else {
-          await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForMandatoryLWO('mobile');
-        }
+        await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalOrMandatoryLWO('mobile');
         await this.page.waitForTimeout(8000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         await this.fillInElement(this.enterOtpInput, otpMobile);
@@ -296,11 +264,7 @@ export class LoginWithOtpPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(await this.getOtpSentToHeading(email), {
           timeout: TIMEOUTS.MEDIUM,
         });
-        if (lwoType === 'optional') {
-          await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalLWO('email');
-        } else {
-          await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForMandatoryLWO('email');
-        }
+        await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalOrMandatoryLWO('email');
         await this.page.waitForTimeout(8000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
@@ -308,5 +272,104 @@ export class LoginWithOtpPage extends BasePage {
         await this.clickOnElement(this.continueButton);
         break;
     }
+  }
+
+  async verifyForceAddContactPageForIdentifierTypeMobileOrEmail(verificationType: string): Promise<void> {
+    await test.step(`Verifying add force contact page is loaded for ${verificationType} LWO when login identifiers are email and employee number`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+      if (verificationType === 'mobile') {
+        await this.verifier.verifyTheElementIsVisible(this.addMobileNumberHeading);
+        await this.verifier.verifyTheElementIsVisible(this.mobileNumberForceAddContactMessage);
+        await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
+        await this.verifier.verifyTheElementIsVisible(this.mobileText);
+      } else if (verificationType === 'email') {
+        await this.verifier.verifyTheElementIsVisible(this.addEmailAddressHeading);
+        await this.verifier.verifyTheElementIsVisible(this.emailForceAddContactMessage);
+        await this.verifier.verifyTheElementIsVisible(this.emailText);
+      }
+      await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
+    });
+  }
+
+  async addEmailOrMobileBasedOnIdentifiers(
+    otpUtils: OTPUtils,
+    identifier: string,
+    identifierType: 'email' | 'mobile'
+  ): Promise<void> {
+    await test.step('Navigating to force add contact page', async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+
+    let otpValue = '';
+
+    await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+
+    await this.verifyForceAddContactPageForIdentifierTypeMobileOrEmail(identifierType);
+
+    if (identifierType === 'mobile') {
+      await this.fillInElement(this.mobileInput, identifier);
+    } else {
+      await this.fillInElement(this.emailInput, identifier);
+    }
+
+    await this.clickOnElement(this.sendOtpToVerifyButton);
+
+    // Verify correct verification page based on type & LWO type
+    await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(identifierType);
+
+    // Get and enter OTP
+    await this.page.waitForTimeout(8000);
+    otpValue =
+      identifierType === 'mobile'
+        ? await otpUtils.getOTPFromSMS(identifier)
+        : await otpUtils.getOTPFromEmail(identifier);
+
+    console.log(`${identifierType} OTP →`, otpValue);
+
+    await this.fillInElement(this.enterOtpInput, otpValue);
+    await this.clickOnElement(this.verifyButton);
+    await this.clickOnElement(this.continueButton);
+  }
+
+  async skipVerificationPage(): Promise<void> {
+    await test.step('Skipping verification page', async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+      await this.clickOnElement(this.skipForNowButton);
+    });
+  }
+
+  async clickDontShowThisAgainButton(): Promise<void> {
+    await test.step(`Clicking Don't show this again on verification page`, async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+
+      await this.clickOnElement(this.dontShowThisAgainButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModal);
+      await this.verifier.verifyElementHasText(
+        this.dontShowThisAgainModalHeader,
+        LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER
+      );
+
+      // Verify modal body text
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalBody);
+      await this.verifier.verifyElementHasText(
+        this.dontShowThisAgainModalBody,
+        LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_BODY
+      );
+      // Verify modal buttons
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalCancelButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalConfirmButton);
+
+      // Click Confirm button
+      await this.clickOnElement(this.dontShowThisAgainModalConfirmButton);
+    });
   }
 }
