@@ -67,16 +67,19 @@ export class PieChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    * Note: Uses .first() to handle cases where multiple tooltip containers exist in the DOM
    * (e.g., when multiple charts are present on the page)
+   * Uses expect().toBeVisible() instead of waitFor() to avoid strict mode violations
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     // Get the first visible tooltip container to avoid strict mode violations
     // when multiple charts are present on the page
+    // Use expect().toBeVisible() instead of waitFor() because waitFor() checks strict mode
+    // before .first() is applied, while expect() handles .first() correctly
     const visibleTooltip = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]').first();
 
-    await this.verifier.waitUntilElementIsVisible(visibleTooltip, {
-      timeout: TIMEOUTS.MEDIUM,
-      stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
-    });
+    await expect(
+      visibleTooltip,
+      `Wait for tool tip container to be visible for metric ${this.metricTitle}`
+    ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
   }
 
   /**
