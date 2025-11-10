@@ -1,14 +1,13 @@
 import { SitePageTab } from '@content/constants/sitePageEnums';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
-
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
