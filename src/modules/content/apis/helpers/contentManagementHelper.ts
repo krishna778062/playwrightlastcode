@@ -413,6 +413,15 @@ export class ContentManagementHelper {
   }
 
   /**
+   * Deletes one or more topics by their IDs
+   * @param topicIds - Array of topic IDs to delete
+   * @returns Promise that resolves when topics are deleted
+   */
+  async deleteTopic(topicIds: string[]): Promise<void> {
+    return await this.contentManagementService.deleteTopic(topicIds);
+  }
+
+  /**
    * Gets the list of topics
    * @param size - Number of topics to return (default: 16)
    * @param term - Search term to filter topics (default: empty string)

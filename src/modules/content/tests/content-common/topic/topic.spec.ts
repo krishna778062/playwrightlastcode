@@ -4,7 +4,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
@@ -13,20 +12,27 @@ import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenP
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
 
 test.describe('edit Topic', () => {
-  let homePage: NewHomePage;
   let applicationScreenPage: ApplicationScreenPage;
   let manageTopicsPage: ManageTopicsPage;
   let topicDetailsPage: TopicDetailsPage;
   let profileScreenPage: ProfileScreenPage;
+  let manualCleanupNeeded: boolean = false;
+  let topicId: string;
+  let topicName: string;
 
   test.beforeEach('Setup for edit topic test', async ({ appManagerFixture }) => {
     applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
     manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
     topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, '');
     profileScreenPage = new ProfileScreenPage(appManagerFixture.page, '');
+    manualCleanupNeeded = false;
   });
 
-  test.afterEach(async ({}) => {});
+  test.afterEach(async ({ appManagerFixture }) => {
+    if (manualCleanupNeeded && topicId) {
+      await appManagerFixture.contentManagementHelper.deleteTopic([topicId]);
+    }
+  });
 
   test(
     'in Zeus to verify the Edit topic - negative scenario',
@@ -303,6 +309,98 @@ test.describe('edit Topic', () => {
       // Step 10: Verify topic is deleted from manage topics page
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
       await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+    }
+  );
+
+  test(
+    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-31145'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'To verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
+        zephyrTestId: 'CONT-31145',
+        storyId: 'CONT-31145',
+      });
+
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+      topicName = faker.lorem.words(2);
+
+      // Click on "Add topic" button
+      topicId = await manageTopicsPage.actions.createTopic(topicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+
+      await manageTopicsPage.actions.createDuplicateTopic(topicName);
+
+      await manageTopicsPage.assertions.verifyToastMessage('Duplicate topics are not allowed.');
+      manualCleanupNeeded = true;
+    }
+  );
+
+  test(
+    'manage Topics View topic list',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20590'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Manage Topics View topic list',
+        zephyrTestId: 'CONT-20590',
+        storyId: 'CONT-20590',
+      });
+
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+      await manageTopicsPage.assertions.verifyTopicListIsVisible();
+      topicName = faker.lorem.words(2);
+      const existingTopicName = await manageTopicsPage.actions.getTopicNameFromList();
+      await manageTopicsPage.actions.searchingTopicInSearchBar(existingTopicName);
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(existingTopicName);
+
+      topicId = await manageTopicsPage.actions.createTopic(topicName.toLowerCase());
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName.toLowerCase());
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.actions.editTopic(topicName.toUpperCase());
+      await manageTopicsPage.assertions.verifyToastMessage('Edited topic successfully');
+      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toUpperCase());
+      await manageTopicsPage.actions.deleteTopic();
+      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+    }
+  );
+
+  test(
+    'application should allow to add/edit/delete topic when merge and delete action',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20591'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Application should allow to add/edit/delete topic when merge and delete action',
+        zephyrTestId: 'CONT-20591',
+        storyId: 'CONT-20591',
+      });
+
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+      const firstTopicName = faker.lorem.words(2);
+      await manageTopicsPage.actions.createTopic(firstTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      const secondTopicName = faker.lorem.words(2);
+      await manageTopicsPage.actions.createTopic(secondTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.actions.searchingTopicInSearchBar(firstTopicName);
+      await manageTopicsPage.actions.mergeTopic(secondTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Merging topics… this may take some time');
+      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+      await manageTopicsPage.actions.searchingTopicInSearchBar(secondTopicName);
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.actions.deleteTopic();
+      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
     }
   );
 });
