@@ -145,7 +145,7 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       // Enable feature flag and navigate to gifting options
       await rewardGiftingOptionsPage.setTheHarnessValue('point_to_usd_conversion', true);
       await rewardGiftingOptionsPage.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
+      await rewardGiftingOptionsPage.verifyThePageIsLoaded();
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/peer-gifting/options');
 
       // Validate exchange rate dropdown options
@@ -190,7 +190,6 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       // Disable feature flag and verify dropdown is hidden
       await rewardGiftingOptionsPage.setTheHarnessValue('point_to_usd_conversion', false);
       await rewardGiftingOptionsPage.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/peer-gifting/options');
       await expect(rewardGiftingOptionsPage.exchangeRateSelectDropdown).not.toBeVisible();
 
@@ -267,40 +266,10 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
       }
 
       // Mock feature flag as disabled and navigate to gifting options
-      await manageRewardsPage.page.route('**/api/1.0/client/env/**/target/**/evaluations?cluster=2', async route => {
-        const response = await route.fetch();
-        const body = await response.json();
-
-        const updatedBody = body.map((item: any) => {
-          if (item.flag === 'point_to_usd_conversion') {
-            return {
-              ...item,
-              value: 'false',
-              identifier: 'false',
-            };
-          }
-          return item;
-        });
-
-        await route.fulfill({
-          response,
-          body: JSON.stringify(updatedBody),
-          headers: {
-            ...response.headers(),
-            'content-type': 'application/json',
-          },
-        });
-      });
+      await rewardGiftingOptionsPage.setTheHarnessValue('point_to_usd_conversion', false);
       await rewardGiftingOptionsPage.loadPage();
-      await manageRewardsPage.page.reload();
+      await rewardGiftingOptionsPage.verifyThePageIsLoaded();
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/peer-gifting/options');
-
-      // Validate exchange rate dropdown is not visible
-      await rewardGiftingOptionsPage.loadPage();
-      await rewardGiftingOptionsPage.giftingOptionsInputBox.waitFor({
-        state: 'visible',
-        timeout: 25000,
-      });
       await rewardGiftingOptionsPage.exchangeRateSelectDropdown.waitFor({ state: 'detached' });
       await expect(manageRewardsPage.disableRewardLink).not.toBeAttached();
       const isVisible = await rewardGiftingOptionsPage.verifier.isTheElementVisible(
@@ -310,9 +279,7 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
 
       // Re-enable rewards
       await manageRewardsPage.loadPage();
-      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Clicking on enable rewards button',
-      });
+      await manageRewardsPage.enableTheRewards();
       await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
       await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
     }

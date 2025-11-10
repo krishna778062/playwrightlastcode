@@ -422,6 +422,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
     const recognitionHub = new RecognitionHubPage(this.page);
+    await this.page.goto('/recognition'); // triggers API
     const waitForConfig = recognitionHub.page.waitForResponse(
       res =>
         res.url().endsWith('/recognition/v1/tenant/config') &&
@@ -429,7 +430,6 @@ export class RecognitionHubPage extends BasePage {
         res.status() === 200 &&
         res.request().method() === 'GET'
     );
-    await this.loadPage(); // triggers API
     const apiResponse = await waitForConfig;
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
