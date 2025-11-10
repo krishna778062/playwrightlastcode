@@ -35,7 +35,13 @@ test.describe(
     test(
       'verify that user is able to see and select the weekly view option on events calendar page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -61,7 +67,13 @@ test.describe(
     test(
       'verify that user is able to toggle between past and future week events',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -88,7 +100,13 @@ test.describe(
     test(
       'verify that all the created events are visible on the respective dates under weekly view',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -156,7 +174,7 @@ test.describe(
     test(
       'verify that user is able use all the filters under weekly view',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [TestPriority.P1, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -256,7 +274,13 @@ test.describe(
     test(
       'verify that user is able to see events based on selected or connected calendar type',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -364,9 +388,15 @@ test.describe(
     );
 
     test(
-      'verify that Outlook event with RSVP Yes is visible when RSVP Yes filter is applied',
+      'verify that user is able to select between colour choices and apply colour related settings',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -436,6 +466,97 @@ test.describe(
 
         ariaLabel = await calendarPage.actions.selectGoogleEventColor('1');
         await calendarPage.assertions.verifyGoogleEventColor(ariaLabel);
+      }
+    );
+
+    test(
+      'create multiple Google Calendar events at the same time for today',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR],
+      },
+      async ({ appManagerFixture }) => {
+        test.setTimeout(300000);
+        tagTest(test.info(), {
+          description: 'Create multiple Google Calendar events with same time slot for today',
+          zephyrTestId: ['INT-28461'],
+        });
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const contentManagementHelper = new ContentManagementHelper(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        const appManagerEmail = getEnvConfig().appManagerEmail;
+        const organizerId = await userManagementService.getUserId(appManagerEmail);
+
+        // Create a test site for the events
+        const category =
+          await appManagerFixture.siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const testSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+          category,
+          siteName: `Calendar Test Site ${Date.now()}`,
+        });
+
+        const siteId = testSite.siteId;
+
+        // Set up times for today's date - 11:00 PM to 11:45 PM
+        const startTime = new Date();
+        startTime.setHours(23, 0, 0, 0); // Start at 11:00 PM today
+
+        const endTime = new Date(startTime);
+        endTime.setHours(23, 45, 0, 0); // End at 11:45 PM
+
+        const timezone = 'Asia/Kolkata';
+
+        // Create 3 Google Calendar events at the same time
+        const numberOfEvents = 3;
+        const eventPromises = [];
+
+        for (let i = 1; i <= numberOfEvents; i++) {
+          const eventTitle = `Google Event ${i} - Same Time Slot`;
+          const googleEventPayload = {
+            ...createGoogleEventPayload({
+              title: eventTitle,
+              description: `Test event ${i} for same time slot verification`,
+              location: `Location ${i}`,
+              organizerId,
+              startDate: startTime,
+              endDate: endTime,
+              timezone,
+            }),
+            isAllDay: false,
+            startsAt: startTime.toISOString(),
+            endsAt: endTime.toISOString(),
+          };
+
+          eventPromises.push(
+            contentManagementHelper.contentManagementService.addNewEventContent(siteId, googleEventPayload)
+          );
+        }
+
+        // Create all events in parallel
+        await Promise.all(eventPromises);
+
+        // Wait for events to sync to Google Calendar
+        await appManagerFixture.page.waitForTimeout(10000);
+
+        // Then navigate to weekly view calendar page
+        const calendarPage = new CalendarPage(appManagerFixture.page);
+        await calendarPage.actions.navigateToCalendarPage();
+
+        // Select week view
+        await calendarPage.actions.selectCalendarView('Week');
+        await calendarPage.assertions.verifyTwentyFourHourSlots(true);
+
+        // Verify today's date is visible
+        await calendarPage.assertions.verifyVisibilityOfTodaysDate(true);
+
+        // Verify +more events button is visible for overlapping events
+        await calendarPage.assertions.verifyMoreEventsButtonIsVisible();
       }
     );
   }
