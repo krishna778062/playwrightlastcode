@@ -505,25 +505,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     }
   }
 
-  async getTheActivityTableUpdatedTime(lastUpdatedAt: any): Promise<string> {
-    if (!lastUpdatedAt) {
-      throw new Error('Invalid timestamp: lastUpdatedAt is required.');
-    }
-
-    const now = new Date();
-    const updatedAt = new Date(lastUpdatedAt);
-    const diffMs = now.getTime() - updatedAt.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMinutes <= 59) {
-      return `Last updated ${diffMinutes} min ago`;
-    } else if (diffMinutes > 59 && diffMinutes < 120) {
-      return 'Last updated 1 hours ago';
-    } else {
-      return 'Check the Job is failing, it is updated more than 2 hours';
-    }
-  }
-
   /**
    * Load page with Harness flag response
    */
@@ -691,13 +672,23 @@ export class ManageRewardsOverviewPage extends BasePage {
       stepInfo: 'Clicking on Add/Edit Budget button',
     });
     await this.verifier.waitUntilElementIsVisible(this.budgetModal.budgetContainer);
-
-    // Check if it's Add or Edit mode
     const isRemoveOptionVisible = await this.verifier.isTheElementVisible(
       this.budgetModal.budgetPanelRemoveRadioInputBox,
       { timeout: 2000 }
     );
     return isRemoveOptionVisible ? 'Edit budget' : 'Add budget';
+  }
+
+  async verifyBudgetSummaryElements(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryTileContainer, {
+      assertionMessage: 'Verify Budget Summary tile container is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryHeadingIcon, {
+      assertionMessage: 'Verify Budget Summary heading icon is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryHeadingText, {
+      assertionMessage: 'Verify Budget Summary heading text is visible',
+    });
   }
 
   async getTheBudgetApiResponse(): Promise<any> {
@@ -722,26 +713,6 @@ export class ManageRewardsOverviewPage extends BasePage {
       expect(tooltipText).toContain(
         `Budget balance: $${budgetJson.result.budgetBalanceDetails.remainingBudgetUsdAmount}`
       );
-    }
-  }
-
-  async selectTheBudgetFrequency(frequency: 'Annual' | 'Quarterly' | 'Remove'): Promise<void> {
-    switch (frequency) {
-      case 'Annual':
-        await this.clickOnElement(this.budgetModal.budgetPanelAnnualRadioInputBox, {
-          stepInfo: 'Selecting Annual budget frequency',
-        });
-        break;
-      case 'Quarterly':
-        await this.clickOnElement(this.budgetModal.budgetPanelQuarterlyRadioInputBox, {
-          stepInfo: 'Selecting Quarterly budget frequency',
-        });
-        break;
-      case 'Remove':
-        await this.clickOnElement(this.budgetModal.budgetPanelRemoveRadioInputBox, {
-          stepInfo: 'Selecting Remove budget option',
-        });
-        break;
     }
   }
 

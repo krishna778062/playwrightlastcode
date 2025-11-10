@@ -10,7 +10,7 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPageWithHarness();
+    await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
@@ -28,78 +28,14 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetSummaryTileContainer);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetSummaryHeadingIcon);
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.budgetSummaryHeadingText,
-        'Budget summary'
-      );
-
+      await manageRewardsPage.verifyBudgetSummaryElements();
       const budgetOps = await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-
-      if (budgetOps === 'Add budget') {
-        await manageRewardsPage.verifier.verifyElementHasText(
-          manageRewardsPage.budgetModal.budgetPanelDescription.nth(0),
-          'Add a budget to track and report on rewards spend. You may edit this at any time.'
-        );
-      } else {
-        await manageRewardsPage.verifier.verifyElementHasText(
-          manageRewardsPage.budgetModal.budgetPanelDescription.nth(0),
-          'Edit the budget to track and report on rewards spend.'
-        );
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(
-          manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox
-        );
-      }
-
-      await manageRewardsPage.verifier.verifyElementContainsText(
-        manageRewardsPage.budgetModal.budgetPanelHeader,
-        'rewards budget'
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.budgetModal.budgetPanelDescription.nth(1),
-        'You will receive notifications when nearing and reaching this budget.'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.budgetModal.budgetPanelAnnualRadioInputBox
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.budgetModal.budgetPanelQuarterlyRadioInputBox
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetPanelInputBox);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.budgetModal.budgetBalanceApplicationFullAnnualBudget
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.budgetModal.budgetBalanceApplicationCustomBudget
-      );
-
-      if (budgetOps !== 'Add budget') {
-        await manageRewardsPage.verifier.verifyTheElementIsVisible(
-          manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox
-        );
-        await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox, {
-          stepInfo: 'Clicking on Remove budget radio button',
-        });
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(
-          manageRewardsPage.budgetModal.budgetPanelInputBox
-        );
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(
-          manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
-        );
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(
-          manageRewardsPage.budgetModal.budgetBalanceApplicationFullAnnualBudget
-        );
-        await manageRewardsPage.verifier.verifyTheElementIsNotVisible(
-          manageRewardsPage.budgetModal.budgetBalanceApplicationCustomBudget
-        );
-      }
+      await manageRewardsPage.budgetModal.verifyTheElementsInBudgetModalAreVisible(budgetOps);
+      await manageRewardsPage.budgetModal.verifyTheBudgetFrequencyRadioButtons(budgetOps);
+      await manageRewardsPage.budgetModal.verifyTheBudgetInputBox();
+      await manageRewardsPage.budgetModal.verifyTheFinancialStartDateInputBox();
+      await manageRewardsPage.budgetModal.verifyTheBudgetBalance();
     }
   );
 
@@ -339,7 +275,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
         stepInfo: 'Filling budget input with 99999',
       });
@@ -398,7 +334,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       const budgetTypes = ['Annual', 'Quarterly'] as const;
       for (const budgetType of budgetTypes) {
-        await manageRewardsPage.selectTheBudgetFrequency(budgetType);
+        await manageRewardsPage.budgetModal.selectTheBudgetFrequency(budgetType);
         await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '999,999,999', {
           stepInfo: `Filling ${budgetType} budget input with 999,999,999`,
         });
@@ -429,7 +365,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '9999', {
         stepInfo: 'Filling budget input with 9999',
       });
@@ -453,7 +389,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-      await manageRewardsPage.selectTheBudgetFrequency('Remove');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
@@ -503,7 +439,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
         stepInfo: 'Filling budget input with 99999',
       });
@@ -517,7 +453,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Remove');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.budgetModal.budgetPanelInputBox);
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
@@ -567,7 +503,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         'rewards budget'
       );
 
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
         stepInfo: 'Filling budget input with 99999',
       });
@@ -589,7 +525,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Remove');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.budgetModal.budgetPanelInputBox);
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
@@ -647,7 +583,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         'rewards budget'
       );
 
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationFullAnnualBudget
       );
@@ -674,7 +610,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '19999', {
         stepInfo: 'Filling budget input with 19999',
       });
@@ -720,7 +656,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Remove');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
@@ -828,14 +764,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
       );
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
-      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, String(customBudget), {
-        stepInfo: 'Filling budget input with custom budget',
-      });
-      await manageRewardsPage.budgetModal.budgetPanelInputBox.blur();
-      await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
-        stepInfo: 'Clicking on save button',
-      });
+      await manageRewardsPage.budgetModal.fillAndSaveBudget('Annual', String(customBudget));
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.page.reload();
@@ -862,10 +791,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
           manageRewardsPage.budgetModal.budgetPanelHeader,
           'rewards budget'
         );
-        await manageRewardsPage.selectTheBudgetFrequency('Remove');
-        await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
-          stepInfo: 'Clicking on save button',
-        });
+        await manageRewardsPage.budgetModal.fillAndSaveBudget('Remove');
         await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
         await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
         await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.addBudgetButton);
@@ -898,7 +824,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
       );
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, String(customBudget), {
         stepInfo: 'Filling budget input with custom budget',
       });
@@ -932,7 +858,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
       );
-      await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
       await manageRewardsPage.fillInElement(
         manageRewardsPage.budgetModal.budgetPanelInputBox,
         String(newCustomBudget),
@@ -970,7 +896,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
           manageRewardsPage.budgetModal.budgetPanelHeader,
           'rewards budget'
         );
-        await manageRewardsPage.selectTheBudgetFrequency('Remove');
+        await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
@@ -1003,7 +929,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.pointBalanceSummaryAllowancePoints);
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
         stepInfo: 'Filling budget input with 99999',
       });
@@ -1069,7 +995,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(Number.isFinite(monthlySpent)).toBeTruthy();
 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       newBudget = (monthlySpent - 1).toFixed(0);
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, newBudget, {
         stepInfo: 'Filling budget input with monthlySpent - 1',
@@ -1124,7 +1050,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       console.log('monthlySpent (USD):', monthlySpent);
       expect(Number.isFinite(monthlySpent)).toBeTruthy();
 
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(
         manageRewardsPage.budgetModal.budgetPanelInputBox,
         String(monthlySpent + 1),
@@ -1163,7 +1089,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       expect(Math.abs(proRataValuePast - expectedProRataPast)).toBeLessThanOrEqual(1);
       expect(proRataValuePast).toEqual(expectedProRataPast);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
       await manageRewardsPage.fillInElement(
         manageRewardsPage.budgetModal.budgetPanelInputBox,
         String(monthlySpent + 1),

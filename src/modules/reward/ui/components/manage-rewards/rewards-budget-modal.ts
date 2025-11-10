@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 
 import { BasePage } from '@core/pages/basePage';
 
@@ -9,14 +10,19 @@ export class RewardsBudgetModal extends BasePage {
   readonly budgetContainer: Locator;
   readonly budgetPanelHeader: Locator;
   readonly budgetPanelDescription: Locator;
+  readonly budgetPanelAnnualRadioLabel: Locator;
   readonly budgetPanelAnnualRadioInputBox: Locator;
+  readonly budgetPanelQuarterlyRadioLabel: Locator;
   readonly budgetPanelQuarterlyRadioInputBox: Locator;
   readonly budgetPanelRemoveRadioInputBox: Locator;
   readonly budgetPanelInputBox: Locator;
   readonly budgetInputErrorMessage: Locator;
+  readonly budgetFinancialStartMonthSelectDropdown: Locator;
+  readonly budgetFinancialStartDateSelectDropdown: Locator;
   readonly budgetBalanceApplicationFullAnnualBudget: Locator;
   readonly budgetBalanceApplicationProRATABudget: Locator;
   readonly budgetBalanceApplicationCustomBudget: Locator;
+  readonly budgetBalanceApplicationCustomBudgetInputBox: Locator;
   readonly budgetPanelSaveButton: Locator;
   readonly proRataValue: Locator;
 
@@ -29,32 +35,92 @@ export class RewardsBudgetModal extends BasePage {
     this.budgetContainer = page.locator('[role="dialog"][data-state="open"]');
     this.budgetPanelHeader = this.budgetContainer.locator('h2[class*="Dialog-module__title"]>span');
     this.budgetPanelDescription = this.budgetContainer.locator('p[class*="Typography-module__paragraph"]');
-    this.budgetPanelAnnualRadioInputBox = this.budgetContainer.locator('label[for="budgetFrequencyANNUAL"] input');
-    this.budgetPanelQuarterlyRadioInputBox = this.budgetContainer.locator(
-      'label[for="budgetFrequencyQUARTERLY"] input'
+    this.budgetPanelAnnualRadioLabel = this.budgetContainer.locator('label[for="budgetFrequencyANNUAL"]');
+    this.budgetPanelAnnualRadioInputBox = this.budgetPanelAnnualRadioLabel.locator('input[name="budgetFrequency"]');
+    this.budgetPanelQuarterlyRadioLabel = this.budgetContainer.locator('label[for="budgetFrequencyQUARTERLY"]');
+    this.budgetPanelQuarterlyRadioInputBox = this.budgetPanelQuarterlyRadioLabel.locator(
+      'input[name="budgetFrequency"]'
     );
     this.budgetPanelRemoveRadioInputBox = this.budgetContainer.locator('label[for="budgetFrequencyREMOVE"] input');
     this.budgetPanelInputBox = this.budgetContainer.locator('input[id="budgetUsdAmount"]');
     this.budgetPanelSaveButton = this.budgetContainer.locator('button[type="submit"]');
     this.budgetInputErrorMessage = this.budgetContainer.locator('[class^="Field-module__error"] p');
+    this.budgetFinancialStartMonthSelectDropdown = this.budgetContainer.locator(
+      '[aria-label="Start month"][id="month"]'
+    );
+    this.budgetFinancialStartDateSelectDropdown = this.budgetContainer.locator('[aria-label="Start day"][id="day"]');
     this.budgetBalanceApplicationFullAnnualBudget = page.locator('input[id="balanceAllocationFULL"]');
     this.budgetBalanceApplicationProRATABudget = page.locator('input[id="balanceAllocationPRORATA"]');
     this.budgetBalanceApplicationCustomBudget = page.locator('input[id="balanceAllocationCUSTOM"]');
+    this.budgetBalanceApplicationCustomBudgetInputBox = page.locator('input[id="customAllocationUsdAmount"]');
     this.proRataValue = page.locator('input[id="prorataUsdBudget"]');
   }
 
   async selectTheBudgetFrequency(frequency: 'Annual' | 'Quarterly' | 'Remove'): Promise<void> {
-    switch (frequency) {
-      case 'Annual':
+    if (frequency === 'Annual') {
+      if (!(await this.budgetPanelAnnualRadioInputBox.isChecked())) {
         await this.budgetPanelAnnualRadioInputBox.click();
-        break;
-      case 'Quarterly':
+      }
+    } else if (frequency === 'Quarterly') {
+      if (!(await this.budgetPanelQuarterlyRadioInputBox.isChecked())) {
         await this.budgetPanelQuarterlyRadioInputBox.click();
-        break;
-      case 'Remove':
-        await this.budgetPanelRemoveRadioInputBox.click();
-        break;
+      }
+    } else {
+      await this.budgetPanelRemoveRadioInputBox.click();
     }
+  }
+
+  async verifyTheBudgetFrequencyRadioButtons(budgetOps: string) {
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+    await manageRewardsPage.verifier.verifyTheElementIsVisible(this.budgetPanelAnnualRadioInputBox);
+    await manageRewardsPage.verifier.verifyTheElementIsVisible(this.budgetPanelQuarterlyRadioInputBox);
+    if (budgetOps === 'Edit budget') {
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(this.budgetPanelRemoveRadioInputBox);
+    }
+  }
+
+  async verifyTheBudgetInputBox() {
+    await this.verifier.verifyTheElementIsVisible(this.budgetPanelInputBox);
+  }
+
+  async verifyTheFinancialStartDateInputBox() {
+    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartDateSelectDropdown);
+    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartMonthSelectDropdown);
+  }
+
+  async verifyTheBudgetBalance() {
+    await this.verifier.verifyTheElementIsVisible(this.budgetBalanceApplicationFullAnnualBudget);
+    await this.verifier.verifyTheElementIsVisible(this.budgetBalanceApplicationProRATABudget);
+    await this.verifier.verifyTheElementIsVisible(this.budgetBalanceApplicationCustomBudget);
+    await this.budgetBalanceApplicationCustomBudget.click();
+    await this.verifier.verifyTheElementIsVisible(this.budgetBalanceApplicationCustomBudgetInputBox);
+  }
+
+  async verifyTheElementsInBudgetModalAreVisible(budgetOps: String): Promise<void> {
+    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
+    if (budgetOps === 'Add budget') {
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.budgetModal.budgetPanelDescription.nth(0),
+        'Add a budget to track and report on rewards spend. You may edit this at any time.'
+      );
+      await manageRewardsPage.verifier.verifyElementContainsText(
+        manageRewardsPage.budgetModal.budgetPanelHeader,
+        'Add a rewards budget'
+      );
+    } else {
+      await manageRewardsPage.verifier.verifyElementHasText(
+        manageRewardsPage.budgetModal.budgetPanelDescription.nth(0),
+        'Edit the budget to track and report on rewards spend.'
+      );
+      await manageRewardsPage.verifier.verifyElementContainsText(
+        manageRewardsPage.budgetModal.budgetPanelHeader,
+        'Edit a rewards budget'
+      );
+    }
+    await manageRewardsPage.verifier.verifyElementHasText(
+      manageRewardsPage.budgetModal.budgetPanelDescription.nth(1),
+      'You will receive notifications when nearing and reaching this budget.'
+    );
   }
 
   async setFinancialYearStartDate(dateType: 'past' | 'future' | 'present'): Promise<number[]> {
