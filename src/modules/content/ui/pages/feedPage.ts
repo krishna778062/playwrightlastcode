@@ -743,7 +743,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         // But if we need to, try selecting by value or label
         try {
           // Wait for dropdown to be ready
-          await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible'});
+          await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible' });
           // Try to select 'public' value, if it fails, Home Feed is likely already selected
           await this.shareComponent.shareOptionDropdown.selectOption({ value: 'public' });
         } catch {

@@ -226,7 +226,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-
   /**
    * Marks a specific post as favorite by post text
    * @param postText - The text of the post to mark as favorite
