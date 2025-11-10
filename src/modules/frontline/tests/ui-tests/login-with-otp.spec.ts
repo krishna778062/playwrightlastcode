@@ -57,6 +57,15 @@ test.describe(
         USER_STATUS.INACTIVE
       );
     });
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
 
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as optional',
@@ -96,12 +105,6 @@ test.describe(
           'email',
           'optional'
         );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
-        );
       }
     );
 
@@ -130,12 +133,6 @@ test.describe(
           mailosaurValues.mailosaurEmail,
           'mobile',
           'optional'
-        );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
         );
       }
     );
@@ -167,12 +164,6 @@ test.describe(
           'both',
           'optional'
         );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
-        );
       }
     );
   }
@@ -198,6 +189,16 @@ test.describe(
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
         userDetails.endUserId,
         USER_STATUS.INACTIVE
+      );
+    });
+
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
       );
     });
 
@@ -239,12 +240,6 @@ test.describe(
           'email',
           'mandatory'
         );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
-        );
       }
     );
 
@@ -273,12 +268,6 @@ test.describe(
           mailosaurValues.mailosaurEmail,
           'mobile',
           'mandatory'
-        );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
         );
       }
     );
@@ -309,12 +298,6 @@ test.describe(
           mailosaurValues.mailosaurEmail,
           'both',
           'mandatory'
-        );
-        await lwoUserManagementService.deleteEmailAndMobile(
-          userDetails.endUserId,
-          userDetails.endUserEmpId,
-          userDetails.endUserFirstName,
-          userDetails.endUserLastName
         );
       }
     );
