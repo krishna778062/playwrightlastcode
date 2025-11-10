@@ -139,13 +139,13 @@ test.describe(
   },
   () => {
     test(
-      'verify Video File Search with captions functionality',
+      'to verify video transcripts search',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-XXXXX',
+          zephyrTestId: 'SEN-17761',
         });
 
         const captionSearchData = testData.captionSearch;

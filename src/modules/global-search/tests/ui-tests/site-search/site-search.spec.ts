@@ -124,7 +124,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       );
 
       test(
-        `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
+        `Verify Site Autocomplete functionality for a ${testData.siteType} site`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
         },
@@ -157,3 +157,63 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
     }
   );
 }
+
+test.describe(
+  `global Search - Site Search - Exact Match`,
+  {
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
+  },
+  () => {
+    let newSiteId: string;
+    let newSiteName: string;
+
+    test.beforeEach(
+      `Setting up the test environment for exact match test by using shared public site`,
+      async ({ publicSite }) => {
+        newSiteId = publicSite.siteId;
+        newSiteName = publicSite.siteName;
+        console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId} for exact match test`);
+      }
+    );
+
+    test(
+      `verify exact match results UI`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck', '@test'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-18434',
+        });
+
+        // First perform the search to get to the results page
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
+          stepInfo: `Searching with term "${newSiteName}" to verify exact match functionality`,
+        });
+
+        // Dismiss any survey popup that might appear
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        // Verify exact match checkbox is visible
+        await globalSearchResultPage.verifyExactMatchCheckboxIsVisible();
+
+        // Verify exact match title text is displayed
+        await globalSearchResultPage.verifyExactMatchTitleTextIsDisplayed();
+
+        // Verify info icon is visible
+        await globalSearchResultPage.verifyExactMatchInfoIconIsVisible();
+
+        // Hover over info icon and verify tooltip text
+        await globalSearchResultPage.hoverOverExactMatchInfoIconAndVerifyTooltip(newSiteName);
+
+        // Click on exact match checkbox
+        await globalSearchResultPage.clickExactMatchCheckbox();
+
+        // Verify the site result is displayed after clicking exact match checkbox
+        const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+        const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
+        await siteResultItem.verifyNameIsDisplayed(newSiteName);
+      }
+    );
+  }
+);

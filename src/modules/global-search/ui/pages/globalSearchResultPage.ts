@@ -37,6 +37,11 @@ export class GlobalSearchResultPage extends BasePage {
   readonly externalSearchResultItems: Locator;
   readonly dismissButton: Locator;
   readonly autocompleteAppList: Locator;
+  readonly exactMatchCheckbox: Locator;
+  readonly exactMatchTitle: Locator;
+  readonly exactMatchSection: Locator;
+  readonly exactMatchInfoIcon: Locator;
+  readonly exactMatchTooltip: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -76,6 +81,15 @@ export class GlobalSearchResultPage extends BasePage {
 
     // App autocomplete locators
     this.autocompleteAppList = this.page.locator('a[class*="AppList_hoverStyle"]');
+
+    // Exact match locators
+    this.exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
+    this.exactMatchSection = this.page.locator('[class*="ExactMatch_title"]');
+    this.exactMatchTitle = this.exactMatchSection.filter({
+      hasText: 'Search for an exact match',
+    });
+    this.exactMatchInfoIcon = this.exactMatchSection.getByTestId('i-info');
+    this.exactMatchTooltip = this.page.getByRole('tooltip');
   }
 
   /**
@@ -216,9 +230,8 @@ export class GlobalSearchResultPage extends BasePage {
       await verificationFn();
     } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
-      const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
-      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
-      await exactMatchCheckbox.click();
+      await this.exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
+      await this.exactMatchCheckbox.click();
       // Retry the verification after clicking the checkbox
       await verificationFn();
     }
@@ -503,6 +516,71 @@ export class GlobalSearchResultPage extends BasePage {
       } catch {
         // No survey popup present - continue with test
       }
+    });
+  }
+
+  /**
+   * Verifies the exact match checkbox is visible
+   */
+  async verifyExactMatchCheckboxIsVisible(): Promise<void> {
+    await test.step('Verifying exact match checkbox is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchCheckbox, {
+        timeout: 30000,
+        assertionMessage: 'Verifying exact match checkbox is visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match title text is displayed
+   */
+  async verifyExactMatchTitleTextIsDisplayed(): Promise<void> {
+    await test.step('Verifying exact match title text is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTitle, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match title text is displayed',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match info icon is visible
+   */
+  async verifyExactMatchInfoIconIsVisible(): Promise<void> {
+    await test.step('Verifying exact match info icon is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchInfoIcon, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match info icon is visible',
+      });
+    });
+  }
+
+  /**
+   * Hovers over the exact match info icon and verifies tooltip text
+   * @param searchTerm - The search term to verify in the tooltip text
+   */
+  async hoverOverExactMatchInfoIconAndVerifyTooltip(searchTerm: string): Promise<void> {
+    await test.step(`Hovering over exact match info icon and verifying tooltip text with search term "${searchTerm}"`, async () => {
+      await this.exactMatchInfoIcon.hover();
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTooltip, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying tooltip is displayed after hovering over info icon',
+      });
+      const expectedTooltipText = `Enabling this will show only the results that contain the term "${searchTerm}"`;
+      await this.verifier.verifyElementHasText(this.exactMatchTooltip, expectedTooltipText, {
+        assertionMessage: `Verifying tooltip text contains search term "${searchTerm}"`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on the exact match checkbox
+   */
+  async clickExactMatchCheckbox(): Promise<void> {
+    await test.step('Clicking on exact match checkbox', async () => {
+      await this.clickOnElement(this.exactMatchCheckbox, {
+        stepInfo: 'Clicking on exact match checkbox',
+      });
     });
   }
 }
