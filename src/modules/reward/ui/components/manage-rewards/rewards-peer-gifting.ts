@@ -4,13 +4,22 @@ import { BasePage } from '@core/pages/basePage';
 
 export class RewardsPeerGifting extends BasePage {
   readonly peerGiftingHeading: Locator;
+  //Peer Gifting Panel
   readonly peerGiftingPanel: Locator;
+  readonly peerGiftingIconCircle: Locator;
+  readonly peerGiftingIcon: Locator;
+  readonly peerGiftingLabels: Locator;
+  readonly peerGiftingPanelHeading: Locator;
+  readonly peerGiftingPanelDescription: Locator;
+  readonly peerGiftingToggle: Locator;
   readonly peerGiftingToggleSwitch: Locator;
+  readonly peerGiftingError: Locator;
   readonly saveButton: Locator;
 
-  // Disable Peer Gifting dialog
+  //Disable Peer Gifting dialog
   readonly disableDialog: Locator;
   readonly disableDialogTitle: Locator;
+  readonly disableDialogCloseButton: Locator;
   readonly disableDialogConfirmText: Locator;
   readonly disableDialogDescriptionText: Locator;
   readonly disableDialogCancelButton: Locator;
@@ -18,21 +27,48 @@ export class RewardsPeerGifting extends BasePage {
 
   // Enable Peer Gifting dialog
   readonly grantAllowancesDialog: Locator;
+  readonly grantAllowancesDialogTitle: Locator;
+  readonly grantAllowancesDialogCloseButton: Locator;
+  readonly grantAllowancesDialogDescription: Locator;
   readonly grantAllowancesRadioImmediately: Locator;
   readonly grantAllowancesRadioNextMonth: Locator;
+  readonly grantAllowancesRestoredText: Locator;
+  readonly grantAllowancesCancelButton: Locator;
   readonly grantAllowancesConfirmButton: Locator;
+  readonly grantAllowanceBoxDescription: Locator;
+
+  //error
+  readonly addGiftingOptionsAndAllowancesError: Locator;
+  readonly addGiftingOptionsError: Locator;
+  readonly addAllowancesError: Locator;
+  readonly giftingOptionsRequiredError: Locator;
+  readonly allowancesRequiredError: Locator;
+
+  readonly giftingOptionsPanel: Locator;
+  readonly allowancePanel: Locator;
+  readonly giftingOptionGreenTick: Locator;
+  readonly allowanceGreenTick: Locator;
+  readonly giftingOptionIcon: Locator;
+  readonly AllowanceIcon: Locator;
+  private disabledRewardRewardsBudgetContainer: any;
 
   constructor(page: Page) {
     super(page, '/manage/recognition/rewards/peer-gifting');
-
     this.peerGiftingHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.peerGiftingPanel = page.locator('div[class*="PeerGifting_panel"]');
-    this.peerGiftingToggleSwitch = this.peerGiftingPanel.locator('button[class*="ToggleInput-module__root"]');
+    this.peerGiftingIconCircle = this.peerGiftingPanel.locator('button[class*="PeerGifting_icon"]');
+    this.peerGiftingIcon = this.peerGiftingPanel.locator('[data-testid="i-gift""]');
+    this.peerGiftingLabels = this.peerGiftingPanel.locator('[class*="PeerGifting_label"]');
+    this.peerGiftingPanelHeading = this.peerGiftingLabels.locator('h3');
+    this.peerGiftingPanelDescription = this.peerGiftingLabels.locator('p');
+    this.peerGiftingToggle = this.peerGiftingPanel.locator('[class*="PeerGifting_toggle"]');
+    this.peerGiftingToggleSwitch = this.peerGiftingToggle.locator('button[class*="ToggleInput-module__root"]');
+    this.peerGiftingError = this.peerGiftingPanel.locator('[class*="Typography-module__paragraph"]').last();
     this.saveButton = page.locator('//button[text()="Save"]');
-
-    // Disable dialog
+    //Disable Peer Gifting dialog
     this.disableDialog = page.locator('div[role="dialog"][aria-modal="true"]');
     this.disableDialogTitle = this.disableDialog.locator('h2 span:text("Disable peer gifting")');
+    this.disableDialogCloseButton = this.disableDialog.locator('button[aria-label="Close"]');
     this.disableDialogConfirmText = this.disableDialog.locator(
       'p:text("Are you sure you want to disable peer gifting?")'
     );
@@ -41,16 +77,47 @@ export class RewardsPeerGifting extends BasePage {
     );
     this.disableDialogCancelButton = this.disableDialog.locator('button:text("Cancel")');
     this.disableDialogDisableButton = this.disableDialog.locator('button:text("Disable")');
-
-    // Enable dialog
+    // Enable Peer Gifting dialog
     this.grantAllowancesDialog = page.locator('div[role="dialog"][aria-modal="true"]');
+    this.grantAllowancesDialogTitle = this.grantAllowancesDialog.locator('h2 span:text("Grant allowances")');
+    this.grantAllowancesDialogCloseButton = this.grantAllowancesDialog.locator('button[aria-label="Close"]');
+    this.grantAllowancesDialogDescription = this.grantAllowancesDialog.locator(
+      'text=Confirm when allowances should be granted.'
+    );
     this.grantAllowancesRadioImmediately = this.grantAllowancesDialog.locator(
       'label[for="peerGifting_grantAllowancesimmediately"] input'
     );
     this.grantAllowancesRadioNextMonth = this.grantAllowancesDialog.locator(
       'label[for="peerGifting_grantAllowancesmonthBeginning"] input'
     );
+    this.grantAllowancesRestoredText = this.grantAllowancesDialog.locator(
+      'text=Users’ allowance balances for the current month will be restored.'
+    );
+    this.grantAllowancesCancelButton = this.grantAllowancesDialog.locator('button:text("Cancel")');
     this.grantAllowancesConfirmButton = this.grantAllowancesDialog.locator('button:text("Confirm")');
+    this.grantAllowanceBoxDescription = this.grantAllowancesDialog.locator(
+      '[data-testid="field-Grant allowances"] + div p'
+    );
+    //error
+    this.addGiftingOptionsAndAllowancesError = page.locator(
+      'p:text("You need to add gifting options and allowances to enable peer gifting")'
+    );
+    this.addGiftingOptionsError = page.locator('p:text("You need to add gifting options to enable peer gifting")');
+    this.addAllowancesError = page.locator('p:text("You need to add allowances to enable peer gifting")');
+    this.giftingOptionsRequiredError = page.locator(
+      'div[class*="PanelActionItem_layout"]:nth-child(1) div[class*="PanelActionItem_tag"] p'
+    );
+    this.allowancesRequiredError = page.locator(
+      'div[class*="PanelActionItem_layout"]:nth-child(3) div[class*="PanelActionItem_tag"] p'
+    );
+
+    //Gifting Options and Allowances locators
+    this.giftingOptionsPanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(1)');
+    this.allowancePanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(3)');
+    this.giftingOptionGreenTick = this.giftingOptionsPanel.locator('[class*="PanelActionItem_check"]');
+    this.allowanceGreenTick = this.allowancePanel.locator('[class*="PanelActionItem_check"]');
+    this.giftingOptionIcon = page.locator('[data-testid="i-giftWithSlider"]');
+    this.AllowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -98,5 +165,34 @@ export class RewardsPeerGifting extends BasePage {
     await this.grantAllowancesConfirmButton.click();
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     await this.goToUrl('/manage/recognition/rewards/overview');
+  }
+
+  /**
+   * Mock peer gifting API response
+   */
+  async mockThePeerGiftingApiResponse(
+    peerGiftingEnabled: boolean,
+    hasAllowances: boolean,
+    hasGiftingOptions: boolean
+  ): Promise<void> {
+    await this.page.route('**/recognition/admin/rewards/config/peer', async route => {
+      const mockResponse = {
+        peerGiftingEnabled,
+        hasAllowances,
+        hasGiftingOptions,
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockResponse),
+      });
+    });
+  }
+
+  /**
+   * Remove peer gifting API mock
+   */
+  async removePeerGiftingApiMock(): Promise<void> {
+    await this.page.unroute('**/recognition/admin/rewards/config/peer');
   }
 }

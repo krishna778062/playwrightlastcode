@@ -14,7 +14,7 @@
  * console.log(config.tenant.appManagerPassword);
  */
 
-export type TenantKey = 'primary' | 'contentSettings';
+export type TenantKey = 'primary' | 'contentSettings' | 'contentStudio' | 'contentAbac';
 export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prod';
 
 /**
@@ -134,6 +134,70 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+    },
+  },
+  contentAbac: {
+    qa: {
+      tenantName: 'Content ABAC',
+      frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
+      apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'diksha.gaur@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'abac-qa-org-id',
+      socialCampaignManagerEmail: 'diksha.gaur@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    uat: {
+      tenantName: 'Content ABAC',
+      frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
+      apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'diksha.gaur@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'abac-qa-org-id',
+      socialCampaignManagerEmail: 'diksha.gaur@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+  },
+  contentStudio: {
+    qa: {
+      tenantName: 'Content Studio',
+      frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
+      apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
+      appManagerEmail: 'pushker.yadav@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'pushker.yadav@simpplr.com',
+      endUserPassword: 'Simpplr@123',
+      siteManagerEmail: 'pushker.yadav@simpplr.com',
+      siteManagerPassword: 'Simpplr@123',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
+      socialCampaignManagerPassword: 'Simpplr@123',
+    },
+    uat: {
+      tenantName: 'Content Studio',
+      frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
+      apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
+      appManagerEmail: 'pushker.yadav@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'pushker.yadav@simpplr.com',
+      endUserPassword: 'Simpplr@123',
+      siteManagerEmail: 'pushker.yadav@simpplr.com',
+      siteManagerPassword: 'Simpplr@123',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
+      socialCampaignManagerPassword: 'Simpplr@123',
     },
   },
   appConfig: {
