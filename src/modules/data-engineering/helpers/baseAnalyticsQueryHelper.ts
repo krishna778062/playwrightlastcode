@@ -175,9 +175,9 @@ export abstract class BaseAnalyticsQueryHelper {
     // Handle user category mapping and replacement
     if (filterBy.userCategories && filterBy.userCategories.length > 0) {
       const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
-      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(userCategoryCodes));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(userCategoryCodes));
     } else {
-      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(filterBy.userCategories));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(filterBy.userCategories));
     }
 
     return query;
