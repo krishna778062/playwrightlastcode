@@ -122,7 +122,7 @@ export const config = {
     },
     uat: {
       tenantName: 'Content Settings',
-      frontendBaseUrl: ' https://ui-settings.uat.simpplr.xyz',
+      frontendBaseUrl: 'https://ui-settings.uat.simpplr.xyz',
       apiBaseUrl: 'https://ui-settings-api.uat.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
