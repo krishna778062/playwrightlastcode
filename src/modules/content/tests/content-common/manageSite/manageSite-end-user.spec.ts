@@ -1,20 +1,19 @@
+import { SitePageTab } from '@content/constants/sitePageEnums';
+import { ContentSuiteTags } from '@content/constants/testTags';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
+import { MANAGE_SITE_TEST_DATA } from '@content/test-data/manage-site-test-data';
+import { EditFileComponent } from '@content/ui/components/editFileComponent';
+import { SiteManager } from '@content/ui/managers/siteManager';
+import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
+import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@content/ui/pages/manageSiteSetUpPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SitePageTab } from '../../../constants/sitePageEnums';
-import { EditFileComponent } from '../../../ui/components/editFileComponent';
-import { SiteManager } from '../../../ui/managers/siteManager';
-import { ManageSitePage } from '../../../ui/pages/manageSitePage';
-
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
-import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
