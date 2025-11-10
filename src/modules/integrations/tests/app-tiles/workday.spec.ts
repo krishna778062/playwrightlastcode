@@ -35,7 +35,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove pending learning courses workday apptile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -65,7 +65,7 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove pending learning courses workday apptile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
@@ -102,7 +102,7 @@ test.describe(
     test(
       'verify display pending learning courses metadata for workday apptile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -272,7 +272,7 @@ test.describe(
     test(
       'create and edit Workday Apply for Time Off tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -299,7 +299,7 @@ test.describe(
     test(
       'create and edit Workday Apply for Time Off tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
@@ -453,7 +453,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Recent Paystubs app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, '@wworkday'],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -488,7 +488,7 @@ test.describe(
     test(
       'verify app/site manager is able to create, edit and remove Workday Display Recent Paystubs site manager defined tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, '@wworkday'],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -531,7 +531,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Inbox app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, '@wworkday'],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -553,7 +553,7 @@ test.describe(
           UI_ACTIONS.ADD_TO_HOME
         );
         // eslint-disable-next-line playwright/no-wait-for-timeout
-        await appManagerFixture.page.waitForTimeout(7000);
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
         //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -566,7 +566,7 @@ test.describe(
     test(
       'verify app/site manager is able to create, edit and remove Workday Display Inbox site manager defined tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, '@wworkday'],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -594,14 +594,14 @@ test.describe(
           UI_ACTIONS.ADD_TO_SITE
         );
         // eslint-disable-next-line playwright/no-wait-for-timeout
-        await appManagerFixture.page.waitForTimeout(7000);
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
         //add, edit, verify
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
         // eslint-disable-next-line playwright/no-wait-for-timeout
-        await appManagerFixture.page.waitForTimeout(7000);
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
