@@ -14,9 +14,7 @@ export default defineConfig({
     actionTimeout: 15_000, // 15 seconds auto-wait for actions
     navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
   },
-  // Add em
-  //
-  // form-designer-specific overrides here
+  // Add form-designer-specific overrides here
 
   projects: [
     {
