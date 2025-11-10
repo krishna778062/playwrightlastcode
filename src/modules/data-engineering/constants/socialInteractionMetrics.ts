@@ -35,4 +35,8 @@ export const SOCIAL_INTERACTION_METRICS = {
     title: 'Least engaged by Department',
     subtitle: 'Lowest engagement (up to 5) based on the Department and selected time period',
   },
+  PARTICIPANT_ENGAGEMENT_ACTIVITY: {
+    title: 'Participant engagement activity',
+    subtitle: 'Breakdown of the participant platform engagement over the selected time period',
+  },
 } as const;
