@@ -1,5 +1,7 @@
 import { Page } from '@playwright/test';
 
+import { SitePageTab } from '../../constants/sitePageEnums';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
@@ -9,6 +11,9 @@ export interface IManageSiteActions {
   searchSite: (siteName: string) => Promise<void>;
   selectFilterOption: (optionName: string) => Promise<void>;
   clickOnFilterOptionsDropdownButton: () => Promise<void>;
+  clickOnSiteTab: (tabName: SitePageTab) => Promise<void>;
+  clickOnFileOption: (fileName: string) => Promise<void>;
+  clickOnEditOption: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -18,6 +23,7 @@ export interface IManageSiteAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
+  verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
@@ -29,6 +35,8 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+  readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
+  readonly editOptionLocator = this.page.getByTestId('edit-button');
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
@@ -114,9 +122,25 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       assertionMessage: `${optionName} option should not be visible in options dropdown`,
     });
   }
+  fileOptionLocator = (fileName: string) => this.page.getByRole('link', { name: fileName }).first();
+  async verifyFileIsPresentInTheSiteFilesList(fileName: string): Promise<void> {
+    await this.verifier.isTheElementVisible(this.fileOptionLocator(fileName), {
+      assertionMessage: `Verifying that the file: ${fileName} is present in the site files list`,
+    });
+  }
+  async clickOnFileOption(fileName: string): Promise<void> {
+    await this.clickOnElement(this.fileOptionLocator(fileName));
+  }
 
+  async clickOnEditOption(): Promise<void> {
+    await this.clickOnElement(this.editOptionLocator);
+  }
   async selectFilterOption(optionName: string): Promise<void> {
     await this.clickOnElement(this.filterOptionsDropdown(optionName));
+  }
+
+  async clickOnSiteTab(tabName: SitePageTab): Promise<void> {
+    await this.clickOnElement(this.siteTab(tabName));
   }
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {

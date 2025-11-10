@@ -30,4 +30,10 @@ export const MANAGE_SITE_TEST_DATA = {
   DESCRIPTION: {
     DESCRIPTION: `Description ${faker.lorem.paragraph()}`,
   },
+  FILE_DESCRIPTION: {
+    DESCRIPTION: (characterLimit: number) => {
+      const words = faker.lorem.words(100); // Generate enough words
+      return words.substring(0, characterLimit).trim();
+    },
+  },
 };

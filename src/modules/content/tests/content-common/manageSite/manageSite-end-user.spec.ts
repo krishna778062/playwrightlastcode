@@ -1,7 +1,13 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
+import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SitePageTab } from '../../../constants/sitePageEnums';
+import { EditFileComponent } from '../../../ui/components/editFileComponent';
+import { SiteManager } from '../../../ui/managers/siteManager';
+import { ManageSitePage } from '../../../ui/pages/manageSitePage';
 
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
@@ -207,6 +213,71 @@ test.describe(
 
         // Verify all site names are displayed (method handles the loop internally)
         await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
+      'to verify the edit option on file detail page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26763'],
+      },
+      async ({ standardUserFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the edit option on file detail page',
+          zephyrTestId: 'CONT-26763',
+          storyId: 'CONT-26763',
+        });
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites();
+        console.log('getListOfSitesResponse', getListOfSitesResponse);
+        const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
+        console.log('siteId', siteId);
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          'image1.jpg'
+        );
+        const fileSize = FileUtil.getFileSize(imagePath);
+        const getSignedUploadUrlResponse =
+          await standardUserApiFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({
+            file_name: 'image1.jpg',
+            mime_type: 'image/jpeg',
+            size: fileSize,
+            uploadContext: 'site-files',
+            type: 'content',
+            siteId: siteId,
+          });
+        await standardUserApiFixture.contentManagementHelper.imageUploaderService.uploadFileToSignedUrl(
+          getSignedUploadUrlResponse.uploadUrl,
+          imagePath,
+          'image1.jpg'
+        );
+        const fileDetails =
+          await standardUserApiFixture.contentManagementHelper.imageUploaderService.uploadIntranetFile(
+            siteId,
+            'image1.jpg',
+            imagePath,
+            'image/jpeg'
+          );
+        console.log('fileDetails', fileDetails);
+        const siteManager = new SiteManager(standardUserFixture.page, siteId);
+        await siteManager.loadSite();
+        const manageSitePage = new ManageSitePage(standardUserFixture.page);
+        await manageSitePage.actions.clickOnSiteTab(SitePageTab.FilesTab);
+        await manageSitePage.assertions.verifyFileIsPresentInTheSiteFilesList(fileDetails.fileInfo.title);
+        await manageSitePage.actions.clickOnFileOption(fileDetails.fileInfo.title);
+        await manageSitePage.actions.clickOnEditOption();
+        const editFileComponent = new EditFileComponent(standardUserFixture.page);
+        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(245));
+        await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(245);
+        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(251));
+        await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(250);
+        await editFileComponent.actions.clickOnUpdateButton();
+        await manageSitePage.actions.clickOnEditOption();
+        await editFileComponent.assertions.verifyInputBoxHasValueOf(250);
       }
     );
   }
