@@ -4,28 +4,28 @@ import { FormSuiteTags } from '../../constants/formTestTags';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
-import { formTestFixture } from '@/src/modules/form-designer/fixtures/formFixture';
+import { test } from '@/src/modules/form-designer/fixtures/formFixture';
 import { FormCreationPage } from '@/src/modules/form-designer/ui/pages/formCreation/formPage';
 
-formTestFixture.describe(
+test.describe(
   `form basic functionality by Application Manager`,
   {
     tag: [FormSuiteTags.FORM_CREATION],
   },
   () => {
-    formTestFixture.beforeEach(async ({ appManagerPage }) => {
+    test.beforeEach(async ({ appManagerPage }) => {
       const formCreationPage = new FormCreationPage(appManagerPage);
       await formCreationPage.loadPage();
       await formCreationPage.verifyThePageIsLoaded();
     });
 
-    formTestFixture(
+    test(
       'verfiy app manager able to save form in draft',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Verfiy app manager able to save form in draft',
           zephyrTestId: 'ELF-518',
           storyId: 'ELF-518',
@@ -42,13 +42,13 @@ formTestFixture.describe(
       }
     );
 
-    formTestFixture(
+    test(
       'verify App Manager should be able to view the Homepage on clicking Forms tab',
       {
         tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Verify App Manager should be able to view the Homepage on clicking Forms tab',
           zephyrTestId: 'ELF-1',
           storyId: 'ELF-1',
@@ -62,13 +62,13 @@ formTestFixture.describe(
         await formCreationPage.verifyTabOnFormDashboard('All');
       }
     );
-    formTestFixture(
+    test(
       'blocks Intro Section: Verify the presence of the Intro section of the Blocks tab',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Verify App Manager should be able to view the Homepage on clicking Forms tab',
           zephyrTestId: 'ELF-9',
           storyId: 'ELF-9',
@@ -82,13 +82,13 @@ formTestFixture.describe(
       }
     );
 
-    formTestFixture(
+    test(
       'blocks Text Input Section: Verify the presence of the Input field section of the Blocks tab',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Blocks Content Section: Verify the presence of the Content section of the Blocks tab',
           zephyrTestId: 'ELF-10',
           storyId: 'ELF-10',
@@ -105,13 +105,13 @@ formTestFixture.describe(
         await formCreationPage.verifyLegalSectionIsVisible();
       }
     );
-    formTestFixture(
+    test(
       'blocks Multiple Choice Section: Verify the presence of the Multiple Choice field section of the Blocks tab',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description:
             'Blocks Multiple Choice Section: Verify the presence of the Multiple Choice field section of the Blocks tab',
           zephyrTestId: 'ELF-11',
@@ -125,13 +125,13 @@ formTestFixture.describe(
         await formCreationPage.verifyDropDownSectionIsVisible();
       }
     );
-    formTestFixture(
+    test(
       'block Media Section: Verify the presence of the Media field section of the Blocks tab',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Block Media Section: Verify the presence of the Media field section of the Blocks tab',
           zephyrTestId: 'ELF-12',
           storyId: 'ELF-12',
@@ -143,13 +143,13 @@ formTestFixture.describe(
         await formCreationPage.verifyImageSectionIsVisible();
       }
     );
-    formTestFixture(
+    test(
       'blocks Rating and opinion fields Section: Verify the presence of the Rating and opinion fields section of the Blocks tab',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description:
             'Blocks Rating and opinion fields Section: Verify the presence of the Rating and opinion fields section of the Blocks tab',
           zephyrTestId: 'ELF-13',
@@ -163,13 +163,13 @@ formTestFixture.describe(
       }
     );
 
-    formTestFixture(
+    test(
       'title and Description: Drag and Drop Title and Description component into the Canvas and verify the presence of the component',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description:
             'Title and Description: Drag and Drop Title and Description component into the Canvas and verify the presence of the component',
           zephyrTestId: 'ELF-18',
@@ -190,13 +190,13 @@ formTestFixture.describe(
         // await formCreationPage.clickOnSettingsIcon();
       }
     );
-    formTestFixture(
+    test(
       'short Text: Drag and Drop Short Text component into the Canvas',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Short Text: Drag and Drop Short Text component into the Canvas',
           zephyrTestId: 'ELF-22',
           storyId: 'ELF-22',
@@ -214,13 +214,13 @@ formTestFixture.describe(
       }
     );
 
-    formTestFixture(
+    test(
       'long Text: Drag and Drop Long Text component into the Canvas',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerPage }) => {
-        tagTest(formTestFixture.info(), {
+        tagTest(test.info(), {
           description: 'Long Text: Drag and Drop Long Text component into the Canvas',
           zephyrTestId: 'ELF-23',
           storyId: 'ELF-23',
