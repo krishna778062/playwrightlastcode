@@ -5,13 +5,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
 
-test.describe('edit Topic', () => {
+test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   let applicationScreenPage: ApplicationScreenPage;
   let manageTopicsPage: ManageTopicsPage;
   let topicDetailsPage: TopicDetailsPage;
@@ -20,7 +21,7 @@ test.describe('edit Topic', () => {
   let topicId: string;
   let topicName: string;
 
-  test.beforeEach('Setup for edit topic test', async ({ appManagerFixture }) => {
+  test.beforeEach('Setup for topic test', async ({ appManagerFixture }) => {
     applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
     manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
     topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, '');
