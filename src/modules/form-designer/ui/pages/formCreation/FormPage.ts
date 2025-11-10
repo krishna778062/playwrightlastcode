@@ -47,7 +47,7 @@ export class FormCreationPage extends BasePage {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.createFormButton = this.page.getByRole('link', { name: 'Create form' });
     this.dragAndDropArea = this.page.getByTestId('drag-placeholder-container');
-    this.titleAndDescriptionArea = this.page.getByRole('button', { name: /Title & description/i });
+    this.titleAndDescriptionArea = this.page.getByRole('button', { name: 'Title & description' });
     this.shortText = this.page.getByRole('button', { name: 'Short text' });
     this.draftButton = this.page.getByRole('button', { name: 'Save draft' });
     this.formNameInput = this.page.getByRole('textbox', { name: 'Form name*' });
@@ -105,8 +105,8 @@ export class FormCreationPage extends BasePage {
   private resolveComponentLocator(componentName: string): Locator {
     let key = componentName.trim().toLowerCase();
     switch (key) {
-      case (key = 'tile&description') ||
-        (key = 'tile & description') ||
+      case (key = 'title&description') ||
+        (key = 'title & description') ||
         (key = 'title&description') ||
         (key = 'title and description'):
         return this.titleAndDescriptionArea;
@@ -365,10 +365,7 @@ export class FormCreationPage extends BasePage {
     if (typeof component === 'string') {
       let key = component.trim().toLowerCase();
       switch (key) {
-        case (key = 'title&description') ||
-          (key = 'tile & description') ||
-          (key = 'title&description') ||
-          (key = 'title and description'):
+        case (key = 'title & description') || (key = 'title and description'):
           componentLocator = this.titleAndDescriptionArea;
           break;
         case 'heading':
