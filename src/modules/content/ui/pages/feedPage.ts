@@ -750,7 +750,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         .locator("div[class*='ListingItem-module__details'] div p")
         .filter({ hasText: userName })
         .first();
-      await userOption.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await userOption.waitFor({ state: 'visible' });
       await this.clickOnElement(userOption);
     });
   }
@@ -770,7 +770,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         .first();
       const isVisible = await siteOption.isVisible().catch(() => false);
       if (isVisible) {
-        await siteOption.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+        await siteOption.waitFor({ state: 'visible' });
         await this.clickOnElement(siteOption);
       } else {
         await shareEditor.press('Enter');
@@ -791,7 +791,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         .locator("div[role='menuitem'] div p")
         .filter({ hasText: new RegExp(`^${topicName}$`) })
         .first();
-      await topicOption.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await topicOption.waitFor({ state: 'visible' });
       await this.clickOnElement(topicOption);
     });
   }

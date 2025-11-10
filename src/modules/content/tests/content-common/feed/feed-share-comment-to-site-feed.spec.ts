@@ -3,18 +3,17 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-import { SOCIAL_CAMPAIGN_TEST_DATA } from '../../../test-data/social-campaign.test-data';
-import { SiteDashboardPage } from '../../../ui/pages/sitePages';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { SOCIAL_CAMPAIGN_TEST_DATA } from '@/src/modules/content/test-data/social-campaign.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -46,7 +45,6 @@ test.describe(
       'Setup test environment and data creation',
       async ({ siteManagerFixture, appManagerApiContext, appManagerApiFixture, standardUserFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        // Note: This may fail if user doesn't have app manager permissions, which is OK
         try {
           await siteManagerFixture.feedManagementHelper.configureAppGovernance({
             feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
@@ -268,15 +266,12 @@ test.describe(
         await siteContentManagerFeedPage.actions.selectShareOptionAsSiteFeed();
 
         // Step 22: Choose an "Unlisted" site
-        console.log(`Step 22: Selecting unlisted site: ${unlistedSiteName}`);
         await siteContentManagerFeedPage.actions.enterSiteNameInShareDialog(unlistedSiteName);
 
         // Step 23: Click "Share"
-        console.log('Step 23: Clicking Share button');
         await siteContentManagerFeedPage.actions.clickShareButtonInShareDialog();
 
         // Step 24: Verify success message
-        console.log('Step 24: Verifying success message');
         await siteContentManagerFeedPage.assertions.verifyToastMessage('Shared post successfully');
 
         // Step 25: Navigate directly to the unlisted site feed (avoiding search indexing delay)
@@ -298,8 +293,6 @@ test.describe(
         await siteContentManagerFeedPage.assertions.verifyShareCount(shareMessage2, 0);
         await siteContentManagerFeedPage.assertions.verifyLikesCount(shareMessage2, 0);
         await siteContentManagerFeedPage.assertions.verifyRepliesCount(shareMessage2, 0);
-
-        console.log('=== Test completed successfully ===');
       }
     );
   }
