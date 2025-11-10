@@ -59,7 +59,7 @@ test.describe(
     });
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailOnly(
+      await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
@@ -72,7 +72,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService, appManagerApiContext, config }) => {
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
           description: 'Verify newly added user try to login and enter email only,when LWO is set as optional',
           zephyrTestId: 'FL-435',
@@ -113,7 +113,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService }) => {
+      async ({ page, otpUtils }) => {
         tagTest(test.info(), {
           description: 'Verify newly added user try to login and enter mobile only,when LWO is set as optional',
           zephyrTestId: 'FL-435',
@@ -142,7 +142,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService }) => {
+      async ({ page, otpUtils }) => {
         tagTest(test.info(), {
           description:
             'Verify newly added user try to login and enter both mobile and email,when LWO is set as optional',
@@ -194,7 +194,7 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailOnly(
+      await lwoUserManagementService.deleteEmailAndMobile(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
@@ -207,7 +207,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService, appManagerApiContext, config }) => {
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
           description: 'Verify newly added user try to login and enter email only,when LWO is set as mandatory',
           zephyrTestId: 'FL-435',
@@ -248,7 +248,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService }) => {
+      async ({ page, otpUtils }) => {
         tagTest(test.info(), {
           description: 'Verify newly added user try to login and enter mobile only,when LWO is set as mandatory',
           zephyrTestId: 'FL-435',
@@ -277,7 +277,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService }) => {
+      async ({ page, otpUtils }) => {
         tagTest(test.info(), {
           description:
             'Verify newly added user try to login and enter both mobile and email,when LWO is set as mandatory',
@@ -352,7 +352,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, otpUtils, lwoUserManagementService, appManagerApiContext, config }) => {
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
           description:
             'Verify already added and activated user try to login with email/employee number as login identifiers,when LWO is set as optional',
@@ -391,7 +391,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, appManagerApiContext, config }) => {
+      async ({ page }) => {
         tagTest(test.info(), {
           description: 'Verify user reaches to Home page, when click on skip for now from force add contact page',
           zephyrTestId: 'FL-435',
@@ -505,7 +505,7 @@ test.describe(
       {
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
-      async ({ page, appManagerApiContext, config }) => {
+      async ({ page }) => {
         tagTest(test.info(), {
           description:
             "Verify user reaches to Home page, when click on Don't show this again from force add contact page",
