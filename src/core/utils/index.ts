@@ -9,5 +9,6 @@ export * from './logger';
 export * from './playwrightErrorHandler';
 export * from './testDataGenerator';
 export * from './testDecorator';
+export * from './timeUtil';
 export * from './urlUtils';
 export * from './zephyrApiClient';

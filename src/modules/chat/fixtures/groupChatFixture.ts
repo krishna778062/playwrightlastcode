@@ -6,9 +6,11 @@ import { ChatTestUser } from '../types/chat-test.type';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { Roles } from '@/src/core/constants/roles';
+import { USER_STATUS } from '@/src/core/constants/status';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { PLATFORM_API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 /**
@@ -63,7 +65,34 @@ export const groupChatTestFixture = test.extend<
           chatUserId: await userManagementService.getChatUserId(user.first_name, user.last_name),
         }))
       );
-      await use(usersWithChatIds);
+
+      try {
+        await use(usersWithChatIds);
+      } finally {
+        // Cleanup: Deactivate users after worker is done
+        // Note: We call API directly without test.step() since we're in fixture teardown
+        // Using finally ensures this ALWAYS runs, even if tests fail
+        console.log('=== Starting user cleanup in endUsersForChat fixture ===');
+        for (const user of usersWithChatIds) {
+          if (user.userId) {
+            try {
+              console.log(`Deactivating user ${user.email} with userId: ${user.userId}`);
+              await userManagementService.httpClient.put(
+                PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(user.userId),
+                {
+                  data: {
+                    status: USER_STATUS.INACTIVE,
+                  },
+                }
+              );
+              console.log(`✓ Successfully deactivated user ${user.email}`);
+            } catch (error) {
+              console.log(`✗ Failed to deactivate user ${user.email}: ${error}`);
+            }
+          }
+        }
+        console.log('=== User cleanup completed ===');
+      }
     },
     { scope: 'worker' },
   ],
