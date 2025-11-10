@@ -45,7 +45,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
     this.groupByOnUserParameterOption = (groupBy: string) =>
       this.page.locator("[class*='FilterGroupFilter-module']").getByText(groupBy, { exact: true });
     this.filterDialog = this.page.locator('[id*="tippy"]');
-    this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
+    this.filterOptionByText = (filterName: string) => this.filterDialog.getByText(filterName, { exact: true });
     this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
     this.filterClearAllButton = this.page.getByRole('button', { name: 'Clear' }).first();
 
@@ -271,6 +271,20 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   }
 
   /**
+   * Applies a Segment filter by opening the dialog and selecting the provided option.
+   * @param segmentFilterOptions - The Segment filter option to select.
+   */
+  async applySegmentFilter(segmentFilterOptions: string[]) {
+    await test.step(`Apply Segment filter: ${segmentFilterOptions.join(', ')}`, async () => {
+      await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      for (const segment of segmentFilterOptions) {
+        await this.selectFilterOptionByOptionName(segment);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
    * Applies a People Category filter by opening the dialog and selecting the provided option.
    * @param peopleCategoryFilterOptions - The People Category filter option to select.
    */
@@ -417,6 +431,11 @@ export class AnalyticsFiltersComponent extends BaseComponent {
 
       if (filterConfig.locations && filterConfig.locations.length > 0) {
         await this.applyLocationFilter(filterConfig.locations);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.segments && filterConfig.segments.length > 0) {
+        await this.applySegmentFilter(filterConfig.segments);
         await this.page.waitForTimeout(1000);
       }
 
