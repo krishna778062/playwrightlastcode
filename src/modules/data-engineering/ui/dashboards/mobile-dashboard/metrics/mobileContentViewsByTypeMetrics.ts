@@ -13,7 +13,7 @@ export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
    * (This chart needs explicit wait, base class doesn't wait)
    */
   async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
-    const chartLabel = this.getChartLabelLocatorWithLabelAsOverride(label);
+    const chartLabel = await this.getChartLabelLocatorWithLabelAsOverride(label);
 
     // Wait for the element to be visible first (this chart needs explicit wait)
     await this.verifier.waitUntilElementIsVisible(chartLabel, {
