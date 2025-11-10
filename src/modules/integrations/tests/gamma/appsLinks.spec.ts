@@ -20,6 +20,11 @@ test.describe(
     test.beforeEach(async ({ appManagerFixture }) => {
       appsLinks = new AppsLinksPage(appManagerFixture.page);
       await appsLinks.navigateTo(PAGE_ENDPOINTS.APPS_LINKS);
+      await appsLinks.verifyThePageIsLoaded();
+      await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+      await appsLinks.cancelAllLinksPresent();
+      await appsLinks.clickOnSaveButton();
+      await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
     });
 
     test(
@@ -203,8 +208,6 @@ test.describe(
         await appsLinks.verifyButtonInsideCustomLinks('Sort by');
         await appsLinks.verifySearchBoxVisibilityAndCountInsideLaunchpad();
         await appsLinks.deleteCustomLink(APPS_LINKS.YOUTUBE);
-
-        //RollBack
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.cancelAllLinksPresent();
         await appsLinks.clickOnSaveButton();
