@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { formCreationConstants } from '@form-designer-constants/formCreation';
 import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
@@ -8,10 +9,6 @@ import { dragAndDrop } from '@/src/modules/form-designer/utils';
 
 declare global {
   // Stores the most recently entered form name for cross-test access
-
-  var FORM_NAME: string | undefined;
-  var FORM_HEADING: string | undefined;
-  var FORM_DESCRIPTION: string | undefined;
 }
 
 export class FormCreationPage extends BasePage {
@@ -48,6 +45,7 @@ export class FormCreationPage extends BasePage {
   readonly copy_icon: Locator;
   readonly delete_icon: Locator;
   readonly settings_icon: Locator;
+  readonly getDashboardlocator: (value: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
@@ -84,6 +82,7 @@ export class FormCreationPage extends BasePage {
     this.copy_icon = this.page.getByRole('button', { name: 'Copy icon' });
     this.delete_icon = this.page.getByRole('button', { name: 'Delete icon' });
     this.settings_icon = this.page.getByRole('button', { name: 'Default Properties icon' });
+    this.getDashboardlocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -108,12 +107,12 @@ export class FormCreationPage extends BasePage {
   }
 
   private resolveComponentLocator(componentName: string): Locator {
-    const key = componentName.trim().toLowerCase();
+    let key = componentName.trim().toLowerCase();
     switch (key) {
-      case 'tile&description':
-      case 'tile & description':
-      case 'title&description':
-      case 'title and description':
+      case (key = 'tile&description') ||
+        (key = 'tile & description') ||
+        (key = 'title&description') ||
+        (key = 'title and description'):
         return this.titleAndDescriptionArea;
       case 'heading':
         return this.heading;
@@ -133,18 +132,13 @@ export class FormCreationPage extends BasePage {
         return this.address;
       case 'legal':
         return this.legal;
-      case 'multi select':
-      case 'multiselect':
+      case (key = 'multi select') || (key = 'multiselect'):
         return this.multiSelect;
-      case 'single select':
-      case 'singleselect':
+      case (key = 'single select') || (key = 'singleselect'):
         return this.singleSelect;
-      case 'drop down':
-      case 'dropdown':
-      case 'drop-down':
+      case (key = 'drop down') || (key = 'dropdown') || (key = 'drop-down'):
         return this.dropDown;
-      case 'file upload':
-      case 'fileupload':
+      case (key = 'file upload') || (key = 'fileupload'):
         return this.fileUpload;
       case 'image':
         return this.image;
@@ -160,12 +154,9 @@ export class FormCreationPage extends BasePage {
   }
 
   private resolveTargetLocator(targetArea: string): Locator {
-    const key = targetArea.trim().toLowerCase();
+    let key = targetArea.trim().toLowerCase();
     switch (key) {
-      case 'dragarea':
-      case 'canvas':
-      case 'dropzone':
-      case 'main':
+      case (key = 'dragarea') || (key = 'canvas') || (key = 'dropzone') || (key = 'main'):
         return this.dragAndDropArea;
       default:
         return this.page.locator(targetArea);
@@ -176,7 +167,7 @@ export class FormCreationPage extends BasePage {
     const name = `${namePrefix}${faker.string.alphanumeric({ length: 6 })}`;
     await test.step('Enter form name', async () => {
       await this.formNameInput.fill(name);
-      globalThis.FORM_NAME = name;
+      formCreationConstants.FORM_NAME = name;
     });
   }
 
@@ -207,74 +198,13 @@ export class FormCreationPage extends BasePage {
   }
   async verifyTabOnFormDashboard(tabName: string): Promise<void> {
     await test.step('Verify tab on Form dashboard', async () => {
-      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
-      // ensure we are on Forms dashboard
-      await this.formsTab.click({ trial: true }).catch(() => {});
-      await this.formsTab.click().catch(() => {});
-      switch (tabName) {
-        case 'Draft': {
-          let draftsTab = this.draftsTab.first();
-          if (!(await this.draftsTab.count())) {
-            const btn = this.page.getByRole('button', { name: /Drafts?/i });
-            if (await btn.count()) {
-              draftsTab = btn.first();
-            } else {
-              draftsTab = this.page.getByText(/^Drafts?$/i).first();
-            }
-          }
-          await this.verifier.verifyTheElementIsVisible(draftsTab, { timeout: TIMEOUTS.MEDIUM });
-          test
-            .expect(await draftsTab.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Drafts tab should be visible')
-            .toBe(true);
-          break;
-        }
-        case 'Published': {
-          let publishedTab = this.publishedTab.first();
-          if (!(await this.publishedTab.count())) {
-            const btn = this.page.getByRole('button', { name: /Published/i });
-            if (await btn.count()) {
-              publishedTab = btn.first();
-            } else {
-              publishedTab = this.page.getByText(/^Published$/i).first();
-            }
-          }
-          await this.verifier.verifyTheElementIsVisible(publishedTab, { timeout: TIMEOUTS.MEDIUM });
-          test
-            .expect(await publishedTab.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Published tab should be visible')
-            .toBe(true);
-          break;
-        }
-        case 'Archived': {
-          let archivedTab = this.archivedTab.first();
-          if (!(await this.archivedTab.count())) {
-            const btn = this.page.getByRole('button', { name: /Archived/i });
-            if (await btn.count()) {
-              archivedTab = btn.first();
-            } else {
-              archivedTab = this.page.getByText(/^Archived$/i).first();
-            }
-          }
-          await this.verifier.verifyTheElementIsVisible(archivedTab, { timeout: TIMEOUTS.MEDIUM });
-          test
-            .expect(await archivedTab.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Archived tab should be visible')
-            .toBe(true);
-          break;
-        }
-        case 'All': {
-          let allTab = this.allTab.first();
-          if (!(await this.allTab.count())) {
-            const btn = this.page.getByRole('button', { name: /^All$/i });
-            if (await btn.count()) {
-              allTab = btn.first();
-            } else {
-              allTab = this.page.getByText(/^All$/i).first();
-            }
-          }
-          await this.verifier.verifyTheElementIsVisible(allTab, { timeout: TIMEOUTS.MEDIUM });
-          test.expect(await allTab.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'All tab should be visible').toBe(true);
-          break;
-        }
-      }
+      await this.verifier.verifyTheElementIsVisible(this.getDashboardlocator(tabName), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.getDashboardlocator(tabName).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Tab should be visible'
+        )
+        .toBe(true);
     });
   }
   async verfiyBlockSectionIsVisible(): Promise<void> {
@@ -437,12 +367,12 @@ export class FormCreationPage extends BasePage {
   async addHeading(headingText: string, component: string | Locator): Promise<void> {
     let componentLocator: Locator;
     if (typeof component === 'string') {
-      const key = component.trim().toLowerCase();
+      let key = component.trim().toLowerCase();
       switch (key) {
-        case 'tile&description':
-        case 'tile & description':
-        case 'title&description':
-        case 'title and description':
+        case (key = 'title&description') ||
+          (key = 'tile & description') ||
+          (key = 'title&description') ||
+          (key = 'title and description'):
           componentLocator = this.titleAndDescriptionArea;
           break;
         case 'heading':
@@ -472,24 +402,20 @@ export class FormCreationPage extends BasePage {
         case 'legal':
           componentLocator = this.legal;
           break;
-        case 'multi select':
-        case 'multiselect':
+
+        case (key = 'multi select') || (key = 'multiselect'):
           componentLocator = this.multiSelect;
           break;
-        case 'single select':
-        case 'singleselect':
+        case (key = 'single select') || (key = 'singleselect'):
           componentLocator = this.singleSelect;
           break;
-        case 'drop down':
-        case 'dropdown':
-        case 'drop-down':
+        case (key = 'drop down') || (key = 'dropdown') || (key = 'drop-down'):
           componentLocator = this.dropDown;
           break;
-        case 'file upload':
-        case 'fileupload':
+        case (key = 'file upload') || (key = 'fileupload'):
           componentLocator = this.fileUpload;
           break;
-        case 'image':
+        case (key = 'image'):
           componentLocator = this.image;
           break;
         case 'rating':
@@ -522,7 +448,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
       await this.heading_titleAnddescription.click();
       await this.heading_titleAnddescription.fill(headingText);
-      globalThis.FORM_HEADING = headingText;
+      formCreationConstants.FORM_HEADING = headingText;
     });
   }
   async addHeadingIntoComponent(componentName: string, headingText: string): Promise<void> {
@@ -534,7 +460,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
       await component_heading.click();
       await component_heading.fill(headingText);
-      globalThis.FORM_HEADING = headingText;
+      formCreationConstants.FORM_HEADING = headingText;
     });
   }
   async addDescriptionIntoTitleAndDescription(descriptionText: string): Promise<void> {
@@ -548,7 +474,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
       await this.description_titleAnddescription.click();
       await this.description_titleAnddescription.fill(descriptionText);
-      globalThis.FORM_DESCRIPTION = descriptionText;
+      formCreationConstants.FORM_DESCRIPTION = descriptionText;
     });
   }
 
@@ -572,8 +498,8 @@ export class FormCreationPage extends BasePage {
   }
   async verfiyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
     await test.step('Verify copied component is visible', async () => {
-      const heading = globalThis.FORM_HEADING;
-      const description = globalThis.FORM_DESCRIPTION;
+      const heading = formCreationConstants.FORM_HEADING;
+      const description = formCreationConstants.FORM_DESCRIPTION;
       if (!heading) {
         throw new Error('FORM_HEADING is not set');
       }
@@ -621,7 +547,7 @@ export class FormCreationPage extends BasePage {
   }
 
   async verifyComponentIsDeleted(componentName: string): Promise<void> {
-    const heading = globalThis.FORM_HEADING;
+    const heading = formCreationConstants.FORM_HEADING;
     if (!heading) {
       throw new Error('FORM_HEADING is not set');
     }
@@ -635,7 +561,7 @@ export class FormCreationPage extends BasePage {
   }
 
   async verfiyCopiedComponentIsVisible(componentName: string): Promise<void> {
-    const heading = globalThis.FORM_HEADING;
+    const heading = formCreationConstants.FORM_HEADING;
     if (!heading) {
       throw new Error('FORM_HEADING is not set');
     }
@@ -657,7 +583,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
       await component_name.click();
       await component_name.fill(descriptionText);
-      globalThis.FORM_DESCRIPTION = descriptionText;
+      formCreationConstants.FORM_DESCRIPTION = descriptionText;
     });
   }
 }

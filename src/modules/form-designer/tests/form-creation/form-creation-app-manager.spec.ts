@@ -1,5 +1,3 @@
-// import { test } from '../../fixtures/formFixture';
-// import { FormCreationPage } from '../../ui/pages/formCreation/FormPage';
 import { FormCreationPage } from '@form-designer/ui/pages/formCreation/formPage';
 import { formTestFixture } from '@form-designer-fixtures/formFixture';
 
@@ -35,7 +33,6 @@ formTestFixture.describe(
         });
 
         const formCreationPage = new FormCreationPage(appManagerPage);
-        //formCreationPage.clickOnElement(formCreationPage.createFormButton);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.dragAndDropElement('Tile & description');
         await formCreationPage.dragAndDropElement('Short text');
