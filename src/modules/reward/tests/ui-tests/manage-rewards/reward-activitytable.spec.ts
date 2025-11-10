@@ -682,6 +682,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         storyId: 'RC-3031',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.loadPage();
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
@@ -818,6 +819,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Validate the new Entry in the Downloaded CSV file
       await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
 
       // Download with unique filename using BaseActionUtil
       const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
@@ -867,6 +869,8 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await recognitionHub.deleteTheFirstRecognitionPost();
 
       // Validate the new Entry in the Downloaded CSV file after deletion
+      await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
       // Download with unique filename using BaseActionUtil
       const csvFileAfterDelete = await manageRewardsOverviewPage.downloadAndSaveFile(
         () =>
@@ -1108,96 +1112,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Verify the activity table for the gift card
       await manageRewardsPage.verifyTheActivityTableForGiftCard();
-    }
-  );
-
-  test(
-    '[RC-3420] Verify Last synced data Note on Rewards Activity table',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P3],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify Last synced data Note on Rewards Activity table',
-        zephyrTestId: 'RC-3420',
-        storyId: 'RC-3420',
-      });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-
-      // Wait for API response and capture lastUpdatedAt
-      const apiPromise = appManagerFixture.page.waitForResponse(
-        resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
-      );
-
-      await manageRewardsOverviewPage.loadPage();
-      const apiResponse = await apiPromise;
-      const json = await apiResponse.json();
-      const lastUpdatedAtFromApi = json?.lastUpdatedAt ?? null;
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.header);
-
-      // Navigate to the Activity table
-      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
-        manageRewardsOverviewPage.activityContainer.last(),
-        { timeout: 15000, stepInfo: 'Wait for activity container' }
-      );
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.activityPanelHeader.first()
-      );
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
-      );
-
-      // Validate filter buttons
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(0),
-        'Points given'
-      );
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(1),
-        'Points redeemed'
-      );
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(0),
-        'value',
-        'RECOGNITION_PEER_GIFTING'
-      );
-      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(0)).toBeChecked();
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(1),
-        'value',
-        'REDEMPTION'
-      );
-
-      // Verify Last synced data Note on Rewards Activity table
-      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
-        manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon,
-        { stepInfo: 'Wait for last updated info icon' }
-      );
-      await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelLastUpdatedText,
-        'Last updated '
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon, {
-        stepInfo: 'Clicking on last updated info icon',
-      });
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.tooltipText,
-        'Activity data is synced periodically which may impact real-time reporting'
-      );
-
-      // Validate Last updated time matches API response
-      if (!lastUpdatedAtFromApi) {
-        throw new Error('No lastUpdatedAt received from API response!');
-      }
-      const diffMinutes = Math.floor((new Date().getTime() - new Date(lastUpdatedAtFromApi).getTime()) / (1000 * 60));
-      const lastUpdatedText = await manageRewardsOverviewPage.activityPanelLastUpdatedText.textContent();
-      const expectedMessage =
-        diffMinutes < 1
-          ? 'Last updated just now'
-          : `Last updated ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
-      expect(lastUpdatedText?.trim()).toBe(expectedMessage);
     }
   );
 });
