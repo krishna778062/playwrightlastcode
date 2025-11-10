@@ -640,7 +640,7 @@ test.describe(
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Test non-member RSVP to public site event and verify event sync to their Google Calendar',
-          zephyrTestId: 'NT-27128, INT-27127',
+          zephyrTestId: 'INT-27128, INT-27127',
         });
 
         const userManagementService = new UserManagementService(
@@ -799,7 +799,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'Test author of the Event disconnects Google Calendar and Verify Event is removed from Google Calendar for both Author and End User',
-          zephyrTestId: 'NT-27146, INT-27086',
+          zephyrTestId: 'INT-27146, INT-27086',
         });
         const userManagementService = new UserManagementService(
           appManagerFixture.apiContext,
