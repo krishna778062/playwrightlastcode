@@ -200,4 +200,34 @@ export class RewardsBudgetModal extends BasePage {
   verifyThePageIsLoaded(): Promise<void> {
     return Promise.resolve(undefined);
   }
+
+  /**
+   * Fill budget amount in the input field
+   */
+  async fillBudgetAmount(amount: string | number): Promise<void> {
+    await this.fillInElement(this.budgetPanelInputBox, String(amount), {
+      stepInfo: `Filling budget input with ${amount}`,
+    });
+    await this.budgetPanelInputBox.blur();
+  }
+
+  /**
+   * Save the budget modal
+   */
+  async saveBudget(): Promise<void> {
+    await this.clickOnElement(this.budgetPanelSaveButton, {
+      stepInfo: 'Clicking on save button',
+    });
+  }
+
+  /**
+   * Fill and save budget with specified frequency and amount
+   */
+  async fillAndSaveBudget(frequency: 'Annual' | 'Quarterly' | 'Remove', amount?: string | number): Promise<void> {
+    await this.selectTheBudgetFrequency(frequency);
+    if (amount !== undefined && frequency !== 'Remove') {
+      await this.fillBudgetAmount(amount);
+    }
+    await this.saveBudget();
+  }
 }
