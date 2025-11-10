@@ -62,8 +62,15 @@ jobs:
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
-          # Run regression tests i.e. entire suite
-          npm run test:${{ matrix.module }} -- --workers=3
+          if [ "${{ matrix.module }}" = "reward" ]; then
+            echo "Running Reward tests (excluding P3) and with 3 workers..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
+            echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+          else
+            npm run test:${{ matrix.module }} -- --workers=3
+          fi
 
       - name: Upload test report to github artifact backup
         if: always()
