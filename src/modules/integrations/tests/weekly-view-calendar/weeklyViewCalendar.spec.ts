@@ -448,7 +448,7 @@ test.describe(
         test.setTimeout(300000);
         tagTest(test.info(), {
           description: 'Create multiple Google Calendar events with same time slot for today',
-          zephyrTestId: ['INT-TBD'],
+          zephyrTestId: ['INT-28461'],
         });
 
         const userManagementService = new UserManagementService(
