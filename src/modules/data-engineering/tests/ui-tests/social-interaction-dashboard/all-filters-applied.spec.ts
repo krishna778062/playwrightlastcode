@@ -16,13 +16,21 @@ import {
   UserRole,
 } from '@/src/modules/data-engineering/helpers/dashboardSetupHelper';
 
+/**
+ * Currently I am picking static values for all the filters as
+ * per the given tenant + env.
+ * We will replace this with dynamic values in the future.
+ * Where we should fetch the values from the DB for each filter
+ * and decide which one to pick for the test.
+ */
+
 test.describe(
-  'social Interaction Dashboard - Static Period Filter Impact Validation',
+  'social Interaction Dashboard - All Filters Applied',
   {
-    tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@period-filter-impact', '@static-period'],
+    tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@all-filters-applied'],
   },
   () => {
-    const periodFilterTimeRange = PeriodFilterTimeRange.LAST_36_MONTHS;
+    test.slow();
 
     let testEnvironment: {
       page: Page;
@@ -32,14 +40,16 @@ test.describe(
     };
     let testFiltersConfig: FilterOptions;
 
-    test.beforeAll('Setup Social Interaction Dashboard with static period filter', async ({ browser }) => {
+    test.beforeAll('Setting up the social interaction dashboard + applying all the filters', async ({ browser }) => {
       // Setup dashboard using dedicated method
       testEnvironment = await setupSocialInteractionDashboardForTest(browser, UserRole.APP_MANAGER);
 
-      // Define unified filter configuration for static period (Last 36 months)
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
-        timePeriod: periodFilterTimeRange,
+        timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
+        segments: ['Default'],
+        departments: ['DuckDB Check'],
+        locations: ['Gurugram Duck DB check, Haryana, India'],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.socialInteractionDashboard;
@@ -49,20 +59,19 @@ test.describe(
       await analyticsFiltersComponent.applyFiltersFromConfig(testFiltersConfig);
     });
 
-    test.afterAll('Cleanup Social Interaction Dashboard', async () => {
-      // Cleanup using helper
+    test.afterAll('Cleaning up the test environment', async () => {
       await cleanupDashboardTesting(testEnvironment);
     });
 
     test(
-      `verify Reaction/Like metric data validation when period filter is changed to ${periodFilterTimeRange}`,
+      'verify Reaction/Like metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@reactions-or-likes'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-or-likes'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Reactions / Likes in Social Interaction dashboard responds to period filter change',
+            'To verify the answer of Reactions / Likes in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26105',
           storyId: 'DE-25753',
         });
@@ -82,13 +91,14 @@ test.describe(
     );
 
     test(
-      `verify Feed posts and comments metric data validation for period as ${periodFilterTimeRange}`,
+      'verify Feed posts and comments metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@feed-posts-and-comments'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-and-comments'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Feed posts and comments in Social Interaction dashboard',
+          description:
+            'To verify the answer of Feed posts and comments in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26020',
           storyId: 'DE-25754',
         });
@@ -109,13 +119,13 @@ test.describe(
     );
 
     test(
-      `verify Replies metric data validation for period as ${periodFilterTimeRange}`,
+      'verify Replies metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Replies in Social Interaction dashboard',
+          description: 'To verify the answer of Replies in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26107',
           storyId: 'DE-25754',
         });
@@ -135,13 +145,13 @@ test.describe(
     );
 
     test(
-      `verify Shares metric data validation for period as ${periodFilterTimeRange}`,
+      'verify Shares metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Shares in Social Interaction dashboard',
+          description: 'To verify the answer of Shares in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26037',
           storyId: 'DE-25769',
         });
@@ -161,13 +171,13 @@ test.describe(
     );
 
     test(
-      `verify Favorites metric data validation for period as ${periodFilterTimeRange}`,
+      'verify Favorites metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@favorites'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Favorites in Social Interaction dashboard',
+          description: 'To verify the answer of Favorites in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26018',
           storyId: 'DE-25756',
         });
@@ -188,13 +198,14 @@ test.describe(
 
     // Tabular data validations
     test(
-      `verify social campaign shares tabular data validation for period as ${periodFilterTimeRange}`,
+      'verify social campaign shares tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@social-campaign-shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@social-campaign-shares'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Social campaign shares in Social Interaction dashboard',
+          description:
+            'To verify the answer of Social campaign shares in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26016',
           storyId: 'DE-25757',
         });
@@ -215,13 +226,14 @@ test.describe(
     );
 
     test(
-      `verify Least engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
+      'verify Least engaged by Department tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@least-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Least engaged by Department in Social Interaction dashboard',
+          description:
+            'To verify the answer of Least engaged by Department in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26017',
           storyId: 'DE-25757',
         });
@@ -241,14 +253,14 @@ test.describe(
     );
 
     test(
-      `verify Least engaged by Department CSV download and validation for period as ${periodFilterTimeRange}`,
+      'verify Least engaged by Department CSV download and validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@least-engaged-by-department-csv'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department-csv'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard',
+            'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26017',
           storyId: 'DE-25757',
         });
@@ -268,13 +280,14 @@ test.describe(
     );
 
     test(
-      `verify Most engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
+      'verify Most engaged by Department tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@most-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Most engaged by Department in Social Interaction dashboard',
+          description:
+            'To verify the answer of Most engaged by Department in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26018',
           storyId: 'DE-25757',
         });
@@ -294,14 +307,14 @@ test.describe(
     );
 
     test(
-      `verify Most engaged by Department CSV download and validation for period as ${periodFilterTimeRange}`,
+      'verify Most engaged by Department CSV download and validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@most-engaged-by-department-csv'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department-csv'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard',
+            'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-26018',
           storyId: 'DE-25757',
         });
@@ -321,13 +334,14 @@ test.describe(
     );
 
     test(
-      `verify Participant engagement activity chart data validation for period as ${periodFilterTimeRange}`,
+      'verify Participant engagement activity chart data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@participant-engagement-activity'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@participant-engagement-activity'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Participant engagement activity in Social Interaction dashboard',
+          description:
+            'To verify the answer of Participant engagement activity in Social Interaction dashboard with all filters applied',
           zephyrTestId: 'DE-XXXXX',
           storyId: 'DE-XXXXX',
         });
