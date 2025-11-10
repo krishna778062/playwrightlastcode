@@ -35,7 +35,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
   readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
-  readonly boxFilesOption = this.page.getByText('Box files', { exact: true });
+  // Target the option in the dropdown list, not the selected value
+  readonly boxFilesOption = this.page.locator('#storageProvider-list').getByText('Box files', { exact: true });
+  // Locator for the currently selected value in the combobox
+  readonly selectedProviderValue = this.page
+    .locator('div[class*="css-15bnrdl-singleValue"]')
+    .filter({ hasText: /Box files/i });
 
   constructor(page: Page, siteId?: string) {
     super(page, siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
@@ -145,6 +150,13 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         assertionMessage: 'External Files section should be visible',
       });
 
+      // Check if Box files is already selected
+      const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
+
+      if (isBoxAlreadySelected && provider === 'Box files') {
+        console.log('Box files is already configured for this site. Update button is disabled, skipping update.');
+        return; // Skip the update process
+      }
       // Click on the React Select input or dropdown arrow to open dropdown
       await this.verifier.verifyTheElementIsVisible(this.storageProviderInput, {
         assertionMessage: 'Storage provider input should be visible',

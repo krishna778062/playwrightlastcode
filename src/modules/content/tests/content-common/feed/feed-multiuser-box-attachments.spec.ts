@@ -6,8 +6,11 @@ import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
-import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
+
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 test.describe(
   '@FeedPost - Site Roles Box File Attachments',
@@ -25,7 +28,7 @@ test.describe(
 
         // Configure External Files to use Box via UI (done once for all tests)
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
-        await manageSitePage.loadPage();
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
         await manageSitePage.actions.setExternalFilesProvider('Box files');
       });
     });
@@ -35,6 +38,7 @@ test.describe(
       /**
        * Helper function to test Box file attachments functionality for a specific role
        */
+      const siteName: string = 'All Employees';
       const testBoxAttachmentsForRole = async (
         role: SitePermission,
         roleName: string,
@@ -42,7 +46,7 @@ test.describe(
         userFixture: any
       ) => {
         // Get siteId independently (always "All Employees")
-        const testSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const testSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
         // Assign role to user
         const isSiteManager = role === SitePermission.MANAGER;
@@ -62,7 +66,7 @@ test.describe(
         await siteDashboard.actions.clickOnFeedLink();
 
         // Create a new feed post for this role test (each role gets its own post)
-        const basePostText = TestDataGenerator.generateRandomText(`Base Post for Reply - ${roleName}`, 3, true);
+        const basePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         await siteDashboard.actions.clickShareThoughtsButton();
         const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
         const postResult = await createFeedPostComponent.createAndPost({
@@ -75,8 +79,8 @@ test.describe(
         await listFeedComponent.waitForPostToBeVisible(basePostText);
 
         // Generate unique reply text for this role
-        const roleReplyText = TestDataGenerator.generateRandomText(`Feed Reply with Box Files - ${roleName}`, 3, true);
-        const roleUpdatedReplyText = `Updated Feed Reply - ${roleName}`;
+        const roleReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+        const roleUpdatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED;
 
         // ==================== ADD REPLY WITH BOX ATTACHMENT ====================
         // Open reply editor for the post
