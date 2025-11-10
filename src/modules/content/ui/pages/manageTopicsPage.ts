@@ -19,7 +19,11 @@ export interface IManageTopicsPageActions {
   openingSearchedTopic: (topicName: string) => Promise<void>;
   clickOnDeleteTopic: () => Promise<void>;
   clickCancelButton: () => Promise<void>;
+  clickDeleteConfirmButton: () => Promise<void>;
   getTopicNameFromList: () => Promise<string>;
+  clickOnFollowTopic: () => Promise<void>;
+  clickOnUnfollowTopic: () => Promise<void>;
+  openTopicOptionsDropdown: () => Promise<void>;
 }
 
 export interface IManageTopicsPageAssertions {
@@ -29,6 +33,10 @@ export interface IManageTopicsPageAssertions {
   verifyingNothingToShowHereText: () => Promise<void>;
   verifyDeleteTopicPopupIsVisible: () => Promise<void>;
   verifyTopicIsVisible: (topicName: string) => Promise<void>;
+  verifyTopicIsNotVisible: (topicName: string) => Promise<void>;
+  verifyDeletingTopicMessage: () => Promise<void>;
+  verifyFollowOptionIsVisible: () => Promise<void>;
+  verifyUnfollowOptionIsVisible: () => Promise<void>;
 }
 export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
   private manageTopicsComponent: ManageTopicsComponent;
@@ -151,6 +159,12 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     });
   }
 
+  async clickDeleteConfirmButton(): Promise<void> {
+    await test.step('Clicking on Delete confirm button in delete topic popup', async () => {
+      await this.manageTopicsComponent.clickDeleteConfirmButton();
+    });
+  }
+
   async verifyTopicIsVisible(topicName: string): Promise<void> {
     await test.step(`Verify topic ${topicName} is visible`, async () => {
       const topicLocator = this.page
@@ -165,5 +179,57 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
 
   async getTopicNameFromList(): Promise<string> {
     return await this.manageTopicsComponent.getTopicNameFromList();
+  }
+
+  async openTopicOptionsDropdown(): Promise<void> {
+    await test.step('Opening topic options dropdown', async () => {
+      await this.clickOnElement(this.manageTopicsComponent.ellipses);
+    });
+  }
+
+  async clickOnFollowTopic(): Promise<void> {
+    await test.step('Clicking on follow topic from option menu', async () => {
+      await this.manageTopicsComponent.clickOnFollowTopic();
+    });
+  }
+
+  async clickOnUnfollowTopic(): Promise<void> {
+    await test.step('Clicking on unfollow topic from option menu', async () => {
+      await this.manageTopicsComponent.clickOnUnfollowTopic();
+    });
+  }
+
+  async verifyFollowOptionIsVisible(): Promise<void> {
+    await test.step('Verify follow option is visible in dropdown', async () => {
+      await this.manageTopicsComponent.verifyFollowOptionIsVisible();
+    });
+  }
+
+  async verifyUnfollowOptionIsVisible(): Promise<void> {
+    await test.step('Verify unfollow option is visible in dropdown', async () => {
+      await this.manageTopicsComponent.verifyUnfollowOptionIsVisible();
+    });
+  }
+
+  async verifyTopicIsNotVisible(topicName: string): Promise<void> {
+    await test.step(`Verify topic ${topicName} is not visible`, async () => {
+      const topicLocator = this.page
+        .getByRole('link', { name: topicName })
+        .or(this.page.locator(`text=${topicName}`))
+        .first();
+      await this.verifier.verifyTheElementIsNotVisible(topicLocator, {
+        assertionMessage: `Topic "${topicName}" should not be visible`,
+      });
+    });
+  }
+
+  async verifyDeletingTopicMessage(): Promise<void> {
+    await test.step('Verify deleting topic message is visible', async () => {
+      const deletingMessage = this.page.getByText('Deleting topic… this may take some time', { exact: false });
+      await this.verifier.verifyTheElementIsVisible(deletingMessage, {
+        assertionMessage: 'Deleting topic message should be visible',
+        timeout: 10000,
+      });
+    });
   }
 }

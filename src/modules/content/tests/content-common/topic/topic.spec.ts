@@ -239,4 +239,70 @@ test.describe('edit Topic', () => {
       await manageTopicsPage.assertions.verifyTopicIsVisible(topicName);
     }
   );
+
+  test(
+    'managing Topic Follow/Unfollow Status',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-41028'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Managing Topic Follow/Unfollow Status',
+        zephyrTestId: 'CONT-41028',
+        storyId: 'CONT-41028',
+      });
+
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+
+      // Open topic options dropdown and verify Follow option is visible
+      await manageTopicsPage.actions.openTopicOptionsDropdown();
+      await manageTopicsPage.assertions.verifyFollowOptionIsVisible();
+
+      // Click on Follow option
+      await manageTopicsPage.actions.clickOnFollowTopic();
+      await manageTopicsPage.assertions.verifyUnfollowOptionIsVisible();
+
+      // Click on Unfollow option
+      await manageTopicsPage.actions.clickOnUnfollowTopic();
+      await manageTopicsPage.assertions.verifyFollowOptionIsVisible();
+    }
+  );
+
+  test(
+    'verify topic gets deleted',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-21066'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify topic gets deleted',
+        zephyrTestId: 'CONT-21066',
+        storyId: 'CONT-21066',
+      });
+
+      // Step 3: Click on Add topic
+      manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
+      await manageTopicsPage.loadPage();
+      const topicName = await manageTopicsPage.getTopicNameFromList();
+
+      // Step 7: Click on option menu dropdown and click on Delete
+      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.actions.openTopicOptionsDropdown();
+      await manageTopicsPage.actions.clickOnDeleteTopic();
+      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
+
+      // Step 8: Click Delete confirm button
+      await manageTopicsPage.actions.clickDeleteConfirmButton();
+
+      // Step 9: Verify the toast message
+      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+      await manageTopicsPage.assertions.verifyTopicIsNotVisible(topicName);
+      await manageTopicsPage.loadPage();
+
+      // Step 10: Verify topic is deleted from manage topics page
+      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+    }
+  );
 });
