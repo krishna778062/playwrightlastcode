@@ -67,9 +67,11 @@ export const MESSAGES = {
   INCOMPLETE_ERROR_SETTINGS: 'Incomplete error settings',
   SAVE_TILE_FAILED: 'Save tile failed',
   TILE_CANNOT_BE_EMPTY: 'Tile cannot be empty',
+  INVALID_BLOCK_DETAILS: 'One or more blocks have invalid details',
   CHANGE_TILE_TYPE: 'Change tile type',
   CHANGE_TILE_TYPE_MESSAGE:
     'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
+  UNSAVED_CHANGES_MESSAGE: 'You have unsaved changes. Do you want to leave?',
   REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
   REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
 } as const;
