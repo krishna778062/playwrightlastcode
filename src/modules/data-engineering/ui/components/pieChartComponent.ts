@@ -1,9 +1,11 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export class PieChartComponent extends BaseComponent {
   readonly toolTipContainer: Locator;
+  readonly chartSegmentLocator: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
   readonly getChartLabelLocatorWithLabelAs: (label: string) => Locator;
   constructor(
@@ -17,6 +19,7 @@ export class PieChartComponent extends BaseComponent {
     });
     super(page, container);
     this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
@@ -30,14 +33,14 @@ export class PieChartComponent extends BaseComponent {
     await test.step(`Wait for pie chart to load for metric ${this.metricTitle}`, async () => {
       // Wait for the container to be visible
       await this.verifier.waitUntilElementIsVisible(this.rootLocator, {
-        timeout: 60_000,
+        timeout: TIMEOUTS.VERY_LONG,
         stepInfo: `Wait for metric container to be visible for ${this.metricTitle}`,
       });
 
       // Wait for the chart series group to be present (indicates chart is rendered)
       const chartSeriesGroup = this.rootLocator.locator("g[class*='highcharts-series-group']");
       await this.verifier.waitUntilElementIsVisible(chartSeriesGroup, {
-        timeout: 60_000,
+        timeout: TIMEOUTS.VERY_LONG,
         stepInfo: `Wait for chart series group to be visible for ${this.metricTitle}`,
       });
     });
@@ -48,15 +51,13 @@ export class PieChartComponent extends BaseComponent {
    * @param numberOfSegments - The number of segments to verify
    */
   async verifyNumberOfSegmentsVisibleonPieChartIs(numberOfSegments: number) {
-    const chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
-
     // Wait for chart to load first
     await this.waitForChartToLoad();
 
     await expect(
-      chartSegmentLocator,
+      this.chartSegmentLocator,
       `Number of segments visible on pie chart should be ${numberOfSegments}`
-    ).toHaveCount(numberOfSegments, { timeout: 30_000 });
+    ).toHaveCount(numberOfSegments, { timeout: TIMEOUTS.MEDIUM });
   }
 
   /**
@@ -64,7 +65,7 @@ export class PieChartComponent extends BaseComponent {
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: 30_000,
+      timeout: TIMEOUTS.MEDIUM,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
