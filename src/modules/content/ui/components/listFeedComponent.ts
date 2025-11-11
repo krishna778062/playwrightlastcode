@@ -27,12 +27,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
-  // Like/Unlike locators
-  /**
-   * Gets the like button locator for a post
-   * @param postText - The text of the post
-   * @returns Locator for the like button
-   */
 
   // Dynamic locator functions
   /**
@@ -541,21 +535,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly getPostByUserLocator = (userName: string): Locator =>
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
 
-  /**
-   * Scrolls to a post made by a specific user
-   * Reuses waitForPostToBeVisible pattern but searches by user name instead of post text
-   * @param userName - The name of the user who created the post
-   */
-  async scrollToPostByUser(userName: string): Promise<void> {
-    await test.step(`Scroll to post made by user: ${userName}`, async () => {
-      const postLocator = this.getPostByUserLocator(userName);
-      // Reuse the same pattern as waitForPostToBeVisible
-      await this.verifier.verifyTheElementIsVisible(postLocator, {
-        assertionMessage: `Post by user "${userName}" should be visible`,
-      });
-      await postLocator.scrollIntoViewIfNeeded().catch(() => {});
-    });
-  }
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {

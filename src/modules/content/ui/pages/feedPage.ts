@@ -94,7 +94,6 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
-  scrollToPostByUser: (userName: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -697,10 +696,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async unlikeFeedReply(replyText: string): Promise<void> {
     await this.listFeedComponent.unlikeFeedReply(replyText);
-  }
-
-  async scrollToPostByUser(userName: string): Promise<void> {
-    await this.listFeedComponent.scrollToPostByUser(userName);
   }
 
   async verifyLikeCountOnPost(postText: string): Promise<void> {

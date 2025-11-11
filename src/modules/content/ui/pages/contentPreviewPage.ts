@@ -321,10 +321,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await this.listFeedComponent.likeFeedReply(replyText);
   }
 
-  async scrollToPostByUser(userName: string): Promise<void> {
-    await this.listFeedComponent.scrollToPostByUser(userName);
-  }
-
   async verifyLikeCountOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.verifyLikeCountOnPost(postText);
   }
