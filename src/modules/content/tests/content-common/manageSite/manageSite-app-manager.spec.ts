@@ -230,10 +230,10 @@ test.describe(
         await manageContentPage.actions.scheduledTagVisibleInManageContent();
         await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyPublishOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyMoveOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.clickOnPublishButton();
       }
     );
