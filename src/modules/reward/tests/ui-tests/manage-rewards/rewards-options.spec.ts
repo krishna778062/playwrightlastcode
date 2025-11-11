@@ -109,12 +109,9 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Load page and validate table structure
       await rewardOptionsPage.loadPage();
+      await rewardOptionsPage.verifyThePageIsLoaded();
       await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsHeader);
       await rewardOptionsPage.verifier.verifyElementHasText(rewardOptionsPage.rewardsOptionsHeader, 'Reward options');
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchInput);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsShowMoreButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardOptionsTableContainer);
 
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
@@ -207,12 +204,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       // Verify the Rewards Options page elements are visible on rewards_options Flag enabled
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disableRewardLink);
       await rewardOptionsPage.loadPage();
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsHeader);
-      await rewardOptionsPage.verifier.verifyElementHasText(rewardOptionsPage.rewardsOptionsHeader, 'Reward options');
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchInput);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsShowMoreButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardOptionsTableContainer);
+      await rewardOptionsPage.verifyThePageIsLoaded();
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
       const headers = await rewardOptionsPage.rewardsOptionsTableHeaders.allTextContents();
@@ -294,11 +286,12 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const rewardsStorePage = new RewardsStore(recoManagerFixture.page);
       const giftCardDetails = { country: 'United States', name: "Domino's" };
 
-      // Navigate to Rewards option page and check the gift card is enabled
+      // Navigate to the Rewards option page and check the gift card is enabled
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Active');
 
       // Redeem the gift card
       await rewardsStorePage.loadPage();
+      await rewardsStorePage.verifyThePageIsLoaded();
       await rewardsStorePage.selectCountry(giftCardDetails.country);
       await rewardsStorePage.searchForGiftCard(giftCardDetails.name);
       await rewardsStorePage.clickOnTheNthGiftCard(1);
@@ -331,7 +324,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardsStorePage.enterAllTheDetailsAndClickOnResend('sonu.kumar+12@simmplr.com');
       await rewardsStorePage.validateTheResentConfirmation();
 
-      // Navigate to Rewards option page and Set the Active again for the gift card
+      // Navigate to the Rewards option page and Set the Active again for the gift card
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Active');
     }
   );
