@@ -247,14 +247,14 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'verify standard user is able to add topic in Content page/Album/Event',
+    'verify standard user is able to add/list topic in Content',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25969'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'verify standard user is able to add topic in Content page/Album/Event',
-        zephyrTestId: 'CONT-25969',
+        description: 'Verify standard user is able to add/list topic in Content',
+        zephyrTestId: 'CONT-25968',
         storyId: 'CONT-25969',
       });
       const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
