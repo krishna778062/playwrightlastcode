@@ -66,6 +66,10 @@ export interface IFeedActions {
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
+  clickShareButtonForPost: (postText: string) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  clickShareButton: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   enterFeedPostText: (text: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
@@ -124,6 +128,7 @@ export interface IFeedAssertions {
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -491,6 +496,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
     await this.shareComponent.selectShareOptionAsSiteFeed();
+  }
+
+  async clickShareButtonForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareButtonForPost(postText);
+  }
+
+  async verifyPostIsAtTop(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsAtTop(postText);
+  }
+
+  async enterShareDescription(description: string): Promise<void> {
+    await this.shareComponent.actions.enterShareDescription(description);
+  }
+
+  async clickShareButton(): Promise<void> {
+    await this.shareComponent.actions.clickShareButton();
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {

@@ -101,17 +101,32 @@ export class ListFeedComponent extends BaseComponent {
       .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
       .first();
 
+  /**
+   * Gets a locator for the Share button/icon for a specific post
+   * @param postText - The text of the post to find Share button for
+   * @returns Locator for the Share button
+   */
+  readonly getShareButtonLocator = (postText: string): Locator =>
+    this.page
+      .locator('p')
+      .filter({ hasText: postText })
+      .locator('xpath=./ancestor::div[4]')
+      .locator(
+        "button[aria-label*='Share'], button[aria-label*='share'], button:has-text('Share'), span:has-text('Share')"
+      )
+      .first();
+
   constructor(page: Page) {
     super(page);
-    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
-    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
@@ -417,6 +432,33 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify share button is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
         assertionMessage: 'Share button should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Share button/icon for a specific post
+   * @param postText - The text of the post to share
+   */
+  async clickShareButtonForPost(postText: string): Promise<void> {
+    await test.step(`Click Share button for post: ${postText}`, async () => {
+      await this.clickOnElement(this.getShareButtonLocator(postText));
+    });
+  }
+
+  /**
+   * Verifies that a post appears at the top of the feed (first position)
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostIsAtTop(postText: string): Promise<void> {
+    await test.step(`Verify post "${postText}" is at the top of the feed`, async () => {
+      // Get all post containers
+      const allPosts = this.page.locator("div[class*='postContent']");
+      const firstPost = allPosts.first();
+
+      // Verify the first post contains the expected text
+      await this.verifier.verifyTheElementIsVisible(firstPost.filter({ hasText: postText }), {
+        assertionMessage: `Post "${postText}" should be at the top of the feed`,
       });
     });
   }
