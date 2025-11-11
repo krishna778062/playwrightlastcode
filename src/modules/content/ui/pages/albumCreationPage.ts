@@ -38,6 +38,14 @@ export interface IAlbumCreationActions {
     peopleId: string;
     response: AlbumCreationResponse;
   }>;
+
+  createWithTopicInDescriptionAndPublish: (options: AlbumCreationOptions) => Promise<{
+    title: string;
+    description: string;
+    albumId: string;
+    siteId: string;
+    response: AlbumCreationResponse;
+  }>;
 }
 
 export class AlbumCreationPage extends BasePage {
@@ -60,6 +68,7 @@ export class AlbumCreationPage extends BasePage {
   readonly addFilesAttachmentsButton: Locator;
   readonly enterVideoURL: Locator;
   readonly addVideo: Locator;
+  readonly topicInDescription: (topic: string) => Locator;
 
   constructor(page: Page, siteId?: string) {
     super(page, PAGE_ENDPOINTS.getAlbumCreationPage(siteId ?? ''));
@@ -79,6 +88,7 @@ export class AlbumCreationPage extends BasePage {
     this.addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
     this.enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
     this.addVideo = this.page.locator('button', { hasText: 'Add video' });
+    this.topicInDescription = (topic: string) => this.page.getByLabel(`${topic}`);
   }
 
   addTopicFromList(topicText: string) {
@@ -342,6 +352,82 @@ export class AlbumCreationPage extends BasePage {
         }
       );
       return submitResponse;
+    });
+  }
+
+  // Action methods implementation
+  async createWithTopicInDescriptionAndPublish(options: AlbumCreationOptions): Promise<{
+    title: string;
+    description: string;
+    albumId: string;
+    siteId: string;
+    response: AlbumCreationResponse;
+  }> {
+    return await test.step(`Creating and publishing album with title: ${options.title}`, async () => {
+      // Fill album title
+      await this.fillInElement(this.titleInput, options.title, {
+        stepInfo: 'Fill album title',
+      });
+
+      // Fill description
+      await this.fillInElement(this.albumDescriptionInput, options.description, {
+        stepInfo: 'Fill album description',
+      });
+
+      //Add topic in description
+      if (options.topics && options.topics.length > 0) {
+        await this.fillInElement(this.albumDescriptionInput, '#' + options.topics[0], {
+          stepInfo: 'Fill album description with topic',
+        });
+        await this.clickOnElement(this.topicInDescription(options.topics[0]));
+      }
+      // Upload images if provided
+      if (options.images && options.images.length > 0) {
+        for (const image of options.images) {
+          await this.uploadImage(image);
+        }
+      }
+
+      // Add video if provided
+      if (options.videoUrl) {
+        await this.addVideoUrl(options.videoUrl);
+        await this.waitForVideoUpload();
+      }
+
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        await this.clickOnElement(this.addFilesAttachmentsButton, {
+          stepInfo: 'Click add files and attachments button',
+        });
+        for (const attachment of options.attachments) {
+          await this.uploadAttachment(attachment);
+        }
+      }
+
+      // Set open album if specified
+      if (options.openAlbum) {
+        await this.checkElement(this.openAlbumCheckbox, {
+          stepInfo: 'Check open album checkbox',
+        });
+      }
+
+      // Publish the album
+      const publishResponse = await this.publishAlbum();
+
+      // Get response body
+      const publishResponseBody = (await publishResponse.json()) as AlbumCreationResponse;
+
+      // Extract the album ID and site ID from the response
+      const albumId = publishResponseBody.result.id;
+      const siteId = publishResponseBody.result.site.siteId;
+
+      return {
+        title: options.title,
+        description: options.description,
+        albumId: albumId,
+        siteId: siteId,
+        response: publishResponseBody,
+      };
     });
   }
 }
