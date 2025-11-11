@@ -125,4 +125,3 @@ export class IntegrationTileHelper {
 
   async cleanup(): Promise<void> {}
 }
-
