@@ -408,7 +408,7 @@ export class SiteManagementHelper {
   ): Promise<string> {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
-      size: 1000, // Get a large number to ensure we find the site if it exists
+      size: 4000, // Get a large number to ensure we find the site if it exists
       canManage: true,
       filter: 'all',
     });

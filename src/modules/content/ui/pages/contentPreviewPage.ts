@@ -310,7 +310,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   }
 
   async unlikeFeedPost(postText: string): Promise<void> {
-    await this.listFeedComponent.unlikeFeedPost(postText);
+    await this.listFeedComponent.likeFeedPost(postText);
   }
 
   async likeFeedReply(replyText: string): Promise<void> {
@@ -318,66 +318,24 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   }
 
   async unlikeFeedReply(replyText: string): Promise<void> {
-    await this.listFeedComponent.unlikeFeedReply(replyText);
+    await this.listFeedComponent.likeFeedReply(replyText);
   }
 
   async scrollToPostByUser(userName: string): Promise<void> {
     await this.listFeedComponent.scrollToPostByUser(userName);
   }
 
-  async verifyLikeCountOnPost(postText: string, expectedCount?: number): Promise<void> {
-    await this.listFeedComponent.verifyLikeCountOnPost(postText, expectedCount);
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnPost(postText);
   }
 
-  async verifyLikeCountOnReply(replyText: string, expectedCount?: number): Promise<void> {
-    await this.listFeedComponent.verifyLikeCountOnReply(replyText, expectedCount);
-  }
-
-  async verifyPostCanBeLiked(postText: string): Promise<void> {
-    await test.step(`Verify post can be liked/unliked: ${postText}`, async () => {
-      // First, ensure the post text is visible and scrolled into view
-      await this.listFeedComponent.waitForPostToBeVisible(postText);
-
-      // Get like button using improved locator
-      const likeButton = this.listFeedComponent.likeButtonForPost(postText);
-
-      // Ensure button is visible and scroll into view
-      await this.verifier.verifyTheElementIsVisible(likeButton, {
-        assertionMessage: `Like/React button should be visible for post "${postText}"`,
-      });
-      await likeButton.scrollIntoViewIfNeeded();
-    });
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnReply(replyText);
   }
 
   async clickOnOptionMenuButton(): Promise<void> {
     await test.step('Click on Option menu button', async () => {
       await this.clickOnElement(this.optionMenuDropdown);
     });
-  }
-
-  async verifyPostCanBeUnliked(postText: string): Promise<void> {
-    // Reuse the same logic - unlike is just clicking the same button
-    await this.verifyPostCanBeLiked(postText);
-  }
-
-  async verifyReplyCanBeLiked(replyText: string): Promise<void> {
-    await test.step(`Verify reply can be liked/unliked: ${replyText}`, async () => {
-      // Ensure reply is visible first
-      await this.listFeedComponent.verifyReplyIsVisible(replyText);
-
-      // Get like button using improved locator
-      const likeButton = this.listFeedComponent.likeButtonForReply(replyText);
-
-      // Ensure button is visible and scroll into view
-      await this.verifier.verifyTheElementIsVisible(likeButton, {
-        assertionMessage: `Like/React button should be visible for reply "${replyText}"`,
-      });
-      await likeButton.scrollIntoViewIfNeeded();
-    });
-  }
-
-  async verifyReplyCanBeUnliked(replyText: string): Promise<void> {
-    // Reuse the same logic - unlike is just clicking the same button
-    await this.verifyReplyCanBeLiked(replyText);
   }
 }

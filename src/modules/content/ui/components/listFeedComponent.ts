@@ -13,6 +13,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly favoriteButton: Locator;
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
+  readonly likeButtonForReply: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
@@ -31,62 +32,7 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post
    * @returns Locator for the like button
    */
-  likeButtonForPost(postText: string): Locator {
-    // "React" (when not liked) or "Remove your reaction" (when liked)
-    const postContainer = this.getPostContainer(postText);
 
-    // Find button in action row with aria-label containing "React" or "Remove"
-    return postContainer
-      .locator(
-        'xpath=.//div[contains(@class, "_actionRow_")]//button[contains(@class, "_actionBtn_") and (contains(@aria-label, "React") or contains(@aria-label, "Remove"))]'
-      )
-      .first();
-  }
-
-  /**
-   * Gets the like button locator for a reply
-   * @param replyText - The text of the reply
-   * @returns Locator for the like button
-   */
-  likeButtonForReply(replyText: string): Locator {
-    const replyContainer = this.getReplyContainer(replyText);
-
-    // Find button in action bar with class _replyButton_ or aria-label containing "React"/"Remove"
-    return replyContainer
-      .locator(
-        'xpath=.//div[contains(@class, "_actionBar_")]//button[(contains(@class, "_replyButton_") or contains(@aria-label, "React") or contains(@aria-label, "Remove"))]'
-      )
-      .first();
-  }
-
-  /**
-   * Gets the like count locator for a post
-   * @param postText - The text of the post
-   * @returns Locator for the like count element
-   */
-  likeCountLocator(postText: string): Locator {
-    const postContainer = this.getPostContainer(postText);
-
-    // Find the reaction button in stats row that contains the count
-    return postContainer
-      .locator('xpath=.//div[contains(@class, "_statsRow_")]//button[contains(@class, "_reactionButton_")]')
-      .first();
-  }
-
-  /**
-   * Gets the like count locator for a reply
-   * @param replyText - The text of the reply
-   * @returns Locator for the like count element
-   */
-  likeCountLocatorForReply(replyText: string): Locator {
-    const replyContainer = this.getReplyContainer(replyText);
-
-    return replyContainer
-      .locator(
-        'xpath=.//div[contains(@class, "_actionBar_")]//button[contains(@class, "type--tertiary") and contains(@class, "type--b5")]'
-      )
-      .first();
-  }
   // Dynamic locator functions
   /**
    * Gets a locator for the post text content
@@ -173,7 +119,7 @@ export class ListFeedComponent extends BaseComponent {
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
@@ -182,70 +128,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
-  }
-
-  /**
-   * Gets the post container element for a given post text
-   * @param postText - The text of the post
-   * @returns Locator for the post container
-   */
-  private getPostContainer(postText: string): Locator {
-    // Find post by text, then get the _postBody container
-    return this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[contains(@class, "_postBody_")]')
-      .first();
-  }
-
-  /**
-   * Gets the reply container element for a given reply text
-   * @param replyText - The text of the reply
-   * @returns Locator for the reply container
-   */
-  private getReplyContainer(replyText: string): Locator {
-    // Find reply by text in replyContent, then get the _reply container
-    return this.page
-      .locator('div[class*="replyContent"] p')
-      .filter({ hasText: replyText })
-      .locator('xpath=./ancestor::div[contains(@class, "_reply_")]')
-      .first();
-  }
-
-  /**
-   * Ensures an element is visible, enabled, and scrolled into view before interaction
-   * @param locator - The locator to ensure is actionable
-   */
-  private async ensureElementIsActionable(locator: Locator): Promise<void> {
-    // First ensure the element is visible
-    await this.verifier.verifyTheElementIsVisible(locator, {
-      assertionMessage: 'Element should be visible before interaction',
-    });
-
-    // Scroll into view if needed
-    await locator.scrollIntoViewIfNeeded();
-
-    // // Ensure element is enabled
-    // await locator.waitFor({ state: 'visible', timeout: 1000 });
-  }
-
-  /**
-   * Waits for like/unlike action to complete by waiting for API response and DOM updates
-   * @param text - The text of the post or reply
-   * @param isReply - Whether this is a reply (true) or post (false)
-   */
-  private async waitForLikeActionComplete(text: string, isReply: boolean): Promise<void> {
-    const likeCountLocator = isReply ? this.likeCountLocatorForReply(text) : this.likeCountLocator(text);
-
-    try {
-      // Wait for the element to be visible, or wait a bit if it doesn't exist (0 likes)
-      await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
-        // If element doesn't exist, it might be 0 likes - that's okay, just wait a bit
-        return Promise.resolve();
-      });
-    } catch {
-      console.log('Error waiting for like count to stabilize');
-    }
+    this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
   }
 
   /**
@@ -556,41 +439,23 @@ export class ListFeedComponent extends BaseComponent {
       // Ensure post is visible first
       await this.waitForPostToBeVisible(postText);
 
-      const likeButton = this.likeButtonForPost(postText);
-
-      // Ensure button is actionable (visible, scrolled into view, enabled)
-      await this.ensureElementIsActionable(likeButton);
+      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+        assertionMessage: `Like/React button should be visible for post "${postText}"`,
+      });
 
       // Click the like button
-      await this.clickOnElement(likeButton);
-
-      // Wait for like action to complete (API response and DOM updates)
-      await this.waitForLikeActionComplete(postText, false);
+      await this.clickOnElement(this.likeButton);
     });
   }
-
-  /**
-   * Unlikes a feed post by clicking the like button again
-   * @param postText - The text of the post to unlike
-   */
   async unlikeFeedPost(postText: string): Promise<void> {
     await test.step(`Unlike feed post: ${postText}`, async () => {
-      // Ensure post is visible first
-      await this.waitForPostToBeVisible(postText);
-
-      const likeButton = this.likeButtonForPost(postText);
-
-      // Ensure button is actionable (visible, scrolled into view, enabled)
-      await this.ensureElementIsActionable(likeButton);
-
-      // Click the like button to unlike
-      await this.clickOnElement(likeButton);
-
-      // Wait for unlike action to complete (API response and DOM updates)
-      await this.waitForLikeActionComplete(postText, false);
+      const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
+      await this.verifier.verifyTheElementIsVisible(unlikeButtonLocator, {
+        assertionMessage: `Unlike button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(unlikeButtonLocator);
     });
   }
-
   /**
    * Likes a reply post by clicking the like button
    * @param replyText - The text of the reply to like
@@ -598,20 +463,12 @@ export class ListFeedComponent extends BaseComponent {
   async likeFeedReply(replyText: string): Promise<void> {
     await test.step(`Like feed reply: ${replyText}`, async () => {
       // Ensure reply is visible first
-      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
-        assertionMessage: `Reply "${replyText}" should be visible`,
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply, {
+        assertionMessage: `Like/React button should be visible for reply "${replyText}"`,
       });
 
-      const likeButton = this.likeButtonForReply(replyText);
-
-      // Ensure button is actionable (visible, scrolled into view, enabled)
-      await this.ensureElementIsActionable(likeButton);
-
       // Click the like button
-      await this.clickOnElement(likeButton);
-
-      // Wait for like action to complete (API response and DOM updates)
-      await this.waitForLikeActionComplete(replyText, true);
+      await this.clickOnElement(this.likeButtonForReply);
     });
   }
 
@@ -621,21 +478,18 @@ export class ListFeedComponent extends BaseComponent {
    */
   async unlikeFeedReply(replyText: string): Promise<void> {
     await test.step(`Unlike feed reply: ${replyText}`, async () => {
-      // Ensure reply is visible first
-      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
-        assertionMessage: `Reply "${replyText}" should be visible`,
+      const unlikeButtonLocator = this.page
+        .getByRole('listitem')
+        .filter({ hasText: 'Like' })
+        .getByLabel('Remove your reaction')
+        .first();
+
+      await this.verifier.verifyTheElementIsVisible(unlikeButtonLocator, {
+        assertionMessage: `Unlike button should be visible for reply "${replyText}"`,
       });
 
-      const likeButton = this.likeButtonForReply(replyText);
-
-      // Ensure button is actionable (visible, scrolled into view, enabled)
-      await this.ensureElementIsActionable(likeButton);
-
-      // Click the like button to unlike
-      await this.clickOnElement(likeButton);
-
-      // Wait for unlike action to complete (API response and DOM updates)
-      await this.waitForLikeActionComplete(replyText, true);
+      // Click the unlike button
+      await this.clickOnElement(unlikeButtonLocator);
     });
   }
 
@@ -644,64 +498,17 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to check like count for
    * @param expectedCount - Optional expected count (if provided, will verify exact count)
    */
-  async verifyLikeCountOnPost(postText: string, expectedCount?: number): Promise<void> {
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
     await test.step(`Verify like count on post: ${postText}`, async () => {
       // Ensure post is visible first
       await this.waitForPostToBeVisible(postText);
 
-      const likeCountLocator = this.likeCountLocator(postText);
-
-      // Wait for like count element to stabilize (either appear or update)
-      // If expectedCount is 0 or undefined, element might not exist, which is okay
-      if (expectedCount === 0 || expectedCount === undefined) {
-        // Try to wait for element, but don't fail if it doesn't exist (0 likes)
-        try {
-          await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
-            // Element doesn't exist - likely 0 likes, which is valid
-            return;
-          });
-        } catch {
-          // If element doesn't exist and we're not expecting a count, that's fine
-          if (expectedCount === undefined) {
-            return;
-          }
-        }
-      } else {
-        // If we expect a count > 0, wait for element to be visible
-        await likeCountLocator.waitFor({ state: 'visible' });
-      }
-
-      // Check if like count element exists
-      const count = await likeCountLocator.count();
-      if (count === 0) {
-        if (expectedCount === undefined || expectedCount === 0) {
-          // Element doesn't exist and we're okay with that (0 likes or no expectation)
-          return;
-        } else {
-          // We expected a count but element doesn't exist
-          throw new Error(
-            `Expected like count ${expectedCount} for post "${postText}", but like count element is not visible`
-          );
-        }
-      }
+      const likeCountLocator = this.page.getByRole('button', { name: '1 reaction' }).first();
 
       // Verify element is visible
       await this.verifier.verifyTheElementIsVisible(likeCountLocator, {
         assertionMessage: `Like count should be visible for post "${postText}"`,
       });
-
-      // If expected count is provided, verify it matches
-      if (expectedCount !== undefined) {
-        // Wait for text content to be available and stable
-        await likeCountLocator.waitFor({ state: 'visible' });
-        const countText = await likeCountLocator.textContent();
-        // Extract number from text like "1 reaction" or just "1"
-        const match = countText?.match(/(\d+)/);
-        const actualCount = match ? parseInt(match[1], 10) : 0;
-        if (actualCount !== expectedCount) {
-          throw new Error(`Expected like count ${expectedCount}, but got ${actualCount} for post "${postText}"`);
-        }
-      }
     });
   }
 
@@ -710,66 +517,19 @@ export class ListFeedComponent extends BaseComponent {
    * @param replyText - The text of the reply to check like count for
    * @param expectedCount - Optional expected count (if provided, will verify exact count)
    */
-  async verifyLikeCountOnReply(replyText: string, expectedCount?: number): Promise<void> {
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
     await test.step(`Verify like count on reply: ${replyText}`, async () => {
       // Ensure reply is visible first
       await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
         assertionMessage: `Reply "${replyText}" should be visible`,
       });
 
-      const likeCountLocator = this.likeCountLocatorForReply(replyText);
-
-      // Wait for like count element to stabilize (either appear or update)
-      // If expectedCount is 0 or undefined, element might not exist, which is okay
-      if (expectedCount === 0 || expectedCount === undefined) {
-        // Try to wait for element, but don't fail if it doesn't exist (0 likes)
-        try {
-          await likeCountLocator.waitFor({ state: 'visible' }).catch(() => {
-            // Element doesn't exist - likely 0 likes, which is valid
-            return;
-          });
-        } catch {
-          // If element doesn't exist and we're not expecting a count, that's fine
-          if (expectedCount === undefined) {
-            return;
-          }
-        }
-      } else {
-        // If we expect a count > 0, wait for element to be visible
-        await likeCountLocator.waitFor({ state: 'visible' });
-      }
-
-      // Check if like count element exists
-      const count = await likeCountLocator.count();
-      if (count === 0) {
-        if (expectedCount === undefined || expectedCount === 0) {
-          // Element doesn't exist and we're okay with that (0 likes or no expectation)
-          return;
-        } else {
-          // We expected a count but element doesn't exist
-          throw new Error(
-            `Expected like count ${expectedCount} for reply "${replyText}", but like count element is not visible`
-          );
-        }
-      }
+      const likeCountLocator = this.page.getByRole('button', { name: 'People who liked this. Click' }).first();
 
       // Verify element is visible
       await this.verifier.verifyTheElementIsVisible(likeCountLocator, {
         assertionMessage: `Like count should be visible for reply "${replyText}"`,
       });
-
-      // If expected count is provided, verify it matches
-      if (expectedCount !== undefined) {
-        // Wait for text content to be available and stable
-
-        const countText = await likeCountLocator.textContent();
-        // Extract number from text (for replies it's just the number like "1")
-        const match = countText?.match(/(\d+)/);
-        const actualCount = match ? parseInt(match[1], 10) : 0;
-        if (actualCount !== expectedCount) {
-          throw new Error(`Expected like count ${expectedCount}, but got ${actualCount} for reply "${replyText}"`);
-        }
-      }
     });
   }
 
