@@ -129,6 +129,7 @@ export interface IFeedAssertions {
   verifyReplyCount: (postText: string, expectedCount: number, replyText?: string) => Promise<void>;
   clickPostTimestamp: (postText: string) => Promise<void>;
   getVisibleReplyCount: (postText: string) => Promise<number>;
+  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -197,8 +198,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createQuestionComponent.createAndPostQuestion(options);
   }
 
-  async editPost(currentText: string, newText: string): Promise<void> {
-    await this.createFeedPostComponent.editPost(currentText, newText);
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText, embedUrl);
   }
 
   async deletePost(postText: string): Promise<void> {
@@ -704,5 +705,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         timeout: options?.timeout || TIMEOUTS.SHORT,
       });
     });
+  }
+
+  async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
 }
