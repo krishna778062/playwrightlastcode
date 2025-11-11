@@ -49,7 +49,7 @@ test.describe(
       }
       // Extract fileId from the site image URL
       siteImageFileId = siteImageUrl.split('/').pop() || siteImageUrl;
-      
+
       console.log(`Site image URL: ${siteImageUrl}`);
       console.log(`Site image fileId: ${siteImageFileId}`);
 
