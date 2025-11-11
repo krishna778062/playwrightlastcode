@@ -43,7 +43,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
         timeout: 20000,
       });
       if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Rewards overview') {
-        if (await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.disableRewardLink)) {
+        if (await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disableRewardLink)) {
           await manageRewardsPage.disableTheRewards();
         } else {
           console.log('Rewards are already disabled, skipping disable action.');
@@ -57,7 +57,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
         'rewards budget'
       );
 
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationFullAnnualBudget
       );
@@ -74,9 +74,9 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Quarterly');
-      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '19999', {
-        stepInfo: 'Filling budget input with 19999',
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
+      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
+        stepInfo: 'Filling budget input with 99999',
       });
       await manageRewardsPage.budgetModal.budgetPanelInputBox.blur();
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
@@ -88,7 +88,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
-      await manageRewardsPage.selectTheBudgetFrequency('Remove');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
         stepInfo: 'Clicking on save button',
       });
@@ -140,16 +140,6 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
         console.log('Rewards are already disabled, skipping disable action.');
       }
 
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardPeerGiftingContainer, {
-        stepInfo: 'Clicking on disabled reward peer gifting container',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardRewardsBudgetContainer, {
-        stepInfo: 'Clicking on disabled reward rewards budget container',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardCurrencyConversionContainer, {
-        stepInfo: 'Clicking on disabled reward currency conversion container',
-      });
-
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
       if (!(await manageRewardsPage.budgetModal.budgetPanelRemoveRadioInputBox.isHidden({ timeout: 5000 }))) {
@@ -157,7 +147,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
           manageRewardsPage.budgetModal.budgetPanelHeader,
           'rewards budget'
         );
-        await manageRewardsPage.selectTheBudgetFrequency('Remove');
+        await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });
@@ -171,7 +161,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
       }
 
       await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
         stepInfo: 'Filling budget input with 99999',
       });
@@ -229,7 +219,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
         manageRewardsPage.budgetModal.budgetPanelHeader,
         'rewards budget'
       );
-      await manageRewardsPage.selectTheBudgetFrequency('Annual');
+      await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
       await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, String(customBudget), {
         stepInfo: 'Filling budget input with custom budget',
       });
@@ -289,7 +279,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
           manageRewardsPage.budgetModal.budgetPanelHeader,
           'rewards budget'
         );
-        await manageRewardsPage.selectTheBudgetFrequency('Remove');
+        await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Remove');
         await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
           stepInfo: 'Clicking on save button',
         });

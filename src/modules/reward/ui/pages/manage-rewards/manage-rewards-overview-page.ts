@@ -284,25 +284,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     });
     this.disableRewardText = this.disableRewardContainer.locator('[class*="TypographyBody-module__wrapper"] p');
     this.disableRewardButton = this.disableRewardContainer.locator('form > button[data-state="closed"]');
-    this.disabledRewardPeerGiftingContainer = this.page.locator(
-      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(1)'
-    );
-    this.disabledRewardRewardsBudgetContainer = this.page.locator(
-      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(2)'
-    );
-    this.disabledRewardCurrencyConversionContainer = this.page.locator(
-      'div[class*="Rewards_content"] div[class*="SummaryPanel_summaryPanel"]:nth-child(3)'
-    );
-
-    // Dialog box
-    this.dialogBox = this.page.locator('[role="dialog"]');
-    this.confirmInput = this.dialogBox.locator('input[type="text"]');
-    this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
-
-    // Save button and toast messages
-    this.saveButton = this.page.getByRole('button', { name: 'Save' });
-    this.toastMessage = this.page.locator('div.Toastify__toast-body p');
-
     this.disableRewardOptionsContainer = page.locator('div[class*="Panel-module__panel"]').nth(1);
     this.disabledRewardPeerGiftingContainer = this.disableRewardOptionsContainer
       .locator('div[class*="PanelActionItem_layout"]')
@@ -314,6 +295,9 @@ export class ManageRewardsOverviewPage extends BasePage {
       'a[aria-label="Edit peer gifting"]'
     );
 
+    this.disabledRewardRewardsBudgetContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(1);
     this.disabledRewardAddBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
       'button[aria-label="Add rewards budget"]'
     );
@@ -323,6 +307,15 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.disabledRewardCurrencyConversionContainer = this.disableRewardOptionsContainer
       .locator('div[class*="PanelActionItem_layout"]')
       .nth(2);
+
+    // Dialog box
+    this.dialogBox = this.page.locator('[role="dialog"]');
+    this.confirmInput = this.dialogBox.locator('input[type="text"]');
+    this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
+
+    // Save button and toast messages
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
+    this.toastMessage = this.page.locator('div.Toastify__toast-body p');
   }
 
   get dialogContainerForm(): DialogBox {
@@ -725,18 +718,15 @@ export class ManageRewardsOverviewPage extends BasePage {
     }
   }
 
-  async clickOnDisabledRewardsAddEditBudgetButton(): Promise<string> {
-    await this.clickOnElement(this.budgetSummaryActionBarButton, {
-      stepInfo: 'Clicking on Add/Edit Budget button for disabled rewards',
-    });
-    await this.verifier.waitUntilElementIsVisible(this.budgetModal.budgetContainer);
-
-    // Check if it's Add or Edit mode
-    const isRemoveOptionVisible = await this.verifier.isTheElementVisible(
-      this.budgetModal.budgetPanelRemoveRadioInputBox,
-      { timeout: 2000 }
-    );
-    return isRemoveOptionVisible ? 'Edit budget' : 'Add budget';
+  async clickOnDisabledRewardsAddEditBudgetButton(): Promise<void> {
+    await this.disabledRewardRewardsBudgetContainer.waitFor({ state: 'attached', timeout: 30000 });
+    if (await this.verifier.isTheElementVisible(this.disabledRewardAddBudgetButton)) {
+      await this.clickOnElement(this.disabledRewardAddBudgetButton);
+    } else if (await this.verifier.isTheElementVisible(this.disabledRewardEditBudgetButton)) {
+      await this.clickOnElement(this.disabledRewardEditBudgetButton);
+    } else {
+      throw new Error('Neither Add Budget nor Edit Budget button is visible.');
+    }
   }
 
   getRandomNo(min: number, max: number, exclude?: number): number {

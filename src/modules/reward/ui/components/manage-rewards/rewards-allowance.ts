@@ -148,6 +148,7 @@ export class RewardsAllowance extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.successToastContainer);
     await this.verifier.verifyElementHasText(this.successToastBoxMessage, expectedMessage);
     await this.page.waitForTimeout(2000);
+    await this.successToastBoxClose.click();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
