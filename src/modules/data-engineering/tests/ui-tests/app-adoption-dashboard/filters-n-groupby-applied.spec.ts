@@ -51,7 +51,6 @@ test.describe(
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
           departments: ['Campaign', 'HR'],
           locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          userCategories: ['Adil Option1'],
           companyName: ['Simpplr'],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };

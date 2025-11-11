@@ -32,6 +32,7 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.CONFLUENCE,
           IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+          IntegrationsSuiteTags.HEALTH_CHECK,
         ],
       },
       async ({ adminPage, endUserPage }) => {

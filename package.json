@@ -43,6 +43,7 @@
     "serve-report": "npm run generate-report && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true node convert-report.js\"",
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
     "test:de": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
+    "test:de-api": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts",
     "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
     "test:integrations": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
     "test:integrations:p0": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts --grep=@P0",
@@ -54,7 +55,8 @@
     "test:employee-listening:test": "cross-env TEST_ENV=test MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:employee-listening:qa": "cross-env TEST_ENV=qa MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts"
+    "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
+    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts"
   },
   "keywords": [],
   "author": "",
