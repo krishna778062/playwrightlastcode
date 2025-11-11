@@ -299,7 +299,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-
   async removePostFromFavourite(postText: string): Promise<void> {
     await this.listFeedComponent.removePostFromFavourite(postText);
   }
