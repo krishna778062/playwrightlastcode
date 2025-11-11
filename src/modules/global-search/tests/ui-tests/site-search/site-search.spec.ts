@@ -179,7 +179,7 @@ test.describe(
     test(
       `verify exact match results UI`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck', '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -191,25 +191,18 @@ test.describe(
           stepInfo: `Searching with term "${newSiteName}" to verify exact match functionality`,
         });
 
-        // Dismiss any survey popup that might appear
         await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
-        // Verify exact match checkbox is visible
         await globalSearchResultPage.verifyExactMatchCheckboxIsVisible();
 
-        // Verify exact match title text is displayed
         await globalSearchResultPage.verifyExactMatchTitleTextIsDisplayed();
 
-        // Verify info icon is visible
         await globalSearchResultPage.verifyExactMatchInfoIconIsVisible();
 
-        // Hover over info icon and verify tooltip text
         await globalSearchResultPage.hoverOverExactMatchInfoIconAndVerifyTooltip(newSiteName);
 
-        // Click on exact match checkbox
         await globalSearchResultPage.clickExactMatchCheckbox();
 
-        // Verify the site result is displayed after clicking exact match checkbox
         const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
         const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
         await siteResultItem.verifyNameIsDisplayed(newSiteName);

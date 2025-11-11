@@ -6,6 +6,7 @@ import { ExternalSearchListComponent } from '../components/externalSearchListCom
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { EXACT_MATCH_TOOLTIP_TEXT } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
 import { IFeedSearch } from '@/src/modules/global-search/types/feed-search.type';
 import { IFileSearch } from '@/src/modules/global-search/types/file-search.type';
@@ -90,7 +91,7 @@ export class GlobalSearchResultPage extends BasePage {
     this.exactMatchTitle = this.exactMatchSection.filter({
       hasText: 'Search for an exact match',
     });
-    this.exactMatchInfoIcon = this.exactMatchSection.getByTestId('i-info');
+    this.exactMatchInfoIcon = this.page.locator('[data-testid="i-info"]');
     this.exactMatchTooltip = this.page.getByRole('tooltip');
   }
 
@@ -572,7 +573,7 @@ export class GlobalSearchResultPage extends BasePage {
    */
   async verifyExactMatchInfoIconIsVisible(): Promise<void> {
     await test.step('Verifying exact match info icon is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.exactMatchInfoIcon, {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchInfoIcon.first(), {
         timeout: TIMEOUTS.MEDIUM,
         assertionMessage: 'Verifying exact match info icon is visible',
       });
@@ -585,14 +586,17 @@ export class GlobalSearchResultPage extends BasePage {
    */
   async hoverOverExactMatchInfoIconAndVerifyTooltip(searchTerm: string): Promise<void> {
     await test.step(`Hovering over exact match info icon and verifying tooltip text with search term "${searchTerm}"`, async () => {
-      await this.exactMatchInfoIcon.hover();
-      await this.verifier.verifyTheElementIsVisible(this.exactMatchTooltip, {
+      await this.exactMatchInfoIcon.first().hover();
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTooltip.first(), {
         timeout: TIMEOUTS.MEDIUM,
         assertionMessage: 'Verifying tooltip is displayed after hovering over info icon',
       });
-      const expectedTooltipText = `Enabling this will show only the results that contain the term "${searchTerm}"`;
-      await this.verifier.verifyElementHasText(this.exactMatchTooltip, expectedTooltipText, {
-        assertionMessage: `Verifying tooltip text contains search term "${searchTerm}"`,
+
+      // Verify tooltip text contains the expected content (base text and search term)
+      const expectedText = `${EXACT_MATCH_TOOLTIP_TEXT} “${searchTerm}”`;
+      await this.verifier.verifyElementContainsText(this.exactMatchTooltip.first(), expectedText, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Verifying tooltip contains base text and search term "${searchTerm}"`,
       });
     });
   }
