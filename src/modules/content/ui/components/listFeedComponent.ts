@@ -252,6 +252,18 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Validates that a post is not visible
+   * @param postText - The text content of the post that should not be visible
+   */
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await test.step(`Validating post is not visible: "${postText}"`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.postTextLocator(postText), {
+        assertionMessage: `Post "${postText}" should not be visible`,
+      });
+    });
+  }
+
   async clickInfoIcon(fileId: string): Promise<void> {
     await test.step('Click info icon', async () => {
       await this.imageButton.hover();
