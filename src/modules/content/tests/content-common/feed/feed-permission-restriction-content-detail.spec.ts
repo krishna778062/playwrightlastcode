@@ -31,31 +31,6 @@ test.describe(
           storyId: 'CONT-37171',
         });
 
-        const postCommentAndVerify = async (
-          siteId: string,
-          contentId: string,
-          contentType: string,
-          page: any,
-          commentText: string
-        ) => {
-          const contentPreviewPage = new ContentPreviewPage(page, siteId, contentId, contentType);
-          await contentPreviewPage.loadPage();
-
-          // Verify that comment option is visible on content detail page feed form
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
-
-          // Click "Share your thoughts" button to open comment editor
-          await contentPreviewPage.actions.clickShareThoughtsButton();
-
-          // Create CreateFeedPostComponent instance to post the comment
-          const createFeedPostComponent = new CreateFeedPostComponent(page);
-          await createFeedPostComponent.createPost(commentText);
-          await createFeedPostComponent.actions.clickPostButton();
-
-          // Verify the comment is visible after posting
-          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
-        };
-
         // Create a Public Site
         const publicSite = await appManagerApiFixture.siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
@@ -91,17 +66,51 @@ test.describe(
         const siteOwnerCommentText = TestDataGenerator.generateRandomText('Site Owner Comment', 3, true);
         const siteManagerCommentText = TestDataGenerator.generateRandomText('Site Manager Comment', 3, true);
 
-        // Test as Site Owner (appManager) - Post comment and verify
-        await postCommentAndVerify(siteId, pageContent.contentId, 'page', appManagerFixture.page, siteOwnerCommentText);
-
-        // Test as Site Manager - Post comment and verify
-        await postCommentAndVerify(
+        // Test as Site Owner (appManager) - Post comment
+        const siteOwnerContentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
           siteId,
           pageContent.contentId,
-          'page',
-          siteManagerFixture.page,
-          siteManagerCommentText
+          'page'
         );
+        await siteOwnerContentPreviewPage.loadPage();
+
+        // Verify that comment option is visible on content detail page feed form
+        await siteOwnerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+        // Click "Share your thoughts" button to open comment editor
+        await siteOwnerContentPreviewPage.actions.clickShareThoughtsButton();
+
+        // Create CreateFeedPostComponent instance to post the comment
+        const siteOwnerCreateFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+        await siteOwnerCreateFeedPostComponent.actions.createPost(siteOwnerCommentText);
+        await siteOwnerCreateFeedPostComponent.actions.clickPostButton();
+
+        // Verify Site Owner comment
+        await siteOwnerContentPreviewPage.assertions.waitForPostToBeVisible(siteOwnerCommentText);
+
+        // Test as Site Manager - Post comment
+        const siteManagerContentPreviewPage = new ContentPreviewPage(
+          siteManagerFixture.page,
+          siteId,
+          pageContent.contentId,
+          'page'
+        );
+        await siteManagerContentPreviewPage.loadPage();
+
+        // Verify that comment option is visible on content detail page feed form
+        await siteManagerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+        // Click "Share your thoughts" button to open comment editor
+        await siteManagerContentPreviewPage.actions.clickShareThoughtsButton();
+
+        // Create CreateFeedPostComponent instance to post the comment
+        const siteManagerCreateFeedPostComponent = new CreateFeedPostComponent(siteManagerFixture.page);
+        await siteManagerCreateFeedPostComponent.actions.createPost(siteManagerCommentText);
+        await siteManagerCreateFeedPostComponent.actions.clickPostButton();
+
+        // Verify Site Manager comment
+        await siteManagerContentPreviewPage.assertions.waitForPostToBeVisible(siteManagerCommentText);
       }
     );
   }
