@@ -408,10 +408,16 @@ export class SiteManagementHelper {
   ): Promise<string> {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
-      size: 1000, // Get a large number to ensure we find the site if it exists
+      size: 5000, // Get a large number to ensure we find the site if it exists
       canManage: true,
       filter: 'all',
     });
+
+    for (const site of sitesResponse.result.listOfItems) {
+      console.log(
+        `Site name: ${site.name} isActive: ${site.isActive} accessType: ${site.access} siteId: ${site.siteId}`
+      );
+    }
 
     // Search for the site by name
     const existingSite = sitesResponse.result.listOfItems.find(

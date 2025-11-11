@@ -109,4 +109,7 @@ export const PAGE_ENDPOINTS = {
   POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
   //Poll listening page
   POLLS_LISTING_PAGE: '/polls',
+
+  //Form creation page
+  FORM_CREATION_PAGE: '/forms',
 };
