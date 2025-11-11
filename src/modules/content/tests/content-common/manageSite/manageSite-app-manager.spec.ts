@@ -319,7 +319,13 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+        const selectedSiteName = await manageSitesComponent.selectFirstEnabledSiteCheckbox(deactivatedSiteNames);
+        if (!selectedSiteName) {
+          throw new Error(
+            'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
+          );
+        }
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
         await manageContentPage.actions.clickOnActivateApplyButton();

@@ -236,7 +236,13 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+        const selectedSiteName = await manageSitesComponent.selectFirstEnabledSiteCheckbox(siteNames);
+        if (!selectedSiteName) {
+          throw new Error(
+            'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
+          );
+        }
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
         await manageContentPage.actions.clickOnActivateApplyButton();
@@ -246,8 +252,8 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'active',
         });
-        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
-        console.log('siteNames', siteNames);
+        const activeSiteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('activeSiteNames', activeSiteNames);
         const manageDeactivatedSitePage = new ManageSitePage(standardUserFixture.page);
         await manageDeactivatedSitePage.loadPage();
       }

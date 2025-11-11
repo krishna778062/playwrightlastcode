@@ -351,16 +351,29 @@ export class ManageSitesComponent extends BaseComponent {
       .filter({ has: this.page.locator('h2', { hasText: siteName }) })
       .first();
   }
-
   /**
-   * Selects the checkbox for a site by its exact name
-   * @param siteName - The exact name of the site
+   * Finds and selects the first site with an enabled checkbox from a list of site names
+   * @param siteNames - Array of site names to try
+   * @returns The name of the selected site, or null if none found
    */
-  async selectSiteCheckboxByExactName(siteName: string): Promise<void> {
-    await test.step(`Selecting checkbox for site: ${siteName}`, async () => {
-      const siteRow = this.getSiteRowByExactName(siteName);
-      const checkbox = siteRow.getByLabel('Select');
-      await this.clickOnElement(checkbox);
+  async selectFirstEnabledSiteCheckbox(siteNames: string[]): Promise<string | null> {
+    return await test.step('Finding and selecting first site with enabled checkbox', async () => {
+      for (const siteName of siteNames) {
+        try {
+          const siteRow = this.getSiteRowByExactName(siteName);
+          const checkbox = siteRow.getByLabel('Select');
+          const isEnabled = await checkbox.isEnabled().catch(() => false);
+
+          if (isEnabled) {
+            await this.clickOnElement(checkbox);
+            return siteName;
+          }
+        } catch {
+          // Continue to next site if this one fails
+          continue;
+        }
+      }
+      return null;
     });
   }
 }
