@@ -16,6 +16,7 @@ export interface IManageTopicsPageActions {
   editTopicName: (topicName: string) => Promise<void>;
   clickOnUpdateButton: () => Promise<void>;
   searchingTopicInSearchBar: (topicName: string) => Promise<void>;
+  searchAndVerifyMultipleTopics: (topicNames: string[]) => Promise<void>;
   openingSearchedTopic: (topicName: string) => Promise<void>;
   clickOnDeleteTopic: () => Promise<void>;
   clickCancelButton: () => Promise<void>;
@@ -38,6 +39,7 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
   readonly verifiedTheSearhcedTopic: Locator = this.page.locator('[data-testid="dataGridRow"]').first();
   readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
   readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
+  readonly clickingOnCrossSearchButton: Locator = this.page.locator('[aria-label="Clear"]');
   // readonly clickingOnTopicHeading: Locator = this.page.getByRole('cell', { name: 'Topic' });
   // readonly clickingOnTopicHeading: Locator = this.page.locator('.Table-cell').first();
   // readonly clickingOnTopicHeading: this.page.locator('tr.Table-row a.Tag-text.type--500.type--b3.u-cursorPointer');
@@ -76,6 +78,35 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     });
   }
 
+  async searchAndVerifyMultipleTopics(topicNames: string[]): Promise<void> {
+    await test.step(`Searching and verifying ${topicNames.length} topics`, async () => {
+      if (topicNames.length === 0) {
+        throw new Error('Topic names array is empty');
+      }
+
+      for (let i = 0; i < topicNames.length; i++) {
+        const topicName = topicNames[i];
+        if (!topicName) {
+          throw new Error(`Topic name at index ${i} is empty or undefined`);
+        }
+
+        await test.step(`Verifying topic ${i + 1}/${topicNames.length}: "${topicName}"`, async () => {
+          // Clear previous search if not the first iteration
+          if (i > 0) {
+            await this.clickOnElement(this.clickingOnCrossSearchButton);
+          }
+
+          // Search for the topic
+          await this.searchingTopicInSearchBar(topicName);
+
+          // Verify the topic is visible
+          await this.verifyingTheSearhcedTopicIsVisible(topicName);
+
+          console.log(`✓ Successfully verified topic ${i + 1}/${topicNames.length}: "${topicName}"`);
+        });
+      }
+    });
+  }
   async verifyErroToastMessage(): Promise<void> {
     const baseActionUtil = new BaseActionUtil(this.page);
     await baseActionUtil.verifyToastMessageIsVisibleWithText(
@@ -113,10 +144,12 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
   }
 
   async verifyingTheSearhcedTopicIsVisible(topicName: string): Promise<void> {
-    (this.verifiedTheSearhcedTopic.filter({ hasText: topicName }),
-      {
-        assertionMessage: `Verify the searched topic is visible`,
+    await test.step(`Verifying topic "${topicName}" is visible in search results`, async () => {
+      const topicLocator = this.verifiedTheSearhcedTopic.filter({ hasText: topicName });
+      await this.verifier.verifyTheElementIsVisible(topicLocator, {
+        assertionMessage: `Topic "${topicName}" should be visible in search results`,
       });
+    });
   }
 
   async verifyingNothingToShowHereText(): Promise<void> {

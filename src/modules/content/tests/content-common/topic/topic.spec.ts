@@ -256,6 +256,12 @@ test.describe('edit Topic', () => {
         storyId: 'CONT-25969',
       });
       const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      // Store topic names in array for later use
+      const topicNames: string[] = [
+        FEED_TEST_DATA.TOPIC_NAME_PAGE,
+        FEED_TEST_DATA.TOPIC_NAME_ALBUM,
+        FEED_TEST_DATA.TOPIC_NAME_EVENT,
+      ];
       const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
         siteId: siteInfo.siteId,
         contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -265,8 +271,8 @@ test.describe('edit Topic', () => {
       await contentPage.actions.clickShareThoughtsButton();
       const feedPage = new FeedPage(appManagerFixture.page);
       const postResultPage = await feedPage.actions.createAndPostWithTopic(
-        `test topic ${FEED_TEST_DATA.TOPIC_NAME_PAGE}`,
-        FEED_TEST_DATA.TOPIC_NAME_PAGE
+        `test topic ${topicNames[0]}`,
+        topicNames[0]
       );
       console.log('Created feed via API for Page:', postResultPage);
       const contentAlbum = await appManagerFixture.contentManagementHelper.createAlbum({
@@ -283,15 +289,15 @@ test.describe('edit Topic', () => {
       await contentAlbumPage.actions.clickShareThoughtsButton();
       const feedAlbumPage = new FeedPage(appManagerFixture.page);
       const postResultAlbum = await feedAlbumPage.actions.createAndPostWithTopic(
-        `test topic ${FEED_TEST_DATA.TOPIC_NAME_ALBUM}`,
-        FEED_TEST_DATA.TOPIC_NAME_ALBUM
+        `test topic ${topicNames[1]}`,
+        topicNames[1]
       );
       console.log('Created feed via API for Album:', postResultAlbum);
       const contentEvent = await appManagerFixture.contentManagementHelper.createEvent({
         siteId: siteInfo.siteId,
         contentInfo: { contentType: 'event' },
         options: {
-          eventName: `test topic ${FEED_TEST_DATA.TOPIC_NAME_EVENT}`,
+          eventName: `test topic ${topicNames[2]}`,
         },
       });
       const contentEventPage = new ContentPreviewPage(
@@ -304,10 +310,14 @@ test.describe('edit Topic', () => {
       await contentEventPage.actions.clickShareThoughtsButton();
       const feedEventPage = new FeedPage(appManagerFixture.page);
       const postResultEvent = await feedEventPage.actions.createAndPostWithTopic(
-        `test topic ${FEED_TEST_DATA.TOPIC_NAME_EVENT}`,
-        FEED_TEST_DATA.TOPIC_NAME_EVENT
+        `test topic ${topicNames[2]}`,
+        topicNames[2]
       );
       console.log('Created feed via API for Event:', postResultEvent);
+
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.actions.searchAndVerifyMultipleTopics(topicNames);
     }
   );
 });
