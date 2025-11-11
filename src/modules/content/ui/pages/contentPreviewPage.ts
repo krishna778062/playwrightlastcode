@@ -28,6 +28,9 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  clickAllCommentsLink: () => Promise<void>;
+  clickShowMoreCommentsButton: () => Promise<void>;
+  getVisibleCommentCount: () => Promise<number>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -43,6 +46,7 @@ export interface IContentPreviewPageAssertions {
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
+  verifyCommentCount: (expectedCount: number) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -309,6 +313,66 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async clickOnOptionMenuButton(): Promise<void> {
     await test.step('Click on Option menu button', async () => {
       await this.clickOnElement(this.optionMenuDropdown);
+    });
+  }
+
+  /**
+   * Gets the count of visible comments on content detail page
+   * @returns Promise<number> - Count of visible comments
+   */
+  async getVisibleCommentCount(): Promise<number> {
+    return await test.step('Get visible comment count', async () => {
+      // Find reply containers using the new classes - this is the primary method
+      // Count only visible comment containers
+      const count = await this.page.locator('div[class*="_postBody_eonic_8"]').count();
+
+      console.log('Count of visible comments: ', count);
+
+      return count;
+    });
+  }
+
+  /**
+   * Verifies the count of visible comments on content detail page
+   * @param expectedCount - Expected number of visible comments
+   */
+  async verifyCommentCount(expectedCount: number): Promise<void> {
+    await test.step(`Verify comment count is ${expectedCount}`, async () => {
+      const actualCount = await this.getVisibleCommentCount();
+      if (actualCount !== expectedCount) {
+        throw new Error(`Expected ${expectedCount} visible comments, but found ${actualCount}`);
+      }
+    });
+  }
+
+  /**
+   * Clicks the "Show more" button for comments
+   */
+  async clickShowMoreCommentsButton(): Promise<void> {
+    await test.step('Click "Show more" button for comments', async () => {
+      const showMoreButton = this.page.getByText('Show more');
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: 'Show more button should be visible',
+      });
+
+      await this.clickOnElement(showMoreButton);
+      const endOfComments = this.page.getByText('End of results');
+
+      await this.verifier.verifyTheElementIsVisible(endOfComments, {
+        assertionMessage: 'End of results should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the "All Comments" link to navigate to content detail page
+   */
+  async clickAllCommentsLink(): Promise<void> {
+    await test.step('Click "All Comments" link', async () => {
+      // The link text is "All comments" (lowercase 'c'), not "All Comments"
+      const allCommentsLink = this.page.getByRole('link', { name: 'All comments' }).first();
+      await this.clickOnElement(allCommentsLink);
     });
   }
 }

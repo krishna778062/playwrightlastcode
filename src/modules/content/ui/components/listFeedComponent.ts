@@ -19,6 +19,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly replyShowMoreButton: Locator;
+  readonly loadMoreRepliesButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
@@ -120,6 +121,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
+    this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
   }
 
   /**
@@ -349,6 +351,19 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.replyShowMoreButton);
     });
   }
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await test.step(`Click load more replies button`, async () => {
+      await this.hoverOverElementInJavaScript(this.loadMoreRepliesButton);
+      await this.verifier.verifyTheElementIsVisible(this.loadMoreRepliesButton, {
+        assertionMessage: `Load more replies button should be visible`,
+      });
+      await this.clickOnElement(this.loadMoreRepliesButton);
+
+      await this.verifier.verifyTheElementIsNotVisible(this.loadMoreRepliesButton, {
+        assertionMessage: `Load more replies button should be visible`,
+      });
+    });
+  }
 
   async clickEditButton(): Promise<void> {
     await test.step(`Click edit button`, async () => {
@@ -418,6 +433,54 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
         assertionMessage: 'Share button should be visible',
       });
+    });
+  }
+
+  /**
+   * Gets the count of visible replies for a specific post
+   * @param postText - The text of the post to count replies for
+   * @returns Promise<number> - Count of visible replies
+   */
+  async getVisibleReplyCount(postText: string): Promise<number> {
+    return await test.step(`Get visible reply count for post: ${postText}`, async () => {
+      // Find the post container first
+      const postContainer = this.getFeedTextLocator(postText).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post "${postText}" should be visible`,
+      });
+      // Find all reply content divs within the post container
+      const replyContainers = this.page
+        .locator('div[class*="_container_q3xrp_1"]')
+        .first()
+        .locator('div[class*="_reply_1ii4b_1"]');
+
+      const count = await replyContainers.count();
+      console.log('Count of visible replies: ', count);
+      return count;
+    });
+  }
+
+  /**
+   * Verifies the count of visible replies for a specific post
+   * @param postText - The text of the post to verify replies for
+   * @param expectedCount - Expected number of visible replies
+   */
+  async verifyReplyCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify reply count is ${expectedCount} for post: ${postText}`, async () => {
+      const actualCount = await this.getVisibleReplyCount(postText);
+      if (actualCount !== expectedCount) {
+        throw new Error(`Expected ${expectedCount} visible replies for post "${postText}", but found ${actualCount}`);
+      }
+    });
+  }
+
+  /**
+   * Clicks on the post timestamp to navigate to feed detail page
+   * @param postText - The text of the post to click timestamp for
+   */
+  async clickPostTimestamp(postText: string): Promise<void> {
+    await test.step(`Click post timestamp to navigate to feed detail page for post: ${postText}`, async () => {
+      await this.clickOnElement(this.getPostTimestampLocator(postText));
     });
   }
 }

@@ -23,4 +23,5 @@ export enum ContentTestSuite {
   QUESTION_SETTINGS = '@question-settings',
   FEED_LAYOUT = '@feed-layout',
   MUST_READ = '@must-read',
+  FEED_COMMENTS_REPLIES_VISIBILITY = '@feed-comments-replies-visibility',
 }
