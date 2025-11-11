@@ -117,15 +117,15 @@ export class ListFeedComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
-    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
@@ -223,34 +223,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `verify the favourite button is visible`,
       });
       await this.clickOnElement(this.favoriteButton, { delay: 1000 });
-    });
-  }
-
-  /**
-   * Marks a specific post as favorite by post text
-   * @param postText - The text of the post to mark as favorite
-   */
-  async markPostAsFavouriteByText(postText: string): Promise<void> {
-    await test.step(`Mark post as favourite: ${postText}`, async () => {
-      // Get the post container
-      const postContainer = this.getFeedTextLocator(postText).locator('..').locator('..').locator('..').locator('..');
-
-      // Get the like button for this specific post
-      const likeButton = postContainer.getByRole('button', { name: 'React to this post' }).first();
-
-      // Hover over the like button to reveal the favorite button
-      await this.hoverOverElementInJavaScript(likeButton);
-
-      // Get the favorite button for this specific post
-      const favoriteButton = postContainer.getByRole('button', { name: 'Favorite this post' }).first();
-
-      // Verify the favourite button is visible
-      await this.verifier.verifyTheElementIsVisible(favoriteButton, {
-        assertionMessage: `verify the favourite button is visible for post: ${postText}`,
-      });
-
-      // Click the favorite button
-      await this.clickOnElement(favoriteButton, { delay: 1000 });
     });
   }
 
