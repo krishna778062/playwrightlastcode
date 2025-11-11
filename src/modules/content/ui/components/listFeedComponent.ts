@@ -481,6 +481,9 @@ export class ListFeedComponent extends BaseComponent {
   async clickPostTimestamp(postText: string): Promise<void> {
     await test.step(`Click post timestamp to navigate to feed detail page for post: ${postText}`, async () => {
       await this.clickOnElement(this.getPostTimestampLocator(postText));
+    });
+  }
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
