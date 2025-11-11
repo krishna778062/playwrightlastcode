@@ -239,10 +239,14 @@ export class UserProfilePage extends BasePage {
   /**
    * Navigate to current user profile notification settings
    */
-  async navigateToCurrentUserProfileNotificationSetting(type: 'email' | 'browser' | 'mobile'): Promise<void> {
-    await this.navigateToCurrentUserProfile();
-    await this.page.goto(`/user/profile/notifications/${type}`);
-    await this.verifier.waitUntilPageHasNavigatedTo(`/user/profile/notifications/${type}`);
+  async navigateToCurrentUserProfileNotificationSetting(
+    notificationType: 'email' | 'browser' | 'mobile'
+  ): Promise<void> {
+    const userId = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.CurrentUser?.uid;
+    });
+    const urlPathType = notificationType === 'mobile' ? 'native-app' : notificationType;
+    await this.page.goto(`/people/${userId}/edit/notifications/${urlPathType}`);
   }
 
   /**

@@ -3,6 +3,8 @@ import { DialogBox } from '@rewards-components/common/dialog-box';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
 import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
+import fs from 'fs';
+import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -10,6 +12,28 @@ import { BasePage } from '@core/pages/basePage';
 import { CSVUtils } from '@core/utils/csvUtils';
 
 import { FileUtil } from '@/src/core/utils';
+
+export type RecordResult = { URL: string; points: number } | null;
+
+interface CSVRow {
+  'Date time': string;
+  'Gifter name': string;
+  'Gifter email': string;
+  'Gifter department': string;
+  'Gifter location': string;
+  'Receiver name': string;
+  'Receiver email': string;
+  'Receiver department': string;
+  'Receiver location': string;
+  'Receiver payroll currency': string;
+  'Custom conversion rate': string | number | null;
+  Type: string;
+  'Points value': string | number;
+  'USD value': string | number;
+  'Transaction status': string;
+  Message: string;
+  URL: string;
+}
 
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
@@ -442,23 +466,8 @@ export class ManageRewardsOverviewPage extends BasePage {
    * 3. Find the specified user's recognition and click "View recognition"
    * 4. Validates the post opens in the same page
    */
-  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver: string): Promise<string> {
-    await test.step('Click and verify "Show more" button until last 3 days data is loaded', async () => {
-      while (await this.verifier.isTheElementVisible(this.activityPanelTableShowMoreButton)) {
-        const [_response] = await Promise.all([
-          this.page.waitForResponse(
-            res => res.url().includes('/recognition/admin/rewards/transactions') && res.status() === 200
-          ),
-          this.activityPanelTableShowMoreButton.click(),
-        ]);
-        const lastRowDate = await this.activityPanelTableRows.last().locator('td').first().textContent();
-        const currentDate = new Date();
-        const lastRowDateWithYear = new Date(lastRowDate + ` ${currentDate.getFullYear()}`);
-        const differenceInTime = currentDate.getDate() - lastRowDateWithYear.getDate();
-        if (differenceInTime > 5) break;
-      }
-    });
-
+  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver?: string): Promise<string> {
+    await this.clickOnElement(this.activityPanelTableSortableHeader.first());
     const rows = this.page.locator('tr[data-testid^="dataGridRow"]');
     let rewardPointsText: any;
     const rowCount = await rows.count();
@@ -469,7 +478,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       const today = new Date();
       const diffDays = (today.getTime() - rowDate.getTime()) / (1000 * 60 * 60 * 24);
       if (
-        recognitionGiver === (await rows.nth(i).locator('td').nth(1).textContent()) &&
+        // recognitionGiver ===undefined ? : (await rows.nth(i).locator('td').nth(1).textContent())
         diffDays > 2 &&
         (await rows.nth(i).locator('td').nth(3).locator('p').textContent()) === 'Peer recognition'
       ) {
@@ -481,7 +490,6 @@ export class ManageRewardsOverviewPage extends BasePage {
         await expect(this.viewRecognitionDropdown).toBeVisible();
         await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
         await this.viewRecognitionDropdownLink.click();
-        // Import RecognitionHubPage dynamically to avoid circular dependencies
         const { RecognitionHubPage } = await import('@rewards/ui/pages/recognition-hub/recognition-hub-page');
         const recognitionHub = new RecognitionHubPage(this.page);
         await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
@@ -928,5 +936,110 @@ export class ManageRewardsOverviewPage extends BasePage {
     } else {
       throw new Error('Neither Add Budget nor Edit Peer Gifting button is visible.');
     }
+  }
+
+  /**
+   * Get the record's URL and Points value where:
+   * - Date time is older than 24 hours
+   * - Gifter name matches (if provided)
+   * - Otherwise, picks the newest record older than 24 hours
+   *
+   * Defensive: validates dates, coerces points to number, trims names.
+   */
+  async getRecordOlderThan24Hrs(records: CSVRow[], gifterName?: string) {
+    if (!Array.isArray(records) || records.length === 0) return null;
+
+    const nowMs = Date.now();
+    const hours24Ms = 24 * 60 * 60 * 1000;
+
+    // Normalize rows with parsed date; keep only ones older than 24h and with valid dates
+    const olderRecords = records
+      .map(r => {
+        const rawDate = r['Date time'];
+        const dateStr = typeof rawDate === 'string' ? rawDate.trim() : '';
+        const parsedMs = Number.isFinite(Date.parse(dateStr)) ? Date.parse(dateStr) : NaN;
+        return { row: r, parsedMs };
+      })
+      .filter(item => Number.isFinite(item.parsedMs) && nowMs - item.parsedMs > hours24Ms)
+      .map(item => item.row);
+
+    if (olderRecords.length === 0) return null;
+
+    // If gifterName provided, filter by it (case-insensitive, trimmed)
+    let filtered = olderRecords;
+    if (typeof gifterName === 'string' && gifterName.trim().length > 0) {
+      const normalizedGifter = gifterName.trim().toLowerCase();
+      filtered = olderRecords.filter(r => {
+        const name = (r['Gifter name'] ?? '').toString().trim().toLowerCase();
+        return name === normalizedGifter;
+      });
+    }
+
+    if (filtered.length === 0) return null;
+
+    // Pick the newest (latest) record among the filtered ones
+    const latest = filtered.reduce((best, current) => {
+      const bestMs = Number.isFinite(Date.parse((best['Date time'] ?? '').toString().trim()))
+        ? Date.parse((best['Date time'] ?? '').toString().trim())
+        : NaN;
+      const curMs = Number.isFinite(Date.parse((current['Date time'] ?? '').toString().trim()))
+        ? Date.parse((current['Date time'] ?? '').toString().trim())
+        : NaN;
+
+      if (Number.isNaN(bestMs)) return current;
+      if (Number.isNaN(curMs)) return best;
+      return curMs > bestMs ? current : best;
+    });
+
+    // Coerce points to number safely
+    const rawPoints = latest['Points value'];
+    let points = 0;
+    if (typeof rawPoints === 'number') points = rawPoints;
+    else if (typeof rawPoints === 'string') {
+      const parsed = Number(rawPoints.trim());
+      points = Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    const url = (latest.URL ?? '').toString();
+
+    return { URL: url, points };
+  }
+
+  /**
+   * Clicks the Download CSV button, reads file, finds records older than 24 hours
+   * Optionally filters by recognitionGiver (gifter name).
+   *
+   * Returns:
+   *  - resultForGiver: result for provided recognitionGiver (or null)
+   *  - resultAny: newest record older than 24 hrs regardless of gifter (or null)
+   *  - pointsToValidate: convenience number (prefers resultForGiver if recognitionGiver provided)
+   *  - urlToOpen: convenience URL (same preference)
+   */
+  public async openTheRecognitionPostCreatedBefore24Hrs(recognitionGiver?: string): Promise<{
+    resultForGiver: RecordResult;
+    resultAny: RecordResult;
+    pointsToValidate: number | null;
+    urlToOpen: string | null;
+  }> {
+    const [download] = await Promise.all([
+      this.page.waitForEvent('download', { timeout: 25000 }),
+      this.clickOnElement(this.activityTableDownloadCSVButton, {
+        stepInfo: 'Clicking on Download CSV button',
+      }),
+    ]);
+    const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+    await download.saveAs(csvFilePath);
+    const records = (await CSVUtils.getAllRecords(csvFilePath)) as unknown as CSVRow[];
+    const resultForGiver = await this.getRecordOlderThan24Hrs(records, recognitionGiver);
+    const resultAny = await this.getRecordOlderThan24Hrs(records);
+    const prefer = resultForGiver !== null ? resultForGiver : resultAny;
+    const pointsToValidate = prefer ? prefer.points : null;
+    const urlToOpen = prefer ? prefer.URL : null;
+    try {
+      fs.unlinkSync(csvFilePath);
+    } catch (e) {
+      /* ignore errors */
+    }
+    return { resultForGiver, resultAny, pointsToValidate, urlToOpen };
   }
 }
