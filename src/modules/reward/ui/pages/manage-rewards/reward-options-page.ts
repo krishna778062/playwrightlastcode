@@ -13,24 +13,24 @@ export class RewardOptionsPage extends BasePage {
   readonly searchInputClearButton: Locator;
   readonly searchButton: Locator;
   readonly rewardsOptionsShowMoreButton: Locator;
-  private rewardsOptionsTableRow: Locator;
-  private rewardsOptionsTableNoResults: Locator;
-  private rewardOptionsTableContainer: Locator;
-  private rewardsOptionsTableHeaders: Locator;
-  private rewardsOptionsTableRewardLogo: Locator;
-  private rewardsOptionsTableRowActionMenu: Locator;
-  private rewardsOptionsTableRowActionButton: Locator;
-  private rewardsOptionsTableStatusText: any;
-  private rewardsOptionsTableStatusIndicator: any;
-  private rewardsOptionsTableRewardName: Locator;
-  private rewardsOptionsTableRewardCount: Locator;
-  private rewardsOptionsTableRewardCountries: Locator;
-  private rewardsOptionsTableRewardCurrencies: Locator;
-  private rewardsOptionsTableRewardStatus: Locator;
-  private successToastContainer: Locator;
-  private successToastBoxMessage: Locator;
-  private successToastBoxIcon: Locator;
-  private successToastBoxClose: Locator;
+  readonly rewardsOptionsTableRow: Locator;
+  readonly rewardsOptionsTableNoResults: Locator;
+  readonly rewardOptionsTableContainer: Locator;
+  readonly rewardsOptionsTableHeaders: Locator;
+  readonly rewardsOptionsTableRewardLogo: Locator;
+  readonly rewardsOptionsTableRowActionMenu: Locator;
+  readonly rewardsOptionsTableRowActionButton: Locator;
+  readonly rewardsOptionsTableStatusText: any;
+  readonly rewardsOptionsTableStatusIndicator: any;
+  readonly rewardsOptionsTableRewardName: Locator;
+  readonly rewardsOptionsTableRewardCount: Locator;
+  readonly rewardsOptionsTableRewardCountries: Locator;
+  readonly rewardsOptionsTableRewardCurrencies: Locator;
+  readonly rewardsOptionsTableRewardStatus: Locator;
+  readonly successToastContainer: Locator;
+  readonly successToastBoxMessage: Locator;
+  readonly successToastBoxIcon: Locator;
+  readonly successToastBoxClose: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.REWARDS_OPTIONS_PAGE);
@@ -216,5 +216,118 @@ export class RewardOptionsPage extends BasePage {
       // Already in the correct state
       await rewardsOption.page.keyboard.press('Escape'); // close menu
     }
+  }
+
+  /**
+   * Validates column sorting functionality
+   * @param columnName - The name of the column to test sorting
+   * @param isSortable - Whether the column should be sortable
+   */
+  async validateColumnSorting(columnName: string, isSortable: boolean): Promise<void> {
+    const columnHeader = this.rewardsOptionsTableHeaders.getByText(columnName);
+    const columnIndex = await columnHeader.evaluate(el => Array.from(el.parentElement!.children).indexOf(el) + 1);
+    const columnCells = this.page.locator(`tbody tr td:nth-child(${columnIndex})`);
+    const originalValues = await columnCells.allTextContents();
+
+    await this.clickOnElement(columnHeader, {
+      stepInfo: `Clicking on ${columnName} column header`,
+    });
+    await this.rewardsOptionsTableRow.last().waitFor({ state: 'visible', timeout: 5000 });
+    const afterClickValues = await columnCells.allTextContents();
+
+    if (isSortable) {
+      expect(afterClickValues).not.toEqual(originalValues);
+    } else {
+      expect(afterClickValues).toEqual(originalValues);
+    }
+  }
+
+  /**
+   * Sets the rewards options feature flag
+   * @param enabled - Whether to enable or disable the feature flag
+   */
+  async setTheRewardsOptionsFeatureFlag(enabled: boolean): Promise<void> {
+    await this.page.route('**/api/1.0/client/env/**/target/**/evaluations?cluster=2', async route => {
+      const response = await route.fetch();
+      const body = await response.json();
+
+      const updatedBody = body.map((item: any) => {
+        if (item.flag === 'rewards_options') {
+          return {
+            ...item,
+            value: enabled.toString(),
+            identifier: enabled.toString(),
+          };
+        }
+        return item;
+      });
+
+      await route.fulfill({
+        response,
+        body: JSON.stringify(updatedBody),
+        headers: {
+          ...response.headers(),
+          'content-type': 'application/json',
+        },
+      });
+    });
+    await this.page.reload();
+  }
+
+  /**
+   * Validates the show more button functionality
+   */
+  async validateShowMoreButton(): Promise<{ totalRewards: number; displayedRewards: number }> {
+    let latestApiResponse: any = null;
+
+    // Listen for API responses for brands search
+    this.page.on('response', async response => {
+      if (response.url().includes('/recognition/admin/rewards/store/brands/search?') && response.status() === 200) {
+        latestApiResponse = await response.json();
+      }
+    });
+
+    // Trigger initial visit & search to get the first API response
+    await this.loadPage();
+    await this.searchInput.fill('Amazon');
+    await this.clickOnElement(this.searchButton, {
+      stepInfo: 'Clicking on search button',
+    });
+    await this.rewardsOptionsTableRow.last().waitFor({ state: 'visible', timeout: 5000 });
+
+    const totalRewards = latestApiResponse.total;
+    let displayedRewards = await this.rewardsOptionsTableRow.count();
+
+    // If total ≤ 10, Show More should NOT exist
+    if (totalRewards <= 10) {
+      await expect(this.page.locator('text=Show more')).toHaveCount(0);
+      expect(displayedRewards).toBe(totalRewards);
+      return { totalRewards, displayedRewards };
+    }
+
+    // If total > 10, Show More should be visible
+    const showMoreButton = this.page.locator('text=Show more');
+    await expect(showMoreButton).toBeVisible();
+
+    while (displayedRewards < totalRewards) {
+      const [apiResponse] = await Promise.all([
+        this.page.waitForResponse(
+          response =>
+            response.url().includes('/recognition/admin/rewards/store/brands/search?') && response.status() === 200
+        ),
+        showMoreButton.scrollIntoViewIfNeeded().then(() => showMoreButton.click()),
+      ]);
+      await this.rewardsOptionsTableRow.last().waitFor({ state: 'attached', timeout: 5000 });
+      const newDisplayedRewards = await this.rewardsOptionsTableRow.count();
+      expect(newDisplayedRewards).toBeGreaterThan(displayedRewards);
+      displayedRewards = newDisplayedRewards;
+      if (displayedRewards < totalRewards) {
+        await expect(showMoreButton).toBeVisible(); // Should still be visible
+      }
+    }
+
+    await expect(showMoreButton).toHaveCount(0);
+    expect(displayedRewards).toBe(totalRewards);
+    return { totalRewards, displayedRewards };
   }
 }

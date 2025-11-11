@@ -273,4 +273,33 @@ export const AdoptionSql = {
         GROUP BY dua.reporting_date 
         ORDER BY dua.reporting_date;
   `,
+
+  /**
+   * User Login Frequency Distribution Query Template
+   * Returns user login frequency distribution data
+   */
+  USER_LOGIN_FREQUENCY_DISTRIBUTION: `
+        With visits as (select sum(CASE 
+                WHEN HAS_LOGGED_IN THEN 1 
+                ELSE 0 END) as user_visits , user_code 
+        from udl.vw_daily_user_adoption dua  
+        INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u  
+            ON dua.user_code = u.code 
+        WHERE reporting_date>='{startDate}' and reporting_date<='{endDate}' 
+          AND u.tenant_code = '{tenantCode}' 
+          AND u.status_code = 'US001' 
+          {locationFilter}
+          {companyNameFilter}
+          {departmentFilter}
+          {segmentFilter}
+          {userCategoryFilter}
+          group by user_code) 
+          select 
+          count(case when user_visits>10 then user_code end) as "10+ times", 
+          count(case when user_visits>=8 and user_visits<=10 then user_code end) as "8-10 times", 
+          count(case when user_visits>=4 and user_visits<=7 then user_code end) as "4-7 times", 
+          count(case when user_visits>=1 and user_visits<=3 then user_code end) as "1-3 times", 
+          count(case when user_visits<1 then user_code end) as "No logins", 
+          from visits; 
+  `,
 };

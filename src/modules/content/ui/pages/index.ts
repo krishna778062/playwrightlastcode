@@ -12,6 +12,7 @@ export * from './manageApplicationPage';
 export * from './manageContentPage';
 export * from './manageFeaturesPage';
 export * from './manageSitePage';
+export * from './manageSiteSetUpPage';
 export * from './pageCreationPage';
 export * from './privilegesScreenPage';
 export * from './siteCategoriesPage';

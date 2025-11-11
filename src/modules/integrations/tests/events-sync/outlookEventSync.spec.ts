@@ -37,6 +37,8 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.HEALTH_CHECK,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -101,6 +103,8 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.HEALTH_CHECK,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -174,6 +178,8 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.SANITY,
+          IntegrationsSuiteTags.HEALTH_CHECK,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -248,7 +254,7 @@ test.describe(
       {
         tag: [
           TestPriority.P0,
-          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
           '@siteDeactivationReactivation',
@@ -316,6 +322,8 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -392,7 +400,7 @@ test.describe(
       {
         tag: [
           TestPriority.P0,
-          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -463,7 +471,7 @@ test.describe(
       {
         tag: [
           TestPriority.P0,
-          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -554,7 +562,7 @@ test.describe(
       {
         tag: [
           TestPriority.P0,
-          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],
@@ -628,7 +636,7 @@ test.describe(
       {
         tag: [
           TestPriority.P0,
-          TestGroupType.SMOKE,
+          TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
         ],

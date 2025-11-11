@@ -126,12 +126,12 @@ test.describe(
             'excel',
             'sample.docx'
           );
-          const albumCreationOptions = TestDataGenerator.generateAlbum(
-            imagePath,
-            attachmentPath,
-            'https://youtu.be/4vLyqzOr14g',
-            true
-          );
+          const albumCreationOptions = TestDataGenerator.generateAlbum({
+            fileName: imagePath,
+            attachmentFileName: attachmentPath,
+            videoUrl: 'https://youtu.be/4vLyqzOr14g',
+            openAlbum: true,
+          });
 
           // Create and submit the album
           const { albumId, siteId, peopleName } =
