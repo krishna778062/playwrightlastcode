@@ -124,16 +124,16 @@ export class UserManagementService implements IUserManagementOperations {
       silent_upload: false,
     };
 
-    // // Add work_info if employee number is provided
-    // if (user.emp && user.emp.trim() !== '') {
-    //   // Enable employee number login if not already enabled
-    //   await this.identityService.enableLoginIdentifiers(['email', 'mobile', 'employee_number']);
+    // Add work_info if employee number is provided
+    if (user.emp && user.emp.trim() !== '') {
+      // Enable employee number login if not already enabled
+      await this.identityService.enableLoginIdentifiers(['employee_number']);
 
-    //   data.work_info = {
-    //     employee_number: user.emp,
-    //     department: user.department || this.defaultDepartment,
-    //   };
-    // }
+      data.work_info = {
+        employee_number: user.emp,
+        department: user.department || this.defaultDepartment,
+      };
+    }
 
     const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
       data,
