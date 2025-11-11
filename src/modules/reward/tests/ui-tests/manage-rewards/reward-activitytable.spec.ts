@@ -856,8 +856,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         // Clean up using FileUtil
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
-
-      const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
       await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
@@ -998,7 +996,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
 
-      const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
       await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,

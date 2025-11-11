@@ -409,7 +409,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
         rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
           0,
-          getRewardTenantConfigFromCache().endUserName,
+          getRewardTenantConfigFromCache().recognitionManagerName,
           'Test Message' + Math.floor(Math.random() * 1000),
           rewardOptionIndex
         );

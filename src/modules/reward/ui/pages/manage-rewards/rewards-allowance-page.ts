@@ -237,9 +237,24 @@ export class RewardsAllowancePage extends BasePage {
 
     await this.verifier.verifyTheElementIsVisible(allowanceHeader);
     await this.verifier.verifyTheElementIsVisible(allowanceBackToAllowancePage);
-    await this.verifier.verifyElementHasText(allowancePageHeading, headingText);
-    await this.verifier.verifyElementHasText(allowancePageDescriptionLine1, descriptionLine1);
-    await this.verifier.verifyElementHasText(allowancePageDescriptionLine2, descriptionLine2);
+
+    // ✅ Flexible text matching for tenant-based terminology
+    const normalizeText = (text: string) => text.replace(/simpplifiers/gi, '(simpplifiers|people)');
+
+    await this.verifyElementMatchesRegex(allowancePageHeading, new RegExp(`^${normalizeText(headingText)}$`, 'i'));
+    await this.verifyElementMatchesRegex(
+      allowancePageDescriptionLine1,
+      new RegExp(`^${normalizeText(descriptionLine1)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      allowancePageDescriptionLine2,
+      new RegExp(`^${normalizeText(descriptionLine2)}$`, 'i')
+    );
+  }
+
+  async verifyElementMatchesRegex(locator: Locator, regex: RegExp): Promise<void> {
+    const text = await locator.textContent();
+    expect(text?.trim()).toMatch(regex);
   }
 
   async saveAmount(): Promise<void> {
@@ -394,9 +409,24 @@ export class RewardsAllowancePage extends BasePage {
     const managerAllowancePNoteElement = this.page.locator('[class*="Field-module__note"]');
 
     await this.verifier.verifyTheElementIsVisible(managerAllowancePageNeutralBox);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine1, containerDescriptionLine1);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine2, containerDescriptionLine2);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine3, containerDescriptionLine3);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine1, containerDescriptionLine1);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine2, containerDescriptionLine2);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine3, containerDescriptionLine3);
+    // ✅ Flexible text matching for tenant-based terminology
+    const normalizeText = (text: string) => text.replace(/simpplifiers/gi, '(simpplifiers|people)');
+
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine1,
+      new RegExp(`^${normalizeText(containerDescriptionLine1)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine2,
+      new RegExp(`^${normalizeText(containerDescriptionLine2)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine3,
+      new RegExp(`^${normalizeText(containerDescriptionLine3)}$`, 'i')
+    );
     await this.verifier.verifyTheElementIsVisible(fixedMonthlyAllowanceRadioButton);
     await this.verifier.verifyTheElementIsVisible(variableMonthlyAllowanceRadioButton);
     await this.verifier.verifyElementHasText(managerAllowancePNoteElement, managerAllowancePNote);
