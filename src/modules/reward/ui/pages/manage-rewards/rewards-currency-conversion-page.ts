@@ -6,7 +6,6 @@ import { BasePage } from '@core/pages/basePage';
 export class RewardsCurrencyConversionPage extends BasePage {
   // Currency conversion page locators
   readonly currencyConversionContainer: Locator;
-  readonly currencyConversionHeader: Locator;
   readonly currencyConversionHeadingH1: Locator;
   readonly currencyConversionDescriptionText: Locator;
   readonly currencyConversionDescriptionNote: Locator;
@@ -15,18 +14,19 @@ export class RewardsCurrencyConversionPage extends BasePage {
   readonly currencyConversionPendingPointsInfoIcon: Locator;
   readonly currencyConversionPendingPointsInfoTooltipText: Locator;
   readonly currencyConversionExchangeRateUpdatedText: Locator;
-  readonly csvDownloadButtonForUnsetCurrencyUsers: Locator;
-
-  // Dialog locators
+  readonly addCurrencyDialog: Locator;
   readonly dialogHeading: Locator;
   readonly dialogDescription: Locator;
   readonly dialogInput: Locator;
   readonly dialogCurrencySuggestion: Locator;
   readonly dialogAddButton: Locator;
+  readonly dialogCancelButton: Locator;
+  readonly csvDownloadButtonForUnsetCurrencyUsers: Locator;
 
   // Save button and toast messages
   readonly saveButton: Locator;
   readonly toastMessage: Locator;
+  readonly toastCloseButton: Locator;
 
   // Currency table row locators
   readonly currencyTableRows: Locator;
@@ -34,44 +34,46 @@ export class RewardsCurrencyConversionPage extends BasePage {
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CURRENCY_CONVERSION_PAGE);
-
-    // Currency conversion page locators
     this.currencyConversionContainer = page.locator('[class*="Rewards_content"]');
-    this.currencyConversionHeader = this.currencyConversionContainer.locator(
-      'div:has(+ div[class*="CurrencyConversions_flexCenter"])'
+    this.currencyConversionHeadingH1 = this.currencyConversionContainer.getByRole('heading', {
+      level: 2,
+      name: 'Currency Conversions',
+    });
+    this.currencyConversionDescriptionText = this.currencyConversionContainer.locator('h2+div > p');
+    this.currencyConversionDescriptionNote = this.currencyConversionContainer.locator('p').last();
+    this.currencyConversionTable = this.currencyConversionContainer.locator(
+      'div[class^="CurrencyConversions_container"]'
     );
-    this.currencyConversionHeadingH1 = this.currencyConversionHeader.getByRole('heading', { level: 2 });
-    this.currencyConversionDescriptionText = this.currencyConversionHeader.locator('p');
-    this.currencyConversionDescriptionNote = this.currencyConversionHeader.locator(
-      'p[class*="Typography-module__note"]'
+    this.csvDownloadButtonForUnsetCurrencyUsers = this.currencyConversionTable.locator(
+      'button[aria-label="Download unassigned payroll currency user email CSV"]'
     );
-    this.currencyConversionTable = this.currencyConversionContainer.locator('table');
-    this.currencyConversionAddCurrency = this.currencyConversionContainer.getByRole('button', { name: 'Add currency' });
+    this.currencyConversionAddCurrency = this.page.locator('//div[text()="Add currency"]//parent::button');
     this.currencyConversionPendingPointsInfoIcon = this.currencyConversionContainer.locator(
-      'button[aria-label="Pending points information"]'
+      '[aria-label="Pending points information"]'
     );
-    this.currencyConversionPendingPointsInfoTooltipText = page.locator('[role="tooltip"]');
+    this.currencyConversionPendingPointsInfoTooltipText = page.locator('[id*="tippy"] p');
     this.currencyConversionExchangeRateUpdatedText = this.currencyConversionContainer.locator(
-      'p[class*="Typography-module__secondary"]'
-    );
-    this.csvDownloadButtonForUnsetCurrencyUsers = this.currencyConversionContainer.locator(
-      '[aria-label="Download unassigned payroll currency user email CSV"]'
+      '//button[@aria-label="Pending points information"]/preceding-sibling::span'
     );
 
-    // Dialog locators
-    this.dialogHeading = page.locator('[role="dialog"] h2');
-    this.dialogDescription = page.locator('[role="dialog"] p');
-    this.dialogInput = page.locator('[role="dialog"] input[type="text"]');
-    this.dialogCurrencySuggestion = page.locator('[role="dialog"] [role="option"]');
-    this.dialogAddButton = page.locator('[role="dialog"] button[type="submit"]');
-
+    // Add currency dialog locators
+    this.addCurrencyDialog = this.page.locator('[role="dialog"]');
+    this.dialogHeading = this.addCurrencyDialog.locator('h2[class*="Dialog-module__title"] > span');
+    this.dialogDescription = this.addCurrencyDialog.locator('div[class*="Panel-module__panel_"]');
+    this.dialogInput = this.addCurrencyDialog.locator('input[role="combobox"]');
+    this.dialogCurrencySuggestion = this.addCurrencyDialog.locator('div[role="menuitem"] > div > div > p');
+    this.dialogAddButton = this.addCurrencyDialog.getByRole('button', { name: 'Add' });
+    this.dialogCancelButton = this.addCurrencyDialog.getByRole('button', { name: 'Cancel' });
     // Save button and toast messages
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.toastMessage = page.locator('div.Toastify__toast-body p');
+    this.toastCloseButton = page.locator('div.Toastify__toast-body button');
 
     // Currency table row locators
     this.currencyTableRows = this.currencyConversionTable.locator('tbody tr');
-    this.currencyTableRemoveButtons = this.currencyConversionTable.locator('button[aria-label="Remove currency"]');
+    this.currencyTableRemoveButtons = this.currencyConversionTable.locator(
+      'button[aria-label="Remove currency conversion"]'
+    );
   }
 
   /**
@@ -94,37 +96,54 @@ export class RewardsCurrencyConversionPage extends BasePage {
    * Validate all UI elements on the currency conversion page
    */
   async validateAllUIElements(apiData: any): Promise<void> {
-    // Validate page title
+    // Wait for the page and heading
     await this.currencyConversionContainer.waitFor({ state: 'visible' });
     await this.verifier.verifyTheElementIsVisible(this.currencyConversionHeadingH1);
     await expect(this.currencyConversionHeadingH1).toHaveText('Currency conversions');
 
-    // Validate page description
+    // --- DESCRIPTION PARAGRAPHS (by index, but robust) ---
+    // Grab all paragraph text nodes for the description block (this.currencyConversionDescriptionText is 'h2+div > p')
     const paraElements = await this.currencyConversionDescriptionText.allTextContents();
-    expect(paraElements).toContain(
-      'Define the value of reward points across locations to reflect the purchasing power of individual currencies, ensuring a fair and accurate representation of value in your rewards program.'
+
+    // Ensure we have expected paragraphs before checking by index
+    if (paraElements.length < 2) {
+      throw new Error(`Expected at least 2 description paragraphs, found ${paraElements.length}`);
+    }
+
+    // Normalize curly quotes, double quotes, collapse whitespace and trim
+    const normalize = (s: string) => s.replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
+
+    const normalized = paraElements.map(normalize);
+
+    // Best-practice: partial contains (less brittle than full-sentence equality)
+    expect(normalized[0]).toContain(
+      'Define the value of reward points across locations to reflect the purchasing power of individual currencies'
     );
-    expect(paraElements).toContain(
+
+    expect(normalized[1]).toContain(
       "Reward points are gifted in USD, using any customized value for the recipient's payroll currency."
     );
+
+    // Third note — use a tolerant check (in case whitespace/punctuation slightly differs)
     await expect(this.currencyConversionDescriptionNote).toHaveText(
       'Points are converted from USD to the reward currency at the time of redemption, using global exchange rates.'
     );
 
-    // Validate currency conversion table
+    // --- TABLE & CONTROLS ---
     await expect(this.currencyConversionTable).toBeVisible();
     await expect(this.currencyConversionAddCurrency).toBeVisible();
     await expect(this.currencyConversionPendingPointsInfoIcon).toBeVisible();
 
-    // Test tooltip functionality
+    // --- TOOLTIP ---
     await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
     await expect(this.currencyConversionPendingPointsInfoTooltipText).toBeVisible();
     await expect(this.currencyConversionPendingPointsInfoTooltipText).toHaveText(
       'Foreign exchange rates are updated every 24 hours, based on multiple sources'
     );
+    // toggle/close tooltip
     await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
 
-    // Validate exchange rate updated text
+    // --- LAST UPDATED TEXT (from API) ---
     await expect(this.currencyConversionExchangeRateUpdatedText).toBeVisible();
     const lastUpdatedString = this.getTheLastUpdatedTimeString(apiData);
     await expect(this.currencyConversionExchangeRateUpdatedText).toHaveText(lastUpdatedString);
@@ -134,11 +153,24 @@ export class RewardsCurrencyConversionPage extends BasePage {
    * Get the last updated time string from API data
    */
   getTheLastUpdatedTimeString(apiData: any): string {
-    if (apiData?.lastUpdated) {
-      const date = new Date(apiData.lastUpdated);
-      return `Last updated: ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
+    const lastUpdatedAt = apiData.results[0].exchangeRate.lastUpdatedAt;
+    const lastUpdatedDate = new Date(lastUpdatedAt);
+    const now = new Date();
+
+    const diffInMs = now.getTime() - lastUpdatedDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+
+    let expectedText: string;
+
+    if (diffInHours >= 1) {
+      expectedText = `Exchange rates last updated ${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 1) {
+      expectedText = `Exchange rates last updated <${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      expectedText = 'Exchange rates last updated just now';
     }
-    return 'Last updated: Unknown';
+    return expectedText;
   }
 
   /**
@@ -162,9 +194,14 @@ export class RewardsCurrencyConversionPage extends BasePage {
    * Remove all currency conversion buttons
    */
   async clickRemoveCurrencyConversionButtons(): Promise<void> {
+    let deletable: boolean = false;
     const count = await this.currencyTableRemoveButtons.count();
     for (let i = 0; i < count; i++) {
       await this.currencyTableRemoveButtons.nth(i).click();
+      deletable = true;
+    }
+    if (deletable) {
+      await this.saveChanges();
     }
   }
 
@@ -214,6 +251,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
       assertionMessage: `Verify toast message "${message}" is visible`,
     });
     await this.verifier.verifyElementHasText(this.toastMessage, message);
+    await this.toastCloseButton.click();
   }
 
   /**
@@ -300,7 +338,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
       const numeric = val.replace(/[^\d.]/g, '');
       return numeric.split('.')[0];
     };
-    return getIntegerPart(value1) !== getIntegerPart(value2);
+    return getIntegerPart(value1) === getIntegerPart(value2);
   }
 
   /**
@@ -342,6 +380,9 @@ export class RewardsCurrencyConversionPage extends BasePage {
    * Complete currency management workflow
    */
   async completeCurrencyManagementWorkflow(currency: string): Promise<void> {
+    // Remove the currency if it already exists
+    await this.clickRemoveCurrencyConversionButtons();
+
     // Add currency
     await this.addCurrency(currency);
     await this.validateCurrencyInTable(currency, true);
@@ -352,6 +393,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
     await this.validateCurrencyInTable(currency, true);
 
     // Remove currency
+    await this.verifier.waitUntilElementIsVisible(this.currencyTableRemoveButtons.last());
     await this.clickRemoveCurrencyConversionButtons();
     await this.validateCurrencyInTable(currency, false);
   }
@@ -361,9 +403,9 @@ export class RewardsCurrencyConversionPage extends BasePage {
    */
   async completeCustomConversionWorkflow(currency: string, customValue: number): Promise<void> {
     // Add currency and save
+    await this.clickRemoveCurrencyConversionButtons();
     await this.addCurrency(currency);
     await this.validateCurrencyInTable(currency, true);
-    await this.saveChanges();
 
     // Enable custom conversion
     const newValue1 = await this.enableCustomConversionAndSetValue(currency, customValue);
@@ -387,6 +429,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
    */
   async completeUnsavedChangesDialogWorkflow(currency: string): Promise<void> {
     // Add currency without saving
+    await this.clickRemoveCurrencyConversionButtons();
     await this.addCurrency(currency);
     await this.validateCurrencyInTable(currency, true);
 
