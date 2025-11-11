@@ -21,6 +21,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
+  readonly embedUrlLocator = (embedUrl: string): Locator => this.page.locator('a').filter({ hasText: embedUrl });
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
@@ -32,7 +33,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").filter({ hasText: text });
+    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
@@ -120,6 +121,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
+    this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
   }
 
   /**
@@ -181,14 +183,12 @@ export class ListFeedComponent extends BaseComponent {
    * @param expectedText - Expected text of the post
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
-    console.log('Waiting for post to be visible: ', expectedText);
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.getFeedTextLocator(expectedText).first();
-      await this.verifier.verifyTheElementIsVisible(postLocator, {
+      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
-      await postLocator.scrollIntoViewIfNeeded().catch(() => {});
     });
   }
 
@@ -248,18 +248,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Validating post contains text: "${postText}"`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
-      });
-    });
-  }
-
-  /**
-   * Validates that a post contains the expected text
-   * @param postText - The expected text content to validate
-   */
-  async validatePostNotVisible(postText: string): Promise<void> {
-    await test.step(`Validating post contains text: "${postText}"`, async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.postTextLocator(postText), {
-        assertionMessage: `Post "${postText}" should not be visible`,
       });
     });
   }
@@ -417,6 +405,14 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify share button is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
         assertionMessage: 'Share button should be visible',
+      });
+    });
+  }
+
+  async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
+    await test.step('Verify embedded URL is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
+        assertionMessage: 'Embedded URL should be visible',
       });
     });
   }
