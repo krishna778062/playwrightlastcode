@@ -92,6 +92,9 @@ export const PAGE_ENDPOINTS = {
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
+  APPLICATION_GENERAL_SETTINGS_PAGE: '/manage/app/setup/general',
+  MOBILE_APP_SETTINGS_PAGE: '/manage/app/setup/mobile-app',
+
   //analytics pages
   ANALYTICS_LANDING_PAGE: '/analytics-landing',
   APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
