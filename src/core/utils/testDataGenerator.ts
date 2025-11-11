@@ -849,4 +849,12 @@ export class TestDataGenerator {
     }
     return result;
   }
+
+  static generateYouTubeEmbedUrl(): string {
+    return `https://www.youtube.com/watch?v=7muxnzQZS28&list=PLsNBVaY0LV8Q087q_S_rl33E5a93mK0B2`;
+  }
+
+  static generateYouTubeEmbedUrl2(): string {
+    return `https://www.youtube.com/watch?v=BMRaz6EmDqI&list=RDBMRaz6EmDqI&start_radio=1`;
+  }
 }
