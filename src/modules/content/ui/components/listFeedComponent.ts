@@ -21,7 +21,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
-  readonly embedUrlLocator = (embedUrl: string): Locator => this.page.locator('a').filter({ hasText: embedUrl });
+  readonly embedUrlLocator: (embedUrl: string) => Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
