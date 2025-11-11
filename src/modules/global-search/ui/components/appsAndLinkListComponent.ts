@@ -20,7 +20,6 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
   readonly linkImg: Locator;
   // App autocomplete locators
   readonly autocompleteAppName: Locator;
-  readonly autocompleteAppIcon: Locator;
 
   constructor(page: Page, rootLocator: Locator) {
     super(page, rootLocator);
@@ -31,7 +30,6 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
     this.linkImg = this.rootLocator.getByTestId('i-link');
     // App autocomplete locators - for autocomplete items, app name is in 'p' tag and icon is in 'img' tag
     this.autocompleteAppName = this.rootLocator.locator('p');
-    this.autocompleteAppIcon = this.rootLocator.locator('img');
   }
   /**
    * Creates a URL matcher function for normalized comparison
@@ -225,17 +223,29 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
 
   /**
    * Verifies that the app icon is displayed in autocomplete
-   * @param expectedIconSrc - The expected icon source URL
+   * @param expectedIconSrc - The expected icon source URL (can be in src or href attribute)
    * @param options - Optional parameters including stepInfo
    */
   async verifyIconIsDisplayedInAutocomplete(expectedIconSrc: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(
-      options?.stepInfo || `Verifying app icon is displayed in autocomplete with src "${expectedIconSrc}"`,
+      options?.stepInfo || `Verifying app icon is displayed in autocomplete with src/href "${expectedIconSrc}"`,
       async () => {
-        await this.verifier.verifyElementHasAttribute(this.autocompleteAppIcon, 'src', expectedIconSrc, {
-          timeout: 20000,
-          assertionMessage: `Verifying app icon is displayed in autocomplete with src "${expectedIconSrc}"`,
-        });
+        const isLink = (await this.linkImg.count()) > 0;
+
+        if (isLink) {
+          const hrefAttribute = await this.getElementAttribute(this.appLink, 'href', { timeout: 20000 });
+          if (hrefAttribute === expectedIconSrc) return;
+          throw new Error(
+            `Link icon does not have expected href. Expected: ${expectedIconSrc}, Found: ${hrefAttribute ?? 'null'}`
+          );
+        } else {
+          const imgElement = this.appLink.locator('img');
+          const srcAttribute = await this.getElementAttribute(imgElement, 'src', { timeout: 20000 });
+          if (srcAttribute === expectedIconSrc) return;
+          throw new Error(
+            `App icon does not have expected src. Expected: ${expectedIconSrc}, Found: ${srcAttribute ?? 'null'}`
+          );
+        }
       }
     );
   }
