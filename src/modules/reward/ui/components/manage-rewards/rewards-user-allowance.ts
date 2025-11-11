@@ -48,6 +48,11 @@ export class RewardsUserAllowance extends BasePage {
     this.pointAmountLimitError = page.locator('div[class*="Field-module__error"] p');
   }
 
+  async visitToUserAllowanceSetupPage(): Promise<void> {
+    await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances/user');
+    await this.verifier.waitUntilElementIsVisible(this.pointAmountInputBox);
+  }
+
   async increaseTheUserAmountBy(amount: number): Promise<void> {
     for (let i = 0; i < amount; i++) {
       await this.clickOnElement(this.pointAmountPlusButton, {

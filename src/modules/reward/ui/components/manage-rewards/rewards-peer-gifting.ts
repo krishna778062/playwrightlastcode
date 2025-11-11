@@ -2,6 +2,8 @@ import { expect, Locator, Page } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core';
+
 export class RewardsPeerGifting extends BasePage {
   readonly peerGiftingHeading: Locator;
   //Peer Gifting Panel
@@ -54,7 +56,7 @@ export class RewardsPeerGifting extends BasePage {
   readonly allowanceIcon: Locator;
 
   constructor(page: Page) {
-    super(page, '/manage/recognition/rewards/peer-gifting');
+    super(page, PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
     this.peerGiftingHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.peerGiftingPanel = page.locator('div[class*="PeerGifting_panel"]');
     this.peerGiftingIconCircle = this.peerGiftingPanel.locator('button[class*="PeerGifting_icon"]');
@@ -123,6 +125,11 @@ export class RewardsPeerGifting extends BasePage {
     this.allowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
   }
 
+  async visit(): Promise<void> {
+    await this.page.goto(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.giftingOptionsTitle, {
       assertionMessage: 'Verify the Peer Gifting page is loaded',
@@ -141,9 +148,10 @@ export class RewardsPeerGifting extends BasePage {
   }
 
   async disableThePeerGifting(): Promise<void> {
-    await this.goToUrl('/manage/recognition/rewards/peer-gifting');
-    await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
+    await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
     await this.peerGiftingToggleSwitch.click();
+    await expect(this.peerGiftingToggleSwitch).not.toBeChecked();
     await this.saveButton.click();
     await expect(this.disableDialog).toBeVisible();
     await expect(this.disableDialogTitle).toHaveText('Disable peer gifting');
