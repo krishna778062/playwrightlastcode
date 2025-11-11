@@ -182,16 +182,13 @@ test.describe(
           }
         );
 
-        // Dismiss any survey popup that might appear
         await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
-        // Step 2: Click on "videos" from sidebar filter
         await globalSearchResultPage.verifyAndClickSidebarFilter({
           filterText: captionSearchData.filterText,
           iconType: captionSearchData.iconType,
         });
 
-        // Step 3: Verify video title "VideoSearchwith_Captions.mov" is displayed
         const fileResult = await globalSearchResultPage.getFileResultItemExactlyMatchingTheSearchTerm(
           captionSearchData.expectedVideoTitle,
           captionSearchData.fileType
@@ -199,27 +196,15 @@ test.describe(
         const videoListItem = new VideoListItemComponent(fileResult.page, fileResult.rootLocator);
         await videoListItem.verifyNameIsDisplayed(captionSearchData.expectedVideoTitle);
 
-        // Step 4: Verify captions displayed - locator is class*="VideoListItem_truncate", text is "feathline found in videos"
         await videoListItem.verifyCaptionsTextIsDisplayed(captionSearchData.expectedCaptionsText);
-
-        // Step 5: Verify captions icon is displayed, data-testid="i-cc"
         await videoListItem.verifyCaptionsIconIsDisplayed();
-
-        // Step 6: Click on captions
         await videoListItem.clickOnCaptionsIcon();
 
         await videoListItem.verifyTimestampIsDisplayed(captionSearchData.expectedTimestamp);
 
         await videoListItem.verifyCaptionTextForTimestamp(captionSearchData.expectedCaptionText);
-
-        // Step 9: Click on timestamp to navigate to video file page
         await videoListItem.clickTimestamp(captionSearchData.expectedTimestamp);
-
-        // Step 10: Click on video play button to resume video from timestamp
         await videoListItem.clickVideoPlayButton();
-
-        // Step 11: Verify video resumes from timestamp and time display shows greater value (e.g., 00:43 / 00:59)
-        // await videoListItem.verifyVideoResumesFromTimestamp(captionSearchData.expectedTimestamp);
       }
     );
   }
