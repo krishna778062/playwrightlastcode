@@ -44,7 +44,6 @@ export interface IFeedActions {
     userName: string;
   }) => Promise<void>;
   markPostAsFavourite: () => Promise<void>;
-  markPostAsFavouriteByText: (postText: string) => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
   clickInfoIcon: (fileId: string) => Promise<void>;
   verifyPreviewModalIsOpened: () => Promise<void>;
@@ -300,15 +299,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Marks a specific post as favorite by post text
-   * @param postText - The text of the post to mark as favorite
-   */
-  async markPostAsFavouriteByText(postText: string): Promise<void> {
-    await test.step(`Marking post as favourite: ${postText}`, async () => {
-      await this.listFeedComponent.markPostAsFavouriteByText(postText);
-    });
-  }
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await this.listFeedComponent.removePostFromFavourite(postText);

@@ -27,7 +27,6 @@ test.describe(
     const sharedPostId1: string = '';
     const sharedPostId2: string = '';
     const sharedPostId3: string = '';
-    let siteForContentManager: any;
 
     test.beforeEach(
       'Setup test environment and user relationships',
@@ -51,14 +50,13 @@ test.describe(
 
         // Get or create a site where endUser is content manager
         // First, get a public site
-        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public', {
+        const publicSite = await appManagerFixture.siteManagementHelper.createPublicSite({
           waitForSearchIndex: false,
         });
-        siteForContentManager = publicSite;
 
         // Assign endUser as content manager of the site
         await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: siteForContentManager.siteId,
+          siteId: publicSite.siteId,
           userId: siteOwnerInfo.userId,
           role: SitePermission.CONTENT_MANAGER,
         });
@@ -108,8 +106,8 @@ test.describe(
           storyId: 'CONT-26728',
         });
 
-        const postText = 'Created a Feed Post';
-        const shareMessage = "Shared App Manager's Post";
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
 
         // Login as Admin and create a feed post
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -163,8 +161,8 @@ test.describe(
           storyId: 'CONT-26728',
         });
 
-        const postText = 'Created a Feed Post';
-        const shareMessage = "Shared Manager's Post";
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
 
         // Use Site Manager's page (already logged in via fixture, Admin should not be following Site Manager)
         await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -268,7 +266,7 @@ test.describe(
         // Wait for the shared post to be visible
         await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
         // Mark the specific post as favorite by its text
-        await adminFeedPage.actions.markPostAsFavouriteByText(shareMessage);
+        await adminFeedPage.actions.markPostAsFavourite();
         await adminFeedPage.assertions.verifyPostIsFavorited(shareMessage);
 
         // Select Show filter = "Favourited Posts"
