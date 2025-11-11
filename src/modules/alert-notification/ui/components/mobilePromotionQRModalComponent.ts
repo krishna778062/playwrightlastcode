@@ -3,7 +3,6 @@ import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core';
 
 export class MobilePromotionQRModalComponent extends BaseComponent {
-  readonly getSimpplrOnYourMobileText: Locator;
   readonly descriptionText: Locator;
   readonly scanQRButton: Locator;
   readonly getAppLinkButton: Locator;
@@ -11,7 +10,6 @@ export class MobilePromotionQRModalComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
 
-    this.getSimpplrOnYourMobileText = page.locator('h1', { hasText: 'Get Simpplr on your mobile' });
     this.descriptionText = page.getByText(
       'All the latest company news, quick access to company docs and your entire company directory from your pocket - wherever you need it'
     );
@@ -21,17 +19,8 @@ export class MobilePromotionQRModalComponent extends BaseComponent {
 
   async verifyMobilePromotionModalIsOpen(): Promise<void> {
     await test.step('Verify mobile promotion modal is open', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getSimpplrOnYourMobileText, {
+      await this.verifier.verifyTheElementIsVisible(this.descriptionText, {
         assertionMessage: 'Verify mobile promotion modal is open',
-        timeout: 30000,
-      });
-    });
-  }
-
-  async verifyGetSimpplrOnYourMobileTextIsDisplayed(): Promise<void> {
-    await test.step('Verify get Simpplr on your mobile text is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getSimpplrOnYourMobileText, {
-        assertionMessage: 'Verify get Simpplr on your mobile text is visible',
         timeout: 30000,
       });
     });

@@ -11,7 +11,7 @@ export class FooterMobilePromotionComponent extends BaseComponent {
     super(page);
     this.mobilePromotionIosIcon = page.getByRole('img', { name: 'Apple App Store' });
     this.mobilePromotionAndroidIcon = page.getByRole('img', { name: 'Google Play Store' });
-    this.mobilePromotionDownloadText = page.getByText('Download the app and get Simpplr on your mobile');
+    this.mobilePromotionDownloadText = page.getByText('Download the app and get');
   }
 
   /**

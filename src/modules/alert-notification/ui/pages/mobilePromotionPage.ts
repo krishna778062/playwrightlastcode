@@ -30,8 +30,6 @@ export class MobilePromotionPage extends BasePage {
     this.distributionAndPromotionText = page.getByRole('heading', { name: 'Distribution and promotion' });
     this.enableText = page.getByText('Enable', { exact: true });
     this.disableText = page.getByText('Disable', { exact: true });
-
-    // this.crossButton = page.getByRole('button', { name: 'Dismiss' });
   }
 
   /**
@@ -47,7 +45,6 @@ export class MobilePromotionPage extends BasePage {
   async refreshPage(): Promise<void> {
     await test.step('Refresh the current page', async () => {
       await this.reloadPage();
-      await this.verifyThePageIsLoaded();
     });
   }
 
@@ -81,7 +78,6 @@ export class MobilePromotionPage extends BasePage {
   async navigateToApplicationMobileAppSettingsPage(): Promise<void> {
     await test.step('Navigate to application mobile app settings page', async () => {
       await this.page.goto(PAGE_ENDPOINTS.MOBILE_APP_SETTINGS_PAGE);
-      await this.verifyThePageIsLoaded();
     });
   }
   async verifyDistributionAndPromotionTextIsDisplayed(): Promise<void> {

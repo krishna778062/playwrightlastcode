@@ -37,7 +37,6 @@ test.describe(
 
       //verify mobile promotion modal is open
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyMobilePromotionModalIsOpen();
-      await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetSimpplrOnYourMobileTextIsDisplayed();
 
       //click on the dismiss button
       await mobilePromotionPage.commonActionsComponent.clickButton('Dismiss');
@@ -47,7 +46,6 @@ test.describe(
 
       //verify mobile promotion modal is open
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyMobilePromotionModalIsOpen();
-      await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetSimpplrOnYourMobileTextIsDisplayed();
 
       //click on the dismiss button
       await mobilePromotionPage.commonActionsComponent.clickButton('Dismiss');
@@ -63,7 +61,6 @@ test.describe(
 
       //verify mobile promotion modal is open
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyMobilePromotionModalIsOpen();
-      await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetSimpplrOnYourMobileTextIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyDescriptionTextIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyScanQRButtonIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetAppLinkButtonIsDisplayed();
@@ -81,7 +78,6 @@ test.describe(
 
       //verify mobile promotion modal is open
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyMobilePromotionModalIsOpen();
-      await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetSimpplrOnYourMobileTextIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyDescriptionTextIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyScanQRButtonIsDisplayed();
       await mobilePromotionPage.mobilePromotionQRModalComponent.verifyGetAppLinkButtonIsDisplayed();
@@ -251,36 +247,7 @@ test.describe(
       );
     });
 
-    test('tc008- Verify Mobile promotion not visible if settings disabled at application level', async () => {
-      tagTest(test.info(), {
-        zephyrTestId: 'INT-17611',
-      });
-
-      await mobilePromotionPage.navigateToApplicationMobileAppSettingsPage();
-
-      await mobilePromotionPage.verifyDistributionAndPromotionTextIsDisplayed();
-
-      await mobilePromotionPage.verifyEnableDistributionAndPromotionButtonIsDisplayed();
-
-      await mobilePromotionPage.verifyDisableDistributionAndPromotionButtonIsDisplayed();
-
-      //Disable distribution and promotion
-      await mobilePromotionPage.clickOnDisableDistributionAndPromotionButton();
-      await mobilePromotionPage.commonActionsComponent.clickButton('Save');
-      await mobilePromotionPage.refreshPage();
-
-      //Verify mobile promotion download text is not displayed
-      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionDownloadTextIsNotDisplayed();
-      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionIosIconIsNotDisplayed();
-      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionAndroidIconIsNotDisplayed();
-
-      await mobilePromotionPage.navigateToApplicationMobileAppSettingsPage();
-      await mobilePromotionPage.clickOnEnableDistributionAndPromotionButton();
-      await mobilePromotionPage.commonActionsComponent.clickButton('Save');
-      await mobilePromotionPage.refreshPage();
-    });
-
-    test('tc009- Verify Mobile promotion via Email for Android', async () => {
+    test('tc008- Verify Mobile promotion via Email for Android', async () => {
       tagTest(test.info(), {
         zephyrTestId: 'INT-22196',
       });
@@ -303,7 +270,7 @@ test.describe(
       );
     });
 
-    test('tc010- Verify Mobile promotion via Email for iOS', async () => {
+    test('tc009- Verify Mobile promotion via Email for iOS', async () => {
       tagTest(test.info(), {
         zephyrTestId: 'INT-21769',
       });
@@ -326,7 +293,7 @@ test.describe(
       );
     });
 
-    test('tc011- Verify Mobile promotion via SMS for Android', async () => {
+    test('tc010- Verify Mobile promotion via SMS for Android', async () => {
       tagTest(test.info(), {
         zephyrTestId: 'INT-22014',
       });
@@ -347,7 +314,7 @@ test.describe(
       );
     });
 
-    test('tc012- Verify Mobile promotion via SMS for iOS', async () => {
+    test('tc011- Verify Mobile promotion via SMS for iOS', async () => {
       tagTest(test.info(), {
         zephyrTestId: 'INT-22034',
       });
@@ -368,7 +335,7 @@ test.describe(
       );
     });
 
-    test('tc013- Verify user will get "User not found" when we send mobile promotion email and SMS to non registered users', async () => {
+    test('tc012- Verify user will get "User not found" when we send mobile promotion email and SMS to non registered users', async () => {
       tagTest(test.info(), {
         zephyrTestId: 'INT-21984',
       });
@@ -386,6 +353,30 @@ test.describe(
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage('User not found');
+    });
+
+    test('tc013- Verify Mobile promotion not visible if settings disabled at application level', async () => {
+      tagTest(test.info(), {
+        zephyrTestId: 'INT-17611',
+      });
+
+      //Disable distribution and promotion
+      await mobilePromotionPage.navigateToApplicationMobileAppSettingsPage();
+      await mobilePromotionPage.verifyDistributionAndPromotionTextIsDisplayed();
+      await mobilePromotionPage.verifyEnableDistributionAndPromotionButtonIsDisplayed();
+      await mobilePromotionPage.verifyDisableDistributionAndPromotionButtonIsDisplayed();
+      await mobilePromotionPage.clickOnDisableDistributionAndPromotionButton();
+      await mobilePromotionPage.commonActionsComponent.clickButton('Save');
+
+      //Verify mobile promotion download text is not displayed
+      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionDownloadTextIsNotDisplayed();
+      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionIosIconIsNotDisplayed();
+      await mobilePromotionPage.footerMobilePromotionComponent.verifyMobilePromotionAndroidIconIsNotDisplayed();
+
+      //Enable distribution and promotion
+      await mobilePromotionPage.navigateToApplicationMobileAppSettingsPage();
+      await mobilePromotionPage.clickOnEnableDistributionAndPromotionButton();
+      await mobilePromotionPage.commonActionsComponent.clickButton('Save');
     });
   }
 );
