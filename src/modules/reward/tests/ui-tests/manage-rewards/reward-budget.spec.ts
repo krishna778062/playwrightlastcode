@@ -7,6 +7,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PAGE_ENDPOINTS } from '@/src/core';
+
 test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
@@ -69,24 +71,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       const pointBalanceSummaryFooterButtonText =
         await manageRewardsPage.pointBalanceSummaryActionBarButton.textContent();
       if (pointBalanceSummaryFooterButtonText === 'Enable peer gifting') {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.pointBalanceSummaryActionBarButton, {
-          stepInfo: 'Clicking on Enable peer gifting button',
-        });
-        await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-          state: 'visible',
-          timeout: 20000,
-        });
-        await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-          stepInfo: 'Clicking on peer gifting toggle switch',
-        });
-        await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-          stepInfo: 'Clicking on save button',
-        });
-        await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
-        await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
-          stepInfo: 'Clicking on grant allowances confirm button',
-        });
-        await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+        await manageRewardsPage.peerGifting.enableThePeerGifting();
         await manageRewardsPage.loadPage();
       }
 
@@ -155,49 +140,14 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.pointBalanceSummaryActionBarButton, {
         stepInfo: 'Clicking on Edit allowances button',
       });
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
-        '/manage/recognition/rewards/peer-gifting/allowances'
-      );
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(PAGE_ENDPOINTS.MANAGE_REWARDS_ALLOWANCE_PAGE);
 
       await manageRewardsPage.rewardsAllowance.allowanceHeader.waitFor({
         state: 'visible',
         timeout: 20000,
       });
       await manageRewardsPage.loadPage();
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-        stepInfo: 'Clicking on peer gifting toggle switch to disable',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking on save button',
-      });
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.disableDialog);
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.peerGifting.disableDialogTitle,
-        'Disable peer gifting'
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.peerGifting.disableDialogConfirmText,
-        'Are you sure you want to disable peer gifting?'
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.peerGifting.disableDialogDescriptionText,
-        'Users will lose their monthly allowances and will no longer be able to gift points via peer recognition.'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.disableDialogCancelButton
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.disableDialogDisableButton
-      );
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.disableDialogDisableButton, {
-        stepInfo: 'Clicking on disable button in dialog',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-
+      await manageRewardsPage.peerGifting.disableThePeerGifting();
       await manageRewardsPage.loadPage();
       await manageRewardsPage.activityPanelFiltersButton.last().waitFor({
         state: 'attached',
@@ -217,43 +167,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.pointBalanceSummaryActionBarButton, {
         stepInfo: 'Clicking on Enable peer gifting button',
       });
-      await manageRewardsPage.peerGifting.peerGiftingHeading.waitFor({
-        state: 'visible',
-        timeout: 20000,
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-        stepInfo: 'Clicking on peer gifting toggle switch to enable',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking on save button',
-      });
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.grantAllowancesDialog);
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.peerGifting.grantAllowancesDialog,
-        'Grant allowances'
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.peerGifting.grantAllowanceBoxDescription,
-        'Confirm when allowances should be granted.'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.grantAllowancesRadioImmediately
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.grantAllowancesRadioNextMonth
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.peerGifting.grantAllowancesDialog);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.grantAllowancesCancelButton
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.peerGifting.grantAllowancesConfirmButton
-      );
-      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
-      await manageRewardsPage.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
-        stepInfo: 'Clicking on grant allowances confirm button',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+      await manageRewardsPage.peerGifting.enableThePeerGifting();
     }
   );
 
@@ -663,83 +577,6 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetSummaryActionBarButton);
-    }
-  );
-
-  test(
-    '[RC-3250] Validate "Add Rewards budget" option on Rewards overview page',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate "Add Rewards budget" option on Rewards overview page',
-        zephyrTestId: 'RC-3250',
-        storyId: 'RC-3250',
-      });
-
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-
-      await Promise.all([
-        manageRewardsPage.page.waitForResponse(
-          response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
-        ),
-        manageRewardsPage.loadPage(),
-      ]);
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-      await manageRewardsPage.rewardsTabHeading.waitFor({
-        state: 'attached',
-        timeout: 20000,
-      });
-      if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Rewards overview') {
-        const _appName = await manageRewardsPage.page.evaluate(() => {
-          return (window as any).Simpplr?.Settings?.appName;
-        });
-        if (await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.disableRewardLink)) {
-          await manageRewardsPage.disableTheRewards();
-        } else {
-          console.log('Rewards are already disabled, skipping disable action.');
-        }
-      }
-
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardPeerGiftingContainer, {
-        stepInfo: 'Clicking on disabled reward peer gifting container',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardRewardsBudgetContainer, {
-        stepInfo: 'Clicking on disabled reward rewards budget container',
-      });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardCurrencyConversionContainer, {
-        stepInfo: 'Clicking on disabled reward currency conversion container',
-      });
-      await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
-      await manageRewardsPage.verifier.verifyElementContainsText(
-        manageRewardsPage.budgetModal.budgetPanelHeader,
-        'rewards budget'
-      );
-      await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
-        stepInfo: 'Clicking on cancel button',
-      });
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
-
-      await Promise.all([
-        manageRewardsPage.page.waitForResponse(
-          response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
-        ),
-        manageRewardsPage.loadPage(),
-      ]);
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-      await manageRewardsPage.rewardsTabHeading.waitFor({
-        state: 'attached',
-        timeout: 20000,
-      });
-      if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Recognition rewards') {
-        await manageRewardsPage.enableTheRewards();
-      }
     }
   );
 

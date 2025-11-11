@@ -308,4 +308,81 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
       await expect(manageRewardsPage.budgetSummaryActionBarButton).toHaveText('Add budget');
     }
   );
+
+  test(
+    '[RC-3250] Validate "Add Rewards budget" option on Rewards overview page',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate "Add Rewards budget" option on Rewards overview page',
+        zephyrTestId: 'RC-3250',
+        storyId: 'RC-3250',
+      });
+
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+
+      await Promise.all([
+        manageRewardsPage.page.waitForResponse(
+          response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
+        ),
+        manageRewardsPage.loadPage(),
+      ]);
+
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await manageRewardsPage.rewardsTabHeading.waitFor({
+        state: 'attached',
+        timeout: 20000,
+      });
+      if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Rewards overview') {
+        const _appName = await manageRewardsPage.page.evaluate(() => {
+          return (window as any).Simpplr?.Settings?.appName;
+        });
+        if (await manageRewardsPage.verifier.isTheElementVisible(manageRewardsPage.disableRewardLink)) {
+          await manageRewardsPage.disableTheRewards();
+        } else {
+          console.log('Rewards are already disabled, skipping disable action.');
+        }
+      }
+
+      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardPeerGiftingContainer, {
+        stepInfo: 'Clicking on disabled reward peer gifting container',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardRewardsBudgetContainer, {
+        stepInfo: 'Clicking on disabled reward rewards budget container',
+      });
+      await manageRewardsPage.clickOnElement(manageRewardsPage.disabledRewardCurrencyConversionContainer, {
+        stepInfo: 'Clicking on disabled reward currency conversion container',
+      });
+      await manageRewardsPage.clickOnDisabledRewardsAddEditBudgetButton();
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
+      await manageRewardsPage.verifier.verifyElementContainsText(
+        manageRewardsPage.budgetModal.budgetPanelHeader,
+        'rewards budget'
+      );
+      await manageRewardsPage.clickOnElement(manageRewardsPage.dialogContainerForm.cancelButton, {
+        stepInfo: 'Clicking on cancel button',
+      });
+      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(manageRewardsPage.dialogContainerForm.container);
+
+      await Promise.all([
+        manageRewardsPage.page.waitForResponse(
+          response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
+        ),
+        manageRewardsPage.loadPage(),
+      ]);
+
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await manageRewardsPage.rewardsTabHeading.waitFor({
+        state: 'attached',
+        timeout: 20000,
+      });
+      if ((await manageRewardsPage.rewardsTabHeading.textContent()) === 'Recognition rewards') {
+        await manageRewardsPage.enableTheRewards();
+      }
+    }
+  );
 });
