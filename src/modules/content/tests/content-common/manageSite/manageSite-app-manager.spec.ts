@@ -284,7 +284,6 @@ test.describe(
         await siteDetailsPage.actions.clickOnContentTab();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
@@ -319,6 +318,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();

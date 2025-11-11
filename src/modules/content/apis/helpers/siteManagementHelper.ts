@@ -734,10 +734,6 @@ export class SiteManagementHelper {
 
     throw new Error('No site found with cover image and hasEvents: true');
   }
-
-  /**
-
-   */
   /**
    * Checks if a site has a valid coverImage
    * @param site - Site object to check
@@ -869,6 +865,7 @@ export class SiteManagementHelper {
           console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
 
           // Wait a bit before next attempt to avoid rapid API calls
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         throw new Error(
