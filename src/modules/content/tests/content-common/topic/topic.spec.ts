@@ -454,4 +454,67 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await appManagerFixture.contentManagementHelper.deleteContent(siteId, albumId);
     }
   );
+
+  test(
+    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-25971'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
+        zephyrTestId: 'CONT-25971',
+        storyId: 'CONT-25971',
+      });
+
+      // Navigate to manage/topics page
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.loadPage();
+
+      // Create first topic with random alphabetic string
+      const firstTopicName = faker.string.alpha({ length: 5 });
+      topicId = await manageTopicsPage.actions.createTopic(firstTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      const editedTopicName = `${firstTopicName.slice(0, 2)} ${firstTopicName.slice(2)}`;
+      await manageTopicsPage.actions.editTopic(editedTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Edited topic successfully');
+
+      // Follow the topic
+      await manageTopicsPage.actions.openTopicOptionsDropdown();
+      await manageTopicsPage.actions.clickOnFollowTopic();
+
+      // Create second topic "UI-test"
+      const secondTopicName = faker.string.alpha({ length: 5 });
+      const secondTopicId = await manageTopicsPage.actions.createTopic(secondTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+
+      // Search for the edited topic "me rge"
+      await manageTopicsPage.actions.searchingTopicInSearchBar(editedTopicName);
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(editedTopicName);
+
+      // Merge "me rge" into "UI-test"
+      await manageTopicsPage.actions.openTopicOptionsDropdown();
+      await manageTopicsPage.actions.mergeTopic(secondTopicName);
+      await manageTopicsPage.assertions.verifyToastMessage('Merging topics… this may take some time');
+
+      // Reload page to see merged topic
+      await manageTopicsPage.loadPage();
+
+      // Search for "UI-test" topic
+      await manageTopicsPage.actions.searchingTopicInSearchBar(secondTopicName);
+      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+
+      // Delete "UI-test" topic
+      await manageTopicsPage.actions.openTopicOptionsDropdown();
+      await manageTopicsPage.actions.clickOnDeleteTopic();
+      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
+      await manageTopicsPage.actions.clickDeleteConfirmButton();
+      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+
+      // Cleanup is not needed as topics are deleted in the test
+      manualCleanupNeeded = false;
+    }
+  );
 });
