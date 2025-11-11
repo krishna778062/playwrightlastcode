@@ -165,7 +165,7 @@ export const config = {
       tenantName: 'Frontline Secondary UAT',
       frontendBaseUrl: 'https://frontline-automation-2.uat.simpplr.xyz',
       apiBaseUrl: 'https://frontline-automation-2-api.uat.simpplr.xyz',
-      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerEmail: 'E001',
       appManagerPassword: 'Test@123',
       endUserEmail: 'meenakshi.joshi@simpplr.com',
       endUserPassword: 'Simp@123',
