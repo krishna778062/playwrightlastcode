@@ -46,7 +46,7 @@ test.describe(
     test(
       'verify Link Search results for a new external link',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

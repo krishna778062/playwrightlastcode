@@ -49,7 +49,7 @@ for (const fileType of testData.fileTypes) {
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
