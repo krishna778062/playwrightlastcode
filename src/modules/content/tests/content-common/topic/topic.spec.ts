@@ -3,16 +3,14 @@ import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
-
-import { NewHomePage } from '@/src/core';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -322,6 +320,8 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchAndVerifyMultipleTopics(topicNames);
+    }
+  );
 
   test(
     'managing Topic Follow/Unfollow Status',
