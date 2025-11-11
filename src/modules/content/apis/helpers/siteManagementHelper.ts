@@ -408,10 +408,16 @@ export class SiteManagementHelper {
   ): Promise<string> {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
-      size: 4000, // Get a large number to ensure we find the site if it exists
+      size: 5000, // Get a large number to ensure we find the site if it exists
       canManage: true,
       filter: 'all',
     });
+
+    for (const site of sitesResponse.result.listOfItems) {
+      console.log(
+        `Site name: ${site.name} isActive: ${site.isActive} accessType: ${site.access} siteId: ${site.siteId}`
+      );
+    }
 
     // Search for the site by name
     const existingSite = sitesResponse.result.listOfItems.find(
@@ -1118,6 +1124,31 @@ export class SiteManagementHelper {
       });
 
       return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+    });
+  }
+
+  public async getDeactivatedSite(
+    accessType: SITE_TYPES,
+    options?: { size?: number }
+  ): Promise<{ siteId: string; siteName: string }> {
+    return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
+      const siteListResponse = await this.getListOfSites({ filter: 'deactivated', size: options?.size });
+      console.log('Deactivated site list response', siteListResponse);
+      const site = siteListResponse.result.listOfItems.find(
+        (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
+      );
+      console.log('Deactivated site', site);
+      if (!site) {
+        //create a site and make it deactivated
+        const createdSite = await this.createSite({
+          accessType: accessType,
+          waitForSearchIndex: true,
+        });
+        await this.siteManagementService.deactivateSite(createdSite.siteId);
+        return { siteId: createdSite.siteId, siteName: createdSite.siteName };
+      } else {
+        return { siteId: site.siteId, siteName: site.name };
+      }
     });
   }
 }

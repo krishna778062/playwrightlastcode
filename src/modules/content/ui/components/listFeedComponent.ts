@@ -22,6 +22,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
+  readonly embedUrlLocator: (embedUrl: string) => Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
@@ -40,7 +41,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").filter({ hasText: text });
+    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
@@ -111,14 +112,14 @@ export class ListFeedComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
-    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
@@ -129,6 +130,7 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
   }
 
   /**
@@ -190,14 +192,12 @@ export class ListFeedComponent extends BaseComponent {
    * @param expectedText - Expected text of the post
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
-    console.log('Waiting for post to be visible: ', expectedText);
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.getFeedTextLocator(expectedText).first();
-      await this.verifier.verifyTheElementIsVisible(postLocator, {
+      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
-      await postLocator.scrollIntoViewIfNeeded().catch(() => {});
     });
   }
 
@@ -211,13 +211,13 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   async markPostAsFavourite(): Promise<void> {
-    await test.step(`Mark post as favourite: `, async () => {
+    await test.step(`Mark post as favourite`, async () => {
       await this.hoverOverElementInJavaScript(this.likeButton);
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
       });
-      await this.clickOnElement(this.favoriteButton, { delay: 1000 });
+      await this.clickOnElement(this.favoriteButton);
     });
   }
 
@@ -228,7 +228,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
-      await this.clickOnElement(this.unfavoriteButton, { delay: 1000 });
+      await this.clickOnElement(this.unfavoriteButton);
     });
   }
 
@@ -244,7 +244,7 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
       await this.hoverOverElementInJavaScript(this.likeButton);
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
-        assertionMessage: `Post "${postText}" should be in unfavorited state`,
+        assertionMessage: `Post "${postText}" should be in favorited state`,
       });
     });
   }
@@ -262,11 +262,11 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Validates that a post contains the expected text
-   * @param postText - The expected text content to validate
+   * Validates that a post is not visible
+   * @param postText - The text content of the post that should not be visible
    */
   async validatePostNotVisible(postText: string): Promise<void> {
-    await test.step(`Validating post contains text: "${postText}"`, async () => {
+    await test.step(`Validating post is not visible: "${postText}"`, async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should not be visible`,
       });
@@ -554,6 +554,13 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `Post by user "${userName}" should be visible`,
       });
       await postLocator.scrollIntoViewIfNeeded().catch(() => {});
+    });
+  }
+  async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
+    await test.step('Verify embedded URL is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
+        assertionMessage: 'Embedded URL should be visible',
+      });
     });
   }
 }

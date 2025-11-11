@@ -5,6 +5,7 @@ import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@content/ui/pages/manageSiteSetUpPage';
 import { SiteCreationPage as ContentSiteCreationPage, SiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
@@ -56,6 +57,7 @@ test.describe(
     let createdSiteName: string;
     let manualCleanupNeeded = false;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSiteSetUpPage: ManageSiteSetUpPage;
     let manageSitePage: ManageSitePage;
     let applicationscreen: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
@@ -69,7 +71,8 @@ test.describe(
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
-      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
+      manageSitePage = new ManageSitePage(appManagerFixture.page);
       applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
@@ -160,7 +163,7 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
 
         // Search for the deactivated site in the search bar
-        await manageSitePage.actions.searchForSite(siteName);
+        await manageSiteSetUpPage.actions.searchForSite(siteName);
         await manageSitePage.assertions.verifyNoSitesFound(siteName);
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
       }
@@ -188,7 +191,7 @@ test.describe(
         await sideNavBarComponent.verifyingCreateButtonIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
+        await manageSiteSetUpPage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
@@ -213,7 +216,7 @@ test.describe(
         await governanceScreenPage.actions.enableContentSubmissions('Saved changes successfully');
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
+        await manageSiteSetUpPage.actions.clickOnSite();
         await siteDetailsPage.actions.ViewSite();
         await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
         await standardUserSideNavBarComponent.clickOnSites();

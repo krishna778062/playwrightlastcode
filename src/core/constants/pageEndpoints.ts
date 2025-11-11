@@ -67,7 +67,8 @@ export const PAGE_ENDPOINTS = {
   MANAGE_CONTENT_DELETE_API: '/v1/content/sites/',
   CONTENT_PAGE_UPDATE_API: 'action=update',
 
-  MANAGE_SITE_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  MANAGE_SITE_SETUP_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
+  MANAGE_SITE_PAGE: `manage/sites`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
@@ -99,6 +100,8 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  SEARCH_DASHBOARD: '/analytics/search',
+  PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
@@ -106,4 +109,7 @@ export const PAGE_ENDPOINTS = {
   POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
   //Poll listening page
   POLLS_LISTING_PAGE: '/polls',
+
+  //Form creation page
+  FORM_CREATION_PAGE: '/forms',
 };
