@@ -360,27 +360,27 @@ export class CSVValidationUtil {
       // First check: Overall validation result - fail if ANY errors exist
       expect(
         result.isValid,
-        `CSV validation completed with ${result.errors.length} error(s): ${result.errors.join('; ')}`
+        `CSV validation failed with ${result.errors.length} error: ${result.errors.join('; ')}`
       ).toBe(true);
 
       // Additional detailed assertions for better error messages
       expect(
         result.validationDetails.metadata.isValid,
-        `CSV metadata validation passed: ${result.errors.filter(e => e.includes('Metadata')).join(', ')}`
+        `CSV metadata validation failed: ${result.errors.filter(e => e.includes('Metadata')).join(', ')}`
       ).toBe(true);
       expect(
         result.validationDetails.headers.isValid,
-        `CSV headers validation passed: ${result.errors.filter(e => e.includes('Headers')).join(', ')}`
+        `CSV headers validation failed: ${result.errors.filter(e => e.includes('Headers')).join(', ')}`
       ).toBe(true);
 
       if (result.summary.csvRecordCount > 0) {
         expect(
           result.validationDetails.records.isValid,
-          `CSV records validation passed. Found ${result.summary.unmatchedRecords} unmatched records. Errors: ${result.errors.join(', ')}`
+          `CSV records validation failed. ${result.summary.unmatchedRecords} DB records not found in CSV. Errors: ${result.errors.join(', ')}`
         ).toBe(true);
         expect(
           result.validationDetails.values.isValid,
-          `CSV values validation passed. Errors: ${result.errors.join(', ')}`
+          `CSV values validation failed. Errors: ${result.errors.join(', ')}`
         ).toBe(true);
       }
     } catch (assertionError) {

@@ -83,44 +83,49 @@ test.describe(
 
         console.log(`Info: Downloaded CSV file to path: ${filePath}`);
 
-        // Step 3: Validate CSV against database data
-        await CSVValidationUtil.validateAndAssert({
-          csvPath: filePath,
-          expectedDBData: dbData as any,
-          metricName: 'Mobile adoption rate',
-          selectedPeriod: testFiltersConfig.timePeriod,
-          expectedHeaders: [
-            'User name',
-            'Email',
-            'Designation',
-            'Company Name',
-            'Division',
-            'Department',
-            'City',
-            'State',
-            'Country',
-            'Date of last login',
-          ],
-          transformations: {
-            // Map CSV headers to database field names
-            headerMapping: {
-              'User name': 'fullName',
-              Email: 'email',
-              Designation: 'title',
-              'Company Name': 'companyName',
-              Division: 'division',
-              Department: 'department',
-              City: 'city',
-              State: 'state',
-              Country: 'country',
-              'Date of last login': 'dateOfLastLogin',
+        try {
+          // Step 3: Validate CSV against database data
+          await CSVValidationUtil.validateAndAssert({
+            csvPath: filePath,
+            expectedDBData: dbData as any,
+            metricName: 'Mobile adoption rate',
+            selectedPeriod: testFiltersConfig.timePeriod,
+            expectedHeaders: [
+              'User name',
+              'Email',
+              'Designation',
+              'Company Name',
+              'Division',
+              'Department',
+              'City',
+              'State',
+              'Country',
+              'Date of last login',
+            ],
+            transformations: {
+              // Map CSV headers to database field names
+              headerMapping: {
+                'User name': 'fullName',
+                Email: 'email',
+                Designation: 'title',
+                'Company Name': 'companyName',
+                Division: 'division',
+                Department: 'department',
+                City: 'city',
+                State: 'state',
+                Country: 'country',
+                'Date of last login': 'dateOfLastLogin',
+              },
+              // No value mappings needed - database already returns 'Undefined' for null values
+              valueMappings: {},
             },
-            // No value mappings needed - database already returns 'Undefined' for null values
-            valueMappings: {},
-          },
-        });
+          });
 
-        console.log('Info: CSV validation completed successfully');
+          console.log('Info: CSV validation completed successfully');
+        } finally {
+          // Clean up CSV file after validation
+          CSVValidationUtil.cleanup(filePath);
+        }
       }
     );
   }
