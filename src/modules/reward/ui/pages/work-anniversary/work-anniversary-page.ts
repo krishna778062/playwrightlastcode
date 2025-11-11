@@ -45,6 +45,8 @@ export class WorkAnniversaryPage extends BasePage {
   private awardInstanceCancelButton: Locator;
   private modalBadgeContainer: Locator;
   private modalBadgeOptions: Locator;
+  private modalCustomMessageContainer: Locator;
+  private modalCustomMessageInput: Locator;
   private modalAwardPointsToReceiversSwitch: Locator;
   private modalAwardPointsToReceiversInput: Locator;
 
@@ -118,6 +120,8 @@ export class WorkAnniversaryPage extends BasePage {
       name: 'Award points to receivers',
     });
     this.modalAwardPointsToReceiversInput = this.awardInstanceEditModal.locator('input[id="anniversaryPoints"]');
+    this.modalCustomMessageContainer = this.awardInstanceEditModal.locator('[class="recognition-tiptapfield"]');
+    this.modalCustomMessageInput = this.modalCustomMessageContainer.locator('div[data-testid="tiptap-content"]');
     this.awardInstanceSaveButton = this.awardInstanceEditModal.getByRole('button', { name: 'Save' });
     this.awardInstanceCancelButton = this.awardInstanceEditModal.getByRole('button', { name: 'Cancel' });
     this.modalBadgeContainer = this.awardInstanceEditModal.locator('[data-testid="field-Badge"]');
@@ -168,7 +172,7 @@ export class WorkAnniversaryPage extends BasePage {
    * means(it has atleast 3 column data i.e. Award name, Times awarded, Last awarded etc..)
    */
   async validateAllTheTableElements() {
-    await expect(this.tableGridFirstRow.last()).toBeVisible();
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
     const headers: string[] = await this.tableHeaders.allTextContents();
     expect(headers).toEqual(['Award', 'Times awarded', 'Last awarded', 'Status', 'Created', 'Edited']);
     const tableData: string[] = await this.tableGridFirstRow.allTextContents();
@@ -181,20 +185,22 @@ export class WorkAnniversaryPage extends BasePage {
    * and verify the Edit milestone container is visible
    */
   async clickOnTheEditWorkAnniversaryButton(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
     await this.tableGridFirstActionButton.click();
     await this.clickOnMenuItemWithVisibleText(this.page, 'Edit');
   }
 
   async validateTheElementsInEditWorkAnniversaryPage() {
-    await expect(this.editMileStonePageHeader).toHaveText('Edit milestone');
-    await expect(this.editMileStoneWrapper).toBeVisible();
-    await expect(this.awardDetailsHeader).toHaveText('Award details');
-    await expect(this.awardPointsToReceiverContainer).toBeVisible();
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'true') {
-      await expect(this.awardPointInput).toBeVisible();
-      await expect(this.awardPointPlus).toBeVisible();
-      await expect(this.awardPointMinus).toBeVisible();
+    await this.verifier.verifyElementHasText(this.editMileStonePageHeader, 'Edit milestone');
+    await this.verifier.verifyTheElementIsVisible(this.editMileStoneWrapper);
+    await this.verifier.verifyElementHasText(this.awardDetailsHeader, 'Award details');
+    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiverContainer);
+    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiverSwitch);
+    const switchChecked = await this.getElementAttribute(this.awardPointsToReceiverSwitch, 'aria-checked');
+    if (switchChecked === 'true') {
+      await this.verifier.verifyTheElementIsVisible(this.awardPointInput);
+      await this.verifier.verifyTheElementIsVisible(this.awardPointPlus);
+      await this.verifier.verifyTheElementIsVisible(this.awardPointMinus);
     }
   }
 
@@ -264,7 +270,7 @@ export class WorkAnniversaryPage extends BasePage {
     }
   }
 
-  async cleanUpTheDataIfAlreadySet() {
+  async cleanUpTheDataIfAlreadySet(): Promise<void> {
     await this.disableTheAwardPointsToReceiverIfEnabled();
     await this.removeTheAwardInstanceCustomValues(0);
     await this.removeTheAwardInstanceCustomValues(1);
@@ -517,7 +523,11 @@ export class WorkAnniversaryPage extends BasePage {
     fs.unlinkSync(csvFilePath);
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last(), {
+      timeout: 10000,
+      stepInfo: 'Wait for the table to be visible on Work Anniversary page',
+    });
     return Promise.resolve(undefined);
   }
 }

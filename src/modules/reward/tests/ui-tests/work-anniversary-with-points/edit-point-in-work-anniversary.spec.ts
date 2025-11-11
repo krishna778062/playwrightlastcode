@@ -33,6 +33,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
 
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       await workAnniversaryPage.validateAllTheTableElements();
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.validateTheElementsInEditWorkAnniversaryPage();
@@ -53,6 +54,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
 
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.selectTheDefaultBadgeInWorkAnniversary();
       await workAnniversaryPage.validateTheYearNumberInAwardBadgeForDefaultBadge();
@@ -74,6 +76,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
 
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       const userIds = [
         getRewardTenantConfigFromCache().appManagerUserId,
         getRewardTenantConfigFromCache().recognitionManagerUserId,
@@ -117,6 +120,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
 
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       const point = TestDataGenerator.getRandomNo(0, 30);
       const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
@@ -170,6 +174,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
 
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       const point = TestDataGenerator.getRandomNo(0, 30);
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
@@ -210,6 +215,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
 
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
       const point = 0;
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
@@ -230,6 +236,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
         true
       );
       await workAnniversaryPage.visit();
+      await workAnniversaryPage.verifyThePageIsLoaded();
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);

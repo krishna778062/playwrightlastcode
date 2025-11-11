@@ -43,7 +43,7 @@ export class EditAutomatedAwardPage extends BasePage {
    */
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-    this.container = page.locator('[data-testid="edit-automated-award-container"]');
+    this.container = page.locator('[data-testid="pageContainer-page"]');
     this.awardScheduleEditIcon = this.container.locator('[data-testid="i-edit"]').first();
     this.awardScheduleMsgIcon = this.container.getByRole('button', { name: 'custom message' });
     this.awardScheduleAwardIcon = this.container.getByRole('button', { name: 'custom author' });
@@ -141,13 +141,12 @@ export class EditAutomatedAwardPage extends BasePage {
    */
   async enableAndEditPoints() {
     await this.awardPointsToReceiver.waitFor({ state: 'visible' });
-    await this.pointInputBox.waitFor({ state: 'visible' });
     const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
     const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
-
     if (!isEnabled) {
       await this.awardPointsToReceiver.click();
       await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(true|checked)$/);
+      await this.pointInputBox.waitFor({ state: 'visible' });
     }
 
     const storedValueRaw = await this.pointInputBox.inputValue();
@@ -177,6 +176,14 @@ export class EditAutomatedAwardPage extends BasePage {
    * @param candidate the string to type (e.g., "12A")
    */
   async verifyTheErrorForInvalidInput(candidate: number) {
+    await this.awardPointsToReceiver.waitFor({ state: 'visible' });
+    const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
+    const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
+    if (!isEnabled) {
+      await this.awardPointsToReceiver.click();
+      await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(true|checked)$/);
+      await this.pointInputBox.waitFor({ state: 'visible' });
+    }
     await this.pointInputBox.waitFor({ state: 'attached' });
     const before = await this.getNumericInputValue();
     await this.pointInputBox.clear({ force: true });
