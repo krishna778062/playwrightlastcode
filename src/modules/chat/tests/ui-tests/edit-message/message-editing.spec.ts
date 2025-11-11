@@ -19,7 +19,7 @@ test.describe(
     test(
       'message Editing: Verify user can edit and update their sent message in direct chat',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
         tagTest(test.info(), {
