@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
 
@@ -9,6 +9,8 @@ export class MobilePromotionEmailSMSComponent extends BaseComponent {
   readonly countryCodeInput: Locator;
   readonly phoneNumberInput: Locator;
   readonly emailInput: Locator;
+  readonly cancelButton: Locator;
+  readonly sendLinkButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -18,13 +20,14 @@ export class MobilePromotionEmailSMSComponent extends BaseComponent {
     this.countryCodeInput = page.locator('#countryCode');
     this.phoneNumberInput = page.locator('#mobileNumber');
     this.emailInput = page.getByPlaceholder('Email address…');
+    this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+    this.sendLinkButton = page.getByRole('button', { name: 'Send link' });
   }
 
   async verifySendMeLinkTextIsDisplayed(): Promise<void> {
     await test.step('Verify send me link text is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.sendMeLinkText, {
         assertionMessage: 'Verify send me link text is visible',
-        timeout: 30000,
       });
     });
   }
@@ -32,7 +35,6 @@ export class MobilePromotionEmailSMSComponent extends BaseComponent {
     await test.step('Verify SMS button is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.SMSButton, {
         assertionMessage: 'Verify SMS button is visible',
-        timeout: 30000,
       });
     });
   }
@@ -40,10 +42,22 @@ export class MobilePromotionEmailSMSComponent extends BaseComponent {
     await test.step('Verify email button is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.EmailButton, {
         assertionMessage: 'Verify email button is visible',
-        timeout: 30000,
       });
     });
   }
+
+  async verifySMSRadioButtonIsSelected(): Promise<void> {
+    await test.step('Verify default subject line is selected', async () => {
+      await expect(this.SMSButton, 'SMS radio button should be checked').toBeChecked();
+    });
+  }
+
+  async verifyEmailRadioButtonIsSelected(): Promise<void> {
+    await test.step('Verify email radio button is selected', async () => {
+      await expect(this.EmailButton, 'Email radio button should be checked').toBeChecked();
+    });
+  }
+
   async clickOnSMSButton(): Promise<void> {
     await test.step('Click on SMS button', async () => {
       await this.clickOnElement(this.SMSButton, { force: true });

@@ -67,4 +67,39 @@ export class FooterMobilePromotionComponent extends BaseComponent {
       });
     });
   }
+  /**
+   * Verifies the mobile promotion download text is not displayed
+   */
+  async verifyMobilePromotionDownloadTextIsNotDisplayed(): Promise<void> {
+    await test.step('Verify mobile promotion download text is not displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mobilePromotionDownloadText, {
+        assertionMessage: 'Verify mobile promotion download text is not visible',
+        timeout: 80000,
+      });
+    });
+  }
+
+  /**
+   * Verifies the mobile promotion iOS icon is not displayed
+   */
+  async verifyMobilePromotionIosIconIsNotDisplayed(): Promise<void> {
+    await test.step('Verify mobile promotion iOS icon is not displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mobilePromotionIosIcon, {
+        assertionMessage: 'Verify mobile promotion iOS icon is not visible',
+        timeout: 30000,
+      });
+    });
+  }
+
+  /**
+   * Verifies the mobile promotion Android icon is not displayed
+   */
+  async verifyMobilePromotionAndroidIconIsNotDisplayed(): Promise<void> {
+    await test.step('Verify mobile promotion Android icon is not displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mobilePromotionAndroidIcon, {
+        assertionMessage: 'Verify mobile promotion Android icon is not visible',
+        timeout: 30000,
+      });
+    });
+  }
 }
