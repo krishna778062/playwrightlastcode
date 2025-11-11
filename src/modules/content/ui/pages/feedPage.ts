@@ -124,6 +124,7 @@ export interface IFeedAssertions {
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -683,5 +684,15 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         timeout: options?.timeout || TIMEOUTS.SHORT,
       });
     });
+  }
+
+  /**
+   * Verifies that the site image is displayed in the feed card for the given content
+   * @param contentTitle - The title of the content in the feed card
+   * @param siteId - The site ID to verify the image belongs to
+   * @param siteImageFileId - The fileId of the site's iconImage to verify it matches
+   */
+  async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
+    await this.listFeedComponent.verifySiteImageInFeedCard(contentTitle, siteId, siteImageFileId);
   }
 }

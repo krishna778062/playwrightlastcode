@@ -420,4 +420,46 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
+  /**
+   * Verifies that the site image is displayed in the feed card for the given content
+   * and that it matches the site's iconImage
+   * @param contentTitle - The title of the content in the feed card
+   * @param siteId - The site ID to verify the image belongs to
+   * @param siteImageFileId - The fileId of the site's iconImage to verify it matches
+   */
+  async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
+    await test.step(`Verify site image is displayed in feed card for content "${contentTitle}" and matches site iconImage`, async () => {
+      // Find the image in the feed card - when content has no image, site image is shown as fallback
+      // .imageAnchor is an anchor tag that contains an img tag
+      const imageAnchorLocator = this.page.locator('.imageAnchor');
+      const siteImageLocator = imageAnchorLocator.locator('img');
+
+      // Verify the image is visible
+      await this.verifier.verifyTheElementIsVisible(siteImageLocator, {
+        assertionMessage: `Site image should be visible in feed card for content "${contentTitle}"`,
+      });
+
+      // Verify that the image src contains the site's iconImage fileId
+      // This ensures the fallback image is the same as the site image
+      const imageSrc = await siteImageLocator.getAttribute('src');
+      if (!imageSrc) {
+        throw new Error(`Site image in feed card does not have a src attribute`);
+      }
+
+      // Extract fileId from the image src URL
+      const feedImageFileId = imageSrc.split('/').pop()?.split('?')[0] || imageSrc;
+
+      console.log(`Feed image src: ${imageSrc}`);
+      console.log(`Feed image fileId: ${feedImageFileId}`);
+      console.log(`Site image fileId: ${siteImageFileId}`);
+
+      if (feedImageFileId !== siteImageFileId) {
+        throw new Error(
+          `Site image in feed card does not match site iconImage. Expected fileId: ${siteImageFileId}, but feed image fileId was: ${feedImageFileId}`
+        );
+      }
+      console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
+    });
+  }
 }
