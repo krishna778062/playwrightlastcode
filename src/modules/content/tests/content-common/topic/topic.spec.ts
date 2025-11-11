@@ -4,13 +4,18 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
+
 import { NewHomePage } from '@/src/core';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('edit Topic', () => {
   let homePage: NewHomePage;
@@ -237,6 +242,72 @@ test.describe('edit Topic', () => {
       await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
       await manageTopicsPage.actions.clickCancelButton();
       await manageTopicsPage.assertions.verifyTopicIsVisible(topicName);
+    }
+  );
+  test(
+    'verify standard user is able to add topic in Content page/Album/Event',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25969'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'verify standard user is able to add topic in Content page/Album/Event',
+        zephyrTestId: 'CONT-25969',
+        storyId: 'CONT-25969',
+      });
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'page', contentSubType: 'news' },
+      });
+      const contentPage = new ContentPreviewPage(appManagerFixture.page, siteInfo.siteId, pageInfo.contentId, 'page');
+      await contentPage.loadPage();
+      await contentPage.actions.clickShareThoughtsButton();
+      const feedPage = new FeedPage(appManagerFixture.page);
+      const postResultPage = await feedPage.actions.createAndPostWithTopic(
+        `test topic ${FEED_TEST_DATA.TOPIC_NAME_PAGE}`,
+        FEED_TEST_DATA.TOPIC_NAME_PAGE
+      );
+      console.log('Created feed via API for Page:', postResultPage);
+      const contentAlbum = await appManagerFixture.contentManagementHelper.createAlbum({
+        siteId: siteInfo.siteId,
+        imageName: 'beach.jpg',
+      });
+      const contentAlbumPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        contentAlbum.contentId,
+        'album'
+      );
+      await contentAlbumPage.loadPage();
+      await contentAlbumPage.actions.clickShareThoughtsButton();
+      const feedAlbumPage = new FeedPage(appManagerFixture.page);
+      const postResultAlbum = await feedAlbumPage.actions.createAndPostWithTopic(
+        `test topic ${FEED_TEST_DATA.TOPIC_NAME_ALBUM}`,
+        FEED_TEST_DATA.TOPIC_NAME_ALBUM
+      );
+      console.log('Created feed via API for Album:', postResultAlbum);
+      const contentEvent = await appManagerFixture.contentManagementHelper.createEvent({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'event' },
+        options: {
+          eventName: `test topic ${FEED_TEST_DATA.TOPIC_NAME_EVENT}`,
+        },
+      });
+      const contentEventPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        contentEvent.contentId,
+        'event'
+      );
+      await contentEventPage.loadPage();
+      await contentEventPage.actions.clickShareThoughtsButton();
+      const feedEventPage = new FeedPage(appManagerFixture.page);
+      const postResultEvent = await feedEventPage.actions.createAndPostWithTopic(
+        `test topic ${FEED_TEST_DATA.TOPIC_NAME_EVENT}`,
+        FEED_TEST_DATA.TOPIC_NAME_EVENT
+      );
+      console.log('Created feed via API for Event:', postResultEvent);
     }
   );
 });

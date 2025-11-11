@@ -90,6 +90,7 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  createAndPostWithTopic: (text: string, topic: string) => Promise<FeedPostResult>;
 }
 
 export interface IFeedAssertions {
@@ -186,6 +187,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   // High-level user flow methods
   async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
     return await this.createFeedPostComponent.createAndPost(options);
+  }
+
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createAndPostWithTopic(text, topic);
   }
 
   async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {

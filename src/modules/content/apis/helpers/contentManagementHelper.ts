@@ -380,7 +380,7 @@ export class ContentManagementHelper {
       ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
       ...(eventResult.rsvpDetails && { rsvpDetails: eventResult.rsvpDetails }),
     };
-    this.content.push({ siteId, contentId: eventResult.eventId });
+    // this.content.push({ siteId, contentId: eventResult.eventId });
     return { ...createdContent };
   }
 
