@@ -4,6 +4,7 @@ import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixtu
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
@@ -47,7 +48,7 @@ test.describe(
     test(
       '[FL-434] Verify content QR share option via Standard User',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
       },
       async ({ endUserHomePage }) => {
         tagTest(test.info(), {
@@ -120,7 +121,7 @@ test.describe(
     test(
       '[FL-453] Verify content QR Enable Status',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -156,7 +157,7 @@ test.describe(
     test(
       '[FL-212] Verify creation of content promotion QR from app manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, '@healthcheck'],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {
