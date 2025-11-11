@@ -45,6 +45,7 @@ export interface IManageTopicsPageAssertions {
   verifyFollowOptionIsVisible: () => Promise<void>;
   verifyUnfollowOptionIsVisible: () => Promise<void>;
   verifyTopicListIsVisible: () => Promise<void>;
+  verifyTopicAppearsAtTop: (topicName: string) => Promise<void>;
 }
 export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
   private manageTopicsComponent: ManageTopicsComponent;
@@ -298,5 +299,13 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     await this.manageTopicsComponent.verifyMergeTopicPopupIsVisible();
     await this.fillMergeTopicName(targetTopicName);
     await this.clickMergeConfirmButton();
+  }
+
+  async verifyTopicAppearsAtTop(topicName: string): Promise<void> {
+    await test.step('Verify merged topic is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.listOfTopic.first().filter({ hasText: topicName }), {
+        assertionMessage: `Merged topic "${topicName}" should be visible`,
+      });
+    });
   }
 }
