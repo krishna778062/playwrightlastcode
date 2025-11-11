@@ -24,7 +24,13 @@ test.describe(
     test(
       'verify confluence App & User Level Disconnection & Connection Flow for App Manager',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.CONFLUENCE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -62,7 +68,7 @@ test.describe(
     test(
       'verify Confluence Custom knowledge base name with blank value',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -85,13 +91,7 @@ test.describe(
     test(
       'verify Confluence Custom knowledge base name with Same Name as Default',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.CONFLUENCE,
-          '@confluenceKnowledgeBaseNameWithSameNameAsDefault',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SANITY, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -129,7 +129,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-11017, 11018',
+          zephyrTestId: ['INT-11017', 'INT-11018', '11347'],
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
@@ -192,7 +192,7 @@ test.describe(
     test(
       'verify Confluence Select spaces without selecting any space',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -236,11 +236,11 @@ test.describe(
     test(
       'verify App level Connection by checking the checkbox',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-11031, INT-11010',
+          zephyrTestId: ['INT-11031', 'INT-11010', '11034'],
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
@@ -261,12 +261,23 @@ test.describe(
     test(
       'verify Confluence user level connection with incorrect credentials',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, IntegrationsSuiteTags.CONFLUENCE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: '11039',
         });
+
+        // verify app level connection
+        const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // navigate to external apps page
         const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
@@ -285,12 +296,29 @@ test.describe(
     multiUserTileFixture(
       'verify confluence User Level Connection & Disconnection Flow for End User',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.CONFLUENCE],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.CONFLUENCE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+        ],
       },
       async ({ adminPage, endUserPage }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-11042, INT-11036',
+          zephyrTestId: ['INT-11042', 'INT-11036', '11345', '11013'],
         });
+
+        // verify app level connection
+        const supportAndTicketingPage = new SupportAndTicketingPage(adminPage);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Admin user - Verify Confluence is connected at app level
         const adminExternalAppsPage = new ExternalAppsPage(adminPage);

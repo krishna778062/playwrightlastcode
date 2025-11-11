@@ -28,8 +28,10 @@ jobs:
             content-abac,
             frontline,
             content-settings,
+            content-studio,
             alert-notification,
             employee-listening,
+            form-designer,
           ] # de is short for data-engineering
         environment: [qa]
     env:

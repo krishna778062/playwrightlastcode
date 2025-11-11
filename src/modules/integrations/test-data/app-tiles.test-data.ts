@@ -16,6 +16,7 @@ export const CONNECTOR_IDS = {
   DOCEBO: 'db7f4f18-16e7-443b-9d72-ae68d146e854',
   MONDAY_DOT_COM: '46cae9fc-78b9-4f30-916d-ccd6d8eff802',
   WORKDAY: 'af4ed833-9514-466d-a6a5-752f26456adf',
+  SALESFORCE: '76108098-da7d-4030-b7c1-ef737e61e5a2',
 } as const;
 
 /**
@@ -39,6 +40,8 @@ export const TILE_IDS = {
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
   WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
+  WORKDAY_APPLY_FOR_TIMEOFF: '61da175c-f777-4456-8512-715e7808b657',
+  DISPLAY_TABULAR_REPORT: 'fb9971dd-f266-4c7e-b07e-74726c4f834f',
 } as const;
 
 /**
@@ -105,6 +108,9 @@ export const REDIRECT_URLS = {
   ASANA: 'https://app.asana.com/',
   GREENHOUSE: 'https://job-boards.greenhouse.io/',
   WORKDAY: 'https://impl.wd12.myworkday.com/',
+  WORKDAY_INBOX_TASKS_REPORT:
+    'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
+  WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
 } as const;
 
 /**

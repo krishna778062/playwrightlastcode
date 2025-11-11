@@ -35,7 +35,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
 
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      const recognitionAward = await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionAward = await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });

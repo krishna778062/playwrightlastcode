@@ -4,6 +4,7 @@ import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 
+import { TestGroupType } from '@/src/core/constants/testType';
 import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
 import { MessageCardComponent } from '@/src/modules/chat/ui/components/messageCardComponent';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
@@ -27,7 +28,7 @@ test.describe(
     test(
       'verify user is able to add and send pdf as  attachment in chat',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //now open conversation with user 2

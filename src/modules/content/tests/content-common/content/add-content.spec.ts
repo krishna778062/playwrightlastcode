@@ -72,7 +72,7 @@ test.describe(
         await standardUserFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
-          siteName
+          { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -134,7 +134,7 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
-          siteName
+          { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -197,7 +197,7 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
-          siteName
+          { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
@@ -272,7 +272,7 @@ test.describe(
         await standardUserFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
-          siteName
+          { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator

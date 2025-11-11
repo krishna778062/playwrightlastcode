@@ -497,13 +497,17 @@ test.describe(
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: 'Access control group was successfully updated',
+        });
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(targetAudienceToCreate[1]));
         await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[1]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: 'Access control group was successfully updated',
+        });
         // Test Scenario
         await accessControlGroupsPage.searchForACG(acgName[1]);
         await accessControlGroupsPage.editACG(acgName[1]);
