@@ -41,23 +41,40 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       // Visit the Recognition Hub and give one recognition
       const existingOptions = await recognitionHub.visitRecognitionHub();
-      if (existingOptions.length < 2) {
+      await recognitionHub.verifyThePageIsLoaded();
+      if (existingOptions.length <= 1) {
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
-        0,
-        getRewardTenantConfigFromCache().endUserName,
-        'Test Message' + Math.floor(Math.random() * 1000),
-        rewardOptionIndex
-      );
+      await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().endUserName);
+      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
 
-      // Validate for App Manager user
-      await recognitionHub.visitRecognitionHub();
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardOptionText,
+        String(rewardOptionIndex),
         'Only visible to recipients, their managers and app administrators'
       );
 
@@ -67,11 +84,12 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         email: getRewardTenantConfigFromCache().endUserEmail!,
         password: getRewardTenantConfigFromCache().endUserPassword!,
       });
-      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardOptionText,
-        'Only visible to you, your manager and app administrators'
+        String(rewardOptionIndex),
+        'Only visible to recipients, their managers and app administrators'
       );
 
       // Login with the recognition user and check the recognition post with points
@@ -80,11 +98,12 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
         password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
       });
-      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardOptionText,
-        'Only visible to you, your manager and app administrators'
+        String(rewardOptionIndex),
+        'Only visible to recipients, their managers and app administrators'
       );
       await recognitionHub.deleteTheFirstRecognitionPost();
     }
