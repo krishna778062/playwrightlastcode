@@ -19,6 +19,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyInput: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
+  readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
@@ -116,7 +117,6 @@ export class ListFeedComponent extends BaseComponent {
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
-    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
@@ -125,6 +125,8 @@ export class ListFeedComponent extends BaseComponent {
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
+    this.mentionUserNameEditor = (mentionUserName: string): Locator =>
+      this.page.locator('#mentionListItemId').getByText(mentionUserName);
   }
 
   /**
@@ -295,7 +297,7 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to reply to
    * @param replyText - The reply text to add
    */
-  async addReplyToPost(replyText: string): Promise<void> {
+  async addReplyToPost(replyText: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
       //add API wait for response
@@ -315,9 +317,19 @@ export class ListFeedComponent extends BaseComponent {
 
       await this.fillInElement(this.replyEditor, replyText);
 
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else {
+        await this.fillInElement(this.replyEditor, replyText);
+      }
+
       // Click submit reply button
       await this.clickOnElement(this.submitReplyButton);
     });
+    console.log('replyText :   ', replyText);
+    return replyText;
   }
 
   /**

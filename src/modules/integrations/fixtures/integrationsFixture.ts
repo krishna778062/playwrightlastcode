@@ -7,7 +7,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
@@ -15,7 +15,8 @@ import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard
 export interface IntegrationsApiFixture {
   apiContext: APIRequestContext;
   siteManagementHelper: SiteManagementHelper;
-  tileManagementHelper: TileManagementHelper;
+  tileManagementHelper: IntegrationTileHelper;
+  integrationTileHelper: IntegrationTileHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -34,19 +35,20 @@ export interface IntegrationsUserFixture extends IntegrationsApiFixture, Integra
 // Helper function to create API-only fixtures using existing API contexts
 async function createIntegrationsApiFixture(apiContext: APIRequestContext): Promise<IntegrationsApiFixture> {
   const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
     siteManagementHelper,
-    tileManagementHelper,
+    tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
+    integrationTileHelper,
   };
 }
 
 // Helper function to create UI-only fixtures
 async function createIntegrationsUiFixture(
   browser: any,
-  tileManagementHelper: TileManagementHelper
+  tileManagementHelper: IntegrationTileHelper
 ): Promise<IntegrationsUiFixture> {
   const context = await browser.newContext();
   const page = await context.newPage();
