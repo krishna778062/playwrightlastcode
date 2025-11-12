@@ -63,7 +63,7 @@ test.describe(
     test(
       'in Zeus Verify Sort by options should show shared posts accordingly - Recent Activity',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26729'],
       },
       async ({ siteManagerFixture, standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
