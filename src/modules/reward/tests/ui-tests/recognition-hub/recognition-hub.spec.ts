@@ -287,14 +287,14 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const recognitionGiverName: string = process.env[`APP_MANAGER_FULL_NAME`]!;
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
-      const rewardPointsText =
-        await manageRewardsOverviewPage.openTheRecognitionCreatedBefore24Hrs(recognitionGiverName);
+      const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs();
+      const points = rewardData.resultAny?.points!;
+      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardPointsText,
+        String(points),
         'Only visible to recipients, their managers and app administrators'
       );
 

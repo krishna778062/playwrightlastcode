@@ -114,7 +114,7 @@ export class RewardsBudgetModal extends BasePage {
       );
       await manageRewardsPage.verifier.verifyElementContainsText(
         manageRewardsPage.budgetModal.budgetPanelHeader,
-        'Edit a rewards budget'
+        'Edit rewards budget'
       );
     }
     await manageRewardsPage.verifier.verifyElementHasText(

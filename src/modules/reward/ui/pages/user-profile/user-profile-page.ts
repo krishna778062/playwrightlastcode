@@ -18,6 +18,10 @@ export class UserProfilePage extends BasePage {
   readonly allowanceRefreshingInfoIconTooltipText: Locator;
   private pointsToGiveContainer: Locator;
   private pointsToRedeemContainer: Locator;
+  // Notification settings locators
+  readonly recognitionEmailCheckbox: Locator;
+  readonly rewardsEmailCheckbox: Locator;
+  readonly notificationSettingSaveButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -47,9 +51,9 @@ export class UserProfilePage extends BasePage {
     this.allowanceRefreshingInfoIconTooltipText = page.locator('div[id*="tippy"]>div>p');
 
     // Notification settings locators
+    this.recognitionEmailCheckbox = page.locator('[aria-labelledby="recognition"] input[id="recognition"]');
+    this.rewardsEmailCheckbox = page.locator('[aria-labelledby="rewards"] input[id="rewards"]');
     this.notificationSettingSaveButton = page.getByRole('button', { name: 'Save' });
-    this.recognitionNotificationToggle = page.locator('input[name="recognition_notifications"]');
-    this.rewardsNotificationToggle = page.locator('input[name="rewards_notifications"]');
   }
 
   /**
@@ -231,11 +235,6 @@ export class UserProfilePage extends BasePage {
     console.log('✅ Restored API, mock disabled, page reloaded.');
   }
 
-  // Notification settings locators
-  readonly notificationSettingSaveButton: Locator;
-  readonly recognitionNotificationToggle: Locator;
-  readonly rewardsNotificationToggle: Locator;
-
   /**
    * Navigate to current user profile notification settings
    */
@@ -253,9 +252,9 @@ export class UserProfilePage extends BasePage {
    * Set notification settings for recognition
    */
   async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
-    const isChecked = await this.recognitionNotificationToggle.isChecked();
+    const isChecked = await this.recognitionEmailCheckbox.isChecked();
     if (isChecked !== enabled) {
-      await this.clickOnElement(this.recognitionNotificationToggle, {
+      await this.clickOnElement(this.recognitionEmailCheckbox, {
         stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
     }
@@ -265,9 +264,9 @@ export class UserProfilePage extends BasePage {
    * Set notification settings for rewards
    */
   async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
-    const isChecked = await this.rewardsNotificationToggle.isChecked();
+    const isChecked = await this.rewardsEmailCheckbox.isChecked();
     if (isChecked !== enabled) {
-      await this.clickOnElement(this.rewardsNotificationToggle, {
+      await this.clickOnElement(this.rewardsEmailCheckbox, {
         stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
     }

@@ -305,6 +305,8 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Inactive');
 
       // Go to the Order History page and validate order for gift card
+      await rewardsStorePage.visit();
+      await rewardsStorePage.verifyThePageIsLoaded();
       await rewardsStorePage.visitTheOrderHistory();
       await rewardsStorePage.verifier.verifyTheElementIsVisible(rewardsStorePage.orderHistoryPanel.first());
       await rewardsStorePage.verifier.verifyTheElementIsVisible(

@@ -902,16 +902,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
         giveRecognitionModal.recognizeButton.click({ force: true }),
       ]);
-      const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
-        await shareModal.skipButton.click();
-        await expect(shareModal.container).not.toBeVisible();
-      }
-
-      const body = await response.json();
-      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
-      const recognitionPostId = String(body.id);
-
       // Handle dialog box if it appears
       const dialogBox = new DialogBox(appManagerFixture.page);
       if (await manageRewardsOverviewPage.verifier.isTheElementVisible(dialogBox.container)) {
@@ -919,6 +909,9 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
 
       await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
       await recognitionHub.page.reload();

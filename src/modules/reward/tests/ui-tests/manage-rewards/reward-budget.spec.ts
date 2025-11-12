@@ -280,8 +280,8 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.budgetModal.budgetContainer);
       await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Annual');
-      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '9999', {
-        stepInfo: 'Filling budget input with 9999',
+      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
+        stepInfo: 'Filling budget input with 99999',
       });
       await manageRewardsPage.budgetModal.budgetPanelInputBox.blur();
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {

@@ -459,47 +459,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     }
   }
 
-  /**
-   * Optimized function to open recognition created before 24 hours
-   * Performs the following steps:
-   * 1. Checks the Activity table
-   * 2. Click the "Show more" button until date difference is more than 3 days
-   * 3. Find the specified user's recognition and click "View recognition"
-   * 4. Validates the post opens in the same page
-   */
-  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver?: string): Promise<string> {
-    await this.clickOnElement(this.activityPanelTableSortableHeader.first());
-    const rows = this.page.locator('tr[data-testid^="dataGridRow"]');
-    let rewardPointsText: any;
-    const rowCount = await rows.count();
-    for (let i = rowCount - 1; i > 0; i--) {
-      await rows.nth(i).locator('td').first().scrollIntoViewIfNeeded();
-      const dateText = await rows.nth(i).locator('td').first().textContent();
-      const rowDate = new Date(dateText + ` ${new Date().getFullYear()}`); // Append current year to date string
-      const today = new Date();
-      const diffDays = (today.getTime() - rowDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (
-        // recognitionGiver ===undefined ? : (await rows.nth(i).locator('td').nth(1).textContent())
-        diffDays > 2 &&
-        (await rows.nth(i).locator('td').nth(3).locator('p').textContent()) === 'Peer recognition'
-      ) {
-        await rows.nth(i).locator('td').last().scrollIntoViewIfNeeded();
-        await rows.nth(i).locator('td').last().click();
-        await this.viewRecognitionDropdown.waitFor({ state: 'visible' });
-        await this.viewRecognitionDropdown.scrollIntoViewIfNeeded();
-        rewardPointsText = await rows.nth(i).locator('td').nth(4).textContent();
-        await expect(this.viewRecognitionDropdown).toBeVisible();
-        await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
-        await this.viewRecognitionDropdownLink.click();
-        const { RecognitionHubPage } = await import('@rewards/ui/pages/recognition-hub/recognition-hub-page');
-        const recognitionHub = new RecognitionHubPage(this.page);
-        await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
-        break;
-      }
-    }
-    return rewardPointsText;
-  }
-
   async verifyTheMenuListItems(menuList: string[]) {
     const menuItem: string[] = await this.sideBarMenuList.allTextContents();
     for (const menu of menuList) {
