@@ -36,6 +36,7 @@ export class EditAutomatedAwardPage extends BasePage {
   private pointInputError: Locator;
   readonly awardIconInScheduleList: Locator;
   readonly awardTextInScheduleList: Locator;
+  readonly removeCustomPoint: Locator;
 
   /**
    * This class represents edit work anniversary page
@@ -78,6 +79,7 @@ export class EditAutomatedAwardPage extends BasePage {
     this.awardSchedulePointIcon = page.locator('[aria-label="Milestone instance with custom award points"]');
     this.awardIconInScheduleList = page.locator('[class*="FrequencyAndSchedule_milestoneAwardIcon"] svg text');
     this.awardTextInScheduleList = page.locator('[class*="FrequencyAndSchedule_milestoneAwardIcon"]+p');
+    this.removeCustomPoint = page.locator('[aria-label="Remove milestone instance award points customization"]');
   }
 
   /**
@@ -236,21 +238,15 @@ export class EditAutomatedAwardPage extends BasePage {
    * @param page - The Playwright page object
    */
   async disableTheCustomPoint(page: Page) {
-    const dialogContainerForm = page.locator('[role="dialog"][data-state="open"] > div');
-    const dialogCustomizeAwardPoints = dialogContainerForm
-      .locator('[aria-label*="Customize milestone instance"]')
-      .last();
-    const awardPointsToReceiver = dialogContainerForm.getByRole('switch', { name: 'Award points to receivers' });
-
-    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
-      await dialogCustomizeAwardPoints.click();
+    if (await this.verifier.isTheElementVisible(this.awardPointsToReceiver)) {
+      await this.awardPointsToReceiver.click();
     }
-    const ariaChecked = await awardPointsToReceiver.getAttribute('aria-checked');
+    const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
     const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
 
     if (isEnabled) {
-      await awardPointsToReceiver.click();
-      await expect(awardPointsToReceiver).toHaveAttribute('aria-checked', /^(false|unchecked)$/);
+      await this.awardPointsToReceiver.click();
+      await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(false|unchecked)$/);
     }
   }
 
@@ -259,27 +255,20 @@ export class EditAutomatedAwardPage extends BasePage {
    * @param page - The Playwright page object
    */
   async removeTheCustomPoint(page: Page) {
-    const dialogContainerForm = page.locator('[role="dialog"][data-state="open"] > div');
-    const dialogCustomizeAwardPoints = dialogContainerForm
-      .locator('[aria-label*="Customize milestone instance"]')
-      .last();
-    const awardPointsToReceiver = dialogContainerForm.getByRole('switch', { name: 'Award points to receivers' });
-    const removeCustomPoint = dialogContainerForm.locator('[aria-label*="Remove milestone instance"]').last();
-
-    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
-      await dialogCustomizeAwardPoints.click();
+    if (await this.verifier.isTheElementVisible(this.awardPointsToReceiver)) {
+      await this.awardPointsToReceiver.click();
     }
-    const ariaChecked = await awardPointsToReceiver.getAttribute('aria-checked');
+    const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
     const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
 
     if (isEnabled) {
-      await awardPointsToReceiver.click();
-      await expect(awardPointsToReceiver).toHaveAttribute('aria-checked', /^(false|unchecked)$/);
+      await this.awardPointsToReceiver.click();
+      await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(false|unchecked)$/);
     }
 
-    if (await this.verifier.verifyTheElementIsVisible(dialogCustomizeAwardPoints)) {
-      await removeCustomPoint.click();
-      await expect(awardPointsToReceiver).not.toBeVisible();
+    if (await this.verifier.isTheElementVisible(this.removeCustomPoint)) {
+      await this.removeCustomPoint.click();
+      await expect(this.awardPointsToReceiver).not.toBeVisible();
     }
   }
 

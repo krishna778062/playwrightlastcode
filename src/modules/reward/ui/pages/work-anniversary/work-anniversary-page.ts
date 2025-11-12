@@ -20,11 +20,12 @@ export class WorkAnniversaryPage extends BasePage {
   private editMileStoneWrapper: Locator;
   private awardDetailsHeader: Locator;
   private workAnniversarySaveChangesButton: Locator;
-  private awardPointsToReceiverContainer: Locator;
-  private awardPointsToReceiverSwitch: Locator;
-  private awardPointInput: Locator;
-  private awardPointPlus: Locator;
-  private awardPointMinus: Locator;
+  private awardPointsToReceiver: Locator;
+  private awardPointContainer: Locator;
+  private pointInputBox: Locator;
+  private plusButton: Locator;
+  private minusButton: Locator;
+  private pointInputError: Locator;
 
   // AwardInstance
   private awardInstancesContainer: Locator;
@@ -85,13 +86,12 @@ export class WorkAnniversaryPage extends BasePage {
     this.badgeOptions = this.badgeContainer.getByRole('radio');
 
     // Award Points to Receiver
-    this.awardPointsToReceiverContainer = this.editMileStoneWrapper.locator(
-      '//span[text()="Award points to receivers"]/ancestor::div[3]'
-    );
-    this.awardPointsToReceiverSwitch = this.awardPointsToReceiverContainer.getByRole('switch');
-    this.awardPointInput = this.awardPointsToReceiverContainer.locator('[id="anniversaryPoints"]');
-    this.awardPointPlus = this.awardPointsToReceiverContainer.locator('button[aria-label="Plus"]');
-    this.awardPointMinus = this.awardPointsToReceiverContainer.locator('button[aria-label="Minus"]');
+    this.awardPointsToReceiver = page.getByRole('switch', { name: 'Award points to receivers' });
+    this.awardPointContainer = this.page.locator('div[class*="MilestonePoints_milestonePoints"]');
+    this.pointInputBox = this.page.locator('input[type="number"][name="anniversaryPoints"]');
+    this.plusButton = this.page.getByRole('button', { name: 'Plus' });
+    this.minusButton = this.page.getByRole('button', { name: 'Minus' });
+    this.pointInputError = this.page.locator('div[class*="Field-module__error"] p[role="alert"]');
 
     // Award Instances
     this.awardInstancesContainer = this.editMileStoneWrapper.locator(
@@ -194,13 +194,12 @@ export class WorkAnniversaryPage extends BasePage {
     await this.verifier.verifyElementHasText(this.editMileStonePageHeader, 'Edit milestone');
     await this.verifier.verifyTheElementIsVisible(this.editMileStoneWrapper);
     await this.verifier.verifyElementHasText(this.awardDetailsHeader, 'Award details');
-    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiverContainer);
-    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiverSwitch);
-    const switchChecked = await this.getElementAttribute(this.awardPointsToReceiverSwitch, 'aria-checked');
+    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiver);
+    const switchChecked = await this.getElementAttribute(this.awardPointsToReceiver, 'aria-checked');
     if (switchChecked === 'true') {
-      await this.verifier.verifyTheElementIsVisible(this.awardPointInput);
-      await this.verifier.verifyTheElementIsVisible(this.awardPointPlus);
-      await this.verifier.verifyTheElementIsVisible(this.awardPointMinus);
+      await this.verifier.verifyTheElementIsVisible(this.pointInputBox);
+      await this.verifier.verifyTheElementIsVisible(this.plusButton);
+      await this.verifier.verifyTheElementIsVisible(this.minusButton);
     }
   }
 
@@ -244,9 +243,9 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async disableTheAwardPointsToReceiverIfEnabled() {
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'true') {
-      await this.awardPointsToReceiverSwitch.uncheck();
+    await expect(this.awardPointsToReceiver).toBeVisible();
+    if ((await this.awardPointsToReceiver.getAttribute('aria-checked')) === 'true') {
+      await this.awardPointsToReceiver.uncheck();
     }
   }
 
@@ -280,11 +279,12 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async setTheDefaultPointsInWorkAnniversary(number: number) {
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'false') {
-      await this.awardPointsToReceiverSwitch.check();
-      await this.awardPointInput.fill(String(number));
+    await expect(this.awardPointsToReceiver).toBeVisible();
+    if ((await this.awardPointsToReceiver.getAttribute('aria-checked')) === 'false') {
+      await this.awardPointsToReceiver.check();
+      await this.verifier.waitUntilElementIsVisible(this.pointInputBox);
     }
+    await this.pointInputBox.fill(String(number));
   }
 
   async clickOnPreviewAwardButtonAndValidateThePoints(points: number = 0) {

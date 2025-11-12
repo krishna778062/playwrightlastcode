@@ -89,6 +89,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
       await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
+      await manageRecognitionPage.workAnniversaryWithPoints.setTheDefaultPointsInWorkAnniversary(10);
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
       await manageRecognitionPage.verifier.verifyTheElementIsVisible(
