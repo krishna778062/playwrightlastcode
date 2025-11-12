@@ -443,6 +443,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     });
 
     await this.verifyToastMessageIsVisibleWithText('Rewards disabled');
+    await this.dismissTheToastMessage();
     await this.verifier.waitUntilElementIsVisible(this.rewardsTabHeading);
   }
 

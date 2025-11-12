@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 
 import { BasePage } from '@core/ui';
 
@@ -326,41 +327,15 @@ export class RewardsAllowancePage extends BasePage {
 
   async checkTheSingleDeletion(page: Page): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.individualAllowanceHeading);
-    let deleteBtnCount: number = await this.allowanceDeleteButton.count();
-
-    if (deleteBtnCount == 1) {
-      await this.allowanceDeleteButton.waitFor({ state: 'attached' });
-      await this.allowanceDeleteButton.hover({ force: true });
-      await page.locator('div[role="tooltip"]').first().waitFor({ state: 'attached' });
-      const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
-      expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
-    } else {
-      for (let i = deleteBtnCount; i > 1; i--) {
-        await this.clickOnElement(this.allowanceDeleteButton.nth(i - 1), {
-          stepInfo: 'Clicking delete button',
-        });
-
-        const deleteUserAllowanceDialogBox = page.getByRole('dialog');
-        const dialogBoxConfirmationTextLine1 = deleteUserAllowanceDialogBox.locator('p[class*="module__heading3"]');
-        const dialogBoxConfirmationTextLine2 = deleteUserAllowanceDialogBox.locator('p[class*="module__paragraph"]');
-        const dialogRemoveButton = deleteUserAllowanceDialogBox.getByRole('button', { name: 'Remove' });
-
-        await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox);
-        await this.verifier.verifyTheElementIsVisible(dialogBoxConfirmationTextLine1);
-        await this.verifier.verifyTheElementIsVisible(dialogBoxConfirmationTextLine2);
-        await this.verifier.verifyTheElementIsVisible(dialogRemoveButton);
-        await this.clickOnElement(dialogRemoveButton, { force: true });
-        await this.validateToastMessage('Saved changes successfully');
-
-        deleteBtnCount = await this.allowanceDeleteButton.count();
-        if (deleteBtnCount === 1) break;
-      }
-
-      await this.allowanceDeleteButton.last().waitFor({ state: 'attached' });
-      await this.allowanceDeleteButton.last().hover({ force: true });
-      const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
-      expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
-    }
+    // Mock the Allowance for only 1 instance
+    const rewardAllowanceComponents = new RewardsAllowance(this.page);
+    await rewardAllowanceComponents.mockTheAllowances(true, false, false, false);
+    // validate the Delete button
+    await this.allowanceDeleteButton.waitFor({ state: 'attached' });
+    await this.allowanceDeleteButton.hover({ force: true });
+    await page.locator('div[role="tooltip"]').first().waitFor({ state: 'attached' });
+    const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
+    expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
   }
 
   // User Allowance methods

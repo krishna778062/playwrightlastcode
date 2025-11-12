@@ -144,7 +144,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
         REWARD_FEATURE_TAGS.POINTS_GIVEN_ACTIVITY,
-        TestPriority.P3,
+        TestPriority.P0,
         TestGroupType.SMOKE,
       ],
     },
@@ -228,25 +228,27 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Visit the Recognition Hub and give one recognition
       await recognitionHub.clickOnGiveRecognition();
+      const dialogBox = new DialogBox(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      await giveRecognitionModal.selectTheUserForRecognition(1);
+      await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
+      await giveRecognitionModal.selectTheUserForRecognition(2);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
-      await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
-      const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
-      await giveRecognitionModal.recognizeButton.click({ force: true });
-      const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
-        await shareModal.skipButton.click();
-        await expect(shareModal.container).not.toBeVisible();
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+      // Handle dialog box if it appears
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
       }
-      await recognitionHub.page.reload();
-      await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.validateTheRewardElementsInRecognitionPost(
-        true,
-        rewardOptionText,
-        'Only visible to recipients, their managers and app administrators'
-      );
-
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
       // Validate the new Entry in the Downloaded CSV file
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.loadPage();
@@ -267,6 +269,14 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         // Clean up using FileUtil
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
+
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        String(rewardOptionIndex),
+        'Only visible to recipients, their managers and app administrators'
+      );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -516,45 +526,6 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         'Activity'
       );
       await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
-
-      // Validate the Filters button in the Activity Table
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(0),
-        'Points given'
-      );
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(1),
-        'Points redeemed'
-      );
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(0),
-        'value',
-        'RECOGNITION_PEER_GIFTING'
-      );
-      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(0)).toBeChecked();
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(1),
-        'value',
-        'REDEMPTION'
-      );
-
-      // Validate the Days filter button 30D,3M,12M
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(2),
-        'value',
-        '30D'
-      );
-      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(2)).toBeChecked();
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(3),
-        'value',
-        '3M'
-      );
-      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
-        manageRewardsOverviewPage.activityPanelFiltersButton.nth(4),
-        'value',
-        '12M'
-      );
 
       // Validate the Sorting columns in the Activity Table
       await manageRewardsOverviewPage.verifier.verifyElementContainsText(

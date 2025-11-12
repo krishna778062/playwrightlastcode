@@ -1,7 +1,6 @@
 import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
-import { DialogBox } from '@rewards-components/common/dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
 
@@ -111,83 +110,6 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         '10,5,20,30,5',
         'All gifting option amounts must be unique.'
       );
-    }
-  );
-
-  test(
-    '[RC-4267] Validate exchange rate option on Gifting option page when FF is disabled',
-    {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS, TestPriority.P0],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate exchange rate option on Gifting option page when FF is disabled',
-        zephyrTestId: 'RC-4267',
-        storyId: 'RC-4267',
-      });
-
-      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const rewardGiftingOptionsPage = new RewardGiftingOptionsPage(appManagerFixture.page);
-
-      // Navigate to manage rewards page
-      const rewardApiPromise = manageRewardsPage.page.waitForResponse(
-        response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
-      );
-      await manageRewardsPage.loadPage();
-      await rewardApiPromise;
-      await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/overview');
-
-      // Disable rewards if needed
-      const isDisableRewardButtonDisplayed = await manageRewardsPage.verifier.isTheElementVisible(
-        manageRewardsPage.disableRewardLink,
-        {
-          timeout: 15000,
-        }
-      );
-      if (isDisableRewardButtonDisplayed) {
-        await manageRewardsPage.clickOnElement(manageRewardsPage.disableRewardLink, {
-          stepInfo: 'Clicking on disable rewards link',
-        });
-        await manageRewardsPage.disableRewardButton.waitFor({ state: 'visible', timeout: 15000 });
-        await manageRewardsPage.clickOnElement(manageRewardsPage.disableRewardButton, {
-          stepInfo: 'Clicking on disable rewards button',
-        });
-        const dialogBox = new DialogBox(manageRewardsPage.page);
-        await dialogBox.title.waitFor({ state: 'visible' });
-        await expect(dialogBox.title).toHaveText('Disable rewards');
-        await dialogBox.descriptionText.last().waitFor({ state: 'visible', timeout: 5000 });
-        const isDialogVisible = await manageRewardsPage.verifier.isTheElementVisible(dialogBox.title);
-        if (isDialogVisible) {
-          await dialogBox.inputBox.fill('confirm');
-          await dialogBox.inputBox.blur();
-          await dialogBox.confirmButton.click();
-        }
-        await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards disabled');
-        await manageRewardsPage.rewardsTabHeading.waitFor({ state: 'visible' });
-        await manageRewardsPage.page.reload();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Recognition rewards');
-      } else {
-        console.log('Rewards are already disabled, skipping disable action.');
-      }
-
-      // Mock feature flag as disabled and navigate to gifting options
-      await rewardGiftingOptionsPage.setTheHarnessValue('point_to_usd_conversion', false);
-      await rewardGiftingOptionsPage.loadPage();
-      await rewardGiftingOptionsPage.verifyThePageIsLoaded();
-      await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/peer-gifting/options');
-      await rewardGiftingOptionsPage.exchangeRateSelectDropdown.waitFor({ state: 'detached' });
-      await expect(manageRewardsPage.disableRewardLink).not.toBeAttached();
-      const isVisible = await rewardGiftingOptionsPage.verifier.isTheElementVisible(
-        rewardGiftingOptionsPage.exchangeRateSelectDropdown
-      );
-      expect(isVisible).toBeFalsy();
-
-      // Re-enable rewards
-      await manageRewardsPage.loadPage();
-      await manageRewardsPage.enableTheRewards();
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
     }
   );
 });

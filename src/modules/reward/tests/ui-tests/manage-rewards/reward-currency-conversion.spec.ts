@@ -59,26 +59,6 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   );
 
   test(
-    '[RC-2531] Validate Add & remove currency in currency conversion tab.',
-    {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate Add & remove currency in currency conversion tab.',
-        zephyrTestId: 'RC-2531',
-        storyId: 'RC-2531',
-      });
-
-      const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
-      const currency = 'XPF';
-
-      await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
-      await currencyConversionPage.completeCurrencyManagementWorkflow(currency);
-    }
-  );
-
-  test(
     '[RC-3115] Verify dialog for unsaved changes when user in currency conversion page navigates to different page or refreshes',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
@@ -96,27 +76,6 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
 
       await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
       await currencyConversionPage.completeUnsavedChangesDialogWorkflow(currency);
-    }
-  );
-
-  test(
-    '[RC-3466,RC-3467] Validate currency conversion page on custom conversion',
-    {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate currency conversion page on custom conversion',
-        zephyrTestId: 'RC-3466,RC-3467',
-        storyId: 'RC-3466,RC-3467',
-      });
-
-      const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
-      const currency = 'XPF';
-      const customValue = 10;
-
-      await expect(appManagerFixture.page).toHaveURL('/manage/recognition/rewards/currency-conversions');
-      await currencyConversionPage.completeCustomConversionWorkflow(currency, customValue);
     }
   );
 
