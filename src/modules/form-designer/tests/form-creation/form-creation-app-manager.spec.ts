@@ -361,7 +361,7 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('Multi select');
+        await formCreationPage.dragAndDropElement('multi select');
         await formCreationPage.addHeadingIntoComponent('Multi select', 'Automation Test - Multi Select Description');
         await formCreationPage.clickOnCopyIcon();
         await formCreationPage.verifyCopiedComponentIsVisible('Multi select');
@@ -383,7 +383,7 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('Single select');
+        await formCreationPage.dragAndDropElement('single select');
         await formCreationPage.addHeadingIntoComponent('Single select', 'Automation Test - Single Select Description');
         await formCreationPage.clickOnCopyIcon();
         await formCreationPage.verifyCopiedComponentIsVisible('Single select');
@@ -405,7 +405,7 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('Dropdown');
+        await formCreationPage.dragAndDropElement('dropdown');
         await formCreationPage.addHeadingIntoComponent('Dropdown', 'Automation Test - Dropdown Description');
         await formCreationPage.clickOnCopyIcon();
         await formCreationPage.verifyCopiedComponentIsVisible('Dropdown');
