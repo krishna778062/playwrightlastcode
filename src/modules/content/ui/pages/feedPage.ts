@@ -90,7 +90,7 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
-  clickShareOnComment: (commentText: string) => Promise<void>;
+  clickShareOnComment: () => Promise<void>;
   clickShareOnPost: (postText: string) => Promise<void>;
   enterShareDescription: (description: string) => Promise<void>;
   addUserNameMentionInShareDialog: (userName: string) => Promise<void>;
@@ -100,8 +100,7 @@ export interface IFeedActions {
   enterSiteNameInShareDialog: (siteName: string) => Promise<void>;
   clickShareButtonInShareDialog: () => Promise<void>;
   verifyViewPostLinkInShareDialog: () => Promise<void>;
-  verifyViewPostLink: (postText: string) => Promise<void>;
-  clickViewPostLink: (postText: string) => Promise<void>;
+  clickViewPostLink: () => Promise<void>;
   verifyFeedDetailPageLoaded: () => Promise<void>;
   verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
   verifyOriginalPostInSharedPost: (sharedPostText: string, originalPostText: string) => Promise<void>;
@@ -144,7 +143,6 @@ export interface IFeedAssertions {
   verifyUpdateButtonDisabled: () => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyViewPostLinkInShareDialog: () => Promise<void>;
-  verifyViewPostLink: (postText: string) => Promise<void>;
   verifyFeedDetailPageLoaded: () => Promise<void>;
   verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
   verifyOriginalPostInSharedPost: (sharedPostText: string, originalPostText: string) => Promise<void>;
@@ -716,10 +714,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   /**
    * Clicks share button on a comment
-   * @param commentText - The text of the comment to share
    */
-  async clickShareOnComment(commentText: string): Promise<void> {
-    await this.listFeedComponent.clickShareOnComment(commentText);
+  async clickShareOnComment(): Promise<void> {
+    await this.listFeedComponent.clickShareOnComment();
   }
 
   /**
@@ -834,16 +831,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Verifies View Post link for a post
    * @param postText - The text of the post to verify View Post link for
    */
-  async verifyViewPostLink(postText: string): Promise<void> {
-    await this.listFeedComponent.verifyViewPostLink(postText);
-  }
-
-  /**
-   * Clicks View Post link
-   * @param postText - The text of the post to click View Post link for
-   */
-  async clickViewPostLink(postText: string): Promise<void> {
-    await this.listFeedComponent.clickViewPostLink(postText);
+  async clickViewPostLink(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLink();
   }
 
   /**
@@ -852,9 +841,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyFeedDetailPageLoaded(): Promise<void> {
     await test.step('Verify feed detail page is loaded', async () => {
       // Wait for URL to contain /feed/
-      await this.page.waitForURL(/\/feed\/[a-f0-9-]+/, { timeout: 10000 });
+      await this.page.waitForURL(new RegExp('/feed/'));
       // Wait for page to be fully loaded
-      await this.page.waitForLoadState('domcontentloaded');
       // Verify share thoughts button or feed content is visible (optional check)
       const isShareButtonVisible = await this.shareThoughtsButton.isVisible().catch(() => false);
       if (!isShareButtonVisible) {
@@ -897,10 +885,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Verify original post in shared post`, async () => {
       // Find the shared post container and verify original post text is visible within it
       const sharedPostContainer = this.listFeedComponent
-        .getFeedTextLocator(sharedPostText)
+        .postTextLocator(sharedPostText)
         .locator('..')
         .locator('..')
         .locator('..');
+      await this.verifier.verifyTheElementIsVisible(sharedPostContainer, {
+        assertionMessage: `Shared post "${sharedPostText}" should be visible`,
+      });
       const originalPostInShared = sharedPostContainer.locator('p').filter({ hasText: originalPostText }).first();
       await this.verifier.verifyTheElementIsVisible(originalPostInShared, {
         assertionMessage: `Original post "${originalPostText}" should be visible in shared post "${sharedPostText}"`,

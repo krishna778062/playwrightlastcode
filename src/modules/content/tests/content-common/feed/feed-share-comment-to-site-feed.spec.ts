@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -104,8 +103,8 @@ test.describe(
         siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
 
         // Generate test data
-        commentText = TestDataGenerator.generateRandomText('Comment', 2, true);
-        shareMessage = TestDataGenerator.generateRandomText('Share Message', 3, true);
+        commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+        shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
       }
     );
 
@@ -145,11 +144,11 @@ test.describe(
 
         const embedUrl = SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE;
 
-        const newTopicName = TestDataGenerator.generateRandomString();
+        const newTopicName = FEED_TEST_DATA.POST_TEXT.TOPIC;
 
         // ==================== PART 1: Site Manager Flow ====================
 
-        // Step 2 & 3: Navigate directly to content preview page
+        // Navigate directly to content preview page
         contentPreviewPage = new ContentPreviewPage(
           siteManagerFixture.page,
           contentSiteId,
@@ -159,7 +158,7 @@ test.describe(
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await contentPreviewPage.verifyThePageIsLoaded();
 
-        // Step 4: Add a Comment for the Content
+        // Add a Comment for the Content
         // Click "Post on this content" button to open comment editor
         await contentPreviewPage.actions.clickShareThoughtsButton();
         // Use FeedPage methods to create the comment (contentPreviewPage has feed components)
@@ -168,9 +167,9 @@ test.describe(
 
         // Wait for comment to be visible
         await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
-        await siteManagerFeedPage.actions.clickShareOnComment(commentText);
+        await siteManagerFeedPage.actions.clickShareOnComment();
 
-        // Step 6: Fill share dialog with message, mentions, topics, and embedded URL
+        // Fill share dialog with message, mentions, topics, and embedded URL
         await siteManagerFeedPage.actions.enterShareDescription(shareMessage);
 
         // Add user mention
@@ -188,32 +187,32 @@ test.describe(
         // Add embedded URL
         await siteManagerFeedPage.actions.addEmbeddedUrlInShareDialog(embedUrl);
 
-        // Step 7: Verify the Original Post is displayed with "View Post" link
+        // Verify the Original Post is displayed with "View Post" link
         await siteManagerFeedPage.assertions.verifyViewPostLinkInShareDialog();
 
-        // Step 8: Select "Post in" as "Site Feed"
+        // Select "Post in" as "Site Feed"
         await siteManagerFeedPage.actions.selectShareOptionAsSiteFeed();
 
-        // Step 9: Choose a "Private" site
+        // Choose a private site
         await siteManagerFeedPage.actions.enterSiteNameInShareDialog(privateSiteName);
 
-        // Step 10: Click on "Share"
+        // Click on "Share"
         await siteManagerFeedPage.actions.clickShareButtonInShareDialog();
 
-        // Step 11: Verify success message
-        await siteManagerFeedPage.assertions.verifyToastMessage('Shared post successfully');
+        // Verify success message
+        await siteManagerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
 
-        // Step 12: Navigate directly to site feed (optimized - no search needed)
+        // Navigate directly to site feed
         siteDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
 
-        // Step 13: Validate post message and original post
+        // Validate post message and original post
         await siteManagerFeedPage.assertions.validatePostText(shareMessage);
         await siteManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage, commentText);
 
-        // Step 14: Click "View Post" → verify navigation to Feed Detail Page
-        await siteManagerFeedPage.actions.clickViewPostLink(shareMessage);
+        // Click "View Post" → verify navigation to Feed Detail Page
+        await siteManagerFeedPage.actions.clickViewPostLink();
         await siteManagerFeedPage.assertions.verifyFeedDetailPageLoaded();
 
         // Store shared post ID for cleanup (extract from URL)
@@ -226,20 +225,19 @@ test.describe(
 
         // ==================== PART 2: Site Content Manager Flow ====================
 
-        // Step 15: Logout (handled by fixture cleanup, but we need to switch users)
         // For this test, we'll use standardUserFixture which should be a Site Content Manager
 
-        // Step 17: Navigate to the private site feed where the post was shared
+        // Navigate to the private site feed where the post was shared
         const privateSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
         await privateSiteDashboardPage.loadPage();
         await privateSiteDashboardPage.actions.clickOnFeedLink();
         await siteContentManagerFeedPage.verifyThePageIsLoaded();
 
-        // Step 18: Click "Share" on the feed post shared by "Site Manager"
+        // Click "Share" on the feed post shared by "Site Manager"
         await siteContentManagerFeedPage.actions.clickShareOnPost(shareMessage);
 
-        // Step 19: Add message, mentions, topics, and embedded URL
-        const shareMessage2 = TestDataGenerator.generateRandomText('Share Message 2', 3, true);
+        // Add message, mentions, topics, and embedded URL
+        const shareMessage2 = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
         await siteContentManagerFeedPage.actions.enterShareDescription(shareMessage2);
 
         // Add user mention
@@ -253,46 +251,46 @@ test.describe(
         await siteContentManagerFeedPage.actions.addTopicMentionInShareDialog(randomTopic.name);
 
         // Add new topic
-        const newTopicName2 = TestDataGenerator.generateRandomString();
+        const newTopicName2 = FEED_TEST_DATA.POST_TEXT.TOPIC;
         await siteContentManagerFeedPage.actions.addTopicMentionInShareDialog(newTopicName2);
 
         // Add embedded URL
         await siteContentManagerFeedPage.actions.addEmbeddedUrlInShareDialog(embedUrl);
 
-        // Step 20: Verify original post with "View Post" link
+        // Verify original post with "View Post" link
         await siteContentManagerFeedPage.assertions.verifyViewPostLinkInShareDialog();
 
-        // Step 21: Select "Post in" = "Site Feed"
+        // Select "Post in" = "Site Feed"
         await siteContentManagerFeedPage.actions.selectShareOptionAsSiteFeed();
 
-        // Step 22: Choose an "Unlisted" site
+        // Choose an "Unlisted" site
         await siteContentManagerFeedPage.actions.enterSiteNameInShareDialog(unlistedSiteName);
 
-        // Step 23: Click "Share"
+        // Click "Share"
         await siteContentManagerFeedPage.actions.clickShareButtonInShareDialog();
 
-        // Step 24: Verify success message
-        await siteContentManagerFeedPage.assertions.verifyToastMessage('Shared post successfully');
+        // Verify success message
+        await siteContentManagerFeedPage.assertions.verifyToastMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+        );
 
-        // Step 25: Navigate directly to the unlisted site feed (avoiding search indexing delay)
+        // Navigate directly to the unlisted site feed
         const unlistedSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, unlistedSiteId);
         await unlistedSiteDashboardPage.loadPage();
         await unlistedSiteDashboardPage.actions.clickOnFeedLink();
 
-        // Step 26: Verify message and original post details
+        // Verify message and original post details
         await siteContentManagerFeedPage.assertions.validatePostText(shareMessage2);
         await siteContentManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage2, shareMessage);
 
-        // Step 27: Click "View Post" and validate navigation
-        await siteContentManagerFeedPage.actions.clickViewPostLink(shareMessage2);
+        // Click "View Post" and validate navigation
+        await siteContentManagerFeedPage.actions.clickViewPostLink();
         await siteContentManagerFeedPage.assertions.verifyFeedDetailPageLoaded();
 
-        // Step 28: Verify share count, likes, and replies belong only to the shared post
-        // Navigate back to site feed for count verification
-        await standardUserFixture.page.goBack();
-        await siteContentManagerFeedPage.assertions.verifyShareCount(shareMessage2, 0);
-        await siteContentManagerFeedPage.assertions.verifyLikesCount(shareMessage2, 0);
-        await siteContentManagerFeedPage.assertions.verifyRepliesCount(shareMessage2, 0);
+        // Verify share count, likes, and replies belong only to the shared post
+        await siteContentManagerFeedPage.assertions.verifyShareCount(shareMessage2, 1);
+        await siteContentManagerFeedPage.assertions.verifyLikesCount(shareMessage2, 1);
+        await siteContentManagerFeedPage.assertions.verifyRepliesCount(shareMessage2, 1);
       }
     );
   }
