@@ -40,6 +40,17 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
+  // Locators for setExternalFilesProvider method
+  readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
+  readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+  readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+  // Target the option in the dropdown list, not the selected value
+  readonly boxFilesOption = this.page.locator('#storageProvider-list').getByText('Box files', { exact: true });
+  // Locator for the currently selected value in the combobox
+  readonly selectedProviderValue = this.page
+    .locator('div[class*="css-15bnrdl-singleValue"]')
+    .filter({ hasText: /Box files/i });
+
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
