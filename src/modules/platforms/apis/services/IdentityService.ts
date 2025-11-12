@@ -10,7 +10,7 @@ import {
 } from '@core/types/audience.type';
 import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
-
+import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 // @/src imports
 import { audienceCreationParams } from '@/src/core/types/audience.type';
@@ -772,6 +772,44 @@ export class IdentityService implements IIdentityAdminOperations {
         data: requestData,
       });
       return await this.httpClient.parseResponse<PeopleListResponse>(response);
+    });
+  }
+
+  /**
+   * Creates ACG with different parameters
+   * @param acgCreationParams - ACG creation parameters which contains acgname, feature, target audience, manager audience, admin audience, manager user, admin user, acg status
+   * @returns The ACG creation response
+   */
+  async createACG(acgCreationParams: ACGCreationAPI): Promise<ACGCreationResponse> {
+    return await test.step(`Creating ACG with name: ${acgCreationParams.acgName}`, async () => {
+      const payloadToCreateACG = {
+        controlGroups: [
+          {
+            admins: {
+              audiences: acgCreationParams.adminAudience ?? [],
+              users: acgCreationParams.adminUser ?? [],
+            },
+            managers: {
+              audiences: acgCreationParams.managerAudience ?? [],
+              users: acgCreationParams.managerUser ?? [],
+            },
+            targets: {
+              audiences: acgCreationParams.targetAudience,
+              users: [],
+            },
+            featureCode: acgCreationParams.feature,
+            type: 'Custom',
+            name: acgCreationParams.acgName,
+            status: acgCreationParams.acgStatus ?? 'Active',
+          },
+        ],
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.createAccessControlGroup, {
+        data: payloadToCreateACG,
+      });
+      expect(response.status(), 'ACG created successfully').toBe(201);
+      return await this.httpClient.parseResponse<ACGCreationResponse>(response);
     });
   }
 }
