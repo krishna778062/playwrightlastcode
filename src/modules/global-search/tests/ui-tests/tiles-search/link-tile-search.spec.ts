@@ -32,7 +32,7 @@ test.describe(
       test(
         `Verify Link Tile Search results for a new link tile with ${numberOfLinks} links`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture, tileCleanupTracker }) => {
           tagTest(test.info(), {
@@ -141,7 +141,7 @@ test.describe(
     test(
       `verify Site Link Tile Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ tileCleanupTracker, appManagerFixture }) => {
         tagTest(test.info(), {
