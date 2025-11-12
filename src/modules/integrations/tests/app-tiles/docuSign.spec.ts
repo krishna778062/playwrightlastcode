@@ -34,7 +34,7 @@ test.describe(
     test(
       'verify app/site manager is able to edit Display Docusign signature requests App tile  on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -100,7 +100,7 @@ test.describe(
     test(
       'verify "Display Docusign signature requests" details are visible on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -192,7 +192,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25169',
+          zephyrTestId: 'INT-29067',
           storyId: 'INT-24586',
         });
 
