@@ -64,7 +64,7 @@ export class UserTestDataBuilder {
       for (let i = 0; i < count; i++) {
         const user = TestDataGenerator.generateUserWithEmpIdAndGivenEmail(email);
 
-        const { userId } = await this.addAndActivateUser(user, role, password);
+        const { userId } = await this.addAndActivateUserWithEmail(user, role, password);
         createdUsers.push({
           ...user,
           userId,
@@ -157,6 +157,25 @@ export class UserTestDataBuilder {
         ...user,
         userId: addUserResponse.user_id,
         fullName: `${user.first_name} ${user.last_name}`,
+        role,
+      };
+    });
+  }
+
+  async addAndActivateUserWithEmail(
+    user: UserWithLicenseAndDepartment,
+    role: Roles,
+    password: string
+  ): Promise<TestUser> {
+    const fullName = `${user.first_name} ${user.last_name}`;
+
+    return await test.step(`Adding and activating user ${fullName} with email`, async () => {
+      const addUserResponse = await this.userManagementService.addUserWithEmail(user, role);
+      await this.userManagementService.activateUserWithEmpIdAndDepartment(user.first_name, user.last_name, password);
+      return {
+        ...user,
+        userId: addUserResponse.user_id,
+        fullName,
         role,
       };
     });
