@@ -104,15 +104,15 @@ export class ListFeedComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
-    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' });
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
@@ -202,13 +202,13 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   async markPostAsFavourite(): Promise<void> {
-    await test.step(`Mark post as favourite: `, async () => {
+    await test.step(`Mark post as favourite`, async () => {
       await this.hoverOverElementInJavaScript(this.likeButton);
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
       });
-      await this.clickOnElement(this.favoriteButton, { delay: 1000 });
+      await this.clickOnElement(this.favoriteButton);
     });
   }
 
@@ -219,7 +219,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
       });
-      await this.clickOnElement(this.unfavoriteButton, { delay: 1000 });
+      await this.clickOnElement(this.unfavoriteButton);
     });
   }
 
@@ -235,7 +235,7 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
       await this.hoverOverElementInJavaScript(this.likeButton);
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
-        assertionMessage: `Post "${postText}" should be in unfavorited state`,
+        assertionMessage: `Post "${postText}" should be in favorited state`,
       });
     });
   }
