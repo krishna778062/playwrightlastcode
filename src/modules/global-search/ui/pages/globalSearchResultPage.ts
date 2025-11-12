@@ -6,6 +6,7 @@ import { ExternalSearchListComponent } from '../components/externalSearchListCom
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { EXACT_MATCH_TOOLTIP_TEXT } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
 import { IFeedSearch } from '@/src/modules/global-search/types/feed-search.type';
 import { IFileSearch } from '@/src/modules/global-search/types/file-search.type';
@@ -36,6 +37,12 @@ export class GlobalSearchResultPage extends BasePage {
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
   readonly dismissButton: Locator;
+  readonly autocompleteAppList: Locator;
+  readonly exactMatchCheckbox: Locator;
+  readonly exactMatchTitle: Locator;
+  readonly exactMatchSection: Locator;
+  readonly exactMatchInfoIcon: Locator;
+  readonly exactMatchTooltip: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -74,6 +81,18 @@ export class GlobalSearchResultPage extends BasePage {
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
     this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
+
+    // App autocomplete locators
+    this.autocompleteAppList = this.page.locator('a[class*="AppList_hoverStyle"]');
+
+    // Exact match locators
+    this.exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
+    this.exactMatchSection = this.page.locator('[class*="ExactMatch_title"]');
+    this.exactMatchTitle = this.exactMatchSection.filter({
+      hasText: 'Search for an exact match',
+    });
+    this.exactMatchInfoIcon = this.page.locator('[data-testid="i-info"]');
+    this.exactMatchTooltip = this.page.getByRole('tooltip');
   }
 
   /**
@@ -98,6 +117,8 @@ export class GlobalSearchResultPage extends BasePage {
       case 'xlsx':
         return 'i-microsoftExcel';
       case 'mp4':
+        return 'i-video';
+      case 'mov':
         return 'i-video';
       default:
         return 'i-files';
@@ -212,9 +233,8 @@ export class GlobalSearchResultPage extends BasePage {
       await verificationFn();
     } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
-      const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
-      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
-      await exactMatchCheckbox.click();
+      await this.exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
+      await this.exactMatchCheckbox.click();
       // Retry the verification after clicking the checkbox
       await verificationFn();
     }
@@ -405,6 +425,26 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Get specific app autocomplete item by name
+   * @param itemName - The app name to find
+   * @param options - Optional parameters including stepInfo
+   * @returns AppsAndLinkContainerComponent instance for the specific app item
+   */
+  async getAutocompleteAppItemByName(
+    itemName: string,
+    options?: { stepInfo?: string }
+  ): Promise<AppsAndLinkContainerComponent> {
+    return await test.step(options?.stepInfo || `Getting app autocomplete item by name "${itemName}"`, async () => {
+      // wait for autocompleteAppList to be visible
+      await this.verifier.waitUntilElementIsVisible(this.autocompleteAppList, { timeout: 40000 });
+      const specificItemLocator = this.autocompleteAppList.filter({
+        hasText: itemName,
+      });
+      return new AppsAndLinkContainerComponent(this.page, specificItemLocator);
+    });
+  }
+
+  /**
    * Verifies external search results are displayed
    */
   async verifyExternalSearchLinksAreDisplayed(): Promise<ExternalSearchListComponent> {
@@ -501,6 +541,74 @@ export class GlobalSearchResultPage extends BasePage {
       } catch {
         // No survey popup present - continue with test
       }
+    });
+  }
+
+  /**
+   * Verifies the exact match checkbox is visible
+   */
+  async verifyExactMatchCheckboxIsVisible(): Promise<void> {
+    await test.step('Verifying exact match checkbox is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchCheckbox, {
+        timeout: 30000,
+        assertionMessage: 'Verifying exact match checkbox is visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match title text is displayed
+   */
+  async verifyExactMatchTitleTextIsDisplayed(): Promise<void> {
+    await test.step('Verifying exact match title text is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTitle, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match title text is displayed',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match info icon is visible
+   */
+  async verifyExactMatchInfoIconIsVisible(): Promise<void> {
+    await test.step('Verifying exact match info icon is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchInfoIcon.first(), {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match info icon is visible',
+      });
+    });
+  }
+
+  /**
+   * Hovers over the exact match info icon and verifies tooltip text
+   * @param searchTerm - The search term to verify in the tooltip text
+   */
+  async hoverOverExactMatchInfoIconAndVerifyTooltip(searchTerm: string): Promise<void> {
+    await test.step(`Hovering over exact match info icon and verifying tooltip text with search term "${searchTerm}"`, async () => {
+      await this.exactMatchInfoIcon.first().hover();
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTooltip.first(), {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying tooltip is displayed after hovering over info icon',
+      });
+
+      // Verify tooltip text contains the expected content (base text and search term)
+      const expectedText = `${EXACT_MATCH_TOOLTIP_TEXT} “${searchTerm}”`;
+      await this.verifier.verifyElementContainsText(this.exactMatchTooltip.first(), expectedText, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Verifying tooltip contains base text and search term "${searchTerm}"`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on the exact match checkbox
+   */
+  async clickExactMatchCheckbox(): Promise<void> {
+    await test.step('Clicking on exact match checkbox', async () => {
+      await this.clickOnElement(this.exactMatchCheckbox, {
+        stepInfo: 'Clicking on exact match checkbox',
+      });
     });
   }
 }
