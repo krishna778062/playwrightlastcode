@@ -139,6 +139,7 @@ test.describe(
         await adminFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "Posts to me"
+        console.log('Select Show filter = "Posts to me"');
         await adminFeedPage.actions.clickOnShowOption('toMe');
 
         // Verify Admin sees:
@@ -182,7 +183,7 @@ test.describe(
         await siteOwnerFeedPage.actions.clickOnShowOption('all');
 
         // Click Share on the feed post created by Site Manager
-        console.log('Step 6: Share the feed post created by Site Manager');
+        console.log('Share the feed post created by Site Manager');
         await siteOwnerFeedPage.actions.shareFeedPost({
           postText: postText,
           shareMessage: shareMessage,
@@ -196,11 +197,11 @@ test.describe(
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await adminFeedPage.verifyThePageIsLoaded();
 
-        // Step 9: Select Show filter = "Posts I follow"
-        console.log('Step 9: Select Show filter = "Posts I follow"');
+        // Select Show filter = "Posts I follow"
+        console.log('Select Show filter = "Posts I follow"');
         await adminFeedPage.actions.clickOnShowOption('Posts I follow');
 
-        // Step 10: Verify Admin can see:
+        // Verify Admin can see:
         // - Feed posts shared or created by users he follows (Site Owner)
         // - His own posts
         // - NOT Site Manager's post
@@ -242,6 +243,7 @@ test.describe(
         await siteContentManagerFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
+        console.log('Select Show filter = "All Posts"');
         await siteContentManagerFeedPage.actions.clickOnShowOption('all');
 
         // Click Share icon for the feed post created by Site Manager
@@ -259,6 +261,7 @@ test.describe(
         await adminFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts" to see the shared post
+        console.log('Select Show filter = "All Posts" to see the shared post');
         await adminFeedPage.actions.clickOnShowOption('all');
         await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
 
