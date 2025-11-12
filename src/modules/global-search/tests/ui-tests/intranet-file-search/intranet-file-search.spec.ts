@@ -40,7 +40,7 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
       test(
         `Verify search results for a new intranet file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
