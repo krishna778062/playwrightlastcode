@@ -3,7 +3,7 @@ name: Daily Regression Tests
 on:
   schedule:
     # Run daily at 2 AM UTC (adjust timezone as needed)
-    - cron: "0 2 * * *"
+    - cron: '0 2 * * *'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -79,8 +79,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
-          role-to-assume: "arn:aws:iam::693891728731:role/non-prod-deployer"
-          aws-region: "us-west-2"
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
           role-skip-session-tagging: true
           role-duration-seconds: 1200
 

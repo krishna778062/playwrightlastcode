@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
       module_name:
-        description: "Select the module to test"
+        description: 'Select the module to test'
         required: true
         default: 'chat'
         type: choice
@@ -36,7 +36,7 @@ on:
           - '@P1'
           - 'all'
       test_type:
-        description: "Select the type of tests to run"
+        description: 'Select the type of tests to run'
         required: true
         default: 'all'
         type: choice
@@ -45,7 +45,7 @@ on:
           - '@regression'
           - 'all'
       environment:
-        description: "Select the environment to run tests against"
+        description: 'Select the environment to run tests against'
         required: true
         default: 'qa'
         type: choice
@@ -57,12 +57,12 @@ on:
           - 'prodUS'
           - 'prodEU'
       workers:
-        description: "Number of parallel workers to run tests"
+        description: 'Number of parallel workers to run tests'
         required: true
         default: '3'
         type: choice
         options:
-          - "1" 
+          - '1'
           - '2'
           - '3'
           - '4'
@@ -159,8 +159,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
-          role-to-assume: "arn:aws:iam::693891728731:role/non-prod-deployer"
-          aws-region: "us-west-2"
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
           role-skip-session-tagging: true
           role-duration-seconds: 1200
 
