@@ -31,7 +31,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
 
-  // Locators for setExternalFilesProvider method (CONT-24903)
+  // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
   readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
@@ -137,13 +137,10 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   /**
    * Sets the External Files provider (e.g., "Box files")
-   * This method is added for CONT-24903
    * @param provider - The name of the storage provider (e.g., "Box files")
    */
   async setExternalFilesProvider(provider: string): Promise<void> {
     await test.step(`Set External Files provider to ${provider}`, async () => {
-      // Scroll to External Files section
-      await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
       // Wait for External Files section to be visible
       await this.verifier.verifyTheElementIsVisible(this.externalFilesSection, {

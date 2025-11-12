@@ -58,13 +58,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyContainer = this.page.locator('._reply_1ii4b_1');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
 
-  readonly getReplyTimestampLocator = (replyText: string): Locator => {
-    const reply = this.replyLocator(replyText);
-    const replyContainer = reply.locator('..').locator('..').locator('._reply_1ii4b_1').first();
-    return replyContainer.getByText(
-      /Nov|Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|2025|2026|2027|2028|at|now|ago|minute|hour|day/i
-    );
-  };
 
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);

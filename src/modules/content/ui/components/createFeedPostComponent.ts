@@ -142,7 +142,7 @@ export class CreateFeedPostComponent
   readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
   readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
 
-  // Box file browsing section (CONT-24903)
+  // Box file browsing section
   readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
   readonly filePickerDialog = this.page.locator('[role="dialog"]');
   readonly filePickerTabs = this.page.locator('[role="tab"]');
@@ -464,6 +464,7 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.addtopicfromList(topicName));
     });
   }
+
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -914,7 +915,6 @@ export class CreateFeedPostComponent
 
   /**
    * Verifies that both Intranet files and Box files tabs are displayed
-   * This method is added for CONT-24903
    */
   async verifyIntranetAndBoxTabsVisible(): Promise<void> {
     await test.step('Verify Intranet files and Box files tabs are displayed', async () => {
@@ -929,7 +929,6 @@ export class CreateFeedPostComponent
 
   /**
    * Clicks the Box files tab
-   * This method is added for CONT-24903
    */
   async clickBoxFilesTab(): Promise<void> {
     await test.step('Click Box files tab', async () => {
@@ -957,7 +956,6 @@ export class CreateFeedPostComponent
 
   /**
    * Clicks on a Box folder
-   * This method is added for CONT-24903
    * @param folderName - Name of the folder to click
    */
   async clickBoxFolder(folderName: string): Promise<void> {
@@ -995,7 +993,6 @@ export class CreateFeedPostComponent
 
   /**
    * Selects a file from Box
-   * This method is added for CONT-24903
    * @param fileName - Name of the file to select (empty string to select first available file)
    */
   async selectBoxFile(fileName: string): Promise<void> {
