@@ -21,7 +21,7 @@ test.describe(
     test(
       'send message and then send emojis as a reaction',
       {
-        tag: [TestPriority.P2, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {

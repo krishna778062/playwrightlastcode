@@ -31,6 +31,8 @@ export enum IntegrationsSuiteTags {
   FORM = '@formAppTiles',
   DISPLAY = '@displayAppTiles',
   HYBRID = '@hybridAppTiles',
+  SALESFORCE = '@salesforceAppTiles',
+  HEALTH_CHECK = '@healthcheck',
 }
 
 export enum IntegrationsFeatureTags {
@@ -80,6 +82,7 @@ export const TEST_TAGS = {
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
   HOTJAR: IntegrationsSuiteTags.HOTJAR,
   WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+  HEALTH_CHECK: IntegrationsSuiteTags.HEALTH_CHECK,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

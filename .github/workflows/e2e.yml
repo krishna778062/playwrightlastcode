@@ -18,12 +18,14 @@ on:
           - 'content-settings'
           - 'content-studio'
           - 'de'
+          - 'de-api'
           - 'content-abac'
           - 'frontline'
           - 'integrations'
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
+          - 'form-designer'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
