@@ -34,7 +34,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+    this.page.locator("div[class*='postContent']").getByText(text, { exact: true }).first();
 
   readonly successMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
