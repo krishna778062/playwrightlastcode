@@ -361,7 +361,7 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('multiselect');
+        await formCreationPage.dragAndDropElement('multi select');
         await formCreationPage.addHeadingIntoComponent('Multi select', 'Automation Test - Multi Select Description');
         await formCreationPage.clickOnCopyIcon();
         await formCreationPage.verifyCopiedComponentIsVisible('Multi select');
@@ -383,7 +383,7 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('singleselect');
+        await formCreationPage.dragAndDropElement('single select');
         await formCreationPage.addHeadingIntoComponent('Single select', 'Automation Test - Single Select Description');
         await formCreationPage.clickOnCopyIcon();
         await formCreationPage.verifyCopiedComponentIsVisible('Single select');
