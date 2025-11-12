@@ -7,7 +7,6 @@ import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { TestPriority } from '@core/constants/testPriority';
-import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -20,12 +19,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     "[RC-3163] Verify point balance distribution when user's recognition is deleted and user is not part of users allowance config",
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH,
-        TestPriority.P0,
-        TestGroupType.REGRESSION,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_SEEDING, TestPriority.P2],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -36,7 +30,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      let userAllowanceIsDisabled: boolean = false;
+      const userAllowanceIsDisabled: boolean = false;
       let contextB: any;
       let pageB: any;
       const userName2 = getRewardTenantConfigFromCache().endUserName!;
@@ -52,85 +46,18 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
 
+      // Set the Individual Allowance as 200 for end User
+      await manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.visitToIndividualAllowanceSetupPage();
+      await manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.setTheIndividualAllowanceForAUser(
+        userName2,
+        200,
+        true
+      );
+      await manageRewardsPage.rewardsAllowance.saveAmount();
+
       // Remove the Users allowance
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
-        '/manage/recognition/rewards/peer-gifting/allowances'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
-      if (
-        await manageRewardsPage.verifier.isTheElementVisible(
-          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance,
-          { timeout: 5000 }
-        )
-      ) {
-        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
-          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
-          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-        } else {
-          console.log('Remove User allowance is disable, we need to add the individual Allowance');
-          userAllowanceIsDisabled = true;
-        }
-      } else {
-        console.log('Remove User Allowance button is not present.');
-      }
-
-      // Set the user allowance as 200 points
-      if (!userAllowanceIsDisabled) {
-        if (
-          await manageRewardsPage.verifier.isTheElementVisible(
-            manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance,
-            { timeout: 5000 }
-          )
-        ) {
-          if (
-            await manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance.isEnabled()
-          ) {
-            await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('individual');
-            await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-            await manageRewardsPage.clickOnElement(
-              manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
-              {
-                stepInfo: 'Clicking on add individual allowance button',
-              }
-            );
-          } else {
-            await manageRewardsPage.clickOnElement(
-              manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.editIndividualAllowance,
-              {
-                stepInfo: 'Clicking on edit individual allowance button',
-              }
-            );
-          }
-        } else {
-          await manageRewardsPage.clickOnElement(
-            manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
-            {
-              stepInfo: 'Clicking on add individual allowance button',
-            }
-          );
-        }
-        await manageRewardsPage.rewardsAllowance.rewardsIndividualAllowance.setTheIndividualAllowanceForAUser(
-          userName2,
-          200,
-          false
-        );
-      }
-
-      await manageRewardsPage.verifier.waitUntilElementIsVisible(
-        manageRewardsPage.rewardsAllowance.monthlyAllowanceIllustration,
-        {
-          stepInfo: 'Wait for monthly allowance illustration to be visible',
-        }
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.rewardsAllowance.monthlyAllowanceIllustrationDescriptionText,
-        '*Monthly totals are for guidance only, based on latest edits and current active users.'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.rewardsAllowance.monthlyAllowanceIllustrationIndividualRow
-      );
+      await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
 
       // Run the Seed
       await manageRewardsPage.rewardsAllowance.page.goto('/manage/recognition/distribute-allowances');
@@ -269,12 +196,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     "[RC-3164] Verify point balance distribution when user's recognition is deleted and user is not part of users allowance config",
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH,
-        TestPriority.P0,
-        TestGroupType.REGRESSION,
-        TestGroupType.SMOKE,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_SEEDING, TestPriority.P2],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

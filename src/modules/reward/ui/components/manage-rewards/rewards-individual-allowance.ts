@@ -318,4 +318,9 @@ export class RewardsIndividualAllowance extends BasePage {
       }
     }
   }
+
+  async visitToIndividualAllowanceSetupPage() {
+    await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances/individual');
+    await this.verifier.waitUntilElementIsVisible(this.individualAllowanceDescription.last());
+  }
 }

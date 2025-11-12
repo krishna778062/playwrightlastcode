@@ -147,11 +147,31 @@ export class RewardsPeerGifting extends BasePage {
     }
   }
 
+  private async getPeerGiftingState(): Promise<boolean> {
+    try {
+      return await this.peerGiftingToggleSwitch.isChecked();
+    } catch {
+      const aria =
+        (await this.peerGiftingToggleSwitch.getAttribute('aria-checked')) ??
+        (await this.peerGiftingToggleSwitch.getAttribute('aria-pressed'));
+      return aria === 'true';
+    }
+  }
+
+  /**
+   * Ensure peer gifting is disabled.
+   * - If already disabled -> does nothing
+   * - If enabled -> toggles, clicks Save, confirms dialog, verifies toast
+   */
   async disableThePeerGifting(): Promise<void> {
     await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
     await this.verifyThePageIsLoaded();
+    const current = await this.getPeerGiftingState();
+    if (!current) {
+      return;
+    }
     await this.peerGiftingToggleSwitch.click();
-    await expect(this.peerGiftingToggleSwitch).not.toBeChecked();
+    await expect(this.peerGiftingToggleSwitch).toHaveAttribute('aria-checked', 'false');
     await this.saveButton.click();
     await expect(this.disableDialog).toBeVisible();
     await expect(this.disableDialogTitle).toHaveText('Disable peer gifting');
@@ -165,8 +185,21 @@ export class RewardsPeerGifting extends BasePage {
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
   }
 
+  /**
+   * Ensure peer gifting is enabled.
+   * - If already enabled -> does nothing
+   * - If disabled -> toggles on, clicks Save, selects enable type, confirms allowances, verifies toast and navigates away
+   *
+   * @param enableType 'Immediately' | 'From the beginning of the next month'
+   */
   async enableThePeerGifting(enableType: 'Immediately' | 'From the beginning of the next month'): Promise<void> {
+    await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
     await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
+    const current = await this.getPeerGiftingState();
+    if (current) {
+      return;
+    }
     await this.peerGiftingToggleSwitch.click();
     await this.saveButton.click();
     await this.selectThePeerGiftingEnableType(enableType);

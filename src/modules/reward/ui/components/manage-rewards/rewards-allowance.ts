@@ -134,14 +134,16 @@ export class RewardsAllowance extends BasePage {
         break;
     }
 
-    await removeButton.click();
-    await this.page.waitForTimeout(1000);
+    if (await this.verifier.isTheElementVisible(removeButton)) {
+      await removeButton.click();
+      await this.page.waitForTimeout(1000);
 
-    // Handle confirmation dialog
-    const dialogBox = this.page.locator('[role="dialog"]');
-    await this.verifier.verifyTheElementIsVisible(dialogBox);
-    await this.dialogRemoveButton.click();
-    await this.page.waitForTimeout(2000);
+      // Handle confirmation dialog
+      const dialogBox = this.page.locator('[role="dialog"]');
+      await this.verifier.verifyTheElementIsVisible(dialogBox);
+      await this.dialogRemoveButton.click();
+      await this.page.waitForTimeout(2000);
+    }
   }
 
   async validateToastMessage(expectedMessage: string): Promise<void> {

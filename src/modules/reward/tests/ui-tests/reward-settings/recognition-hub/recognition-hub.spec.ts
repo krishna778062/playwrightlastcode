@@ -26,6 +26,7 @@ test(
 
     const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+    await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
     const rewardOptionIndex = 3;
 
     // Visit the Recognition Hub and give one recognition
