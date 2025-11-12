@@ -6,8 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 // import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@platforms/apis/payloads/createAudienceAPI';
-import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS, ACG_FEATURE_FOR_API } from '@platforms/constants/acg';
-import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_FEATURE_FOR_API,ACG_STATUS } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
@@ -19,6 +18,7 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
 
 test.describe(
   'access control groups testcases',

@@ -10,12 +10,13 @@ import {
 } from '@core/types/audience.type';
 import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
-import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
+
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 // @/src imports
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { IIdentityAdminOperations } from '@/src/modules/platforms/apis/interfaces/IIdentityOperations';
 import { PLATFORM_API_ENDPOINTS as API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
+import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
 
 interface ListRolesResponse {
   status: number;
