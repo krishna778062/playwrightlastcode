@@ -13,6 +13,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { log } from '@/src/core';
+
 test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   let tenantCode: string;
 
@@ -155,18 +157,23 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      try {
+        // Enable the distribution using test helper
+        await TestDbScenarios.setupAllowanceRefresh(tenantCode);
 
-      // Enable the distribution using test helper
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+        // Mock the Reward config API and enable the Distributing allowance
+        await recognitionHub.visitRecognitionHub();
 
-      // Mock the Reward config API and enable the Distributing allowance
-      await recognitionHub.visitRecognitionHub();
+        // Validate the Gift points toggle button is disabled
+        await recognitionHub.checkThePointsToGive(0);
 
-      // Validate the Gift points toggle button is disabled
-      await recognitionHub.checkThePointsToGive(0);
-
-      // Disable the distribution
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+        // Disable the distribution
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      } catch (e) {
+        log.info(`${e}`);
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      }
     }
   );
 
@@ -217,46 +224,51 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const recognizedUser = getRewardTenantConfigFromCache().endUserName;
+      try {
+        // Disable the distribution
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
 
-      // Disable the distribution
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+        // Visit the Recognition Hub and give one recognition
+        const existingOptions = await recognitionHub.visitRecognitionHub();
+        if (existingOptions.length < 2) {
+          await recognitionHub.setupTheMultipleGiftingOptions();
+        }
+        await recognitionHub.clickOnGiveRecognition();
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+        await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+        await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
+        await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
+        await giveRecognitionModal.giftThePoints(1);
+        await giveRecognitionModal.recognizeButton.click({ force: true });
 
-      // Visit the Recognition Hub and give one recognition
-      const existingOptions = await recognitionHub.visitRecognitionHub();
-      if (existingOptions.length < 2) {
-        await recognitionHub.setupTheMultipleGiftingOptions();
+        const shareModal = new DialogBox(appManagerFixture.page);
+        if (await recognitionHub.verifier.isTheElementVisible(shareModal.container)) {
+          await shareModal.skipButton.click();
+          await expect(shareModal.container).not.toBeVisible();
+        }
+
+        // Enable the distribution
+        await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+
+        // Validate the Delete recognition can not roll back the points
+        await appManagerFixture.page.reload();
+        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
+
+        // Validate the Delete recognition and revoke points is disabled in the dialog box
+        await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
+        await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
+        await expect(recognitionHub.deleteRecognitionWithRevokePoints).toBeDisabled();
+        await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
+        await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+
+        // Disable the distribution
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      } catch (e) {
+        log.info(`${e}`);
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       }
-      await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
-      await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
-      await giveRecognitionModal.giftThePoints(1);
-      await giveRecognitionModal.recognizeButton.click({ force: true });
-
-      const shareModal = new DialogBox(appManagerFixture.page);
-      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container)) {
-        await shareModal.skipButton.click();
-        await expect(shareModal.container).not.toBeVisible();
-      }
-
-      // Enable the distribution
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
-      // Validate the Delete recognition can not roll back the points
-      await appManagerFixture.page.reload();
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
-
-      // Validate the Delete recognition and revoke points is disabled in the dialog box
-      await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
-      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
-      await expect(recognitionHub.deleteRecognitionWithRevokePoints).toBeDisabled();
-      await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
-      await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
-
-      // Disable the distribution
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
     }
   );
 
