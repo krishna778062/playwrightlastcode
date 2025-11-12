@@ -76,35 +76,92 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
   /**
    * Attempts to paste an image file into the tiptap editor in the share modal
    * Creates a simple test image blob and simulates paste event
+   * Uses the shareDescriptionInput locator to ensure we're targeting the correct editor
    */
   async attemptImagePaste(): Promise<void> {
     await test.step(`Attempt to paste image file into share modal editor`, async () => {
+      // Ensure the editor is visible and focused
+      await this.verifier.verifyTheElementIsVisible(this.shareDescriptionInput, {
+        assertionMessage: 'Share description input should be visible before attempting paste',
+      });
       await this.shareDescriptionInput.focus();
-      await this.page.evaluate(() => {
+
+      // Wait for the editor to be ready by checking if it's focused
+      await this.shareDescriptionInput.evaluate(el => {
         return new Promise<void>(resolve => {
-          // Create a simple 1x1 pixel PNG image blob
-          const canvas = document.createElement('canvas');
-          canvas.width = 1;
-          canvas.height = 1;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = '#FF0000';
-            ctx.fillRect(0, 0, 1, 1);
-          }
-          canvas.toBlob(blob => {
-            if (blob) {
-              const file = new File([blob], 'test-image.png', { type: 'image/png' });
-              const dataTransfer = new DataTransfer();
-              dataTransfer.items.add(file);
-              const editor = document.querySelector('[role="textbox"][aria-label*="content editor"]') as HTMLElement;
-              editor.dispatchEvent(
-                new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dataTransfer as any })
-              );
-            }
+          if (document.activeElement === el) {
             resolve();
-          }, 'image/png');
+          } else {
+            // Wait a short time for focus to take effect
+            setTimeout(() => resolve(), 100);
+          }
         });
       });
+
+      // Use evaluateHandle to get the actual DOM element from the locator
+      const editorHandle = await this.shareDescriptionInput.elementHandle();
+      if (!editorHandle) {
+        throw new Error('Share description input element not found');
+      }
+
+      // Create and dispatch the paste event with image data
+      await this.page.evaluate(editorElement => {
+        return new Promise<void>((resolve, reject) => {
+          try {
+            // Create a simple 1x1 pixel PNG image blob
+            const canvas = document.createElement('canvas');
+            canvas.width = 1;
+            canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = '#FF0000';
+              ctx.fillRect(0, 0, 1, 1);
+            }
+
+            canvas.toBlob(
+              blob => {
+                try {
+                  if (!blob) {
+                    reject(new Error('Failed to create image blob'));
+                    return;
+                  }
+
+                  // Create a File object from the blob
+                  const file = new File([blob], 'test-image.png', { type: 'image/png' });
+
+                  // Create DataTransfer object with the file
+                  const dataTransfer = new DataTransfer();
+                  dataTransfer.items.add(file);
+
+                  // Create and dispatch paste event on the editor element
+                  const pasteEvent = new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: dataTransfer as any,
+                  });
+
+                  // Focus the editor element before dispatching the event
+                  if (editorElement instanceof HTMLElement) {
+                    editorElement.focus();
+                    editorElement.dispatchEvent(pasteEvent);
+                  } else {
+                    reject(new Error('Editor element is not an HTMLElement'));
+                    return;
+                  }
+
+                  resolve();
+                } catch (error) {
+                  reject(error);
+                }
+              },
+              'image/png',
+              0.95
+            );
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }, editorHandle);
     });
   }
 

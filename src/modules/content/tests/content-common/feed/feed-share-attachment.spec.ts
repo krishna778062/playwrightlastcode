@@ -93,6 +93,7 @@ test.describe(
       adminFeedPage = new FeedPage(appManagerFixture.page);
 
       // Navigate to Home-Global Feed as Admin
+      await appManagerFixture.homePage.loadPage();
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       await appManagerFixture.navigationHelper.clickOnGlobalFeed();
       await adminFeedPage.verifyThePageIsLoaded();
@@ -202,6 +203,8 @@ test.describe(
         await endUserFeedPage.assertions.verifyShareModalIsOpen();
         // Attempt to paste an image (simulates user pasting image from clipboard)
         await endUserFeedPage.actions.attemptImagePasteInShareModal();
+
+        await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.IMAGE_ADDED_TO_ATTACHMENTS);
 
         // Verify no attachments are visible
         await endUserFeedPage.assertions.verifyNoAttachmentsInShareModal();
