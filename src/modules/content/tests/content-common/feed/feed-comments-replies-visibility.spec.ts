@@ -265,9 +265,11 @@ test.describe(
         const mostRecentComment = commentTexts[commentTexts.length - 1];
         await homeFeedPage.assertions.waitForPostToBeVisible(mostRecentComment);
 
+        const secondRecentComment = commentTexts[commentTexts.length - 2];
+
         // Verify only 1 feed post (recent) is visible
         // The most recent comment should already be visible from step 5
-        await homeFeedPage.assertions.verifyReplyCount(mostRecentComment, 1);
+        await homeFeedPage.assertions.verifyPostIsNotVisible(secondRecentComment);
 
         // Click "All Comments" from home feed dashboard
         await contentPreviewPage.actions.clickAllCommentsLink();

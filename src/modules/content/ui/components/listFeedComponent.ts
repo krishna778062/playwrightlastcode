@@ -291,6 +291,14 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyPostIsNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify post is not visible: "${postText}"`, async () => {
+      const postLocator = this.getFeedTextLocator(postText);
+      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
+        assertionMessage: `Post "${postText}" should not be visible`,
+      });
+    });
+  }
   /**
    * Adds a reply to a specific post
    * @param postText - The text of the post to reply to
