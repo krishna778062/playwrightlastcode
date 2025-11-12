@@ -6,7 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 // import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@platforms/apis/payloads/createAudienceAPI';
-import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_FEATURE_FOR_API,ACG_STATUS } from '@platforms/constants/acg';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_FEATURE_FOR_API, ACG_STATUS } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
