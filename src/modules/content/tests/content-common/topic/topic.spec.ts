@@ -249,7 +249,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41624'],
     },
-    async ({ appManagerFixture }) => {
+    async ({ appManagerFixture, standardUserFixture }) => {
       tagTest(test.info(), {
         description: 'verify standard user is able to add topic in Content page/Album/Event',
         zephyrTestId: 'CONT-41624',
@@ -260,6 +260,11 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await feedPage.actions.clickShareThoughtsButton();
       const topicName = faker.lorem.words(2);
       await feedPage.actions.createAndPostWithTopic(`test topic`, topicName);
+      await feedPage.actions.addReplyToPost(`test reply`);
+      const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+      await standardUserFixture.navigationHelper.clickOnFeedSideMenu();
+      await standardUserFeedPage.actions.addReplyToPost(`test reply from standard user`);
+
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
