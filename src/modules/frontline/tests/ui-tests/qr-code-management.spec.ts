@@ -35,7 +35,7 @@ test.describe(
     test(
       '[FL-433] Verify content QR share option via promotion manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
       },
       async ({ promotionManagerHomePage }) => {
         tagTest(test.info(), {
@@ -94,7 +94,7 @@ test.describe(
     test(
       'scenario: Verify delete app promotion QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -116,7 +116,7 @@ test.describe(
     test(
       'scenario: Verify delete content QR code',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {

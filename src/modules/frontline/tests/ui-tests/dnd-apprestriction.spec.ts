@@ -16,7 +16,7 @@ test.describe(
     test(
       '[FL-488] Verify Display of DND and App Restrictions Tab for App Manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.DND, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P1, FrontlineFeatureTags.DND],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

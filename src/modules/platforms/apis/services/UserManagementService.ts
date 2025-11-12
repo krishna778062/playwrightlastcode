@@ -93,6 +93,7 @@ export class UserManagementService implements IUserManagementOperations {
 
     return await this.httpClient.parseResponse<AddUserResponse>(response);
   }
+
   async addUserWithEmail(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
     const roleId = await this.identityService.fetchRoleId(role);
 
@@ -165,9 +166,6 @@ export class UserManagementService implements IUserManagementOperations {
 
     // Add work_info if employee number is provided
     if (user.emp && user.emp.trim() !== '') {
-      // Enable employee number login if not already enabled
-      await this.identityService.enableLoginIdentifiers(['employee_number']);
-
       data.work_info = {
         employee_number: user.emp,
         department: user.department || this.defaultDepartment,

@@ -121,7 +121,7 @@ test.describe(
     test(
       '[FL-453] Verify content QR Enable Status',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage, qrManagementService }) => {
         tagTest(test.info(), {
@@ -157,7 +157,7 @@ test.describe(
     test(
       '[FL-212] Verify creation of content promotion QR from app manager',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
       },
       async ({ appManagerHomePage }) => {
         tagTest(test.info(), {

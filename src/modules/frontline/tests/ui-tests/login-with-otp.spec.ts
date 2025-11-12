@@ -141,7 +141,7 @@ test.describe(
     test(
       'scenario: Verify added user try to login and enter both mobile and email,when LWO is set as optional',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, otpUtils }) => {
         tagTest(test.info(), {
@@ -206,7 +206,7 @@ test.describe(
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as mandatory',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
@@ -247,7 +247,7 @@ test.describe(
     test(
       'scenario: Verify added user try to login and enter mobile only,when LWO is set as mandatory',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, otpUtils }) => {
         tagTest(test.info(), {
@@ -351,7 +351,7 @@ test.describe(
     test(
       'scenario: Verify activated user try to login with email as login identifiers,when LWO is set as optional',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
@@ -465,7 +465,7 @@ test.describe(
     test(
       'scenario: Verify activated user try to login with email and employee number as login identifiers,when LWO is set as mandatory',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
