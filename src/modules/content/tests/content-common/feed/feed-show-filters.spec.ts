@@ -133,7 +133,7 @@ test.describe(
         });
 
         // Wait for shared post to appear
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage);      
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage);
 
         await adminFeedPage.reloadPage();
 
@@ -148,7 +148,7 @@ test.describe(
         await adminFeedPage.assertions.waitForPostToBeVisible(postText); // Admin's own post
       }
     );
-  
+
     test(
       'posts I Follow: Verify Admin sees posts from users he follows and his own posts',
       {
@@ -211,7 +211,7 @@ test.describe(
         await adminFeedPage.assertions.verifyPostIsNotVisible(postText);
       }
     );
-  
+
     test(
       'favourited Posts: Verify Admin sees only favourited posts',
       {
