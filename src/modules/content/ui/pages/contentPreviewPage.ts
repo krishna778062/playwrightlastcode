@@ -28,6 +28,7 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -315,5 +316,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
   }
 }
