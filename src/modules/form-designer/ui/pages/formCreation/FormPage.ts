@@ -98,7 +98,6 @@ export class FormCreationPage extends BasePage {
   async dragAndDropElement(source: string | Locator, target: string | Locator = this.dragAndDropArea): Promise<void> {
     const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
     const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
-    await this.page.waitForTimeout(1000);
     await test.step('Drag and drop element on Form creation page', async () => {
       await dragAndDrop(this.page, srcLocator, tgtLocator);
     });
