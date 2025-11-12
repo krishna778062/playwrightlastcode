@@ -28,6 +28,7 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -310,5 +311,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await test.step('Click on Option menu button', async () => {
       await this.clickOnElement(this.optionMenuDropdown);
     });
+  }
+
+  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
   }
 }
