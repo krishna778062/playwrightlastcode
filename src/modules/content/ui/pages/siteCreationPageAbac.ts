@@ -105,7 +105,7 @@ export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageA
         isPrivate: options.type === SiteType.PRIVATE,
       });
 
-      // Target Audience selection prior to submission
+      // Site visibility selection prior to submission
       if (options.audienceName) {
         await this.form.setupSpecificAudience(options.audienceName);
       } else {
