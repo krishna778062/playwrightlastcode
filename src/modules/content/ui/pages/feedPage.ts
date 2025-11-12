@@ -690,11 +690,11 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       });
     });
   }
-  
+
   async clickShareButtonOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareButtonOnPost(postText);
   }
-  
+
   async attemptImagePasteInShareModal(): Promise<void> {
     await this.shareComponent.attemptImagePaste();
   }
@@ -702,7 +702,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyNoAttachmentsInShareModal(): Promise<void> {
     await this.shareComponent.assertions.verifyNoAttachmentsInShareModal();
   }
-  
+
   async verifyShareModalIsFunctional(): Promise<void> {
     await this.shareComponent.assertions.verifyShareModalIsFunctional();
   }
@@ -714,7 +714,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       });
     });
   }
-  
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }

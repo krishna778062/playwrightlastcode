@@ -144,7 +144,7 @@ test.describe(
         // Create a Feed post with mentions, topics, and a message
         await test.step('Create a Feed post with mentions, topics, and a message', async () => {
           const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-          const embedUrl = 'https://www.youtube.com/watch?v=F_77M3ZZ1z8';
+          const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
 
           // Click "Share your thoughts" button
           await adminFeedPage.actions.clickShareThoughtsButton();
