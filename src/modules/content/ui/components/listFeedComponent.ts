@@ -58,7 +58,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyContainer = this.page.locator('._reply_1ii4b_1');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
 
-
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);
     return reply.locator('..').locator('..').locator('._reply_1ii4b_1').getByRole('button', { name: 'Image PDF' });

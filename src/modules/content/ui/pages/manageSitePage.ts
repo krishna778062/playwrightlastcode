@@ -141,7 +141,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
    */
   async setExternalFilesProvider(provider: string): Promise<void> {
     await test.step(`Set External Files provider to ${provider}`, async () => {
-
       // Wait for External Files section to be visible
       await this.verifier.verifyTheElementIsVisible(this.externalFilesSection, {
         assertionMessage: 'External Files section should be visible',
