@@ -11,6 +11,7 @@ export interface FeedPostOptions {
   attachments?: {
     files: string[];
   };
+  embedUrl?: string;
 }
 
 export interface FeedPostResult {
@@ -245,12 +246,15 @@ export class CreateFeedPostComponent
    * @param currentText - Current text of the post to edit
    * @param newText - New text to update the post with
    */
-  async editPost(currentText: string, newText: string): Promise<void> {
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
     await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
       await this.openPostOptionsMenu(currentText);
       await this.clickEditOption();
       await this.verifyEditorVisible();
       await this.updatePostText(newText);
+      if (embedUrl) {
+        await this.addEmbedUrl(embedUrl);
+      }
       await this.clickUpdateButton();
       // Note: Post verification should be done at test/page level to avoid duplication
     });
