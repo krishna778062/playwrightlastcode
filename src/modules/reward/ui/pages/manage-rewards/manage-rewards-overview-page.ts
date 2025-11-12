@@ -802,6 +802,13 @@ export class ManageRewardsOverviewPage extends BasePage {
         timeout: 15000,
       });
       await this.clickOnDisabledRewardsAddEditPeerGiftingButton();
+      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
+        await manageRecognitionPage.rewardsAllowance.saveAmount();
+        await manageRecognitionPage.peerGifting.visit();
+        await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
+      }
       await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRecognitionPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
       await manageRecognitionPage.peerGifting.saveButton.click();
@@ -822,6 +829,14 @@ export class ManageRewardsOverviewPage extends BasePage {
       await manageRecognitionPage.verifier.waitUntilElementIsVisible(
         manageRecognitionPage.peerGifting.peerGiftingHeading
       );
+      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.verifyThePageIsLoaded();
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
+        await manageRecognitionPage.rewardsAllowance.saveAmount();
+        await manageRecognitionPage.peerGifting.visit();
+        await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
+      }
       await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
       await manageRecognitionPage.peerGifting.saveButton.click();
       await manageRecognitionPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
