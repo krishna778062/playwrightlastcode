@@ -31,6 +31,7 @@ export interface IContentPreviewPageActions {
   clickAllCommentsLink: () => Promise<void>;
   clickShowMoreCommentsButton: () => Promise<void>;
   getVisibleCommentCount: () => Promise<number>;
+  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -374,5 +375,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       const allCommentsLink = this.page.getByRole('link', { name: 'All comments' }).first();
       await this.clickOnElement(allCommentsLink);
     });
+  }
+  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
   }
 }
