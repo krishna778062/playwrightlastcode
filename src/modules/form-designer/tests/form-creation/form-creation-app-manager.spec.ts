@@ -350,7 +350,7 @@ test.describe(
     test(
       'multi Select: Drag and Drop Multi Select component into the Canvas',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION, '@drag'],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -372,7 +372,7 @@ test.describe(
     test(
       'single Select: Drag and Drop Single Select component into the Canvas',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION, '@drag'],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -394,7 +394,7 @@ test.describe(
     test(
       'dropdown: Drag and Drop Dropdown component into the Canvas',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, FormSuiteTags.FORM_CREATION, '@drag'],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
