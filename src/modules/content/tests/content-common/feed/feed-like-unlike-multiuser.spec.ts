@@ -196,7 +196,7 @@ test.describe(
     test(
       'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24918'],
       },
       async ({ siteManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
