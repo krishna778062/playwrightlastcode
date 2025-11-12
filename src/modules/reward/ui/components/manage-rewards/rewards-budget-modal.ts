@@ -123,39 +123,55 @@ export class RewardsBudgetModal extends BasePage {
     );
   }
 
-  async setFinancialYearStartDate(dateType: 'past' | 'future' | 'present'): Promise<number[]> {
-    const now = new Date();
-    let targetDate: Date;
+  private daysBetweenInclusive(start: Date, end: Date): number {
+    const timeDiff = end.getTime() - start.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+  }
 
-    switch (dateType) {
-      case 'past':
-        targetDate = new Date(now.getFullYear() - 1, 0, 1); // January 1st of last year
-        break;
-      case 'future':
-        targetDate = new Date(now.getFullYear() + 1, 0, 1); // January 1st of next year
-        break;
-      case 'present':
-      default:
-        targetDate = new Date(now.getFullYear(), 0, 1); // January 1st of current year
-        break;
+  private daysBetweenExclusive(date1: Date, date2: Date): number {
+    const diffMs = date2.getTime() - date1.getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  // Methods for RC-3055 test
+  async setFinancialYearStartDate(dateType: 'future' | 'past'): Promise<number[]> {
+    const today = new Date();
+    let month: number;
+    let day: number;
+
+    if (dateType === 'future') {
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      month = tomorrow.getMonth() + 1;
+      day = tomorrow.getDate();
+    } else if (dateType === 'past') {
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      month = yesterday.getMonth() + 1;
+      day = yesterday.getDate();
+    } else {
+      month = today.getMonth();
+      day = today.getDate();
     }
 
-    return [targetDate.getMonth(), targetDate.getDate()];
+    console.log(`Setting financial year start to -> Month: ${month}, Day: ${day}`);
+    await this.page.selectOption('select[name="month"]', month.toString());
+    await this.page.selectOption('select[name="day"]', day.toString());
+    return [month, day];
   }
 
   async daysUntilSelectedUTC(selectedMonth: number, selectedDay: number): Promise<number> {
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const targetDate = this.toUTCDate(currentYear, selectedMonth, selectedDay);
-    const today = this.toUTCDate(currentYear, now.getMonth(), now.getDate());
-
-    if (targetDate < today) {
-      const nextYear = currentYear + 1;
-      const nextTargetDate = this.toUTCDate(nextYear, selectedMonth, selectedDay);
-      return this.daysBetweenInclusive(today, nextTargetDate);
+    const utcYear = now.getUTCFullYear();
+    const utcMonthIndex = selectedMonth - 1; // JS Date monthIndex 0..11
+    let candidate = new Date(Date.UTC(utcYear, utcMonthIndex, selectedDay, 0, 0, 0, 0));
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    if (candidate <= todayUTC) {
+      candidate = new Date(Date.UTC(utcYear + 1, utcMonthIndex, selectedDay, 0, 0, 0, 0));
     }
-
-    return this.daysBetweenInclusive(today, targetDate);
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const diffMs = candidate.getTime() - todayUTC.getTime();
+    return Math.round(diffMs / msPerDay);
   }
 
   private toUTCDate(y: number, m: number, d: number): Date {
@@ -163,38 +179,50 @@ export class RewardsBudgetModal extends BasePage {
   }
 
   private addMonthsUTC(d: Date, monthsToAdd: number): Date {
-    const result = new Date(d);
-    result.setUTCMonth(result.getUTCMonth() + monthsToAdd);
-    return result;
-  }
-
-  private daysBetweenInclusive(start: Date, end: Date): number {
-    const timeDiff = end.getTime() - start.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+    const y = d.getUTCFullYear();
+    const m = d.getUTCMonth() + monthsToAdd;
+    const targetYear = Math.floor(m / 12) + y;
+    const targetMonth = ((m % 12) + 12) % 12;
+    const day = d.getUTCDate();
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    return this.toUTCDate(targetYear, targetMonth, Math.min(day, lastDay));
   }
 
   async calculateQuarterDates(selectedMonth: number, selectedDay: number) {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const targetDate = this.toUTCDate(currentYear, selectedMonth, selectedDay);
-    const today = this.toUTCDate(currentYear, now.getMonth(), now.getDate());
+    const today = new Date();
+    const todayUTC = this.toUTCDate(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
 
-    let quarterStart: Date;
-    let quarterEnd: Date;
+    const fyCandidate = (() => {
+      let d = this.toUTCDate(todayUTC.getUTCFullYear(), selectedMonth - 1, selectedDay);
+      if (d > todayUTC) d = this.toUTCDate(todayUTC.getUTCFullYear() - 1, selectedMonth - 1, selectedDay);
+      return d;
+    })();
 
-    if (targetDate < today) {
-      const nextYear = currentYear + 1;
-      quarterStart = this.toUTCDate(nextYear, selectedMonth, selectedDay);
-      quarterEnd = this.addMonthsUTC(quarterStart, 3);
-    } else {
-      quarterStart = targetDate;
-      quarterEnd = this.addMonthsUTC(quarterStart, 3);
+    // quarter starts
+    const qStarts = [
+      fyCandidate,
+      this.addMonthsUTC(fyCandidate, 3),
+      this.addMonthsUTC(fyCandidate, 6),
+      this.addMonthsUTC(fyCandidate, 9),
+    ];
+
+    let qStart = qStarts[0];
+    let qEnd = this.addMonthsUTC(qStart, 3);
+    for (const qs of qStarts) {
+      const qe = this.addMonthsUTC(qs, 3);
+      const qeMinusOne = new Date(qe.getTime() - 24 * 60 * 60 * 1000);
+      if (todayUTC >= qs && todayUTC <= qeMinusOne) {
+        qStart = qs;
+        qEnd = qe;
+        break;
+      }
     }
 
-    const totalDays = this.daysBetweenInclusive(quarterStart, quarterEnd);
-    const remainingDays = this.daysBetweenInclusive(today, quarterEnd);
+    const qEndInclusive = new Date(qEnd.getTime() - 24 * 60 * 60 * 1000);
+    const totalDays = this.daysBetweenInclusive(qStart, qEndInclusive);
+    const remainingDays = this.daysBetweenInclusive(todayUTC, qEndInclusive);
 
-    return { totalDays, remainingDays };
+    return { qStart, qEndInclusive, totalDays, remainingDays };
   }
 
   verifyThePageIsLoaded(): Promise<void> {

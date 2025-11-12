@@ -793,61 +793,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     );
   }
 
-  // Methods for RC-3055 test
-  async setFinancialYearStartDate(type: 'future' | 'past'): Promise<number[]> {
-    // This is a placeholder method - in the actual implementation, this would interact with date picker
-    // For now, return mock values that would be used in calculations
-    const currentDate = new Date();
-    if (type === 'future') {
-      const futureMonth = (currentDate.getMonth() + 3) % 12; // 3 months in the future
-      const futureDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
-      return [futureMonth, futureDay];
-    } else {
-      const pastMonth = (currentDate.getMonth() - 3 + 12) % 12; // 3 months in the past
-      const pastDay = Math.min(currentDate.getDate(), 28); // Ensure valid day
-      return [pastMonth, pastDay];
-    }
-  }
-
-  async daysUntilSelectedUTC(month: number, day: number): Promise<number> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const selectedDate = new Date(currentYear, month, day);
-    const now = new Date();
-
-    // If the selected date is in the past, calculate days until next year
-    if (selectedDate < now) {
-      const nextYearDate = new Date(currentYear + 1, month, day);
-      return Math.ceil((nextYearDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    } else {
-      return Math.ceil((selectedDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    }
-  }
-
-  async calculateQuarterDates(month: number, day: number): Promise<{ totalDays: number; remainingDays: number }> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const selectedDate = new Date(currentYear, month, day);
-
-    // Determine which quarter the selected date falls into
-    const quarterStartMonth = Math.floor(month / 3) * 3;
-    const quarterStartDate = new Date(currentYear, quarterStartMonth, 1);
-    const quarterEndDate = new Date(currentYear, quarterStartMonth + 3, 0);
-
-    const totalDays = Math.ceil((quarterEndDate.getTime() - quarterStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
-    let remainingDays: number;
-    if (selectedDate < currentDate) {
-      // If selected date is in the past, calculate the remaining days in the quarter
-      remainingDays = Math.ceil((quarterEndDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-    } else {
-      // If the selected date is in the future, calculate days from selected date to end of quarter
-      remainingDays = Math.ceil((quarterEndDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24));
-    }
-
-    return { totalDays, remainingDays: Math.max(0, remainingDays) };
-  }
-
   async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
     const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     if (!isRewardEnabled && !isPeerGiftingDisabled) {

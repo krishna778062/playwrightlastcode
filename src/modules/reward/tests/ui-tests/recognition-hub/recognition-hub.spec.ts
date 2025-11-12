@@ -314,7 +314,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
-      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsTextNew = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });

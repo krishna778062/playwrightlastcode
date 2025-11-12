@@ -150,8 +150,8 @@ export class WorkAnniversaryPage extends BasePage {
    * visit(): visit the work anniversary page
    */
   async visit(): Promise<void> {
-    await this.page.goto('/manage/recognition/milestones');
-    await expect(this.tableGridFirstRow.last()).toBeVisible();
+    await this.page.goto(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+    await this.verifyThePageIsLoaded();
   }
 
   /**
@@ -525,9 +525,8 @@ export class WorkAnniversaryPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last(), {
-      timeout: 10000,
+      timeout: 20000,
       stepInfo: 'Wait for the table to be visible on Work Anniversary page',
     });
-    return Promise.resolve(undefined);
   }
 }

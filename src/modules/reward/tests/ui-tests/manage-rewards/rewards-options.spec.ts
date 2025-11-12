@@ -194,13 +194,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
       await rewardOptionsPage.setTheRewardsOptionsFeatureFlag(true);
       await rewardOptionsPage.loadPage();
-
-      // Wait for API response
-      const rewardApiPromise = appManagerFixture.page.waitForResponse(
-        response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
-      );
-      await rewardApiPromise;
-
+      await rewardOptionsPage.verifyThePageIsLoaded();
       // Verify the Rewards Options page elements are visible on rewards_options Flag enabled
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disableRewardLink);
       await rewardOptionsPage.loadPage();

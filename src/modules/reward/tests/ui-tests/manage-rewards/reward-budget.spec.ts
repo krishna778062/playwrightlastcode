@@ -900,30 +900,33 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         manageRewardsPage.budgetModal.budgetInputErrorMessage
       );
 
-      const currentlySelectedMonthAndDate: number[] = await manageRewardsPage.setFinancialYearStartDate('future');
+      const currentlySelectedMonthAndDate: number[] =
+        await manageRewardsPage.budgetModal.setFinancialYearStartDate('future');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
       );
       const [selectedMonth, selectedDay] = currentlySelectedMonthAndDate;
-      const remainingDays = await manageRewardsPage.daysUntilSelectedUTC(selectedMonth, selectedDay);
+      const remainingDays = await manageRewardsPage.budgetModal.daysUntilSelectedUTC(selectedMonth, selectedDay);
       const totalDays = 365;
       const expectedProRata = Math.round((monthlySpent + 1) * (remainingDays / totalDays));
       const proRataText = await manageRewardsPage.budgetModal.proRataValue.inputValue();
       const proRataValue = Number(proRataText.replace(/[^0-9.]/g, ''));
-      expect(Math.abs(proRataValue - expectedProRata)).toBeLessThanOrEqual(1);
       expect(proRataValue).toEqual(expectedProRata);
 
-      const currentlySelectedMonthAndDatePast: number[] = await manageRewardsPage.setFinancialYearStartDate('past');
+      const currentlySelectedMonthAndDatePast: number[] =
+        await manageRewardsPage.budgetModal.setFinancialYearStartDate('past');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
       );
       const [selectedMonthPast, selectedDayPast] = currentlySelectedMonthAndDatePast;
-      const remainingDaysPast = await manageRewardsPage.daysUntilSelectedUTC(selectedMonthPast, selectedDayPast);
+      const remainingDaysPast = await manageRewardsPage.budgetModal.daysUntilSelectedUTC(
+        selectedMonthPast,
+        selectedDayPast
+      );
       const totalDaysPast = 365;
       const expectedProRataPast = Math.round((monthlySpent + 1) * (remainingDaysPast / totalDaysPast));
       const proRataTextPast = await manageRewardsPage.budgetModal.proRataValue.inputValue();
       const proRataValuePast = Number(proRataTextPast.replace(/[^0-9.]/g, ''));
-      expect(Math.abs(proRataValuePast - expectedProRataPast)).toBeLessThanOrEqual(1);
       expect(proRataValuePast).toEqual(expectedProRataPast);
 
       await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
@@ -939,24 +942,28 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         manageRewardsPage.budgetModal.budgetInputErrorMessage
       );
 
-      const [selectedMonthQuarterly, selectedDayQuarterly] = await manageRewardsPage.setFinancialYearStartDate('past');
+      const [selectedMonthQuarterly, selectedDayQuarterly] =
+        await manageRewardsPage.budgetModal.setFinancialYearStartDate('past');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
       );
       const { totalDays: totalDaysQuarterly, remainingDays: remainingDaysQuarterly } =
-        await manageRewardsPage.calculateQuarterDates(selectedMonthQuarterly, selectedDayQuarterly);
+        await manageRewardsPage.budgetModal.calculateQuarterDates(selectedMonthQuarterly, selectedDayQuarterly);
       const expectedQuarterProRata = Math.round((monthlySpent + 1) * (remainingDaysQuarterly / totalDaysQuarterly));
       const proRataTextQuarterly = await manageRewardsPage.budgetModal.proRataValue.inputValue();
       const proRataValueQuarterly = Number(proRataTextQuarterly.replace(/[^0-9.]/g, ''));
       expect(proRataValueQuarterly).toEqual(expectedQuarterProRata);
 
       const [selectedMonthQuarterlyFuture, selectedDayQuarterlyFuture] =
-        await manageRewardsPage.setFinancialYearStartDate('future');
+        await manageRewardsPage.budgetModal.setFinancialYearStartDate('future');
       await manageRewardsPage.selectRadioIfNotSelected(
         manageRewardsPage.budgetModal.budgetBalanceApplicationProRATABudget
       );
       const { totalDays: totalDaysQuarterlyFuture, remainingDays: remainingDaysQuarterlyFuture } =
-        await manageRewardsPage.calculateQuarterDates(selectedMonthQuarterlyFuture, selectedDayQuarterlyFuture);
+        await manageRewardsPage.budgetModal.calculateQuarterDates(
+          selectedMonthQuarterlyFuture,
+          selectedDayQuarterlyFuture
+        );
       const expectedQuarterProRataFuture = Math.round(
         (monthlySpent + 1) * (remainingDaysQuarterlyFuture / totalDaysQuarterlyFuture)
       );
