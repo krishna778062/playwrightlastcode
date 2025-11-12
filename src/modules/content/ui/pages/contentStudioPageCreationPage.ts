@@ -5,11 +5,14 @@ import { IPageCreationActions, IPageCreationAssertions, PageCreationPage } from 
 
 export interface IContentStudioPageCreationActions extends IPageCreationActions {
   clickAddCoverImageIcon: () => Promise<void>;
+  clickOnOptionsButtonAndSelectAddCoverImageTab: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => Promise<void>;
+  clickOnopenMediaManagerDialog: () => Promise<void>;
 }
 
 export interface IContentStudioPageCreationAssertions extends IPageCreationAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyCoverImageModalTabIsVisible: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => Promise<void>;
+  verifyopenMediaManagerDialogIsVisible: () => Promise<void>;
 }
 
 export class ContentStudioPageCreationPage
@@ -24,7 +27,8 @@ export class ContentStudioPageCreationPage
   constructor(page: Page, siteId?: string) {
     super(page, siteId);
     // Cover image modal locators
-    this.addCoverImageIcon = page.getByRole('button', { name: 'Add cover image' });
+    // Use exact match to avoid strict-mode ambiguity with wrapper elements
+    this.addCoverImageIcon = page.getByRole('button', { name: /^Add cover image$/ });
     this.coverTitleInput = page.locator("textarea[name='cover-title']");
     this.addCoverImageComponent = new AddCoverImageComponent(page);
   }
@@ -63,5 +67,25 @@ export class ContentStudioPageCreationPage
    */
   async verifyCoverImageModalTabIsVisible(tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash'): Promise<void> {
     await this.addCoverImageComponent.verifyCoverImageModalTabIsVisible(tab);
+  }
+  async verifyopenMediaManagerDialogIsVisible(): Promise<void> {
+    await test.step('Verify open media manager dialog is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addCoverImageComponent.openMediaManagerDialog, {
+        assertionMessage: 'Open media manager dialog should be visible',
+      });
+    });
+  }
+  async clickOnopenMediaManagerDialog(): Promise<void> {
+    await test.step('Click on open media manager dialog', async () => {
+      await this.clickOnElement(this.addCoverImageComponent.openMediaManagerDialog);
+    });
+  }
+  /**
+   * Clicks the options (tab) button and selects the provided tab in the Add Cover Image modal
+   */
+  async clickOnOptionsButtonAndSelectAddCoverImageTab(tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash'): Promise<void> {
+    await test.step(`Select '${tab}' tab in Add cover image modal`, async () => {
+      await this.clickOnElement(this.addCoverImageComponent.tabsOptions(tab));
+    });
   }
 }

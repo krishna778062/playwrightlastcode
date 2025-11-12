@@ -103,7 +103,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       .filter({ hasText: 'Select from computer' })
       .nth(1);
     this.imageCaptionInputBox = page.getByPlaceholder('Add image caption here');
-    this.uploadedCoverImagePreviewContainer = page.locator("[class*='Banner-imageContainer']");
+    this.uploadedCoverImagePreviewContainer = page.locator('.flex.h-full.w-full.items-center');
     this.uploadedCoverImagePreviewImage = this.uploadedCoverImagePreviewContainer.locator('img');
     this.categoryDropdown = page.locator('label[for="category"] + div input');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
@@ -298,10 +298,31 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    */
   async verifyUploadedCoverImagePreviewIsVisible(options?: { timeout?: number }): Promise<void> {
     await test.step(`Verifying that the uploaded cover image preview is visible`, async () => {
+      await this.page
+        .getByRole('dialog')
+        .filter({ hasText: /Media Manager|Intranet File Manager|Upload|Browse|URL|Unsplash/i })
+        .waitFor({ state: 'hidden', timeout: 10000 })
+        .catch(() => {});
+
+      await this.uploadedCoverImagePreviewImage.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
+
+      await this.page
+        .waitForFunction(
+          imgSelector => {
+            const img = document.querySelector(imgSelector) as HTMLImageElement | null;
+            return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
+          },
+          `.flex.h-full.w-full.items-center img`,
+          { timeout: 30000 }
+        )
+        .catch(() => {});
+
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImage, {
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
       });
+
+      await this.page.waitForTimeout(3000);
     });
   }
 
