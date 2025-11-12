@@ -4,73 +4,73 @@ on:
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
       module_name:
-        description: 'Select the module to test'
+        description: "Select the module to test"
         required: true
-        default: 'chat'
+        default: "chat"
         type: choice
         options:
-          - 'chat'
-          - 'platforms'
-          - 'global-search'
-          - 'reward'
-          - 'reward-settings'
-          - 'content'
-          - 'content-settings'
-          - 'content-studio'
-          - 'de'
-          - 'de-api'
-          - 'content-abac'
-          - 'frontline'
-          - 'integrations'
-          - 'recognition'
-          - 'alert-notification'
-          - 'employee-listening'
-          - 'form-designer'
+          - "chat"
+          - "platforms"
+          - "global-search"
+          - "reward"
+          - "reward-settings"
+          - "content"
+          - "content-settings"
+          - "content-studio"
+          - "de"
+          - "de-api"
+          - "content-abac"
+          - "frontline"
+          - "integrations"
+          - "recognition"
+          - "alert-notification"
+          - "employee-listening"
+          - "form-designer"
       priority_filter:
-        description: 'Select test cases by priority'
+        description: "Select test cases by priority"
         required: true
-        default: '@P0'
+        default: "@P0"
         type: choice
         options:
-          - '@P0'
-          - '@P1'
-          - 'all'
+          - "@P0"
+          - "@P1"
+          - "all"
       test_type:
-        description: 'Select the type of tests to run'
+        description: "Select the type of tests to run"
         required: true
-        default: 'all'
+        default: "all"
         type: choice
         options:
-          - '@smoke'
-          - '@regression'
-          - 'all'
+          - "@smoke"
+          - "@regression"
+          - "all"
       environment:
-        description: 'Select the environment to run tests against'
+        description: "Select the environment to run tests against"
         required: true
-        default: 'qa'
+        default: "qa"
         type: choice
         options:
-          - 'qa'
-          - 'uat'
-          - 'test'
-          - 'dev'
-          - 'prodUS'
-          - 'prodEU'
+          - "qa"
+          - "uat"
+          - "test"
+          - "dev"
+          - "prodUS"
+          - "prodEU"
       workers:
-        description: 'Number of parallel workers to run tests'
+        description: "Number of parallel workers to run tests"
         required: true
-        default: '3'
+        default: "3"
         type: choice
         options:
-          - '1'
-          - '2'
-          - '3'
-          - '4'
-          - '5'
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
       feature_tags:
-        description: 'Comma-separated list of feature tags to include in tests (e.g., @chat-attachment)'
+        description: "Comma-separated list of feature tags to include in tests (e.g., @chat-attachment)"
         required: false
-        default: 'all'
+        default: "all"
         type: string
 
 permissions:
@@ -159,8 +159,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
-          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
-          aws-region: 'us-west-2'
+          role-to-assume: "arn:aws:iam::693891728731:role/non-prod-deployer"
+          aws-region: "us-west-2"
           role-skip-session-tagging: true
           role-duration-seconds: 1200
 
@@ -236,11 +236,11 @@ jobs:
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
               const knownFailed = data.suites.flatMap(s =>
-                s.suites.flatMap(ss =>
-                  ss.specs.flatMap(sp =>
-                    sp.tests.filter(t =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
                       t.status === 'unexpected' &&
-                      t.annotations.some(a => a.type === 'known_failure')
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
                 )
