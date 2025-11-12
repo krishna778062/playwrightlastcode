@@ -23,4 +23,12 @@ export const MOBILE_DASHBOARD_METRICS = {
     title: 'Unique mobile content views',
     subtitle: 'The number of unique mobile users who viewed your content',
   },
+  MOBILE_DEVICE_LOGINS: {
+    title: 'Mobile device logins',
+    subtitle: 'App usage by platform: iOS, Android or both',
+  },
+  MOBILE_CONTENT_VIEWS_BY_TYPE: {
+    title: 'Mobile content views by type',
+    subtitle: 'Break up of total mobile content views by content type',
+  },
 } as const;
