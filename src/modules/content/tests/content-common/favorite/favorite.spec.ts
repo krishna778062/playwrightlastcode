@@ -16,7 +16,6 @@ test.describe('favorite', () => {
   test.beforeEach('Setup for favorite test', async ({ appManagerFixture }) => {
     sideNavBarComponent = new SideNavBarComponent(appManagerFixture.page);
     peopleScreenPage = new PeopleScreenPage(appManagerFixture.page);
-    profileScreenPage = new ProfileScreenPage(appManagerFixture.page, '1');
     favoritePage = new FavoritePage(appManagerFixture.page);
   });
 
@@ -25,24 +24,40 @@ test.describe('favorite', () => {
   test(
     'should navigate to favorite page and interact with user profile',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.FAVORITE, '@cont-38912'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.FAVORITE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'In Zeus to verify the favorite functionality',
-        zephyrTestId: 'CONT-38095',
-        storyId: 'CONT-38095',
+        description:
+          'To verify that no user details are removed from the favourite people tab when hovering the mouse over the user profile.',
+        zephyrTestId: 'CONT-27834',
+        storyId: 'CONT-27834',
       });
       await appManagerFixture.homePage.verifyThePageIsLoaded();
-      await sideNavBarComponent.clickOnPeople();
-      await peopleScreenPage.actions.gettingUserName();
+      await appManagerFixture.homePage.clickOnPeople();
+      await peopleScreenPage.actions.disableLimitResultToggle();
+      await peopleScreenPage.actions.gettingUserName(appManagerFixture.identityManagementHelper);
       await peopleScreenPage.actions.searchingAndOpeningUserProfile(peopleScreenPage.fullName);
       await peopleScreenPage.actions.openingUserProfile();
+
+      // Create ProfileScreenPage with the correct peopleId after getting user info
+      profileScreenPage = new ProfileScreenPage(appManagerFixture.page, peopleScreenPage.peopleId);
+      await profileScreenPage.verifyThePageIsLoaded();
       await profileScreenPage.actions.clickOnFavoriteOption();
       await sideNavBarComponent.clickOnFavorite();
       await favoritePage.actions.clickOnPeopleTab();
       await favoritePage.actions.searchingFavoriteUser(peopleScreenPage.fullName);
       await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
+
+      // Hover on user profile and verify details remain visible
+      await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
+      await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
+
+      // Verify contact icons are visible
+      await favoritePage.assertions.verifyContactIconsAreVisible(peopleScreenPage.fullName);
+
+      // Verify contact icons remain visible after hover
+      await favoritePage.assertions.verifyContactIconsRemainVisibleAfterHover(peopleScreenPage.fullName);
     }
   );
 });

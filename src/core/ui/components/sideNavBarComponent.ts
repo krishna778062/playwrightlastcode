@@ -252,11 +252,6 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
-  async clickOnPeople(options?: TestOptions): Promise<void> {
-    await test.step(options?.stepInfo || `side navbar: clicking on People`, async () => {
-      await this.clickOnElement(this.peopleButton);
-    });
-  }
   async clickOnFavorite(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
       await this.clickOnElement(this.favoriteButton);

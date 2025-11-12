@@ -19,6 +19,7 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly favoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Favorite' });
   readonly unfavoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Unfavorite' });
+  readonly favoriteTextLocator: Locator = this.page.getByTestId('desktop-layout').getByText('Favorite');
 
   readonly manageTopicsLink: Locator = this.page
     .getByRole('link', { name: 'Manage Topics' })
@@ -39,30 +40,28 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.copyProfileLinkOption, {
+      // Use "Show more" button as it's reliably present on profile pages
+      await this.verifier.verifyTheElementIsVisible(this.ellipsesButton, {
         assertionMessage: 'Profile screen page should be visible',
+        timeout: 10000,
       });
     });
   }
   async clickOnFavoriteOption(): Promise<void> {
     await test.step('Clicking on favorite option', async () => {
-      // Check if favoriteOption locator is found
-      const favoriteCount = await this.favoriteOption.count();
+      // Step 1: Click on "Show more" button (three dots)
+      await this.verifier.verifyTheElementIsVisible(this.ellipsesButton, {
+        assertionMessage: 'Show more button should be visible',
+        timeout: 10000,
+      });
+      await this.clickOnElement(this.ellipsesButton);
 
-      if (favoriteCount > 0) {
-        // If favoriteOption is found, click on it
-        await this.clickOnElement(this.favoriteOption);
-      } else {
-        // If unfavoriteOption is found, click on it, then click ellipsesButton, then click favoriteOption
-        const unfavoriteCount = await this.unfavoriteOption.count();
-        if (unfavoriteCount > 0) {
-          await this.clickOnElement(this.unfavoriteOption);
-          await this.clickOnElement(this.ellipsesButton);
-          await this.clickOnElement(this.favoriteOption);
-        } else {
-          throw new Error('Neither favoriteOption nor unfavoriteOption locator found');
-        }
-      }
+      // Step 2: Click on "Favorite" using the specific locator
+      await this.verifier.verifyTheElementIsVisible(this.favoriteTextLocator, {
+        assertionMessage: 'Favorite option should be visible after clicking Show more',
+        timeout: 10000,
+      });
+      await this.clickOnElement(this.favoriteTextLocator);
     });
   }
 
