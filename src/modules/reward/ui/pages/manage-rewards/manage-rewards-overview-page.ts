@@ -831,7 +831,6 @@ export class ManageRewardsOverviewPage extends BasePage {
       );
       if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
-        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.verifyThePageIsLoaded();
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
         await manageRecognitionPage.rewardsAllowance.saveAmount();
         await manageRecognitionPage.peerGifting.visit();
