@@ -61,6 +61,6 @@ test(
     await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.pointBalanceSummaryActionBarButton, {
       stepInfo: 'Clicking on Point Balance Summary Action Bar Button',
     });
-    await manageRewardsOverviewPage.peerGifting.enableThePeerGifting();
+    await manageRewardsOverviewPage.peerGifting.enableThePeerGifting('Immediately');
   }
 );

@@ -71,7 +71,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       const pointBalanceSummaryFooterButtonText =
         await manageRewardsPage.pointBalanceSummaryActionBarButton.textContent();
       if (pointBalanceSummaryFooterButtonText === 'Enable peer gifting') {
-        await manageRewardsPage.peerGifting.enableThePeerGifting();
+        await manageRewardsPage.peerGifting.enableThePeerGifting('Immediately');
         await manageRewardsPage.loadPage();
       }
 
@@ -167,7 +167,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.clickOnElement(manageRewardsPage.pointBalanceSummaryActionBarButton, {
         stepInfo: 'Clicking on Enable peer gifting button',
       });
-      await manageRewardsPage.peerGifting.enableThePeerGifting();
+      await manageRewardsPage.peerGifting.enableThePeerGifting('Immediately');
     }
   );
 

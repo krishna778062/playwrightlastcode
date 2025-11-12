@@ -165,11 +165,11 @@ export class RewardsPeerGifting extends BasePage {
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
   }
 
-  async enableThePeerGifting(): Promise<void> {
+  async enableThePeerGifting(enableType: 'Immediately' | 'From the beginning of the next month'): Promise<void> {
     await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
     await this.peerGiftingToggleSwitch.click();
     await this.saveButton.click();
-    await this.selectThePeerGiftingEnableType('Immediately');
+    await this.selectThePeerGiftingEnableType(enableType);
     await this.grantAllowancesConfirmButton.click();
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     await this.goToUrl('/manage/recognition/rewards/overview');

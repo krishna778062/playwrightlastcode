@@ -837,11 +837,7 @@ export class ManageRewardsOverviewPage extends BasePage {
         await manageRecognitionPage.peerGifting.visit();
         await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
       }
-      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
-      await manageRecognitionPage.peerGifting.saveButton.click();
-      await manageRecognitionPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
-      await manageRecognitionPage.peerGifting.grantAllowancesConfirmButton.click();
-      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+      await manageRecognitionPage.peerGifting.enableThePeerGifting('Immediately');
     } else if (isRewardEnabled && isPeerGiftingDisabled) {
       // Both are already enabled, do nothing
       console.log('Reward and Gifting is enabled.');
