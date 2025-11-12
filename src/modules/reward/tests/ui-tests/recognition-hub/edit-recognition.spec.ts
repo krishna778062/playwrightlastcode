@@ -513,6 +513,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs();
       const points = rewardData.resultAny?.points!;
+      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();
@@ -548,6 +550,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs(recognitionGiverName);
       const points = rewardData.resultAny?.points!;
+      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();

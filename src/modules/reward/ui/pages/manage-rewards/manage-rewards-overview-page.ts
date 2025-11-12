@@ -653,6 +653,7 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async getTheBudgetApiResponse(): Promise<any> {
+    await this.page.reload();
     const response = await this.page.waitForResponse(
       response => response.url().includes('/recognition/admin/rewards/analytics/budget') && response.status() === 200
     );
