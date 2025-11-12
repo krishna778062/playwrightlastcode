@@ -11,6 +11,7 @@ export interface FeedPostOptions {
   attachments?: {
     files: string[];
   };
+  embedUrl?: string;
 }
 
 export interface FeedPostResult {
@@ -252,12 +253,15 @@ export class CreateFeedPostComponent
    * @param currentText - Current text of the post to edit
    * @param newText - New text to update the post with
    */
-  async editPost(currentText: string, newText: string): Promise<void> {
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
     await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
       await this.openPostOptionsMenu(currentText);
       await this.clickEditOption();
       await this.verifyEditorVisible();
       await this.updatePostText(newText);
+      if (embedUrl) {
+        await this.addEmbedUrl(embedUrl);
+      }
       await this.clickUpdateButton();
       // Note: Post verification should be done at test/page level to avoid duplication
     });
@@ -749,40 +753,12 @@ export class CreateFeedPostComponent
    */
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await test.step('Verify feed restriction message is visible on dashboard', async () => {
-      // Wait for page to load
-      await this.page.waitForLoadState('domcontentloaded');
+      // Try to find the message using getByText first
+      const messageLocator = this.page.getByText(expectedText, { exact: false });
 
-      // Use filter with hasText to find paragraph containing the message text
-      // hasText checks if the element or its children contain the text
-      let messageLocator = this.page.locator('p').filter({ hasText: expectedText });
-      let messageCount = await messageLocator.count();
-
-      // If not found with filter, try getByText as fallback
-      if (messageCount === 0) {
-        messageLocator = this.page.getByText(expectedText, { exact: false });
-        messageCount = await messageLocator.count();
-      }
-
-      // If still not found, try partial phrases as fallback
-      if (messageCount === 0) {
-        const partialPhrases = [
-          'site managers on this site',
-          'only available for site managers',
-          'feed posts are only',
-        ];
-
-        for (const phrase of partialPhrases) {
-          messageLocator = this.page.locator('p').filter({ hasText: phrase });
-          messageCount = await messageLocator.count();
-          if (messageCount > 0) {
-            break;
-          }
-        }
-      }
-      // Verify the restriction message text is visible on the page
+      // Verify the restriction message text is visible
       await this.verifier.verifyTheElementIsVisible(messageLocator, {
         assertionMessage: `Restriction message "${expectedText}" should be visible on dashboard`,
-        timeout: 10000,
       });
     });
   }
