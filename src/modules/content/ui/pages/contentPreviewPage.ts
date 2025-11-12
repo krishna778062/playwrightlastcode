@@ -48,6 +48,7 @@ export interface IContentPreviewPageAssertions {
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
   verifyCommentCount: (expectedCount: number) => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -375,6 +376,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       const allCommentsLink = this.page.getByRole('link', { name: 'All comments' }).first();
       await this.clickOnElement(allCommentsLink);
     });
+  }
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
   async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
