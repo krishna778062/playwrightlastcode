@@ -900,9 +900,11 @@ export class ManageRewardsOverviewPage extends BasePage {
 
   /**
    * Get the record's URL and Points value where:
-   * - Date time is older than 24 hours
+   * - Date time is older than 23:59:59 (i.e. strictly older than 24h - 1s)
    * - Gifter name matches (if provided)
-   * - Otherwise, picks the newest record older than 24 hours
+   * - Otherwise, picks the newest record older than that threshold
+   * - Ignores records whose URL is "deleted"
+   * - Ensures the URL looks like a recognition post (best-effort heuristic)
    *
    * Defensive: validates dates, coerces points to number, trims names.
    */
@@ -910,9 +912,20 @@ export class ManageRewardsOverviewPage extends BasePage {
     if (!Array.isArray(records) || records.length === 0) return null;
 
     const nowMs = Date.now();
-    const hours24Ms = 24 * 60 * 60 * 1000;
+    const minAgeMs = 24 * 60 * 60 * 1000; // 86,399,000 ms
 
-    // Normalize rows with parsed date; keep only ones older than 24h and with valid dates
+    const isLikelyRecognitionUrl = (rawUrl: unknown) => {
+      const url = (rawUrl ?? '').toString().trim();
+      if (url.length === 0) return false;
+      const normalized = url.toLowerCase();
+      if (normalized === 'deleted') return false;
+
+      const hasRecognitionFragment = /\/recognition?/i.test(url);
+      const looksLikeHttp = /^https?:\/\//i.test(url);
+      return hasRecognitionFragment || looksLikeHttp;
+    };
+
+    // Normalize rows with parsed date; keep only ones older than threshold, valid dates, and valid recognition URLs
     const olderRecords = records
       .map(r => {
         const rawDate = r['Date time'];
@@ -920,7 +933,15 @@ export class ManageRewardsOverviewPage extends BasePage {
         const parsedMs = Number.isFinite(Date.parse(dateStr)) ? Date.parse(dateStr) : NaN;
         return { row: r, parsedMs };
       })
-      .filter(item => Number.isFinite(item.parsedMs) && nowMs - item.parsedMs > hours24Ms)
+      .filter(item => {
+        const { row, parsedMs } = item;
+        // Must have a valid date and be older than minAgeMs
+        if (!Number.isFinite(parsedMs) || !(nowMs - parsedMs > minAgeMs)) return false;
+
+        // URL must not be 'deleted' and should look like a recognition post
+        const urlRaw = row['URL'] ?? '';
+        return isLikelyRecognitionUrl(urlRaw);
+      })
       .map(item => item.row);
 
     if (olderRecords.length === 0) return null;
@@ -959,9 +980,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       const parsed = Number(rawPoints.trim());
       points = Number.isFinite(parsed) ? parsed : 0;
     }
-
     const url = (latest.URL ?? '').toString();
-
     return { URL: url, points };
   }
 
