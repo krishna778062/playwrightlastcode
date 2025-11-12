@@ -362,11 +362,11 @@ test.describe(
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.dragAndDropElement('Multi select');
-        await formCreationPage.addHeadingIntoComponent('Multi Select', 'Automation Test - Multi Select Description');
+        await formCreationPage.addHeadingIntoComponent('Multi select', 'Automation Test - Multi Select Description');
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verifyCopiedComponentIsVisible('Multi Select');
+        await formCreationPage.verifyCopiedComponentIsVisible('Multi select');
         await formCreationPage.clickOnDeleteIcon();
-        await formCreationPage.verifyComponentIsDeleted('Multi Select');
+        await formCreationPage.verifyComponentIsDeleted('Multi select');
       }
     );
     test(
@@ -384,11 +384,11 @@ test.describe(
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
         await formCreationPage.dragAndDropElement('Single select');
-        await formCreationPage.addHeadingIntoComponent('Single Select', 'Automation Test - Single Select Description');
+        await formCreationPage.addHeadingIntoComponent('Single select', 'Automation Test - Single Select Description');
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verifyCopiedComponentIsVisible('Single Select');
+        await formCreationPage.verifyCopiedComponentIsVisible('Single select');
         await formCreationPage.clickOnDeleteIcon();
-        await formCreationPage.verifyComponentIsDeleted('Single Select');
+        await formCreationPage.verifyComponentIsDeleted('Single select');
       }
     );
     test(
