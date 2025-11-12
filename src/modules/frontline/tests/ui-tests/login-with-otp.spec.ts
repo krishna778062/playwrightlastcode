@@ -308,7 +308,7 @@ test.describe(
 test.describe(
   'feature: login with otp test cases for email and employee number as login identifiers and LWO is set as optional',
   {
-    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
   },
   () => {
     test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
@@ -351,7 +351,7 @@ test.describe(
     test(
       'scenario: Verify activated user try to login with email as login identifiers,when LWO is set as optional',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
@@ -465,7 +465,7 @@ test.describe(
     test(
       'scenario: Verify activated user try to login with email and employee number as login identifiers,when LWO is set as mandatory',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
