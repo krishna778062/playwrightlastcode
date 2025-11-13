@@ -54,7 +54,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -131,7 +131,7 @@ test.describe(
     test(
       `verify Album Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

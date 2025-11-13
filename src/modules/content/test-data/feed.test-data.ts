@@ -11,6 +11,7 @@ export const FEED_TEST_DATA = {
   POST_TEXT: {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
+    REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -42,4 +43,5 @@ export const FEED_TEST_DATA = {
   TOPIC_NAME_PAGE: faker.lorem.words(2),
   TOPIC_NAME_ALBUM: faker.lorem.words(2),
   TOPIC_NAME_EVENT: faker.lorem.words(2),
+  RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
 } as const;
