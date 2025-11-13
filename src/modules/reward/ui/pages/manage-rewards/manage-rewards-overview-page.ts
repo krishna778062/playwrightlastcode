@@ -278,7 +278,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.activityPanelTableHeader = this.activityContainer.locator('table th');
     this.activityPanelTableSortableHeader = this.activityContainer.locator('table th button');
     this.activityPanelTableSortableHeaderText = this.activityContainer.locator('table th button > div');
-    this.tooltipText = page.locator('[id^="tippy-"] p');
+    this.tooltipText = page.locator('[data-tippy-root] p');
     this.activityTableNoResultHeading = this.activityContainer.locator(
       '[class*="Activity_container"] h3[class*="Typography-module__heading3"]'
     );
@@ -660,21 +660,39 @@ export class ManageRewardsOverviewPage extends BasePage {
     return await response.json();
   }
 
-  async validateTheLabelAndTooltip(budgetJson: any, labelType: string): Promise<void> {
-    if (labelType === 'Month spend to date') {
-      await this.clickOnElement(this.monthSpendToDateInfoIcon, {
-        stepInfo: 'Clicking on Month spend to date info icon',
+  async validateTheLabelAndTooltip(data: any, label: string): Promise<void> {
+    if (label === 'Month spend to date') {
+      await expect(this.summaryTilePElements.nth(0)).toContainText('Month spend to date');
+      await this.monthSpendToDateInfoIcon.click();
+      const tooltipText =
+        'Month spend to date is representative of points that have been gifted this current month, including pending transactions.';
+      await expect(this.tooltipText).toBeVisible();
+      await expect(this.tooltipText).toHaveText(tooltipText);
+      await this.monthSpendToDateInfoIcon.click();
+    } else if (label === 'budget balance') {
+      await expect(this.summaryTilePElements.nth(2)).toContainText(/budget balance/);
+      await this.annualBudgetBalanceInfoIcon.click();
+
+      const amount = data.result.budgetBalanceDetails.totalBudgetUsdAmount;
+      const refreshDate = data.result.budgetBalanceDetails.nextBudgetRefreshAt;
+
+      const currentUserTimeZone = await this.page.evaluate(() => {
+        return (window as any).Simpplr?.CurrentUser?.timezoneIso;
       });
-      const tooltipText = await this.tooltipText.textContent();
-      expect(tooltipText).toContain(`Spent this month: $${budgetJson.result.monthlySpentUsdAmount}`);
-    } else if (labelType === 'budget balance') {
-      await this.clickOnElement(this.annualBudgetBalanceInfoIcon, {
-        stepInfo: 'Clicking on Annual budget balance info icon',
+
+      const formattedAmount = `$${amount.toLocaleString('en-US')}`;
+      const formattedDate = new Date(refreshDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: currentUserTimeZone,
       });
-      const tooltipText = await this.tooltipText.textContent();
-      expect(tooltipText).toContain(
-        `Budget balance: $${budgetJson.result.budgetBalanceDetails.remainingBudgetUsdAmount}`
-      );
+      const tooltipText1 = `Refreshes to ${formattedAmount} ${formattedDate}.`;
+      await expect(this.tooltipText.nth(0)).toBeVisible();
+      await expect(this.tooltipText.nth(0)).toHaveText(tooltipText1);
+      const tooltipText2 = 'Recognition managers will be notified if the budget is exceeded.';
+      await expect(this.tooltipText.nth(1)).toHaveText(tooltipText2);
+      await this.annualBudgetBalanceInfoIcon.click();
     }
   }
 

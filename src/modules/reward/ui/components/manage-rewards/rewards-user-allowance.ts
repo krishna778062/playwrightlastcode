@@ -54,6 +54,7 @@ export class RewardsUserAllowance extends BasePage {
   }
 
   async increaseTheUserAmountBy(amount: number): Promise<void> {
+    await this.pointAmountInputBox.clear();
     for (let i = 0; i < amount; i++) {
       await this.clickOnElement(this.pointAmountPlusButton, {
         stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,
