@@ -1,5 +1,5 @@
 export type TenantKey = 'primary' | 'rewardSettings';
-export type EnvironmentKey = 'qa' | 'test';
+export type EnvironmentKey = 'qa' | 'test' | 'uat';
 
 /**
  * Get caller function information for debugging
