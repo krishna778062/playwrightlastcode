@@ -1,8 +1,10 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
@@ -42,17 +44,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
 
-  constructor(page: Page, siteId: string) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE(siteId));
-    this.manageSitesComponent = new ManageSitesComponent(page);
-    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
-    this.manageSitesComponent = new ManageSitesComponent(page);
-    this.clickOnSite = this.clickOnSite.bind(this);
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
+    this.manageSitesComponent = new ManageSitesComponent(page);
+    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -69,15 +65,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     return this;
   }
 
-  async verifyNoSitesFound(siteName: string): Promise<void> {
-    const noSitesFound = this.siteList.filter({ hasText: siteName });
-    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
-      assertionMessage: 'No sites found should be visible on manage site page',
-    });
-  }
-
   async verifySiteIsDeactivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
-    const { test } = await import('@playwright/test');
     await test.step(`Verify site ${siteName} is deactivated`, async () => {
       const siteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
         filter: 'deactivated',
@@ -94,7 +82,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async verifySiteIsActivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
-    const { test } = await import('@playwright/test');
     await test.step(`Verify site ${siteName} is activated`, async () => {
       const activatedSiteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
         filter: 'active',
@@ -162,6 +149,8 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
     });
+  }
+
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
   }

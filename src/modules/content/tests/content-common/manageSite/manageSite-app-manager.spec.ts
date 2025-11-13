@@ -196,7 +196,7 @@ test.describe(
     test(
       'verify draft stamp and its options menu on content under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_CONTENT, '@CONT-20535'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20535'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
