@@ -158,32 +158,24 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       let items: any;
 
-      // Navigate to the Activity table
-      const apiPromise = appManagerFixture.page.waitForResponse(
-        resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
-      );
+      const apiPromise = Promise.all([
+        appManagerFixture.page.waitForResponse(
+          resp =>
+            resp.request().resourceType() === 'xhr' &&
+            resp.url().includes('/recognition/admin/rewards/transactions') &&
+            resp.status() === 200
+        ),
+        manageRewardsOverviewPage.loadPage(),
+        manageRewardsOverviewPage.verifyThePageIsLoaded(),
+      ]).then(([response]) => response);
 
-      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
-        manageRewardsOverviewPage.activityContainer.last(),
-        {
-          timeout: 15000,
-          stepInfo: 'Wait for activity container to be visible',
-        }
-      );
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.activityPanelHeader.first()
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsGivenTable, {
-        stepInfo: 'Clicking on Points Given filter',
-        force: true,
-      });
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
         manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
       );
 
       const apiResponse = await apiPromise;
       const json = await apiResponse.json();
-      items = json?.total ?? null;
+      items = json?.total ?? 0;
       console.log(`Total Items: ${items}`);
 
       // Click on Show more button till all the records listed

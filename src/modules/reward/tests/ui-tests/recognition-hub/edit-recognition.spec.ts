@@ -103,6 +103,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         newRewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -194,6 +195,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       const validationResult = await CSVUtils.validateRowValue('last', 14, 'REJECTED', csvFilePath);
       expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
       fs.unlinkSync(csvFilePath);
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -216,7 +219,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      const shareModal = new DialogBox(appManagerFixture.page);
       const rewardPointIndex = 3;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
@@ -280,6 +282,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await recognitionHub.verifier.waitUntilElementIsVisible(recognitionHub.pointsToGive);
       currentPointsToGive = (await recognitionHub.pointsToGive.textContent()) || '0';
       expect(Number(currentPointsToGive)).toBe(Number(availablePoints) - 2);
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -364,6 +368,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -445,6 +450,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 
@@ -631,25 +637,38 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
-      let rewardOptionText: string;
       const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const existingOptions = await recognitionHub.visitRecognitionHub();
-      if (existingOptions.length < 2) {
+      await recognitionHub.verifyThePageIsLoaded();
+      if (existingOptions.length <= 1) {
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
-        0,
-        getRewardTenantConfigFromCache().endUserName,
-        'Test Message' + Math.floor(Math.random() * 1000),
-        rewardOptionIndex
-      );
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.pointsToGive.waitFor({ state: 'attached' });
+      await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
-        rewardOptionText,
+        String(rewardOptionIndex),
         'Only visible to recipients, their managers and app administrators'
       );
 
@@ -658,8 +677,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
         password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
       });
-      await recognitionHub.page.waitForTimeout(5000);
       await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
       // ✅ Trigger and capture download
       let [download] = await Promise.all([
         manageRecognitionPage.page.waitForEvent('download', { timeout: 25000 }),
@@ -718,6 +737,9 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFilePath);
       expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
       fs.unlinkSync(csvFilePath);
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.deleteTheFirstRecognitionPost();
     }
   );
 });

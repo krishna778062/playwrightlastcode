@@ -93,5 +93,6 @@ test(
       String(rewardOptionIndex),
       'Only visible to recipients, their managers and app administrators'
     );
+    await recognitionHub.deleteTheFirstRecognitionPost();
   }
 );
