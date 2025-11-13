@@ -176,7 +176,7 @@ test.describe(
     test(
       'verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -310,7 +310,7 @@ test.describe(
     test(
       `verify that Roles option should not be displayed under Manage section in menu option`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -325,7 +325,7 @@ test.describe(
     test(
       `verify that redirecting to "manage/roles" url should display page not found screen`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
