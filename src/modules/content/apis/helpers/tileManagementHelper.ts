@@ -12,6 +12,7 @@ import { APIRequestContext, test } from '@playwright/test';
 import { TileManagementService } from '../services/TileManagementService';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 
 export class TileManagementHelper {
   readonly httpClient: HttpClient;
@@ -21,7 +22,8 @@ export class TileManagementHelper {
     readonly baseUrl: string
   ) {
     this.httpClient = new HttpClient(appManagerApiContext, baseUrl);
-    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl);
+    const { frontendBaseUrl } = getContentTenantConfigFromCache();
+    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl, frontendBaseUrl);
   }
 
   /**
