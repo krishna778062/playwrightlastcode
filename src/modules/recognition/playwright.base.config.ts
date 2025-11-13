@@ -2,7 +2,13 @@ import { defineConfig } from '@playwright/test';
 
 import { TEST_RESULTS_DIR } from '@core/constants/paths';
 
-import { TIMEOUTS } from '@/src/core';
+import { Environments, loadEnvVariablesForGivenModule, Modules, TIMEOUTS } from '@/src/core';
+
+//load all env variables from .env file for given module
+loadEnvVariablesForGivenModule(
+  (process.env.TEST_ENV as Environments) || Environments.TEST,
+  process.env.MODULE_NAME || Modules.RECOGNITION
+);
 
 export default defineConfig({
   forbidOnly: !!process.env.CI,
