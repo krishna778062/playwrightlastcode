@@ -2,7 +2,7 @@ export * from './contentSortBy';
 export * from './contentStatus';
 export * from './contentType';
 export * from './dateField';
-export * from './enums';
+export * from './feedPostingPermission';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';
 export * from './onboardingOptions';

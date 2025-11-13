@@ -3,6 +3,7 @@ import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixtu
 import { LoginWithOtpPage } from '@frontline/pages/loginWithOtpPage';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { mailosaurValues } from '../../config/frontlineConfig';
@@ -70,7 +71,7 @@ test.describe(
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as optional',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
@@ -205,7 +206,7 @@ test.describe(
     test(
       'scenario: Verify newly added user try to login and enter email only,when LWO is set as mandatory',
       {
-        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP, TestGroupType.HEALTHCHECK],
       },
       async ({ page, otpUtils, appManagerApiContext, config }) => {
         tagTest(test.info(), {
