@@ -51,7 +51,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -124,9 +124,9 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       );
 
       test(
-        `Verify Site Autocomplete functionality for a ${testData.siteType} site"`,
+        `Verify Site Autocomplete functionality for a ${testData.siteType} site`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -157,3 +157,56 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
     }
   );
 }
+
+test.describe(
+  `global Search - Site Search - Exact Match`,
+  {
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.SITE_SEARCH],
+  },
+  () => {
+    let newSiteId: string;
+    let newSiteName: string;
+
+    test.beforeEach(
+      `Setting up the test environment for exact match test by using shared public site`,
+      async ({ publicSite }) => {
+        newSiteId = publicSite.siteId;
+        newSiteName = publicSite.siteName;
+        console.log(`Using shared site: ${newSiteName} with ID: ${newSiteId} for exact match test`);
+      }
+    );
+
+    test(
+      `verify exact match results UI`,
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-18434',
+        });
+
+        // First perform the search to get to the results page
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(newSiteName, {
+          stepInfo: `Searching with term "${newSiteName}" to verify exact match functionality`,
+        });
+
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        await globalSearchResultPage.verifyExactMatchCheckboxIsVisible();
+
+        await globalSearchResultPage.verifyExactMatchTitleTextIsDisplayed();
+
+        await globalSearchResultPage.verifyExactMatchInfoIconIsVisible();
+
+        await globalSearchResultPage.hoverOverExactMatchInfoIconAndVerifyTooltip(newSiteName);
+
+        await globalSearchResultPage.clickExactMatchCheckbox();
+
+        const siteResult = await globalSearchResultPage.getSiteResultItemExactlyMatchingTheSearchTerm(newSiteName);
+        const siteResultItem = new SiteListComponent(siteResult.page, siteResult.rootLocator);
+        await siteResultItem.verifyNameIsDisplayed(newSiteName);
+      }
+    );
+  }
+);

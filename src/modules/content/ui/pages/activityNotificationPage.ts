@@ -10,12 +10,14 @@ export interface IActivityNotificationAssertions {
 export class ActivityNotificationPage extends BasePage implements IActivityNotificationAssertions {
   readonly notificationItems: (notificationText: string) => Locator;
   readonly notificationItemsList: Locator;
+  readonly notificationByText: (notificationText: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ACTIVITY_NOTIFICATION_PAGE);
     this.notificationItems = (notificationText: string) =>
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
+    this.notificationByText = (notificationText: string) => this.page.getByText(notificationText);
   }
 
   get assertions(): IActivityNotificationAssertions {
@@ -34,8 +36,7 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
    */
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
-      const notification = this.notificationItems(notificationText).first();
-      await this.verifier.verifyTheElementIsVisible(notification, {
+      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).nth(1), {
         assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
     });

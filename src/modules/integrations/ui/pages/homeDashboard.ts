@@ -9,7 +9,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {
@@ -23,7 +23,7 @@ export class HomeDashboard extends BasePage {
   private readonly appTileComponent: AppTileComponent;
   private readonly timeOffRequestTileComponent: TimeOffRequestTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
-  private readonly tileManagementHelper: TileManagementHelper;
+  private readonly tileManagementHelper: IntegrationTileHelper;
   private readonly tileContainer: Locator;
 
   private readonly defaultConfig = {
@@ -33,7 +33,7 @@ export class HomeDashboard extends BasePage {
     sortOrder: AIRTABLE_TILE.USER_DEFINED,
   };
 
-  constructor(page: Page, tileManagementHelper: TileManagementHelper) {
+  constructor(page: Page, tileManagementHelper: IntegrationTileHelper) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.page = page;
     this.airtableComponent = new BaseAppTileComponent(page);
