@@ -31,7 +31,7 @@ test.describe(
   () => {
     let manageFeaturesPage: ManageFeaturesPage;
     let manageContentPage: ManageContentPage;
-    let _homePage: NewHomePage;
+    let homePage: NewHomePage;
     let applicationScreenPage: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
     let defaultScreenPage: DefaultScreenPage;
@@ -39,7 +39,7 @@ test.describe(
     let editPage: EditPagePage;
     let manageSitePage: ManageSiteSetUpPage;
     let siteDetailsPage: SiteDetailsPage;
-    let _siteDashboardPage: SiteDashboardPage;
+    let siteDashboardPage: SiteDashboardPage;
     let contentPreviewPage: ContentPreviewPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
@@ -51,10 +51,10 @@ test.describe(
       defaultScreenPage = new DefaultScreenPage(appManagerFixture.page);
       homeFeedPage = new HomeFeedPage(appManagerFixture.page);
       editPage = new EditPagePage(appManagerFixture.page, '', '');
-      _homePage = new NewHomePage(appManagerFixture.page);
+      homePage = new NewHomePage(appManagerFixture.page);
       manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, '');
       siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
-      _siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
       contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
     });
 

@@ -884,12 +884,6 @@ export class SiteManagementHelper {
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await this.siteManagementService.getSiteMembershipList(siteId, options);
   }
-
-  /**
-
-   * @returns Promise containing the site details and its members
-   */
-
   /**
    * Gets member names from the site membership list
    * @param siteId - The site ID

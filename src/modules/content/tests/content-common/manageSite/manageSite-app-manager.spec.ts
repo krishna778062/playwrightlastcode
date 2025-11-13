@@ -243,18 +243,13 @@ test.describe(
           storyId: 'CONT-20537',
         });
         const campaigns = await appManagerApiFixture.socialCampaignHelper.getCampaignList({
-          size: 16,
-          sortBy: 'lastEditedAt',
-          order: 'desc',
-          includeData: 'full',
-          includeCount: true,
-          status: 'active',
+          filter: 'active',
         });
-        if (campaigns.length === 0) {
+        if (campaigns.result.listOfItems.length === 0) {
           throw new Error('No active campaigns found. Please create at least one campaign before running this test.');
         }
         // Use title if available, otherwise fall back to message
-        const campaignName = campaigns[0].title || campaigns[0].message;
+        const campaignName = campaigns.result.listOfItems[0].title || campaigns.result.listOfItems[0].message;
         if (!campaignName) {
           throw new Error('Campaign has neither title nor message');
         }
