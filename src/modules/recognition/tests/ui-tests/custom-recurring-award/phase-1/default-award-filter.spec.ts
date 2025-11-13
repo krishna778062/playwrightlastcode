@@ -9,8 +9,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { RecurringAwardPage } from '@/src/modules/recognition/ui/pages/manage/recurringAwardPage';
 
 test.describe('default setting for custom recurring award', () => {
-  // eslint-disable-next-line playwright/no-focused-test
-  test.only(
+  test(
     'verify default options for Quarterly award for participation window and nomination close date',
     {
       tag: [
@@ -36,8 +35,7 @@ test.describe('default setting for custom recurring award', () => {
     }
   );
 
-  // eslint-disable-next-line playwright/no-focused-test
-  test.only(
+  test(
     'verify default options for Monthly award for participation window and nomination close date',
     {
       tag: [
