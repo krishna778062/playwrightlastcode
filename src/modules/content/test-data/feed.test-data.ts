@@ -12,6 +12,8 @@ export const FEED_TEST_DATA = {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    VIDEO: `Automated Test Video Post ${faker.company.name()} - ${faker.commerce.productName()}`,
+    SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -36,6 +38,9 @@ export const FEED_TEST_DATA = {
     fileName: 'image3.jpg',
     fileSize: 13116,
     mimeType: 'image/jpeg',
+  },
+  TOAST_MESSAGES: {
+    POST_SHARED: 'Shared post successfully',
   },
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",

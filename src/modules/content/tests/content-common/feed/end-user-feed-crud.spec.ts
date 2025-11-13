@@ -1,6 +1,7 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { ShareComponent } from '@content/ui/components/shareComponent';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
 import { TestPriority } from '@core/constants/testPriority';
@@ -231,6 +232,104 @@ test.describe(
 
         // Store post text for cleanup
         createdPostText = videoPostText;
+      }
+    );
+
+    test(
+      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28219'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+          zephyrTestId: 'CONT-28219',
+          storyId: 'CONT-28219',
+        });
+
+        // Step 1: Login as Admin (appManagerFixture is already logged in via fixture)
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Step 2: Create a Feed post with a native video attachment and a message
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
+        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+
+        // Add video attachment
+        await adminFeedPage.actions.clickBrowseFilesButton();
+        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
+        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
+        await adminFeedPage.actions.clickAttachButton();
+        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+
+        // Post the feed
+        const postResult = await adminFeedPage.actions.createAndPost({
+          text: videoPostText,
+        });
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // // Step 3: Logout using the profile avatar menu
+        // await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
+
+        // Step 4: Login as End User (standardUserFixture is already logged in via fixture)
+        await standardUserFixture.page.reload();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Step 5: Click the "Share" icon on the Feed post created by Admin
+        await feedPage.actions.clickShareIconOnPost(videoPostText);
+
+        // Step 6: Add a message while sharing
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+        await feedPage.actions.enterShareDescription(shareMessage);
+
+        // Step 7: Select Post in "Site Feed" option
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        // Step 8: Search for and select a site
+        const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public', {
+          waitForSearchIndex: false,
+        });
+        const siteName = siteResult.name;
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        // Step 9: Click the "Share" button
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        await shareComponent.actions.clickShareButton();
+
+        // Wait for share to complete
+        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.POST_SHARED);
+
+        // Step 10: Search for the site where the feed post was shared
+        // Step 11: Verify the Feed post appears on the Site Dashboard
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteResult.siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.assertions.validatePostText(shareMessage);
+
+        // Step 12: Click "View Post" - need to use feedPage on site dashboard
+        const siteFeedPage = new FeedPage(standardUserFixture.page);
+        await siteFeedPage.actions.clickViewPostLink(videoPostText);
+
+        // Step 13: Verify the user is navigated to the Feed Detail Page
+        // Wait for navigation to feed detail page
+        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`), { timeout: 10000 });
+        const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
+        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Step 14: Verify the video autoplays in the feed detail view
+        await feedDetailPage.assertions.verifyVideoAutoplay(videoPostText);
+
+        // Step 15: Verify video controls and functionalities
+        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
       }
     );
 

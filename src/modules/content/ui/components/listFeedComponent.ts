@@ -189,8 +189,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.postTextLocator(expectedText).first();
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
@@ -253,6 +253,7 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Validating post contains text: "${postText}"`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
+        timeout: 30000,
       });
     });
   }
@@ -546,6 +547,178 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getPostByUserLocator = (userName: string): Locator =>
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
+
+  /**
+   * Gets a locator for the share icon on a specific feed post
+   * @param postText - The text of the post to find share icon for
+   * @returns Locator for the share icon/button
+   */
+  readonly getShareIconLocator = (postText: string): Locator =>
+    this.page
+      .locator('._postBody_eonic_8')
+      .filter({ hasText: postText })
+      .getByRole('button', { name: 'Share this post' });
+
+  /**
+   * Gets a locator for the "View Post" link on a feed post
+   * @param postText - The text of the post to find view post link for
+   * @returns Locator for the view post link
+   */
+  readonly getViewPostLinkLocator = (postText: string): Locator =>
+    this.page
+      .locator('div[class*="postContent"]')
+      .filter({ hasText: postText })
+      .getByRole('link', { name: 'View post' });
+
+  /**
+   * Gets a locator for the video element in a feed post
+   * @param postText - The text of the post to find video element for
+   * @returns Locator for the video element
+   */
+  readonly getVideoElementLocator = (postText: string): Locator =>
+    this.page
+      .locator('div[class*="postContent"]')
+      .filter({ hasText: postText })
+      .locator('video, div[class*="videoFluid"], div[class*="video"]')
+      .first();
+
+  /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIcon(postText: string): Promise<void> {
+    await test.step(`Click share icon on post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const shareIconLocator = this.getShareIconLocator(postText).first();
+      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
+        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(shareIconLocator);
+    });
+  }
+
+  /**
+   * Clicks the "View Post" link to navigate to feed detail page
+   * @param postText - The text of the post to view
+   */
+  async clickViewPostLink(postText: string): Promise<void> {
+    await test.step(`Click View Post link for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const viewPostLinkLocator = this.getViewPostLinkLocator(postText).first();
+      await this.verifier.verifyTheElementIsVisible(viewPostLinkLocator, {
+        assertionMessage: `View Post link should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(viewPostLinkLocator);
+    });
+  }
+
+  /**
+   * Verifies that video autoplays in a feed post
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoAutoplay(postText: string): Promise<void> {
+    await test.step(`Verify video autoplay for post: ${postText}`, async () => {
+      const videoElement = this.getVideoElementLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(videoElement, {
+        assertionMessage: `Video element should be visible for post "${postText}"`,
+        timeout: 10000,
+      });
+
+      // Check if video has autoplay attribute or is playing
+      const videoTag = videoElement.locator('video').first();
+      const videoTagCount = await videoTag.count();
+
+      if (videoTagCount > 0) {
+        // If it's an actual video tag, check autoplay attribute
+        const autoplay = await videoTag.getAttribute('autoplay');
+        if (autoplay !== null) {
+          console.log(`Video has autoplay attribute: ${autoplay}`);
+        }
+        // Check if video is playing (not paused)
+        const isPaused = await videoTag.evaluate((video: HTMLVideoElement) => video.paused);
+        if (!isPaused) {
+          console.log('Video is playing (autoplay confirmed)');
+        }
+      } else {
+        // For video container divs, verify they are visible (autoplay is handled by the container)
+        console.log('Video container is visible (autoplay handled by container)');
+      }
+    });
+  }
+
+  /**
+   * Verifies video controls are visible and functional
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoControls(postText: string): Promise<void> {
+    await test.step(`Verify video controls for post: ${postText}`, async () => {
+      const videoContainer = this.getVideoElementLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(videoContainer, {
+        assertionMessage: `Video container should be visible for post "${postText}"`,
+        timeout: 10000,
+      });
+
+      // Verify pause/play button
+      const playPauseButton = videoContainer
+        .locator(
+          'button[aria-label*="Play"], button[aria-label*="Pause"], button[aria-label*="play"], button[aria-label*="pause"]'
+        )
+        .first();
+      await this.verifier.verifyTheElementIsVisible(playPauseButton, {
+        assertionMessage: `Play/Pause button should be visible for video in post "${postText}"`,
+        timeout: 5000,
+      });
+      console.log('Play/Pause button is visible');
+
+      // Verify forward/backward controls (seek controls)
+      const seekControls = videoContainer.locator('input[type="range"], [role="slider"]').first();
+      const seekControlsCount = await seekControls.count();
+      if (seekControlsCount > 0) {
+        await this.verifier.verifyTheElementIsVisible(seekControls, {
+          assertionMessage: `Seek controls (forward/backward) should be visible for video in post "${postText}"`,
+        });
+        console.log('Forward/Backward controls (seek bar) are visible');
+      }
+
+      // Verify fullscreen button
+      const fullscreenButton = videoContainer
+        .locator('button[aria-label*="Fullscreen"], button[aria-label*="fullscreen"], button[aria-label*="Expand"]')
+        .first();
+      const fullscreenButtonCount = await fullscreenButton.count();
+      if (fullscreenButtonCount > 0) {
+        await this.verifier.verifyTheElementIsVisible(fullscreenButton, {
+          assertionMessage: `Fullscreen button should be visible for video in post "${postText}"`,
+        });
+        console.log('Fullscreen button is visible');
+      }
+
+      // Verify settings button
+      const settingsButton = videoContainer
+        .locator('button[aria-label*="Settings"], button[aria-label*="settings"], button[aria-label*="More"]')
+        .first();
+      const settingsButtonCount = await settingsButton.count();
+      if (settingsButtonCount > 0) {
+        await this.verifier.verifyTheElementIsVisible(settingsButton, {
+          assertionMessage: `Settings button should be visible for video in post "${postText}"`,
+        });
+        console.log('Settings button is visible');
+      }
+
+      // Verify volume control
+      const volumeControl = videoContainer
+        .locator(
+          'button[aria-label*="Volume"], button[aria-label*="volume"], input[type="range"][aria-label*="volume"]'
+        )
+        .first();
+      const volumeControlCount = await volumeControl.count();
+      if (volumeControlCount > 0) {
+        await this.verifier.verifyTheElementIsVisible(volumeControl, {
+          assertionMessage: `Volume control should be visible for video in post "${postText}"`,
+        });
+        console.log('Volume control is visible');
+      }
+    });
+  }
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {

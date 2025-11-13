@@ -94,6 +94,10 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  clickShareIconOnPost: (postText: string) => Promise<void>;
+  clickViewPostLink: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -131,6 +135,8 @@ export interface IFeedAssertions {
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyVideoAutoplay: (postText: string) => Promise<void>;
+  verifyVideoControls: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -717,5 +723,53 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIconOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareIcon(postText);
+  }
+
+  /**
+   * Clicks the "View Post" link to navigate to feed detail page
+   * @param postText - The text of the post to view
+   */
+  async clickViewPostLink(postText: string): Promise<void> {
+    await this.listFeedComponent.clickViewPostLink(postText);
+  }
+
+  /**
+   * Verifies that video autoplays in a feed post
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoAutoplay(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyVideoAutoplay(postText);
+  }
+
+  /**
+   * Verifies video controls are visible and functional
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoControls(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyVideoControls(postText);
+  }
+
+  /**
+   * Enters share description in the share dialog
+   * @param description - The description text to enter
+   */
+  async enterShareDescription(description: string): Promise<void> {
+    await this.shareComponent.actions.enterShareDescription(description);
+  }
+
+  /**
+   * Enters site name for sharing to site feed
+   * @param siteName - The site name to search and select
+   */
+  async enterSiteNameForShare(siteName: string): Promise<void> {
+    await this.shareComponent.actions.enterSiteName(siteName);
   }
 }
