@@ -422,7 +422,7 @@ export class SiteManagementService implements ISiteManagementOperations {
   ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
-        size: 16,
+        size: 100,
         type: 'members',
         ...options,
       };

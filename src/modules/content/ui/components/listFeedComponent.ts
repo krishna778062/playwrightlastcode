@@ -13,6 +13,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly favoriteButton: Locator;
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
+  readonly likeButtonForReply: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
@@ -27,6 +28,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+
   // Dynamic locator functions
   /**
    * Gets a locator for the post text content
@@ -121,6 +123,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
+    this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
@@ -474,6 +477,117 @@ export class ListFeedComponent extends BaseComponent {
       console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
+  /**
+   * Likes a feed post by clicking the like button
+   * @param postText - The text of the post to like
+   */
+  async likeFeedPost(postText: string): Promise<void> {
+    await test.step(`Like feed post: ${postText}`, async () => {
+      // Ensure post is visible first
+      await this.waitForPostToBeVisible(postText);
+
+      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+        assertionMessage: `Like/React button should be visible for post "${postText}"`,
+      });
+
+      // Click the like button
+      await this.clickOnElement(this.likeButton);
+    });
+  }
+  async unlikeFeedPost(postText: string): Promise<void> {
+    await test.step(`Unlike feed post: ${postText}`, async () => {
+      const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
+      await this.verifier.verifyTheElementIsVisible(unlikeButtonLocator, {
+        assertionMessage: `Unlike button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(unlikeButtonLocator);
+    });
+  }
+  /**
+   * Likes a reply post by clicking the like button
+   * @param replyText - The text of the reply to like
+   */
+  async likeFeedReply(replyText: string): Promise<void> {
+    await test.step(`Like feed reply: ${replyText}`, async () => {
+      // Ensure reply is visible first
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply, {
+        assertionMessage: `Like/React button should be visible for reply "${replyText}"`,
+      });
+
+      // Click the like button
+      await this.clickOnElement(this.likeButtonForReply);
+    });
+  }
+
+  /**
+   * Unlikes a reply post by clicking the like button again
+   * @param replyText - The text of the reply to unlike
+   */
+  async unlikeFeedReply(replyText: string): Promise<void> {
+    await test.step(`Unlike feed reply: ${replyText}`, async () => {
+      const unlikeButtonLocator = this.page
+        .getByRole('listitem')
+        .filter({ hasText: 'Like' })
+        .getByLabel('Remove your reaction')
+        .first();
+
+      await this.verifier.verifyTheElementIsVisible(unlikeButtonLocator, {
+        assertionMessage: `Unlike button should be visible for reply "${replyText}"`,
+      });
+
+      // Click the unlike button
+      await this.clickOnElement(unlikeButtonLocator);
+    });
+  }
+
+  /**
+   * Verifies the like count on a feed post
+   * @param postText - The text of the post to check like count for
+   * @param expectedCount - Optional expected count (if provided, will verify exact count)
+   */
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await test.step(`Verify like count on post: ${postText}`, async () => {
+      // Ensure post is visible first
+      await this.waitForPostToBeVisible(postText);
+
+      const likeCountLocator = this.page.getByRole('button', { name: '1 reaction' }).first();
+
+      // Verify element is visible
+      await this.verifier.verifyTheElementIsVisible(likeCountLocator, {
+        assertionMessage: `Like count should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies the like count on a reply post
+   * @param replyText - The text of the reply to check like count for
+   * @param expectedCount - Optional expected count (if provided, will verify exact count)
+   */
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await test.step(`Verify like count on reply: ${replyText}`, async () => {
+      // Ensure reply is visible first
+      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should be visible`,
+      });
+
+      const likeCountLocator = this.page.getByRole('button', { name: 'People who liked this. Click' }).first();
+
+      // Verify element is visible
+      await this.verifier.verifyTheElementIsVisible(likeCountLocator, {
+        assertionMessage: `Like count should be visible for reply "${replyText}"`,
+      });
+    });
+  }
+
+  /**
+   * Gets a locator for a post by user name
+   * @param userName - The name of the user who created the post
+   * @returns Locator for the post container
+   */
+  readonly getPostByUserLocator = (userName: string): Locator =>
+    this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {

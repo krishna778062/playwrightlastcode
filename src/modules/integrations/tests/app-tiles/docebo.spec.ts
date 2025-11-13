@@ -34,7 +34,7 @@ test.describe(
     test(
       'verify users should be able to display pending learning courses from Docebo on a tile on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -99,7 +99,7 @@ test.describe(
     test(
       'verify UI layout for pending learning courses from Docebo on a tile',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -127,7 +127,7 @@ test.describe(
     test(
       'verify UI layout for pending learning courses from Docebo on a tile on Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;

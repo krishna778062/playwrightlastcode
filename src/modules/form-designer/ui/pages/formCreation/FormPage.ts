@@ -99,17 +99,17 @@ export class FormCreationPage extends BasePage {
     const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
     const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
     await test.step('Drag and drop element on Form creation page', async () => {
+      await srcLocator.scrollIntoViewIfNeeded();
       await dragAndDrop(this.page, srcLocator, tgtLocator);
     });
   }
 
   private resolveComponentLocator(componentName: string): Locator {
-    let key = componentName.trim().toLowerCase();
+    const key = componentName.trim().toLowerCase();
     switch (key) {
-      case (key = 'title&description') ||
-        (key = 'title & description') ||
-        (key = 'title&description') ||
-        (key = 'title and description'):
+      case 'title&description':
+      case 'title & description':
+      case 'title and description':
         return this.titleAndDescriptionArea;
       case 'heading':
         return this.heading;
@@ -129,13 +129,18 @@ export class FormCreationPage extends BasePage {
         return this.address;
       case 'legal':
         return this.legal;
-      case (key = 'multi select') || (key = 'multiselect'):
+      case 'multi select':
+      case 'multiselect':
         return this.multiSelect;
-      case (key = 'single select') || (key = 'singleselect'):
+      case 'single select':
+      case 'singleselect':
         return this.singleSelect;
-      case (key = 'drop down') || (key = 'dropdown') || (key = 'drop-down'):
+      case 'drop down':
+      case 'dropdown':
+      case 'drop-down':
         return this.dropDown;
-      case (key = 'file upload') || (key = 'fileupload'):
+      case 'file upload':
+      case 'fileupload':
         return this.fileUpload;
       case 'image':
         return this.image;
