@@ -35,13 +35,13 @@ test.describe(
     test(
       'verify app/site manager is able to edit Display tasks App tile  on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25171',
+          zephyrTestId: ['INT-23676', 'INT-23620', 'INT-23618'],
           storyId: 'INT-24586',
         });
 
@@ -73,7 +73,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25172',
+          zephyrTestId: ['INT-23619', 'INT-23621'],
           storyId: 'INT-24586',
         });
 
@@ -109,12 +109,12 @@ test.describe(
     test(
       'verify "Display tasks" details are visible on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25170',
+          zephyrTestId: ['INT-25178', 'INT-25556'],
           storyId: 'INT-24586',
         });
 
@@ -143,7 +143,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25169',
+          zephyrTestId: 'INT-23677',
           storyId: 'INT-24586',
         });
 

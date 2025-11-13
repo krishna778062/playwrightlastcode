@@ -1,5 +1,5 @@
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { SnowflakeHelper } from '../../../helpers';
@@ -46,7 +46,7 @@ test.describe(
 
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
-        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, //default period filter
+        timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS, //default period filter
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;
@@ -204,6 +204,106 @@ test.describe(
         const uniqueMobileContentViewsMetrics = testEnvironment.mobileDashboard.uniqueMobileContentViewsMetrics;
         //since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
         await uniqueMobileContentViewsMetrics.verifyMetricValue(dbValues.toString());
+      }
+    );
+
+    test(
+      'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-device-logins-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer Mobile device log-ins in Mobile Dashboard',
+          zephyrTestId: 'DE-25978',
+          storyId: 'DE-25943',
+        });
+
+        const { mobileDashboard, mobileDashboardQueryHelper } = testEnvironment;
+
+        const dbResults = await mobileDashboardQueryHelper.getMobileDeviceLoginsDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Filter out segments with 0 count as they are not displayed in the UI
+        const visibleSegments = dbResults.filter(data => data.count > 0);
+
+        const mobileDeviceLoginsMetric = mobileDashboard.mobileDeviceLoginsMetric;
+        await mobileDeviceLoginsMetric.scrollToComponent();
+
+        // Verify number of segments matches visible DB results (only segments with count > 0 are displayed)
+        // This will also wait for the chart to load
+        await mobileDeviceLoginsMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+
+        // Verify each segment label data points (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileDeviceLoginsMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.platform,
+            expectedText: `${data.platform} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        // Verify tooltip is visible for each segment (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileDeviceLoginsMetric.hoverOverSegmentLabelWithLabelAs(data.platform);
+          await mobileDeviceLoginsMetric.waitForToolTipContainerToBeVisible();
+
+          // Verify tooltip shows the count value
+          // Note: Tooltip key text may vary, so we validate that tooltip is visible
+          // The actual tooltip content validation can be added once the exact key text is known
+          const tooltipContainer = mobileDeviceLoginsMetric.toolTipContainer;
+          await expect(tooltipContainer, 'Tooltip should be visible when hovering over segment').toBeVisible();
+        }
+      }
+    );
+
+    test(
+      'tS To verify the answer Mobile content views by type in Mobile Dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-content-views-by-type-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer Mobile content views by type in Mobile Dashboard',
+          zephyrTestId: 'DE-25979',
+          storyId: 'DE-25944',
+        });
+
+        const { mobileDashboard, mobileDashboardQueryHelper } = testEnvironment;
+
+        const dbResults = await mobileDashboardQueryHelper.getMobileContentViewsByTypeDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Filter out segments with 0 count as they are not displayed in the UI
+        const visibleSegments = dbResults.filter(data => data.count > 0);
+
+        const mobileContentViewsByTypeMetric = mobileDashboard.mobileContentViewsByTypeMetric;
+        await mobileContentViewsByTypeMetric.scrollToComponent();
+
+        // Verify number of segments matches visible DB results (only segments with count > 0 are displayed)
+        // This will also wait for the chart to load
+        await mobileContentViewsByTypeMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+
+        // Verify each segment label data points (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileContentViewsByTypeMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.contentType,
+            expectedText: `${data.contentType} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        // Verify tooltip is visible for each segment (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileContentViewsByTypeMetric.hoverOverSegmentLabelWithLabelAs(data.contentType);
+          await mobileContentViewsByTypeMetric.waitForToolTipContainerToBeVisible();
+
+          // Verify tooltip shows the count value
+          // Note: Tooltip key text may vary, so we validate that tooltip is visible
+          // The actual tooltip content validation can be added once the exact key text is known
+          const tooltipContainer = mobileContentViewsByTypeMetric.toolTipContainer;
+          await expect(tooltipContainer, 'Tooltip should be visible when hovering over segment').toBeVisible();
+        }
       }
     );
   }
