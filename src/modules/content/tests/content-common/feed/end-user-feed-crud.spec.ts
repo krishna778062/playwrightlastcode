@@ -334,6 +334,94 @@ test.describe(
     );
 
     test(
+      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28215'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+          zephyrTestId: 'CONT-28215',
+          storyId: 'CONT-28215',
+        });
+
+        // Step 1: Login as Admin (appManagerFixture is already logged in via fixture)
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Step 2: Create a Feed post with a native video attachment and a message
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
+        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+
+        // Add video attachment
+        await adminFeedPage.actions.clickBrowseFilesButton();
+        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
+        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
+        await adminFeedPage.actions.clickAttachButton();
+        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+
+        // Post the feed
+        const postResult = await adminFeedPage.actions.createAndPost({
+          text: videoPostText,
+        });
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Step 3: Login as End User (standardUserFixture is already logged in via fixture)
+        await standardUserFixture.page.reload();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Step 4: Click the "Share" icon on the Feed post created by Admin
+        await feedPage.actions.clickShareIconOnPost(videoPostText);
+
+        // Step 5: Add a message while sharing
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+        await feedPage.actions.enterShareDescription(shareMessage);
+
+        // Step 6: Select Post in "Home Feed" option
+        // By default, the share option is "Home Feed"
+        //await feedPage.actions.selectShareOptionAsHomeFeed();
+
+        // Step 7: Click the "Share" button (no site selection needed for home feed)
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        await shareComponent.actions.clickShareButton();
+
+        // Wait for share to complete
+        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.POST_SHARED);
+
+        // Step 8: Navigate to Home/Global Feed
+        await feedPage.reloadPage();
+
+        // Step 9: Verify the Feed post appears on Home Feed
+        await feedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Step 10: Click "View Post"
+        await feedPage.actions.clickViewPostLink(shareMessage);
+
+        // Step 11: Verify the user is navigated to the Feed Detail Page
+        // Wait for navigation to feed detail page
+        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`), { timeout: 10000 });
+        const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
+        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Step 12: Verify the video autoplays in the feed detail view
+        await feedDetailPage.assertions.verifyVideoAutoplay(videoPostText);
+
+        // Step 13: Verify video controls and functionalities
+        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+      }
+    );
+
+    test(
       'sU : Verify site owner or manager can edit or delete comments from other users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
