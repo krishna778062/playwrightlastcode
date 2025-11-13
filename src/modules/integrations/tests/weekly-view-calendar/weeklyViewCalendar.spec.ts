@@ -542,6 +542,7 @@ test.describe(
         await Promise.all(eventPromises);
 
         // Wait for events to sync to Google Calendar
+        //eslint-disable-next-line playwright/no-wait-for-timeout
         await appManagerFixture.page.waitForTimeout(10000);
 
         // Then navigate to weekly view calendar page

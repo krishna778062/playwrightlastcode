@@ -315,7 +315,7 @@ test.describe('audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
 
   test(
     'edit category modal: Update actions',
-    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
 
