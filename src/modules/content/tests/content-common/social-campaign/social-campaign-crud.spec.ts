@@ -48,7 +48,7 @@ test.describe(
     test(
       'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete', '@healthcheck'],
       },
       async ({ socialCampaignManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);

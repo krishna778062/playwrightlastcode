@@ -53,7 +53,13 @@ test.describe(
     test(
       'create Album with all the fields populated from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.REGRESSION,
+          ContentSuiteTags.ALBUM_CREATION,
+          '@healthcheck',
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

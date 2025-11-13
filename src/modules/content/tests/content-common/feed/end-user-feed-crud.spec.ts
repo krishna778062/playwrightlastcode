@@ -14,7 +14,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, '@healthcheck'],
   },
   () => {
     let feedPage: FeedPage;

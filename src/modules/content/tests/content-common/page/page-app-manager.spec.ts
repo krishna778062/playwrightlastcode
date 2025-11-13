@@ -70,6 +70,7 @@ test.describe(
           ContentFeatureTags.COVER_IMAGE,
           ContentSuiteTags.PAGE_CREATION,
           '@CONT-11635',
+          '@healthcheck',
         ],
       },
       async ({ appManagerFixture }) => {
