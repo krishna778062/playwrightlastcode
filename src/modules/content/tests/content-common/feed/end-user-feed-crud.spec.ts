@@ -14,7 +14,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, '@healthcheck'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
   },
   () => {
     let feedPage: FeedPage;
@@ -52,7 +52,7 @@ test.describe(
     test(
       'verify user can create, edit and delete a feed post with attachments',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments', , '@healthcheck'],
       },
       async () => {
         tagTest(test.info(), {
