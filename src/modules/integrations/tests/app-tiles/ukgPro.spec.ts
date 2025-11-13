@@ -41,12 +41,12 @@ test.describe(
     test(
       'create and edit UKG Pro Display Recent Paystubs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-21114', 'INT-21086'],
+          zephyrTestId: ['INT-21114'],
           storyId: 'INT-20795',
         });
 
@@ -69,7 +69,7 @@ test.describe(
     test(
       'verify metadata for UKG Pro Display recent paystubs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -96,7 +96,7 @@ test.describe(
     test(
       'create and edit UKG Pro Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -187,7 +187,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21088',
+          zephyrTestId: 'INT-28241',
           storyId: 'INT-20795',
         });
 
@@ -246,7 +246,7 @@ test.describe(
     test(
       'verify metadata for UKG Pro Display Recent Paystubs tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
