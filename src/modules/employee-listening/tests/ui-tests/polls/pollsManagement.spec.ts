@@ -18,7 +18,13 @@ test.describe('polls Management Tests', () => {
   test(
     'verify Polls from Manage application setting',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS_MANAGEMENT', '@POLLS_VERIFICATION'],
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        '@POLLS_MANAGEMENT',
+        '@POLLS_VERIFICATION',
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -40,7 +46,13 @@ test.describe('polls Management Tests', () => {
   test(
     'disable AI Polls from Manage application setting',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS_MANAGEMENT', '@POLLS_ENABLE_DISABLE'],
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        '@POLLS_MANAGEMENT',
+        '@POLLS_ENABLE_DISABLE',
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -60,7 +72,7 @@ test.describe('polls Management Tests', () => {
   test(
     'verify admin can enable ai polls in manage application settings',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS', '@POLLS_ENABLE_DISABLE'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS', '@POLLS_ENABLE_DISABLE', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -80,7 +92,7 @@ test.describe('polls Management Tests', () => {
   test(
     'verify Polls page with polls and "Create poll" button',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLLS_PAGE_VALIDATION'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLLS_PAGE_VALIDATION', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
