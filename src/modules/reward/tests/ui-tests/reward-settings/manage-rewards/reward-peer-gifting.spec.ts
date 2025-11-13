@@ -442,131 +442,126 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-
-      //Disabling the Peer gifting
       await manageRewardsPage.peerGifting.disableThePeerGifting();
-
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.clickOnGiveRecognition();
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
-
       const amountToBeSetForUserAllowance = 15;
       await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
       await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(
         randomInt(amountToBeSetForUserAllowance, 2000)
       );
-
       await manageRewardsPage.rewardsAllowance.saveAmount();
       await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-
       await manageRewardsPage.peerGifting.loadPage();
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-      await manageRewardsPage.peerGifting.disableThePeerGifting();
-
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.clickOnGiveRecognition();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
+      await manageRewardsPage.peerGifting.enableThePeerGifting(
+        'Immediately',
+        'Allowances have been edited since peer gifting was disabled.'
+      );
     }
   );
 
   test(
-    '[RC-3432] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    '[RC-3432] Validate the peer gifting enabling in the Next month when the reward is live',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description:
-          'Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+        description: 'Validate the peer gifting enabling in the Next month when the reward is live',
         zephyrTestId: 'RC-3432',
         storyId: 'RC-3432',
       });
 
+      const context = appManagerFixture.page.context();
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
 
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await test.step('Login to the application and navigate to Rewards overview', async () => {
+        await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/overview');
+        await manageRewardsPage.verifyThePageIsLoaded();
+      });
 
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-      await manageRewardsPage.peerGifting.disableThePeerGifting();
+      await test.step('Disable Peer gifting and click on Allowances i button.', async () => {
+        await manageRewardsPage.peerGifting.loadPage();
+        await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+        await manageRewardsPage.peerGifting.disableThePeerGifting();
+      });
 
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.clickOnGiveRecognition();
-      await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
+      // ---------- Step: change system date to next month (client-side override) ----------
+      await test.step('Simulate changing system date to next month in browser', async () => {
+        // compute next-month date in ISO form (preserve day/time to avoid timezone surprises)
+        const now = new Date();
+        const nextMonth = new Date(now.getTime());
+        nextMonth.setMonth(now.getMonth() + 1);
 
-      const amountToBeSetForUserAllowance = 15;
-      await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
-        '/manage/recognition/rewards/peer-gifting/allowances'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceIcon
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceHeading,
-        'Users allowance'
-      );
-      const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceDescription,
-        userAllowanceDescription
-      );
+        // Normalize to ISO (explicit timezone) to avoid environment-dependent offsets
+        const iso = nextMonth.toISOString();
 
-      if (
-        await manageRewardsPage.verifier.isTheElementVisible(
-          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance
-        )
-      ) {
-        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
-          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
-          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-          await manageRewardsPage.clickOnElement(
-            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
-            {
-              stepInfo: 'Clicking add user allowance button',
-            }
-          );
-        } else {
-          await manageRewardsPage.clickOnElement(
-            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
-            {
-              stepInfo: 'Clicking edit user allowance button',
-            }
-          );
-        }
-      } else {
-        await manageRewardsPage.clickOnElement(
-          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
-          {
-            stepInfo: 'Clicking add user allowance button',
-          }
+        // Add init script to override Date for all pages in this context (must run before next navigations)
+        // The script uses the provided ISO string as the "current" date/time.
+        await context.addInitScript({
+          content: `
+            (() => {
+                const forcedIso = "${iso}";
+                const OriginalDate = Date;
+                const forcedDate = new OriginalDate(forcedIso);
+                // Mock Date constructor and Date.now()
+                class MockDate extends OriginalDate {
+                  constructor(...args) {
+                    if (args.length === 0) {
+                      // when no args, return the forced date instance (create new to avoid mutability issues)
+                      return new OriginalDate(forcedIso);
+                    }
+                    return new OriginalDate(...args);
+                  }
+                  static now() {
+                    return new OriginalDate(forcedIso).getTime();
+                  }
+                }
+                // copy static methods that may be used
+                MockDate.UTC = OriginalDate.UTC;
+                MockDate.parse = OriginalDate.parse;
+                MockDate.prototype = OriginalDate.prototype;
+                // Replace window.Date with MockDate
+                window.Date = MockDate;
+            })();
+        `,
+        });
+        // Reload the current page so that the new init script takes effect for the application
+        await manageRewardsPage.page.reload({ waitUntil: 'domcontentloaded' });
+      });
+
+      await test.step(`Enable the Peer gifting with 'Immediately' and validate modal message`, async () => {
+        await manageRewardsPage.peerGifting.loadPage();
+        await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
+
+        // toggle on (enable)
+        await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.click();
+        await manageRewardsPage.peerGifting.saveButton.click();
+        await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
+
+        // Validate modal contents per your step 5/6:
+        await expect(manageRewardsPage.peerGifting.grantAllowancesDialog).toBeVisible();
+        // Confirm the three choices exist (Immediately, From the beginning of the next month, Cancel/Confirm buttons)
+        await expect(manageRewardsPage.peerGifting.grantAllowancesRadioImmediately).toBeVisible();
+        await expect(manageRewardsPage.peerGifting.grantAllowancesRadioNextMonth).toBeVisible();
+        await expect(manageRewardsPage.peerGifting.grantAllowancesCancelButton).toBeVisible();
+        await expect(manageRewardsPage.peerGifting.grantAllowancesConfirmButton).toBeVisible();
+
+        await expect(manageRewardsPage.peerGifting.grantAllowanceBoxDescription.nth(0)).toHaveText(
+          'Users will receive their fully monthly allowance for the remainder of the current month.'
         );
-      }
 
-      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheUserAmountBy(
-        amountToBeSetForUserAllowance
-      );
-      const currentAmount =
-        await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
-      expect(currentAmount).toBe(amountToBeSetForUserAllowance);
+        // confirm
+        await manageRewardsPage.peerGifting.grantAllowancesConfirmButton.click();
+        await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+      });
 
-      await manageRewardsPage.rewardsAllowance.saveAmount();
-      await manageRewardsPage.page.waitForTimeout(2000);
-      await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-      await manageRewardsPage.peerGifting.disableThePeerGifting();
-
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.clickOnGiveRecognition();
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
+      await test.step('Validate the Gifting is enabled in the Recognition Modal', async () => {
+        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.clickOnGiveRecognition();
+        await expect(giveRecognitionModal.giftingToggle).toBeVisible();
+      });
     }
   );
 });

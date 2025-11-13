@@ -202,6 +202,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
     }
     if (deletable) {
       await this.saveChanges();
+      await this.dismissTheToastMessage();
     }
   }
 
@@ -412,12 +413,14 @@ export class RewardsCurrencyConversionPage extends BasePage {
     const preValue1 = await this.getConversionValue(currency);
     expect(this.compareIntegerParts(preValue1, newValue1)).toBe(true);
     await this.saveChanges();
+    await this.dismissTheToastMessage();
 
     // Disable custom conversion
     const newValue2 = await this.disableCustomConversion(currency);
     const preValue2 = await this.getConversionValue(currency);
     expect(this.compareIntegerParts(preValue2, newValue2)).toBe(true);
     await this.saveChanges();
+    await this.dismissTheToastMessage();
 
     // Clean up
     await this.validateCurrencyInTable(currency, true);

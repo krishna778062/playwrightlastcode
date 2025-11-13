@@ -66,8 +66,13 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate currency conversion page on custom conversion',
-        zephyrTestId: 'RC-3466,RC-3467',
-        storyId: 'RC-3466,RC-3467',
+        zephyrTestId: 'RC-3466',
+        storyId: 'RC-3466',
+      });
+      tagTest(test.info(), {
+        description: 'Validate currency conversion page on custom conversion',
+        zephyrTestId: 'RC-3467',
+        storyId: 'RC-3467',
       });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);

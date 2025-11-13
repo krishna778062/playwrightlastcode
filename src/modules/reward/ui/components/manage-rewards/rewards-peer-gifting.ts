@@ -24,6 +24,7 @@ export class RewardsPeerGifting extends BasePage {
   readonly disableDialogCloseButton: Locator;
   readonly disableDialogConfirmText: Locator;
   readonly disableDialogDescriptionText: Locator;
+  readonly disableDialogEnablingMessage: Locator;
   readonly disableDialogCancelButton: Locator;
   readonly disableDialogDisableButton: Locator;
 
@@ -78,6 +79,7 @@ export class RewardsPeerGifting extends BasePage {
     this.disableDialogDescriptionText = this.disableDialog.locator(
       'p:text("Users will lose their monthly allowances")'
     );
+    this.disableDialogEnablingMessage = this.disableDialog.locator('div[class*="Spacing-module__column"] > p');
     this.disableDialogCancelButton = this.disableDialog.locator('button:text("Cancel")');
     this.disableDialogDisableButton = this.disableDialog.locator('button:text("Disable")');
     // Enable Peer Gifting dialog
@@ -192,7 +194,10 @@ export class RewardsPeerGifting extends BasePage {
    *
    * @param enableType 'Immediately' | 'From the beginning of the next month'
    */
-  async enableThePeerGifting(enableType: 'Immediately' | 'From the beginning of the next month'): Promise<void> {
+  async enableThePeerGifting(
+    enableType: 'Immediately' | 'From the beginning of the next month',
+    enableMessage?: string
+  ): Promise<void> {
     await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
     await this.verifyThePageIsLoaded();
     await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
@@ -202,6 +207,11 @@ export class RewardsPeerGifting extends BasePage {
     }
     await this.peerGiftingToggleSwitch.click();
     await this.saveButton.click();
+    if (enableMessage) {
+      await this.verifier.isTheElementVisible(this.disableDialogEnablingMessage);
+      const stringTexts = await this.disableDialogEnablingMessage.allTextContents();
+      expect(stringTexts).toContain(enableMessage);
+    }
     await this.selectThePeerGiftingEnableType(enableType);
     await this.grantAllowancesConfirmButton.click();
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
