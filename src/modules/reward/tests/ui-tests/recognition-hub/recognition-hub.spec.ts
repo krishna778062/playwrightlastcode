@@ -117,9 +117,9 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[RC-3327] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
+    '[RC-3327, RC-3417, RC-3328] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -128,54 +128,31 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         zephyrTestId: 'RC-3327',
         storyId: 'RC-3327',
       });
-      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.verifyThePageIsLoaded();
-
-      // Set distribution allowance as failed using test helper
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
-      await recognitionHub.reloadPage();
-      await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.clickOnGiveRecognition();
-      await recognitionHub.checkTheGiftingOptionsAre(false);
-
-      // Set distribution allowance as success using test helper
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
-      await recognitionHub.reloadPage();
-      await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.clickOnGiveRecognition();
-      await recognitionHub.checkTheGiftingOptionsAre(true);
-    }
-  );
-
-  test(
-    "[RC-3328] Verify if user's point(points to give) balance is 0 when allowances are refreshing",
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
-    },
-    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify the Gift points toggle button is disabled when Allowances are refreshing.',
+        zephyrTestId: 'RC-3417',
+        storyId: 'RC-3417',
+      });
       tagTest(test.info(), {
         description: "Verify if user's point(points to give) balance is 0 when allowances are refreshing",
         zephyrTestId: 'RC-3328',
         storyId: 'RC-3328',
       });
-
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       try {
         // Enable the distribution using test helper
         await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
-        // Mock the Reward config API and enable the Distributing allowance
         await recognitionHub.visitRecognitionHub();
-
-        // Validate the Gift points toggle button is disabled
+        await recognitionHub.verifyThePageIsLoaded();
         await recognitionHub.checkThePointsToGive(0);
-
-        // Disable the distribution
+        await recognitionHub.validateAllowanceRefreshingTooltipInRecognitionHub();
+        await recognitionHub.clickOnGiveRecognition();
+        await recognitionHub.checkTheGiftingOptionsAre(false);
         await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
-      } catch (e) {
-        log.info(`${e}`);
+        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.verifyThePageIsLoaded();
+        await recognitionHub.clickOnGiveRecognition();
+        await recognitionHub.checkTheGiftingOptionsAre(true);
       } finally {
         await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       }
@@ -183,41 +160,9 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[RC-3417] Verify the Gift points toggle button is disabled when Allowances are refreshing.',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P2],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify the Gift points toggle button is disabled when Allowances are refreshing.',
-        zephyrTestId: 'RC-3417',
-        storyId: 'RC-3417',
-      });
-
-      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-
-      // Enable the distribution using test helper
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-
-      // Mock the Reward config API and enable the Distributing allowance
-      await appManagerFixture.page.reload();
-      await recognitionHub.visitRecognitionHub();
-
-      // Click on Give recognition button
-      await recognitionHub.clickOnGiveRecognition();
-
-      // Scroll to the 'Gift points' toggle button and check tooltip
-      await recognitionHub.checkTheGiftingOptionsAre(false);
-
-      // Disable the distribution
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
-    }
-  );
-
-  test(
     '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -266,9 +211,6 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         await expect(recognitionHub.deleteRecognitionWithRevokePoints).toBeDisabled();
         await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
         await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
-
-        // Disable the distribution
-        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       } catch (e) {
         log.info(`${e}`);
       } finally {

@@ -127,6 +127,7 @@ export class RecognitionHubPage extends BasePage {
         this.giftingNotAvailableInfoIconTooltipText,
         'Gifting is currently unavailable while your allowance refreshes. Please try again shortly.'
       );
+      await this.clickOnElement(this.giftingNotAvailableInfoIcon);
     } else {
       await this.verifier.verifyTheElementIsEnabled(this.giftingToggleSwitch);
     }
@@ -489,8 +490,6 @@ export class RecognitionHubPage extends BasePage {
    * Validate allowance refreshing tooltip in recognition hub
    */
   async validateAllowanceRefreshingTooltipInRecognitionHub(): Promise<void> {
-    await this.page.reload();
-    await this.visitRecognitionHub();
     await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshing);
     await this.verifier.verifyTheElementIsVisible(this.allowanceRefreshingInfoIcon);
     await this.clickOnElement(this.allowanceRefreshingInfoIcon);
@@ -499,6 +498,6 @@ export class RecognitionHubPage extends BasePage {
       this.allowanceRefreshingInfoIconTooltipText,
       'Your monthly allowance is refreshing and will be available soon'
     );
-    await this.allowanceRefreshingInfoIcon.click({ force: true });
+    await this.clickOnElement(this.allowanceRefreshingInfoIconTooltipText);
   }
 }

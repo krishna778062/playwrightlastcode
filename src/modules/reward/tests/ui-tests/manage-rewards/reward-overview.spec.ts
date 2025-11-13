@@ -66,7 +66,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         REWARD_FEATURE_TAGS.REWARDS_DB_CASES,
         REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH,
         TestGroupType.REGRESSION,
-        TestPriority.P2,
+        TestPriority.P1,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -76,31 +76,35 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         storyId: 'RC-3329',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.loadPage();
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-      await manageRewardsOverviewPage.reloadPage();
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
-        manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue,
-        {
-          timeout: 15000,
-          stepInfo: 'Verify Allowances value is visible in Points balance summary section',
-        }
-      );
-      const allowancePointsText = await manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue.textContent();
-      const allowancePoints = Number(allowancePointsText?.replace('points', '').trim());
-      expect(allowancePoints).toBe(0);
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        manageRewardsOverviewPage.tooltipText,
-        'Allowances are currently refreshing'
-      );
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      try {
+        await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+        await manageRewardsOverviewPage.reloadPage();
+        await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+        await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
+        await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+          manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue,
+          {
+            timeout: 15000,
+            stepInfo: 'Verify Allowances value is visible in Points balance summary section',
+          }
+        );
+        const allowancePointsText = await manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue.textContent();
+        const allowancePoints = Number(allowancePointsText?.replace('points', '').trim());
+        expect(allowancePoints).toBe(0);
+        await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
+        await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
+        await manageRewardsOverviewPage.verifier.verifyElementHasText(
+          manageRewardsOverviewPage.tooltipText,
+          'Allowances are currently refreshing'
+        );
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      }
     }
   );
 

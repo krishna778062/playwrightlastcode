@@ -9,8 +9,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constants/testTags';
 
-import { log } from '@/src/core';
-
 test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SUITE_TAGS.USER_PROFILE] }, () => {
   test(
     "[RC-3261] A Verify user profile should show a 'View orders' button in the Recognition section in Admin User profile page",
@@ -77,7 +75,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-2963] Verify user wallet in users profile',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -98,8 +96,6 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
         await userProfilePage.validateWalletDataStructure(walletData);
         await userProfilePage.validateWalletDataInUI(walletData);
         await userProfilePage.validateZeroValuesOnPage();
-      } catch (e) {
-        log.info(`${e}`);
       } finally {
         await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       }
@@ -128,7 +124,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-3418] Verify the tooltip on the User wallet section, when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -150,8 +146,6 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
         await userProfilePage.navigateToCurrentUserProfile();
         await userProfilePage.validateAllowanceRefreshingTooltip();
         await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
-      } catch (e) {
-        log.info(`${e}`);
       } finally {
         await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
       }

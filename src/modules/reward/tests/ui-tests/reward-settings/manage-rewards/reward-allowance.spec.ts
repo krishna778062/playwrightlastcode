@@ -927,7 +927,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   test(
     '[RC-3325] Validate that the user cannot add/edit/remove any allowance when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
