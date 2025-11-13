@@ -60,7 +60,12 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   test(
     '[RC-4424] Validate error message on Reward point gifting options',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS, TestPriority.P0],
+      tag: [
+        TestGroupType.REGRESSION,
+        REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS,
+        TestPriority.P0,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

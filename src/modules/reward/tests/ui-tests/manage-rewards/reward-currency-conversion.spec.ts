@@ -44,7 +44,12 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   test(
     '[RC-2266] Validate All the UI elements in the Currency conversion page',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
+      tag: [
+        TestGroupType.REGRESSION,
+        REWARD_FEATURE_TAGS.CURRENCY_CONVERSION,
+        TestPriority.P0,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

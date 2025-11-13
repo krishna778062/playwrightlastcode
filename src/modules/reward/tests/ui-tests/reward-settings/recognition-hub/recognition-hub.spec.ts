@@ -17,6 +17,7 @@ test(
       TestPriority.P0,
       TestGroupType.REGRESSION,
       TestGroupType.SMOKE,
+      TestGroupType.HEALTHCHECK,
     ],
   },
   async ({ appManagerFixture }) => {

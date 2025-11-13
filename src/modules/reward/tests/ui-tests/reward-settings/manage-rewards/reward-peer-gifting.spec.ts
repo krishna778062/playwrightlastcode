@@ -124,7 +124,12 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-2199] Validate peer gifting on Overview UI',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
+      tag: [
+        TestGroupType.REGRESSION,
+        REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING,
+        TestPriority.P0,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -281,7 +286,12 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-5420] Validate when user navigate to tabs under Peer Gifting one by one, rewards and peer api is called for once only',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
+      tag: [
+        TestGroupType.REGRESSION,
+        REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING,
+        TestPriority.P0,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

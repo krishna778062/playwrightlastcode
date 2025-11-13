@@ -174,7 +174,12 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   test(
     '[RC-3133] Validate tooltips on Rewards Overview Budget Summary tile component',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY,
+        TestPriority.P0,
+        TestGroupType.REGRESSION,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

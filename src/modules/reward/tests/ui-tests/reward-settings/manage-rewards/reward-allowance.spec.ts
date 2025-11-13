@@ -19,7 +19,12 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   test(
     '[RC-2448] Verify user allowances index page for user allowances',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE,
+        TestPriority.P0,
+        TestGroupType.REGRESSION,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

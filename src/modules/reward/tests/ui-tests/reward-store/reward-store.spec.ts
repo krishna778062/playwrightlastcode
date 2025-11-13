@@ -16,7 +16,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   test(
     '[RC-2909] Verify Category and location dropdown for the gift-cards tab',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_STORE,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

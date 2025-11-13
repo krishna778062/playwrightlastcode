@@ -73,7 +73,13 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     'validate search box on rewards option page',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_OPTIONS,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ recoManagerFixture }) => {
       tagTest(test.info(), {

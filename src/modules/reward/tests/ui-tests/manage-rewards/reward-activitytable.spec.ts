@@ -24,7 +24,13 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   test(
     '[RC-3004] Validate Rewards Activity table if there is no activity',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -455,7 +461,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     test(
       `[${testId}] ${testTitle}`,
       {
-        tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
+        tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

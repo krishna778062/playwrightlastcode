@@ -10,7 +10,13 @@ test.describe('enable Rewards flow', () => {
   test(
     'validate Enable rewards flow',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.ENABLE_REWARD, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        TestGroupType.REGRESSION,
+        REWARD_FEATURE_TAGS.ENABLE_REWARD,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

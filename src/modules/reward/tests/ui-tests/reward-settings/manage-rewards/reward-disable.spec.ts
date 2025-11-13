@@ -13,7 +13,7 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   test(
     '[RC-2198] Validate disable rewards flow',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0],
+      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
