@@ -232,7 +232,7 @@ test.describe(
     test(
       'verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         const { identityManagementHelper } = appManagerFixture;
@@ -449,7 +449,7 @@ test.describe(
     test(
       'verify that duplicate acg error is displayed on attempting to create ACG with same features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
