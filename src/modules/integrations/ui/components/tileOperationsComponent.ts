@@ -85,6 +85,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly Published: RegExp;
   readonly lessonsPattern: RegExp;
   readonly registeredOnPattern: RegExp;
+  readonly freshserviceTicketIdPattern: RegExp;
+  readonly freshserviceDueDatePattern: RegExp;
+  readonly freshserviceCreatedDatePattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -178,6 +181,12 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.lessonsPattern = /^\d+\s+Lessons?$/;
     this.registeredOnPattern =
       /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
+
+    // FreshService: patterns for ticket verification
+    this.freshserviceTicketIdPattern = /^#(Case|Incident)-\d+$/;
+    this.freshserviceDueDatePattern = /^Due\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
+    this.freshserviceCreatedDatePattern =
+      /^Created\s+(on\s+)?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
   }
 
   /**
@@ -921,6 +930,73 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       ) {
         await this.clickOnElement(toggleButton, { timeout: 30_000 });
       }
+    });
+  }
+
+  /**
+   * Generic method to verify FreshService ticket data structure
+   * Used by both "Tickets Submitted by Me" and "Unassigned Tickets" tiles
+   * @param tileTitle - The title of the tile to verify
+   */
+  private async verifyFreshserviceTicketData(tileTitle: string): Promise<void> {
+    const tile = this.getTileContainers(tileTitle).first();
+    await expect(tile, `FreshService tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+    // Get ticket containers and verify at least one exists
+    const containers = tile.locator(this.container);
+    const count = await containers.count();
+    expect(count, 'At least one ticket container should be present in FreshService tile').toBeGreaterThan(0);
+
+    // Verify first ticket has all required elements
+    const firstTicket = containers.first();
+
+    // Verify ticket ID (e.g., #Case-9, #Incident-8)
+    await expect(
+      firstTicket.getByText(this.freshserviceTicketIdPattern).first(),
+      'Ticket ID should be visible'
+    ).toBeVisible();
+
+    // Verify ticket description (h3 heading)
+    await expect(firstTicket.locator(this.heading(3)).first(), 'Ticket description should be visible').toBeVisible();
+
+    // Verify status tag is present
+    await expect(this.getTagElement(firstTicket).first(), 'Status tag should be visible').toBeVisible();
+
+    // Verify priority tag is present (should be in tags)
+    const tags = this.getTagElement(firstTicket);
+    const tagCount = await tags.count();
+    expect(tagCount, 'At least one tag (status/priority/due date) should be visible').toBeGreaterThan(0);
+
+    // Verify due date pattern (e.g., "Due Nov 12, 2025")
+    await expect(
+      firstTicket.getByText(this.freshserviceDueDatePattern).first(),
+      'Due date should be visible'
+    ).toBeVisible();
+
+    // Verify created date pattern (e.g., "Created Nov 11, 2025" or "Created on Nov 11, 2025")
+    await expect(
+      firstTicket.getByText(this.freshserviceCreatedDatePattern).first(),
+      'Created date should be visible'
+    ).toBeVisible();
+  }
+
+  /**
+   * Verify FreshService Tickets Submitted by Me tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceTicketsSubmittedByMe(tileTitle: string): Promise<void> {
+    await test.step(`Verify FreshService Tickets Submitted by Me tile data for '${tileTitle}'`, async () => {
+      await this.verifyFreshserviceTicketData(tileTitle);
+    });
+  }
+
+  /**
+   * Verify FreshService Unassigned Tickets tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
+    await test.step(`Verify FreshService Unassigned Tickets tile data for '${tileTitle}'`, async () => {
+      await this.verifyFreshserviceTicketData(tileTitle);
     });
   }
 }
