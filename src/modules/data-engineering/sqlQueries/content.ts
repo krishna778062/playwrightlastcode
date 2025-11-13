@@ -82,4 +82,139 @@ export const ContentSql = {
     GROUP BY content_type_code
     ORDER BY content_count DESC
   `,
+
+  /**
+   * Users Who Viewed Content Percentage Query Template
+   * Returns percentage of users who viewed content out of total active users
+   */
+  USERS_WHO_VIEWED_CONTENT_PERCENTAGE: `
+    SELECT 
+        (CAST(q2.users_who_viewed_content AS FLOAT) / q1.total_active_users) * 100 AS percentage_users_who_viewed_content
+    FROM 
+    (
+        SELECT COUNT(DISTINCT U.USER_CODE) AS total_active_users
+        FROM SIMPPLR_COMMON_TENANT.UDL.DAILY_USER_ADOPTION AS U 
+        INNER JOIN SIMPPLR_COMMON_TENANT.UDL.USER AS US 
+            ON U.USER_CODE = US.CODE
+        WHERE US.TENANT_CODE = '{tenantCode}'
+          AND U.reporting_date >= '{startDate}'
+          AND U.reporting_date <= '{endDate}'
+          AND US.status_code = 'US001'
+    ) q1,
+    (
+        SELECT COUNT(DISTINCT dua.user_code) AS users_who_viewed_content
+        FROM SIMPPLR_COMMON_TENANT.UDL.DAILY_USER_ADOPTION AS dua
+        INNER JOIN SIMPPLR_COMMON_TENANT.UDL.USER AS u 
+            ON u.code = dua.user_code
+        WHERE dua.unique_content_views_overall > 0
+          AND dua.tenant_code = '{tenantCode}'
+          AND dua.reporting_date >= '{startDate}'
+          AND dua.reporting_date <= '{endDate}'
+          AND u.status_code = 'US001'
+    ) q2
+  `,
+
+  /**
+   * Comments Query Template
+   * Returns count of comments on content with filters applied
+   */
+  COMMENTS: `
+    select count(INTERACTED_BY_USER_CODE) as views 
+    from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
+    {userJoin}
+    where ct.code in ('CT001','CT002','CT003','CT004')
+      and i.interaction_type_code = 'IT004'
+      and i.interaction_entity_code = 'ET003'
+      and i.is_system_feed = 'false'
+      and i.interaction_datetime between '{startDate}' AND '{endDate}'
+      and c.tenant_code = '{tenantCode}'
+      and i.is_deleted = 'False'
+      and i.interaction_content_post_first_publish = 'True'
+      and i.data_source_code = 'DS002'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
+
+  /**
+   * Replies Query Template
+   * Returns count of replies on content with filters applied
+   */
+  REPLIES: `
+    select count(INTERACTED_BY_USER_CODE) as views 
+    from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
+    {userJoin}
+    where ct.code in ('CT001','CT002','CT003','CT004')
+      and i.interaction_type_code = 'IT007'
+      and i.interaction_entity_code = 'ET003'
+      and i.is_system_feed = 'false'
+      and i.interaction_datetime between '{startDate}' AND '{endDate}'
+      and c.tenant_code = '{tenantCode}'
+      and i.is_deleted = 'False'
+      and i.interaction_content_post_first_publish = 'True'
+      and i.data_source_code = 'DS002'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
+
+  /**
+   * Shares Query Template
+   * Returns count of shares on content with filters applied
+   */
+  SHARES: `
+    select count(INTERACTED_BY_USER_CODE) as views 
+    from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
+    {userJoin}
+    where ct.code in ('CT001','CT002','CT003','CT004')
+      and i.interaction_type_code = 'IT003'
+      and i.interaction_entity_code = 'ET003'
+      and i.is_system_feed = 'false'
+      and i.interaction_datetime between '{startDate}' AND '{endDate}'
+      and c.tenant_code = '{tenantCode}'
+      and i.is_deleted = 'False'
+      and i.interaction_content_post_first_publish = 'True'
+      and i.data_source_code = 'DS002'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
+
+  /**
+   * Favorites Query Template
+   * Returns count of favorites on content with filters applied
+   */
+  FAVORITES: `
+    select count(INTERACTED_BY_USER_CODE) as views 
+    from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
+    {userJoin}
+    where ct.code in ('CT001','CT002','CT003','CT004')
+      and i.interaction_type_code = 'IT006'
+      and i.interaction_entity_code = 'ET003'
+      and i.is_system_feed = 'false'
+      and i.interaction_datetime between '{startDate}' AND '{endDate}'
+      and c.tenant_code = '{tenantCode}'
+      and i.is_deleted = 'False'
+      and i.interaction_content_post_first_publish = 'True'
+      and i.data_source_code = 'DS002'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
 };

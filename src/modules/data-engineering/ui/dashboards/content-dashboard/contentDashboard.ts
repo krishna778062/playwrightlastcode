@@ -1,8 +1,13 @@
 import {
+  CommentsMetrics,
   CurrentlyPublishedMetrics,
+  FavoritesMetrics,
+  RepliesMetrics,
+  SharesMetrics,
   TotalContentPublishedMetrics,
   TotalContentViewsMetrics,
   UniqueContentViewMetrics,
+  UsersWhoViewedContentMetrics,
 } from '@data-engineering/ui/dashboards/content-dashboard/metrics';
 import { Page, test } from '@playwright/test';
 
@@ -15,6 +20,11 @@ export class ContentDashboard extends BaseAnalyticsDashboardPage {
   readonly totalContentPublishedMetric: TotalContentPublishedMetrics;
   readonly uniqueContentViewMetric: UniqueContentViewMetrics;
   readonly currentlyPublishedMetric: CurrentlyPublishedMetrics;
+  readonly usersWhoViewedContentMetric: UsersWhoViewedContentMetrics;
+  readonly commentsMetric: CommentsMetrics;
+  readonly repliesMetric: RepliesMetrics;
+  readonly sharesMetric: SharesMetrics;
+  readonly favoritesMetric: FavoritesMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CONTENT_DASHBOARD);
@@ -22,6 +32,11 @@ export class ContentDashboard extends BaseAnalyticsDashboardPage {
     this.totalContentPublishedMetric = new TotalContentPublishedMetrics(page, this.thoughtSpotIframe);
     this.uniqueContentViewMetric = new UniqueContentViewMetrics(page, this.thoughtSpotIframe);
     this.currentlyPublishedMetric = new CurrentlyPublishedMetrics(page, this.thoughtSpotIframe);
+    this.usersWhoViewedContentMetric = new UsersWhoViewedContentMetrics(page, this.thoughtSpotIframe);
+    this.commentsMetric = new CommentsMetrics(page, this.thoughtSpotIframe);
+    this.repliesMetric = new RepliesMetrics(page, this.thoughtSpotIframe);
+    this.sharesMetric = new SharesMetrics(page, this.thoughtSpotIframe);
+    this.favoritesMetric = new FavoritesMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

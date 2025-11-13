@@ -175,5 +175,141 @@ test.describe(
         await currentlyPublishedMetric.verifyBarsWithTooltips(expectedChartData);
       }
     );
+
+    test(
+      'verify Users who viewed content metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@users-who-viewed-content'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Users who viewed content in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue =
+          await contentDashboardQueryHelper.getUsersWhoViewedContentPercentageFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const usersWhoViewedContentMetric = testEnvironment.contentDashboard.usersWhoViewedContentMetric;
+        await usersWhoViewedContentMetric.verifyMetricIsLoaded();
+        // Verify the percentage value (e.g., 14.1 for 14.1%)
+        await usersWhoViewedContentMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Comments metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@comments'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Comments in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getCommentsDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const commentsMetric = testEnvironment.contentDashboard.commentsMetric;
+        await commentsMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await commentsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Replies metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Replies in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getRepliesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const repliesMetric = testEnvironment.contentDashboard.repliesMetric;
+        await repliesMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await repliesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Shares metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Shares in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getSharesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const sharesMetric = testEnvironment.contentDashboard.sharesMetric;
+        await sharesMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await sharesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Favorites metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Favorites in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getFavoritesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const favoritesMetric = testEnvironment.contentDashboard.favoritesMetric;
+        await favoritesMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await favoritesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
   }
 );

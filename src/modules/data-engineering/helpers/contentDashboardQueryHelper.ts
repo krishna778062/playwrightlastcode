@@ -78,6 +78,22 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   }
 
   /**
+   * Gets hero metric data from database as a float (for percentage values).
+   * Similar to getHeroMetricDataFromDB but handles float/decimal values correctly.
+   * @param query - The complete SQL query string with all filters applied (should return 1 record)
+   * @returns Promise<number> - The hero metric value as a float
+   */
+  private async getHeroMetricDataFromDBAsFloat(query: string): Promise<number> {
+    const results = await this.executeQuery(query);
+
+    // Business rule: Hero metrics always return 1 record with 1 numeric value
+    if (results.length === 0) return 0;
+    const firstResult = results[0];
+    const dbValue = Object.values(firstResult)[0];
+    return typeof dbValue === 'string' ? parseFloat(dbValue) : Number(dbValue);
+  }
+
+  /**
    * Maps content type code to display name
    */
   private mapContentTypeCodeToName(code: string): string {
@@ -112,5 +128,90 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
       contentTypeName: this.mapContentTypeCodeToName(row.CONTENT_TYPE_CODE),
       contentCount: Number(row.CONTENT_COUNT),
     }));
+  }
+
+  /**
+   * Gets users who viewed content percentage from database with filters.
+   * @param filterBy - Filter options including time period
+   * @returns Promise<number> - Percentage of users who viewed content (as a float, e.g., 14.1 for 14.1%)
+   */
+  async getUsersWhoViewedContentPercentageFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.USERS_WHO_VIEWED_CONTENT_PERCENTAGE,
+      filterBy,
+    });
+    return await this.getHeroMetricDataFromDBAsFloat(finalQuery);
+  }
+
+  /**
+   * Gets comments count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Comments count
+   */
+  async getCommentsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.COMMENTS,
+      filterBy,
+    });
+
+    // Replace userJoin placeholder
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+
+    return await this.getHeroMetricDataFromDB(query);
+  }
+
+  /**
+   * Gets replies count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Replies count
+   */
+  async getRepliesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.REPLIES,
+      filterBy,
+    });
+
+    // Replace userJoin placeholder
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+
+    return await this.getHeroMetricDataFromDB(query);
+  }
+
+  /**
+   * Gets shares count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Shares count
+   */
+  async getSharesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.SHARES,
+      filterBy,
+    });
+
+    // Replace userJoin placeholder
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+
+    return await this.getHeroMetricDataFromDB(query);
+  }
+
+  /**
+   * Gets favorites count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Favorites count
+   */
+  async getFavoritesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.FAVORITES,
+      filterBy,
+    });
+
+    // Replace userJoin placeholder
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+
+    return await this.getHeroMetricDataFromDB(query);
   }
 }
