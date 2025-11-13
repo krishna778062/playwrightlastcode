@@ -1,6 +1,8 @@
+import { expect } from '@playwright/test';
 import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
@@ -31,24 +33,40 @@ test(
 
     // Visit the Recognition Hub and give one recognition
     const existingOptions = await recognitionHub.visitRecognitionHub();
-    if (existingOptions.length < 2) {
+    await recognitionHub.verifyThePageIsLoaded();
+    if (existingOptions.length <= 1) {
       await recognitionHub.setupTheMultipleGiftingOptions();
     }
     await recognitionHub.clickOnGiveRecognition();
     const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-    const rewardOptionText = await giveRecognitionModal.recognizePeerRecognitionWithRewardPoints(
-      0,
-      getRewardTenantConfigFromCache().recognitionManagerName,
-      'Test Message' + Math.floor(Math.random() * 1000),
-      rewardOptionIndex
-    );
+    await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().endUserName);
+    await giveRecognitionModal.selectTheUserForRecognition(2);
+    await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+    const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+    await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+    await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+    const [response] = await Promise.all([
+      recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+      giveRecognitionModal.recognizeButton.click({ force: true }),
+    ]);
 
-    // Validate the Peer award outer ring, reward point pill, tooltip icon
-    await recognitionHub.visitRecognitionHub();
+    const body = await response.json();
+    if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+    const recognitionPostId = String(body.id);
+
+    // Handle dialog box if it appears
+    const dialogBox = new DialogBox(appManagerFixture.page);
+    if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+      await dialogBox.container.waitFor({ state: 'visible' });
+      await dialogBox.skipButton.click();
+      await expect(dialogBox.container).not.toBeVisible();
+    }
+
+    await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
     await recognitionHub.verifyThePageIsLoaded();
     await recognitionHub.validateTheRewardElementsInRecognitionPost(
       true,
-      rewardOptionText,
+      String(rewardOptionIndex),
       'Only visible to recipients, their managers and app administrators'
     );
 
@@ -56,10 +74,11 @@ test(
     await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.disableTheRewards();
-    await recognitionHub.visitRecognitionHub();
+    await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+    await recognitionHub.verifyThePageIsLoaded();
     await recognitionHub.validateTheRewardElementsInRecognitionPost(
       false,
-      rewardOptionText,
+      String(rewardOptionIndex),
       'Only visible to recipients, their managers and app administrators'
     );
 
@@ -67,10 +86,11 @@ test(
     await manageRewardsPage.loadPage();
     await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewards();
-    await recognitionHub.visitRecognitionHub();
+    await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+    await recognitionHub.verifyThePageIsLoaded();
     await recognitionHub.validateTheRewardElementsInRecognitionPost(
       true,
-      rewardOptionText,
+      String(rewardOptionIndex),
       'Only visible to recipients, their managers and app administrators'
     );
   }

@@ -16,6 +16,7 @@ test(
       storyId: 'RC-3094',
     });
     const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+    await manageRewardsOverviewPage.loadPage();
     await manageRewardsOverviewPage.verifyThePageIsLoaded();
     await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
     await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
