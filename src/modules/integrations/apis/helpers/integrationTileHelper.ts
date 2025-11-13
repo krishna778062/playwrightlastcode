@@ -21,7 +21,8 @@ export class IntegrationTileHelper {
     readonly baseUrl: string
   ) {
     this.httpClient = new HttpClient(appManagerApiContext, baseUrl);
-    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl);
+    const { frontendBaseUrl } = getEnvConfig();
+    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl, frontendBaseUrl);
   }
 
   /**

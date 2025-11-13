@@ -32,7 +32,7 @@ test.describe(
     test(
       'verify Personalize button functionality for user defined view tasks in Airtable app tile',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -58,7 +58,7 @@ test.describe(
     test(
       'verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -85,7 +85,7 @@ test.describe(
     test(
       'verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
@@ -122,7 +122,7 @@ test.describe(
     test(
       'verify Airtable tile displays task records with proper content structure',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
