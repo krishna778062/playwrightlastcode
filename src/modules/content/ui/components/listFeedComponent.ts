@@ -507,9 +507,9 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-   * Likes a feed post by clicking the like button
+  /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
-   */
+  */
   async likeFeedPost(postText: string): Promise<void> {
     await test.step(`Like feed post: ${postText}`, async () => {
       // Ensure post is visible first
@@ -616,7 +616,6 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getPostByUserLocator = (userName: string): Locator =>
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
-    
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
