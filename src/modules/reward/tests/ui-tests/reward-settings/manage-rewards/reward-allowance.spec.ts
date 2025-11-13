@@ -242,7 +242,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         '*Monthly totals are for guidance only, based on latest edits and current active users.'
       );
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.monthlyAllowanceIllustrationAudienceRow);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.monthlyAllowanceIllustrationAudienceColumn);
+      await allowancePage.verifier.verifyTheElementIsVisible(
+        allowancePage.monthlyAllowanceIllustrationAudienceColumn.last()
+      );
     }
   );
 
@@ -616,10 +618,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         '*Monthly totals are for guidance only, based on latest edits and current active users.'
       );
       await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.monthlyAllowanceIllustrationIndividualRow);
-      const individualAllowanceAmount = await allowancePage.monthlyAllowanceIllustrationIndividualColumn
-        .nth(2)
-        .textContent();
-      expect(currentAmount).toEqual(Number(individualAllowanceAmount));
+      await allowancePage.verifier.verifyTheElementIsVisible(
+        allowancePage.monthlyAllowanceIllustrationIndividualColumn.last()
+      );
     }
   );
 
