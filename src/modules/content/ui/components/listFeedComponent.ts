@@ -643,9 +643,9 @@ export class ListFeedComponent extends BaseComponent {
 
       const errorButton = videoContainer.locator(this.page.getByRole('button', { name: 'Try again' }));
       await errorButton.waitFor({ state: 'visible' });
-      if(await errorButton.isVisible()) {
+      if (await errorButton.isVisible()) {
         console.log('Error button is visible, Video is not playing returning from the function');
-        return ;
+        return;
       }
       console.log('Error button is not visible, Video is playing');
 
@@ -662,7 +662,7 @@ export class ListFeedComponent extends BaseComponent {
       });
       console.log('Forward button is visible Clicking on it');
       await this.clickOnElement(forwardButton);
-      
+
       const backwardButton = videoContainer.locator(this.backwardButton);
       await this.verifier.verifyTheElementIsVisible(backwardButton, {
         assertionMessage: `Backward button should be visible for video in post "${postText}"`,
@@ -690,14 +690,14 @@ export class ListFeedComponent extends BaseComponent {
       });
       console.log('Settings button is visible Clicking on it');
       await this.clickOnElement(settingsButton);
-      
+
       const fullscreenButton = videoContainer.locator(this.fullscreenButton);
       await this.verifier.verifyTheElementIsVisible(fullscreenButton, {
         assertionMessage: `Fullscreen button should be visible for video in post "${postText}"`,
       });
       console.log('Fullscreen button is visible Clicking on it');
       await this.clickOnElement(fullscreenButton);
-      
+
       const exitFullscreenButton = videoContainer.locator(this.exitFullscreenButton);
       await this.verifier.verifyTheElementIsVisible(exitFullscreenButton, {
         assertionMessage: `Exit fullscreen button should be visible for video in post "${postText}"`,
