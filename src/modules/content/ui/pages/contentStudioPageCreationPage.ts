@@ -125,20 +125,14 @@ export class ContentStudioPageCreationPage
 
       const imageCount = await this.uploadedCoverImagePreviewImageForContentStudio.count();
       if (imageCount === 0) {
-        await this.uploadedCoverImagePreviewImageForContentStudio
-          .waitFor({ state: 'attached', timeout: 5000 })
-          .catch(() => {});
+        await this.uploadedCoverImagePreviewImageForContentStudio.waitFor({ state: 'attached' }).catch(() => {});
       }
 
       await this.page
-        .waitForFunction(
-          imgSelector => {
-            const img = document.querySelector(imgSelector) as HTMLImageElement | null;
-            return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
-          },
-          `.flex.h-full.w-full.items-center img`,
-          { timeout: 10000 }
-        )
+        .waitForFunction(imgSelector => {
+          const img = document.querySelector(imgSelector) as HTMLImageElement | null;
+          return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
+        }, `.flex.h-full.w-full.items-center img`)
         .catch(() => {});
 
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImageForContentStudio, {

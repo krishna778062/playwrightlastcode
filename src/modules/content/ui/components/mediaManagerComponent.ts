@@ -45,10 +45,10 @@ export class MediaManagerComponent extends BaseComponent {
       const isCoverImageModalVisible = await this.coverImageModalOptions.isVisible().catch(() => false);
 
       if (isMediaManagerVisible) {
-        await this.intranetMediaManagerModal.waitFor({ state: 'hidden', timeout: 5000 });
+        await this.intranetMediaManagerModal.waitFor({ state: 'hidden' });
       }
       if (isCoverImageModalVisible) {
-        await this.coverImageModalOptions.waitFor({ state: 'hidden', timeout: 5000 });
+        await this.coverImageModalOptions.waitFor({ state: 'hidden' });
       }
     });
   }

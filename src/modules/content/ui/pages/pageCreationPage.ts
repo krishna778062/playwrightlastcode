@@ -314,18 +314,14 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
 
       const imageCount = await this.uploadedCoverImagePreviewImage.count();
       if (imageCount === 0) {
-        await this.uploadedCoverImagePreviewImage.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+        await this.uploadedCoverImagePreviewImage.waitFor({ state: 'attached' }).catch(() => {});
       }
 
       await this.page
-        .waitForFunction(
-          imgSelector => {
-            const img = document.querySelector(imgSelector) as HTMLImageElement | null;
-            return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
-          },
-          `[class*='Banner-imageContainer'] img`,
-          { timeout: 10000 }
-        )
+        .waitForFunction(imgSelector => {
+          const img = document.querySelector(imgSelector) as HTMLImageElement | null;
+          return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
+        }, `[class*='Banner-imageContainer'] img`)
         .catch(() => {});
 
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImage, {
