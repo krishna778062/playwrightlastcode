@@ -35,6 +35,12 @@ export class LoginWithOtpPage extends BasePage {
   readonly continueButton: Locator;
   readonly mobileNumberForceAddContactMessage: Locator;
   readonly emailForceAddContactMessage: Locator;
+  readonly dontShowThisAgainModal: Locator;
+  readonly dontShowThisAgainModalHeader: Locator;
+  readonly dontShowThisAgainModalBody: Locator;
+  readonly dontShowThisAgainModalCancelButton: Locator;
+  readonly dontShowThisAgainModalConfirmButton: Locator;
+  readonly dontShowThisAgainModalCloseButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -69,6 +75,18 @@ export class LoginWithOtpPage extends BasePage {
     this.continueButton = page.getByRole('button', { name: 'Continue' });
     this.addEmailAddressHeading = page.getByRole('heading', { name: 'Add email address' });
     this.emailForceAddContactMessage = page.getByText(LWO_MESSAGES.EMAIL_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
+    this.dontShowThisAgainModal = page
+      .getByRole('dialog')
+      .filter({ hasText: LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER });
+    this.dontShowThisAgainModalHeader = this.dontShowThisAgainModal.getByRole('heading', {
+      name: LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER,
+    });
+    this.dontShowThisAgainModalBody = this.dontShowThisAgainModal.getByText(
+      LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_BODY
+    );
+    this.dontShowThisAgainModalCancelButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Cancel' });
+    this.dontShowThisAgainModalConfirmButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Confirm' });
+    this.dontShowThisAgainModalCloseButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Close' });
   }
 
   /**
@@ -314,5 +332,44 @@ export class LoginWithOtpPage extends BasePage {
     await this.fillInElement(this.enterOtpInput, otpValue);
     await this.clickOnElement(this.verifyButton);
     await this.clickOnElement(this.continueButton);
+  }
+
+  async skipVerificationPage(): Promise<void> {
+    await test.step('Skipping verification page', async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+      await this.clickOnElement(this.skipForNowButton);
+    });
+  }
+
+  async clickDontShowThisAgainButton(): Promise<void> {
+    await test.step(`Clicking Don't show this again on verification page`, async () => {
+      await this.page.waitForURL(/login\/force-add-contact/, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
+
+      await this.clickOnElement(this.dontShowThisAgainButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModal);
+      await this.verifier.verifyElementHasText(
+        this.dontShowThisAgainModalHeader,
+        LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER
+      );
+
+      // Verify modal body text
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalBody);
+      await this.verifier.verifyElementHasText(
+        this.dontShowThisAgainModalBody,
+        LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_BODY
+      );
+      // Verify modal buttons
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalCancelButton);
+      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainModalConfirmButton);
+
+      // Click Confirm button
+      await this.clickOnElement(this.dontShowThisAgainModalConfirmButton);
+    });
   }
 }
