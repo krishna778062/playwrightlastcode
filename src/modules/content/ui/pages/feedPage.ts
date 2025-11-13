@@ -135,7 +135,6 @@ export interface IFeedAssertions {
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
-  verifyVideoAutoplay: (postText: string) => Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
 }
 
@@ -739,14 +738,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async clickViewPostLink(postText: string): Promise<void> {
     await this.listFeedComponent.clickViewPostLink(postText);
-  }
-
-  /**
-   * Verifies that video autoplays in a feed post
-   * @param postText - The text of the post containing the video
-   */
-  async verifyVideoAutoplay(postText: string): Promise<void> {
-    await this.listFeedComponent.verifyVideoAutoplay(postText);
   }
 
   /**

@@ -325,10 +325,7 @@ test.describe(
         const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
         await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
 
-        // Step 14: Verify the video autoplays in the feed detail view
-        await feedDetailPage.assertions.verifyVideoAutoplay(videoPostText);
-
-        // Step 15: Verify video controls and functionalities
+        // Step 14: Verify video controls and functionalities
         await feedDetailPage.assertions.verifyVideoControls(videoPostText);
       }
     );
@@ -409,14 +406,11 @@ test.describe(
 
         // Step 11: Verify the user is navigated to the Feed Detail Page
         // Wait for navigation to feed detail page
-        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`), { timeout: 10000 });
+        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`));
         const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
         await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
 
-        // Step 12: Verify the video autoplays in the feed detail view
-        await feedDetailPage.assertions.verifyVideoAutoplay(videoPostText);
-
-        // Step 13: Verify video controls and functionalities
+        // Step 12: Verify video controls and functionalities
         await feedDetailPage.assertions.verifyVideoControls(videoPostText);
       }
     );

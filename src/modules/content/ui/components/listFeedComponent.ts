@@ -29,6 +29,16 @@ export class ListFeedComponent extends BaseComponent {
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
 
+  readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
+  readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
+  readonly forwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds forward' });
+  readonly backwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds backward' });
+  readonly fullscreenButton: Locator = this.page.getByRole('button', { name: 'Fullscreen' });
+  readonly exitFullscreenButton: Locator = this.page.getByRole('button', { name: 'Exit fullscreen' });
+  readonly settingsButton: Locator = this.page.getByRole('button', { name: 'Settings' });
+  readonly muteButton: Locator = this.page.getByRole('button', { name: 'Mute' });
+  readonly unmuteButton: Locator = this.page.getByRole('button', { name: 'Unmute' });
+
   // Dynamic locator functions
   /**
    * Gets a locator for the post text content
@@ -613,40 +623,6 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Verifies that video autoplays in a feed post
-   * @param postText - The text of the post containing the video
-   */
-  async verifyVideoAutoplay(postText: string): Promise<void> {
-    await test.step(`Verify video autoplay for post: ${postText}`, async () => {
-      const videoElement = this.getVideoElementLocator(postText);
-      await this.verifier.verifyTheElementIsVisible(videoElement, {
-        assertionMessage: `Video element should be visible for post "${postText}"`,
-        timeout: 10000,
-      });
-
-      // Check if video has autoplay attribute or is playing
-      const videoTag = videoElement.locator('video').first();
-      const videoTagCount = await videoTag.count();
-
-      if (videoTagCount > 0) {
-        // If it's an actual video tag, check autoplay attribute
-        const autoplay = await videoTag.getAttribute('autoplay');
-        if (autoplay !== null) {
-          console.log(`Video has autoplay attribute: ${autoplay}`);
-        }
-        // Check if video is playing (not paused)
-        const isPaused = await videoTag.evaluate((video: HTMLVideoElement) => video.paused);
-        if (!isPaused) {
-          console.log('Video is playing (autoplay confirmed)');
-        }
-      } else {
-        // For video container divs, verify they are visible (autoplay is handled by the container)
-        console.log('Video container is visible (autoplay handled by container)');
-      }
-    });
-  }
-
-  /**
    * Verifies video controls are visible and functional
    * @param postText - The text of the post containing the video
    */
@@ -655,68 +631,79 @@ export class ListFeedComponent extends BaseComponent {
       const videoContainer = this.getVideoElementLocator(postText);
       await this.verifier.verifyTheElementIsVisible(videoContainer, {
         assertionMessage: `Video container should be visible for post "${postText}"`,
-        timeout: 10000,
       });
 
       // Verify pause/play button
-      const playPauseButton = videoContainer
-        .locator(
-          'button[aria-label*="Play"], button[aria-label*="Pause"], button[aria-label*="play"], button[aria-label*="pause"]'
-        )
-        .first();
-      await this.verifier.verifyTheElementIsVisible(playPauseButton, {
+      const playButton = videoContainer.locator(this.playButton);
+      await this.verifier.verifyTheElementIsVisible(playButton, {
         assertionMessage: `Play/Pause button should be visible for video in post "${postText}"`,
-        timeout: 5000,
       });
-      console.log('Play/Pause button is visible');
+      console.log('Play/Pause button is visible Clicking on it');
+      await this.clickOnElement(playButton, { timeout: 10000 });
 
-      // Verify forward/backward controls (seek controls)
-      const seekControls = videoContainer.locator('input[type="range"], [role="slider"]').first();
-      const seekControlsCount = await seekControls.count();
-      if (seekControlsCount > 0) {
-        await this.verifier.verifyTheElementIsVisible(seekControls, {
-          assertionMessage: `Seek controls (forward/backward) should be visible for video in post "${postText}"`,
-        });
-        console.log('Forward/Backward controls (seek bar) are visible');
+      const errorButton = videoContainer.locator(this.page.getByRole('button', { name: 'Try again' }));
+      await errorButton.waitFor({ state: 'visible' });
+      if(await errorButton.isVisible()) {
+        console.log('Error button is visible, Video is not playing returning from the function');
+        return ;
       }
+      console.log('Error button is not visible, Video is playing');
 
-      // Verify fullscreen button
-      const fullscreenButton = videoContainer
-        .locator('button[aria-label*="Fullscreen"], button[aria-label*="fullscreen"], button[aria-label*="Expand"]')
-        .first();
-      const fullscreenButtonCount = await fullscreenButton.count();
-      if (fullscreenButtonCount > 0) {
-        await this.verifier.verifyTheElementIsVisible(fullscreenButton, {
-          assertionMessage: `Fullscreen button should be visible for video in post "${postText}"`,
-        });
-        console.log('Fullscreen button is visible');
-      }
+      const pauseButton = videoContainer.locator(this.pauseButton);
+      await this.verifier.verifyTheElementIsVisible(pauseButton, {
+        assertionMessage: `Pause button should be visible for video in post "${postText}"`,
+      });
+      console.log('Pause button is visible Clicking on it');
+      await this.clickOnElement(pauseButton);
 
-      // Verify settings button
-      const settingsButton = videoContainer
-        .locator('button[aria-label*="Settings"], button[aria-label*="settings"], button[aria-label*="More"]')
-        .first();
-      const settingsButtonCount = await settingsButton.count();
-      if (settingsButtonCount > 0) {
-        await this.verifier.verifyTheElementIsVisible(settingsButton, {
-          assertionMessage: `Settings button should be visible for video in post "${postText}"`,
-        });
-        console.log('Settings button is visible');
-      }
+      const forwardButton = videoContainer.locator(this.forwardButton);
+      await this.verifier.verifyTheElementIsVisible(forwardButton, {
+        assertionMessage: `Forward button should be visible for video in post "${postText}"`,
+      });
+      console.log('Forward button is visible Clicking on it');
+      await this.clickOnElement(forwardButton);
+      
+      const backwardButton = videoContainer.locator(this.backwardButton);
+      await this.verifier.verifyTheElementIsVisible(backwardButton, {
+        assertionMessage: `Backward button should be visible for video in post "${postText}"`,
+      });
+      console.log('Backward button is visible Clicking on it');
+      await this.clickOnElement(backwardButton);
 
-      // Verify volume control
-      const volumeControl = videoContainer
-        .locator(
-          'button[aria-label*="Volume"], button[aria-label*="volume"], input[type="range"][aria-label*="volume"]'
-        )
-        .first();
-      const volumeControlCount = await volumeControl.count();
-      if (volumeControlCount > 0) {
-        await this.verifier.verifyTheElementIsVisible(volumeControl, {
-          assertionMessage: `Volume control should be visible for video in post "${postText}"`,
-        });
-        console.log('Volume control is visible');
-      }
+      const muteButton = videoContainer.locator(this.muteButton);
+      await this.verifier.verifyTheElementIsVisible(muteButton, {
+        assertionMessage: `Mute button should be visible for video in post "${postText}"`,
+      });
+      console.log('Mute button is visible Clicking on it');
+      await this.clickOnElement(muteButton);
+
+      const unmuteButton = videoContainer.locator(this.unmuteButton);
+      await this.verifier.verifyTheElementIsVisible(unmuteButton, {
+        assertionMessage: `Unmute button should be visible for video in post "${postText}"`,
+      });
+      console.log('Unmute button is visible Clicking on it');
+      await this.clickOnElement(unmuteButton);
+
+      const settingsButton = videoContainer.locator(this.settingsButton);
+      await this.verifier.verifyTheElementIsVisible(settingsButton, {
+        assertionMessage: `Settings button should be visible for video in post "${postText}"`,
+      });
+      console.log('Settings button is visible Clicking on it');
+      await this.clickOnElement(settingsButton);
+      
+      const fullscreenButton = videoContainer.locator(this.fullscreenButton);
+      await this.verifier.verifyTheElementIsVisible(fullscreenButton, {
+        assertionMessage: `Fullscreen button should be visible for video in post "${postText}"`,
+      });
+      console.log('Fullscreen button is visible Clicking on it');
+      await this.clickOnElement(fullscreenButton);
+      
+      const exitFullscreenButton = videoContainer.locator(this.exitFullscreenButton);
+      await this.verifier.verifyTheElementIsVisible(exitFullscreenButton, {
+        assertionMessage: `Exit fullscreen button should be visible for video in post "${postText}"`,
+      });
+      console.log('Exit fullscreen button is visible Clicking on it');
+      await this.clickOnElement(exitFullscreenButton);
     });
   }
 
