@@ -57,37 +57,6 @@ export class SocialCampaignService {
   }
 
   /**
-   * Gets campaign list via GET request with query parameters
-   * @param params - Query parameters for filtering campaigns
-   * @returns Promise<SocialCampaignListResponse>
-   */
-  async getCampaignList(params?: {
-    size?: number;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
-    includeData?: 'full' | 'summary';
-    includeCount?: boolean;
-    status?: 'active' | 'inactive' | 'draft' | 'expired';
-  }): Promise<SocialCampaignListResponse> {
-    return await test.step(`Getting campaign list with params: ${JSON.stringify(params)}`, async () => {
-      const queryParams = new URLSearchParams();
-      if (params?.size) queryParams.append('size', params.size.toString());
-      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params?.order) queryParams.append('order', params.order);
-      if (params?.includeData) queryParams.append('includeData', params.includeData);
-      if (params?.includeCount !== undefined) queryParams.append('includeCount', params.includeCount.toString());
-      if (params?.status) queryParams.append('status', params.status);
-
-      const queryString = queryParams.toString();
-      const endpoint = queryString
-        ? `${API_ENDPOINTS.socialCampaign.listGet}?${queryString}`
-        : API_ENDPOINTS.socialCampaign.listGet;
-      const response = await this.httpClient.get(endpoint);
-      return (await response.json()) as SocialCampaignListResponse;
-    });
-  }
-
-  /**
    * Gets a specific social campaign by ID
    * @param campaignId - The campaign ID
    * @returns Promise<SocialCampaign>
