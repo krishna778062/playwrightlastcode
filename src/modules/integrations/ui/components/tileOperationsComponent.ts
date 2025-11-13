@@ -123,7 +123,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
     this.reportIdPattern = /^R[A-Za-z0-9]+$/;
     this.amountPattern = /^\$\d+\.\d{2}$/;
-    this.lastUpdatedPattern = /Last updated \d+ days? ago/;
+    this.lastUpdatedPattern = /Last updated \d+ (days?|hours?) ago/;
     this.duePattern = /Due/;
     this.ukgProPaystubLinks = page.getByRole('link', { name: /ultipro\.com/ });
     this.ukgProReceivedDateParagraph = page.getByText(/Received on/);
