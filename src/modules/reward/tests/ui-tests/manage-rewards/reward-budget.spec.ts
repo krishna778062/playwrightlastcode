@@ -57,6 +57,12 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
         zephyrTestId: 'RC-3053',
         storyId: 'RC-3053',
       });
+      tagTest(test.info(), {
+        description:
+          'Validate points for "Allowances" and "User wallets" in Rewards Overview Point Balance summary if peer gifting is disabled',
+        zephyrTestId: 'RC-3098',
+        storyId: 'RC-3098',
+      });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
 

@@ -57,6 +57,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2266',
         storyId: 'RC-2266',
       });
+      tagTest(test.info(), {
+        description: 'Validate currency conversion tab',
+        zephyrTestId: 'RC-2236',
+        storyId: 'RC-2236',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       await currencyConversionPage.validateAllUIElements(apiData);

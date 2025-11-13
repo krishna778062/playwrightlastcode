@@ -23,6 +23,11 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
         zephyrTestId: 'RC-3227',
         storyId: 'RC-3227',
       });
+      tagTest(test.info(), {
+        description: 'Validate Associate point values with rewards',
+        zephyrTestId: 'RC-3239',
+        storyId: 'RC-3239',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Airbnb';
       let limits: number[] = [];

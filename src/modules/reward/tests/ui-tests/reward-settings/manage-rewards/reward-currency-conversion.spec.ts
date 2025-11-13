@@ -49,6 +49,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2531',
         storyId: 'RC-2531',
       });
+      tagTest(test.info(), {
+        description: 'Validate create currency conversion Tab / Page — delete flow',
+        zephyrTestId: 'RC-2718',
+        storyId: 'RC-2718',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       const currency = 'XPF';
@@ -70,9 +75,14 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         storyId: 'RC-3466',
       });
       tagTest(test.info(), {
-        description: 'Validate currency conversion page on custom conversion',
+        description: 'Validate currency conversion page on disabling custom conversion',
         zephyrTestId: 'RC-3467',
         storyId: 'RC-3467',
+      });
+      tagTest(test.info(), {
+        description: 'Verify configure custom conversions',
+        zephyrTestId: 'RC-2570',
+        storyId: 'RC-2570',
       });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);

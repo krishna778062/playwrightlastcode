@@ -195,6 +195,11 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         zephyrTestId: 'RC-2857',
         storyId: 'RC-2857',
       });
+      tagTest(test.info(), {
+        description: 'Verify search box when no search result is found',
+        zephyrTestId: 'RC-2907',
+        storyId: 'RC-2907',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
@@ -366,6 +371,11 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         description: 'Verify total count for each category on reward store page along with Reset button',
         zephyrTestId: 'RC-2921',
         storyId: 'RC-2921',
+      });
+      tagTest(test.info(), {
+        description: 'Verify Reset link to clear the search',
+        zephyrTestId: 'RC-2912',
+        storyId: 'RC-2912',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
 

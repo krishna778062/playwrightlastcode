@@ -21,6 +21,11 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
         zephyrTestId: 'RC-2198',
         storyId: 'RC-2198',
       });
+      tagTest(test.info(), {
+        description: 'Validate disable rewards prompt modal',
+        zephyrTestId: 'RC-3233',
+        storyId: 'RC-3233',
+      });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsPage.loadPageWithHarness();

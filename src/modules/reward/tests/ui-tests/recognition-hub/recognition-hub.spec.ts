@@ -37,6 +37,11 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         zephyrTestId: 'RC-2717',
         storyId: 'RC-2717',
       });
+      tagTest(test.info(), {
+        description: 'Validate gifted points on recognition post',
+        zephyrTestId: 'RC-2834',
+        storyId: 'RC-2834',
+      });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;

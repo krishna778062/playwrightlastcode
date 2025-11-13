@@ -469,6 +469,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           zephyrTestId: testId,
           storyId: testId,
         });
+        tagTest(test.info(), {
+          description: 'Validate activity table CSV download',
+          zephyrTestId: 'RC-3051',
+          storyId: 'RC-3051',
+        });
         const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         if (testTitle.includes('points redeemed')) {
@@ -513,6 +518,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         description: 'Validate removal sorting of reward name from Activity table of Points Redeemed',
         zephyrTestId: 'RC-3563',
         storyId: 'RC-3563',
+      });
+      tagTest(test.info(), {
+        description: 'Verify if Rewards Activity Table fields gets sorted on clicking',
+        zephyrTestId: 'RC-3074',
+        storyId: 'RC-3074',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();

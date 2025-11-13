@@ -74,6 +74,11 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
         zephyrTestId: 'RC-3001',
         storyId: 'RC-3001',
       });
+      tagTest(test.info(), {
+        description: 'Making a redemption (ordering a gift card)',
+        zephyrTestId: 'RC-3212',
+        storyId: 'RC-3212',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Amazon';
 
