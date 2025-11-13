@@ -75,7 +75,7 @@ export class MessageCardComponent extends MessageBaseComponent {
 
   async deleteMessage(): Promise<void> {
     await test.step(`Deleting the message`, async () => {
-      await this.openMessageActionsMenuFrom3DotsClicking();
+      await this.openMessageActionsMenuFrom3Dots();
       await this.clickByInjectingJavaScript(this.deleteMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.deleteMessageConfirmationPrompt, {
         assertionMessage: 'expecting delete message confirmation prompt to be visible',
@@ -223,13 +223,6 @@ export class MessageCardComponent extends MessageBaseComponent {
         await this.focusedMessageContainer.hover();
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
       }
-    });
-  }
-
-  async openMessageActionsMenuFrom3DotsClicking(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
-      await this.focusedMessageContainer.hover();
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
     });
   }
 
