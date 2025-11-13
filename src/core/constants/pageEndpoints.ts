@@ -33,6 +33,7 @@ export const PAGE_ENDPOINTS = {
   // Recognition pages
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
+  MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',

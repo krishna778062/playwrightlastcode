@@ -8,21 +8,21 @@ import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
 
+initializeRecognitionConfig('onlyPeerToPeer');
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
-initializeRecognitionConfig('primary');
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests'),
-  testIgnore: '**/only-peer-to-peer/**',
-  workers: process.env.CI ? 3 : 5,
-  timeout: 180_000,
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests', 'only-peer-to-peer'),
+  testIgnore: '**/api-tests/**',
+  workers: process.env.CI ? 1 : 1,
+  timeout: 120_000,
   expect: {
     timeout: 10_000,
   },
   projects: [
     {
-      name: 'Recognition',
+      name: 'Only P2P Recognition Cases',
       use: {
         ...desktopChromeNoScale,
         headless: !!process.env.CI,
