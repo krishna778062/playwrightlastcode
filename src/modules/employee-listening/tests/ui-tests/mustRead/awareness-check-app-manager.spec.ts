@@ -57,7 +57,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can create awareness check with single question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -91,7 +91,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can create awareness check with multiple questions',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -125,7 +125,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can edit awareness check question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -175,7 +175,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can remove awareness check question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {

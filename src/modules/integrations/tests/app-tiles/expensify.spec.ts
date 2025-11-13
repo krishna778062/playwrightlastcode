@@ -81,7 +81,7 @@ test.describe(
     test(
       'create and edit Expensify tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -112,7 +112,7 @@ test.describe(
     test(
       'verify Expensify report tile data structure',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -287,7 +287,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29068',
           storyId: 'INT-24423',
         });
 
@@ -363,7 +363,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24666',
+          zephyrTestId: 'INT-29069',
           storyId: 'INT-24422',
         });
 
@@ -407,7 +407,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29070',
           storyId: 'INT-24423',
         });
 
@@ -459,7 +459,7 @@ test.describe(
         const { tileManagementHelper } = appManagerApiFixture;
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24662',
+          zephyrTestId: 'INT-29071',
           storyId: 'INT-24422',
         });
 
@@ -494,7 +494,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29072',
           storyId: 'INT-24423',
         });
 
