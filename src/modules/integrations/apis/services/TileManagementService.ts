@@ -3,7 +3,6 @@ import { APIRequestContext, APIResponse } from '@playwright/test';
 import { HttpClient } from '@core/api/clients/httpClient';
 
 import { API_ENDPOINTS, API_QUERY_PARAMS } from '@/src/core/constants/apiEndpoints';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { ITileManagementOperations } from '@/src/modules/integrations/apis/interfaces/ITileManagementOperations';
 import {
   LinkTilePayload,
@@ -16,18 +15,18 @@ export class TileManagementService implements ITileManagementOperations {
   private httpClient: HttpClient;
   constructor(
     readonly context: APIRequestContext,
-    readonly baseUrl: string
+    readonly baseUrl: string,
+    readonly frontendBaseUrl: string
   ) {
     this.httpClient = new HttpClient(context, baseUrl);
   }
 
   // Get root tiles instances
   async getRootAppTilesInstances(): Promise<any> {
-    const { frontendBaseUrl } = getEnvConfig();
     const response = await this.httpClient.get(
       `${API_ENDPOINTS.integrations.tilesRootInstances}?${API_QUERY_PARAMS.TYPE_APP}`,
       {
-        headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
+        headers: { Origin: this.frontendBaseUrl, Referer: this.frontendBaseUrl, Accept: 'application/json' },
       }
     );
     return response.json();
@@ -35,11 +34,10 @@ export class TileManagementService implements ITileManagementOperations {
 
   // Get instance metadata
   async fetchInstanceMetadata(instanceId: string): Promise<any> {
-    const { frontendBaseUrl } = getEnvConfig();
     const res = await this.httpClient.get(
       `${API_ENDPOINTS.integrations.tilesRootInstances}/${instanceId}/metadata?type=app`,
       {
-        headers: { Origin: frontendBaseUrl, Referer: frontendBaseUrl, Accept: 'application/json' },
+        headers: { Origin: this.frontendBaseUrl, Referer: this.frontendBaseUrl, Accept: 'application/json' },
       }
     );
     return res.json();
@@ -49,13 +47,12 @@ export class TileManagementService implements ITileManagementOperations {
    * Delete a integration app tile id (preferred for this tenant)
    */
   async deleteIntegrationAppTile(integrationAppTileId: string): Promise<APIResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
     return await this.httpClient.delete(
       `${API_ENDPOINTS.integrations.contentTiles}/${integrationAppTileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
       {
         headers: {
-          Origin: frontendBaseUrl,
-          Referer: frontendBaseUrl,
+          Origin: this.frontendBaseUrl,
+          Referer: this.frontendBaseUrl,
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
@@ -268,8 +265,6 @@ export class TileManagementService implements ITileManagementOperations {
    * Create a link tile via API
    */
   async createTile(siteId: string, title: string, numberOfLinks: number, links: TileLink[]): Promise<LinkTileResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     // Ensure we don't exceed the provided links count
     const actualLinksCount = Math.min(numberOfLinks, links.length);
     const selectedLinks = links.slice(0, actualLinksCount);
@@ -294,8 +289,8 @@ export class TileManagementService implements ITileManagementOperations {
     const response = await this.httpClient.post(API_ENDPOINTS.linkTile.create(siteId), {
       data: payload,
       headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -313,14 +308,12 @@ export class TileManagementService implements ITileManagementOperations {
    * Delete a content tile via API
    */
   async deleteContentTile(tileId: string): Promise<APIResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     return await this.httpClient.delete(
       `${API_ENDPOINTS.integrations.contentTiles}/${tileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
       {
         headers: {
-          Origin: frontendBaseUrl,
-          Referer: frontendBaseUrl,
+          Origin: this.frontendBaseUrl,
+          Referer: this.frontendBaseUrl,
           Accept: '*/*',
           'Content-Type': 'application/json',
         },
@@ -332,12 +325,10 @@ export class TileManagementService implements ITileManagementOperations {
    * Delete a link tile via API
    */
   async deleteTile(siteId: string, tileId: string): Promise<APIResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     return await this.httpClient.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId), {
       headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },

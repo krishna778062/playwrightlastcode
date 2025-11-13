@@ -56,6 +56,7 @@ export interface ISiteDashboardAssertions {
   verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   validatePostNotVisible: (postText: string) => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -341,5 +342,9 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async validatePostNotVisible(postText: string): Promise<void> {
     await this.listFeedComponent.validatePostNotVisible(postText);
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
 }
