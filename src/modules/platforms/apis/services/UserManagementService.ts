@@ -94,6 +94,46 @@ export class UserManagementService implements IUserManagementOperations {
     return await this.httpClient.parseResponse<AddUserResponse>(response);
   }
 
+  async addUserWithEmail(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
+    const roleId = await this.identityService.fetchRoleId(role);
+
+    // Build personal_info object, only including email/mobile if they're not empty
+    const personal_info: any = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      timezone_id: user.timezone_id || this.defaultTimezoneId,
+      language_id: user.language_id || this.defaultLanguageId,
+      locale_id: user.locale_id || this.defaultLocaleId,
+      license_type: user.license_type || 'Corporate',
+    };
+
+    // Only add mobile if it's not 0
+    if (user.mobile && user.mobile !== 0) {
+      personal_info.mobile = user.mobile;
+    }
+
+    // Build the request data
+    const data: any = {
+      personal_info,
+      role_id: roleId,
+      silent_upload: false,
+    };
+
+    if (user.emp && user.emp.trim() !== '') {
+      data.work_info = {
+        employee_number: user.emp,
+        department: user.department || this.defaultDepartment,
+      };
+    }
+
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
+      data,
+    });
+
+    return await this.httpClient.parseResponse<AddUserResponse>(response);
+  }
+
   async addUserWithEmpIdAndDepartment(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
     const roleId = await this.identityService.fetchRoleId(role);
 
@@ -126,9 +166,6 @@ export class UserManagementService implements IUserManagementOperations {
 
     // Add work_info if employee number is provided
     if (user.emp && user.emp.trim() !== '') {
-      // Enable employee number login if not already enabled
-      await this.identityService.enableLoginIdentifiers(['email', 'mobile', 'employee_number']);
-
       data.work_info = {
         employee_number: user.emp,
         department: user.department || this.defaultDepartment,

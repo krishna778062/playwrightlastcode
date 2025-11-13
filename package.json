@@ -56,7 +56,8 @@
     "test:integrations:okta": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-okta.config.ts",
     "test:integrations:azuresso": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts"
+    "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
+    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts"
   },
   "keywords": [],
   "author": "",

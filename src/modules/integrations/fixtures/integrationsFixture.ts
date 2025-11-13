@@ -7,7 +7,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
@@ -26,7 +26,8 @@ export type Options = { tenantConfig: TenantConfig };
 export interface IntegrationsApiFixture {
   apiContext: APIRequestContext;
   siteManagementHelper: SiteManagementHelper;
-  tileManagementHelper: TileManagementHelper;
+  tileManagementHelper: IntegrationTileHelper;
+  integrationTileHelper: IntegrationTileHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -49,19 +50,20 @@ async function createIntegrationsApiFixture(
 ): Promise<IntegrationsApiFixture> {
   const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
   const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl);
 
   return {
     apiContext,
     siteManagementHelper,
-    tileManagementHelper,
+    tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
+    integrationTileHelper,
   };
 }
 
 // Helper function to create UI-only fixtures
 async function createIntegrationsUiFixture(
   browser: any,
-  tileManagementHelper: TileManagementHelper,
+  tileManagementHelper: IntegrationTileHelper,
   tenantConfig: TenantConfig
 ): Promise<IntegrationsUiFixture> {
   const context = await browser.newContext();
