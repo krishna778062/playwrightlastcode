@@ -5,6 +5,7 @@ import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { PROJECT_ROOT } from '@core/constants/paths';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -76,20 +77,20 @@ test.describe(
 
         // Generate album data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
         const attachmentPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'excel',

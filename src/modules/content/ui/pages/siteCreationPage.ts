@@ -2,8 +2,10 @@ import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 export interface SiteCreationOptions {
@@ -230,10 +232,11 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
+      console.log('site creation url', getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url);
       const createResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
         response =>
-          response.url().includes('content?action=publish') &&
+          response.request().url() === getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

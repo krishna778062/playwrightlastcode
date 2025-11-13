@@ -218,13 +218,18 @@ export class AlbumCreationPage extends BasePage {
         await this.clickOnElement(this.enterVideoURL, {
           stepInfo: 'Click on "Enter Video URL" button',
         });
-      } finally {
         await this.fillInElement(this.videoUrlInput, videoUrl, {
           stepInfo: `Fill video URL input with: ${videoUrl}`,
         });
         await this.clickOnElement(this.addVideo, {
           stepInfo: 'Click "Add Video" button to confirm',
         });
+      } catch {
+        await this.fillInElement(this.videoUrlInput, videoUrl, {
+          stepInfo: `Fill video URL input with: ${videoUrl}`,
+        });
+        //press tab
+        await this.page.keyboard.press('Enter');
       }
     });
   }
