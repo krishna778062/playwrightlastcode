@@ -203,4 +203,89 @@ export const MobileSql = {
       {userCategoryFilter}
       {companyNameFilter}
   `,
+
+  /**
+   * Mobile Device Logins Query Template
+   * Returns app usage by platform: iOS, Android or both
+   */
+  MOBILE_DEVICE_LOGINS: `
+    SELECT Android_count as Android_only,
+      IOS_count as IOS_only, 
+      Both_count as Both,
+      round(Android_count * 100.0 / Total_count,2) AS Android_percentage,
+      round(IOS_count * 100.0 / Total_count,2) AS IOS_percentage,
+      round(Both_count * 100.0 / Total_count,2) AS Both_percentage
+    FROM (
+      SELECT
+        SUM(CASE WHEN behaviour = 'Android' THEN 1 else 0 END) AS Android_count,
+        SUM(CASE WHEN behaviour = 'IOS' THEN 1 else 0 END) AS IOS_count,
+        SUM(CASE WHEN behaviour = 'Both' THEN 1 else 0 END) AS Both_count,
+        COUNT(*) AS Total_count 
+      FROM (
+        SELECT full_name, code, user_code, behaviour
+        FROM (
+          SELECT * FROM (
+            SELECT user_code,
+              (CASE
+                WHEN SUM(UNIQUE_ANDROID_LOGINS) > 0 AND SUM(UNIQUE_IOS_LOGINS) > 0 THEN 'Both'
+                WHEN SUM(UNIQUE_ANDROID_LOGINS) > 0 AND SUM(UNIQUE_IOS_LOGINS) = 0 THEN 'Android'
+                WHEN SUM(UNIQUE_ANDROID_LOGINS) = 0 AND SUM(UNIQUE_IOS_LOGINS) > 0 THEN 'IOS'
+              END) AS behaviour 
+            FROM (
+              SELECT * FROM SIMPPLR_COMMON_TENANT.UDL.daily_user_adoption
+              WHERE REPORTING_DATE BETWEEN '{startDate}' AND '{endDate}'
+                AND tenant_code = '{tenantCode}'
+            )
+            GROUP BY user_code
+          ) AS uda
+          INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is AS u ON u.code = uda.user_code
+          WHERE u.status_code = 'US001'
+            AND behaviour IS NOT NULL
+            {locationFilter}
+            {departmentFilter}
+            {segmentFilter}
+            {userCategoryFilter}
+            {companyNameFilter}
+        ) AS counts
+      )
+    )
+  `,
+
+  /**
+   * Mobile Content Views By Type Query Template
+   * Returns breakdown of total mobile content views by content type
+   */
+  MOBILE_CONTENT_VIEWS_BY_TYPE: `
+    SELECT 
+      sum(case when c.content_type_code ='CT002' then 1 else 0 end) as PAGE_VIEW,
+      sum(case when c.content_type_code ='CT003' then 1 else 0 end) as EVENT_VIEW,
+      sum(case when c.content_type_code ='CT004' then 1 else 0 end) as ALBUM_VIEW,
+      round(sum(case when c.content_type_code ='CT002' then 1 else 0 end) * 100.0 / 
+        (sum(case when c.content_type_code ='CT002' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT003' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT004' then 1 else 0 end)), 2) AS PAGE_VIEW_PERCENTAGE,
+      round(sum(case when c.content_type_code ='CT003' then 1 else 0 end) * 100.0 / 
+        (sum(case when c.content_type_code ='CT002' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT003' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT004' then 1 else 0 end)), 2) AS EVENT_VIEW_PERCENTAGE,
+      round(sum(case when c.content_type_code ='CT004' then 1 else 0 end) * 100.0 / 
+        (sum(case when c.content_type_code ='CT002' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT003' then 1 else 0 end) + 
+         sum(case when c.content_type_code ='CT004' then 1 else 0 end)), 2) AS ALBUM_VIEW_PERCENTAGE
+    FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c 
+      ON c.code = i.content_code 
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is u 
+      ON u.code = i.interacted_by_user_code
+    WHERE i.tenant_code = '{tenantCode}'
+      AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+      AND i.interaction_type_code = 'IT001' 
+      AND i.device_type_code IN ('DT001', 'DT002')
+      AND u.status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
 };
