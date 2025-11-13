@@ -509,7 +509,7 @@ export class ListFeedComponent extends BaseComponent {
 
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
-  */
+   */
   async likeFeedPost(postText: string): Promise<void> {
     await test.step(`Like feed post: ${postText}`, async () => {
       // Ensure post is visible first
