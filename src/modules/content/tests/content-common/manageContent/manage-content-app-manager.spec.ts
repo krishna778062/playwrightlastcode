@@ -206,7 +206,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite.name || '');
+        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || '');
         await manageContentPage.actions.selectSiteSearchBarOption();
         await manageContentPage.assertions.verifySiteNameLink();
       }
@@ -480,7 +480,7 @@ test.describe(
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
         const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        await manageContentPage.actions.moveContentSearchBar(site.name || '');
+        await manageContentPage.actions.moveContentSearchBar(site?.name || '');
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
