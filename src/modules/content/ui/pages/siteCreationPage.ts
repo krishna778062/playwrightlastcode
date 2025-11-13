@@ -2,9 +2,7 @@ import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
@@ -235,7 +233,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
       const createResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
         response =>
-          response.request().url() === getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url &&
+          response.url().includes('content?action=publish') &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

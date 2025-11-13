@@ -1,12 +1,3 @@
-// Optional import for content module config
-let contentConfigModule: any;
-try {
-  contentConfigModule = require('@/src/modules/content/config/contentConfig');
-} catch {
-  // Content module not available - this is expected for non-content modules
-  contentConfigModule = null;
-}
-
 export type EnvConfig = {
   tenantOrgId?: string;
   appManagerEmail: string;
@@ -29,32 +20,6 @@ export type EnvConfig = {
 };
 
 export const getEnvConfig = (): EnvConfig => {
-  // Check if content module config is available and initialized
-  // If so, use it instead of environment variables
-  if (contentConfigModule?.isContentConfigInitialized?.()) {
-    const contentConfig = contentConfigModule.getContentTenantConfigFromCache();
-    return {
-      tenantOrgId: contentConfig.orgId,
-      appManagerEmail: contentConfig.appManagerEmail,
-      appManagerPassword: contentConfig.appManagerPassword,
-      userManagerEmail: undefined, // Not in content config
-      frontendBaseUrl: contentConfig.frontendBaseUrl,
-      apiBaseUrl: contentConfig.apiBaseUrl,
-      apiBaseUrlPD: undefined, // Not in content config
-      newUxEnabled: contentConfig.newUxEnabled,
-      tenantUserRoleId: undefined, // Not in content config
-      endUserEmail: contentConfig.endUserEmail,
-      endUserPassword: contentConfig.endUserPassword,
-      siteManagerEmail: contentConfig.siteManagerEmail,
-      siteManagerPassword: contentConfig.siteManagerPassword,
-      socialCampaignManagerEmail: contentConfig.socialCampaignManagerEmail,
-      socialCampaignManagerPassword: contentConfig.socialCampaignManagerPassword,
-      promotionManagerEmail: undefined, // Not in content config
-      promotionManagerPassword: undefined, // Not in content config
-    };
-  }
-
-  // Fall back to environment variables (for modules using .env files)
   return {
     tenantOrgId: getEnvVar('ORG_ID', false),
     appManagerEmail: getEnvVar('APP_MANAGER_USERNAME', true)!,
