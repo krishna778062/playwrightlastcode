@@ -7,6 +7,7 @@ export class MediaManagerComponent extends BaseComponent {
   readonly firstImage: Locator;
   readonly attachButton: Locator;
   readonly intranetMediaManagerModal: Locator;
+  readonly coverImageModalOptions: Locator;
   constructor(page: Page) {
     super(page);
     this.crossIcon = page.getByRole('button', { name: 'Clear search' });
@@ -15,6 +16,7 @@ export class MediaManagerComponent extends BaseComponent {
     this.intranetMediaManagerModal = page
       .getByRole('dialog')
       .filter({ hasText: /Media Manager|Intranet File Manager/i });
+    this.coverImageModalOptions = page.getByRole('dialog').filter({ hasText: /Upload|Browse|URL|Unsplash/i });
   }
 
   async clickOnCrossIcon(): Promise<void> {
@@ -39,16 +41,15 @@ export class MediaManagerComponent extends BaseComponent {
 
   async waitForModalsToClose(): Promise<void> {
     await test.step('Wait for modals to close', async () => {
-      await this.page
-        .getByRole('dialog')
-        .filter({ hasText: /Media Manager|Intranet File Manager/i })
-        .waitFor({ state: 'hidden', timeout: 10000 })
-        .catch(() => {});
-      await this.page
-        .getByRole('dialog')
-        .filter({ hasText: /Upload|Browse|URL|Unsplash/i })
-        .waitFor({ state: 'hidden', timeout: 10000 })
-        .catch(() => {});
+      const isMediaManagerVisible = await this.intranetMediaManagerModal.isVisible().catch(() => false);
+      const isCoverImageModalVisible = await this.coverImageModalOptions.isVisible().catch(() => false);
+
+      if (isMediaManagerVisible) {
+        await this.intranetMediaManagerModal.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      if (isCoverImageModalVisible) {
+        await this.coverImageModalOptions.waitFor({ state: 'hidden', timeout: 5000 });
+      }
     });
   }
 }

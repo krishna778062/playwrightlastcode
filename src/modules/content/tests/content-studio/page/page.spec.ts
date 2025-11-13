@@ -7,8 +7,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { MediaManagerComponent } from '../../../ui/components/mediaManagerComponent';
-
 test.describe(
   `page Creation by Application Manager - Content Studio`,
   {
@@ -16,10 +14,8 @@ test.describe(
   },
   () => {
     let pageCreationPage: ContentStudioPageCreationPage;
-    let addMediaManagerComponent: MediaManagerComponent;
     test.beforeEach('Setting up the test environment for page creation', async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
-      addMediaManagerComponent = new MediaManagerComponent(appManagerFixture.page);
     });
 
     test(
@@ -85,10 +81,7 @@ test.describe(
         await pageCreationPage.actions.clickOnOptionsButtonAndSelectAddCoverImageTab('Browse');
         await pageCreationPage.assertions.verifyopenMediaManagerDialogIsVisible();
         await pageCreationPage.actions.clickOnopenMediaManagerDialog();
-        await addMediaManagerComponent.clickOnCrossIcon();
-        await addMediaManagerComponent.selectFirstImage();
-        await addMediaManagerComponent.clickOnAttachButton();
-        await addMediaManagerComponent.waitForModalsToClose();
+        await pageCreationPage.actions.selectAndAttachImageFromMediaManager();
         await pageCreationPage.assertions.verifyUploadedCoverImagePreviewIsVisible();
       }
     );
