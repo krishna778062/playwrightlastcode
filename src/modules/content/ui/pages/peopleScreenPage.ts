@@ -16,6 +16,7 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
   readonly roleColumn: Locator = this.page.getByText('Role');
   readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search people...' });
   readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"]').nth(1);
+  readonly clearSearchButton: Locator = this.page.getByRole('button', { name: 'Clear' });
   readonly openingFilterPanelButton: Locator = this.page.getByRole('button', { name: 'Filters' });
   readonly limitResultToggleOn: Locator = this.page.locator('button[role="switch"][type="button"][value="on"]');
   readonly viewResultsButton: Locator = this.page.getByRole('button', { name: 'View results' });
@@ -44,7 +45,6 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
       // First, wait for the page to load and check if Role column is visible (indicates table is loaded)
       await this.verifier.verifyTheElementIsVisible(this.roleColumn, {
         assertionMessage: 'People table should be loaded',
-        timeout: 10000,
       });
 
       // Get list of all people from API
@@ -68,9 +68,6 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
         await this.fillInElement(this.searchBar, fullName);
         await this.clickOnElement(this.searchIcon);
 
-        // Wait a bit for search results
-        await this.page.waitForTimeout(1000);
-
         // Check if Role column is still visible (means results are shown, not "No people found")
         const isRoleVisible = await this.verifier.isTheElementVisible(this.roleColumn, { timeout: 2000 });
 
@@ -83,14 +80,12 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
         }
 
         // Clear search for next iteration
-        const clearButton = this.page.locator('button[aria-label="Clear"]');
-        if (await clearButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await clearButton.click();
+        const isClearButtonVisible = await this.clearSearchButton.isVisible().catch(() => false);
+        if (isClearButtonVisible) {
+          await this.clickOnElement(this.clearSearchButton);
         } else {
-          // If no clear button, manually clear the search
-          await this.clickOnElement(this.searchBar);
-          await this.page.keyboard.press('Control+A');
-          await this.page.keyboard.press('Delete');
+          // If no clear button, clear the search field using fillInElement
+          await this.fillInElement(this.searchBar, '');
         }
       }
 

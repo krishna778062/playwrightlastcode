@@ -6,7 +6,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 export interface IProfileScreenPageActions {
   clickOnManageTopics: () => Promise<void>;
-  clickOnFavoriteOption: () => Promise<void>;
+  clickOnFavoriteOption: () => Promise<boolean>; // Returns true if user was already favorited, false otherwise
 }
 
 export interface IProfileScreenPageAssertions {
@@ -17,8 +17,8 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   private baseActionUtil: BaseActionUtil;
   readonly copyProfileLinkOption: Locator = this.page.getByRole('button', { name: 'Copy profile link' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
-  readonly favoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Favorite' });
-  readonly unfavoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Unfavorite' });
+  readonly favoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Favorite' }).nth(1);
+  readonly unfavoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Unfavorite' }).nth(1);
   readonly favoriteTextLocator: Locator = this.page.getByTestId('desktop-layout').getByText('Favorite');
 
   readonly manageTopicsLink: Locator = this.page
@@ -47,21 +47,37 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
       });
     });
   }
-  async clickOnFavoriteOption(): Promise<void> {
-    await test.step('Clicking on favorite option', async () => {
-      // Step 1: Click on "Show more" button (three dots)
+  async clickOnFavoriteOption(): Promise<boolean> {
+    return await test.step('Clicking on favorite option', async () => {
+      // Step 1: Click on "Show more" button (three dots) to open the menu
       await this.verifier.verifyTheElementIsVisible(this.ellipsesButton, {
         assertionMessage: 'Show more button should be visible',
-        timeout: 10000,
       });
       await this.clickOnElement(this.ellipsesButton);
 
-      // Step 2: Click on "Favorite" using the specific locator
-      await this.verifier.verifyTheElementIsVisible(this.favoriteTextLocator, {
-        assertionMessage: 'Favorite option should be visible after clicking Show more',
-        timeout: 10000,
-      });
-      await this.clickOnElement(this.favoriteTextLocator);
+      // Step 2: Check if favoriteOption is visible (menu is open and Favorite option is available)
+      const favoriteCount = await this.favoriteOption.count();
+
+      if (favoriteCount > 0) {
+        // If favoriteOption is found, click on it directly (user is NOT favorited)
+        await this.clickOnElement(this.favoriteOption);
+        // Wait for menu to close (indicates action completed)
+        await this.favoriteOption.waitFor({ state: 'hidden' }).catch(() => {});
+        return false; // User was not favorited, we just favorited them
+      } else {
+        // Check if unfavoriteOption is visible (user is already favorited)
+        const unfavoriteCount = await this.unfavoriteOption.count();
+
+        if (unfavoriteCount > 0) {
+          // User is already favorited - unfavorite them
+          await this.clickOnElement(this.unfavoriteOption);
+          // Wait for menu to close (indicates action completed)
+          await this.unfavoriteOption.waitFor({ state: 'hidden' }).catch(() => {});
+          return true; // User was already favorited, we just unfavorited them
+        } else {
+          throw new Error('Neither favoriteOption nor unfavoriteOption locator found');
+        }
+      }
     });
   }
 

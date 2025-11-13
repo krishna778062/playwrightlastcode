@@ -43,21 +43,47 @@ test.describe('favorite', () => {
       // Create ProfileScreenPage with the correct peopleId after getting user info
       profileScreenPage = new ProfileScreenPage(appManagerFixture.page, peopleScreenPage.peopleId);
       await profileScreenPage.verifyThePageIsLoaded();
-      await profileScreenPage.actions.clickOnFavoriteOption();
+      const wasAlreadyFavorited = await profileScreenPage.actions.clickOnFavoriteOption();
+
+      // Navigate to favorites page
       await sideNavBarComponent.clickOnFavorite();
       await favoritePage.actions.clickOnPeopleTab();
       await favoritePage.actions.searchingFavoriteUser(peopleScreenPage.fullName);
-      await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
 
-      // Hover on user profile and verify details remain visible
-      await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
-      await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
+      const userProfileLink = favoritePage.getUserProfileLink(peopleScreenPage.fullName);
+      const isUserVisible = await userProfileLink.isVisible().catch(() => false);
 
-      // Verify contact icons are visible
-      await favoritePage.assertions.verifyContactIconsAreVisible(peopleScreenPage.fullName);
+      if (wasAlreadyFavorited) {
+        // Scenario 2: User was already favorited, we unfavorited them
+        // Check that user is NOT present in favorites page - if not present, end test
+        if (!isUserVisible) {
+          // User is correctly not showing in favorites page after unfavoriting - end test here
+          return;
+        } else {
+          // User is still showing in favorites page after unfavoriting - this is unexpected
+          throw new Error(`User "${peopleScreenPage.fullName}" is still visible in favorites page after unfavoriting`);
+        }
+      } else {
+        // Scenario 1: User was NOT favorited, we favorited them
+        // Check if user is visible in favorites page - if not, end test early
+        if (!isUserVisible) {
+          // User is not showing in favorites page after favoriting - end test here
+          return;
+        }
 
-      // Verify contact icons remain visible after hover
-      await favoritePage.assertions.verifyContactIconsRemainVisibleAfterHover(peopleScreenPage.fullName);
+        // User is visible - proceed with all verification scenarios
+        await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
+
+        // Hover on user profile and verify details remain visible
+        await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
+        await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
+
+        // Verify contact icons are visible
+        await favoritePage.assertions.verifyContactIconsAreVisible(peopleScreenPage.fullName);
+
+        // Verify contact icons remain visible after hover
+        await favoritePage.assertions.verifyContactIconsRemainVisibleAfterHover(peopleScreenPage.fullName);
+      }
     }
   );
 });

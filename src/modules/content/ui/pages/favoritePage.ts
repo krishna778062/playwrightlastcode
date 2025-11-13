@@ -3,6 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ContactIconType } from '@/src/modules/content/constants';
 export interface IFavoritePageActions {
   clickOnPeopleTab: () => Promise<void>;
   searchingFavoriteUser: (fullName: string) => Promise<void>;
@@ -44,32 +45,24 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       .or(this.getUserProfileCard(fullName).getByText(/department/i));
 
   // Contact icons locators
-  readonly getPhoneIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="phone" i], [title*="phone" i], svg[class*="phone"]')
+  readonly getContactIcon = (fullName: string, iconType: ContactIconType): Locator => {
+    const userCard = this.getUserProfileCard(fullName);
+    const iconName = iconType.toLowerCase();
+
+    // Special case for email - includes mailto link selector
+    if (iconType === ContactIconType.EMAIL) {
+      return userCard
+        .locator(
+          `[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"], a[href^="mailto:"]`
+        )
+        .first();
+    }
+
+    // Generic case for all other icons
+    return userCard
+      .locator(`[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"]`)
       .first();
-  readonly getMobileIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="mobile" i], [title*="mobile" i], svg[class*="mobile"]')
-      .first();
-  readonly getEmailIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="email" i], [title*="email" i], svg[class*="email"], a[href^="mailto:"]')
-      .first();
-  readonly getZoomIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName).locator('[aria-label*="zoom" i], [title*="zoom" i], svg[class*="zoom"]').first();
-  readonly getSlackIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="slack" i], [title*="slack" i], svg[class*="slack"]')
-      .first();
-  readonly getSkypeIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="skype" i], [title*="skype" i], svg[class*="skype"]')
-      .first();
-  readonly getMSTeamsIcon = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('[aria-label*="teams" i], [title*="teams" i], svg[class*="teams"]')
-      .first();
+  };
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FAVORITE_PAGE);
@@ -113,7 +106,7 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       await this.verifier.verifyTheElementIsVisible(userProfileLink, {
         assertionMessage: `User profile link for ${fullName} should be visible before hover`,
       });
-      await userProfileLink.hover({ timeout: 10000 });
+      await userProfileLink.hover();
     });
   }
 
@@ -145,28 +138,24 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       if (divisionVisibleBefore) {
         await this.verifier.verifyTheElementIsVisible(divisionBefore, {
           assertionMessage: `Division should remain visible after hover for ${fullName}`,
-          timeout: 5000,
         });
       }
 
       if (locationVisibleBefore) {
         await this.verifier.verifyTheElementIsVisible(locationBefore, {
           assertionMessage: `Location should remain visible after hover for ${fullName}`,
-          timeout: 5000,
         });
       }
 
       if (jobTitleVisibleBefore) {
         await this.verifier.verifyTheElementIsVisible(jobTitleBefore, {
           assertionMessage: `Job title should remain visible after hover for ${fullName}`,
-          timeout: 5000,
         });
       }
 
       if (departmentVisibleBefore) {
         await this.verifier.verifyTheElementIsVisible(departmentBefore, {
           assertionMessage: `Department should remain visible after hover for ${fullName}`,
-          timeout: 5000,
         });
       }
     });
@@ -175,23 +164,23 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   async verifyContactIconsAreVisible(fullName: string): Promise<void> {
     await test.step(`Verifying contact icons are visible for: ${fullName}`, async () => {
       const contactIcons = [
-        { name: 'Phone', locator: this.getPhoneIcon(fullName) },
-        { name: 'Mobile', locator: this.getMobileIcon(fullName) },
-        { name: 'Email', locator: this.getEmailIcon(fullName) },
-        { name: 'Zoom', locator: this.getZoomIcon(fullName) },
-        { name: 'Slack', locator: this.getSlackIcon(fullName) },
-        { name: 'Skype', locator: this.getSkypeIcon(fullName) },
-        { name: 'MS Teams', locator: this.getMSTeamsIcon(fullName) },
+        { name: 'Phone', iconType: ContactIconType.PHONE },
+        { name: 'Mobile', iconType: ContactIconType.MOBILE },
+        { name: 'Email', iconType: ContactIconType.EMAIL },
+        { name: 'Zoom', iconType: ContactIconType.ZOOM },
+        { name: 'Slack', iconType: ContactIconType.SLACK },
+        { name: 'Skype', iconType: ContactIconType.SKYPE },
+        { name: 'MS Teams', iconType: ContactIconType.MS_TEAMS },
       ];
 
       for (const icon of contactIcons) {
-        const count = await icon.locator.count();
+        const locator = this.getContactIcon(fullName, icon.iconType);
+        const count = await locator.count();
         if (count > 0) {
-          const isVisible = await icon.locator.isVisible().catch(() => false);
+          const isVisible = await locator.isVisible().catch(() => false);
           if (isVisible) {
-            await this.verifier.verifyTheElementIsVisible(icon.locator, {
+            await this.verifier.verifyTheElementIsVisible(locator, {
               assertionMessage: `${icon.name} icon should be visible for ${fullName}`,
-              timeout: 5000,
             });
           }
         }
@@ -202,23 +191,24 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   async verifyContactIconsRemainVisibleAfterHover(fullName: string): Promise<void> {
     await test.step(`Verifying contact icons remain visible after hover for: ${fullName}`, async () => {
       const contactIcons = [
-        { name: 'Phone', locator: this.getPhoneIcon(fullName) },
-        { name: 'Mobile', locator: this.getMobileIcon(fullName) },
-        { name: 'Email', locator: this.getEmailIcon(fullName) },
-        { name: 'Zoom', locator: this.getZoomIcon(fullName) },
-        { name: 'Slack', locator: this.getSlackIcon(fullName) },
-        { name: 'Skype', locator: this.getSkypeIcon(fullName) },
-        { name: 'MS Teams', locator: this.getMSTeamsIcon(fullName) },
+        { name: 'Phone', iconType: ContactIconType.PHONE },
+        { name: 'Mobile', iconType: ContactIconType.MOBILE },
+        { name: 'Email', iconType: ContactIconType.EMAIL },
+        { name: 'Zoom', iconType: ContactIconType.ZOOM },
+        { name: 'Slack', iconType: ContactIconType.SLACK },
+        { name: 'Skype', iconType: ContactIconType.SKYPE },
+        { name: 'MS Teams', iconType: ContactIconType.MS_TEAMS },
       ];
 
       // Check which icons are visible before hover
       const visibleIconsBefore: Array<{ name: string; locator: Locator }> = [];
       for (const icon of contactIcons) {
-        const count = await icon.locator.count();
+        const locator = this.getContactIcon(fullName, icon.iconType);
+        const count = await locator.count();
         if (count > 0) {
-          const isVisible = await icon.locator.isVisible().catch(() => false);
+          const isVisible = await locator.isVisible().catch(() => false);
           if (isVisible) {
-            visibleIconsBefore.push(icon);
+            visibleIconsBefore.push({ name: icon.name, locator });
           }
         }
       }
@@ -230,7 +220,6 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       for (const icon of visibleIconsBefore) {
         await this.verifier.verifyTheElementIsVisible(icon.locator, {
           assertionMessage: `${icon.name} icon should remain visible after hover for ${fullName}`,
-          timeout: 5000,
         });
       }
     });
