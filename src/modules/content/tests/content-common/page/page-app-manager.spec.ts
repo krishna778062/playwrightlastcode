@@ -106,14 +106,14 @@ test.describe(
         siteIdToPublishPage = siteId;
         manualCleanupNeeded = true;
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        // Initialize preview page and handle the promotion
+        await contentPreviewPage.actions.handlePromotionPageStep();
 
         console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
