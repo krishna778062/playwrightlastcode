@@ -632,7 +632,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-   * Likes a feed post by clicking the like button
+  /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
   async likeFeedPost(postText: string): Promise<void> {
