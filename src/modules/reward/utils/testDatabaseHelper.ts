@@ -45,7 +45,6 @@ export class TestDatabaseHelper {
     tenantCode: string,
     databaseType: DatabaseType = 'reward'
   ): Promise<void> {
-    initializeDbConfig(databaseType);
     const dbConfig = this.getDbConfig(databaseType);
     const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
     await executeQuery(resultAsFailed.replace('tenantCode', tenantCode), dbConfig.database, dbConfig);
@@ -58,7 +57,6 @@ export class TestDatabaseHelper {
     tenantCode: string,
     databaseType: DatabaseType = 'reward'
   ): Promise<void> {
-    initializeDbConfig(databaseType);
     const dbConfig = this.getDbConfig(databaseType);
     const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
     await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode), dbConfig.database, dbConfig);

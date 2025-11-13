@@ -744,6 +744,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     await expect(button).toBeVisible({ timeout: 5000 });
 
     // Preferred: normal hover (avoid force unless UI requires it)
+    await button.scrollIntoViewIfNeeded();
     await button.hover({ force: true });
 
     const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
@@ -765,16 +766,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     };
 
     const button = buttonMap[allowanceType];
-    if (!button) {
-      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
-    }
-
-    // Wait for the button to be visible & enabled before hovering (best practice)
-    await expect(button).toBeVisible({ timeout: 5000 });
-
-    // Preferred: normal hover (avoid force unless UI requires it)
     await button.hover({ force: true });
-
     const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
     await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString).last());
     await this.verifier.verifyElementContainsText(

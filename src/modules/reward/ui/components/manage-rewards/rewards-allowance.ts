@@ -154,7 +154,7 @@ export class RewardsAllowance extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceHeading, {
+    await this.verifier.waitUntilElementIsVisible(this.rewardsIndividualAllowance.individualAllowanceDescription, {
       timeout: 15000,
     });
   }
