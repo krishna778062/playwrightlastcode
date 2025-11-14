@@ -41,12 +41,12 @@ test.describe(
     test(
       'create and edit BambooHR Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-21038', 'INT-21609', 'INT-21611'],
           storyId: 'INT-22854',
         });
 
@@ -69,12 +69,12 @@ test.describe(
     test(
       'create and edit BambooHR Display Time Off Balance tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21575',
+          zephyrTestId: ['INT-21612', 'INT-21039', 'INT-21610'],
           storyId: 'INT-22854',
         });
 
@@ -103,13 +103,13 @@ test.describe(
     test(
       'create and edit BambooHR Apply for Time Off tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23137',
+          zephyrTestId: ['INT-23131', 'INT-23132', 'INT-23139'],
           storyId: 'INT-22854',
         });
 
@@ -138,7 +138,7 @@ test.describe(
     test(
       'create and verify metadata for BambooHR Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -165,7 +165,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-23138', 'INT-23136', 'INT-23129'],
           storyId: 'INT-22854',
         });
 
@@ -187,12 +187,12 @@ test.describe(
     test(
       'verify BambooHR Apply for Time Off tile form submission and create another request functionality',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23143',
+          zephyrTestId: ['INT-23146', 'INT-23145'],
           storyId: 'INT-22854',
         });
 
@@ -283,7 +283,7 @@ test.describe(
         const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23139',
+          zephyrTestId: ['INT-23039', 'INT-21610', 'INT-21612'],
           storyId: 'INT-22854',
         });
 
@@ -318,7 +318,7 @@ test.describe(
         const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23131',
+          zephyrTestId: 'INT-29065',
           storyId: 'INT-22854',
         });
 
@@ -348,7 +348,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23140',
+          zephyrTestId: 'INT-23143',
           storyId: 'INT-22854',
         });
 

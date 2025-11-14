@@ -73,7 +73,7 @@ test.describe(
     test(
       'verify App Admin is able to add Greenhouse job postings from a tile on Home Dashboard with App Manager Defined as External',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -186,7 +186,7 @@ test.describe(
     test(
       'verify App Admin is able to add Greenhouse job postings from a tile on Site Dashboard with App Manager Defined as External',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
