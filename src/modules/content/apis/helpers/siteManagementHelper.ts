@@ -490,7 +490,7 @@ export class SiteManagementHelper {
    */
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: options?.size || 16,
+      size: options?.size || 1000,
       filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'createdNewest',
       ...options,
@@ -1049,6 +1049,7 @@ export class SiteManagementHelper {
           (member: any) => member.peopleId === userId && member.isOwner === true
         );
         if (isOwner) {
+          console.log(`Found site ${site.name} (${site.siteId}) where user ${userId} is an owner`);
           return {
             siteId: site.siteId,
             siteName: site.name,
@@ -1056,8 +1057,10 @@ export class SiteManagementHelper {
         }
       }
       // If no site found where user is owner, create a new one
+      console.log(`No site found where user ${userId} is an owner, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     } else {
+      console.log(`No active sites found, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     }
   }
