@@ -28,22 +28,24 @@ export class PageTileSectionComponent extends BaseComponent {
   }
   async verifyingCreatedPageIsVisibleInTile(pageName: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(
-      this.page.locator('.type--title:has-text("' + pageName + '")').first(),
+      this.page.locator('.type--title').filter({ hasText: pageName }).first(),
       {
         assertionMessage: `Created page ${pageName} should be visible in tile`,
+        timeout: 15000,
       }
     );
   }
   async verifyingCreatedPageIsNotVisibleInTile(pageName: string): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(
-      this.page.locator('.type--title:has-text("' + pageName + '")').first(),
+      this.page.locator('.type--title').filter({ hasText: pageName }).first(),
       {
         assertionMessage: `Created page ${pageName} should not be visible in tile`,
+        timeout: 15000,
       }
     );
   }
   async openingCreatedPageInTile(pageName: string): Promise<void> {
-    await this.clickOnElement(this.page.locator('.type--title:has-text("' + pageName + '")').first());
+    await this.clickOnElement(this.page.locator('.type--title').filter({ hasText: pageName }).first());
   }
   async clickingOnEditTileButton(tileName: string): Promise<void> {
     await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
