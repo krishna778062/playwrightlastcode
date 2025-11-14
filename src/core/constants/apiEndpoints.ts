@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
@@ -76,7 +77,10 @@ export const API_ENDPOINTS = {
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    createTopic: '/v1/content/topics',
+    deleteTopics: '/v1/content/topics/bulk-delete',
     contentListInSite: '/v1/content/sites/content/list',
+    onboarding: '/onboarding',
   },
 
   fileUpload: {

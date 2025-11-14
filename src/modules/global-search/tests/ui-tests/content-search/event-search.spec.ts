@@ -47,9 +47,15 @@ test.describe(
     test.afterEach(
       `Cleaning up the test environment by deleting the created event content`,
       async ({ appManagerFixture }) => {
-        if (contentId) {
-          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
-          console.log(`Deleted event "${eventName}" with ID: ${contentId}`);
+        try {
+          if (contentId) {
+            await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
+            console.log(`Deleted event "${eventName}" with ID: ${contentId}`);
+          }
+        } catch (error) {
+          console.warn('After hook cleanup failed, but test will not fail:', error);
+          // Silently swallow the error to prevent test failure
+          // Errors in after hooks should not fail tests
         }
       }
     );
@@ -57,7 +63,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -137,7 +143,7 @@ test.describe(
     test(
       `verify Event Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

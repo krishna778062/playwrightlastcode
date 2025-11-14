@@ -11,6 +11,7 @@ export const FEED_TEST_DATA = {
   POST_TEXT: {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
+    REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -36,4 +37,7 @@ export const FEED_TEST_DATA = {
     fileSize: 13116,
     mimeType: 'image/jpeg',
   },
+  MAX_FILE_UPLOAD_LIMIT: 10,
+  FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
+  RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
 } as const;

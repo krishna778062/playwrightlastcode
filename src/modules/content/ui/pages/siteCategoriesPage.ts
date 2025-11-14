@@ -16,8 +16,8 @@ export class SiteCategoriesPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SITE_CATEGORIES_PAGE);
     this.addCategoryButton = page.locator('button:has-text("Add category")');
-    this.categoryNameTextbox = page.getByRole('textbox', { name: 'Category name...' });
-    this.addButton = page.getByRole('button', { name: 'Add' });
+    this.categoryNameTextbox = page.getByRole('textbox', { name: 'Category name' });
+    this.addButton = page.getByRole('button', { name: 'Add', exact: true });
     this.optionsMenuPanel = page.locator('.OptionsMenu-panel-main');
     this.categoryListingTable = page.locator('table, .table, [role="table"], .category-list, .listing');
     this.deleteButton = page.locator('*:has-text("Delete")');

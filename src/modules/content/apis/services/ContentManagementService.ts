@@ -24,7 +24,7 @@ const defaultBaseContentPayload = {
   title: 'Default title',
   language: 'en',
   isFeedEnabled: true,
-  listOfTopics: [],
+  listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
   isNewTiptap: false,
 };
@@ -347,6 +347,58 @@ export class ContentManagementService implements IContentManagementServices {
           }
         )
         .toBe(true);
+    });
+  }
+
+  /**
+   * Creates a new topic
+   * @param topicName - The name of the topic to create
+   * @returns The created topic response
+   */
+  async createTopic(topicName: string): Promise<{ topicId: string; name: string }> {
+    return await test.step(`Creating topic: ${topicName}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.createTopic, {
+        data: {
+          name: topicName,
+        },
+      });
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.topic_id) {
+        throw new Error(`Topic creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return {
+        topicId: json.result.topic_id,
+        name: json.result.name,
+      };
+    });
+  }
+
+  /**
+   * Deletes one or more topics by their IDs
+   * @param topicIds - Array of topic IDs to delete
+   * @returns Promise that resolves when topics are deleted
+   */
+  async deleteTopic(topicIds: string[]): Promise<void> {
+    return await test.step(`Deleting topics: ${topicIds.join(', ')}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.deleteTopics, {
+        data: {
+          ids: topicIds,
+        },
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to delete topics. Status: ${response.status()}, Response: ${errorText.substring(0, 200)}`
+        );
+      }
+
+      const json = await response.json();
+      if (json.status !== 'success') {
+        throw new Error(`Topic deletion failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      console.log(`Topics deleted successfully: ${topicIds.join(', ')}`);
     });
   }
 

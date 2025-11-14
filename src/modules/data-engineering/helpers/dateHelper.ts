@@ -1,4 +1,4 @@
-import { differenceInDays, format, startOfYear, subDays, subMonths, subYears } from 'date-fns';
+import { addDays, differenceInDays, format, startOfYear, subDays, subMonths, subYears } from 'date-fns';
 
 import { PeriodFilterTimeRange } from '../constants/periodFilterTimeRange';
 
@@ -66,9 +66,30 @@ export class DateHelper {
     }
 
     // Handle static periods (Last X days/months, Year to date)
-    const daysToSubtract = this.getPeriodDays(period);
     const currentDate = DateHelper.getCurrentUTCDate();
-    const startDate = subDays(currentDate, daysToSubtract);
+    let startDate: Date;
+
+    // Handle "Last X days" - use subDays for precise day calculation
+    const daysMatch = period.match(/Last (\d+) days?/i);
+    if (daysMatch) {
+      const days = parseInt(daysMatch[1], 10);
+      startDate = subDays(currentDate, days - 1); // e.g., "Last 7 days" means 6 days ago to today
+    }
+    // Handle "Last X months" - use subMonths for accurate month calculation
+    else if (period.match(/Last (\d+) months?/i)) {
+      const monthsMatch = period.match(/Last (\d+) months?/i);
+      const months = parseInt(monthsMatch![1], 10);
+      const targetDate = subMonths(currentDate, months);
+      startDate = addDays(targetDate, 1); // Start from the day after X months ago
+    }
+    // Handle "Year to date" - start from beginning of year
+    else if (period.match(/Year to date/i)) {
+      startDate = startOfYear(currentDate);
+    } else {
+      throw new Error(
+        `Unsupported period: "${period}". Supported periods: ${Object.values(PeriodFilterTimeRange).join(', ')}`
+      );
+    }
 
     return {
       timePeriod: period,
@@ -217,5 +238,34 @@ export class DateHelper {
     const start = new Date(startDate);
     const end = new Date(endDate);
     return differenceInDays(end, start);
+  }
+
+  /**
+   * Generates the expected CSV date range string format based on period filter
+   * @param period - The period filter option from PeriodFilterTimeRange enum
+   * @param customStartDate - Custom start date (YYYY-MM-DD format), required if period is CUSTOM
+   * @param customEndDate - Custom end date (YYYY-MM-DD format), optional
+   * @returns Expected date range string in CSV format (e.g., "From: 24 Oct 2024 at 00:00 (UTC) To: 23 Oct 2025 at 23:59 (UTC)")
+   */
+  static generateExpectedCSVDateRange(
+    period: PeriodFilterOption,
+    customStartDate?: string,
+    customEndDate?: string
+  ): string {
+    const dateReplacements = this.getDateReplacements(period, customStartDate, customEndDate);
+
+    // Parse the start and end dates from the replacements
+    const startDateStr = dateReplacements.startDate.split(' ')[0]; // Get YYYY-MM-DD part
+    const endDateStr = dateReplacements.endDate.split(' ')[0]; // Get YYYY-MM-DD part
+
+    // Convert to Date objects
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    // Format dates to match CSV format: "From: DD MMM YYYY at HH:MM (UTC) To: DD MMM YYYY at HH:MM (UTC)"
+    const startFormatted = format(startDate, "dd MMM yyyy 'at' 00:00 '(UTC)'");
+    const endFormatted = format(endDate, "dd MMM yyyy 'at' 23:59 '(UTC)'");
+
+    return `From: ${startFormatted} To: ${endFormatted}`;
   }
 }

@@ -13,9 +13,11 @@ import {
 } from '@content/ui/components/createQuestionComponent';
 import { FilePreviewComponent } from '@content/ui/components/filePreviewComponent';
 import { ListFeedComponent } from '@content/ui/components/listFeedComponent';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
 // Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult };
@@ -63,8 +65,35 @@ export interface IFeedActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
+  selectShareOptionAsSiteFeed: () => Promise<void>;
+  searchForSiteName: (siteName: string) => Promise<void>;
+  enterFeedPostText: (text: string) => Promise<void>;
+  clickBrowseFilesButton: () => Promise<void>;
+  searchForFileInLibrary: (fileName: string) => Promise<void>;
+  selectFileFromLibrary: (fileName: string) => Promise<void>;
+  clickAttachButton: () => Promise<void>;
+  clickPostButton: () => Promise<void>;
   clickOnCommentIcon: () => Promise<void>;
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickEditOption: () => Promise<void>;
+  createPost: (text: string) => Promise<void>;
+  updatePostText: (text: string) => Promise<void>;
+  removeAttachedFile: (index?: number) => Promise<void>;
+  clickUpdateButton: () => Promise<void>;
+  addFileToPost: (filePath: string) => Promise<void>;
+  waitForFileToAppear: () => Promise<void>;
+  uploadFiles: (files: string[]) => Promise<void>;
+  applyFormattingAndEnterText: (
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ) => Promise<void>;
+  addLink: (linkText: string, linkUrl: string) => Promise<void>;
+  selectEmoji: (emojiIndex?: number) => Promise<void>;
+  likeFeedPost: (postText: string) => Promise<void>;
+  unlikeFeedPost: (postText: string) => Promise<void>;
+  likeFeedReply: (replyText: string) => Promise<void>;
+  unlikeFeedReply: (replyText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -89,11 +118,19 @@ export interface IFeedAssertions {
   verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
   verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
   verifyQuestionButtonIsNotVisible: () => Promise<void>;
+  verifyNoResultMessage: () => Promise<void>;
+  verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyQuestionButtonIsVisible: () => Promise<void>;
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
+  verifyAttachedFileCount: (count: number) => Promise<void>;
+  verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyLikeCountOnPost: (postText: string) => Promise<void>;
+  verifyLikeCountOnReply: (replyText: string) => Promise<void>;
+  verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -101,6 +138,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   private listFeedComponent: ListFeedComponent;
   private filePreviewComponent: FilePreviewComponent;
   private createQuestionComponent: CreateQuestionComponent;
+  private shareComponent: ShareComponent;
   readonly shareThoughtsButton: Locator;
   readonly feedFilterSelect: Locator;
   readonly optionLocator: Locator;
@@ -110,6 +148,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly newHireFeedBlocks: Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
+  readonly pageNotFoundHeading: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -117,6 +156,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.createQuestionComponent = new CreateQuestionComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.filePreviewComponent = new FilePreviewComponent(page);
+    this.shareComponent = new ShareComponent(page);
     // Share thoughts section
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.sortByFilter = this.page.locator('[id="feed_sort"]');
@@ -128,6 +168,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
+    this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
   }
 
   get actions(): IFeedActions {
@@ -158,8 +199,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createQuestionComponent.createAndPostQuestion(options);
   }
 
-  async editPost(currentText: string, newText: string): Promise<void> {
-    await this.createFeedPostComponent.editPost(currentText, newText);
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText, embedUrl);
   }
 
   async deletePost(postText: string): Promise<void> {
@@ -452,11 +493,88 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    * Clicks on a specific option in the feed filter dropdown
    * @param optionValue - The text value of the option to select
    */
+  /**
+   * Selects "site feed" option from share dropdown in post creation
+   */
+  async selectShareOptionAsSiteFeed(): Promise<void> {
+    await this.shareComponent.selectShareOptionAsSiteFeed();
+  }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
 
+  /**
+   * Searches for a site name without selecting it (to verify access)
+   * @param siteName - The site name to search for
+   */
+  async searchForSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForSiteName(siteName);
+  }
+
+  /**
+   * Verifies "No results" message is displayed when searching for inaccessible sites
+   */
+  async verifyNoResultMessage(): Promise<void> {
+    await this.createFeedPostComponent.verifyNoResultMessage();
+  }
+
+  /**
+   * Enters text into the post editor
+   * @param text - The text to enter in the post
+   */
+  async enterFeedPostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  /**
+   * Clicks the "browse files" button to open file library
+   */
+  async clickBrowseFilesButton(): Promise<void> {
+    await this.createFeedPostComponent.clickBrowseFilesButton();
+  }
+
+  /**
+   * Searches for a file in the file library
+   * @param fileName - The name of the file to search for (e.g., ".mp4")
+   */
+  async searchForFileInLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.searchForFileInLibrary(fileName);
+  }
+
+  /**
+   * Selects a file from the file library by clicking its checkbox
+   * @param fileName - The name of the file to select
+   */
+  async selectFileFromLibrary(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.selectFileFromLibrary(fileName);
+  }
+
+  /**
+   * Clicks the "Attach" button to attach selected files from library
+   */
+  async clickAttachButton(): Promise<void> {
+    await this.createFeedPostComponent.clickAttachButton();
+  }
+
+  /**
+   * Verifies that a file is attached to the post
+   * @param fileName - The name of the file to verify
+   */
+  async verifyFileIsAttached(fileName: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFileIsAttached(fileName);
+  }
+
+  /**
+   * Clicks the Post button to publish the feed post
+   */
+  async clickPostButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostButton();
+  }
+
+  /**
+   * Verifies that the Question button is visible in the post editor
+   */
   async verifyQuestionButtonIsVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsVisible();
   }
@@ -504,5 +622,100 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         });
       }
     });
+  }
+
+  async verifyAttachedFileCount(count: number): Promise<void> {
+    await this.createFeedPostComponent.verifyAttachedFileCount(count);
+  }
+
+  async verifyUpdateButtonDisabled(): Promise<void> {
+    await this.createFeedPostComponent.verifyUpdateButtonDisabled();
+  }
+
+  async openPostOptionsMenu(postText: string): Promise<void> {
+    await this.createFeedPostComponent.openPostOptionsMenu(postText);
+  }
+
+  async clickEditOption(): Promise<void> {
+    await this.createFeedPostComponent.clickEditOption();
+  }
+
+  async createPost(text: string): Promise<void> {
+    await this.createFeedPostComponent.createPost(text);
+  }
+
+  async updatePostText(text: string): Promise<void> {
+    await this.createFeedPostComponent.updatePostText(text);
+  }
+
+  async removeAttachedFile(index: number = 0): Promise<void> {
+    await this.createFeedPostComponent.removeAttachedFile(index);
+  }
+
+  async clickUpdateButton(): Promise<void> {
+    await this.createFeedPostComponent.clickUpdateButton();
+  }
+
+  async addFileToPost(filePath: string): Promise<void> {
+    await this.createFeedPostComponent.addFileToPost(filePath);
+  }
+
+  async waitForFileToAppear(): Promise<void> {
+    await this.createFeedPostComponent.waitForFileToAppear();
+  }
+
+  async uploadFiles(files: string[]): Promise<void> {
+    await this.createFeedPostComponent.uploadFiles(files);
+  }
+
+  async applyFormattingAndEnterText(
+    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
+    text: string
+  ): Promise<void> {
+    await this.createFeedPostComponent.applyFormattingAndEnterText(formatType, text);
+  }
+
+  async addLink(linkText: string, linkUrl: string): Promise<void> {
+    await this.createFeedPostComponent.addLink(linkText, linkUrl);
+  }
+
+  async selectEmoji(emojiIndex: number = 1): Promise<void> {
+    await this.createFeedPostComponent.selectEmoji(emojiIndex);
+  }
+  async likeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async unlikeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.unlikeFeedPost(postText);
+  }
+
+  async likeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async unlikeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.unlikeFeedReply(replyText);
+  }
+
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnPost(postText);
+  }
+
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnReply(replyText);
+  }
+
+  async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pageNotFoundHeading, {
+        assertionMessage: 'Page not found heading should be visible',
+        timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
 }

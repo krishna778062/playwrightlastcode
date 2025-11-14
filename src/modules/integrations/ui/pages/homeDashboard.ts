@@ -1,14 +1,15 @@
 import { DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrations/constants/common';
+import { MESSAGES } from '@integrations/constants/messageRepo';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 
 class AppTileComponent extends BaseAppTileComponent {
   constructor(page: Page) {
@@ -22,7 +23,8 @@ export class HomeDashboard extends BasePage {
   private readonly appTileComponent: AppTileComponent;
   private readonly timeOffRequestTileComponent: TimeOffRequestTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
-  private readonly tileManagementHelper: TileManagementHelper;
+  private readonly tileManagementHelper: IntegrationTileHelper;
+  private readonly tileContainer: Locator;
 
   private readonly defaultConfig = {
     baseName: AIRTABLE_TILE.BASE_NAME,
@@ -31,7 +33,7 @@ export class HomeDashboard extends BasePage {
     sortOrder: AIRTABLE_TILE.USER_DEFINED,
   };
 
-  constructor(page: Page, tileManagementHelper: TileManagementHelper) {
+  constructor(page: Page, tileManagementHelper: IntegrationTileHelper) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.page = page;
     this.airtableComponent = new BaseAppTileComponent(page);
@@ -39,6 +41,7 @@ export class HomeDashboard extends BasePage {
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
     this.tileManagementHelper = tileManagementHelper;
+    this.tileContainer = page.locator('aside');
   }
 
   /**
@@ -74,10 +77,60 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Verify connector connection status with formatted username display
+   * @param connector - The connector name (e.g., 'expensify', 'google', 'outlook')
+   * @param username - The username/email to verify (e.g., 'aa_tushar_roy_simpplr_com')
+   */
+  async verifyConnectorConnectionStatus(connector: string, username: string): Promise<void> {
+    await this.appTileComponent.verifyConnectorConnectionStatus(connector, username);
+  }
+
+  /**
    * Click the 'My settings' link in the Add tile modal
    */
   async clickDialogLink(label: string): Promise<void> {
     await this.appTileComponent.clickDialogLink(label);
+  }
+
+  /**
+   * Click a link inside dialog that opens in a new tab and return the new page
+   * @param label - The link label to click
+   * @returns The new page that opens
+   */
+  async clickDialogLinkAndGetNewPage(label: string): Promise<Page> {
+    return await this.appTileComponent.clickDialogLinkAndGetNewPage(label);
+  }
+
+  /**
+   * Verify that an app is NOT present in the enabled apps section
+   * @param appName - The name of the app to verify is not present
+   */
+  async verifyAppNotInEnabledApps(appName: string): Promise<void> {
+    return await this.appTileComponent.verifyAppNotInEnabledApps(appName);
+  }
+
+  /**
+   * Verify that an app IS present in the available apps section
+   * @param appName - The name of the app to verify is present
+   */
+  async verifyAppInAvailableApps(appName: string): Promise<void> {
+    return await this.appTileComponent.verifyAppInAvailableApps(appName);
+  }
+
+  /**
+   * Click on an app in the available apps section to navigate to custom apps page in new tab
+   * @param appName - The name of the app to click
+   * @returns The new page that opens
+   */
+  async clickAppInAvailableAppsAndGetNewPage(appName: string): Promise<Page> {
+    return await this.appTileComponent.clickAppInAvailableAppsAndGetNewPage(appName);
+  }
+
+  /**
+   * Close the currently open dialog
+   */
+  async closeDialog(): Promise<void> {
+    return await this.appTileComponent.closeDialog();
   }
 
   /**
@@ -389,6 +442,22 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Verify FreshService Tickets Submitted by Me tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceTicketsSubmittedByMe(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceTicketsSubmittedByMe(tileTitle);
+  }
+
+  /**
+   * Verify FreshService Unassigned Tickets tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceUnassignedTickets(tileTitle);
+  }
+
+  /**
    * Verify personalized Expensify report tile data with specific filters
    * @param tileTitle - The title of the tile to verify
    * @param expectedStatus - Expected status value (e.g., 'Processing')
@@ -452,7 +521,7 @@ export class HomeDashboard extends BasePage {
   /**
    * Complete workflow to add an app tile with app manager defined settings
    */
-  async addTilewithAppManagerDefined(
+  async addTilewithDefinedSettings(
     tileTitle: string,
     appName: string,
     tileName: string,
@@ -744,5 +813,132 @@ export class HomeDashboard extends BasePage {
    */
   async verifyGreenhouseContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyGreenhouseTileContentStructure(tileTitle);
+  }
+
+  /**
+   * Verify Workday pending learning courses tile data
+   */
+  async verifyPendingLearningCoursesTileData(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyPendingLearningCoursesTileData(tileTitle);
+  }
+
+  /**
+   * Verify tile shows specific message
+   * @param tileTitle - The title of the tile to verify
+   * @param message - The message text to verify
+   */
+  async verifyTileMessage(tileTitle: string, message: string): Promise<void> {
+    await test.step(`Verify tile "${tileTitle}" shows message: "${message}"`, async () => {
+      const tileLocator = this.tileContainer.filter({ hasText: tileTitle });
+      const messageLocator = tileLocator.locator(`p:has-text("${message}")`);
+      await expect(messageLocator, `Expected message "${message}" for tile: "${tileTitle}"`).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+  }
+
+  /**
+   * Complete workflow to add an Airtable tile
+   */
+  async openAddAppTile(): Promise<void> {
+    await test.step(`Verify connector tile: `, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.APP_TILES);
+    });
+  }
+
+  /**
+   * Verify tile shows unavailable connection message (convenience method)
+   * @param tileTitle - The title of the tile to verify
+   * @param appName - The app name for the message
+   */
+  async verifyTileUnavailableMessage(tileTitle: string, appName: string = 'Expensify'): Promise<void> {
+    const message = MESSAGES.getAppConnectionUnavailableMessage(appName);
+    await this.verifyTileMessage(tileTitle, message);
+  }
+
+  /**
+   * Verify the "View all courses in Workday" link is visible on the tile
+   */
+  async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
+  }
+  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
+  }
+  /**
+   * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
+   */
+  async addAppManagerDefinedWithOptionsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2: string,
+    fieldValue2: string
+  ): Promise<void> {
+    await this.addTileEnableToggle(tileTitle, 'Greenhouse', tileName, destination, {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+      fields: [{ name: fieldName2, value: fieldValue2 }],
+    });
+  }
+
+  /**
+   * Complete workflow to add a FreshService tile with App Manager Defined settings and toggle on
+   */
+  async addFreshServiceWithOptionsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2?: string,
+    fieldValue2?: string
+  ): Promise<void> {
+    const config: {
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      fields?: Array<{ name: string; value: string }>;
+    } = {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+    };
+
+    // Only add second field if fieldName2 is provided
+    if (fieldName2 && fieldName2.trim() !== '') {
+      config.fields = [{ name: fieldName2, value: fieldValue2 || '' }];
+    }
+
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, config);
+  }
+  /**
+   * Complete workflow to add an app tile with flexible configuration
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param destination - The destination of the tile to add
+   * @param config - Optional configuration object for fields and options
+   */
+  async addTileEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    config?: {
+      fields?: Array<{ name: string; value: string }>;
+      radioOptions?: Array<{ fieldName: string; option: string }>;
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    }
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      if (config) {
+        await this.configureTileFields(config);
+      }
+      await this.tileOperationsComponent.enableToggleButton(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
   }
 }

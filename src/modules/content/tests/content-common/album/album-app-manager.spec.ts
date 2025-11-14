@@ -5,6 +5,7 @@ import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
+import { PROJECT_ROOT } from '@core/constants/paths';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
@@ -53,7 +54,13 @@ test.describe(
     test(
       'create Album with all the fields populated from home page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.REGRESSION,
+          ContentSuiteTags.ALBUM_CREATION,
+          '@healthcheck',
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -70,31 +77,31 @@ test.describe(
 
         // Generate album data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'images',
           CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
         );
         const attachmentPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'excel',
           'sample.docx'
         );
-        const albumCreationOptions = TestDataGenerator.generateAlbum(
-          imagePath,
-          attachmentPath,
-          'https://youtu.be/4vLyqzOr14g',
-          true
-        );
+        const albumCreationOptions = TestDataGenerator.generateAlbum({
+          fileName: imagePath,
+          attachmentFileName: attachmentPath,
+          videoUrl: 'https://youtu.be/4vLyqzOr14g',
+          openAlbum: true,
+        });
 
         // Create and publish the album
         const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum(albumCreationOptions);

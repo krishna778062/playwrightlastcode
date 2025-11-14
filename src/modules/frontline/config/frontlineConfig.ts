@@ -25,10 +25,10 @@ export const mailosaurValues: {
   mailosaurEmail: string;
   mailosaurPhone: string;
 } = {
-  mailosaurApiKey: 'RuhqTyBb8hp7JtPT',
-  mailosaurServerId: 'znl8uqcc',
-  mailosaurEmail: 'green@znl8uqcc.mailosaur.net',
-  mailosaurPhone: '+447457416481',
+  mailosaurApiKey: '3G0mJzdusG2e4QKWsyupr2emWMQaMZi2',
+  mailosaurServerId: 'bie7v7vm',
+  mailosaurEmail: 'green@bie7v7vm.mailosaur.net',
+  mailosaurPhone: '+12029891336',
 };
 
 /**
@@ -120,9 +120,9 @@ export const config = {
       apiBaseUrl: 'https://frontline-automation-api.uat.simpplr.xyz',
       appManagerEmail: 'rakesh.yadav@simpplr.com',
       appManagerPassword: 'Simp@123',
-      endUserEmail: 'meenakshi.joshi+1@simpplr.com',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
       endUserPassword: 'Simp@123',
-      promotionManagerEmail: 'meenakshi.joshi@simpplr.com',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
       orgId: 'ae412585-2c97-435e-b587-8da6971045bd',
@@ -163,16 +163,18 @@ export const config = {
     },
     uat: {
       tenantName: 'Frontline Secondary UAT',
-      frontendBaseUrl: 'https://frontline-automation.uat.simpplr.xyz',
-      apiBaseUrl: 'https://frontline-automation-api.uat.simpplr.xyz',
-      appManagerEmail: 'rakesh.yadav@simpplr.com',
-      appManagerPassword: 'Simp@123',
-      endUserEmail: 'meenakshi.joshi+1@simpplr.com',
+      frontendBaseUrl: 'https://frontline-automation-2.uat.simpplr.xyz',
+      apiBaseUrl: 'https://frontline-automation-2-api.uat.simpplr.xyz',
+      appManagerEmail: 'E001',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
       endUserPassword: 'Simp@123',
-      promotionManagerEmail: 'meenakshi.joshi@simpplr.com',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
-      orgId: 'ae412585-2c97-435e-b587-8da6971045bd',
+      orgId: '51ff9037-4d7f-4f57-88be-6d8e3fd8a962',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
   },
   appConfig: {

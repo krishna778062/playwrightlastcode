@@ -301,21 +301,21 @@ test.describe('audience Category Testcases', { tag: [TestSuite.AUDIENCE, TestSui
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Verify cancel button behavior
-      await audiencePage.verifyCategoryCancelButtonBehavior();
+      await audiencePage.verifyEditCategoryCancelButtonBehavior(testCategoryName);
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
 
       // Reload page to ensure clean state for next test
       await audiencePage.page.reload({ waitUntil: 'domcontentloaded' });
 
       // Verify close button behavior
-      await audiencePage.verifyCategoryCloseButtonBehavior();
+      await audiencePage.verifyEditCategoryCloseButtonBehavior(testCategoryName);
       await audiencePage.verifyAudienceCategoryVisibilityInList(testCategoryName);
     }
   );
 
   test(
     'edit category modal: Update actions',
-    { tag: [TestPriority.P1, `@ABAC`, `@acg`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'] },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), { zephyrTestId: ['PS-35425', 'PS-35426', 'PS-35428', 'PS-35427'] });
 

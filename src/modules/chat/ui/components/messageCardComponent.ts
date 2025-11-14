@@ -10,6 +10,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly emojiPickerButton: Locator;
   readonly emojiPickerContainer: Locator;
   readonly emojiPickerEmojisGroupsContainer: Locator;
+  readonly reactionEmojiPickerbutton: Locator;
   readonly threeDotsButtonToOpenMessageActionsMenu: Locator;
   readonly deleteMessageButtonFromMessageActionsMenu: Locator;
   readonly replyInThreadButton: Locator;
@@ -25,6 +26,7 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly unPinMessageConfirmationPrompt: Locator;
   readonly unPinnedToastMessage: Locator;
   readonly getPinnedMessage: (message: string) => Locator;
+  readonly reactionEmojiPickerContainer: Locator;
 
   constructor(page: Page, focusedMessageContainer: Locator) {
     super(page, focusedMessageContainer);
@@ -33,6 +35,8 @@ export class MessageCardComponent extends MessageBaseComponent {
     this.emojiPickerButton = this.messageActionsContainer.getByLabel('addEmoji icon');
     this.emojiPickerContainer = this.page.locator("[class*='EmojiPicker_root']").first();
     this.emojiPickerEmojisGroupsContainer = this.emojiPickerContainer.locator("[EmojiPicker_emojiGroupWrapper']");
+    this.reactionEmojiPickerbutton = this.page.locator('button[aria-label="Emoji Picker"]').last();
+    this.reactionEmojiPickerContainer = this.page.locator('//p[text()="smileys & emotion"]/../..//span');
     this.threeDotsButtonToOpenMessageActionsMenu = this.focusedMessageContainer.getByTestId('message-action-trigger');
     this.deleteMessageButtonFromMessageActionsMenu = this.page
       .getByTestId('deleteMessageButton')
@@ -214,10 +218,10 @@ export class MessageCardComponent extends MessageBaseComponent {
     await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
       await this.focusedMessageContainer.hover();
       if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
-        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
       } else {
         await this.focusedMessageContainer.hover();
-        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 100 });
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
       }
     });
   }

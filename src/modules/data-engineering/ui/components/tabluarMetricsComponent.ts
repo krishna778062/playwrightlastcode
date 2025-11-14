@@ -1,5 +1,6 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
@@ -22,15 +23,20 @@ export class TabluarMetricsComponent extends BaseComponent {
   readonly headerRow: Locator;
   readonly dataRow: Locator;
 
+  readonly downloadCSVButton: Locator;
+
   constructor(
     page: Page,
     readonly thoughtSpotIframe: FrameLocator,
     readonly metricTitle: string
   ) {
     // Find the container internally
-    const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
-    });
+    const container = thoughtSpotIframe
+      .locator('[class*="answer-content-module__answerVizContainer"]')
+      .filter({
+        has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
+      })
+      .first();
 
     super(page, container);
 
@@ -49,6 +55,7 @@ export class TabluarMetricsComponent extends BaseComponent {
     this.drillDownButton = this.thoughtSpotIframe.getByRole('tab', { name: 'Drill down' });
     this.drillDownOptionsMenu = this.thoughtSpotIframe.getByTestId('DRILL');
     this.drillDownOption = (option: string) => this.thoughtSpotIframe.getByRole('tab', { name: option });
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
   }
 
   /**
@@ -177,12 +184,20 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
-   * Normalizes values by removing percentage symbols and comma separators for comparison
+   * Normalizes values by removing percentage symbols, comma separators, and trailing zeros for comparison
    * @param value - The value to normalize
-   * @returns Normalized value without % symbol and commas
+   * @returns Normalized value without % symbol, commas, and trailing zeros
    */
   private normalizeValue(value: string): string {
-    return value.replace('%', '').replace(/,/g, '');
+    // Remove % symbol and commas
+    let normalized = value.replace('%', '').replace(/,/g, '');
+
+    // Remove trailing zeros from decimal numbers (e.g., "2.0" → "2", "2.50" → "2.5")
+    // Only remove zeros that come after a decimal point
+    normalized = normalized.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+
+    // Trim any whitespace (handles spaces like in "100.0 %")
+    return normalized.trim();
   }
 
   /**
@@ -531,6 +546,30 @@ export class TabluarMetricsComponent extends BaseComponent {
     await test.step(`verify for metric: ${this.metricTitle} - table heading is ${expectedHeading}`, async () => {
       const actualHeading = this.rootLocator.getByRole('heading', { name: this.metricTitle });
       await expect(actualHeading, `expecting table heading to be ${expectedHeading}`).toBeVisible();
+    });
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: TIMEOUTS.LONG,
+          assertionMessage: `Download csv button should be visible`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file` });
     });
   }
 }

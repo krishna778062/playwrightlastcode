@@ -37,9 +37,9 @@ export interface SiteCategory {
 
 export interface SiteListOptions {
   size?: number;
-  canManage?: boolean;
   filter?: string;
   sortBy?: string;
+  canManage?: boolean;
 }
 
 export interface Site {
@@ -132,4 +132,48 @@ export interface SiteMembershipResponse {
   message: string;
   result: SiteMembershipResult;
   errors?: string[];
+}
+
+export interface SiteMember {
+  id: string;
+  peopleId: string;
+  name: string;
+  email: string;
+  city?: string;
+  country?: string;
+  isActive: boolean;
+  videoCallProvider?: string;
+  nickname?: string;
+  isProtectedAuthor: boolean;
+  isOwner: boolean;
+  isMember: boolean;
+  isManager: boolean;
+  isFollowing: boolean;
+  isFollower: boolean;
+  isFavorited: boolean;
+  isContentManager: boolean;
+  isInMandatorySubscription: boolean;
+  isAppManager: boolean;
+  relationshipVia: string;
+  hireDate?: string;
+  hasConnectedSharePointAccount: boolean;
+  hasConnectedOneDriveAccount: boolean;
+  hasConnectedGoogleDriveAccount: boolean;
+  hasConnectedBoxAccount: boolean;
+  hasConnectedDropboxAccount: boolean;
+  canRemove: boolean;
+  canMakeOwner: boolean;
+  canMakeNotManager: boolean;
+  canMakeNotContentManager: boolean;
+  canMakeManager: boolean;
+  canMakeContentManager: boolean;
+  canFollow: boolean;
+  birthday?: string;
+}
+
+export interface SiteMembershipListResponse {
+  status: string;
+  result: {
+    listOfItems: SiteMember[];
+  };
 }

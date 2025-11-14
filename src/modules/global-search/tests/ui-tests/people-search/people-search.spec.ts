@@ -7,6 +7,7 @@ import { PEOPLE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/p
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
+import { PeopleFieldConfigurationHelper } from '@/src/modules/global-search/ui/helpers/peopleFieldConfigurationHelper';
 
 test.describe(
   'global Search - People Search functionality',
@@ -18,6 +19,7 @@ test.describe(
     let userId: string;
     let testUserId: string;
     let testExpertiseId: string;
+    let originalOrgChartStatus: boolean | undefined;
 
     test.beforeEach(async ({ appManagerFixture }) => {
       // Get user ID using getIdentityUserId method with data from test file
@@ -47,12 +49,25 @@ test.describe(
       } catch (error) {
         console.warn(`Failed to cleanup test data:`, error);
       }
+
+      // Restore original app config settings
+      try {
+        if (originalOrgChartStatus !== undefined) {
+          await appManagerFixture.appConfigurationService.updateAppConfigField(
+            { orgChartEnabled: originalOrgChartStatus },
+            `Restore Org Chart to original state: ${originalOrgChartStatus}`
+          );
+          console.log(`App configuration restored to original settings`);
+        }
+      } catch (error) {
+        console.warn(`Failed to restore app configuration:`, error);
+      }
     });
 
     test(
       `verify user able to search people`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -86,7 +101,7 @@ test.describe(
     test(
       `verify People Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -130,7 +145,7 @@ test.describe(
         );
         testExpertiseId = expertiseResponse.result.uuid;
 
-        const endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
+        const _endorseResponse = await appManagerFixture.expertiseManagementService.endorseUserWithExpertise(
           testUserId,
           testExpertiseId
         );
@@ -181,6 +196,128 @@ test.describe(
         }
 
         await peopleResult.verifyNameIsDisplayed(testData.searchTerm);
+      }
+    );
+
+    test(
+      `verify org chart icon visibility based on configuration`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19660',
+        });
+
+        // Store original app config settings
+        const currentConfig = await appManagerFixture.feedManagementHelper.feedManagementService.getAppConfig();
+        originalOrgChartStatus = currentConfig.result.orgChartEnabled;
+        console.log(`Current org chart status: ${originalOrgChartStatus}`);
+
+        // Enable org chart if not already enabled
+        if (originalOrgChartStatus !== testData.orgChart.enabled.orgChartEnabled) {
+          await appManagerFixture.appConfigurationService.updateAppConfigField(
+            testData.orgChart.enabled,
+            `Enable Org Chart feature`
+          );
+        }
+        await appManagerFixture.page.reload();
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
+          stepInfo: `Searching with term "${testData.searchTerm}" to verify org chart icon visibility when enabled`,
+        });
+        const peopleResult = await globalSearchResultPage.getPeopleResultItemExactlyMatchingTheSearchTerm(
+          testData.searchTerm
+        );
+        await peopleResult.verifyOrgChartIconVisibility(testData.orgChart.enabled.orgChartEnabled);
+        await peopleResult.verifyOrgChartIconTooltip(testData.orgChart.tooltipText);
+        await peopleResult.clickOrgChartIconAndVerifyNavigation(userId);
+        await appManagerFixture.page.goBack();
+        await appManagerFixture.appConfigurationService.updateAppConfigField(
+          testData.orgChart.disabled,
+          `Disable Org Chart feature`
+        );
+        await appManagerFixture.page.reload();
+        await peopleResult.verifyOrgChartIconVisibility(testData.orgChart.disabled.orgChartEnabled);
+      }
+    );
+
+    test(
+      `verify people subfilters visibility based on field display settings`,
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19662',
+        });
+
+        const fieldConfigHelper = new PeopleFieldConfigurationHelper(appManagerFixture.appConfigurationService);
+        let originalFields: any = {};
+
+        try {
+          const fieldConfig = await fieldConfigHelper.getFieldConfiguration(testData.fieldConfiguration.fieldsToTest);
+          originalFields = {
+            originalDepartmentField: fieldConfig.departmentField,
+            originalCityField: fieldConfig.cityField,
+            originalStateField: fieldConfig.stateField,
+            originalCountryField: fieldConfig.countryField,
+          };
+
+          await fieldConfigHelper.enableAllFields(fieldConfig);
+
+          const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(testData.searchTerm, {
+            stepInfo: `Searching with term "${testData.searchTerm}" to verify subfilters when fields are enabled via API`,
+          });
+
+          await globalSearchResultPage.verifyAndClickSidebarFilter({
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Department', true, {
+            stepInfo: 'Verify Department subfilter is visible when Department field is enabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.department,
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Location', true, {
+            stepInfo: 'Verify Location subfilter is visible when City, State, and Country fields are enabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.location,
+          });
+
+          await fieldConfigHelper.disableDepartmentField(fieldConfig.departmentField);
+          await fieldConfigHelper.disableLocationFields({
+            cityField: fieldConfig.cityField,
+            stateField: fieldConfig.stateField,
+            countryField: fieldConfig.countryField,
+          });
+
+          await appManagerFixture.page.reload();
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Department', false, {
+            stepInfo: 'Verify Department subfilter is not visible when Department field is disabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.department,
+          });
+
+          await globalSearchResultPage.verifyPeopleSubFilterVisibility('Location', false, {
+            stepInfo:
+              'Verify Location subfilter is not visible when all location fields (City, State, Country) are disabled via API',
+            filterText: testData.label,
+            iconType: testData.label.toLowerCase(),
+            globalFilterName: testData.peopleFilters.location,
+          });
+        } finally {
+          try {
+            await fieldConfigHelper.restoreOriginalSettings(originalFields);
+          } catch (error) {
+            console.warn('Test cleanup completed with error:', error);
+          }
+        }
       }
     );
   }

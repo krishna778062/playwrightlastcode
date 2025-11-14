@@ -6,6 +6,8 @@ import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/tes
 import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-search/test-data/video-file-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
+import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
+import { VideoListItemComponent } from '@/src/modules/global-search/ui/components/videoListItemComponent';
 
 for (const fileType of testData.fileTypes) {
   test.describe(
@@ -47,7 +49,7 @@ for (const fileType of testData.fileTypes) {
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -122,6 +124,88 @@ for (const fileType of testData.fileTypes) {
           await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
         }
       );
+      test(
+        `verify Video File Autocomplete functionality`,
+        {
+          tag: [TestPriority.P0, TestGroupType.SMOKE],
+        },
+        async ({ appManagerFixture }) => {
+          tagTest(test.info(), {
+            zephyrTestId: 'SEN-19659',
+          });
+
+          /** Type in search input */
+          await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(uploadedFileName, {
+            stepInfo: `Typing "${uploadedFileName}" in search input`,
+          });
+
+          const resultList = new ResultListingComponent(appManagerFixture.page);
+          await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
+
+          const fileResult = resultList.getAutocompleteItemByName(uploadedFileName);
+
+          await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
+
+          await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
+        }
+      );
     }
   );
 }
+
+// Separate describe block for caption search test - no beforeEach/afterEach hooks
+test.describe(
+  'global Search - Video File Search with Captions functionality',
+  {
+    tag: [
+      GlobalSearchSuiteTags.GLOBAL_SEARCH,
+      GlobalSearchSuiteTags.FILE_SEARCH,
+      GlobalSearchSuiteTags.VIDEO_FILE_SEARCH,
+    ],
+  },
+  () => {
+    test(
+      'to verify video transcripts search',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-17761',
+        });
+
+        const captionSearchData = testData.captionSearch;
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(
+          captionSearchData.searchTerm,
+          {
+            stepInfo: `Searching with term "${captionSearchData.searchTerm}" to find video with captions`,
+          }
+        );
+
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: captionSearchData.filterText,
+          iconType: captionSearchData.iconType,
+        });
+
+        const fileResult = await globalSearchResultPage.getFileResultItemExactlyMatchingTheSearchTerm(
+          captionSearchData.expectedVideoTitle,
+          captionSearchData.fileType
+        );
+        const videoListItem = new VideoListItemComponent(fileResult.page, fileResult.rootLocator);
+        await videoListItem.verifyNameIsDisplayed(captionSearchData.expectedVideoTitle);
+
+        await videoListItem.verifyCaptionsTextIsDisplayed(captionSearchData.expectedCaptionsText);
+        await videoListItem.verifyCaptionsIconIsDisplayed();
+        await videoListItem.clickOnCaptionsIcon();
+
+        await videoListItem.verifyTimestampIsDisplayed(captionSearchData.expectedTimestamp);
+
+        await videoListItem.verifyCaptionTextForTimestamp(captionSearchData.expectedCaptionText);
+        await videoListItem.clickTimestamp(captionSearchData.expectedTimestamp);
+        await videoListItem.clickVideoPlayButton();
+      }
+    );
+  }
+);
