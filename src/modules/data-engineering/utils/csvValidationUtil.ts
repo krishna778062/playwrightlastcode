@@ -360,7 +360,7 @@ export class CSVValidationUtil {
       // First check: Overall validation result - fail if ANY errors exist
       expect(
         result.isValid,
-        `CSV validation failed with ${result.errors.length} errors: ${result.errors.join('; ')}`
+        `CSV validation failed with ${result.errors.length} error: ${result.errors.join('; ')}`
       ).toBe(true);
 
       // Additional detailed assertions for better error messages
@@ -388,7 +388,7 @@ export class CSVValidationUtil {
       try {
         FileUtil.createDebugFileCopy(config.csvPath, `debug-assertion-failed-${Date.now()}.csv`);
       } catch (debugError) {
-        console.warn(`⚠️ Failed to create debug copy: ${debugError}`);
+        console.warn(`Failed to create debug copy: ${debugError}`);
       }
 
       // Re-throw the assertion error

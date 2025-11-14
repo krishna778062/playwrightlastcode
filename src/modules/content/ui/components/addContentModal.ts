@@ -53,8 +53,7 @@ export class AddContentModalComponent extends BaseComponent {
 
     //select site dropdown
     this.selectSiteDropdown = page.locator('input.ReactSelectInput-inputField');
-    this.selectSiteDropdownOption = (siteName: string) =>
-      page.locator(`div.u-textTruncate div:has-text("${siteName}")`);
+    this.selectSiteDropdownOption = (siteName: string) => page.locator(`div.u-textTruncate div:text-is("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
 
     this.selectSiteDropdownOptionByIndex = (index: number) => page.locator(`span.u-textTruncate`).nth(index);

@@ -25,6 +25,7 @@ on:
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
+          - 'form-designer'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -235,11 +236,11 @@ jobs:
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
               const knownFailed = data.suites.flatMap(s =>
-                s.suites.flatMap(ss =>
-                  ss.specs.flatMap(sp =>
-                    sp.tests.filter(t =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
                       t.status === 'unexpected' &&
-                      t.annotations.some(a => a.type === 'known_failure')
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
                 )
