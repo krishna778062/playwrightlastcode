@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
@@ -24,7 +23,7 @@ test.describe('favorite', () => {
   test(
     'should navigate to favorite page and interact with user profile',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.FAVORITE],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

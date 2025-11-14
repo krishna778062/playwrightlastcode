@@ -69,7 +69,7 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
         await this.clickOnElement(this.searchIcon);
 
         // Check if Role column is still visible (means results are shown, not "No people found")
-        const isRoleVisible = await this.verifier.isTheElementVisible(this.roleColumn, { timeout: 2000 });
+        const isRoleVisible = await this.verifier.isTheElementVisible(this.roleColumn);
 
         if (isRoleVisible) {
           selectedUser = user;
@@ -112,10 +112,13 @@ export class PeopleScreenPage extends BasePage implements IPeopleScreenPageActio
   }
   async openingUserProfile(): Promise<void> {
     await test.step('Opening user profile', async () => {
-      await this.clickOnElement(this.roleColumn);
-      await this.page.keyboard.press('Tab');
-      await this.page.keyboard.press('Tab');
-      await this.page.keyboard.press('Enter');
+      // Click directly on the user's name link in the search results
+      // Use .first() to handle strict mode violation (multiple links with same name)
+      const userLink = this.page.getByRole('link', { name: this.fullName }).first();
+      await this.verifier.verifyTheElementIsVisible(userLink, {
+        assertionMessage: `User "${this.fullName}" should be visible in search results`,
+      });
+      await this.clickOnElement(userLink);
     });
   }
   async disableLimitResultToggle(): Promise<void> {
