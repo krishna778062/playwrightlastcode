@@ -52,7 +52,7 @@
     "test:employee-listening:test": "cross-env TEST_ENV=test MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:employee-listening:qa": "cross-env TEST_ENV=qa MODULE_NAME=employee-listening npx playwright test --config=src/modules/employee-listening/playwright.employee-listening.config.ts",
     "test:integrations": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations.config.ts",
-    "test:integrations:workday": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-workday.config.ts",
+    "test:integrations-workday": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-workday.config.ts",
     "test:integrations:okta": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-okta.config.ts",
     "test:integrations:azuresso": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
