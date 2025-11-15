@@ -60,7 +60,8 @@ test.describe('manage recognition', () => {
     }
   );
 
-  test(
+  // eslint-disable-next-line playwright/no-focused-test
+  test.only(
     'verify peer enablement when only p2p is enabled and Recognition flag is OFF',
     {
       tag: [

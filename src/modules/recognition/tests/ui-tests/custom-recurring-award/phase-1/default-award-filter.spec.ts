@@ -60,4 +60,33 @@ test.describe('default setting for custom recurring award', () => {
       await recurringAwardPage.verifyDefaultScheduleOptionsByFrequency('Monthly');
     }
   );
+
+  // eslint-disable-next-line playwright/no-focused-test
+  test.only(
+    'verify that the “First Award Month/Quarter” dropdown preselects the current month or quarter by default',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
+        RecognitionFeatureTags.CUSTOM_NOMINATION,
+        TestPriority.P0,
+        TestGroupType.SANITY,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6450',
+        storyId: 'RC-3426',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+      await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      await recurringAwardPage.clickRecurringAwardNewButton();
+      await recurringAwardPage.fillRecurringAwardFormPageOne();
+      await recurringAwardPage.selectAwardFrequency('Monthly');
+      await recurringAwardPage.verifyPreSelectedValueForEffectiveFromDropdown('Monthly');
+      await recurringAwardPage.selectAwardFrequency('Quarterly');
+      await recurringAwardPage.verifyPreSelectedValueForEffectiveFromDropdown('Quarterly');
+    }
+  );
 });

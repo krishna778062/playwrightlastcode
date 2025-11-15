@@ -190,4 +190,46 @@ export class RecurringAwardPage extends BasePage {
       );
     });
   }
+
+  async verifyPreSelectedValueForEffectiveFromDropdown(frequencyType: 'Monthly' | 'Quarterly'): Promise<void> {
+    await test.step(`Verifying preselected value for "Effective from" dropdown when frequency is ${frequencyType}`, async () => {
+      const today = new Date();
+      const currentMonth = today.getMonth(); // 0-11
+      const currentYear = today.getFullYear();
+      const monthNames = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+
+      if (frequencyType === 'Monthly') {
+        const selectedMonthOption = await this.page.locator('select#startDate option:checked').textContent();
+        const expectedMonthLabel = `${monthNames[currentMonth]} ${currentYear}`;
+        console.log('selectedMonthOption1', selectedMonthOption);
+        console.log('expectedMonthLabel', expectedMonthLabel);
+        expect(selectedMonthOption?.trim()).toBe(expectedMonthLabel);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      } else if (frequencyType === 'Quarterly') {
+        // Calculate current quarter
+        const currentQuarter = Math.floor(currentMonth / 3) + 1; // 1-4
+        const quarterStartMonthIndex = (currentQuarter - 1) * 3;
+        const quarterEndMonthIndex = quarterStartMonthIndex + 2;
+        const selectedQuarterOption = this.page.locator('select#startDate option:checked');
+        const selectedQuarterText = await selectedQuarterOption.textContent();
+        const expectedQuarterLabel = `${currentYear} Q${currentQuarter} | ${monthNames[quarterStartMonthIndex]} - ${monthNames[quarterEndMonthIndex]} ${currentYear}`;
+        expect(selectedQuarterText?.trim()).toBe(expectedQuarterLabel);
+      } else {
+        throw new Error(`Invalid frequency type: ${frequencyType}. Expected 'Monthly' or 'Quarterly'.`);
+      }
+    });
+  }
 }
