@@ -140,9 +140,10 @@ for (const testData of feedTestData) {
 
       test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+        /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      */
         // Initialize feed page
         appManagerFeedPage = new FeedPage(appManagerFixture.page);
         const resources = await getPrerequisiteData(

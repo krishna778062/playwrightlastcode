@@ -80,7 +80,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           const randomNum = Math.floor(Math.random() * 1000000 + 1);
           return `AutomateUI_Test_${randomNum}`;
         })();
-      const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
+      const categoryObj = await this.getCategoryId(overrides.category?.name || 'uncategorized');
 
       // Always include as true, only override if explicitly provided
       const optionalParams = {
@@ -422,7 +422,7 @@ export class SiteManagementService implements ISiteManagementOperations {
   ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
-        size: 16,
+        size: 100,
         type: 'members',
         ...options,
       };

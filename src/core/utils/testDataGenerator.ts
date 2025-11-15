@@ -552,7 +552,7 @@ export class TestDataGenerator {
 
   static generateRandomText(
     prefix: string = 'Automated Test Post',
-    wordCount: number = 2,
+    wordCount: number = 1,
     includeCompanyName: boolean = true
   ): string {
     const text = faker.lorem.words(wordCount);

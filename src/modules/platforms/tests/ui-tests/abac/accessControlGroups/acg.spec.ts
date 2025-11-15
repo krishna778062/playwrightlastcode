@@ -6,7 +6,7 @@ import { TestPriority } from '@core/constants/testPriority';
 // import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@platforms/apis/payloads/createAudienceAPI';
-import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
+import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_FEATURE_FOR_API, ACG_STATUS } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { ACGCreationParams } from '@platforms/types/acgCreationTypes';
@@ -18,6 +18,7 @@ import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
 
 test.describe(
   'access control groups testcases',
@@ -175,7 +176,7 @@ test.describe(
     test(
       'verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -241,23 +242,27 @@ test.describe(
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
         await accessControlGroupsPage.loadPage();
-        const acgCreationParams: ACGCreationParams = {
-          targetAudience: [targetAudienceToCreate[0]],
-          managerUser: [],
-          managerAudience: [managersAudienceToCreate[0]],
-          adminUser: [],
-          adminAudience: [adminsAudienceToCreate[0]],
+        const acgCreationParams: ACGCreationAPI = {
+          acgName: ACG_FEATURE_FOR_API.ALERTS + ' | ' + targetAudienceToCreate[0],
+          feature: ACG_FEATURE_FOR_API.ALERTS,
+          targetAudience: [audienceId[0]],
+          managerAudience: [audienceId[2]],
+          adminAudience: [audienceId[3]],
           acgStatus: ACG_STATUS.INACTIVE,
-          acgFeature: ACGFeature.ALERTS,
         };
-        acgName.push(await accessControlGroupsPage.createACGWithAllParams(acgCreationParams));
+        const response: ACGCreationResponse =
+          await identityManagementHelper.identityService.createACG(acgCreationParams);
+        const acgId = response.result.listOfItems[0].data.id;
+        acgName.push(acgCreationParams.acgName);
+        await accessControlGroupsPage.searchForACG(acgName[0]);
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
         await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
           'Access control group was successfully updated'
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
-        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: 'Access control group was successfully updated',
+        });
 
         await accessControlGroupsPage.clickOnACGNameButton(acgName[0]);
         await accessControlGroupsPage.viewACGModal.verifyTitleOfTheModal(acgName[0]);
@@ -275,11 +280,7 @@ test.describe(
         await accessControlGroupsPage.viewACGModal.verifyTitleOfTheModal('Admins');
         await accessControlGroupsPage.viewACGModal.clickCloseButton();
 
-        await accessControlGroupsPage.deleteFirstACG();
-        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully deleted'
-        );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await identityManagementHelper.identityService.deleteACGById(acgId);
       }
     );
 
@@ -309,7 +310,7 @@ test.describe(
     test(
       `verify that Roles option should not be displayed under Manage section in menu option`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -324,7 +325,7 @@ test.describe(
     test(
       `verify that redirecting to "manage/roles" url should display page not found screen`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -456,14 +457,18 @@ test.describe(
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         // Pre-requisite
-        await accessControlGroupsPage.loadPage();
         // Create an ACG with target audiecne only
-        acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(targetAudienceToCreate[0]));
+        const acgCreationParams: ACGCreationAPI = {
+          acgName: ACG_FEATURE_FOR_API.ALERTS + ' | ' + targetAudienceToCreate[0],
+          feature: ACG_FEATURE_FOR_API.ALERTS,
+          targetAudience: [audienceId[0]],
+        };
+        acgName.push(acgCreationParams.acgName);
+        const respsone: ACGCreationResponse =
+          await appManagerFixture.identityManagementHelper.identityService.createACG(acgCreationParams);
+        const acgId = respsone.result.listOfItems[0].data.id;
         await appManagerFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
-        );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.loadPage();
         // Test Scenario
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
         await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
@@ -475,7 +480,8 @@ test.describe(
         await accessControlGroupsPage.createACGModal.verifyDuplicateTargetGroupsErrorMessage();
         await accessControlGroupsPage.createACGModal.clickCloseButton();
         // Clean up: Delete the above created ACG
-        await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+        await appManagerFixture.identityManagementHelper.identityService.deleteACGById(acgId);
+        acgName.pop();
       }
     );
 
