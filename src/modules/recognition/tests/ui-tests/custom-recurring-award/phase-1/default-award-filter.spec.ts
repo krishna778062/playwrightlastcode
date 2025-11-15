@@ -61,8 +61,7 @@ test.describe('default setting for custom recurring award', () => {
     }
   );
 
-  // eslint-disable-next-line playwright/no-focused-test
-  test.only(
+  test(
     'verify that the “First Award Month/Quarter” dropdown preselects the current month or quarter by default',
     {
       tag: [
