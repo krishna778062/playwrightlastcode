@@ -45,6 +45,10 @@ export interface IContentPreviewPageAssertions {
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotVisible(text: string): Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -80,6 +84,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
+  readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
+  readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -253,6 +259,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await this.listFeedComponent.waitForPostToBeVisible(expectedText);
   }
+  async verifyPostIsNotVisible(text: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsNotVisible(text);
+  }
 
   /**
    * Clicks the share thoughts button to open post editor
@@ -342,5 +351,30 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   }
   async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
+  }
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+  }
+
+  /**
+   * Verifies that the share button is not visible on content detail page
+   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on Feed post on content page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton, {
+        assertionMessage: 'Share button should not be visible on content detail page',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the share button is not visible on comments
+   */
+  async verifyContentShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible for Content Page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
+        assertionMessage: 'Share button should not be visible on comments',
+      });
+    });
   }
 }

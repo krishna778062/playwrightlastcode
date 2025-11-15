@@ -5,6 +5,9 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export interface IGovernanceScreenPageActions {
+  selectTimelineFeedSettingsAsTimelineAndCommentsOnContent(): unknown;
+  selectTimelineFeedSettingsAsDefaultMode(): Promise<void>;
+  selectTimelineFeedSettingsAsTimeline(): Promise<void>;
   disableContentSubmissions: (message: string) => Promise<void>;
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
@@ -17,6 +20,8 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   // Governance locators (moved from GovernanceComponent)
   private baseActionUtil: BaseActionUtil;
   readonly clickOnTimelineButton: Locator;
+  readonly clickOnDefaultModeButton: Locator;
+  readonly clickOnTimelineAndCommentsOnContentButton: Locator;
   readonly clickOnSaveButton: Locator;
   readonly timelineAndFeed: Locator;
   readonly timelineFeedEnabled: Locator;
@@ -29,6 +34,8 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.baseActionUtil = new BaseActionUtil(page);
 
     this.clickOnTimelineButton = page.getByText('Timeline', { exact: true });
+    this.clickOnDefaultModeButton = page.getByRole('radio', { name: 'Timeline, comments on content' });
+    this.clickOnTimelineAndCommentsOnContentButton = page.getByRole('radio', { name: 'Timeline and comments on' });
     this.timelineFeedEnabled = page.locator('#feedMode_timeline_comment_post');
     this.clickOnSaveButton = page.getByRole('button', { name: 'Save' });
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
@@ -106,7 +113,47 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.clickOnElement(this.clickOnContentSubmissions);
       await this.clickOnElement(this.clickOnSave);
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
-        stepInfo: 'Verify the changes confirmation toast message is visible',
+        stepInfo: 'Verify the changes confirmation toast mess age is visible',
+      });
+    });
+  }
+  async selectTimelineFeedSettingsAsTimeline(): Promise<void> {
+    await test.step('Selecting timeline feed as timeline', async () => {
+      const isChecked = await this.clickOnTimelineButton.isChecked();
+      if (isChecked === true) {
+        console.log('Timeline feed is already selected');
+        return;
+      }
+      await this.clickOnElement(this.clickOnTimelineButton);
+      await this.clickOnElement(this.clickOnSaveButton);
+      await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+        assertionMessage: 'Timeline feed should be selected as timeline mode',
+      });
+    });
+  }
+  async selectTimelineFeedSettingsAsDefaultMode(): Promise<void> {
+    await test.step('Selecting timeline feed as default mode', async () => {
+      const isChecked = await this.clickOnDefaultModeButton.isChecked();
+      if (isChecked === false) {
+        await this.clickOnElement(this.clickOnDefaultModeButton);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+          assertionMessage: 'Timeline feed should be selected as default mode',
+        });
+      }
+    });
+  }
+  async selectTimelineFeedSettingsAsTimelineAndCommentsOnContent(): Promise<void> {
+    await test.step('Selecting timeline feed as timeline and comments on content', async () => {
+      const isChecked = await this.clickOnTimelineAndCommentsOnContentButton.isChecked();
+      if (isChecked === true) {
+        console.log('Timeline and comments on content feed is already selected');
+        return;
+      }
+      await this.clickOnElement(this.clickOnTimelineAndCommentsOnContentButton);
+      await this.clickOnElement(this.clickOnSaveButton);
+      await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+        assertionMessage: 'Timeline and comments on content feed should be selected',
       });
     });
   }

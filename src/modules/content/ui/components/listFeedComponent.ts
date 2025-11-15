@@ -28,6 +28,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+  readonly sharePostButton: Locator;
 
   // Dynamic locator functions
   /**
@@ -124,6 +125,7 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
@@ -189,10 +191,19 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.postTextLocator(expectedText);
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
+      });
+    });
+  }
+
+  async verifyPostIsNotVisible(expectedText: string): Promise<void> {
+    await test.step(`Verify post is not visible: ${expectedText}`, async () => {
+      const postLocator = this.postTextLocator(expectedText);
+      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
+        assertionMessage: `Post with text "${expectedText}" should not be visible`,
       });
     });
   }
@@ -551,6 +562,33 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
         assertionMessage: 'Embedded URL should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the share button is not visible on feed posts
+   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton.first(), {
+        assertionMessage: 'Share button should not be visible on feed post',
+      });
+    });
+  }
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
+    await test.step('Verify the page is loaded with timeline mode', async () => {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
+        assertionMessage: 'Show button should be visible on feed post',
+      });
+    });
+  }
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    const sendFeedbackButton = this.page.getByRole('button', { name: 'Send feedback' });
+    await test.step('Verify the page is loaded with timeline mode on content page', async () => {
+      await this.verifier.verifyTheElementIsVisible(sendFeedbackButton, {
+        assertionMessage: 'Show button should be visible on content page',
       });
     });
   }

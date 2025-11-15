@@ -57,6 +57,8 @@ export interface ISiteDashboardAssertions {
   validatePostText: (postText: string) => Promise<void>;
   validatePostNotVisible: (postText: string) => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -346,5 +348,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
   }
 }
