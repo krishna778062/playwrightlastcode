@@ -195,7 +195,9 @@ test.describe(
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites();
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+        });
         const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
 
         // Initialize ManageSitePage with first siteId for verification
@@ -204,8 +206,7 @@ test.describe(
           throw new Error('No sites found in the response');
         }
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
-
-        // Verify all site names are displayed (method handles the loop internally)
+        await manageSiteStandardUserPage.assertions.searchSiteNameInSearchBar(siteNames[0]);
         await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );

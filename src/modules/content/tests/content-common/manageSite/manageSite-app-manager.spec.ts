@@ -7,7 +7,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -166,7 +166,34 @@ test.describe(
         );
         const siteId = getMembershipList.site.siteId;
         const members = getMembershipList.members.listOfItems || [];
-        const membersName = { membersName: members.map((m: any) => m.name || m.displayName || m.email) };
+
+        // Get appManager info to filter out from members list
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerName = appManagerInfo.fullName;
+        const appManagerUserId = appManagerInfo.userId;
+
+        // Filter out appManager from members list
+        const filteredMembers = members.filter((member: any) => {
+          const memberName = member.name || member.displayName || '';
+          const memberEmail = member.email || '';
+          const memberPeopleId = member.peopleId || member.userId || '';
+
+          // Exclude if name, email, or userId matches appManager
+          return (
+            memberName !== appManagerName &&
+            memberEmail !== users.appManager.email &&
+            memberPeopleId !== appManagerUserId
+          );
+        });
+
+        console.log(
+          `Filtered members: ${members.length} -> ${filteredMembers.length} (excluded appManager: ${appManagerName})`
+        );
+
+        const membersName = { membersName: filteredMembers.map((m: any) => m.name || m.displayName || m.email) };
+        console.log('membersName', membersName);
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
@@ -241,6 +268,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnSitesCard();
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
+          filter: 'active',
         });
         const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
 
@@ -320,7 +348,10 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+            sortBy: 'alphabetical',
+          });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();

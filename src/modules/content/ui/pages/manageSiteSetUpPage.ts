@@ -45,6 +45,7 @@ export interface IManageSiteSetUpAssertions {
   verifyPageTabImageIsDisplayed: () => Promise<void>;
   verifyThePageIsLoaded: () => Promise<void>;
   verifySitesNamesAreDisplayed: (siteNames: string | string[]) => Promise<void>;
+  searchSiteNameInSearchBar: (siteName: string) => Promise<void>;
 }
 
 export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
@@ -187,6 +188,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   async clickOnCancelOption(): Promise<void> {
     await this.updateSiteCategoryComponent.clickOnCancelOption();
+  }
+  async searchSiteNameInSearchBar(siteName: string): Promise<void> {
+    await this.manageSitesComponent.searchSiteNameInSearchBarAction(siteName);
   }
 
   async clickOnSites(): Promise<void> {

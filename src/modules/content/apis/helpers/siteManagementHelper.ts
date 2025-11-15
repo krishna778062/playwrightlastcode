@@ -11,6 +11,7 @@ import { SiteManagementService } from '@/src/modules/content/apis/services/SiteM
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 interface Site {
   siteId: string;
@@ -413,12 +414,6 @@ export class SiteManagementHelper {
       filter: 'all',
     });
 
-    for (const site of sitesResponse.result.listOfItems) {
-      console.log(
-        `Site name: ${site.name} isActive: ${site.isActive} accessType: ${site.access} siteId: ${site.siteId}`
-      );
-    }
-
     // Search for the site by name
     const existingSite = sitesResponse.result.listOfItems.find(
       site => site.name.toLowerCase() === siteName.toLowerCase()
@@ -710,37 +705,6 @@ export class SiteManagementHelper {
     return { siteId, name: siteName };
   }
 
-  async getSiteAuthorNameAndEventStartDate(): Promise<{
-    siteId: string;
-    authorName?: string;
-    startsAt?: string;
-    eventName?: string;
-    siteName?: string;
-  }> {
-    const siteListResponse = await this.getListOfSites();
-
-    for (const _site of siteListResponse.result.listOfItems) {
-      // Get individual site details to check for coverImage and hasEvents
-      const response = await this.contentManagementService.getContentList();
-      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
-      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
-      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
-      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
-
-      if (content) {
-        return {
-          siteId: siteId?.siteId || '',
-          authorName: content.authoredBy.name,
-          startsAt: startsAt?.startsAt,
-          eventName: content.title,
-          siteName: siteName?.site.name,
-        };
-      }
-    }
-
-    throw new Error('No site found with cover image and hasEvents: true');
-  }
-
   /**
    * Checks if a site has a valid coverImage
    * @param site - Site object to check
@@ -802,11 +766,41 @@ export class SiteManagementHelper {
       return userMembership;
     }
   }
+  async getSiteAuthorNameAndEventStartDate(): Promise<{
+    siteId: string;
+    authorName?: string;
+    startsAt?: string;
+    eventName?: string;
+    siteName?: string;
+  }> {
+    const siteListResponse = await this.getListOfSites();
+
+    for (const _site of siteListResponse.result.listOfItems) {
+      // Get individual site details to check for coverImage and hasEvents
+      const response = await this.contentManagementService.getContentList();
+      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
+      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
+      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
+      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
+
+      if (content) {
+        return {
+          siteId: siteId?.siteId || '',
+          authorName: content.authoredBy.name,
+          startsAt: startsAt?.startsAt,
+          eventName: content.title,
+          siteName: siteName?.site.name,
+        };
+      }
+    }
+
+    throw new Error('No site found with cover image and hasEvents: true');
+  }
 
   async getSiteWithMembers(
     accessType: string,
     expectedMemberCount?: number,
-    options?: { size?: number; type?: string; maxAttempts?: number }
+    options?: { size?: number; type?: string; maxAttempts?: number; excludeUserEmail?: string }
   ): Promise<{
     site: any;
     members: any;
@@ -821,7 +815,7 @@ export class SiteManagementHelper {
       async () => {
         while (attempts < maxAttempts) {
           // Get sites list
-          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase(), size: 1000 });
           const sites = sitesResponse.result.listOfItems.filter(
             (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
           );
@@ -862,9 +856,51 @@ export class SiteManagementHelper {
           // Check if this site has the expected number of members
           if (memberCount >= expectedMemberCount) {
             console.log(`✓ Found site with ${memberCount} members`);
+
+            // Filter out excluded user if provided
+            let filteredMembers = membersResponse.result;
+            if (options?.excludeUserEmail) {
+              try {
+                const identityHelper = new IdentityManagementHelper(this.apiRequestContext, this.baseUrl);
+                const userInfo = await identityHelper.getUserInfoByEmail(options.excludeUserEmail);
+                const excludedUserName = userInfo.fullName;
+                const excludedUserId = userInfo.userId;
+
+                console.log(`Excluding user: ${excludedUserName} (${options.excludeUserEmail}) from members list`);
+
+                // Filter out the excluded user from members list
+                const originalMembers = membersResponse.result?.listOfItems || [];
+                const filteredMembersList = originalMembers.filter((member: any) => {
+                  const memberName = member.name || member.displayName || '';
+                  const memberEmail = member.email || '';
+                  const memberPeopleId = member.peopleId || member.userId || '';
+
+                  // Exclude if name, email, or userId matches
+                  return (
+                    memberName !== excludedUserName &&
+                    memberEmail !== options.excludeUserEmail &&
+                    memberPeopleId !== excludedUserId
+                  );
+                });
+
+                filteredMembers = {
+                  ...membersResponse.result,
+                  listOfItems: filteredMembersList,
+                };
+
+                console.log(
+                  `Filtered members: ${originalMembers.length} -> ${filteredMembersList.length} (excluded: ${excludedUserName})`
+                );
+              } catch (error) {
+                console.log(`Warning: Failed to get user info for exclusion: ${error}. Returning all members.`);
+                // If we can't get user info, return all members
+                filteredMembers = membersResponse.result;
+              }
+            }
+
             return {
               site: siteDetails.result,
-              members: membersResponse.result,
+              members: filteredMembers,
             };
           }
 
@@ -1129,10 +1165,14 @@ export class SiteManagementHelper {
 
   public async getDeactivatedSite(
     accessType: SITE_TYPES,
-    options?: { size?: number }
+    options?: { size?: number; sortBy?: string }
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: 'deactivated', size: options?.size });
+      const siteListResponse = await this.getListOfSites({
+        filter: 'deactivated',
+        size: options?.size,
+        sortBy: options?.sortBy,
+      });
       console.log('Deactivated site list response', siteListResponse);
       const site = siteListResponse.result.listOfItems.find(
         (site: any) => site.access.toLowerCase() === accessType.toLowerCase()

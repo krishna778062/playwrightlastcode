@@ -28,7 +28,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
-
+  readonly searchSiteNameInSearchBar: Locator;
+  readonly clickOnSearchBar: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
@@ -55,8 +56,9 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
+    this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
   }
-
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
   }
@@ -305,6 +307,12 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async searchSiteNameInSearchBarAction(siteName: string): Promise<void> {
+    await test.step('Searching site name in search bar', async () => {
+      await this.clickOnElement(this.searchSiteNameInSearchBar);
+      await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+    });
+  }
   async verifyAlbumTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify album tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
