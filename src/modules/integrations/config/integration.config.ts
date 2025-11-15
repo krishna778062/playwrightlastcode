@@ -52,6 +52,9 @@ export const config = {
       appManagerPassword: 'Simp@12345',
       endUserEmail: 'priyanka.dubey@simpplr.com',
       endUserPassword: 'Pass@123',
+      QA_MOBILE: '8860076790',
+      QA_ALTERNATE: '21573',
+      QA_ALTERNATE_PHONE: '88600',
     },
     uat: {
       tenantName: 'Primary Tenant',
@@ -60,6 +63,18 @@ export const config = {
       appManagerEmail: 'kulwinder.singh@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta@simpplr.com',
+    },
+    test: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://integrations-qa-auto.test.simpplr.xyz',
+      apiBaseUrl: 'https://integrations-qa-auto-api.test.simpplr.xyz',
+      appManagerEmail: 'neha.manhas@simpplr.com',
+      appManagerPassword: 'Simp@123456',
+      endUserEmail: 'priyanka.dubey@simpplr.com',
+      endUserPassword: 'Test@123',
+      QA_MOBILE: '8860076790',
+      QA_ALTERNATE: 'aut002',
+      QA_ALTERNATE_PHONE: '88600',
     },
   },
   azuresso: {
@@ -122,11 +137,12 @@ function getCurrentEnvironment(): EnvironmentKey {
         `Please set TEST_ENV before running tests:\n` +
         `  TEST_ENV=qa npm run test\n` +
         `  TEST_ENV=uat npm run test\n` +
+        `  TEST_ENV=test npm run test\n` +
         `  TEST_ENV=prod npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'prod'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prod'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
         `Valid values are: qa, uat, test, prod\n` +
@@ -189,7 +205,6 @@ export function getTenantConfig(): TenantConfig {
  * @returns Tenant configuration object
  */
 export function getTenantConfigByTenant(tenant: TenantKey): TenantConfig {
-  console.log(`🔧 Getting tenant config for tenant: ${tenant}`);
   //if the cache is not initialized, initialize it
   if (!configCache) {
     initializeIntegrationConfig(tenant);

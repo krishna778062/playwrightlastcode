@@ -24,7 +24,7 @@ on:
           - 'de-api'
           - 'content-abac'
           - 'frontline'
-          - 'integrations'
+          - 'integrations-primary'
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
