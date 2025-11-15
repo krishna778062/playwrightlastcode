@@ -48,6 +48,9 @@ export interface IContentPreviewPageAssertions {
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
   verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
 }
 
@@ -376,5 +379,26 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         assertionMessage: 'Share button should not be visible on comments',
       });
     });
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed posts/comments
+   */
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisible();
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed replies/comment replies
+   */
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  /**
+   * Verifies that a reply is visible
+   */
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(replyText);
   }
 }

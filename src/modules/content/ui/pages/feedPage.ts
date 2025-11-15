@@ -133,6 +133,9 @@ export interface IFeedAssertions {
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
 }
 
@@ -727,6 +730,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyShareButtonIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyReactionButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsNotVisible();
+  }
+
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisible();
+  }
+
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
   }
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();

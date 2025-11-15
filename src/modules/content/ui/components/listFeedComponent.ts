@@ -14,6 +14,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
   readonly likeButtonForReply: Locator;
+  readonly unlikeButton: Locator;
+  readonly unlikeButtonForReply: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
@@ -117,6 +119,7 @@ export class ListFeedComponent extends BaseComponent {
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
+    this.unlikeButton = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
@@ -125,6 +128,7 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.unlikeButtonForReply = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
@@ -574,6 +578,47 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton.first(), {
         assertionMessage: 'Share button should not be visible on feed post',
       });
+    });
+  }
+
+  /**
+   * Verifies that the reaction button is not visible on feed posts
+   */
+  async verifyReactionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify reaction button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
+        assertionMessage: 'Reaction button should not be visible on feed post',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed posts
+   */
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+        assertionMessage: 'Reaction button should be visible on feed post',
+      });
+      await this.clickOnElement(this.likeButton);
+      await this.verifier.verifyTheElementIsVisible(this.unlikeButton, {
+        assertionMessage: 'Remove your reaction button should be visible on feed post',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed replies
+   */
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed reply', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply, {
+        assertionMessage: 'Reaction button should be visible on feed reply',
+      });
+    });
+    await this.clickOnElement(this.likeButtonForReply);
+    await this.verifier.verifyTheElementIsVisible(this.unlikeButtonForReply, {
+      assertionMessage: 'Remove your reaction button should be visible on feed reply',
     });
   }
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
