@@ -85,4 +85,56 @@ test.describe('favorite', () => {
       }
     }
   );
+
+  test(
+    'should verify favorite people search functionality',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'To verify the favourite people search functionality',
+        zephyrTestId: 'CONT-26448',
+        storyId: 'CONT-26448',
+      });
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+      // Navigate directly to favorites page
+      await sideNavBarComponent.clickOnFavorite();
+      await favoritePage.verifyThePageIsLoaded();
+
+      // Click on People tab
+      await favoritePage.actions.clickOnPeopleTab();
+
+      // Get the first user displayed on the favorites people tab
+      const firstUserName = await favoritePage.actions.getFirstDisplayedUserName();
+
+      // Verify the search bar is visible
+      await test.step('Verify the search bar is visible', async () => {
+        await favoritePage.verifier.verifyTheElementIsVisible(favoritePage.searchBar, {
+          assertionMessage: 'Search bar should be visible on favorites people tab',
+        });
+      });
+
+      // Search for the first user and verify search returns correct data
+      await test.step('Search for the first displayed user', async () => {
+        await favoritePage.actions.searchingFavoriteUser(firstUserName);
+        await favoritePage.assertions.verifyTheUserIsVisible(firstUserName);
+      });
+
+      // Enter random text and verify "Nothing to show here" message
+      const randomText = 'RandomTextThatDoesNotExist12345';
+      await test.step('Enter random text and verify "Nothing to show here" message', async () => {
+        await favoritePage.clickOnElement(favoritePage.searchBar);
+        await favoritePage.fillInElement(favoritePage.searchBar, randomText);
+        await favoritePage.clickOnElement(favoritePage.searchIcon);
+
+        // Wait for the "Nothing to show here" message to appear
+        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
+        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
+          assertionMessage: 'Nothing to show here message should be displayed for random search text',
+        });
+      });
+    }
+  );
 });

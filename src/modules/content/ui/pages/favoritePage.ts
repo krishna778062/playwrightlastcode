@@ -8,6 +8,7 @@ export interface IFavoritePageActions {
   clickOnPeopleTab: () => Promise<void>;
   searchingFavoriteUser: (fullName: string) => Promise<void>;
   hoverOnUserProfile: (fullName: string) => Promise<void>;
+  getFirstDisplayedUserName: () => Promise<string>;
 }
 export interface IFavoritePageAssertions {
   verifyTheUserIsVisible: (fullName: string) => Promise<void>;
@@ -25,6 +26,11 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
   readonly getUserProfileCard = (fullName: string): Locator =>
     this.page.locator(`[data-testid*="user-card"], [class*="user-card"]`).filter({ hasText: fullName }).first();
+  readonly firstUserCard: Locator = this.page
+    .getByRole('tabpanel', { name: 'People' })
+    .getByRole('list')
+    .getByRole('listitem')
+    .first();
 
   // User details locators
   readonly getDivisionLocator = (fullName: string): Locator =>
@@ -97,6 +103,36 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       await this.verifier.verifyTheElementIsVisible(this.getUserProfileLink(fullName), {
         assertionMessage: 'User should be visible',
       });
+    });
+  }
+
+  async getFirstDisplayedUserName(): Promise<string> {
+    return await test.step('Getting first displayed user name from favorites people tab', async () => {
+      // Wait for at least one user listitem to be visible
+      await this.verifier.verifyTheElementIsVisible(this.firstUserCard, {
+        assertionMessage: 'At least one user should be visible on favorites people tab',
+        timeout: 10000,
+      });
+
+      // Get the user name from the link inside the first listitem
+      const userLink = this.firstUserCard.getByRole('link').first();
+      const linkCount = await userLink.count();
+
+      if (linkCount > 0) {
+        // Get the text content of the link
+        const userName = await userLink.textContent();
+        if (userName && userName.trim() !== '') {
+          return userName.trim();
+        }
+
+        // Fallback: try innerText if textContent doesn't work
+        const innerText = await userLink.innerText();
+        if (innerText && innerText.trim() !== '') {
+          return innerText.trim();
+        }
+      }
+
+      throw new Error('First user name is empty or not found on favorites people tab');
     });
   }
 
