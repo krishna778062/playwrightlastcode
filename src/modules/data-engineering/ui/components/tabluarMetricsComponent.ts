@@ -1,5 +1,6 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
@@ -563,7 +564,7 @@ export class TabluarMetricsComponent extends BaseComponent {
       const downloadAction = async () => {
         await this.rootLocator.hover();
         await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
-          timeout: 10_000,
+          timeout: TIMEOUTS.LONG,
           assertionMessage: `Download csv button should be visible`,
         });
         await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });

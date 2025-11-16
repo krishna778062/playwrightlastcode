@@ -93,7 +93,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
-    this.feedLink = this.page.locator('a:has-text("eed")');
+    this.feedLink = this.page.locator('a#dashboard:has-text("eed")');
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });

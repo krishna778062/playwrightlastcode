@@ -214,15 +214,23 @@ export class AlbumCreationPage extends BasePage {
 
   async addVideoUrl(videoUrl: string): Promise<void> {
     await test.step(`Add video URL: ${videoUrl}`, async () => {
-      await this.clickOnElement(this.enterVideoURL, {
-        stepInfo: 'Click on "Enter Video URL" button',
-      });
-      await this.fillInElement(this.videoUrlInput, videoUrl, {
-        stepInfo: `Fill video URL input with: ${videoUrl}`,
-      });
-      await this.clickOnElement(this.addVideo, {
-        stepInfo: 'Click "Add Video" button to confirm',
-      });
+      try {
+        await this.clickOnElement(this.enterVideoURL, {
+          stepInfo: 'Click on "Enter Video URL" button',
+        });
+        await this.fillInElement(this.videoUrlInput, videoUrl, {
+          stepInfo: `Fill video URL input with: ${videoUrl}`,
+        });
+        await this.clickOnElement(this.addVideo, {
+          stepInfo: 'Click "Add Video" button to confirm',
+        });
+      } catch {
+        await this.fillInElement(this.videoUrlInput, videoUrl, {
+          stepInfo: `Fill video URL input with: ${videoUrl}`,
+        });
+        //press tab
+        await this.page.keyboard.press('Enter');
+      }
     });
   }
 
