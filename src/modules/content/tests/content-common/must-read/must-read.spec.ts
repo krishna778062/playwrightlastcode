@@ -39,7 +39,7 @@ test.describe(
     test(
       'verify Must read Modal cancel button for Page, Event and Album Content',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123', '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

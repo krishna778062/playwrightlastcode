@@ -28,7 +28,7 @@ test.describe(
     test(
       'verify that Select okta groups option should be is visible when selected use okta group option',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -51,7 +51,7 @@ test.describe(
     test(
       'verify the error message when anything wrong with the connections',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -123,7 +123,7 @@ test.describe(
     test(
       'verify that able to delete selected groups, select new groups and count should be updated accordingly, Verify that user is able to get okta groups modal',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -212,7 +212,7 @@ test.describe(
     test(
       'verify that audience is created automatically while selecting create audience button',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -274,7 +274,7 @@ test.describe(
     test(
       'verify all group types should be displayed correctly, verify that standard error message should be displayed when no group will be selected',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

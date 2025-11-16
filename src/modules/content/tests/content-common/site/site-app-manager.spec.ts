@@ -105,7 +105,13 @@ test.describe(
       test(
         `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.SITE_CREATION,
+            '@healthcheck',
+          ],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
