@@ -59,8 +59,10 @@ test.describe(
         );
 
         // Get user info for mentions
-        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
+        const [endUserInfo, siteManagerInfo] = await Promise.all([
+          identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+        ]);
         endUserFullName = endUserInfo.fullName;
         siteManagerFullName = siteManagerInfo.fullName;
 
@@ -69,29 +71,31 @@ test.describe(
         console.log(`Found ${topicList.result.listOfItems.length} topics`);
         randomTopic = topicList.result.listOfItems[Math.floor(Math.random() * topicList.result.listOfItems.length)];
 
-        // Get or create Private site (method always returns a site, creating one if needed)
-        const privateSite = await siteManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        // Get or create Private and Unlisted sites
+        const [privateSite, unlistedSite] = await Promise.all([
+          siteManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE),
+          siteManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED),
+        ]);
         privateSiteName = privateSite.name;
         privateSiteId = privateSite.siteId;
-
-        // Get or create Unlisted site (method always returns a site, creating one if needed)
-        const unlistedSite = await siteManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
         unlistedSiteName = unlistedSite.name;
         unlistedSiteId = unlistedSite.siteId;
 
         // Add standard user as member to both sites so they can access them in Part 2
-        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-          privateSiteId,
-          endUserInfo.userId,
-          SitePermission.MEMBER,
-          SiteMembershipAction.ADD
-        );
-        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-          unlistedSiteId,
-          endUserInfo.userId,
-          SitePermission.MEMBER,
-          SiteMembershipAction.ADD
-        );
+        await Promise.all([
+          appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          ),
+          appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            unlistedSiteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          ),
+        ]);
 
         // Get content for testing
         const contentResponse = await siteManagerFixture.contentManagementHelper.getContentId();
@@ -202,14 +206,36 @@ test.describe(
         // Verify success message
         await siteManagerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
 
-        // Navigate directly to site feed
-        siteDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId);
-        await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
+        // ==================== PART 2: Site Content Manager Flow ====================
 
-        // Validate post message and original post
-        await siteManagerFeedPage.assertions.validatePostText(shareMessage);
-        await siteManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage, commentText);
+        // Navigate both users to the private site feed in parallel
+        await Promise.all([
+          // Site Manager: Navigate to verify the shared post
+          (async () => {
+            siteDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.actions.clickOnFeedLink();
+          })(),
+          // Standard User: Navigate to prepare for sharing the post
+          (async () => {
+            const privateSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
+            await privateSiteDashboardPage.loadPage();
+            await privateSiteDashboardPage.actions.clickOnFeedLink();
+            await siteContentManagerFeedPage.verifyThePageIsLoaded();
+          })(),
+        ]);
+
+        // Wait for post to be visible on both pages in parallel
+        await Promise.all([
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage),
+          siteContentManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage),
+        ]);
+
+        // Site Manager: Validate post message and original post in parallel
+        await Promise.all([
+          siteManagerFeedPage.assertions.validatePostText(shareMessage),
+          siteManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage, commentText),
+        ]);
 
         // Click "View Post" → verify navigation to Feed Detail Page
         await siteManagerFeedPage.actions.clickViewPostLink();
@@ -222,16 +248,6 @@ test.describe(
           sharedPostId = feedIdMatch[1];
           console.log(`Extracted shared post ID: ${sharedPostId}`);
         }
-
-        // ==================== PART 2: Site Content Manager Flow ====================
-
-        // For this test, we'll use standardUserFixture which should be a Site Content Manager
-
-        // Navigate to the private site feed where the post was shared
-        const privateSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
-        await privateSiteDashboardPage.loadPage();
-        await privateSiteDashboardPage.actions.clickOnFeedLink();
-        await siteContentManagerFeedPage.verifyThePageIsLoaded();
 
         // Click "Share" on the feed post shared by "Site Manager"
         await siteContentManagerFeedPage.actions.clickShareOnPost(shareMessage);
@@ -279,18 +295,22 @@ test.describe(
         await unlistedSiteDashboardPage.loadPage();
         await unlistedSiteDashboardPage.actions.clickOnFeedLink();
 
-        // Verify message and original post details
-        await siteContentManagerFeedPage.assertions.validatePostText(shareMessage2);
-        await siteContentManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage2, shareMessage);
+        // Verify message and original post details in parallel
+        await Promise.all([
+          siteContentManagerFeedPage.assertions.validatePostText(shareMessage2),
+          siteContentManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage2, shareMessage),
+        ]);
 
         // Click "View Post" and validate navigation
         await siteContentManagerFeedPage.actions.clickViewPostLink();
         await siteContentManagerFeedPage.assertions.verifyFeedDetailPageLoaded();
 
-        // Verify share count, likes, and replies belong only to the shared post
-        await siteContentManagerFeedPage.assertions.verifyShareCount(shareMessage2, 1);
-        await siteContentManagerFeedPage.assertions.verifyLikesCount(shareMessage2, 1);
-        await siteContentManagerFeedPage.assertions.verifyRepliesCount(shareMessage2, 1);
+        // Verify share count, likes, and replies belong only to the shared post in parallel
+        await Promise.all([
+          siteContentManagerFeedPage.assertions.verifyShareCount(shareMessage2, 1),
+          siteContentManagerFeedPage.assertions.verifyLikesCount(shareMessage2, 1),
+          siteContentManagerFeedPage.assertions.verifyRepliesCount(shareMessage2, 1),
+        ]);
       }
     );
   }
