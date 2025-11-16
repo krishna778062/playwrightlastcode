@@ -6,6 +6,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { FeedSortBy } from '@/src/modules/content/constants/feedSortBy';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -100,9 +101,6 @@ test.describe(
         await siteManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
         await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        // Click on Avatar Profile Menu and Logout
-        await siteManagerFixture.navigationHelper.topNavBarComponent.logout();
-
         // Login as Site Content Manager (Admin should be following Site Content Manager)
         siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
         await standardUserFixture.homePage.verifyThePageIsLoaded();
@@ -123,14 +121,13 @@ test.describe(
         // Click on "Share" button
         await siteContentManagerFeedPage.actions.clickShareButton();
 
-        // Click on Avatar Profile Menu and Logout
-        await standardUserFixture.navigationHelper.topNavBarComponent.logout();
-
         // Login as Admin
         await appManagerFixture.homePage.verifyThePageIsLoaded();
 
         // Navigate to Global Feed
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+        await adminFeedPage.actions.clickOnShowOption('all');
 
         // Like the Feed post made by Site Manager
         await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
@@ -139,7 +136,7 @@ test.describe(
         await adminFeedPage.assertions.verifyPostIsFavorited(shareMessage);
 
         // Select sort by option as "Recent Activity"
-        await adminFeedPage.actions.clickOnSortByOption('Recent activity');
+        await adminFeedPage.actions.clickOnSortByOption(FeedSortBy.RECENT_ACTIVITY);
 
         // Wait for the feed to re-sort by waiting for the post to be visible again
         await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);

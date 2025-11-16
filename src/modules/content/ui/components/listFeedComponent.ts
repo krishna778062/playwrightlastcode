@@ -241,8 +241,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.postTextLocator(expectedText).first();
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
