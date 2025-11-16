@@ -602,7 +602,7 @@ export class ListFeedComponent extends BaseComponent {
       }
     });
   }
-  
+
   /**
    * Opens the options menu for a reply
    * @param replyText - Text of the reply to open options for
@@ -740,7 +740,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
@@ -757,7 +757,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.likeButton);
     });
   }
-  
+
   async unlikeFeedPost(postText: string): Promise<void> {
     await test.step(`Unlike feed post: ${postText}`, async () => {
       const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
@@ -767,7 +767,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(unlikeButtonLocator);
     });
   }
-  
+
   /**
    * Likes a reply post by clicking the like button
    * @param replyText - The text of the reply to like
