@@ -23,6 +23,8 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  MANAGE_USERS_FILTER_PAGE: (firstName: string, lastName: string) =>
+    `/manage/users?searchTerm=${firstName}+${lastName}`,
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   LOGOUT: '/logout',
@@ -100,6 +102,8 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  SEARCH_DASHBOARD: '/analytics/search',
+  PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
@@ -107,4 +111,7 @@ export const PAGE_ENDPOINTS = {
   POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
   //Poll listening page
   POLLS_LISTING_PAGE: '/polls',
+
+  //Form creation page
+  FORM_CREATION_PAGE: '/forms',
 };

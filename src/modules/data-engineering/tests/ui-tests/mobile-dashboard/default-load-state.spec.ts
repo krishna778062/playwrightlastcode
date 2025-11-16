@@ -1,11 +1,16 @@
+import {
+  MOBILE_ADOPTION_RATE_CSV_HEADERS,
+  MOBILE_ADOPTION_RATE_HEADER_MAPPING,
+} from '@data-engineering/constants/mobileDashboardMetrics';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
-import { Page, test } from '@playwright/test';
+import { MobileDashboardQueryHelper } from '@data-engineering/helpers/mobileDashboardQueryHelper';
+import { MobileDashboard } from '@data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
+import { CSVValidationUtil } from '@data-engineering/utils/csvValidationUtil';
+import { expect, Page, test } from '@playwright/test';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
-import { MobileDashboardQueryHelper } from '../../../helpers/mobileDashboardQueryHelper';
-import { MobileDashboard } from '../../../ui/dashboards';
 
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
@@ -39,6 +44,7 @@ test.describe(
       mobileDashboardQueryHelper: MobileDashboardQueryHelper;
     };
     let testFiltersConfig: FilterOptions;
+    let csvFilePath: string | null = null;
 
     test.beforeAll('Setting up the mobile dashboard without making any changes to the filters', async ({ browser }) => {
       // Setup dashboard using dedicated method
@@ -46,7 +52,7 @@ test.describe(
 
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
-        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, //default period filter
+        timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS, //default period filter
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;
@@ -57,6 +63,12 @@ test.describe(
     });
 
     test.afterAll('Cleaning up the test environment', async () => {
+      // Clean up CSV file if it was downloaded
+      if (csvFilePath) {
+        CSVValidationUtil.cleanup(csvFilePath);
+      }
+
+      // Clean up test environment
       if (testEnvironment) {
         await cleanupDashboardTesting(testEnvironment);
       }
@@ -204,6 +216,154 @@ test.describe(
         const uniqueMobileContentViewsMetrics = testEnvironment.mobileDashboard.uniqueMobileContentViewsMetrics;
         //since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
         await uniqueMobileContentViewsMetrics.verifyMetricValue(dbValues.toString());
+      }
+    );
+
+    test(
+      'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-device-logins-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer Mobile device log-ins in Mobile Dashboard',
+          zephyrTestId: 'DE-25978',
+          storyId: 'DE-25943',
+        });
+
+        const { mobileDashboard, mobileDashboardQueryHelper } = testEnvironment;
+
+        const dbResults = await mobileDashboardQueryHelper.getMobileDeviceLoginsDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Filter out segments with 0 count as they are not displayed in the UI
+        const visibleSegments = dbResults.filter(data => data.count > 0);
+
+        const mobileDeviceLoginsMetric = mobileDashboard.mobileDeviceLoginsMetric;
+        await mobileDeviceLoginsMetric.scrollToComponent();
+
+        // Verify number of segments matches visible DB results (only segments with count > 0 are displayed)
+        // This will also wait for the chart to load
+        await mobileDeviceLoginsMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+
+        // Verify each segment label data points (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileDeviceLoginsMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.platform,
+            expectedText: `${data.platform} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        // Verify tooltip is visible for each segment (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileDeviceLoginsMetric.hoverOverSegmentLabelWithLabelAs(data.platform);
+          await mobileDeviceLoginsMetric.waitForToolTipContainerToBeVisible();
+
+          // Verify tooltip shows the count value
+          // Note: Tooltip key text may vary, so we validate that tooltip is visible
+          // The actual tooltip content validation can be added once the exact key text is known
+          const tooltipContainer = mobileDeviceLoginsMetric.toolTipContainer;
+          await expect(tooltipContainer, 'Tooltip should be visible when hovering over segment').toBeVisible();
+        }
+      }
+    );
+
+    test(
+      'tS To verify the answer Mobile content views by type in Mobile Dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-content-views-by-type-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer Mobile content views by type in Mobile Dashboard',
+          zephyrTestId: 'DE-25979',
+          storyId: 'DE-25944',
+        });
+
+        const { mobileDashboard, mobileDashboardQueryHelper } = testEnvironment;
+
+        const dbResults = await mobileDashboardQueryHelper.getMobileContentViewsByTypeDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Filter out segments with 0 count as they are not displayed in the UI
+        const visibleSegments = dbResults.filter(data => data.count > 0);
+
+        const mobileContentViewsByTypeMetric = mobileDashboard.mobileContentViewsByTypeMetric;
+        await mobileContentViewsByTypeMetric.scrollToComponent();
+
+        // Verify number of segments matches visible DB results (only segments with count > 0 are displayed)
+        // This will also wait for the chart to load
+        await mobileContentViewsByTypeMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+
+        // Verify each segment label data points (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileContentViewsByTypeMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.contentType,
+            expectedText: `${data.contentType} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        // Verify tooltip is visible for each segment (only for segments with count > 0)
+        for (const data of visibleSegments) {
+          await mobileContentViewsByTypeMetric.hoverOverSegmentLabelWithLabelAs(data.contentType);
+          await mobileContentViewsByTypeMetric.waitForToolTipContainerToBeVisible();
+
+          // Verify tooltip shows the count value
+          // Note: Tooltip key text may vary, so we validate that tooltip is visible
+          // The actual tooltip content validation can be added once the exact key text is known
+          const tooltipContainer = mobileContentViewsByTypeMetric.toolTipContainer;
+          await expect(tooltipContainer, 'Tooltip should be visible when hovering over segment').toBeVisible();
+        }
+      }
+    );
+
+    test(
+      'tS To verify the csv of mobile adoption rate answer in mobile dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-adoption-rate-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify CSV export for mobile adoption rate metric matches database data',
+          zephyrTestId: 'DE-26001',
+        });
+
+        const { mobileDashboardQueryHelper, mobileDashboard } = testEnvironment;
+
+        // Step 1: Fetch expected data from database
+        const dbData = await mobileDashboardQueryHelper.getMobileAdoptionRateDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        console.log(`Info: Fetched ${dbData.length} records from database`);
+
+        // Step 2: Scroll to the metric and download CSV
+        await mobileDashboard.mobileAdoptionRateMetrics.scrollToComponent();
+        const { filePath } = await mobileDashboard.mobileAdoptionRateMetrics.downloadDataAsCSV();
+
+        // Store filepath for cleanup in afterAll
+        csvFilePath = filePath;
+
+        console.log(`Info: Downloaded CSV file to path: ${filePath}`);
+
+        // Step 3: Validate CSV against database data
+        await CSVValidationUtil.validateAndAssert({
+          csvPath: filePath,
+          expectedDBData: dbData as any,
+          metricName: 'Mobile adoption rate',
+          selectedPeriod: testFiltersConfig.timePeriod,
+          expectedHeaders: MOBILE_ADOPTION_RATE_CSV_HEADERS as unknown as string[],
+          transformations: {
+            // Map CSV headers to database field names
+            headerMapping: MOBILE_ADOPTION_RATE_HEADER_MAPPING,
+            // No value mappings needed - database already returns 'Undefined' for null values
+            valueMappings: {},
+          },
+        });
+
+        console.log('Info: CSV validation completed successfully');
       }
     );
   }

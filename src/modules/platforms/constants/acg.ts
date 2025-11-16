@@ -21,3 +21,11 @@ export enum ACG_COLUMNS {
   STATUS = 'Status',
   MODIFIED = 'Modified',
 }
+
+export enum ACG_FEATURE_FOR_API {
+  ADD_SITES = 'ADD_SITES',
+  MANAGE_SITES = 'MANAGE_SITES',
+  ALERTS = 'ALERTS',
+  NEWSLETTERS = 'NEWSLETTERS',
+  SURVEYS = 'SURVEYS',
+}

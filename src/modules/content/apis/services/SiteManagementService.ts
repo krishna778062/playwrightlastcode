@@ -93,7 +93,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           const randomNum = Math.floor(Math.random() * 1000000 + 1);
           return `AutomateUI_Test_${randomNum}`;
         })();
-      const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
+      const categoryObj = await this.getCategoryId(overrides.category?.name || 'uncategorized');
 
       // Always include as true, only override if explicitly provided
       const optionalParams = {
@@ -435,7 +435,7 @@ export class SiteManagementService implements ISiteManagementOperations {
   ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
-        size: 16,
+        size: 100,
         type: 'members',
         ...options,
       };
@@ -496,6 +496,29 @@ export class SiteManagementService implements ISiteManagementOperations {
   }
 
   /**
+   * Gets the home carousel items list
+   * @returns Promise containing the home carousel items response
+   */
+  async getHomeCarouselItems(): Promise<any> {
+    return await test.step('Getting home carousel items', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.homeCarouselItems, {
+        data: {
+          siteId: null,
+        },
+      });
+
+      const responseBody = await response.json();
+      console.log('Home carousel items response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get home carousel items. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
    * Deletes a carousel item from a specific site
    * @param siteId - The site ID containing the carousel item
    * @param carouselItemId - The carousel item ID to delete
@@ -516,6 +539,30 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       if (responseBody.status !== 'success') {
         throw new Error(`Delete carousel item failed. Response: ${JSON.stringify(responseBody)}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Deletes a carousel item from the home dashboard
+   * @param carouselItemId - The carousel item ID to delete
+   * @returns Promise containing the delete response
+   */
+  async deleteHomeCarouselItem(carouselItemId: string): Promise<any> {
+    return await test.step(`Deleting home carousel item ${carouselItemId}`, async () => {
+      const response = await this.httpClient.delete(API_ENDPOINTS.content.deleteHomeCarouselItem(carouselItemId));
+
+      const responseBody = await response.json();
+      console.log('Delete home carousel item response:', JSON.stringify(responseBody, null, 2));
+
+      if (!response.ok()) {
+        throw new Error(`Failed to delete home carousel item ${carouselItemId}. Status: ${response.status()}`);
+      }
+
+      if (responseBody.status !== 'success') {
+        throw new Error(`Delete home carousel item failed. Response: ${JSON.stringify(responseBody)}`);
       }
 
       return responseBody;

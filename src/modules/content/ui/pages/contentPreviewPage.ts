@@ -28,6 +28,7 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -43,6 +44,7 @@ export interface IContentPreviewPageAssertions {
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -305,10 +307,40 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       });
     });
   }
+  async likeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async unlikeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async likeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async unlikeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnPost(postText);
+  }
+
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnReply(replyText);
+  }
 
   async clickOnOptionMenuButton(): Promise<void> {
     await test.step('Click on Option menu button', async () => {
       await this.clickOnElement(this.optionMenuDropdown);
     });
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
   }
 }

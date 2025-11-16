@@ -21,6 +21,7 @@ export interface ICalendarPageAssertions {
   verifyOutlookTestEvent: (expectedVisible: boolean, isXMoreTodaysDateVisible: boolean) => Promise<void>;
   verifyGoogleAndOutlookTestEvents: (verifyGoogleTestEvent: boolean, verifyOutlookTestEvent: boolean) => Promise<void>;
   verifyGoogleEventColor: (ariaLabel: string) => Promise<void>;
+  verifyMoreEventsButtonIsVisible: () => Promise<void>;
 }
 
 export class CalendarPage extends BasePage implements ICalendarPageActions, ICalendarPageAssertions {
@@ -60,6 +61,7 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
   readonly tenantCalendarsOption: Locator;
   readonly googleEventColorChoice1: Locator;
   readonly googleEventColorChoice2: Locator;
+  readonly moreEventsButton: Locator;
 
   constructor(page: Page) {
     super(page, '/people/:userId/calendar/week');
@@ -109,6 +111,11 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
 
     this.googleEventColorChoice1 = page.locator('xpath=//h4[text()="Google Calendar"]/parent::div//button').first();
     this.googleEventColorChoice2 = page.locator('xpath=//h4[text()="Google Calendar"]/parent::div//button').nth(1);
+    this.moreEventsButton = page
+      .locator(
+        `button.MoreEvents_moreLinkClickWeeklyView--tI8_o[aria-label*="more events for ${this.getFormattedTodaysDate()}"]`
+      )
+      .last();
   }
 
   get actions(): ICalendarPageActions {
@@ -617,6 +624,20 @@ export class CalendarPage extends BasePage implements ICalendarPageActions, ICal
           assertionMessage: `Verifying that the google test event is visible with aria-label ${ariaLabel}`,
         }
       );
+    });
+  }
+
+  async verifyMoreEventsButtonIsVisible(): Promise<void> {
+    await test.step('Verify +more events button is visible for overlapping events', async () => {
+      await this.page.reload();
+      await this.verifier.verifyTheElementIsVisible(this.moreEventsButton, {
+        timeout: 15_000,
+        assertionMessage: 'Verifying that the +more events button is visible when events overlap',
+      });
+
+      // Also verify the button text contains "more"
+      const buttonText = await this.moreEventsButton.textContent();
+      expect(buttonText).toContain('more');
     });
   }
 }
