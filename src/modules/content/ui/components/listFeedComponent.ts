@@ -518,7 +518,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.getShareButtonLocator(postText));
     });
   }
-  
+
   /*
    * Likes a feed post by clicking the like button
    * Opens the options menu for a reply
@@ -657,7 +657,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
@@ -674,7 +674,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.likeButton);
     });
   }
-  
+
   async unlikeFeedPost(postText: string): Promise<void> {
     await test.step(`Unlike feed post: ${postText}`, async () => {
       const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();

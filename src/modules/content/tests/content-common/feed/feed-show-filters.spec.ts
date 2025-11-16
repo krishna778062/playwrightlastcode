@@ -21,12 +21,7 @@ test.describe(
     let siteOwnerFeedPage: FeedPage;
     let siteContentManagerFeedPage: FeedPage;
     let adminFullName: string;
-    let createdPostId1: string = '';
-    let createdPostId2: string = '';
-    let createdPostId3: string = '';
-    const sharedPostId1: string = '';
-    const sharedPostId2: string = '';
-    const sharedPostId3: string = '';
+    let createdPostId: string = '';
 
     test.beforeEach(
       'Setup test environment and user relationships',
@@ -73,23 +68,14 @@ test.describe(
     );
 
     test.afterEach(async ({ appManagerFixture }) => {
-      // Cleanup: Delete all created posts
-      const postsToDelete = [
-        createdPostId1,
-        createdPostId2,
-        createdPostId3,
-        sharedPostId1,
-        sharedPostId2,
-        sharedPostId3,
-      ];
-      for (const postId of postsToDelete) {
-        if (postId) {
-          try {
-            await appManagerFixture.feedManagementHelper.deleteFeed(postId);
-            console.log(`Deleted post: ${postId}`);
-          } catch (error) {
-            console.warn(`Failed to delete post ${postId}:`, error);
-          }
+      // Cleanup: Delete created post
+      if (createdPostId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          console.log(`Deleted post: ${createdPostId}`);
+          createdPostId = '';
+        } catch (error) {
+          console.warn(`Failed to delete post ${createdPostId}:`, error);
         }
       }
     });
@@ -114,7 +100,7 @@ test.describe(
         await adminFeedPage.verifyThePageIsLoaded();
         await adminFeedPage.actions.clickShareThoughtsButton();
         const adminPostResult = await adminFeedPage.actions.createAndPost({ text: postText });
-        createdPostId1 = adminPostResult.postId || '';
+        createdPostId = adminPostResult.postId || '';
         await adminFeedPage.assertions.waitForPostToBeVisible(postText);
 
         // Use Site Manager's page (already logged in via fixture)
@@ -171,7 +157,7 @@ test.describe(
         // Create a feed post
         await siteManagerFeedPage.actions.clickShareThoughtsButton();
         const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
-        createdPostId2 = siteManagerPostResult.postId || '';
+        createdPostId = siteManagerPostResult.postId || '';
         await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
 
         // Use Site Owner's page (already logged in via fixture, Admin is following Site Owner)
@@ -234,7 +220,7 @@ test.describe(
         // Create a feed post
         await siteManagerFeedPage.actions.clickShareThoughtsButton();
         const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
-        createdPostId3 = siteManagerPostResult.postId || '';
+        createdPostId = siteManagerPostResult.postId || '';
         await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
 
         //  Use Site Content Manager's page (already logged in via fixture, Admin is following Site Content Manager)
