@@ -903,7 +903,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-
   /**
    * Verifies post text on detail page
    * @param postText - The text of the post to verify
