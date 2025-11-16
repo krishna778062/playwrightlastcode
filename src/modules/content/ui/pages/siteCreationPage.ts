@@ -234,7 +234,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
     return await test.step(`Creating site and wait for create api response`, async () => {
       console.log('site creation url', getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url);
       const createResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.createSiteButton, { delay: 5_000 }),
         response =>
           response.request().url() === getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url &&
           response.request().method() === 'POST' &&

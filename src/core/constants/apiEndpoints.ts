@@ -80,6 +80,8 @@ export const API_ENDPOINTS = {
     createTopic: '/v1/content/topics',
     deleteTopics: '/v1/content/topics/bulk-delete',
     contentListInSite: '/v1/content/sites/content/list',
+    homeCarouselItems: '/v1/content/carousel/items/list',
+    deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
   },
 
@@ -111,6 +113,7 @@ export const API_ENDPOINTS = {
     shareToFeed: (campaignId: string, sharedWith: string) =>
       `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
+    enableSettings: '/v1/account/appConfig/app.integrations.social.campaigns',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
