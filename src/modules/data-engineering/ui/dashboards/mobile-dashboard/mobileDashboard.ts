@@ -1,5 +1,6 @@
 import {
   AvgMobileContentViewsPerUserMetrics,
+  MobileAdoptionRateMetrics,
   MobileContentViewersMetrics,
   MobileContentViewsByTypeMetric,
   MobileDeviceLoginsMetric,
@@ -23,6 +24,7 @@ export class MobileDashboard extends BaseAnalyticsDashboardPage {
   readonly uniqueMobileContentViewsMetrics: UniqueMobileContentViewsMetrics;
   readonly mobileDeviceLoginsMetric: MobileDeviceLoginsMetric;
   readonly mobileContentViewsByTypeMetric: MobileContentViewsByTypeMetric;
+  readonly mobileAdoptionRateMetrics: MobileAdoptionRateMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MOBILE_DASHBOARD);
@@ -34,6 +36,7 @@ export class MobileDashboard extends BaseAnalyticsDashboardPage {
     this.uniqueMobileContentViewsMetrics = new UniqueMobileContentViewsMetrics(page, this.thoughtSpotIframe);
     this.mobileDeviceLoginsMetric = new MobileDeviceLoginsMetric(page, this.thoughtSpotIframe);
     this.mobileContentViewsByTypeMetric = new MobileContentViewsByTypeMetric(page, this.thoughtSpotIframe);
+    this.mobileAdoptionRateMetrics = new MobileAdoptionRateMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

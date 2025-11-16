@@ -14,6 +14,7 @@ export const FEED_TEST_DATA = {
     SHARED: `Shared App Manager's Post - ${faker.commerce.productName()}`,
     SHARED_WITH_MENTION: `Shared App Manager's Post - ${faker.commerce.productName()} - @${faker.person.fullName()}`,
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
