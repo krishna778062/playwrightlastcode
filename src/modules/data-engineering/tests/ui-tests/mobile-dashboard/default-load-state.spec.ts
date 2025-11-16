@@ -1,11 +1,16 @@
+import {
+  MOBILE_ADOPTION_RATE_CSV_HEADERS,
+  MOBILE_ADOPTION_RATE_HEADER_MAPPING,
+} from '@data-engineering/constants/mobileDashboardMetrics';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
+import { MobileDashboardQueryHelper } from '@data-engineering/helpers/mobileDashboardQueryHelper';
+import { MobileDashboard } from '@data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
+import { CSVValidationUtil } from '@data-engineering/utils/csvValidationUtil';
 import { expect, Page, test } from '@playwright/test';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
 import { SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
-import { MobileDashboardQueryHelper } from '../../../helpers/mobileDashboardQueryHelper';
-import { MobileDashboard } from '../../../ui/dashboards';
 
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
@@ -39,6 +44,7 @@ test.describe(
       mobileDashboardQueryHelper: MobileDashboardQueryHelper;
     };
     let testFiltersConfig: FilterOptions;
+    let csvFilePath: string | null = null;
 
     test.beforeAll('Setting up the mobile dashboard without making any changes to the filters', async ({ browser }) => {
       // Setup dashboard using dedicated method
@@ -57,6 +63,12 @@ test.describe(
     });
 
     test.afterAll('Cleaning up the test environment', async () => {
+      // Clean up CSV file if it was downloaded
+      if (csvFilePath) {
+        CSVValidationUtil.cleanup(csvFilePath);
+      }
+
+      // Clean up test environment
       if (testEnvironment) {
         await cleanupDashboardTesting(testEnvironment);
       }
@@ -304,6 +316,54 @@ test.describe(
           const tooltipContainer = mobileContentViewsByTypeMetric.toolTipContainer;
           await expect(tooltipContainer, 'Tooltip should be visible when hovering over segment').toBeVisible();
         }
+      }
+    );
+
+    test(
+      'tS To verify the csv of mobile adoption rate answer in mobile dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-adoption-rate-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify CSV export for mobile adoption rate metric matches database data',
+          zephyrTestId: 'DE-26001',
+        });
+
+        const { mobileDashboardQueryHelper, mobileDashboard } = testEnvironment;
+
+        // Step 1: Fetch expected data from database
+        const dbData = await mobileDashboardQueryHelper.getMobileAdoptionRateDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        console.log(`Info: Fetched ${dbData.length} records from database`);
+
+        // Step 2: Scroll to the metric and download CSV
+        await mobileDashboard.mobileAdoptionRateMetrics.scrollToComponent();
+        const { filePath } = await mobileDashboard.mobileAdoptionRateMetrics.downloadDataAsCSV();
+
+        // Store filepath for cleanup in afterAll
+        csvFilePath = filePath;
+
+        console.log(`Info: Downloaded CSV file to path: ${filePath}`);
+
+        // Step 3: Validate CSV against database data
+        await CSVValidationUtil.validateAndAssert({
+          csvPath: filePath,
+          expectedDBData: dbData as any,
+          metricName: 'Mobile adoption rate',
+          selectedPeriod: testFiltersConfig.timePeriod,
+          expectedHeaders: MOBILE_ADOPTION_RATE_CSV_HEADERS as unknown as string[],
+          transformations: {
+            // Map CSV headers to database field names
+            headerMapping: MOBILE_ADOPTION_RATE_HEADER_MAPPING,
+            // No value mappings needed - database already returns 'Undefined' for null values
+            valueMappings: {},
+          },
+        });
+
+        console.log('Info: CSV validation completed successfully');
       }
     );
   }

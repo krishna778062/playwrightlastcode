@@ -4,11 +4,10 @@ import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
 
-import baseConfig from '../../../playwright.base.config';
-
+import baseConfig from './config/baseConfig';
 import { getContentTenantConfigFromCache, initializeContentConfig } from './config/contentConfig';
 
-// Initialize config for contentSettings tenant at config load time
+// Initialize config for primary tenant at config load time
 initializeContentConfig('primary');
 
 export default defineConfig({
