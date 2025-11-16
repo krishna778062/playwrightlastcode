@@ -6,7 +6,6 @@ import { getContentConfigFromCache } from '@/src/modules/content/config/contentC
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -105,9 +104,10 @@ test.describe(
       'Setup test environment and data creation',
       async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+        /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      */
 
         // Initialize feed page
         feedPage = new FeedPage(standardUserFixture.page);
