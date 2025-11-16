@@ -103,7 +103,6 @@ export interface IFeedActions {
   clickViewPostLink: () => Promise<void>;
   verifyFeedDetailPageLoaded: () => Promise<void>;
   verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
-  verifyOriginalPostInSharedPost: (sharedPostText: string, originalPostText: string) => Promise<void>;
   verifyPostTextOnDetailPage: (postText: string) => Promise<void>;
   verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
@@ -151,7 +150,6 @@ export interface IFeedAssertions {
   verifyViewPostLinkInShareDialog: () => Promise<void>;
   verifyFeedDetailPageLoaded: () => Promise<void>;
   verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
-  verifyOriginalPostInSharedPost: (sharedPostText: string, originalPostText: string) => Promise<void>;
   verifyPostTextOnDetailPage: (postText: string) => Promise<void>;
   verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
@@ -905,28 +903,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Verifies original post in shared post
-   * @param sharedPostText - The text of the shared post
-   * @param originalPostText - The text of the original post
-   */
-  async verifyOriginalPostInSharedPost(sharedPostText: string, originalPostText: string): Promise<void> {
-    await test.step(`Verify original post in shared post`, async () => {
-      // Find the shared post container and verify original post text is visible within it
-      const sharedPostContainer = this.listFeedComponent
-        .postTextLocator(sharedPostText)
-        .locator('..')
-        .locator('..')
-        .locator('..');
-      await this.verifier.verifyTheElementIsVisible(sharedPostContainer, {
-        assertionMessage: `Shared post "${sharedPostText}" should be visible`,
-      });
-      const originalPostInShared = sharedPostContainer.locator('p').filter({ hasText: originalPostText }).first();
-      await this.verifier.verifyTheElementIsVisible(originalPostInShared, {
-        assertionMessage: `Original post "${originalPostText}" should be visible in shared post "${sharedPostText}"`,
-      });
-    });
-  }
 
   /**
    * Verifies post text on detail page

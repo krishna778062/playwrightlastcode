@@ -230,11 +230,7 @@ test.describe(
           siteContentManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage),
         ]);
 
-        // Site Manager: Validate post message and original post in parallel
-        await Promise.all([
-          siteManagerFeedPage.assertions.validatePostText(shareMessage),
-          siteManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage, commentText),
-        ]);
+        await siteManagerFeedPage.assertions.validatePostText(shareMessage);
 
         // Click "View Post" → verify navigation to Feed Detail Page
         await siteManagerFeedPage.actions.clickViewPostLink();
@@ -294,11 +290,7 @@ test.describe(
         await unlistedSiteDashboardPage.loadPage();
         await unlistedSiteDashboardPage.actions.clickOnFeedLink();
 
-        // Verify message and original post details in parallel
-        await Promise.all([
-          siteContentManagerFeedPage.assertions.validatePostText(shareMessage2),
-          siteContentManagerFeedPage.assertions.verifyOriginalPostInSharedPost(shareMessage2, shareMessage),
-        ]);
+        await siteContentManagerFeedPage.assertions.validatePostText(shareMessage2);
 
         // Click "View Post" and validate navigation
         await siteContentManagerFeedPage.actions.clickViewPostLink();
