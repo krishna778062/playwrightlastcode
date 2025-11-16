@@ -7,7 +7,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
@@ -397,11 +396,6 @@ test.describe(
           storyId: 'CONT-26727',
         });
 
-        // Setup: Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
-
         // Initialize identity management helper
         identityManagementHelper = new IdentityManagementHelper(
           appManagerApiContext,
@@ -466,12 +460,10 @@ test.describe(
 
         // Navigate end user to the feed post
         await test.step('Navigate EndUser to the feed post', async () => {
-          endUserFeedPage = new FeedPage(standardUserFixture.page);
-          await standardUserFixture.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
+          endUserFeedPage = new FeedPage(standardUserFixture.page, createdPostId);
+          await standardUserFixture.page.goto(endUserFeedPage.url);
+          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
         });
-
-        // Wait for the post to be visible
-        await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // Click Share button on the post
         await endUserFeedPage.actions.clickShareButtonOnPost(createdPostText);

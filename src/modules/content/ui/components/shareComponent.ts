@@ -86,18 +86,6 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
       });
       await this.shareDescriptionInput.focus();
 
-      // Wait for the editor to be ready by checking if it's focused
-      await this.shareDescriptionInput.evaluate(el => {
-        return new Promise<void>(resolve => {
-          if (document.activeElement === el) {
-            resolve();
-          } else {
-            // Wait a short time for focus to take effect
-            setTimeout(() => resolve(), 100);
-          }
-        });
-      });
-
       // Use evaluateHandle to get the actual DOM element from the locator
       const editorHandle = await this.shareDescriptionInput.elementHandle();
       if (!editorHandle) {
