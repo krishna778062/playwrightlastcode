@@ -740,7 +740,6 @@ export class SiteManagementHelper {
 
     throw new Error('No site found with cover image and hasEvents: true');
   }
-
   /**
    * Checks if a site has a valid coverImage
    * @param site - Site object to check
