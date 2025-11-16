@@ -22,7 +22,9 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
 
   constructor(page: Page) {
     super(page);
-    this.shareDescriptionInput = page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.shareDescriptionInput = page
+      .getByRole('dialog')
+      .getByRole('textbox', { name: 'You are in the content editor' });
     this.siteNameInput = page.locator('div[id*="listbox"]');
     this.shareButton = page.getByRole('dialog').getByRole('button', { name: 'Share' });
     this.shareOptionDropdown = page.getByLabel('Post in');

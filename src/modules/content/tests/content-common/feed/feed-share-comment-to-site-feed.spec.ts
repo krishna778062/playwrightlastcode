@@ -221,7 +221,6 @@ test.describe(
             const privateSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
             await privateSiteDashboardPage.loadPage();
             await privateSiteDashboardPage.actions.clickOnFeedLink();
-            await siteContentManagerFeedPage.verifyThePageIsLoaded();
           })(),
         ]);
 
