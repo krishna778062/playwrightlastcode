@@ -661,6 +661,7 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
 
+      await pollsHelper.setupPollsConfiguration('enable', false);
       await pollsListeningPage.clickCreatePollButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What is your favorite team event activity?',
