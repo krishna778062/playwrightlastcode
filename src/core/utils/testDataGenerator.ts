@@ -290,7 +290,7 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test String'): string {
+  static generateRandomString(prefix: string = 'Test'): string {
     const randomString = faker.lorem.word();
     return `${prefix} ${randomString}`;
   }
@@ -476,7 +476,7 @@ export class TestDataGenerator {
    */
   static generateSite(access: string, overrides?: Partial<any>): any {
     const siteOptions = {
-      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
+      name: `${faker.animal.type()} - ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
       description: `This is an automated test site description ${faker.lorem.paragraph()}`,
       siteCategory: faker.word.noun().toLowerCase(),
       access: access,
