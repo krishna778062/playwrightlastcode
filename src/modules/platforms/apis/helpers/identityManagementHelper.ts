@@ -84,7 +84,9 @@ export class IdentityManagementHelper {
    * @param email - The email address to search for
    * @returns Promise<{userId: string, fullName: string, user: Person}> - Complete user info
    */
-  async getUserInfoByEmail(email: string): Promise<{ userId: string; fullName: string; user: Person }> {
+  async getUserInfoByEmail(
+    email: string
+  ): Promise<{ userId: string; fullName: string; user: Person; firstName: string; lastName: string }> {
     const peopleListResponse = await this.identityService.getListOfPeople(email);
     const user = peopleListResponse.result.listOfItems.find(item => item.email === email);
     if (!user) {
@@ -94,6 +96,8 @@ export class IdentityManagementHelper {
     return {
       userId: user.user_id,
       fullName,
+      firstName: user.first_name,
+      lastName: user.last_name,
       user,
     };
   }

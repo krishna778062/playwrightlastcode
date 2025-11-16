@@ -374,6 +374,35 @@ export class ContentManagementService implements IContentManagementServices {
   }
 
   /**
+   * Deletes one or more topics by their IDs
+   * @param topicIds - Array of topic IDs to delete
+   * @returns Promise that resolves when topics are deleted
+   */
+  async deleteTopic(topicIds: string[]): Promise<void> {
+    return await test.step(`Deleting topics: ${topicIds.join(', ')}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.deleteTopics, {
+        data: {
+          ids: topicIds,
+        },
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to delete topics. Status: ${response.status()}, Response: ${errorText.substring(0, 200)}`
+        );
+      }
+
+      const json = await response.json();
+      if (json.status !== 'success') {
+        throw new Error(`Topic deletion failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      console.log(`Topics deleted successfully: ${topicIds.join(', ')}`);
+    });
+  }
+
+  /**
    * Gets the list of topics
    * @param size - Number of topics to return (default: 16)
    * @param term - Search term to filter topics (default: empty string)
