@@ -6,6 +6,7 @@ import {
   SiteMembershipResponse,
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -57,9 +58,8 @@ export class SiteManagementHelper {
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
     const shouldWaitForSearchIndex = waitForSearchIndex !== undefined ? waitForSearchIndex : false;
-    const timestamp = Date.now().toString().slice(-4);
-    const randomId = Math.random().toString(36).substring(2, 6);
-    const finalSiteName = siteName ?? `Automate_Site_${timestamp}_${randomId}`;
+    const randomString = TestDataGenerator.generateRandomString('Test');
+    const finalSiteName = siteName ?? `${randomString}`;
 
     // Get category if not provided
     let categoryObj = category;
@@ -740,7 +740,6 @@ export class SiteManagementHelper {
 
     throw new Error('No site found with cover image and hasEvents: true');
   }
-
   /**
    * Checks if a site has a valid coverImage
    * @param site - Site object to check
@@ -993,6 +992,42 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Gets the list of home carousel items and removes them all
+   * @returns Promise containing the number of items removed
+   */
+  async getAndRemoveAllHomeCarouselItems(): Promise<number> {
+    return await test.step('Getting and removing all home carousel items', async () => {
+      // Get the list of home carousel items
+      const carouselResponse = await this.siteManagementService.getHomeCarouselItems();
+
+      if (!carouselResponse.result?.listOfItems?.length) {
+        console.log('No home carousel items found');
+        return 0;
+      }
+
+      const carouselItems = carouselResponse.result.listOfItems;
+      console.log(`Found ${carouselItems.length} home carousel items to remove`);
+
+      let removedCount = 0;
+
+      // Remove each carousel item
+      for (const item of carouselItems) {
+        try {
+          await this.siteManagementService.deleteHomeCarouselItem(item.carouselItemId);
+          console.log(`Successfully removed home carousel item: ${item.carouselItemId}`);
+          removedCount++;
+        } catch (error) {
+          console.error(`Failed to remove home carousel item ${item.carouselItemId}:`, error);
+          // Continue with other items even if one fails
+        }
+      }
+
+      console.log(`Successfully removed ${removedCount} out of ${carouselItems.length} home carousel items`);
+      return removedCount;
+    });
+  }
+
+  /**
    * Gets the list of carousel items for a site
    * @param siteId - The site ID to get carousel items from
    * @returns Promise containing the carousel items list
@@ -1000,6 +1035,16 @@ export class SiteManagementHelper {
   async getSiteCarouselItems(siteId: string): Promise<any> {
     return await test.step(`Getting carousel items for site: ${siteId}`, async () => {
       return await this.siteManagementService.getSiteCarouselItems(siteId);
+    });
+  }
+
+  /**
+   * Gets the home carousel items list
+   * @returns Promise containing the home carousel items response
+   */
+  async getHomeCarouselItems(): Promise<any> {
+    return await test.step('Getting home carousel items', async () => {
+      return await this.siteManagementService.getHomeCarouselItems();
     });
   }
 
@@ -1012,6 +1057,17 @@ export class SiteManagementHelper {
   async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
     return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
       return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
+    });
+  }
+
+  /**
+   * Deletes a carousel item from the home dashboard
+   * @param carouselItemId - The carousel item ID to delete
+   * @returns Promise containing the delete response
+   */
+  async deleteHomeCarouselItem(carouselItemId: string): Promise<any> {
+    return await test.step(`Deleting home carousel item ${carouselItemId}`, async () => {
+      return await this.siteManagementService.deleteHomeCarouselItem(carouselItemId);
     });
   }
 
