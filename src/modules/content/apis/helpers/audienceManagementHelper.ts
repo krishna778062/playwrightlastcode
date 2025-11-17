@@ -63,7 +63,20 @@ export class AudienceManagementHelper {
         name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
         description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
         type: 'mixed',
-        audienceRule: { AND: [] },
+        audienceRule: {
+          AND: [
+            {
+              AND: [
+                {
+                  values: [{ value: 'A' }],
+                  attribute: 'first_name',
+                  operator: 'CONTAINS',
+                  fieldType: 'regular',
+                },
+              ],
+            },
+          ],
+        },
       });
       return {
         audienceId: newAudience.result.audienceId,
@@ -117,6 +130,7 @@ export class AudienceManagementHelper {
    * @returns Promise<CreateAudienceResponse>
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    console.log('createAudience request', JSON.stringify(request));
     return await this.audienceManagementService.createAudience(request);
   }
 
@@ -152,9 +166,41 @@ export class AudienceManagementHelper {
     audienceCount: string | number;
   }> {
     const response = await this.audienceManagementService.getAudienceList();
-    const audience = response.result.listOfItems.find(audience => audience.description !== null);
+
+    console.log('response', JSON.stringify(response.result.listOfItems));
+    const audience = response.result.listOfItems.find(
+      audience => audience.description !== null && audience.description !== ''
+    );
+
+    console.log('audience', JSON.stringify(audience));
+    console.log('audience description', JSON.stringify(audience?.description));
     if (!audience) {
-      throw new Error('No audience with no description found');
+      //create audience with description
+      const newAudience = await this.createAudience({
+        name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
+        description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
+        type: 'mixed',
+        audienceRule: {
+          AND: [
+            {
+              AND: [
+                {
+                  values: [{ value: 'A' }],
+                  attribute: 'first_name',
+                  operator: 'CONTAINS',
+                  fieldType: 'regular',
+                },
+              ],
+            },
+          ],
+        },
+      });
+      return {
+        name: newAudience.result.name,
+        description: newAudience.result.description,
+        audienceId: newAudience.result.audienceId,
+        audienceCount: newAudience.result.audienceMemberCount,
+      };
     }
     return {
       name: audience.name,

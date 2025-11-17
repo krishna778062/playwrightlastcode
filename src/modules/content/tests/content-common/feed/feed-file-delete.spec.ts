@@ -282,6 +282,8 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
           await appManagerFeedPage.actions.clickShowMoreButton();
           await appManagerFeedPage.actions.clickDeleteButton();
+          //refresh the page
+          await appManagerFeedPage.page.reload();
           await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
         }
       );
