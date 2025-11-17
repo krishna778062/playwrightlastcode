@@ -22,12 +22,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     this.peopleButton = page.getByRole('tab', { name: 'People' });
   }
 
-  async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify Favorites page is loaded', async () => {
-      // TODO: Implement page load verification
-    });
-  }
-
   get actions(): IFavoritesPageActions {
     return this;
   }
@@ -35,6 +29,13 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   get assertions(): IFavoritesPageAssertions {
     return this;
   }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.peopleButton, {
+      assertionMessage: 'People button should be visible',
+    });
+  }
+
   async clickOnPeopleButton(): Promise<void> {
     await test.step('Clicking on people button', async () => {
       await this.clickOnElement(this.peopleButton);

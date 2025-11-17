@@ -25,8 +25,8 @@ export class ORGChartPage extends BasePage implements IORGChartPageActions, IORG
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify ORG Chart page is loaded', async () => {
-      // TODO: Implement page load verification
+    await this.verifier.verifyTheElementIsVisible(this.searchBarInput, {
+      assertionMessage: 'Search bar input should be visible',
     });
   }
 
