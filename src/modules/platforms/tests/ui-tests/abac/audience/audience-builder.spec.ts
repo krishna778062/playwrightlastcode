@@ -7,7 +7,7 @@ import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audien
 test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
   test(
     'filters under audience rule page',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, '@healthcheck'] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33960', 'PS-33961', 'PS-36298', 'PS-33962', 'PS-33963'],

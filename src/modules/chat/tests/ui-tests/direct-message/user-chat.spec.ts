@@ -27,7 +27,7 @@ test.describe('direct Message between multiple users', { tag: [CHAT_SUITE_TAGS.D
   test(
     'verify that user 1 can open direct message with user 2 and they both are able to send message to each other',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
