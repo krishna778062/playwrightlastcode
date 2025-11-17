@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'azuresso' | 'workday' | 'okta';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prod';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
 
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
@@ -52,17 +52,104 @@ export const config = {
       appManagerPassword: 'Simp@12345',
       endUserEmail: 'priyanka.dubey@simpplr.com',
       endUserPassword: 'Pass@123',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      QA_SUCCESS_FACTOR_USERNAME: 'himanshu.ganglani@simpplr.com',
+      QA_SUCCESS_FACTOR_USER_PASSWORD: 'Simpplr@12345',
       QA_MOBILE: '8860076790',
       QA_ALTERNATE: '21573',
       QA_ALTERNATE_PHONE: '88600',
+      QA_END_MOBILE: '8319533235',
+      QA_END_ALTERNATE: '21574',
+      QA_END_ALTERNATE_PHONE: '83195',
+      NEW_UX_ENABLED: true,
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
     uat: {
       tenantName: 'Primary Tenant',
-      frontendBaseUrl: 'https://content-ui-auto1.qa.simpplr.xyz',
-      apiBaseUrl: 'https://content-ui-auto1-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
+      frontendBaseUrl: 'https://zeus-auto.uat.simpplr.xyz',
+      apiBaseUrl: 'https://zeus-auto-api.uat.simpplr.xyz',
+      appManagerEmail: 'priyanka.dubey@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'akanksha.kumari@simpplr.com',
+      endUserPassword: 'pass@1234',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      QA_SUCCESS_FACTOR_USERNAME: 'himanshu.ganglani@simpplr.com',
+      QA_SUCCESS_FACTOR_USER_PASSWORD: 'Simpplr@12345',
+      UAT_MOBILE: '8860076790',
+      UAT_ALTERNATE: 'aut001',
+      UAT_ALTERNATE_PHONE: '88600',
+      UAT_END_MOBILE: '1212121234',
+      UAT_END_ALTERNATE: 'E12098',
+      UAT_END_ALTERNATE_PHONE: '76543',
+      NEW_UX_ENABLED: false,
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
+    prodUS: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://engg.app.simpplr.com',
+      apiBaseUrl: 'https://engg-api.app.simpplr.com',
+      orgId: '08968b91-d5fd-4b9c-8778-f359e9c43ebf',
+      appManagerEmail: 'akanksha.kumari@simpplr.com',
+      appManagerPassword: 'pass@1234',
+      endUserEmail: 'priyanka.dubey@simpplr.com',
+      endUserPassword: 'Test@123',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      QA_SUCCESS_FACTOR_USERNAME: 'himanshu.ganglani@simpplr.com',
+      QA_SUCCESS_FACTOR_USER_PASSWORD: 'Simpplr@12345',
+      UAT_MOBILE: '8860076790',
+      UAT_ALTERNATE: 'aut001',
+      UAT_ALTERNATE_PHONE: '88600',
+      UAT_END_MOBILE: '1212121234',
+      UAT_END_ALTERNATE: 'E12098',
+      UAT_END_ALTERNATE_PHONE: '76543',
+      NEW_UX_ENABLED: false,
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
+
+    prodEU: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://tangerinetestingeu.eu.simpplr.com',
+      apiBaseUrl: 'https://tangerinetestingeu-api.eu.simpplr.com',
+      orgId: '443e81a8-0884-4e35-9fb5-b53615114360',
+      appManagerEmail: 'akanksha.kumari@simpplr.com',
+      appManagerPassword: 'pass@1234',
+      endUserEmail: 'priyanka.dubey@simpplr.com',
+      endUserPassword: 'Test@123',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      QA_SUCCESS_FACTOR_USERNAME: 'himanshu.ganglani@simpplr.com',
+      QA_SUCCESS_FACTOR_USER_PASSWORD: 'Simpplr@12345',
+      UAT_MOBILE: '8860076790',
+      UAT_ALTERNATE: 'aut001',
+      UAT_ALTERNATE_PHONE: '88600',
+      UAT_END_MOBILE: '1212121234',
+      UAT_END_ALTERNATE: 'E12098',
+      UAT_END_ALTERNATE_PHONE: '76543',
+      NEW_UX_ENABLED: false,
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
     test: {
       tenantName: 'Primary Tenant',
@@ -75,6 +162,12 @@ export const config = {
       QA_MOBILE: '8860076790',
       QA_ALTERNATE: 'aut002',
       QA_ALTERNATE_PHONE: '88600',
+      QA_END_MOBILE: '8319533235',
+      QA_END_ALTERNATE: '21574',
+      QA_END_ALTERNATE_PHONE: '83195',
+      NEW_UX_ENABLED: true,
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
   },
   azuresso: {
@@ -138,14 +231,15 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=qa npm run test\n` +
         `  TEST_ENV=uat npm run test\n` +
         `  TEST_ENV=test npm run test\n` +
-        `  TEST_ENV=prod npm run test`
+        `  TEST_ENV=prodUS npm run test\n` +
+        `  TEST_ENV=prodEU npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'test', 'prod'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU\n` +
         `Example: TEST_ENV=qa npm run test`
     );
   }
@@ -249,5 +343,5 @@ export function getIntegrationConfig() {
  * Helper function to get all available environments
  */
 export function getAvailableEnvironments(): EnvironmentKey[] {
-  return ['qa', 'uat', 'test', 'prod'];
+  return ['qa', 'uat', 'test', 'prodUS', 'prodEU'];
 }
