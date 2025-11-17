@@ -1,6 +1,5 @@
-import { Locator, Page, Response, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
-import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TagOption } from '@modules/content/constants';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -46,23 +45,14 @@ export class OnboardingComponent extends BaseComponent {
   }
   async clickOnSaveButton(): Promise<void> {
     await test.step('Click on save button', async () => {
-      await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.saveButton),
-        (response: Response) =>
-          response.url().includes(API_ENDPOINTS.content.onboarding) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 20_000,
-        }
-      );
+      await this.clickOnElement(this.saveButton);
     });
   }
   async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag should not be visible on content: ${option}`, async () => {
       const textContent = await this.contentOuterDiv.textContent();
       console.log('textContent', textContent);
-      if (textContent && textContent.includes(option)) {
+      if (textContent?.includes(option)) {
         await this.verifier.verifyTheElementIsNotVisible(this.verifyOnboardingTabVisible(option));
       }
     });

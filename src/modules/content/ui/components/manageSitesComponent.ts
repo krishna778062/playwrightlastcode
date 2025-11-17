@@ -1,7 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
@@ -28,6 +30,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly contentFilterDropdown: Locator;
+  readonly contentSearchBar: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -55,6 +59,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.contentFilterDropdown = page.getByLabel('Content:');
+    this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -318,6 +324,45 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
       });
+    });
+  }
+
+  async selectContentFilter(filter: ContentFilter): Promise<void> {
+    await test.step(`Select content filter: ${filter}`, async () => {
+      if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
+        const contentFilterResponse = await this.performActionAndWaitForResponse(
+          () => this.contentFilterDropdown.selectOption(filter),
+          response =>
+            response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+            response.request().method() === 'POST' &&
+            response.status() === 200,
+          {
+            timeout: 20_000,
+          }
+        );
+        await contentFilterResponse.finished();
+      } else {
+        console.log('The user is not marked as favorite');
+      }
+    });
+  }
+
+  async verifyContentFilterIsSelectedWithValue(value: ContentFilter): Promise<void> {
+    await test.step(`Verify content filter is selected with value: ${value}`, async () => {
+      const selectedValue = await this.contentFilterDropdown.inputValue();
+      if (selectedValue !== value) {
+        throw new Error(`Content filter should be selected with value: ${value}, but found: ${selectedValue}`);
+      }
+    });
+  }
+
+  async searchContentInManageSite(contentName: string): Promise<void> {
+    await test.step(`Search content ${contentName} in manage site`, async () => {
+      if (!contentName || typeof contentName !== 'string') {
+        throw new Error(`Invalid contentName provided: ${contentName}. Expected a non-empty string.`);
+      }
+      await this.typeInElement(this.contentSearchBar, contentName);
+      await this.contentSearchBar.press('Enter');
     });
   }
 }

@@ -29,7 +29,7 @@ test.describe('edit Topic', () => {
   test(
     'to verify content changes in home dashboard tiles',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_HOME_DASHBOARD_TILES],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_HOME_DASHBOARD_TILES, '@healthcheck'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
