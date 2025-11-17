@@ -14,6 +14,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
   readonly likeButtonForReply: Locator;
+  readonly siteImageLocator: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
@@ -164,6 +165,7 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.siteImageLocator = this.page.locator('.imageAnchor img');
   }
 
   /**
@@ -495,6 +497,18 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  private async getImageSrcAttribute(siteImageLocator: Locator): Promise<string> {
+    const imageSrc = await siteImageLocator.getAttribute('src');
+    if (!imageSrc) {
+      throw new Error(`Site image in feed card does not have a src attribute`);
+    }
+    return imageSrc;
+  }
+
+  private extractFileIdFromImageSrc(imageSrc: string): string {
+    return imageSrc.split('/').pop()?.split('?')[0] || imageSrc;
+  }
+
   /**
    * Verifies that the site image is displayed in the feed card for the given content
    * and that it matches the site's iconImage
@@ -504,26 +518,14 @@ export class ListFeedComponent extends BaseComponent {
    */
   async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
     await test.step(`Verify site image is displayed in feed card for content "${contentTitle}" and matches site iconImage`, async () => {
-      // Find the image in the feed card - when content has no image, site image is shown as fallback
-      // .imageAnchor is an anchor tag that contains an img tag
-      const imageAnchorLocator = this.page.locator('.imageAnchor');
-      const siteImageLocator = imageAnchorLocator.locator('img');
-
-      // Verify the image is visible
+      const siteImageLocator = this.siteImageLocator;
       await this.verifier.verifyTheElementIsVisible(siteImageLocator, {
         assertionMessage: `Site image should be visible in feed card for content "${contentTitle}"`,
       });
 
-      // Verify that the image src contains the site's iconImage fileId
-      // This ensures the fallback image is the same as the site image
-      const imageSrc = await siteImageLocator.getAttribute('src');
-      if (!imageSrc) {
-        throw new Error(`Site image in feed card does not have a src attribute`);
-      }
+      const imageSrc = await this.getImageSrcAttribute(siteImageLocator);
 
-      // Extract fileId from the image src URL
-      const feedImageFileId = imageSrc.split('/').pop()?.split('?')[0] || imageSrc;
-
+      const feedImageFileId = this.extractFileIdFromImageSrc(imageSrc);
       console.log(`Feed image src: ${imageSrc}`);
       console.log(`Feed image fileId: ${feedImageFileId}`);
       console.log(`Site image fileId: ${siteImageFileId}`);
@@ -533,9 +535,11 @@ export class ListFeedComponent extends BaseComponent {
           `Site image in feed card does not match site iconImage. Expected fileId: ${siteImageFileId}, but feed image fileId was: ${feedImageFileId}`
         );
       }
+
       console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
+
   /**
    * Opens the options menu for a reply
    * @param replyText - Text of the reply to open options for
@@ -654,7 +658,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   /**
    * Opens the reply editor for a specific post
    * @param postText - The text of the post to open reply editor for
@@ -673,7 +677,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
@@ -699,7 +703,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(unlikeButtonLocator);
     });
   }
-  
+
   /**
    * Likes a reply post by clicking the like button
    * @param replyText - The text of the reply to like
