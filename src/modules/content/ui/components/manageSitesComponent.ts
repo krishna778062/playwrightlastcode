@@ -3,8 +3,8 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
@@ -375,23 +375,22 @@ export class ManageSitesComponent extends BaseComponent {
       const siteRow = this.getSiteRowByExactName(siteName);
       const checkbox = siteRow.getByLabel('Select');
       await this.clickOnElement(checkbox);
+    });
+  }
+
   async selectContentFilter(filter: ContentFilter): Promise<void> {
     await test.step(`Select content filter: ${filter}`, async () => {
-      if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
-        const contentFilterResponse = await this.performActionAndWaitForResponse(
-          () => this.contentFilterDropdown.selectOption(filter),
-          response =>
-            response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
-            response.request().method() === 'POST' &&
-            response.status() === 200,
-          {
-            timeout: 20_000,
-          }
-        );
-        await contentFilterResponse.finished();
-      } else {
-        console.log('The user is not marked as favorite');
-      }
+      const contentFilterResponse = await this.performActionAndWaitForResponse(
+        () => this.contentFilterDropdown.selectOption(filter),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await contentFilterResponse.finished();
     });
   }
 

@@ -3,16 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
@@ -29,14 +25,10 @@ test.describe(
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
-    let manageSitesComponent: ManageSitesComponent;
-    let manageContentPage: ManageContentPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
-      manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
-      manageContentPage = new ManageContentPage(standardUserFixture.page);
     });
 
     test.afterEach(async ({ page }) => {

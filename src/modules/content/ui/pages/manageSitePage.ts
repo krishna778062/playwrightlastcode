@@ -2,9 +2,9 @@ import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
@@ -42,10 +42,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
   private manageSitesComponent: ManageSitesComponent;
-
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
-    this.manageSitesComponent = new ManageSitesComponent(page);
   // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
@@ -60,6 +56,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
+    this.manageSitesComponent = new ManageSitesComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
