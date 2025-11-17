@@ -346,6 +346,8 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.getSiteOwnerStatusForMember(membersName), {
         assertionMessage: `Site owner status should be visible for ${membersName}`,
       });
+    });
+  }
   async selectContentFilter(filter: ContentFilter): Promise<void> {
     await test.step(`Select content filter: ${filter}`, async () => {
       if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
