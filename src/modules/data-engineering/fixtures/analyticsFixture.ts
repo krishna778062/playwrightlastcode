@@ -1,10 +1,13 @@
-import { BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { AnalyticsApiService } from '@/src/modules/data-engineering/api/services/AnalyticsApiService';
 import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
+import { DuckDBFiltersQueryHelper } from '@/src/modules/data-engineering/helpers/duckdbFiltersQueryHelper';
 import { AnalyticsOverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
 import { SocialInteractionDashboard } from '@/src/modules/data-engineering/ui/dashboards/social-interaction/socialInteractionDashboard';
@@ -12,9 +15,11 @@ import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/an
 
 // API-only fixture type for API contexts and services
 export interface AnalyticsApiFixture {
+  apiContext: APIRequestContext;
+  analyticsApiService: AnalyticsApiService;
   snowflakeHelper: SnowflakeHelper;
   socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
-  // Future: appAdoptionQueryHelper, contentEngagementQueryHelper, etc.
+  duckdbFiltersQueryHelper: DuckDBFiltersQueryHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -46,17 +51,26 @@ export const users = {
 } as const;
 
 // Helper function to create API-only fixtures
-async function createAnalyticsApiFixture(snowflakeHelper: SnowflakeHelper): Promise<AnalyticsApiFixture> {
+async function createAnalyticsApiFixture(
+  apiContext: APIRequestContext,
+  snowflakeHelper: SnowflakeHelper
+): Promise<AnalyticsApiFixture> {
   const orgId = process.env.ORG_ID || '';
+  const apiBaseUrl = process.env.API_BASE_URL || '';
+
   if (!orgId) {
     throw new Error('ORG_ID is not set , please set the ORG_ID environment variable');
   }
+  if (!apiBaseUrl) {
+    throw new Error('API_BASE_URL is not set , please set the API_BASE_URL environment variable');
+  }
 
   return {
+    apiContext,
+    analyticsApiService: new AnalyticsApiService(apiContext, apiBaseUrl),
     snowflakeHelper,
     socialInteractionQueryHelper: new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId),
-    // Future: appAdoptionQueryHelper: new AppAdoptionDashboardQueryHelper(snowflakeHelper, orgId),
-    // Future: contentEngagementQueryHelper: new ContentEngagementDashboardQueryHelper(snowflakeHelper, orgId),
+    duckdbFiltersQueryHelper: new DuckDBFiltersQueryHelper(snowflakeHelper, orgId),
   };
 }
 
@@ -99,6 +113,11 @@ export const analyticsTestFixture = test.extend<
   {},
   {
     snowflakeHelper: SnowflakeHelper;
+
+    // Worker-scoped API contexts
+    appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
+
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: AnalyticsApiFixture;
     standardUserApiFixture: AnalyticsApiFixture;
@@ -122,24 +141,75 @@ export const analyticsTestFixture = test.extend<
         console.log('Destroying snowflake helper at worker level');
         await snowflakeHelper.destroy();
       } catch (error) {
+        console.warn('Snowflake helper cleanup failed:', error);
+      }
+    },
+    { scope: 'worker' },
+  ],
+
+  // Worker-scoped API contexts - shared across all tests in worker
+  // Authenticates via API_BASE_URL to get session cookies (CloudFront blocks POST on frontend URL)
+  appManagerApiContext: [
+    async ({}, use) => {
+      const apiBaseUrl = process.env.API_BASE_URL || '';
+
+      if (!apiBaseUrl) {
+        throw new Error('API_BASE_URL is required for authentication');
+      }
+
+      const context = await RequestContextFactory.createAuthenticatedContext(apiBaseUrl, {
+        email: process.env.APP_MANAGER_USERNAME || '',
+        password: process.env.APP_MANAGER_PASSWORD || '',
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  standardUserApiContext: [
+    async ({}, use) => {
+      const apiBaseUrl = process.env.API_BASE_URL || '';
+
+      if (!apiBaseUrl) {
+        throw new Error('API_BASE_URL is required for authentication');
+      }
+
+      const context = await RequestContextFactory.createAuthenticatedContext(apiBaseUrl, {
+        email: process.env.STANDARD_USER_USERNAME || '',
+        password: process.env.STANDARD_USER_PASSWORD || '',
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  // API-only fixtures - fast, no browser overhead
+  appManagerApiFixture: [
+    async ({ appManagerApiContext, snowflakeHelper }, use) => {
+      const fixture = await createAnalyticsApiFixture(appManagerApiContext, snowflakeHelper);
+      await use(fixture);
+      // Cleanup if needed
+      try {
+        // Add any cleanup logic here
+      } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }
     },
     { scope: 'worker' },
   ],
-  // API-only fixtures - fast, no browser overhead
-  appManagerApiFixture: [
-    async ({ snowflakeHelper }, use) => {
-      const fixture = await createAnalyticsApiFixture(snowflakeHelper);
-      await use(fixture);
-    },
-    { scope: 'worker' },
-  ],
 
   standardUserApiFixture: [
-    async ({ snowflakeHelper }, use) => {
-      const fixture = await createAnalyticsApiFixture(snowflakeHelper);
+    async ({ standardUserApiContext, snowflakeHelper }, use) => {
+      const fixture = await createAnalyticsApiFixture(standardUserApiContext, snowflakeHelper);
       await use(fixture);
+      // Cleanup if needed
+      try {
+        // Add any cleanup logic here
+      } catch (error) {
+        console.warn('Standard user API fixture cleanup failed:', error);
+      }
     },
     { scope: 'worker' },
   ],

@@ -1,16 +1,20 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 
 export interface IManageSiteActions {
+  clickDashboardAndFeedTab: () => Promise<void>;
+  setFeedPostingPermission: (permission: FeedPostingPermission) => Promise<void>;
   clickOnOptionsDropdown: (siteName: string) => Promise<void>;
   clickOnSearchButton: () => Promise<void>;
   searchSite: (siteName: string) => Promise<void>;
   selectFilterOption: (optionName: string) => Promise<void>;
   clickOnFilterOptionsDropdownButton: () => Promise<void>;
+  setExternalFilesProvider: (provider: string) => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -26,6 +30,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly searchButton = this.page.locator('button[name="submitbutton"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
+  readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
+    // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
+    const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
+    return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
+  };
   readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
   readonly siteReferenceEllipses = (siteName: string) =>
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
@@ -36,6 +46,20 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_PAGE);
     this.manageSitesComponent = new ManageSitesComponent(page);
+  // Locators for setExternalFilesProvider method
+  readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
+  readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+  readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+  // Target the option in the dropdown list, not the selected value
+  readonly boxFilesOption = this.page.locator('#storageProvider-list').getByText('Box files', { exact: true });
+  // Locator for the currently selected value in the combobox
+  readonly selectedProviderValue = this.page
+    .locator('div[class*="css-15bnrdl-singleValue"]')
+    .filter({ hasText: /Box files/i });
+
+  constructor(page: Page, siteId?: string) {
+    const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
+    super(page, pageUrl);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -128,5 +152,87 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
+  }
+
+  /**
+   * Sets the External Files provider (e.g., "Box files")
+   * @param provider - The name of the storage provider (e.g., "Box files")
+   */
+  async setExternalFilesProvider(provider: string): Promise<void> {
+    await test.step(`Set External Files provider to ${provider}`, async () => {
+      // Wait for External Files section to be visible
+      await this.verifier.verifyTheElementIsVisible(this.externalFilesSection, {
+        assertionMessage: 'External Files section should be visible',
+      });
+
+      // Check if Box files is already selected
+      const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
+
+      if (isBoxAlreadySelected && provider === 'Box files') {
+        console.log('Box files is already configured for this site. Update button is disabled, skipping update.');
+        return; // Skip the update process
+      }
+      // Click on the React Select input or dropdown arrow to open dropdown
+      await this.verifier.verifyTheElementIsVisible(this.storageProviderInput, {
+        assertionMessage: 'Storage provider input should be visible',
+      });
+
+      await this.clickOnElement(this.storageProviderInput);
+
+      const providerOption = this.boxFilesOption;
+      await this.verifier.verifyTheElementIsVisible(providerOption, {
+        assertionMessage: 'Box files option should be visible',
+      });
+      await this.clickOnElement(providerOption);
+
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage: 'Save button should be visible',
+      });
+      await this.clickOnElement(this.saveButton);
+    });
+  }
+  async clickDashboardAndFeedTab(): Promise<void> {
+    await test.step('Ensure Setup tab is active (feed permissions are under Setup tab)', async () => {
+      // Wait for tabs to be visible
+      await this.page.waitForSelector('[role="tab"]', { state: 'visible' });
+      // Feed permissions are on the Setup tab, ensure it's active
+      await this.verifier.verifyTheElementIsVisible(this.setupTab, {
+        assertionMessage: 'Setup tab should be visible',
+      });
+      // Click Setup tab if not already active
+      const isSelected = await this.setupTab.getAttribute('aria-selected');
+      if (isSelected !== 'true') {
+        await this.clickOnElement(this.setupTab);
+      }
+      // Wait for feed permissions section to be visible (radio buttons)
+      await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible' });
+    });
+  }
+
+  async setFeedPostingPermission(permission: FeedPostingPermission): Promise<void> {
+    await test.step(`Set feed posting permission to ${permission}`, async () => {
+      const radioButton = this.feedPostingPermissionRadio(permission);
+      await this.verifier.verifyTheElementIsVisible(radioButton, {
+        assertionMessage: `Feed posting permission radio button for "${permission}" should be visible`,
+      });
+
+      // Check if the permission is already set to the desired value
+      const isAlreadyChecked = await radioButton.isChecked();
+      if (isAlreadyChecked) {
+        console.log(`Feed posting permission is already set to ${permission}, skipping update`);
+        return;
+      }
+
+      // Permission needs to be changed, click the radio button
+      await radioButton.click({ force: true });
+      await this.expect(radioButton).toBeChecked();
+
+      // Look for and click Save/Update button if it exists
+      const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+      await this.verifier.verifyTheElementIsVisible(saveButton, {
+        assertionMessage: 'Save/Update button should be visible',
+      });
+      await saveButton.click();
+    });
   }
 }

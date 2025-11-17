@@ -242,7 +242,7 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck'],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -308,7 +308,7 @@ test.describe(
       test(
         `Verify that clicking on owners count should trigger a popup displaying user info ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@featureOwners`, '@this-one'],
+          tag: [TestPriority.P1, `@featureOwners`],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {

@@ -5,6 +5,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
+import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
 export interface IActions {
   writeRandomTextInSearchBar: (inputText: string) => Promise<void>;
@@ -30,6 +31,8 @@ export interface IActions {
   addPublishContentFilter: () => Promise<void>;
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
+  verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
+  verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
 }
 
@@ -48,6 +51,7 @@ export interface IAssertions {
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
   private manageContentComponent: ManageContentComponent;
+  private onboardingComponent: OnboardingComponent;
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
@@ -63,6 +67,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
+    this.onboardingComponent = new OnboardingComponent(page);
     this.editButton = this.manageContentComponent.editButton;
     this.deleteButton = this.manageContentComponent.deleteButton;
     this.unpublishButton = this.manageContentComponent.unpublishButton;
@@ -354,10 +359,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
-  }
-
   /**
    * Unified function to verify any option visibility in manage content
    * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
@@ -365,11 +366,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
   }
-
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
+  }
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
-
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
@@ -384,5 +386,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
+  }
+  async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
+    await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);
+  }
+  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
+    await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
   }
 }
