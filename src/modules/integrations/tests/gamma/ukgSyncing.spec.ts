@@ -27,7 +27,7 @@ test.describe(
     test(
       'uKGPro option should not be in syncing dropdown, if not enabled at People Data and validations at App level on connection',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -57,7 +57,7 @@ test.describe(
     test(
       'uKGPro option should be in syncing dropdown, if enabled successfully at People Data',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
@@ -84,7 +84,7 @@ test.describe(
     test(
       'verify dropdown is getting displayed for Pay currency field with UKG as syncing source.',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1],
       },
       async () => {
         tagTest(test.info(), {

@@ -442,6 +442,22 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Verify FreshService Tickets Submitted by Me tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceTicketsSubmittedByMe(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceTicketsSubmittedByMe(tileTitle);
+  }
+
+  /**
+   * Verify FreshService Unassigned Tickets tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceUnassignedTickets(tileTitle);
+  }
+
+  /**
    * Verify personalized Expensify report tile data with specific filters
    * @param tileTitle - The title of the tile to verify
    * @param expectedStatus - Expected status value (e.g., 'Processing')
@@ -868,6 +884,34 @@ export class HomeDashboard extends BasePage {
       radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
       fields: [{ name: fieldName2, value: fieldValue2 }],
     });
+  }
+
+  /**
+   * Complete workflow to add a FreshService tile with App Manager Defined settings and toggle on
+   */
+  async addFreshServiceWithOptionsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2?: string,
+    fieldValue2?: string
+  ): Promise<void> {
+    const config: {
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      fields?: Array<{ name: string; value: string }>;
+    } = {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+    };
+
+    // Only add second field if fieldName2 is provided
+    if (fieldName2 && fieldName2.trim() !== '') {
+      config.fields = [{ name: fieldName2, value: fieldValue2 || '' }];
+    }
+
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, config);
   }
   /**
    * Complete workflow to add an app tile with flexible configuration

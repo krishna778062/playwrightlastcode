@@ -31,4 +31,41 @@ export const MOBILE_DASHBOARD_METRICS = {
     title: 'Mobile content views by type',
     subtitle: 'Break up of total mobile content views by content type',
   },
+  MOBILE_ADOPTION_RATE: {
+    title: 'Mobile adoption rate',
+    subtitle: 'Percentage of total users who logged in on mobile during the selected time period',
+  },
+} as const;
+
+/**
+ * CSV Export Headers for Mobile Dashboard Metrics
+ */
+export const MOBILE_ADOPTION_RATE_CSV_HEADERS = [
+  'User name',
+  'Email',
+  'Designation',
+  'Company Name',
+  'Division',
+  'Department',
+  'City',
+  'State',
+  'Country',
+  'Date of last login',
+] as const;
+
+/**
+ * Header mapping for CSV validation
+ * Maps CSV header names to database field names
+ */
+export const MOBILE_ADOPTION_RATE_HEADER_MAPPING = {
+  'User name': 'fullName',
+  Email: 'email',
+  Designation: 'title',
+  'Company Name': 'companyName',
+  Division: 'division',
+  Department: 'department',
+  City: 'city',
+  State: 'state',
+  Country: 'country',
+  'Date of last login': 'dateOfLastLogin',
 } as const;

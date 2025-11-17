@@ -5,7 +5,6 @@ import { CreateComponent } from '@content/ui/components/createComponent';
 import { TestOptions } from '../types';
 import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
-import { getEnvConfig } from '../utils/getEnvConfig';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
 import { ChatNavigationComponent } from '@/src/modules/chat/ui/components/chatNavigationComponent';
@@ -49,11 +48,9 @@ export interface ICommonHomePageAssertions {
 }
 
 export class NavigationHelper {
-  readonly isNewUx: boolean;
   readonly topNavBarComponent: TopNavBarComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
   constructor(private readonly page: Page) {
-    this.isNewUx = getEnvConfig().newUxEnabled;
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
   }

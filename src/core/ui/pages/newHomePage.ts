@@ -6,12 +6,14 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { FooterComponent } from '../components/footerComponent';
 
 import { AddTileComponent } from '@/src/modules/content/ui/components/addTileComponent';
+import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
 import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 
 export interface INewHomePageActions {
   clickOnManageDashboardCarousel: (options?: { stepInfo?: string }) => Promise<void>;
   clickOnEditCarousel: () => Promise<void>;
+  clickOnEditDashboard: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnSocialCampaignTile: () => Promise<void>;
   clickAddToHomeButton: () => Promise<string>;
@@ -20,32 +22,45 @@ export interface INewHomePageActions {
   setCustomSCTitle: (title: string) => Promise<void>;
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
+  enterSearchCarouselInput: (text: string) => Promise<void>;
+  selectCarouselItem: (text: string) => Promise<void>;
+  clickDoneButton: () => Promise<void>;
+  clickHomeDashboardDoneButton: () => Promise<void>;
 }
 
 export interface INewHomePageAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
   verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
+  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
+  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
 }
 
 export class NewHomePage extends BasePage {
   readonly changeLayoutComponent: ChangeLayoutComponent;
   readonly footerComponent: FooterComponent;
   readonly manageDashboardCarouselButton: Locator;
+  readonly editDashboardButton: Locator;
   readonly editbarComponent: EditBarComponent;
   readonly addTileComponent: AddTileComponent;
   readonly tileListComponent: (tileTitle: string) => Locator;
   readonly socialCampaignNameInTileList: (socialCampaignName: string) => Locator;
+  readonly carouselItemText: (text: string) => Locator;
+  private carouselComponent: CarouselComponent;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.footerComponent = new FooterComponent(page);
     this.editbarComponent = new EditBarComponent(page);
     this.addTileComponent = new AddTileComponent(page);
+    this.carouselComponent = new CarouselComponent(page);
     this.manageDashboardCarouselButton = page.getByRole('button', { name: 'Manage dashboard & carousel' });
+    this.editDashboardButton = page.locator('div[data-title="Edit dashboard"]');
     this.tileListComponent = (tileTitle: string) => page.getByRole('heading', { name: tileTitle });
     this.socialCampaignNameInTileList = (socialCampaignName: string) =>
       page.getByRole('button', { name: socialCampaignName }).first();
+    this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
   }
 
@@ -81,6 +96,12 @@ export class NewHomePage extends BasePage {
 
   async clickOnEditCarousel(): Promise<void> {
     return this.editbarComponent.clickEditCarousel();
+  }
+
+  async clickOnEditDashboard(): Promise<void> {
+    await test.step('Click on edit dashboard', async () => {
+      await this.clickOnElement(this.editDashboardButton);
+    });
   }
 
   async clickOnAddTile(): Promise<void> {
@@ -140,5 +161,33 @@ export class NewHomePage extends BasePage {
 
   async clickExcludeFeed(): Promise<void> {
     return this.changeLayoutComponent.clickExcludeFeed();
+  }
+
+  async enterSearchCarouselInput(text: string): Promise<void> {
+    return this.carouselComponent.getSearchCarouselInput(text);
+  }
+
+  async selectCarouselItem(text: string): Promise<void> {
+    return this.carouselComponent.selectCarouselItem(text);
+  }
+
+  async clickDoneButton(): Promise<void> {
+    return this.carouselComponent.clickDoneButton();
+  }
+
+  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+    return this.carouselComponent.verifyCarouselItem(text);
+  }
+
+  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
+  }
+
+  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
+  }
+
+  async clickHomeDashboardDoneButton(): Promise<void> {
+    return this.carouselComponent.clickHomeDashboardDoneButton();
   }
 }

@@ -228,6 +228,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }
@@ -246,6 +247,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Standard user API fixture cleanup failed:', error);
       }
@@ -264,6 +266,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Site manager API fixture cleanup failed:', error);
       }
@@ -282,6 +285,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Social campaign manager API fixture cleanup failed:', error);
       }
