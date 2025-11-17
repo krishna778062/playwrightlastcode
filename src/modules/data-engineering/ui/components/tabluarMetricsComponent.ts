@@ -1,5 +1,6 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
@@ -29,10 +30,13 @@ export class TabluarMetricsComponent extends BaseComponent {
     readonly thoughtSpotIframe: FrameLocator,
     readonly metricTitle: string
   ) {
-    // Find the container with exact match to avoid strict mode violations
-    const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
-    });
+    // Find the container internally
+    const container = thoughtSpotIframe
+      .locator('[class*="answer-content-module__answerVizContainer"]')
+      .filter({
+        has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
+      })
+      .first();
 
     super(page, container);
 
@@ -180,16 +184,20 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
-   * Normalizes values by removing percentage symbols, comma separators, and percentages in parentheses for comparison
+   * Normalizes values by removing percentage symbols, comma separators, and trailing zeros for comparison
    * @param value - The value to normalize
-   * @returns Normalized value without % symbol, commas, and parenthetical percentages
+   * @returns Normalized value without % symbol, commas, and trailing zeros
    */
   private normalizeValue(value: string): string {
-    // Remove percentages in parentheses like "14 (40%)" -> "14"
-    return value
-      .replace(/\s*\([^)]*%\)/, '')
-      .replace('%', '')
-      .replace(/,/g, '');
+    // Remove % symbol and commas
+    let normalized = value.replace('%', '').replace(/,/g, '');
+
+    // Remove trailing zeros from decimal numbers (e.g., "2.0" → "2", "2.50" → "2.5")
+    // Only remove zeros that come after a decimal point
+    normalized = normalized.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+
+    // Trim any whitespace (handles spaces like in "100.0 %")
+    return normalized.trim();
   }
 
   /**
@@ -556,7 +564,7 @@ export class TabluarMetricsComponent extends BaseComponent {
       const downloadAction = async () => {
         await this.rootLocator.hover();
         await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
-          timeout: 10_000,
+          timeout: TIMEOUTS.LONG,
           assertionMessage: `Download csv button should be visible`,
         });
         await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });

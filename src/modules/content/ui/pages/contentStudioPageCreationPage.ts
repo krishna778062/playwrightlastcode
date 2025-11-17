@@ -24,7 +24,7 @@ export class ContentStudioPageCreationPage
   constructor(page: Page, siteId?: string) {
     super(page, siteId);
     // Cover image modal locators
-    this.addCoverImageIcon = page.getByRole('button', { name: 'Add cover image' });
+    this.addCoverImageIcon = page.getByRole('button', { name: 'Add cover image', exact: true });
     this.coverTitleInput = page.locator("textarea[name='cover-title']");
     this.addCoverImageComponent = new AddCoverImageComponent(page);
   }
