@@ -1,3 +1,5 @@
+# ServiceNow hibernates after inactivity.
+# This workflow pings it every 4 hours to keep it awake.
 name: ServiceNow Keep-Alive
 
 on:
