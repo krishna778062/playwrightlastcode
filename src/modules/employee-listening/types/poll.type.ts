@@ -9,11 +9,8 @@ export interface PollForm {
   /** Index of quick prompt to select (0-based) */
   quickPrompt?: number;
 
-  /** Number of times to click generate button (1 = single click, 2 = double click) */
+  /** Whether to click the generate button */
   generateButton?: boolean;
-
-  /** Whether to click the generate button without generation count specification */
-  clickGenerateButton?: boolean;
 
   /** Whether to regenerate the poll */
   regenerate?: boolean;

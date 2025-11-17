@@ -129,7 +129,7 @@ export class PollsListeningPage extends BasePage {
       await this.searchField.fill(pollQuestion);
       await this.searchIcon.click({ timeout: TIMEOUTS.MEDIUM });
 
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
 
       const pollsCount = await this.pollsSection.count();
       test.expect(pollsCount, `Poll should exist with the question: "${pollQuestion}"`).toBeGreaterThan(0);
@@ -188,7 +188,7 @@ export class PollsListeningPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      // Check that the Manage Features button has the active class
+      // Check that the User Mode button has the active class
       const classAttribute = await this.userModeSideNav.getAttribute('class');
       test.expect(classAttribute, 'User Mode should have active state class').toContain('active');
     });

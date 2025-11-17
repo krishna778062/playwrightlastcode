@@ -18,7 +18,13 @@ test.describe('polls Management Tests', () => {
   test(
     'verify Polls from Manage application setting',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS_MANAGEMENT', '@POLLS_VERIFICATION'],
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        '@POLLS_MANAGEMENT',
+        '@POLLS_VERIFICATION',
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -80,7 +86,7 @@ test.describe('polls Management Tests', () => {
   test(
     'navigate to the poll listing page from EL with ABAC side panel',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -100,7 +106,7 @@ test.describe('polls Management Tests', () => {
   test(
     'verify admin can enable ai polls in manage application settings',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS', '@POLLS_ENABLE_DISABLE'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS', '@POLLS_ENABLE_DISABLE', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -141,7 +147,7 @@ test.describe('polls Management Tests', () => {
   test(
     'verify search polls functionality on the polls page',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLLS_SEARCH'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLLS_SEARCH', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {

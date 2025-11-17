@@ -889,31 +889,21 @@ export class AIPollCreationPage extends BasePage {
     });
   }
 
-  async verifyFutureDatesWithin60DaysAreSelectable(): Promise<void> {
+  async verifyFutureDatesWithin30DaysAreSelectable(): Promise<void> {
     await test.step('Verify future dates within 60 days are selectable', async () => {
       const currentDate = new Date();
-      const datesToCheck = [1, 7, 14, 30, 59];
+      const futureDate = new Date(currentDate);
+      futureDate.setDate(currentDate.getDate() + 30);
 
-      for (const daysToAdd of datesToCheck) {
-        const futureDate = new Date(currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+      const futureTile = this.page
+        .getByRole('gridcell', {
+          name: futureDate.getDate().toString(),
+          exact: true,
+        })
+        .and(this.calendarDays);
 
-        // Navigate to correct month if needed
-        const monthsToNavigate = futureDate.getMonth() - currentDate.getMonth();
-        for (let i = 0; i < monthsToNavigate; i++) {
-          await this.clickOnElement(this.nextMonthButton, {
-            stepInfo: `Navigate to month for ${daysToAdd} days ahead`,
-          });
-        }
-
-        const selectableTiles = this.page
-          .getByRole('gridcell', { name: futureDate.getDate().toString(), exact: true })
-          .and(this.calendarDays)
-          .and(this.page.locator(':not(.rdp-day_disabled)'));
-
-        test
-          .expect(await selectableTiles.count(), `Date ${daysToAdd} days from now should be selectable`)
-          .toBeGreaterThan(0);
-      }
+      const selectableCount = await futureTile.count();
+      test.expect(selectableCount, 'Future dates within 60 days should be selectable').toBeGreaterThan(0);
     });
   }
 

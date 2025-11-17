@@ -25,7 +25,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'verify create AI poll modal behaviour',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -52,7 +52,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'create a poll using AI suggestion Quick prompt',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -75,7 +75,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'verify Poll is Generated on Valid Prompt',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -127,7 +127,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'verify X Button Discards AI generated Poll Creation',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -228,7 +228,7 @@ test.describe('aI Poll Creation Tests', () => {
       await aiPollCreationPage.selectParticipationWindowOption('Select date');
       await aiPollCreationPage.verifyCalendarIsDisplayed();
       await aiPollCreationPage.verifyPastDatesAreDisabled();
-      await aiPollCreationPage.verifyFutureDatesWithin60DaysAreSelectable();
+      await aiPollCreationPage.verifyFutureDatesWithin30DaysAreSelectable();
       await aiPollCreationPage.verifyDatesBeyond60DaysAreDisabled();
     }
   );
@@ -236,7 +236,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'validate default toggle state of all the toggle button on the 2nd stage of the poll',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -273,7 +273,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'custom end date selection from calendar',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -446,7 +446,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'aI fails to generate poll due to invalid input',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -465,7 +465,7 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'regenerate poll with AI',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
@@ -651,12 +651,12 @@ test.describe('aI Poll Creation Tests', () => {
   test(
     'verify manual poll creation flow',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@MANUAL_POLL'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@MANUAL_POLL', TestGroupType.HEALTHCHECK],
     },
     async () => {
       tagTest(test.info(), {
         description:
-          'Verify complete manual poll creation flow: create poll with team event question, add options, select audience, post poll, verify confirmation toast, notification delivery, and poll visibility in polls list',
+          'Verify complete manual poll creation flow with AI disabled: create poll with team event question, add options, select audience, post poll, verify confirmation toast, notification delivery, and poll visibility in polls list',
         zephyrTestId: 'LS-7421',
         storyId: 'EL-UI Automation',
       });

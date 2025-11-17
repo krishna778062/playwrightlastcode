@@ -23,8 +23,6 @@ export class PollsHelper {
 
     if (form.userPrompt) {
       await this.aiPollCreationPage.enterManualPrompt(form.userPrompt);
-
-      await this.aiPollCreationPage.clickGenerateButton();
     }
 
     if (form.quickPrompt !== undefined) {
@@ -32,19 +30,15 @@ export class PollsHelper {
       if (verifySteps) {
         await this.aiPollCreationPage.verifyPromptAutoFilled(selectedPrompt);
       }
-
-      await this.aiPollCreationPage.clickGenerateButton();
     }
 
     if (form.regenerate) {
       await this.aiPollCreationPage.clickRegenerateButton();
     }
 
-    if (
-      verifySteps &&
-      (form.userPrompt || form.quickPrompt !== undefined || form.regenerate) &&
-      (form.generateButton || form.clickGenerateButton)
-    ) {
+    if (verifySteps && (form.userPrompt || form.quickPrompt !== undefined || form.regenerate) && form.generateButton) {
+      await this.aiPollCreationPage.clickGenerateButton();
+
       await this.aiPollCreationPage.verifyPollQuestionAndOptionsGenerated();
     }
 
