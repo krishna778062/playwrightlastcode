@@ -52,6 +52,7 @@ export interface IContentPreviewPageAssertions {
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
   verifyContentIsNotAMustRead: () => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -343,6 +344,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   }
   async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 
   async makeContentForEveryoneInOrganization(): Promise<void> {
