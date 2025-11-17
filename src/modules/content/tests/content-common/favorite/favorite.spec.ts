@@ -137,4 +137,80 @@ test.describe('favorite', () => {
       });
     }
   );
+
+  test(
+    'should verify favorite content search functionality',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'To verify the favourite content search functionality',
+        zephyrTestId: '26266',
+        storyId: '26266',
+      });
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+      // Navigate directly to favorites page
+      await sideNavBarComponent.clickOnFavorite();
+      await favoritePage.verifyThePageIsLoaded();
+
+      // Click on Content tab
+      const contentTab = appManagerFixture.page.getByRole('tab', { name: 'Content' });
+      await favoritePage.clickOnElement(contentTab);
+
+      // Get the content tab panel
+      const contentTabPanel = appManagerFixture.page.getByRole('tabpanel', { name: 'Content' });
+
+      // Get the first content name from the content tab
+      const firstContentLink = contentTabPanel.getByRole('link').first();
+      await favoritePage.verifier.verifyTheElementIsVisible(firstContentLink, {
+        assertionMessage: 'First content item should be visible',
+        timeout: 10_000,
+      });
+      const firstContentName = (await firstContentLink.textContent())?.trim() || '';
+
+      // Find the content search bar
+      const contentSearchBar = contentTabPanel.getByRole('textbox').first();
+
+      // Verify the search bar is visible
+      await test.step('Verify the search bar is visible', async () => {
+        await favoritePage.verifier.verifyTheElementIsVisible(contentSearchBar, {
+          assertionMessage: 'Search bar should be visible on favorites content tab',
+        });
+      });
+
+      // Search for the first content and verify search returns correct data
+      if (firstContentName) {
+        await test.step('Search for the first displayed content', async () => {
+          await favoritePage.clickOnElement(contentSearchBar);
+          await favoritePage.fillInElement(contentSearchBar, firstContentName);
+          const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
+          await favoritePage.clickOnElement(contentSearchIcon);
+
+          // Verify the content is visible in search results
+          const searchedContentLink = contentTabPanel.getByRole('link', { name: firstContentName }).first();
+          await favoritePage.verifier.verifyTheElementIsVisible(searchedContentLink, {
+            assertionMessage: `Content "${firstContentName}" should be visible in search results`,
+            timeout: 10_000,
+          });
+        });
+      }
+
+      // Enter random text and verify "Nothing to show here" message
+      const randomText = 'RandomTextThatDoesNotExist12345';
+      await test.step('Enter random text and verify "Nothing to show here" message', async () => {
+        await favoritePage.clickOnElement(contentSearchBar);
+        await favoritePage.fillInElement(contentSearchBar, randomText);
+        const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
+        await favoritePage.clickOnElement(contentSearchIcon);
+
+        // Wait for the "Nothing to show here" message to appear
+        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
+        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
+          assertionMessage: 'Nothing to show here message should be displayed for random search text',
+        });
+      });
+    }
+  );
 });
