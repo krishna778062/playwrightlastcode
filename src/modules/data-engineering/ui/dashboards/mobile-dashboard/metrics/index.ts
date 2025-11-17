@@ -1,5 +1,6 @@
 export * from './avgMobileContentViewsPerUserMetrics';
 export * from './baseMobilePieChartMetric';
+export * from './mobileAdoptionRateMetrics';
 export * from './mobileContentViewersMetrics';
 export * from './mobileContentViewsByTypeMetrics';
 export * from './mobileDeviceLoginsMetrics';
