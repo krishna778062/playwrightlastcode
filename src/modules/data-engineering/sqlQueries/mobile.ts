@@ -289,6 +289,79 @@ export const MobileSql = {
       {companyNameFilter}
   `,
 
+  /**
+   * Mobile Content Views Query Template
+   * Returns unique mobile content views by date
+   */
+  MOBILE_CONTENT_VIEWS: `
+    SELECT 
+      date(i.INTERACTION_DATETIME) as INTERACTION_DATE,
+      count(case when i.interaction_type_code='IT001' then i.INTERACTED_BY_USER_CODE end) as TOTAL_VIEWS
+    FROM (
+      SELECT *, 
+        CASE 
+          WHEN content_code IS NOT NULL AND content_code != 'N/A' THEN
+            CONCAT(interacted_by_user_code, content_code) 
+          ELSE 
+            interacted_by_user_code
+        END AS SISENSE_UNIQUE_USER_CONTENT_CODE 
+      FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction
+    ) AS i
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is AS c
+      ON c.code = i.content_code
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is AS u
+      ON u.code = i.interacted_by_user_code
+    WHERE (i.CONTENT_CODE NOT IN ('N/A') OR i.CONTENT_CODE IS NULL)
+      AND c.content_type_code IN ('CT001', 'CT002', 'CT003', 'CT004')
+      AND i.INTERACTION_DATETIME BETWEEN '{startDate}' AND '{endDate}'
+      AND i.tenant_code = '{tenantCode}'
+      AND i.device_type_code IN ('DT001', 'DT002')
+      AND u.status_code = 'US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+    GROUP BY date(i.INTERACTION_DATETIME)
+    ORDER BY date(i.INTERACTION_DATETIME)
+  `,
+
+  /**
+   * Mobile Adoption Rate Query Template (Bar Chart)
+   * Returns percentage of total users who logged in on mobile during the selected time period
+   */
+  MOBILE_ADOPTION_RATE: `
+    SELECT 
+      count(distinct case when dua.has_logged_in='TRUE' then dua.user_code end) as mobile_visitor,
+      CONCAT(ROUND((COUNT(DISTINCT CASE WHEN dua.has_logged_in = 'TRUE' THEN dua.user_code END) * 100.0) / 
+      (SELECT COUNT(DISTINCT ua.code) FROM SIMPPLR_COMMON_TENANT.udl.user ua 
+      join SIMPPLR_COMMON_TENANT.udl.daily_user_adoption dua2 on dua2.user_code=ua.code
+      where ua.tenant_code = '{tenantCode}'
+      AND dua2.reporting_date BETWEEN '{startDate}' AND '{endDate}'
+      and ua.status_code='US001'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}),2), '%') AS user_percentage,
+      DATE(dua.reporting_date) AS login_date,
+      TO_CHAR(DATE(dua.reporting_date), 'Mon DD, YYYY') AS date_format,
+      TO_CHAR(DATE(dua.reporting_date), 'Mon DD') AS date_format_day
+    FROM SIMPPLR_COMMON_TENANT.udl.daily_user_adoption dua 
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.user u ON dua.user_code = u.code
+    WHERE dua.reporting_date BETWEEN '{startDate}' AND '{endDate}'
+      AND dua.tenant_code = '{tenantCode}'
+      AND u.status_code = 'US001'
+      AND dua.TOTAL_LOGINS_MOBILE > 0
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+    GROUP BY dua.reporting_date 
+    ORDER BY dua.reporting_date ASC
+  `,
+
   MOBILE_ADOPTION_RATE_CSV: `
  select dua.user_code, u.full_name, u.email, u.title, u.company_name, u.division, u.department, u.city, u.state, u.country,
  max(dua.reporting_date) as date_of_last_login
