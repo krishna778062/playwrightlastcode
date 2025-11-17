@@ -5,7 +5,7 @@ SN_INSTANCE="https://dev275557.service-now.com"
 SN_USER="${SERVICENOW_USER}"
 SN_PASS="${SERVICENOW_PASS}"
 
-echo "🔄 Sending keep-alive ping to ServiceNow..."
+echo "Sending keep-alive ping to ServiceNow..."
 
 # Lightweight API ping
 response=$(curl -s -u "$SN_USER:$SN_PASS" \
@@ -14,7 +14,7 @@ response=$(curl -s -u "$SN_USER:$SN_PASS" \
 
 # Optional: verify response
 if echo "$response" | grep -q "result"; then
-  echo "✅ ServiceNow instance responded successfully."
+  echo "ServiceNow instance responded successfully."
 else
-  echo "⚠️ Warning: Instance did not respond as expected."
+  echo "Warning: Instance did not respond as expected."
 fi
