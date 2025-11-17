@@ -49,7 +49,11 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
   const contentManagementHelper = new ContentManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(
+    apiContext,
+    getEnvConfig().apiBaseUrl,
+    getEnvConfig().frontendBaseUrl
+  );
   const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
