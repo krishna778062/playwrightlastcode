@@ -1,5 +1,7 @@
 import { expect, FrameLocator, Locator, Page } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
+
 import { PieChartComponent } from '../../../components/pieChartComponent';
 
 /**
@@ -54,7 +56,7 @@ export abstract class BaseMobilePieChartMetric extends PieChartComponent {
     // Wait for the element to be visible first (subclasses can override if not needed)
     await this.verifier
       .waitUntilElementIsVisible(chartLabelGroup, {
-        timeout: 15_000,
+        timeout: TIMEOUTS.SHORT,
         stepInfo: `Wait for chart label "${label}" to be visible`,
       })
       .catch(() => {
