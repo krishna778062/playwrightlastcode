@@ -92,13 +92,13 @@ test.describe(
     test(
       'aPI Validation of Standard User Feed creation on home Page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41914', ContentTestSuite.FEED_STANDARD_USER],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41915', ContentTestSuite.FEED_STANDARD_USER],
       },
       async ({ standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'API Validation of Standard User Feed creation on home Page',
-          zephyrTestId: 'CONT-41914',
-          storyId: 'CONT-41914',
+          zephyrTestId: 'CONT-41915',
+          storyId: 'CONT-41915`',
         });
 
         // Generate feed test data
