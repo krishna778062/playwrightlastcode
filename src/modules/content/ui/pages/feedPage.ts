@@ -25,6 +25,7 @@ export { FeedPostOptions, FeedPostResult };
 export interface IFeedActions {
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  createAndPostWithTopic: (text: string, topic: string) => Promise<FeedPostResult>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
