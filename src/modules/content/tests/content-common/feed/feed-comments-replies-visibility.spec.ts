@@ -5,7 +5,6 @@ import { tagTest } from '@core/utils/testDecorator';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -26,13 +25,10 @@ test.describe(
     let siteId: string = '';
     let contentId: string = '';
     let contentType: string = '';
+    let createdPageId: string = '';
+    let createdPageSiteId: string = '';
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
-      // Configure app governance settings and enable timeline comment post(feed)
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
-        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-      });
-
       // Initialize page objects
       homeFeedPage = new FeedPage(appManagerFixture.page);
       siteFeedPage = new FeedPage(appManagerFixture.page);
@@ -58,6 +54,18 @@ test.describe(
         }
       }
       contentFeedIds = [];
+
+      // Cleanup created page for content feed test
+      if (createdPageId && createdPageSiteId) {
+        try {
+          await appManagerFixture.contentManagementHelper.deleteContent(createdPageSiteId, createdPageId);
+          console.log(`Deleted created page: ${createdPageId}`);
+          createdPageId = '';
+          createdPageSiteId = '';
+        } catch (error) {
+          console.warn(`Failed to cleanup created page ${createdPageId}:`, error);
+        }
+      }
     });
 
     test(
@@ -74,7 +82,6 @@ test.describe(
 
         // Navigate to home feed dashboard
         await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.verifyThePageIsLoaded();
 
@@ -108,7 +115,7 @@ test.describe(
         }
 
         // Perform hard refresh
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await homeFeedPage.reloadPage();
         await homeFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // Verify only 1 reply is visible
@@ -181,7 +188,7 @@ test.describe(
         }
 
         // Perform hard refresh
-        await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+        await siteFeedPage.reloadPage();
         await siteFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // Verify only 1 reply visible
@@ -226,19 +233,36 @@ test.describe(
           storyId: '27691',
         });
 
-        // Search and open an existing site
-        const contentData = await appManagerFixture.contentManagementHelper.getContentId();
-        siteId = contentData.siteId;
-        contentId = contentData.contentId;
-        contentType = contentData.contentType;
+        // Create a fresh page to ensure we start with 0 comments
+        // Get a site first
+        const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const newSiteId = siteResult.siteId;
+
+        //  Create a new page in the site
+        const pageResult = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: newSiteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'news',
+          },
+          options: {
+            waitForSearchIndex: false,
+          },
+        });
+
+        createdPageSiteId = newSiteId;
+        createdPageId = pageResult.contentId;
+        siteId = newSiteId;
+        contentId = pageResult.contentId;
+        contentType = 'page';
+
+        console.log(`Created fresh page for test: ${contentId} in site: ${siteId}`);
 
         // Click Content tab and open content item
         contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, contentId, contentType);
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
 
         // Add 18 feed posts (comments) under the content via API
-        const previousCommentCount = await contentPreviewPage.actions.getVisibleCommentCount();
-        console.log('Previous comment count: ', previousCommentCount);
         const commentTexts: string[] = [];
 
         for (let i = 1; i <= 18; i++) {
@@ -256,7 +280,6 @@ test.describe(
 
         // Navigate to Home feed dashboard
         await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.verifyThePageIsLoaded();
 
@@ -284,7 +307,7 @@ test.describe(
         await contentPreviewPage.actions.clickShowMoreCommentsButton();
 
         // Verify User is able view the other Comments added to the Content (all 18 should be visible now)
-        await contentPreviewPage.assertions.verifyCommentCount(18 + previousCommentCount);
+        await contentPreviewPage.assertions.verifyCommentCount(18);
       }
     );
   }

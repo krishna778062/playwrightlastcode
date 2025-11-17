@@ -565,7 +565,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.getPostTimestampLocator(postText));
     });
   }
-  
+
   /**
    * Opens the options menu for a reply
    * @param replyText - Text of the reply to open options for
