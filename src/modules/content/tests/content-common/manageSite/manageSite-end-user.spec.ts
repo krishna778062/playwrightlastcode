@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
 import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
 
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';

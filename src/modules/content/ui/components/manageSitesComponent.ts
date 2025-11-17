@@ -601,24 +601,22 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.unfollowSiteButton, {
         assertionMessage: 'Follow button should be changed into unfollow',
       });
+    });
+  }
 
   async selectContentFilter(filter: ContentFilter): Promise<void> {
     await test.step(`Select content filter: ${filter}`, async () => {
-      if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
-        const contentFilterResponse = await this.performActionAndWaitForResponse(
-          () => this.contentFilterDropdown.selectOption(filter),
-          response =>
-            response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
-            response.request().method() === 'POST' &&
-            response.status() === 200,
-          {
-            timeout: 20_000,
-          }
-        );
-        await contentFilterResponse.finished();
-      } else {
-        console.log('The user is not marked as favorite');
-      }
+      const contentFilterResponse = await this.performActionAndWaitForResponse(
+        () => this.contentFilterDropdown.selectOption(filter),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await contentFilterResponse.finished();
     });
   }
 
