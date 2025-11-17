@@ -3,14 +3,14 @@ import { APIRequestContext, APIResponse } from '@playwright/test';
 import { HttpClient } from '@core/api/clients/httpClient';
 
 import { API_ENDPOINTS, API_QUERY_PARAMS } from '@/src/core/constants/apiEndpoints';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { LinkTilePayload, LinkTileResponse, TileLink } from '@/src/modules/integrations/apis/types/tile.type';
 
 export class TileManagementService {
   private httpClient: HttpClient;
   constructor(
     readonly context: APIRequestContext,
-    readonly baseUrl: string
+    readonly baseUrl: string,
+    readonly frontendBaseUrl: string
   ) {
     this.httpClient = new HttpClient(context, baseUrl);
   }
@@ -19,8 +19,6 @@ export class TileManagementService {
    * Create a link tile via API
    */
   async createTile(siteId: string, title: string, numberOfLinks: number, links: TileLink[]): Promise<LinkTileResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     // Ensure we don't exceed the provided links count
     const actualLinksCount = Math.min(numberOfLinks, links.length);
     const selectedLinks = links.slice(0, actualLinksCount);
@@ -45,8 +43,8 @@ export class TileManagementService {
     const response = await this.httpClient.post(API_ENDPOINTS.linkTile.create(siteId), {
       data: payload,
       headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -64,14 +62,12 @@ export class TileManagementService {
    * Delete a content tile via API
    */
   async deleteContentTile(tileId: string): Promise<APIResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     return await this.httpClient.delete(
       `${API_ENDPOINTS.integrations.contentTiles}/${tileId}?${API_QUERY_PARAMS.HIDE_TILE_FALSE}`,
       {
         headers: {
-          Origin: frontendBaseUrl,
-          Referer: frontendBaseUrl,
+          Origin: this.frontendBaseUrl,
+          Referer: this.frontendBaseUrl,
           Accept: '*/*',
           'Content-Type': 'application/json',
         },
@@ -83,12 +79,10 @@ export class TileManagementService {
    * Delete a link tile via API
    */
   async deleteTile(siteId: string, tileId: string): Promise<APIResponse> {
-    const { frontendBaseUrl } = getEnvConfig();
-
     return await this.httpClient.delete(API_ENDPOINTS.linkTile.delete(siteId, tileId), {
       headers: {
-        Origin: frontendBaseUrl,
-        Referer: frontendBaseUrl,
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
