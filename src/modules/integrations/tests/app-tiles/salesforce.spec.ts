@@ -36,7 +36,7 @@ test.describe(
     test(
       'verify that App manager should be able to add a Salesforce App Tile to view Salesforce reports on home dashboard with preference as "App Manager"',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
