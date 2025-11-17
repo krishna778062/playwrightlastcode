@@ -5,6 +5,7 @@ export * from './dateField';
 export * from './feedPostingPermission';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';
+export * from './onboardingOptions';
 export * from './pageContentType';
 export * from './sitePageEnums';
 export * from './siteTypes';
