@@ -97,6 +97,12 @@ export interface IFeedActions {
   hoverOnReactionButton: (postText: string) => Promise<void>;
   clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
   verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void>;
+  clickReactionCountButton: (postText: string) => Promise<void>;
+  verifyReactionModalIsVisible: () => Promise<void>;
+  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
+  clickReactionModalTab: (emojiName: string) => Promise<void>;
+  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
+  closeReactionModal: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -732,5 +738,29 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonTextContent(postText, reactionName);
+  }
+
+  async clickReactionCountButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickReactionCountButton(postText);
+  }
+
+  async verifyReactionModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalIsVisible();
+  }
+
+  async verifyReactionModalTabExists(emojiName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalTabExists(emojiName);
+  }
+
+  async clickReactionModalTab(emojiName: string): Promise<void> {
+    await this.listFeedComponent.clickReactionModalTab(emojiName);
+  }
+
+  async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {
+    await this.listFeedComponent.verifyUsersInReactionModalTab(emojiName, expectedUsers);
+  }
+
+  async closeReactionModal(): Promise<void> {
+    await this.listFeedComponent.closeReactionModal();
   }
 }

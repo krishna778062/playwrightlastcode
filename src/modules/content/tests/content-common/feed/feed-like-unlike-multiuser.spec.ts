@@ -522,10 +522,10 @@ test.describe(
       await feedPage.assertions.waitForPostToBeVisible(postText);
     });
 
-    test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+    test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
       if (createdPostId) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.warn(`Failed to delete feed post: ${error}`);
         }
@@ -562,10 +562,126 @@ test.describe(
 
         // When: User hovers on "React to this post" button and selects "Haha" emoji
         await feedPage.actions.hoverOnReactionButton(createdPostText);
-        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
         // Then: Verify the selected emoji (Haha) replaces the "Add Reaction" icon
-        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.HAHA);
+        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.INSIGHTFUL);
+      }
+    );
+
+    test(
+      'verify that clicking on reaction count opens modal with users grouped by emoji',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on reaction count opens modal with users grouped by emoji',
+          zephyrTestId: 'CONT-31819',
+          storyId: 'CONT-31819',
+        });
+
+        // Get user info for all roles to get their full names
+        const [appManagerInfo, siteManagerInfo, standardUserInfo] = await Promise.all([
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email),
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        ]);
+
+        // Load home pages first, then verify and navigate all users to global feed
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          siteManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.homePage.verifyThePageIsLoaded(),
+          siteManagerFixture.homePage.verifyThePageIsLoaded(),
+          standardUserFixture.homePage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          siteManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Create feed pages for all users after navigation
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+
+        await Promise.all([
+          appManagerFeedPage.verifyThePageIsLoaded(),
+          siteManagerFeedPage.verifyThePageIsLoaded(),
+          standardUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        // Given: A post has reactions from multiple users
+        // App Manager reacts with "like"
+        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        await standardUserFeedPage.page.reload();
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Standard User reacts with "haha"
+        await standardUserFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await standardUserFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+
+        await siteManagerFeedPage.page.reload();
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Site Manager reacts with "insightful"
+        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+
+        // Refresh pages to ensure all reactions are visible
+        await Promise.all([
+          appManagerFeedPage.page.reload(),
+          siteManagerFeedPage.page.reload(),
+          standardUserFeedPage.page.reload(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        // When: The user clicks on the reaction count or reactions text
+        await feedPage.actions.clickReactionCountButton(createdPostText);
+
+        // Then: A modal should open
+        await feedPage.actions.verifyReactionModalIsVisible();
+
+        // And: The modal should display users grouped by each reaction emoji
+        // Verify tabs exist for each emoji type
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
+
+        // Click on "like" tab and verify user is displayed
+        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.LIKE);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
+
+        // Click on "insightful" tab and verify user is displayed
+        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.INSIGHTFUL);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
+
+        // Click on "haha" tab and verify user is displayed
+        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.HAHA);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
+
+        // Close the modal
+        await feedPage.actions.closeReactionModal();
       }
     );
   }

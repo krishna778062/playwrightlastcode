@@ -19,6 +19,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyInput: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
+  readonly reactionCountButton: Locator;
+  readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly postsIFollow: Locator;
@@ -164,6 +166,8 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
+    this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
   }
 
   /**
@@ -226,8 +230,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.postTextLocator(expectedText).first();
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
@@ -792,6 +796,91 @@ export class ListFeedComponent extends BaseComponent {
     await this.clickOnElement(reactionButton);
     await this.verifier.verifyTheElementIsVisible(this.likeButton, {
       assertionMessage: `Like button should be visible for post "${postText}"`,
+    });
+  }
+
+  /**
+   * Clicks the reaction count/text button to open the reaction modal
+   * @param postText - The text of the post
+   */
+  async clickReactionCountButton(postText: string): Promise<void> {
+    await test.step(`Click reaction count button for post: ${postText}`, async () => {
+      const reactionCountButton = this.reactionCountButton.first();
+      await this.verifier.verifyTheElementIsVisible(reactionCountButton, {
+        assertionMessage: `Reaction count button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(reactionCountButton);
+    });
+  }
+
+  /**
+   * Verifies the reaction modal is visible
+   */
+  async verifyReactionModalIsVisible(): Promise<void> {
+    await test.step('Verify reaction modal is visible', async () => {
+      const reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
+      await this.verifier.verifyTheElementIsVisible(reactionModal, {
+        assertionMessage: 'Reaction modal should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies a tab exists for a specific emoji in the reaction modal
+   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
+   */
+  async verifyReactionModalTabExists(emojiName: string): Promise<void> {
+    await test.step(`Verify reaction modal tab exists for emoji: ${emojiName}`, async () => {
+      const tab = this.page.locator('button').filter({ hasText: emojiName }).first();
+      await this.verifier.verifyTheElementIsVisible(tab, {
+        assertionMessage: `Tab for emoji "${emojiName}" should be visible in reaction modal`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on a specific emoji tab in the reaction modal
+   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
+   */
+  async clickReactionModalTab(emojiName: string): Promise<void> {
+    await test.step(`Click reaction modal tab for emoji: ${emojiName}`, async () => {
+      const tab = this.page.locator('button').filter({ hasText: emojiName }).first();
+      await this.verifier.verifyTheElementIsVisible(tab, {
+        assertionMessage: `Tab for emoji "${emojiName}" should be visible`,
+      });
+      await this.clickOnElement(tab);
+    });
+  }
+
+  /**
+   * Verifies users are displayed in a specific emoji tab
+   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
+   * @param expectedUsers - Array of expected user names
+   */
+  async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {
+    await test.step(`Verify users in reaction modal tab for emoji: ${emojiName}`, async () => {
+      for (const expectedUser of expectedUsers) {
+        const userLocator = this.page.getByRole('link', { name: expectedUser }).first();
+        await this.verifier.verifyTheElementIsVisible(userLocator, {
+          assertionMessage: `User "${expectedUser}" should be visible in "${emojiName}" tab`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Closes the reaction modal
+   */
+  async closeReactionModal(): Promise<void> {
+    await test.step('Close reaction modal', async () => {
+      const closeButton = this.modelCloseButton;
+      await this.verifier.verifyTheElementIsVisible(closeButton, {
+        assertionMessage: 'Close button should be visible in reaction modal',
+      });
+      await this.clickOnElement(closeButton);
+      await this.verifier.verifyTheElementIsNotVisible(closeButton, {
+        assertionMessage: 'Close button should not be visible in reaction modal',
+      });
     });
   }
 }
