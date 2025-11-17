@@ -473,6 +473,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           zephyrTestId: 'RC-3051',
           storyId: 'RC-3051',
         });
+        tagTest(test.info(), {
+          description: 'Verify  "Recognition Type" is change to "Type" for WA in the Activity table CSV',
+          zephyrTestId: 'RC-5811',
+          storyId: 'RC-5811',
+        });
         const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
         if (testTitle.includes('points redeemed')) {
@@ -522,6 +527,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         description: 'Verify if Rewards Activity Table fields gets sorted on clicking',
         zephyrTestId: 'RC-3074',
         storyId: 'RC-3074',
+      });
+      tagTest(test.info(), {
+        description: 'Verify the Reward activity table column "Recognition Type" change is changed to "Type" for WA',
+        zephyrTestId: 'RC-5810',
+        storyId: 'RC-5810',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();

@@ -83,6 +83,21 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
         zephyrTestId: 'RC-5730',
         storyId: 'RC-5730',
       });
+      tagTest(test.info(), {
+        description: 'Verify rewards points icon on Milestone award instance',
+        zephyrTestId: 'RC-5721',
+        storyId: 'RC-5721',
+      });
+      tagTest(test.info(), {
+        description: 'Validate remove option for rewards points on edit milestone award instance',
+        zephyrTestId: 'RC-5731',
+        storyId: 'RC-5731',
+      });
+      tagTest(test.info(), {
+        description: 'Verify save button on milestone award instance page while adding reward points',
+        zephyrTestId: 'RC-5733',
+        storyId: 'RC-5733',
+      });
 
       const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);

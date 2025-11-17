@@ -111,6 +111,16 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         zephyrTestId: 'RC-5385',
         storyId: 'RC-5385',
       });
+      tagTest(test.info(), {
+        description: 'Validate search box on rewards option page',
+        zephyrTestId: 'RC-5386',
+        storyId: 'RC-5386',
+      });
+      tagTest(test.info(), {
+        description: 'Validate Reward Options page',
+        zephyrTestId: 'RC-5375',
+        storyId: 'RC-5375',
+      });
       const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
 
       // Load page and validate table structure
@@ -209,6 +219,30 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await expect(headersCount).toHaveCount(6);
       const headers = await rewardOptionsPage.rewardsOptionsTableHeaders.allTextContents();
       expect(headers).toEqual(['Name', 'Redeemable options', 'Countries', 'Currencies', 'Status', '']);
+    }
+  );
+
+  test(
+    '[RC-5379] Verify rewards options when feature flag is disabled',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify rewards options when feature flag is disabled',
+        zephyrTestId: 'RC-5379',
+        storyId: 'RC-5379',
+      });
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const rewardOptionsPage = new RewardOptionsPage(appManagerFixture.page);
+
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await rewardOptionsPage.setTheRewardsOptionsFeatureFlag(false);
+      await manageRewardsPage.page.reload();
+      await manageRewardsPage.verifyPageIsNotFound();
     }
   );
 

@@ -73,6 +73,11 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
         zephyrTestId: 'RC-4424',
         storyId: 'RC-4424',
       });
+      tagTest(test.info(), {
+        description: 'Verify system throws error msg when adding values beyond 5 integer values in gifting options',
+        zephyrTestId: 'RC-5209',
+        storyId: 'RC-5209',
+      });
 
       const rewardGiftingOptionsPage = new RewardGiftingOptionsPage(appManagerFixture.page);
 
