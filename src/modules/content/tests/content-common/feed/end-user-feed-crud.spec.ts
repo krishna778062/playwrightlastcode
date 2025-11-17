@@ -252,7 +252,7 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
-        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.verifyThePageIsLoaded();
 
         // Step 2: Create a Feed post with a native video attachment and a message
         await adminFeedPage.actions.clickShareThoughtsButton();
@@ -283,7 +283,7 @@ test.describe(
         await standardUserFixture.page.reload();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.verifyThePageIsLoaded();
 
         // Step 5: Click the "Share" icon on the Feed post created by Admin
         await feedPage.actions.clickShareIconOnPost(videoPostText);
@@ -347,7 +347,7 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
-        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.verifyThePageIsLoaded();
 
         // Step 2: Create a Feed post with a native video attachment and a message
         await adminFeedPage.actions.clickShareThoughtsButton();
@@ -375,7 +375,7 @@ test.describe(
         await standardUserFixture.page.reload();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.verifyThePageIsLoaded();
 
         // Step 4: Click the "Share" icon on the Feed post created by Admin
         await feedPage.actions.clickShareIconOnPost(videoPostText);

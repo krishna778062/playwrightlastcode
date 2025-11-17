@@ -23,6 +23,7 @@ import { ShareComponent } from '@/src/modules/content/ui/components/shareCompone
 export { FeedPostOptions, FeedPostResult };
 
 export interface IFeedActions {
+  verifyThePageIsLoaded(): Promise<void>;
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
