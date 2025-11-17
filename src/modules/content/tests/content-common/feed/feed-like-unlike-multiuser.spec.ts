@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ReactionsEmoji } from '@/src/modules/content/constants/reactionsEmoji';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
@@ -314,10 +315,11 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
+      /*
       await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
-
+      */
       // Get or create "All Employees" site using getSiteIdWithName which handles both cases
       siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
         accessType: SITE_TYPES.PUBLIC,
@@ -487,6 +489,83 @@ test.describe(
             });
           })(),
         ]);
+      }
+    );
+  }
+);
+
+test.describe(
+  'feed Post Reaction Emoji Replacement Test',
+  {
+    tag: [ContentTestSuite.FEED_STANDARD_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach('Setup test environment and create feed post', async ({ standardUserFixture }) => {
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+
+      // Create a feed post
+      await feedPage.actions.clickShareThoughtsButton();
+      const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+      createdPostText = postText;
+
+      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      createdPostId = postResult.postId || '';
+
+      await feedPage.assertions.waitForPostToBeVisible(postText);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
+      if (createdPostId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.warn(`Failed to delete feed post: ${error}`);
+        }
+        createdPostId = '';
+      }
+    });
+
+    test(
+      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817', '@CONT-31818'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+          zephyrTestId: ['CONT-31817', 'CONT-31818'],
+          storyId: 'CONT-31817',
+        });
+
+        // Given: The "Add Reaction" icon is visible on a feed post
+        // When: User hovers on "React to this post" button and selects "like" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        // Verify the selected emoji (like) replaces the "Add Reaction" icon and Remove the reaction to test another emoji
+        await feedPage.actions.unlikeFeedPost(createdPostText);
+
+        // When: User hovers on "React to this post" button and selects "love" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LOVE);
+
+        // Then: Verify the selected emoji (love) replaces the "Add Reaction" icon
+        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.LOVE);
+
+        // When: User hovers on "React to this post" button and selects "Haha" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+
+        // Then: Verify the selected emoji (Haha) replaces the "Add Reaction" icon
+        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.HAHA);
       }
     );
   }

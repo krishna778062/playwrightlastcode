@@ -94,6 +94,9 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
+  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
+  verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -717,5 +720,17 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
+  }
+
+  async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.clickReactionEmoji(postText, reactionName);
+  }
+
+  async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonTextContent(postText, reactionName);
   }
 }

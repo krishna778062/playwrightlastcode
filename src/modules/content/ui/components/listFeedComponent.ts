@@ -749,4 +749,49 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
+  /**
+   * Hovers over the "React to this post" button to show emoji options
+   * @param postText - The text of the post
+   */
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await test.step(`Hover on reaction button for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const postContainer = this.postTextLocator(postText);
+      await this.hoverOverElementInJavaScript(postContainer);
+      const reactionButton = this.likeButton.first();
+      await reactionButton.hover();
+    });
+  }
+
+  /**
+   * Clicks a specific reaction emoji (like, love, etc.)
+   * @param postText - The text of the post
+   * @param reactionName - The name of the reaction (e.g., 'like', 'love')
+   */
+  async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
+    await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
+      const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
+      await this.verifier.verifyTheElementIsVisible(reactionButton, {
+        assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
+      });
+      await this.clickOnElement(reactionButton);
+    });
+  }
+
+  /**
+   * Gets the text content of the reaction button to verify which emoji is selected
+   * @param postText - The text of the post
+   * @returns The text content of the reaction button
+   */
+  async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
+    const reactionButton = this.page.locator('button').filter({ hasText: reactionName }).first();
+    await this.verifier.verifyTheElementIsVisible(reactionButton, {
+      assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
+    });
+    await this.clickOnElement(reactionButton);
+    await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+      assertionMessage: `Like button should be visible for post "${postText}"`,
+    });
+  }
 }
