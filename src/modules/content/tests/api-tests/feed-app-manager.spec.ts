@@ -1,12 +1,11 @@
-import { expect } from '@playwright/test';
-
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { FeedApiHelper } from '@/src/modules/content/apis/helpers/feedApiHelper';
 
 test.describe(
   '@FeedAPI',
@@ -55,37 +54,12 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        await test.step('Validate feed response JSON', async () => {
-          expect(feedResponse.apiName, 'apiName should be "CreateFeed"').toBe('CreateFeed');
-
-          expect(feedResponse.message, 'message should match expected success message').toBe(
-            FEED_TEST_DATA.API_RESPONSE_MESSAGES.FEED_POST_CREATED
-          );
-          expect(feedResponse.status, 'status should be "success"').toBe('success');
-
-          expect(feedResponse.result.createdAt, 'createdAt should be a valid ISO timestamp').toMatch(
-            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
-          );
-          expect(feedResponse.result.authoredBy.userId, 'authoredBy.userId should match app manager userId').toBe(
-            userInfo.userId
-          );
-          expect(feedResponse.result.authoredBy.name, 'authoredBy.name should match app manager name').toBe(
-            userInfo.fullName
-          );
-          expect(feedResponse.result.site, 'site should be null for public feed posts').toBeNull();
-
-          expect(feedResponse.result.content, 'content should be null for feed posts without content').toBeNull();
-
-          const textJsonParsed = JSON.parse(feedResponse.result.textJson);
-          const extractedText = textJsonParsed.content
-            ?.map((paragraph: any) =>
-              paragraph.content?.map((item: any) => (item.type === 'text' ? item.text : '')).join('')
-            )
-            .join('')
-            .trim();
-
-          expect(extractedText, 'textJson should contain the feed test data text').toContain(feedTestData.text);
-        });
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteAndContent(feedResponse);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
       }
     );
 
@@ -116,37 +90,12 @@ test.describe(
         const feedResponse = await standardUserApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        await test.step('Validate feed response JSON', async () => {
-          expect(feedResponse.apiName, 'apiName should be "CreateFeed"').toBe('CreateFeed');
-
-          expect(feedResponse.message, 'message should match expected success message').toBe(
-            FEED_TEST_DATA.API_RESPONSE_MESSAGES.FEED_POST_CREATED
-          );
-          expect(feedResponse.status, 'status should be "success"').toBe('success');
-
-          expect(feedResponse.result.createdAt, 'createdAt should be a valid ISO timestamp').toMatch(
-            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
-          );
-          expect(feedResponse.result.authoredBy.userId, 'authoredBy.userId should match standard user userId').toBe(
-            userInfo.userId
-          );
-          expect(feedResponse.result.authoredBy.name, 'authoredBy.name should match standard user name').toBe(
-            userInfo.fullName
-          );
-          expect(feedResponse.result.site, 'site should be null for public feed posts').toBeNull();
-
-          expect(feedResponse.result.content, 'content should be null for feed posts without content').toBeNull();
-
-          const textJsonParsed = JSON.parse(feedResponse.result.textJson);
-          const extractedText = textJsonParsed.content
-            ?.map((paragraph: any) =>
-              paragraph.content?.map((item: any) => (item.type === 'text' ? item.text : '')).join('')
-            )
-            .join('')
-            .trim();
-
-          expect(extractedText, 'textJson should contain the feed test data text').toContain(feedTestData.text);
-        });
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteAndContent(feedResponse);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
       }
     );
   }

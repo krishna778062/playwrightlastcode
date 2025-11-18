@@ -6,15 +6,7 @@ import { PROJECT_ROOT } from '../../core/constants/paths';
 
 import { initializeContentConfig } from './config/contentConfig';
 
-import { Environments } from '@/src/core/constants/environments';
-import { Modules } from '@/src/core/constants/modules';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariablesForGivenModule } from '@/src/core/utils/envLoader';
-
-loadEnvVariablesForGivenModule(
-  (process.env.TEST_ENV as Environments) || Environments.TEST,
-  process.env.MODULE_NAME || Modules.CONTENT
-);
 
 // Initialize config for primary tenant at config load time
 initializeContentConfig('primary');
