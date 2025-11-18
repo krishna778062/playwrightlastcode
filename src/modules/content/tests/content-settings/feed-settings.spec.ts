@@ -173,23 +173,18 @@ test.describe(
         });
 
         // Navigate to Governance Settings
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.verifyThePageIsLoaded();
 
         // Select Default Placeholder option
         await governanceScreenPage.actions.makePlaceholderDefault();
 
-        // Get app config to check if Recognition feature is enabled
         const appConfig = await appManagerFixture.feedManagementHelper.getAppConfig();
-        // Check if recognition module exists or if there's a recognition flag
-        // Since we don't have direct access, we'll verify the placeholder text dynamically
         const isRecognitionEnabled = appConfig.result?.isRecognitionEnabled || false;
 
         // Expected placeholder texts based on Recognition feature flag
-        const expectedPlaceholderWithRecognition = 'Share your thoughts, recognize your colleagues, or ask a question';
-        const expectedPlaceholderWithoutRecognition = 'Share your thoughts or questions';
+        const expectedPlaceholderWithRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITH_RECOGNITION;
+        const expectedPlaceholderWithoutRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITHOUT_RECOGNITION;
 
         // Navigate to Global Feed and verify placeholder
         await appManagerFixture.homePage.loadPage();
