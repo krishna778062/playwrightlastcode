@@ -28,7 +28,7 @@ test.describe(
     });
 
     test(
-      'aPI Validation of App manager Feed creation on home Page',
+      'api Validation of App manager Feed creation on home Page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41913', ContentTestSuite.FEED_APP_MANAGER],
       },
