@@ -31,6 +31,10 @@ export const MOBILE_DASHBOARD_METRICS = {
     title: 'Mobile content views by type',
     subtitle: 'Break up of total mobile content views by content type',
   },
+  MOBILE_CONTENT_VIEWS: {
+    title: 'Mobile content views',
+    subtitle: 'Content views on mobile devices (iOS & Android) for the selected period',
+  },
   MOBILE_ADOPTION_RATE: {
     title: 'Mobile adoption rate',
     subtitle: 'Percentage of total users who logged in on mobile during the selected time period',

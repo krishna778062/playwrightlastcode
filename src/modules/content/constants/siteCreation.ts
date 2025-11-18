@@ -12,14 +12,14 @@ export const SiteCreationUI = {
   HEADINGS: {
     ADD_SITE: 'Add site',
     ACCESS: 'Access',
-    TARGET_AUDIENCE: 'Target audience and subscriptions',
+    TARGET_AUDIENCE: 'Site visibility and subscriptions',
     SUBSCRIPTIONS: 'Subscriptions',
     MEMBERSHIP_REQUESTS: 'Membership requests',
   },
   LABELS: {
     SITE_NAME: 'Site name *',
     CATEGORY: 'Category: This is a required',
-    TARGET_AUDIENCE: 'Target audience *',
+    TARGET_AUDIENCE: 'Site visibility *',
     MAKE_PRIVATE: 'Make site private',
   },
   PLACEHOLDERS: {
@@ -29,10 +29,11 @@ export const SiteCreationUI = {
   },
   DESCRIPTIONS: {
     PRIVATE_HELP: 'Users will have to request permission to join this site',
-    TARGET_AUDIENCE_HELP: 'Defining the target audience establishes who in your organization can access this site',
+    TARGET_AUDIENCE_HELP:
+      'Defining site visibility establishes who in your organization can access this site. Users who are not part of your audience selection will not be able to see or interact with this site.',
     SUBSCRIPTIONS_HELP:
       'When a subscription is created, the users within the defined audience will automatically be made members of this site.',
-    SUBSCRIPTION_WARNING: 'Target audience must be set before you can add a subscription',
+    SUBSCRIPTION_WARNING: 'Site visibility must be set before you can add a subscription',
   },
   MESSAGES: {
     SITE_CREATED: 'Created site successfully',
