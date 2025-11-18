@@ -17,6 +17,9 @@ export class ListFeedComponent extends BaseComponent {
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
+  readonly shareButton: Locator;
+  readonly sharePostModalContainer: Locator;
+  readonly viewPostLink: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
@@ -162,6 +165,9 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
+    this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
+    this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
   }
 
   /**
@@ -225,7 +231,6 @@ export class ListFeedComponent extends BaseComponent {
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
       const postLocator = this.postTextLocator(expectedText);
-      await postLocator.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -745,11 +750,26 @@ export class ListFeedComponent extends BaseComponent {
   async clickShareIcon(postText: string): Promise<void> {
     await test.step(`Click share icon on post: ${postText}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const shareIconLocator = this.page.getByRole('button', { name: 'Share this post' }).first();
-      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
-        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
+        assertionMessage: `Share button should be visible for post "${postText}"`,
       });
-      await this.clickOnElement(shareIconLocator);
+      await this.clickOnElement(this.shareButton.first());
+    });
+  }
+
+  async verifyShareModalIsVisible(): Promise<void> {
+    await test.step('Verify share modal is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be visible',
+      });
+    });
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await test.step('Verify share modal is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be closed',
+      });
     });
   }
 
@@ -801,6 +821,25 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
         assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
       });
+    });
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await test.step('Click view post link in share modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.viewPostLink, {
+        assertionMessage: 'View post link should be visible in share modal',
+      });
+      await this.clickOnElement(this.viewPostLink);
+    });
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await test.step('Click view post link in post detail page', async () => {
+      const viewPostLink = this.page.getByRole('button', { name: 'View post' });
+      await this.verifier.verifyTheElementIsVisible(viewPostLink, {
+        assertionMessage: 'View post link should be visible in post detail page',
+      });
+      await this.clickOnElement(viewPostLink);
     });
   }
 

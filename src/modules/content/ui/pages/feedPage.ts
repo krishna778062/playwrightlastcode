@@ -97,6 +97,8 @@ export interface IFeedActions {
   clickShareIconOnPost: (postText: string) => Promise<void>;
   enterShareDescription: (description: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
+  clickViewPostLinkInShareModal(): Promise<void>;
+  clickViewPostLinkInPostDetailPage(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -138,6 +140,8 @@ export interface IFeedAssertions {
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyShareModalIsVisible(): Promise<void>;
+  verifyShareModalIsClosed: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -765,6 +769,23 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async enterSiteNameForShare(siteName: string): Promise<void> {
     await this.shareComponent.actions.enterSiteName(siteName);
   }
+
+  async verifyShareModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsVisible();
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsClosed();
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInShareModal();
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInPostDetailPage();
+  }
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
