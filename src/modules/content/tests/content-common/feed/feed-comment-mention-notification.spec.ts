@@ -171,10 +171,11 @@ test.describe(
         const contentPreviewPage = new ContentPreviewPage(standardUserFixture.page, siteId, contentId, contentType);
         await contentPreviewPage.loadPage({ stepInfo: 'User2: Load content preview page' });
         await contentPreviewPage.assertions.waitForPostToBeVisible(createdPostText);
-        const endUserReplyText = TestDataGenerator.generateRandomText('Reply Mention', 1, false);
+        const endUserReplyText = TestDataGenerator.generateRandomText('Reply', 1, false);
         const replyText = await contentPreviewPage.actions.addReplyToComment(
           endUserReplyText,
-          siteManagerInfo.fullName
+          siteManagerInfo.fullName,
+          createdPostId
         );
         await siteManagerFixture.homePage.loadPage();
         const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({
