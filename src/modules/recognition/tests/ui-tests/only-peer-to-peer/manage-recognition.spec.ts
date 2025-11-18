@@ -26,9 +26,9 @@ test.describe('manage recognition', () => {
         zephyrTestId: 'RC-6398',
         storyId: 'RC-6090',
       });
-      const { page: appManagerPage } = appManagerFixture;
-      await appManagerFixture.navigationHelper.navigateToRecognitionHubViaSideNavBar();
-      await appManagerFixture.navigationHelper.navigateToManageRecognitionViaSideNavBar();
+      const { page: appManagerPage, navigationHelper: appManagerUINavigationHelper } = appManagerFixture;
+      await appManagerUINavigationHelper.navigateToRecognitionHubViaSideNavBar();
+      await appManagerUINavigationHelper.navigateToManageRecognitionViaSideNavBar();
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint('manage', PAGE_ENDPOINTS.MANAGE_RECOGNITION);
