@@ -20,11 +20,12 @@ export class WorkAnniversaryPage extends BasePage {
   private editMileStoneWrapper: Locator;
   private awardDetailsHeader: Locator;
   private workAnniversarySaveChangesButton: Locator;
-  private awardPointsToReceiverContainer: Locator;
-  private awardPointsToReceiverSwitch: Locator;
-  private awardPointInput: Locator;
-  private awardPointPlus: Locator;
-  private awardPointMinus: Locator;
+  private awardPointsToReceiver: Locator;
+  private awardPointContainer: Locator;
+  private pointInputBox: Locator;
+  private plusButton: Locator;
+  private minusButton: Locator;
+  private pointInputError: Locator;
 
   // AwardInstance
   private awardInstancesContainer: Locator;
@@ -45,6 +46,8 @@ export class WorkAnniversaryPage extends BasePage {
   private awardInstanceCancelButton: Locator;
   private modalBadgeContainer: Locator;
   private modalBadgeOptions: Locator;
+  private modalCustomMessageContainer: Locator;
+  private modalCustomMessageInput: Locator;
   private modalAwardPointsToReceiversSwitch: Locator;
   private modalAwardPointsToReceiversInput: Locator;
 
@@ -83,13 +86,12 @@ export class WorkAnniversaryPage extends BasePage {
     this.badgeOptions = this.badgeContainer.getByRole('radio');
 
     // Award Points to Receiver
-    this.awardPointsToReceiverContainer = this.editMileStoneWrapper.locator(
-      '//span[text()="Award points to receivers"]/ancestor::div[3]'
-    );
-    this.awardPointsToReceiverSwitch = this.awardPointsToReceiverContainer.getByRole('switch');
-    this.awardPointInput = this.awardPointsToReceiverContainer.locator('[id="anniversaryPoints"]');
-    this.awardPointPlus = this.awardPointsToReceiverContainer.locator('button[aria-label="Plus"]');
-    this.awardPointMinus = this.awardPointsToReceiverContainer.locator('button[aria-label="Minus"]');
+    this.awardPointsToReceiver = page.getByRole('switch', { name: 'Award points to receivers' });
+    this.awardPointContainer = this.page.locator('div[class*="MilestonePoints_milestonePoints"]');
+    this.pointInputBox = this.page.locator('input[type="number"][name="anniversaryPoints"]');
+    this.plusButton = this.page.getByRole('button', { name: 'Plus' });
+    this.minusButton = this.page.getByRole('button', { name: 'Minus' });
+    this.pointInputError = this.page.locator('div[class*="Field-module__error"] p[role="alert"]');
 
     // Award Instances
     this.awardInstancesContainer = this.editMileStoneWrapper.locator(
@@ -118,6 +120,8 @@ export class WorkAnniversaryPage extends BasePage {
       name: 'Award points to receivers',
     });
     this.modalAwardPointsToReceiversInput = this.awardInstanceEditModal.locator('input[id="anniversaryPoints"]');
+    this.modalCustomMessageContainer = this.awardInstanceEditModal.locator('[class="recognition-tiptapfield"]');
+    this.modalCustomMessageInput = this.modalCustomMessageContainer.locator('div[data-testid="tiptap-content"]');
     this.awardInstanceSaveButton = this.awardInstanceEditModal.getByRole('button', { name: 'Save' });
     this.awardInstanceCancelButton = this.awardInstanceEditModal.getByRole('button', { name: 'Cancel' });
     this.modalBadgeContainer = this.awardInstanceEditModal.locator('[data-testid="field-Badge"]');
@@ -146,8 +150,8 @@ export class WorkAnniversaryPage extends BasePage {
    * visit(): visit the work anniversary page
    */
   async visit(): Promise<void> {
-    await this.page.goto('/manage/recognition/milestones');
-    await expect(this.tableGridFirstRow.last()).toBeVisible();
+    await this.page.goto(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+    await this.verifyThePageIsLoaded();
   }
 
   /**
@@ -168,7 +172,7 @@ export class WorkAnniversaryPage extends BasePage {
    * means(it has atleast 3 column data i.e. Award name, Times awarded, Last awarded etc..)
    */
   async validateAllTheTableElements() {
-    await expect(this.tableGridFirstRow.last()).toBeVisible();
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
     const headers: string[] = await this.tableHeaders.allTextContents();
     expect(headers).toEqual(['Award', 'Times awarded', 'Last awarded', 'Status', 'Created', 'Edited']);
     const tableData: string[] = await this.tableGridFirstRow.allTextContents();
@@ -181,20 +185,21 @@ export class WorkAnniversaryPage extends BasePage {
    * and verify the Edit milestone container is visible
    */
   async clickOnTheEditWorkAnniversaryButton(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
     await this.tableGridFirstActionButton.click();
     await this.clickOnMenuItemWithVisibleText(this.page, 'Edit');
   }
 
   async validateTheElementsInEditWorkAnniversaryPage() {
-    await expect(this.editMileStonePageHeader).toHaveText('Edit milestone');
-    await expect(this.editMileStoneWrapper).toBeVisible();
-    await expect(this.awardDetailsHeader).toHaveText('Award details');
-    await expect(this.awardPointsToReceiverContainer).toBeVisible();
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'true') {
-      await expect(this.awardPointInput).toBeVisible();
-      await expect(this.awardPointPlus).toBeVisible();
-      await expect(this.awardPointMinus).toBeVisible();
+    await this.verifier.verifyElementHasText(this.editMileStonePageHeader, 'Edit milestone');
+    await this.verifier.verifyTheElementIsVisible(this.editMileStoneWrapper);
+    await this.verifier.verifyElementHasText(this.awardDetailsHeader, 'Award details');
+    await this.verifier.verifyTheElementIsVisible(this.awardPointsToReceiver);
+    const switchChecked = await this.getElementAttribute(this.awardPointsToReceiver, 'aria-checked');
+    if (switchChecked === 'true') {
+      await this.verifier.verifyTheElementIsVisible(this.pointInputBox);
+      await this.verifier.verifyTheElementIsVisible(this.plusButton);
+      await this.verifier.verifyTheElementIsVisible(this.minusButton);
     }
   }
 
@@ -238,9 +243,9 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async disableTheAwardPointsToReceiverIfEnabled() {
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'true') {
-      await this.awardPointsToReceiverSwitch.uncheck();
+    await expect(this.awardPointsToReceiver).toBeVisible();
+    if ((await this.awardPointsToReceiver.getAttribute('aria-checked')) === 'true') {
+      await this.awardPointsToReceiver.uncheck();
     }
   }
 
@@ -264,7 +269,7 @@ export class WorkAnniversaryPage extends BasePage {
     }
   }
 
-  async cleanUpTheDataIfAlreadySet() {
+  async cleanUpTheDataIfAlreadySet(): Promise<void> {
     await this.disableTheAwardPointsToReceiverIfEnabled();
     await this.removeTheAwardInstanceCustomValues(0);
     await this.removeTheAwardInstanceCustomValues(1);
@@ -274,11 +279,12 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async setTheDefaultPointsInWorkAnniversary(number: number) {
-    await expect(this.awardPointsToReceiverSwitch).toBeVisible();
-    if ((await this.awardPointsToReceiverSwitch.getAttribute('aria-checked')) === 'false') {
-      await this.awardPointsToReceiverSwitch.check();
-      await this.awardPointInput.fill(String(number));
+    await expect(this.awardPointsToReceiver).toBeVisible();
+    if ((await this.awardPointsToReceiver.getAttribute('aria-checked')) === 'false') {
+      await this.awardPointsToReceiver.check();
+      await this.verifier.waitUntilElementIsVisible(this.pointInputBox);
     }
+    await this.pointInputBox.fill(String(number));
   }
 
   async clickOnPreviewAwardButtonAndValidateThePoints(points: number = 0) {
@@ -517,7 +523,10 @@ export class WorkAnniversaryPage extends BasePage {
     fs.unlinkSync(csvFilePath);
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last(), {
+      timeout: 20000,
+      stepInfo: 'Wait for the table to be visible on Work Anniversary page',
+    });
   }
 }

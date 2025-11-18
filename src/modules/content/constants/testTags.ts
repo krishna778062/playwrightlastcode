@@ -12,6 +12,7 @@ export enum ContentSuiteTags {
   FEED_SETTINGS = '@feed-settings',
   QUESTION_SETTINGS = '@question-settings',
   SITE_DEACTIVATION = '@site-deactivation',
+  TOPIC_MANAGEMENT = '@topic-management',
 }
 
 export enum ContentFeatureTags {

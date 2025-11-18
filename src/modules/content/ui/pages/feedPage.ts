@@ -90,6 +90,10 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  likeFeedPost: (postText: string) => Promise<void>;
+  unlikeFeedPost: (postText: string) => Promise<void>;
+  likeFeedReply: (replyText: string) => Promise<void>;
+  unlikeFeedReply: (replyText: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -123,7 +127,11 @@ export interface IFeedAssertions {
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyLikeCountOnPost: (postText: string) => Promise<void>;
+  verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -192,8 +200,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createQuestionComponent.createAndPostQuestion(options);
   }
 
-  async editPost(currentText: string, newText: string): Promise<void> {
-    await this.createFeedPostComponent.editPost(currentText, newText);
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText, embedUrl);
   }
 
   async deletePost(postText: string): Promise<void> {
@@ -675,6 +683,29 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async selectEmoji(emojiIndex: number = 1): Promise<void> {
     await this.createFeedPostComponent.selectEmoji(emojiIndex);
   }
+  async likeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async unlikeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.unlikeFeedPost(postText);
+  }
+
+  async likeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async unlikeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.unlikeFeedReply(replyText);
+  }
+
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnPost(postText);
+  }
+
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnReply(replyText);
+  }
 
   async verifyPageNotFoundVisibility(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Verify the page - Page not found`, async () => {
@@ -683,5 +714,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         timeout: options?.timeout || TIMEOUTS.SHORT,
       });
     });
+  }
+
+  async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 }
