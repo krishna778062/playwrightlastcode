@@ -16,7 +16,13 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   test(
     '[RC-2909] Verify Category and location dropdown for the gift-cards tab',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_STORE,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -188,6 +194,11 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         description: 'Validate search Rewards on reward store page',
         zephyrTestId: 'RC-2857',
         storyId: 'RC-2857',
+      });
+      tagTest(test.info(), {
+        description: 'Verify search box when no search result is found',
+        zephyrTestId: 'RC-2907',
+        storyId: 'RC-2907',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
 
@@ -361,6 +372,11 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
         zephyrTestId: 'RC-2921',
         storyId: 'RC-2921',
       });
+      tagTest(test.info(), {
+        description: 'Verify Reset link to clear the search',
+        zephyrTestId: 'RC-2912',
+        storyId: 'RC-2912',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
 
       // Navigate to rewards store and validate
@@ -430,11 +446,15 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
       const pageB = await contextB.newPage();
       const rewardStoreB = new RewardsStore(pageB);
 
+      const { LoginHelper } = await import('@core/helpers/loginHelper');
+      await LoginHelper.logoutByNavigatingToLogoutPage(pageB);
       await rewardStoreB.loginAsStandardUserAndNavigateToRewardsStore();
       await rewardStoreB.selectDropdownByLabel(rewardStoreB.rewardCountry, 'United States');
 
       // Switch to User B and navigate to the copiedUrl and check the gift card
       await pageB.goto(copiedUrl);
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
+      await rewardStoreB.searchForGiftCard(giftCardProductName);
       await rewardStoreB.verifier.verifyElementContainsText(rewardStoreB.giftCardNames.first(), giftCardProductName);
 
       // Cleanup

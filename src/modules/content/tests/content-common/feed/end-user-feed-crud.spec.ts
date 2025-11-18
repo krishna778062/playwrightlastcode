@@ -1,6 +1,7 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { ShareComponent } from '@content/ui/components/shareComponent';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
 import { TestPriority } from '@core/constants/testPriority';
@@ -9,6 +10,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 test.describe(
@@ -133,18 +135,19 @@ test.describe(
 
         // Step 1: Get or reuse a private site that standard user is NOT a member of
         // This will reuse an existing private site if available, or create a new one if needed
-        const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('private', {
-          waitForSearchIndex: false,
-        });
-        const privateSiteName = privateSiteResult.name;
+        const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+          [users.endUser.email],
+          SITE_TYPES.PRIVATE
+        );
+        const privateSiteName = privateSiteResult.siteName;
         console.log(`Using private site: ${privateSiteName}`);
 
         // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
-        // This will reuse an existing unlisted site if available, or create a new one if needed
-        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('unlisted', {
-          waitForSearchIndex: false,
-        });
-        const unlistedSiteName = unlistedSiteResult.name;
+        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+          [users.endUser.email],
+          SITE_TYPES.UNLISTED
+        );
+        const unlistedSiteName = unlistedSiteResult.siteName;
         console.log(`Using unlisted site: ${unlistedSiteName}`);
 
         // Step 3: Standard User is already on Feed page (from beforeEach setup)
@@ -370,6 +373,96 @@ test.describe(
           await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';
         });
+      }
+    );
+
+    test(
+      'in Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26801'],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site',
+          zephyrTestId: 'CONT-26801',
+          storyId: 'CONT-26801',
+        });
+
+        // Login as Admin
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Get Site Owner (siteManager) user info
+        const siteOwnerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.siteManager.email
+        );
+
+        // Get or create a private site where Site Owner is the owner
+        const privateSiteDetails = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
+          siteOwnerInfo.userId,
+          SITE_TYPES.PRIVATE
+        );
+        const privateSiteName = privateSiteDetails.siteName;
+        console.log(`Using private site: ${privateSiteName}`);
+
+        // Create a Feed post on "Private Site" from Home Dashboard
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        await adminFeedPage.actions.enterFeedPostText(postText);
+
+        // Select "Post in Site Feed" option
+        await adminFeedPage.actions.selectShareOptionAsSiteFeed();
+
+        // Enter private site name
+        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName);
+
+        // Post the feed
+        const postResult = await adminFeedPage.actions.createAndPost({
+          text: postText,
+        });
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteDetails.siteId);
+        await siteOwnerDashboardPage.loadPage({ stepInfo: 'Load private site dashboard page' });
+        await siteOwnerDashboardPage.actions.clickOnFeedLink();
+        await siteOwnerDashboardPage.navigateToTab(SitePageTab.FeedTab);
+        const siteOwnerFeedPage = new FeedPage(siteManagerFixture.page);
+
+        // Wait for the post to be visible on the Private Site's feed
+        await siteOwnerFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Click Share icon on the feed post created on Private Site
+        await siteOwnerFeedPage.actions.clickShareIconOnPost(postText);
+
+        //  Add a Message
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+        await siteOwnerFeedPage.actions.enterShareDescription(shareMessage);
+
+        // Click "Share" button
+        const shareComponent = new ShareComponent(siteManagerFixture.page);
+        await shareComponent.actions.clickShareButton();
+
+        // Verify success message "Shared Feed post successfully."
+        await siteOwnerFeedPage.assertions.verifyToastMessage('Shared post successfully');
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.reloadPage();
+
+        // Verify "End User" is able to view "Site Owner's" shared feed post with the message
+        await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Verify "End User" is unable to view the original post and is displayed with message "This post has been deleted"
+        await endUserFeedPage.assertions.verifyDeletedPostMessage(shareMessage);
+
+        // Verify user cannot interact with the deleted post
+        await endUserFeedPage.assertions.verifyPostCannotBeInteracted(postText);
       }
     );
   }
