@@ -1118,23 +1118,16 @@ export class SiteManagementHelper {
 
   async getSiteInUserIsNotMemberOrOwner(
     userId: string[],
-    accessType: SITE_TYPES,
-    options?: { hasPages?: boolean; hasEvents?: boolean; hasAlbums?: boolean }
+    accessType: SITE_TYPES
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
       const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
       const activeSites = siteListResponse.result.listOfItems.filter(
         site => site.isActive === true && site.hasAlbums === true && site.hasEvents === true && site.hasPages === true
       );
-      const filteredSites = activeSites.filter(site => {
-        const matchesRequirements =
-          (options?.hasPages ?? true) && (options?.hasEvents ?? true) && (options?.hasAlbums ?? true);
-
-        return matchesRequirements;
-      });
-      if (filteredSites.length) {
+      if (activeSites.length) {
         // Iterate through each site and check membership
-        for (const site of filteredSites) {
+        for (const site of activeSites) {
           const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
 
           console.log('memberListResponse', memberListResponse.result.listOfItems);
