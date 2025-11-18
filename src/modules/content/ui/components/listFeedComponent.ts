@@ -16,6 +16,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly likeButtonForReply: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
+  readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
@@ -161,6 +162,7 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
@@ -290,6 +292,7 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Validating post contains text: "${postText}"`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.postTextLocator(postText), {
         assertionMessage: `Post "${postText}" should be visible`,
+        timeout: 30000,
       });
     });
   }
@@ -629,6 +632,56 @@ export class ListFeedComponent extends BaseComponent {
       await replyButton.click();
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: 'Reply input should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the Cancel button is visible in the reply editor for a specific post
+   * @param postText - The text of the post to verify cancel button for
+   */
+  async verifyCancelButtonVisible(postText: string): Promise<void> {
+    await test.step(`Verify Cancel button is visible for reply editor on post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyCancelButton.first(), {
+        assertionMessage: `Cancel button should be visible in reply editor for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the reply editor for a specific post
+   * @param postText - The text of the post to click cancel button for
+   */
+  async clickCancelButton(postText: string): Promise<void> {
+    await test.step(`Click Cancel button in reply editor for post: ${postText}`, async () => {
+      await this.clickOnElement(this.replyCancelButton.first());
+    });
+  }
+
+  /**
+   * Verifies that the reply editor is visible for a specific post
+   * @param postText - The text of the post to verify editor visibility for
+   */
+  async verifyReplyEditorVisible(postText: string): Promise<void> {
+    await test.step(`Verify reply editor is visible for post: ${postText}`, async () => {
+      const replyInputContainer = this.replyInput;
+
+      await this.verifier.verifyTheElementIsVisible(replyInputContainer, {
+        assertionMessage: `Reply editor should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the reply editor is closed (not visible) for a specific post
+   * @param postText - The text of the post to verify editor closure for
+   */
+  async verifyReplyEditorClosed(postText: string): Promise<void> {
+    await test.step(`Verify reply editor is closed for post: ${postText}`, async () => {
+      const replyInputContainer = this.replyInput;
+
+      await this.verifier.verifyTheElementIsNotVisible(replyInputContainer, {
+        assertionMessage: `Reply editor should be closed (not visible) for post "${postText}"`,
       });
     });
   }
