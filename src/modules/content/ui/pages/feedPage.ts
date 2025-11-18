@@ -94,6 +94,9 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -698,6 +701,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async unlikeFeedReply(replyText: string): Promise<void> {
     await this.listFeedComponent.unlikeFeedReply(replyText);
+  }
+
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
   }
 
   async verifyLikeCountOnPost(postText: string): Promise<void> {

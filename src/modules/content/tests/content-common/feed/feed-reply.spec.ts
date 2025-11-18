@@ -238,6 +238,142 @@ for (const testData of feedTestData) {
   );
 }
 
+// ==================== Feed Post Creation Cancel Button Tests ====================
+
+// Test data for post creation cancel button tests
+const postCreationCancelTestData = [
+  {
+    feedType: 'Home Feed',
+    description: 'Verify user can see and click Cancel button while creating Home Feed post',
+    storyId: 'CONT-30150',
+    ...commonFeedConfig,
+  },
+  {
+    feedType: 'Site Feed',
+    description: 'Verify user can see and click Cancel button while creating Site Feed post',
+    storyId: 'CONT-30150',
+    ...commonFeedConfig,
+  },
+  {
+    feedType: 'Content Feed',
+    description: 'Verify user can see and click Cancel button while creating Content Feed post',
+    storyId: 'CONT-30150',
+    ...commonFeedConfig,
+  },
+];
+
+// Data-driven test for post creation cancel button
+for (const testData of postCreationCancelTestData) {
+  test.describe(
+    `Post Creation Cancel Button - ${testData.feedType} Tests`,
+    {
+      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+    },
+    () => {
+      let appManagerFeedPage: FeedPage;
+      let siteId: string;
+      let contentId: string;
+      let siteDashboardPage: SiteDashboardPage;
+      let contentPreviewPage: ContentPreviewPage;
+
+      test.beforeEach('Setup test environment and navigate to feed', async ({ appManagerFixture }) => {
+        // Initialize feed page
+        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+        // Get prerequisite data based on feed type
+        const resources = await getPrerequisiteData(
+          {
+            siteManagementHelper: appManagerFixture.siteManagementHelper,
+            contentManagementHelper: appManagerFixture.contentManagementHelper,
+          },
+          testData
+        );
+
+        // Assign created resources
+        if (resources.siteId) {
+          siteId = resources.siteId;
+        }
+        if (resources.contentId) {
+          contentId = resources.contentId;
+        }
+
+        // Navigate to appropriate page based on feed type
+        if (testData.feedType === 'Content Feed') {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        } else if (testData.feedType === 'Site Feed') {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+        } else if (testData.feedType === 'Home Feed') {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+        }
+      });
+
+      test(
+        `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
+        {
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30150'],
+        },
+        async ({}) => {
+          tagTest(test.info(), {
+            description: `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
+            zephyrTestId: 'CONT-30150',
+            storyId: 'CONT-30150',
+          });
+
+          // Click "Share your thoughts" button to open post creation editor
+          if (testData.feedType === 'Content Feed') {
+            await contentPreviewPage.actions.clickShareThoughtsButton();
+          } else if (testData.feedType === 'Site Feed') {
+            await siteDashboardPage.actions.clickShareThoughtsButton();
+          } else {
+            await appManagerFeedPage.actions.clickShareThoughtsButton();
+          }
+
+          // Verify editor box opens
+          // Note: We verify editor is visible by checking if Cancel button is visible (which requires editor to be open)
+          // The editor visibility is implicitly verified when we check for Cancel button
+
+          // Verify user can see the Cancel button
+          if (testData.feedType === 'Content Feed') {
+            await contentPreviewPage.actions.verifyPostCreationCancelButtonVisible();
+          } else if (testData.feedType === 'Site Feed') {
+            await siteDashboardPage.actions.verifyPostCreationCancelButtonVisible();
+          } else {
+            await appManagerFeedPage.actions.verifyPostCreationCancelButtonVisible();
+          }
+
+          // Click Cancel button
+          if (testData.feedType === 'Content Feed') {
+            await contentPreviewPage.actions.clickPostCreationCancelButton();
+          } else if (testData.feedType === 'Site Feed') {
+            await siteDashboardPage.actions.clickPostCreationCancelButton();
+          } else {
+            await appManagerFeedPage.actions.clickPostCreationCancelButton();
+          }
+
+          // Verify editor box closes
+          if (testData.feedType === 'Content Feed') {
+            await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+          } else if (testData.feedType === 'Site Feed') {
+            await siteDashboardPage.actions.verifyPostCreationEditorClosed();
+          } else {
+            await appManagerFeedPage.actions.verifyPostCreationEditorClosed();
+          }
+        }
+      );
+    }
+  );
+}
+
 // Test case for CONT-30407: Verify user gets notified for replies on comments
 test.describe(
   'feed Reply Notifications',

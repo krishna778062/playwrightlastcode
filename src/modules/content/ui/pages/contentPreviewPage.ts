@@ -33,6 +33,9 @@ export interface IContentPreviewPageActions {
   addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -368,5 +371,17 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyContentIsNotAMustRead(): Promise<void> {
     await this.mustReadModalComponent.verifyContentIsNotAMustRead();
+  }
+
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
   }
 }
