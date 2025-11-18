@@ -752,7 +752,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyVideoControls(postText: string): Promise<void> {
     await this.listFeedComponent.verifyVideoControls(postText);
   }
-  
+
   /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for
@@ -770,14 +770,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   /**
-   * Clicks the share icon on a feed post
-   * @param postText - The text of the post to share
-   */
-  async clickShareIconOnPost(postText: string): Promise<void> {
-    await this.listFeedComponent.clickShareIcon(postText);
-  }
-
-  /**
    * Enters share description in the share dialog
    * @param description - The description text to enter
    */
@@ -792,7 +784,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async enterSiteNameForShare(siteName: string): Promise<void> {
     await this.shareComponent.actions.enterSiteName(siteName);
   }
-  
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
