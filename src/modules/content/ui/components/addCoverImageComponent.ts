@@ -4,10 +4,12 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class AddCoverImageComponent extends BaseComponent {
   readonly tabsOptions: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => Locator;
+  readonly openMediaManagerDialog: Locator;
 
   constructor(page: Page) {
     super(page);
     this.tabsOptions = (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash') => page.getByRole('tab', { name: tab });
+    this.openMediaManagerDialog = page.getByRole('button', { name: 'Open media manager dialog' });
   }
 
   /**
