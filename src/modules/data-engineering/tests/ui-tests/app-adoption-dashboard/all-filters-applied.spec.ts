@@ -50,7 +50,7 @@ test.describe(
         testFiltersConfig = {
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
-          departments: ['Campaign', 'HR'],
+          departments: ['test', 'QA'],
           locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
           // userCategories: ['Adil Option1'],
           companyName: ['Simpplr'],
