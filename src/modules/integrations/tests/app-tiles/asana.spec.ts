@@ -49,7 +49,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23106',
+          zephyrTestId: ['INT-23106', 'INT-23103'],
           storyId: 'INT-22854',
         });
 
@@ -77,7 +77,7 @@ test.describe(
     test(
       'create and edit Asana Display Recent Tasks tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -118,7 +118,7 @@ test.describe(
     test(
       'create and edit Asana Display team goals tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -151,7 +151,7 @@ test.describe(
     test(
       'create and edit Asana Display team goals tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -194,12 +194,12 @@ test.describe(
     test(
       'verify the Display recent tasks details are visible on Home dashboard by app manager',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-23103', 'INT-23435'],
+          zephyrTestId: 'INT-23435',
           storyId: 'INT-22854',
         });
 
@@ -224,7 +224,7 @@ test.describe(
     test(
       'verify the Display recent tasks details are visible on Site dashboard by app manager',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -258,14 +258,14 @@ test.describe(
     );
 
     test(
-      'verify app manager defined  for Asana Display Recent Tasks tile on home dashboard',
+      'verify app manager defined for Asana Display Recent Tasks tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: 'INT-26920',
           storyId: 'INT-22854',
         });
 
@@ -292,7 +292,7 @@ test.describe(
     test(
       'verify display recent tasks details Personalize button is visible on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -328,7 +328,7 @@ test.describe(
     test(
       'verify the Display team goals details are visible on Home dashboard by app manager',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -359,7 +359,7 @@ test.describe(
     test(
       'verify show more behavior for Asana Display team goals on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -390,7 +390,7 @@ test.describe(
     test(
       'verfiy show more behavior for Asana Display Recent Tasks on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -455,12 +455,12 @@ test.describe(
     test(
       'verify app manager defined for Asana Display Recent Tasks tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21575',
+          zephyrTestId: 'INT-29052',
           storyId: 'INT-22854',
         });
 
@@ -494,7 +494,7 @@ test.describe(
     test(
       'verify display recent tasks details Personalize button is visible on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -536,7 +536,7 @@ test.describe(
     test(
       'verify Asana Display team goals metadata on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -573,7 +573,7 @@ test.describe(
     test(
       'verify show more behavior for Asana Display team goals on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -646,12 +646,12 @@ test.describe(
     test(
       'verify personalize and show more behavior for Asana Display Recent Tasks tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-26446', 'INT-26447', 'INT-26458'],
+          zephyrTestId: ['INT-26446', 'INT-26458'],
           storyId: 'INT-22854',
         });
 

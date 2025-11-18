@@ -9,7 +9,6 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 
@@ -111,9 +110,10 @@ for (const testData of feedTestData) {
 
       test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+        /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      */
         // Initialize feed page
         appManagerFeedPage = new FeedPage(appManagerFixture.page);
         const resources = await getPrerequisiteData(
@@ -219,7 +219,7 @@ for (const testData of feedTestData) {
           });
 
           // Add reply to the feed post
-          await appManagerFeedPage.actions.addReplyToPost(replyText);
+          await appManagerFeedPage.actions.addReplyToPost(replyText, createdPostId);
 
           // Verify reply is associated with the correct post
           await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
@@ -252,9 +252,10 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
       // Configure app governance settings
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       // Generate test data
       const feedTestDataByAppManager = TestDataGenerator.generateFeed({

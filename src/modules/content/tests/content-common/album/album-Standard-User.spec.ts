@@ -10,9 +10,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
@@ -82,7 +82,13 @@ test.describe(
       test(
         `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.ALBUM_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.ALBUM_CREATION,
+            `@${testData.storyId}`,
+          ],
         },
         async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
           tagTest(test.info(), {
@@ -99,10 +105,16 @@ test.describe(
             ContentType.ALBUM
           );
 
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [users.endUser.email],
+            SITE_TYPES.PUBLIC
+          );
+
           // Navigate to album creation by standard user
           await standardUserFixture.homePage.verifyThePageIsLoaded();
           albumCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
-            ContentType.ALBUM
+            ContentType.ALBUM,
+            { siteName: siteInfo.siteName }
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator
@@ -126,12 +138,12 @@ test.describe(
             'excel',
             'sample.docx'
           );
-          const albumCreationOptions = TestDataGenerator.generateAlbum(
-            imagePath,
-            attachmentPath,
-            'https://youtu.be/4vLyqzOr14g',
-            true
-          );
+          const albumCreationOptions = TestDataGenerator.generateAlbum({
+            fileName: imagePath,
+            attachmentFileName: attachmentPath,
+            videoUrl: 'https://youtu.be/4vLyqzOr14g',
+            openAlbum: true,
+          });
 
           // Create and submit the album
           const { albumId, siteId, peopleName } =

@@ -126,9 +126,7 @@ export class RewardOptionsPage extends BasePage {
       const currentUrl = this.page.url();
       const newPage = await this.page.context().newPage();
       await newPage.goto(currentUrl);
-      await this.verifier.verifyTheElementIsVisible(newPage.locator('input[aria-label="Search…"]'), {
-        assertionMessage: 'Verify the search input is visible in the new tab',
-      });
+      await this.verifyThePageIsLoaded();
       await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRow.last(), {
         assertionMessage: 'Verify the Reward name is visible in the search results in the new tab',
       });

@@ -13,6 +13,7 @@ export const PAGE_ENDPOINTS = {
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   MANAGE_REWARDS_ALLOWANCE_PAGE: '/manage/recognition/rewards/peer-gifting/allowances',
+  PEER_GIFTING_OVERVIEW: '/manage/recognition/rewards/peer-gifting',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
   REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
   CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
@@ -23,6 +24,8 @@ export const PAGE_ENDPOINTS = {
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
   MANAGE_USERS_PAGE: '/manage/users',
+  MANAGE_USERS_FILTER_PAGE: (firstName: string, lastName: string) =>
+    `/manage/users?searchTerm=${firstName}+${lastName}`,
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
   FAVORITE_PAGE: '/favorites/sites',
@@ -34,6 +37,7 @@ export const PAGE_ENDPOINTS = {
   // Recognition pages
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
+  MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
@@ -101,6 +105,8 @@ export const PAGE_ENDPOINTS = {
   ADD_SOCIAL_CAMPAIGNS: '/campaigns/add',
   SOCIAL_INTERACTION_PAGE: '/analytics/engagement',
   APP_ADOPTION_DASHBOARD: '/analytics/adoption',
+  SEARCH_DASHBOARD: '/analytics/search',
+  PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
@@ -108,4 +114,7 @@ export const PAGE_ENDPOINTS = {
   POLLS_SETTINGS_PAGE: '/manage/app/setup/employee-listening',
   //Poll listening page
   POLLS_LISTING_PAGE: '/polls',
+
+  //Form creation page
+  FORM_CREATION_PAGE: '/forms',
 };
