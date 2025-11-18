@@ -499,6 +499,12 @@ test.describe(
         await contentPreviewPageEvent.loadPage();
         await contentPreviewPageEvent.clickOnFavouriteContentButton();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
+        await favoritesPage.actions.clickOnContentButton();
+        await favoritesPage.assertions.verifyContentNamesAreDisplayed([
+          createPageInfo.pageName,
+          createAlbumInfo.albumName,
+          createEventInfo.eventName,
+        ]);
       }
     );
   }
