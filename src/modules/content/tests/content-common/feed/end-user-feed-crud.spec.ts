@@ -135,18 +135,19 @@ test.describe(
 
         // Step 1: Get or reuse a private site that standard user is NOT a member of
         // This will reuse an existing private site if available, or create a new one if needed
-        const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('private', {
-          waitForSearchIndex: false,
-        });
-        const privateSiteName = privateSiteResult.name;
+        const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+          [users.endUser.email],
+          SITE_TYPES.PRIVATE
+        );
+        const privateSiteName = privateSiteResult.siteName;
         console.log(`Using private site: ${privateSiteName}`);
 
         // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
-        // This will reuse an existing unlisted site if available, or create a new one if needed
-        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('unlisted', {
-          waitForSearchIndex: false,
-        });
-        const unlistedSiteName = unlistedSiteResult.name;
+        const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+          [users.endUser.email],
+          SITE_TYPES.UNLISTED
+        );
+        const unlistedSiteName = unlistedSiteResult.siteName;
         console.log(`Using unlisted site: ${unlistedSiteName}`);
 
         // Step 3: Standard User is already on Feed page (from beforeEach setup)

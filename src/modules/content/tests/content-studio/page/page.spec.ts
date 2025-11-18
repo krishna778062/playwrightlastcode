@@ -14,9 +14,7 @@ test.describe(
   },
   () => {
     let pageCreationPage: ContentStudioPageCreationPage;
-
     test.beforeEach('Setting up the test environment for page creation', async ({ appManagerFixture }) => {
-      // Create home page instance and verify it's loaded
       await appManagerFixture.homePage.verifyThePageIsLoaded();
     });
 
@@ -50,6 +48,41 @@ test.describe(
         await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('Browse');
         await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('URL');
         await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('Unsplash');
+      }
+    );
+
+    test(
+      'verify admin can set cover image using Browse tab (CONT-39635)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.REGRESSION,
+          TestGroupType.SMOKE,
+          ContentSuiteTags.PAGE_CREATION,
+          '@CONT-39635',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify admin can set cover image using Browse tab in Content Studio',
+          zephyrTestId: 'CONT-39635',
+          storyId: 'CONT-39635',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+        pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.PAGE,
+          { isFromStudio: true }
+        )) as ContentStudioPageCreationPage;
+
+        await pageCreationPage.assertions.verifyThePageIsLoaded();
+        await pageCreationPage.actions.clickAddCoverImageIcon();
+        await pageCreationPage.actions.clickOnOptionsButtonAndSelectAddCoverImageTab('Browse');
+        await pageCreationPage.assertions.verifyopenMediaManagerDialogIsVisible();
+        await pageCreationPage.actions.clickOnopenMediaManagerDialog();
+        await pageCreationPage.actions.selectAndAttachImageFromMediaManager();
+        await pageCreationPage.assertions.verifyUploadedCoverImagePreviewIsVisible();
       }
     );
   }

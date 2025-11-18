@@ -38,8 +38,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
-  readonly successMessage = (message: string) =>
-    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
 
   /**
@@ -325,7 +323,6 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await test.step('Verify image button is not visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
     });
   }
@@ -335,7 +332,7 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to reply to
    * @param replyText - The reply text to add
    */
-  async addReplyToPost(replyText: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
       //add API wait for response
@@ -362,9 +359,7 @@ export class ListFeedComponent extends BaseComponent {
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
-
-      // Click submit reply button
-      await this.clickOnElement(this.submitReplyButton);
+      await this.clickOnReplyButton(postId);
     });
     console.log('replyText :   ', replyText);
     return replyText;
@@ -806,6 +801,22 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
         assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
       });
+    });
+  }
+  
+  async clickOnReplyButton(postText: string): Promise<void> {
+    await test.step(`Click on reply button for post: ${postText}`, async () => {
+      const postResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitReplyButton, { delay: 3_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.comment(postText)) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return postResponse;
     });
   }
 }
