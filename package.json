@@ -58,8 +58,8 @@
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:privateRecognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.private-recognition.config.ts",
-    "test:privateRecognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.private-recognition.config.ts"
+    "test:onlyPeerRecognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts",
+    "test:onlyPeerRecognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts"
   },
   "keywords": [],
   "author": "",
