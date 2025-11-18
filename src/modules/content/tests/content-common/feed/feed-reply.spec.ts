@@ -245,19 +245,19 @@ const postCreationCancelTestData = [
   {
     feedType: 'Home Feed',
     description: 'Verify user can see and click Cancel button while creating Home Feed post',
-    storyId: 'CONT-30150',
+    storyId: 'CONT-30148',
     ...commonFeedConfig,
   },
   {
     feedType: 'Site Feed',
     description: 'Verify user can see and click Cancel button while creating Site Feed post',
-    storyId: 'CONT-30150',
+    storyId: 'CONT-30148',
     ...commonFeedConfig,
   },
   {
     feedType: 'Content Feed',
     description: 'Verify user can see and click Cancel button while creating Content Feed post',
-    storyId: 'CONT-30150',
+    storyId: 'CONT-30148',
     ...commonFeedConfig,
   },
 ];
@@ -320,13 +320,13 @@ for (const testData of postCreationCancelTestData) {
       test(
         `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
         {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30150'],
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
         },
         async ({}) => {
           tagTest(test.info(), {
             description: `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
-            zephyrTestId: 'CONT-30150',
-            storyId: 'CONT-30150',
+            zephyrTestId: 'CONT-30148',
+            storyId: 'CONT-30148',
           });
 
           // Click "Share your thoughts" button to open post creation editor
