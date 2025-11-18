@@ -15,12 +15,41 @@ export interface IFavoritePageAssertions {
   verifyUserDetailsRemainVisible: (fullName: string) => Promise<void>;
   verifyContactIconsAreVisible: (fullName: string) => Promise<void>;
   verifyContactIconsRemainVisibleAfterHover: (fullName: string) => Promise<void>;
+  verifyNothingToShowMessage: () => Promise<void>;
+  verifyContentSearchBarIsVisible: () => Promise<void>;
+  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
 }
 export class FavoritePage extends BasePage implements IFavoritePageActions, IFavoritePageAssertions {
   readonly favoriteHeading: Locator = this.page.getByRole('heading', { name: 'Favorites' });
   readonly peopleTab: Locator = this.page.getByRole('tab', { name: 'People' });
+  readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
+  readonly feedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
   readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search favorite people…' });
   readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"][type="submit"]');
+  readonly nothingToShowMessage: Locator = this.page.locator('text=Nothing to show here').first();
+
+  // Content tab locators
+  readonly getContentTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Content' });
+  // Feed tab locators
+  readonly getFeedTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Feed' });
+  readonly getFeedPosts = (): Locator => this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
+  readonly getFirstFeedPostContent = (): Locator => this.getFeedTabPanel().locator('div[class*="postContent"]').first();
+  readonly getPostContainer = (postContentLocator: Locator): Locator => {
+    // Find the parent container that contains both postContent and action buttons
+    // Navigate up the DOM tree to find the common parent
+    return postContentLocator.locator('..').locator('..').locator('..').locator('..').first();
+  };
+  readonly getPostTextParagraph = (postContentLocator: Locator): Locator =>
+    postContentLocator
+      .locator('p')
+      .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
+      .first();
+  readonly getContentSearchBar = (): Locator => this.getContentTabPanel().getByRole('textbox').first();
+  readonly getContentSearchIcon = (): Locator =>
+    this.getContentTabPanel().locator('button[aria-label="Search"][type="submit"]').first();
+  readonly getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
+  readonly getContentLinkByName = (contentName: string): Locator =>
+    this.getContentTabPanel().getByRole('link', { name: contentName }).first();
 
   // User profile locators
   readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
@@ -258,6 +287,31 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
           assertionMessage: `${icon.name} icon should remain visible after hover for ${fullName}`,
         });
       }
+    });
+  }
+
+  async verifyNothingToShowMessage(): Promise<void> {
+    await test.step('Verifying "Nothing to show here" message is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.nothingToShowMessage, {
+        assertionMessage: 'Nothing to show here message should be displayed for random search text',
+      });
+    });
+  }
+
+  async verifyContentSearchBarIsVisible(): Promise<void> {
+    await test.step('Verify the search bar is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentSearchBar(), {
+        assertionMessage: 'Search bar should be visible on favorites content tab',
+      });
+    });
+  }
+
+  async verifyContentIsVisibleInSearchResults(contentName: string): Promise<void> {
+    await test.step(`Verify content "${contentName}" is visible in search results`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentLinkByName(contentName), {
+        assertionMessage: `Content "${contentName}" should be visible in search results`,
+        timeout: 10_000,
+      });
     });
   }
 }

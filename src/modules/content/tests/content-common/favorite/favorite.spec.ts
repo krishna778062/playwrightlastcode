@@ -4,6 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FAVORITE_TEST_DATA } from '@/src/modules/content/test-data/favorite.test-data';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
@@ -124,17 +125,12 @@ test.describe('favorite', () => {
       });
 
       // Enter random text and verify "Nothing to show here" message
-      const randomText = 'RandomTextThatDoesNotExist12345';
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
         await favoritePage.clickOnElement(favoritePage.searchBar);
-        await favoritePage.fillInElement(favoritePage.searchBar, randomText);
+        await favoritePage.fillInElement(favoritePage.searchBar, FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
         await favoritePage.clickOnElement(favoritePage.searchIcon);
 
-        // Wait for the "Nothing to show here" message to appear
-        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
-        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
-          assertionMessage: 'Nothing to show here message should be displayed for random search text',
-        });
+        await favoritePage.assertions.verifyNothingToShowMessage();
       });
     }
   );
@@ -157,60 +153,39 @@ test.describe('favorite', () => {
       await favoritePage.verifyThePageIsLoaded();
 
       // Click on Content tab
-      const contentTab = appManagerFixture.page.getByRole('tab', { name: 'Content' });
-      await favoritePage.clickOnElement(contentTab);
-
-      // Get the content tab panel
-      const contentTabPanel = appManagerFixture.page.getByRole('tabpanel', { name: 'Content' });
+      await favoritePage.clickOnElement(favoritePage.contentTab);
 
       // Get the first content name from the content tab
-      const firstContentLink = contentTabPanel.getByRole('link').first();
+      const firstContentLink = favoritePage.getFirstContentLink();
       await favoritePage.verifier.verifyTheElementIsVisible(firstContentLink, {
         assertionMessage: 'First content item should be visible',
         timeout: 10_000,
       });
       const firstContentName = (await firstContentLink.textContent())?.trim() || '';
 
-      // Find the content search bar
-      const contentSearchBar = contentTabPanel.getByRole('textbox').first();
-
       // Verify the search bar is visible
-      await test.step('Verify the search bar is visible', async () => {
-        await favoritePage.verifier.verifyTheElementIsVisible(contentSearchBar, {
-          assertionMessage: 'Search bar should be visible on favorites content tab',
-        });
-      });
+      await favoritePage.assertions.verifyContentSearchBarIsVisible();
 
       // Search for the first content and verify search returns correct data
       if (firstContentName) {
         await test.step('Search for the first displayed content', async () => {
+          const contentSearchBar = favoritePage.getContentSearchBar();
           await favoritePage.clickOnElement(contentSearchBar);
           await favoritePage.fillInElement(contentSearchBar, firstContentName);
-          const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
-          await favoritePage.clickOnElement(contentSearchIcon);
+          await favoritePage.clickOnElement(favoritePage.getContentSearchIcon());
 
-          // Verify the content is visible in search results
-          const searchedContentLink = contentTabPanel.getByRole('link', { name: firstContentName }).first();
-          await favoritePage.verifier.verifyTheElementIsVisible(searchedContentLink, {
-            assertionMessage: `Content "${firstContentName}" should be visible in search results`,
-            timeout: 10_000,
-          });
+          await favoritePage.assertions.verifyContentIsVisibleInSearchResults(firstContentName);
         });
       }
 
       // Enter random text and verify "Nothing to show here" message
-      const randomText = 'RandomTextThatDoesNotExist12345';
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
+        const contentSearchBar = favoritePage.getContentSearchBar();
         await favoritePage.clickOnElement(contentSearchBar);
-        await favoritePage.fillInElement(contentSearchBar, randomText);
-        const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
-        await favoritePage.clickOnElement(contentSearchIcon);
+        await favoritePage.fillInElement(contentSearchBar, FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
+        await favoritePage.clickOnElement(favoritePage.getContentSearchIcon());
 
-        // Wait for the "Nothing to show here" message to appear
-        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
-        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
-          assertionMessage: 'Nothing to show here message should be displayed for random search text',
-        });
+        await favoritePage.assertions.verifyNothingToShowMessage();
       });
     }
   );
@@ -233,18 +208,14 @@ test.describe('favorite', () => {
       await favoritePage.verifyThePageIsLoaded();
 
       // Click on Feed tab
-      const feedTab = appManagerFixture.page.getByRole('tab', { name: 'Feed' });
-      await favoritePage.clickOnElement(feedTab);
-
-      // Get the feed tab panel
-      const feedTabPanel = appManagerFixture.page.getByRole('tabpanel', { name: 'Feed' });
+      await favoritePage.clickOnElement(favoritePage.feedTab);
 
       // Initialize ListFeedComponent for feed operations
       const listFeedComponent = new ListFeedComponent(appManagerFixture.page);
 
       // Verify all the feed posts marked favourite are listing
       await test.step('Verify all favorite feed posts are listed', async () => {
-        const feedPosts = feedTabPanel.locator('p').filter({ hasText: /./ });
+        const feedPosts = favoritePage.getFeedPosts();
         const postCount = await feedPosts.count();
         await favoritePage.verifier.verifyTheElementIsVisible(feedPosts.first(), {
           assertionMessage: `At least one favorite feed post should be visible. Found ${postCount} posts`,
@@ -252,34 +223,21 @@ test.describe('favorite', () => {
       });
 
       // Get the first feed post container
-      const firstPostContent = feedTabPanel.locator('div[class*="postContent"]').first();
+      const firstPostContent = favoritePage.getFirstFeedPostContent();
       await favoritePage.verifier.verifyTheElementIsVisible(firstPostContent, {
         assertionMessage: 'First feed post container should be visible',
       });
 
-      // Get the post wrapper that contains both postContent and action buttons
-      const firstPostWrapper = firstPostContent
-        .locator('xpath=./ancestor::div[contains(@class, "postBody") or contains(@class, "post")]')
-        .first();
-      const postWrapperExists = (await firstPostWrapper.count()) > 0;
-      const postContainer = postWrapperExists
-        ? firstPostWrapper
-        : firstPostContent.locator('xpath=./ancestor::div[4]').first();
+      // Get the post container that contains both postContent and action buttons
+      const postContainer = favoritePage.getPostContainer(firstPostContent);
 
       // Get post text for fallback timestamp verification
-      const postTextParagraph = firstPostContent
-        .locator('p')
-        .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
-        .first();
+      const postTextParagraph = favoritePage.getPostTextParagraph(firstPostContent);
       const firstFeedPostText = (await postTextParagraph.textContent())?.trim() || '';
 
       // Verify user can like the feed post
       await test.step('Verify user can like the feed post', async () => {
-        const likeButton = postContainer
-          .locator(
-            'div:nth-child(3) > .Spacing-module__row__bvKBb.Spacing-module__spacing-15__bvKBb > .Spacing-module__row__bvKBb.Spacing-module__spacing-20__bvKBb > .Spacing-module__row__bvKBb > div > ._actionBtn_l2df2_10'
-          )
-          .first();
+        const likeButton = postContainer.getByRole('button', { name: 'React to this post' }).first();
         await favoritePage.verifier.verifyTheElementIsVisible(likeButton, {
           assertionMessage: 'Like button should be visible on feed post',
         });
@@ -288,11 +246,7 @@ test.describe('favorite', () => {
 
       // Verify user can comment on the feed post
       await test.step('Verify user can comment on the feed post', async () => {
-        const commentButton = postContainer
-          .locator(
-            '._Replies_eonic_20 > ._Reply_qr1ju_1 > ._Reply-inner_qr1ju_11 > ._Reply-body_qr1ju_22 > ._FakeInput_qr1ju_102'
-          )
-          .first();
+        const commentButton = postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
         await favoritePage.verifier.verifyTheElementIsVisible(commentButton, {
           assertionMessage: 'Comment button should be visible on feed post',
         });
@@ -315,11 +269,7 @@ test.describe('favorite', () => {
 
       // Verify user can unfavorite the feed post
       await test.step('Verify user can unfavorite the feed post', async () => {
-        const unfavoriteButton = postContainer
-          .locator(
-            '._postHeader_tgt5r_1 > .Spacing-module__row__bvKBb > ._postFavoriteContainer_tgt5r_29 > ._favoritePostIcon_1nta9_1 > .u-ignoreLegacyStyle'
-          )
-          .first();
+        const unfavoriteButton = postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
         await favoritePage.verifier.verifyTheElementIsVisible(unfavoriteButton, {
           assertionMessage: 'Unfavorite button should be visible on feed post',
         });
