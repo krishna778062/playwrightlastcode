@@ -358,7 +358,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
   }
-  
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
