@@ -190,9 +190,12 @@ export class SocialCampaignService {
 
       const socialCampaignsSettings = settings || defaultSettings;
 
-      const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.enableSettings, {
+      const response = await this.httpClient.post(API_ENDPOINTS.socialCampaign.enableSettings, {
         data: {
           socialCampaignsSettings,
+        },
+        headers: {
+          'Content-Type': 'application/json',
         },
       });
 
