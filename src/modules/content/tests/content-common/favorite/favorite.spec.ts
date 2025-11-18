@@ -53,36 +53,27 @@ test.describe('favorite', () => {
       const isUserVisible = await userProfileLink.isVisible().catch(() => false);
 
       if (wasAlreadyFavorited) {
-        // Scenario 2: User was already favorited, we unfavorited them
-        // Check that user is NOT present in favorites page - if not present, end test
-        if (!isUserVisible) {
-          // User is correctly not showing in favorites page after unfavoriting - end test here
-          return;
-        } else {
-          // User is still showing in favorites page after unfavoriting - this is unexpected
-          throw new Error(`User "${peopleScreenPage.fullName}" is still visible in favorites page after unfavoriting`);
-        }
-      } else {
-        // Scenario 1: User was NOT favorited, we favorited them
-        // Check if user is visible in favorites page - if not, end test early
-        if (!isUserVisible) {
-          // User is not showing in favorites page after favoriting - end test here
-          return;
-        }
+        await test.step('Verify user is removed from favorites after unfavoriting', async () => {
+          if (isUserVisible) {
+            throw new Error(
+              `User "${peopleScreenPage.fullName}" is still visible in favorites page after unfavoriting`
+            );
+          }
+        });
+        return;
+      }
 
-        // User is visible - proceed with all verification scenarios
+      if (!isUserVisible) {
+        return;
+      }
+
+      await test.step('Verify user is visible and details remain after favoriting', async () => {
         await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
-
-        // Hover on user profile and verify details remain visible
         await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
         await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
-
-        // Verify contact icons are visible
         await favoritePage.assertions.verifyContactIconsAreVisible(peopleScreenPage.fullName);
-
-        // Verify contact icons remain visible after hover
         await favoritePage.assertions.verifyContactIconsRemainVisibleAfterHover(peopleScreenPage.fullName);
-      }
+      });
     }
   );
 
@@ -146,8 +137,8 @@ test.describe('favorite', () => {
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify the favourite content search functionality',
-        zephyrTestId: '26266',
-        storyId: '26266',
+        zephyrTestId: 'CONT-26266',
+        storyId: 'CONT-26266',
       });
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
