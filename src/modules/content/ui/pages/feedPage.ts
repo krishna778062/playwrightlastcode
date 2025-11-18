@@ -100,7 +100,6 @@ export interface IFeedActions {
   clickReactionCountButton: (postText: string) => Promise<void>;
   verifyReactionModalIsVisible: () => Promise<void>;
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
-  clickReactionModalTab: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
 }
@@ -750,10 +749,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReactionModalTabExists(emojiName: string): Promise<void> {
     await this.listFeedComponent.verifyReactionModalTabExists(emojiName);
-  }
-
-  async clickReactionModalTab(emojiName: string): Promise<void> {
-    await this.listFeedComponent.clickReactionModalTab(emojiName);
   }
 
   async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {

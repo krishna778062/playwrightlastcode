@@ -20,6 +20,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly reactionCountButton: Locator;
+  readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
@@ -168,6 +169,7 @@ export class ListFeedComponent extends BaseComponent {
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
     this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
+    this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
   }
 
   /**
@@ -818,8 +820,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async verifyReactionModalIsVisible(): Promise<void> {
     await test.step('Verify reaction modal is visible', async () => {
-      const reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
-      await this.verifier.verifyTheElementIsVisible(reactionModal, {
+      await this.verifier.verifyTheElementIsVisible(this.reactionModal, {
         assertionMessage: 'Reaction modal should be visible',
       });
     });
@@ -831,22 +832,42 @@ export class ListFeedComponent extends BaseComponent {
    */
   async verifyReactionModalTabExists(emojiName: string): Promise<void> {
     await test.step(`Verify reaction modal tab exists for emoji: ${emojiName}`, async () => {
-      const tab = this.page.locator('button').filter({ hasText: emojiName }).first();
+      // Wait for modal to be fully loaded
+      await this.verifier.verifyTheElementIsVisible(this.reactionModal, {
+        assertionMessage: 'Reaction modal should be visible',
+      });
+      const tablist = this.reactionModal.locator('[role="tablist"]').first();
+
+      const tabs = await tablist.getByRole('tab').all();
+
+      // Map emoji names to their emoji characters for matching
+      const emojiCharMap: Record<string, string> = {
+        like: '👍',
+        love: '❤️',
+        haha: '😆',
+        insightful: '💡',
+        thankful: '🙏',
+        celebrate: '🎉',
+      };
+
+      const emojiChar = emojiCharMap[emojiName];
+
+      let tab: Locator | null = null;
+      for (const tabElement of tabs) {
+        const textContent = (await tabElement.textContent()) || '';
+
+        if (textContent.includes(emojiChar)) {
+          tab = tabElement;
+          break;
+        }
+      }
+
+      if (!tab) {
+        throw new Error(`Tab for emoji "${emojiName}" not found. Checked ${tabs.length} tabs in reaction modal.`);
+      }
+
       await this.verifier.verifyTheElementIsVisible(tab, {
         assertionMessage: `Tab for emoji "${emojiName}" should be visible in reaction modal`,
-      });
-    });
-  }
-
-  /**
-   * Clicks on a specific emoji tab in the reaction modal
-   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
-   */
-  async clickReactionModalTab(emojiName: string): Promise<void> {
-    await test.step(`Click reaction modal tab for emoji: ${emojiName}`, async () => {
-      const tab = this.page.locator('button').filter({ hasText: emojiName }).first();
-      await this.verifier.verifyTheElementIsVisible(tab, {
-        assertionMessage: `Tab for emoji "${emojiName}" should be visible`,
       });
       await this.clickOnElement(tab);
     });

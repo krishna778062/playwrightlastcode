@@ -74,10 +74,11 @@ test.describe(
       'Setup test environment and create feed post',
       async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
+        /*
         await appManagerFixture.feedManagementHelper.configureAppGovernance({
           feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
         });
-
+        */
         // Initialize feed pages for all user roles (users are already logged in via fixtures)
         siteOwnerFeedPage = new FeedPage(appManagerFixture.page);
         siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
@@ -664,21 +665,16 @@ test.describe(
 
         // And: The modal should display users grouped by each reaction emoji
         // Verify tabs exist for each emoji type
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
-
         // Click on "like" tab and verify user is displayed
-        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.LIKE);
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
         await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
 
-        // Click on "insightful" tab and verify user is displayed
-        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.INSIGHTFUL);
-        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
-
-        // Click on "haha" tab and verify user is displayed
-        await feedPage.actions.clickReactionModalTab(ReactionsEmoji.HAHA);
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
         await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
+        
+        
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
 
         // Close the modal
         await feedPage.actions.closeReactionModal();
