@@ -678,7 +678,7 @@ test.describe(
     test(
       'verify tile shows error message when invalid credentials are entered',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, 'INT-29202'],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -729,7 +729,7 @@ test.describe(
     test(
       'verify tile shows error message after changing valid credentials to invalid',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, 'INT-29201'],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
