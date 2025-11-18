@@ -25,10 +25,10 @@ export class TargetAudienceSectionComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.targetAudienceHeading = page.getByRole('heading', { name: 'Target audience and' });
+    this.targetAudienceHeading = page.getByRole('heading', { name: 'Site visibility and' });
     this.targetAudienceDropdown = page
       .locator('div')
-      .filter({ hasText: /^Target audience\*$/ })
+      .filter({ hasText: /^Site visibility\*$/ })
       .locator('span');
     this.browseAudiencesButton = page.getByRole('button', { name: SiteCreationUI.BUTTONS.BROWSE });
 
@@ -52,24 +52,24 @@ export class TargetAudienceSectionComponent extends BaseComponent {
   }
 
   /**
-   * This method is used to verify that the target audience section is visible.
+   * This method is used to verify that the Site visibility section is visible.
    * @param options - optional step info to be used in the test report
    */
   async verifySection(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || 'Verify Target audience section', async () => {
+    await test.step(options?.stepInfo || 'Verify Site visibility section', async () => {
       await this.verifier.verifyTheElementIsVisible(this.targetAudienceHeading, {
-        assertionMessage: 'Target audience heading should be visible',
+        assertionMessage: 'Site visibility heading should be visible',
       });
       await this.verifier.verifyTheElementIsVisible(
         this.page.getByText(SiteCreationUI.LABELS.TARGET_AUDIENCE.replace(' *', ''), { exact: true }),
         {
-          assertionMessage: 'Target audience label should be visible',
+          assertionMessage: 'Site visibility label should be visible',
         }
       );
       await this.verifier.verifyTheElementIsVisible(
         this.page.getByText(SiteCreationUI.DESCRIPTIONS.TARGET_AUDIENCE_HELP),
         {
-          assertionMessage: 'Target audience help text should be visible',
+          assertionMessage: 'Site visibility help text should be visible',
         }
       );
       await this.verifier.verifyTheElementIsVisible(this.page.getByText(SiteCreationUI.PLACEHOLDERS.NO_AUDIENCES), {
@@ -90,7 +90,7 @@ export class TargetAudienceSectionComponent extends BaseComponent {
       await this.clickOnElement(this.targetAudienceDropdown);
       await this.clickOnElement(this.browseAudiencesButton);
       await this.verifier.verifyTheElementIsVisible(this.targetAudienceModalTitle, {
-        assertionMessage: 'Target audience modal title should be visible',
+        assertionMessage: 'Site visibility modal title should be visible',
       });
     });
   }
