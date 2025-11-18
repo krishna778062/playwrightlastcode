@@ -803,7 +803,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   async clickOnReplyButton(postText: string): Promise<void> {
     await test.step(`Click on reply button for post: ${postText}`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
