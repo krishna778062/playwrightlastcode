@@ -119,7 +119,6 @@ export interface IFeedActions {
     embedUrl?: string;
   }) => Promise<void>;
   clickShareIconOnPost: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
@@ -766,14 +765,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async clickShareOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareOnPost(postText);
-  }
-
-  /**
-   * Enters share description in the share dialog
-   * @param description - The description text to enter
-   */
-  async enterShareDescription(description: string): Promise<void> {
-    await this.shareComponent.enterShareDescription(description);
   }
 
   /**
