@@ -174,22 +174,13 @@ test.describe(
         await siteManagerFeedPage.actions.clickShareOnComment();
 
         // Fill share dialog with message, mentions, topics, and embedded URL
-        await siteManagerFeedPage.actions.enterShareDescription(shareMessage);
-
-        // Add user mention
-        await siteManagerFeedPage.actions.addUserNameMentionInShareDialog(endUserFullName);
-
-        // Add site mention
-        await siteManagerFeedPage.actions.addSiteMentionInShareDialog(privateSiteName);
-
-        // Add existing topic
-        await siteManagerFeedPage.actions.addTopicMentionInShareDialog(randomTopic.name);
-
-        // Add new topic
-        await siteManagerFeedPage.actions.addTopicMentionInShareDialog(newTopicName);
-
-        // Add embedded URL
-        await siteManagerFeedPage.actions.addEmbeddedUrlInShareDialog(embedUrl);
+        await siteManagerFeedPage.actions.fillShareDialogWithMentionsAndTopics({
+          shareMessage,
+          userNames: [endUserFullName],
+          siteNames: [privateSiteName],
+          topicNames: [randomTopic.name, newTopicName],
+          embedUrl,
+        });
 
         // Verify the Original Post is displayed with "View Post" link
         await siteManagerFeedPage.assertions.verifyViewPostLinkInShareDialog();
@@ -247,26 +238,16 @@ test.describe(
         // Click "Share" on the feed post shared by "Site Manager"
         await siteContentManagerFeedPage.actions.clickShareOnPost(shareMessage);
 
-        // Add message, mentions, topics, and embedded URL
+        // Fill share dialog with message, mentions, topics, and embedded URL
         const shareMessage2 = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-        await siteContentManagerFeedPage.actions.enterShareDescription(shareMessage2);
-
-        // Add user mention
-        console.log(`Adding user mention: @${siteManagerFullName}`);
-        await siteContentManagerFeedPage.actions.addUserNameMentionInShareDialog(siteManagerFullName);
-
-        // Add site mention
-        await siteContentManagerFeedPage.actions.addSiteMentionInShareDialog(unlistedSiteName);
-
-        // Add existing topic
-        await siteContentManagerFeedPage.actions.addTopicMentionInShareDialog(randomTopic.name);
-
-        // Add new topic
         const newTopicName2 = FEED_TEST_DATA.POST_TEXT.TOPIC;
-        await siteContentManagerFeedPage.actions.addTopicMentionInShareDialog(newTopicName2);
-
-        // Add embedded URL
-        await siteContentManagerFeedPage.actions.addEmbeddedUrlInShareDialog(embedUrl);
+        await siteContentManagerFeedPage.actions.fillShareDialogWithMentionsAndTopics({
+          shareMessage: shareMessage2,
+          userNames: [siteManagerFullName],
+          siteNames: [unlistedSiteName],
+          topicNames: [randomTopic.name, newTopicName2],
+          embedUrl,
+        });
 
         // Verify original post with "View Post" link
         await siteContentManagerFeedPage.assertions.verifyViewPostLinkInShareDialog();

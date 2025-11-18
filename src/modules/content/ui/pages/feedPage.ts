@@ -111,6 +111,13 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  fillShareDialogWithMentionsAndTopics: (params: {
+    shareMessage: string;
+    userNames?: string[];
+    siteNames?: string[];
+    topicNames?: string[];
+    embedUrl?: string;
+  }) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -829,6 +836,51 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Adding embedded URL in share dialog: ${embedUrl}`, async () => {
       const shareEditor = this.shareComponent.shareDescriptionInput;
       await this.typeInElement(shareEditor, ` ${embedUrl}`);
+    });
+  }
+
+  /**
+   * Fills share dialog with message, mentions, topics, and embedded URL
+   * This is a wrapper function that combines multiple share dialog operations
+   * @param params - Object containing shareMessage, userNames, siteNames, topicNames, and embedUrl
+   */
+  async fillShareDialogWithMentionsAndTopics(params: {
+    shareMessage: string;
+    userNames?: string[];
+    siteNames?: string[];
+    topicNames?: string[];
+    embedUrl?: string;
+  }): Promise<void> {
+    const { shareMessage, userNames, siteNames, topicNames, embedUrl } = params;
+    await test.step(`Fill share dialog with message, mentions, topics, and embedded URL`, async () => {
+      // Enter share description
+      await this.enterShareDescription(shareMessage);
+
+      // Add user mentions
+      if (userNames && userNames.length > 0) {
+        for (const userName of userNames) {
+          await this.addUserNameMentionInShareDialog(userName);
+        }
+      }
+
+      // Add site mentions
+      if (siteNames && siteNames.length > 0) {
+        for (const siteName of siteNames) {
+          await this.addSiteMentionInShareDialog(siteName);
+        }
+      }
+
+      // Add topic mentions
+      if (topicNames && topicNames.length > 0) {
+        for (const topicName of topicNames) {
+          await this.addTopicMentionInShareDialog(topicName);
+        }
+      }
+
+      // Add embedded URL
+      if (embedUrl) {
+        await this.addEmbeddedUrlInShareDialog(embedUrl);
+      }
     });
   }
 
