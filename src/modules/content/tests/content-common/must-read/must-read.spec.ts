@@ -34,6 +34,7 @@ test.describe(
       await contentPreviewPage.actions.clickOnMustReadButton();
       await contentPreviewPage.actions.clickOnMustReadModalCancelButton();
       await contentPreviewPage.assertions.verifyMustReadModalIsNotVisible();
+      await contentPreviewPage.assertions.verifyContentIsNotAMustRead();
     }
 
     test(
@@ -87,6 +88,49 @@ test.describe(
           albumInfo.contentId,
           ContentType.ALBUM
         );
+      }
+    );
+
+    test(
+      'verify that app manager can make the content as must read for all the employee in organization',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5171'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that app manager can make the content as must read for all the employee in organization',
+          zephyrTestId: 'CONT-5171',
+          storyId: 'CONT-5171',
+        });
+
+        // Step 1: Login as app manager on tenant (already done via fixture)
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: true,
+          hasPages: true,
+        });
+
+        // Create all content types in parallel via API
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteDetails.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+
+        contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteDetails.siteId,
+          pageInfo.contentId,
+          ContentType.PAGE
+        );
+        await contentPreviewPage.loadPage({ stepInfo: `Load ${ContentType.PAGE} preview page` });
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.clickOnOptionMenuButton();
+        await contentPreviewPage.actions.clickOnMustReadButton();
+        await contentPreviewPage.assertions.verifyMustReadModalIsNotVisible();
+        await contentPreviewPage.actions.makeContentForEveryoneInOrganization();
+        await contentPreviewPage.actions.clickOnMakeMustReadButton();
+        await contentPreviewPage.assertions.verifyContentIsMustRead();
       }
     );
   }

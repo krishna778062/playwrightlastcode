@@ -61,6 +61,43 @@ export class ListFeedComponent extends BaseComponent {
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
+  readonly replyContainer = this.page.locator('._reply_1ii4b_1');
+  readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
+
+  readonly getReplyBoxImageLocator = (replyText: string): Locator => {
+    const reply = this.replyLocator(replyText);
+    return reply.locator('..').locator('..').locator('._reply_1ii4b_1').getByRole('button', { name: 'Image PDF' });
+  };
+
+  /**
+   * Gets a locator for the reply options menu
+   * @param replyText - The text of the reply to find options menu for
+   * @returns Locator for the reply options menu button
+   */
+  readonly getReplyOptionsMenuLocator = (replyText: string): Locator =>
+    this.page
+      .locator('div[class*="replyContent"]')
+      .filter({ hasText: replyText })
+      .locator("button[class*='optionlauncher']")
+      .first();
+
+  /**
+   * Gets a locator for the reply form container for a specific post
+   * @param postText - The text of the post
+   * @returns Locator for the reply form container
+   */
+  readonly getReplyFormContainerForPost = (postText: string): Locator =>
+    this.getFeedTextLocator(postText)
+      .locator('..')
+      .locator('..')
+      .locator('div._Reply--form_qr1ju_6, div[class*="Reply--form"]')
+      .first();
+
+  /**
+   * Gets a locator for the fake input button in reply form
+   * @param postText - The text of the post
+   * @returns Locator for the fake input button
+   */
 
   /**
    * Gets a locator for the post attachments
@@ -348,6 +385,28 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
+   * Submits a reply and returns the API response with feed ID
+   * @returns Promise with feed ID from the response
+   */
+  async submitReplyAndGetResponse(): Promise<{ feedId: string }> {
+    return await test.step('Submit reply and get response', async () => {
+      const replyResponsePromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201
+      );
+
+      await this.clickOnElement(this.submitReplyButton.first());
+
+      const replyResponse = await replyResponsePromise;
+      const responseBody = await replyResponse.json();
+      const feedId = responseBody.result?.feedId || '';
+      return { feedId };
+    });
+  }
+
+  /**
    * Verifies that a reply is visible under a specific post
    * @param postText - The text of the original post
    * @param replyText - The text of the reply to verify
@@ -452,7 +511,143 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Likes a feed post by clicking the like button
+   * Opens the options menu for a reply
+   * @param replyText - Text of the reply to open options for
+   */
+  async openReplyOptionsMenu(replyText: string): Promise<void> {
+    await test.step('Open reply options menu', async () => {
+      await this.clickOnElement(this.getReplyOptionsMenuLocator(replyText));
+    });
+  }
+
+  /**
+   * Clicks the edit option for a reply
+   */
+  async clickReplyEditOption(): Promise<void> {
+    await test.step('Click reply edit option', async () => {
+      await this.clickOnElement(this.editButton);
+    });
+  }
+
+  /**
+   * Clicks the delete option for a reply
+   */
+  async clickReplyDeleteOption(): Promise<void> {
+    await test.step('Click reply delete option', async () => {
+      await this.clickOnElement(this.deleteButton);
+    });
+  }
+
+  /**
+   * Verifies reply timestamp is displayed
+   * @param replyText - The text of the reply
+   */
+  async verifyReplyTimestamp(replyText: string): Promise<void> {
+    await test.step(`Verify reply timestamp for: ${replyText}`, async () => {
+      // Find the reply by text
+      const reply = this.replyLocator(replyText);
+      await this.verifier.verifyTheElementIsVisible(reply, {
+        assertionMessage: `Reply should be visible for: ${replyText}`,
+      });
+
+      // Find the reply container that contains this reply text
+      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const containerCount = await allReplyContainers.count();
+
+      let timestamp: Locator | null = null;
+
+      // Find the container that contains the reply text
+      for (let i = 0; i < containerCount; i++) {
+        const container = allReplyContainers.nth(i);
+        const containerText = await container.textContent().catch(() => '');
+
+        if (containerText?.includes(replyText)) {
+          // Find timestamp using locator with filter
+          timestamp = container
+            .locator('*')
+            .filter({
+              hasText: /Nov|Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|2025|2026|at|now|ago|minute|hour|day/i,
+            })
+            .first();
+          const timestampVisible = await timestamp.isVisible().catch(() => false);
+          if (timestampVisible) {
+            break;
+          }
+        }
+      }
+
+      if (!timestamp) {
+        throw new Error(`Reply timestamp not found for reply: ${replyText}`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(timestamp, {
+        assertionMessage: `Reply timestamp should be visible for reply: ${replyText}`,
+      });
+    });
+  }
+
+  /**
+   * Verifies Box logo on reply attachments
+   * @param replyText - The text of the reply
+   */
+  async verifyBoxLogoOnReplyAttachment(replyText: string): Promise<void> {
+    await test.step(`Verify Box logo on reply attachments for: ${replyText}`, async () => {
+      // Find the reply by text
+      const reply = this.replyLocator(replyText);
+      await this.verifier.verifyTheElementIsVisible(reply, {
+        assertionMessage: `Reply should be visible for: ${replyText}`,
+      });
+
+      // Find the reply container that contains this reply text
+      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const containerCount = await allReplyContainers.count();
+
+      let boxLogo: Locator | null = null;
+
+      // Find the container that contains the reply text
+      for (let i = 0; i < containerCount; i++) {
+        const container = allReplyContainers.nth(i);
+        const containerText = await container.textContent().catch(() => '');
+
+        if (containerText?.includes(replyText)) {
+          // Find Box image using getByRole
+          boxLogo = container.getByRole('button', { name: 'Image PDF' });
+          const boxLogoVisible = await boxLogo.isVisible().catch(() => false);
+          if (boxLogoVisible) {
+            break;
+          }
+        }
+      }
+
+      if (!boxLogo) {
+        throw new Error(`Box logo not found for reply: ${replyText}`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(boxLogo, {
+        assertionMessage: `Box logo should be visible on reply attachments for: ${replyText}`,
+      });
+    });
+  }
+
+  /**
+   * Opens the reply editor for a specific post
+   * @param postText - The text of the post to open reply editor for
+   */
+  async openReplyEditorForPost(postText: string): Promise<void> {
+    await test.step(`Open reply editor for post: ${postText}`, async () => {
+      const replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+
+      // Wait for reply button to be visible
+      await this.verifier.verifyTheElementIsVisible(replyButton, {
+        assertionMessage: 'Reply button should be visible for the post',
+      });
+      await replyButton.click();
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: 'Reply input should be visible',
+      });
+    });
+  }
+  /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
   async likeFeedPost(postText: string): Promise<void> {

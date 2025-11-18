@@ -28,6 +28,9 @@
 # Platforms Module
 /src/modules/platforms/ @prateek-sqa @poojapathak188 @amanmmishra @LakshmiJoshi1527
 
+# Recognition Module
+/src/modules/recognition/ @prateek-sqa @sonuSimpplr @aishmagupta22
+
 # Reward Module
 /src/modules/reward/ @prateek-sqa @sonuSimpplr
 

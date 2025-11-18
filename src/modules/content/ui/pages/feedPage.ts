@@ -137,6 +137,7 @@ export interface IFeedAssertions {
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -743,7 +744,12 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
   }
+  
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+  }
+  
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 }
