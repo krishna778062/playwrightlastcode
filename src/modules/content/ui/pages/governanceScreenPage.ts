@@ -9,6 +9,8 @@ export interface IGovernanceScreenPageActions {
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
   clickOnTimelineFeedDisabled: () => Promise<void>;
+  updateTheCustomFeedPlaceholder: (placeholder: string) => Promise<void>;
+  makePlaceholderDefault: () => Promise<void>;
 }
 
 export interface IGovernanceScreenPageAssertions {}
@@ -22,7 +24,9 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   readonly timelineFeedEnabled: Locator;
   readonly successToastMessage: (message: string) => Locator;
   readonly clickOnContentSubmissions: Locator;
-  readonly clickOnSave: Locator;
+  readonly clickOnCustomFeedPlaceholder: Locator;
+  readonly customFeedPlaceholderInput: Locator;
+  readonly makePlaceholderDefaultButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
@@ -34,7 +38,9 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
     this.successToastMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.clickOnContentSubmissions = this.page.locator('#contentSubmissions');
-    this.clickOnSave = this.page.getByRole('button', { name: 'Save' });
+    this.clickOnCustomFeedPlaceholder = page.getByRole('radio', { name: 'Custom' });
+    this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
+    this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
   }
 
   get actions(): IGovernanceScreenPageActions {
@@ -88,7 +94,7 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
         return;
       }
       await this.clickOnElement(this.clickOnContentSubmissions);
-      await this.clickOnElement(this.clickOnSave);
+      await this.clickOnElement(this.clickOnSaveButton);
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
         stepInfo: 'Verify the changes confirmation toast message is visible',
       });
@@ -104,10 +110,46 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
         return;
       }
       await this.clickOnElement(this.clickOnContentSubmissions);
-      await this.clickOnElement(this.clickOnSave);
+      await this.clickOnElement(this.clickOnSaveButton);
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
         stepInfo: 'Verify the changes confirmation toast message is visible',
       });
+    });
+  }
+
+  async updateTheCustomFeedPlaceholder(placeholder: string): Promise<void> {
+    await test.step('Updating the custom feed placeholder', async () => {
+      // Select Custom radio button if not already selected
+      const isCustomSelected = await this.clickOnCustomFeedPlaceholder.isChecked();
+      if (!isCustomSelected) {
+        await this.clickOnElement(this.clickOnCustomFeedPlaceholder);
+      }
+      const existingText = await this.customFeedPlaceholderInput.inputValue();
+      if (existingText === placeholder) {
+        console.log('Custom feed placeholder is already set to the same text');
+        return;
+      } else {
+        console.log('Custom feed placeholder is not set to the same text, updating it');
+        // Clear and set the placeholder text
+        await this.fillInElement(this.customFeedPlaceholderInput, placeholder);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.baseActionUtil.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+          stepInfo: 'Verify the changes confirmation toast message is visible',
+        });
+      }
+    });
+  }
+
+  async makePlaceholderDefault(): Promise<void> {
+    await test.step('Making the placeholder default', async () => {
+      const isDefaultSelected = await this.makePlaceholderDefaultButton.isChecked();
+      if (!isDefaultSelected) {
+        await this.clickOnElement(this.makePlaceholderDefaultButton);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.baseActionUtil.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+          stepInfo: 'Verify the changes confirmation toast message is visible',
+        });
+      }
     });
   }
 }

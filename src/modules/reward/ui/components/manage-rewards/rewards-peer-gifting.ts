@@ -2,6 +2,8 @@ import { expect, Locator, Page } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core';
+
 export class RewardsPeerGifting extends BasePage {
   readonly peerGiftingHeading: Locator;
   //Peer Gifting Panel
@@ -22,6 +24,7 @@ export class RewardsPeerGifting extends BasePage {
   readonly disableDialogCloseButton: Locator;
   readonly disableDialogConfirmText: Locator;
   readonly disableDialogDescriptionText: Locator;
+  readonly disableDialogEnablingMessage: Locator;
   readonly disableDialogCancelButton: Locator;
   readonly disableDialogDisableButton: Locator;
 
@@ -45,15 +48,16 @@ export class RewardsPeerGifting extends BasePage {
   readonly allowancesRequiredError: Locator;
 
   readonly giftingOptionsPanel: Locator;
-  readonly allowancePanel: Locator;
-  readonly giftingOptionGreenTick: Locator;
-  readonly allowanceGreenTick: Locator;
+  readonly giftingOptionsTitle: Locator;
   readonly giftingOptionIcon: Locator;
-  readonly AllowanceIcon: Locator;
-  private disabledRewardRewardsBudgetContainer: any;
+  readonly giftingOptionGreenTick: Locator;
+  readonly allowancePanel: Locator;
+  readonly allowanceGreenTick: Locator;
+  readonly allowanceTitle: Locator;
+  readonly allowanceIcon: Locator;
 
   constructor(page: Page) {
-    super(page, '/manage/recognition/rewards/peer-gifting');
+    super(page, PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
     this.peerGiftingHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.peerGiftingPanel = page.locator('div[class*="PeerGifting_panel"]');
     this.peerGiftingIconCircle = this.peerGiftingPanel.locator('button[class*="PeerGifting_icon"]');
@@ -75,6 +79,7 @@ export class RewardsPeerGifting extends BasePage {
     this.disableDialogDescriptionText = this.disableDialog.locator(
       'p:text("Users will lose their monthly allowances")'
     );
+    this.disableDialogEnablingMessage = this.disableDialog.locator('div[class*="Spacing-module__column"] > p');
     this.disableDialogCancelButton = this.disableDialog.locator('button:text("Cancel")');
     this.disableDialogDisableButton = this.disableDialog.locator('button:text("Disable")');
     // Enable Peer Gifting dialog
@@ -113,15 +118,22 @@ export class RewardsPeerGifting extends BasePage {
 
     //Gifting Options and Allowances locators
     this.giftingOptionsPanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(1)');
-    this.allowancePanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(3)');
     this.giftingOptionGreenTick = this.giftingOptionsPanel.locator('[class*="PanelActionItem_check"]');
-    this.allowanceGreenTick = this.allowancePanel.locator('[class*="PanelActionItem_check"]');
+    this.giftingOptionsTitle = this.giftingOptionsPanel.locator('h3');
     this.giftingOptionIcon = page.locator('[data-testid="i-giftWithSlider"]');
-    this.AllowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
+    this.allowancePanel = page.locator('div[class*="PanelActionItem_layout"]:nth-child(3)');
+    this.allowanceGreenTick = this.allowancePanel.locator('[class*="PanelActionItem_check"]');
+    this.allowanceTitle = this.allowancePanel.locator('h3');
+    this.allowanceIcon = page.locator('[data-testid="i-coinsStacked"]');
+  }
+
+  async visit(): Promise<void> {
+    await this.page.goto(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.peerGiftingHeading, {
+    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsTitle, {
       assertionMessage: 'Verify the Peer Gifting page is loaded',
     });
   }
@@ -129,21 +141,39 @@ export class RewardsPeerGifting extends BasePage {
   async selectThePeerGiftingEnableType(
     frequency: 'Immediately' | 'From the beginning of the next month'
   ): Promise<void> {
-    if (frequency === 'Immediately') {
-      if (!(await this.grantAllowancesRadioImmediately.isChecked())) {
-        await this.grantAllowancesRadioImmediately.click();
-      }
-    } else if (frequency === 'From the beginning of the next month') {
-      if (!(await this.grantAllowancesRadioNextMonth.isChecked())) {
-        await this.grantAllowancesRadioNextMonth.click();
-      }
+    const radio =
+      frequency === 'Immediately' ? this.grantAllowancesRadioImmediately : this.grantAllowancesRadioNextMonth;
+    const checked = await radio.isChecked();
+    if (!checked) {
+      await radio.click();
     }
   }
 
+  private async getPeerGiftingState(): Promise<boolean> {
+    try {
+      return await this.peerGiftingToggleSwitch.isChecked();
+    } catch {
+      const aria =
+        (await this.peerGiftingToggleSwitch.getAttribute('aria-checked')) ??
+        (await this.peerGiftingToggleSwitch.getAttribute('aria-pressed'));
+      return aria === 'true';
+    }
+  }
+
+  /**
+   * Ensure peer gifting is disabled.
+   * - If already disabled -> does nothing
+   * - If enabled -> toggles, clicks Save, confirms dialog, verifies toast
+   */
   async disableThePeerGifting(): Promise<void> {
-    await this.goToUrl('/manage/recognition/rewards/peer-gifting');
-    await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
+    await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
+    const current = await this.getPeerGiftingState();
+    if (!current) {
+      return;
+    }
     await this.peerGiftingToggleSwitch.click();
+    await expect(this.peerGiftingToggleSwitch).toHaveAttribute('aria-checked', 'false');
     await this.saveButton.click();
     await expect(this.disableDialog).toBeVisible();
     await expect(this.disableDialogTitle).toHaveText('Disable peer gifting');
@@ -157,11 +187,32 @@ export class RewardsPeerGifting extends BasePage {
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
   }
 
-  async enableThePeerGifting(): Promise<void> {
+  /**
+   * Ensure peer gifting is enabled.
+   * - If already enabled -> does nothing
+   * - If disabled -> toggles on, clicks Save, selects enable type, confirms allowances, verifies toast and navigates away
+   *
+   * @param enableType 'Immediately' | 'From the beginning of the next month'
+   */
+  async enableThePeerGifting(
+    enableType: 'Immediately' | 'From the beginning of the next month',
+    enableMessage?: string
+  ): Promise<void> {
+    await this.goToUrl(PAGE_ENDPOINTS.PEER_GIFTING_OVERVIEW);
+    await this.verifyThePageIsLoaded();
     await this.peerGiftingHeading.waitFor({ state: 'visible', timeout: 20000 });
+    const current = await this.getPeerGiftingState();
+    if (current) {
+      return;
+    }
     await this.peerGiftingToggleSwitch.click();
     await this.saveButton.click();
-    await this.selectThePeerGiftingEnableType('Immediately');
+    if (enableMessage) {
+      await this.verifier.isTheElementVisible(this.disableDialogEnablingMessage);
+      const stringTexts = await this.disableDialogEnablingMessage.allTextContents();
+      expect(stringTexts).toContain(enableMessage);
+    }
+    await this.selectThePeerGiftingEnableType(enableType);
     await this.grantAllowancesConfirmButton.click();
     await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     await this.goToUrl('/manage/recognition/rewards/overview');
@@ -170,21 +221,24 @@ export class RewardsPeerGifting extends BasePage {
   /**
    * Mock peer gifting API response
    */
-  async mockThePeerGiftingApiResponse(
-    peerGiftingEnabled: boolean,
-    hasAllowances: boolean,
-    hasGiftingOptions: boolean
-  ): Promise<void> {
+  async mockThePeerGiftingApiResponse(peerGifting: boolean, giftingOptions: boolean, allowance: boolean) {
+    const now = new Date();
+    const baseResponse = {
+      optionType: 'POINTS',
+      options: giftingOptions
+        ? [{ amount: 1 }, { amount: 2 }, { amount: 3 }, { amount: 4 }, { amount: 5 }, { amount: 6 }]
+        : [],
+      peerGiftingEnabled: peerGifting,
+      peerGiftingDisabledAt: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      isPeerGiftingOptionsConfigured: giftingOptions,
+      enabled: true, // Keeping Reward enabled as true
+      isUserAllowancesConfigured: allowance,
+    };
     await this.page.route('**/recognition/admin/rewards/config/peer', async route => {
-      const mockResponse = {
-        peerGiftingEnabled,
-        hasAllowances,
-        hasGiftingOptions,
-      };
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(mockResponse),
+        body: JSON.stringify(baseResponse),
       });
     });
   }

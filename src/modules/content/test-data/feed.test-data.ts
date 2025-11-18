@@ -46,4 +46,12 @@ export const FEED_TEST_DATA = {
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
+  DELETED_POST_MESSAGE: 'THIS POST HAS BEEN DELETED',
+  API_RESPONSE_MESSAGES: {
+    FEED_POST_CREATED: 'Feed Post has been successfully created',
+  },
+  PLACEHOLDER_TEXT: {
+    WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
+    WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
 } as const;

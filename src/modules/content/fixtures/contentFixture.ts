@@ -68,7 +68,11 @@ export const users = {
 async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
   // Create all helpers and services
   const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl,
+    getContentTenantConfigFromCache().frontendBaseUrl
+  );
   const contentManagementHelper = new ContentManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(
