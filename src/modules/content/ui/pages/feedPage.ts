@@ -55,7 +55,7 @@ export interface IFeedActions {
   clickOnCloseButton: () => Promise<void>;
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
-  addReplyToPost: (replyText: string) => Promise<void>;
+  addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
@@ -131,6 +131,8 @@ export interface IFeedAssertions {
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -374,8 +376,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.filePreviewComponent.clickOnEditVersionButton();
   }
 
-  async addReplyToPost(replyText: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(replyText);
+  async addReplyToPost(replyText: string, postId: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText, postId);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
@@ -717,5 +719,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 }
