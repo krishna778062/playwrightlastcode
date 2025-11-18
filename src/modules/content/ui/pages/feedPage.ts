@@ -99,7 +99,6 @@ export interface IFeedActions {
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
   clickShareIconOnPost: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
@@ -518,10 +517,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyPostIsAtTop(postText: string): Promise<void> {
     await this.listFeedComponent.verifyPostIsAtTop(postText);
-  }
-
-  async enterShareDescription(description: string): Promise<void> {
-    await this.shareComponent.actions.enterShareDescription(description);
   }
 
   async clickShareButton(): Promise<void> {
