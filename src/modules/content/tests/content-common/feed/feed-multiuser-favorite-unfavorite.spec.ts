@@ -228,7 +228,7 @@ test.describe(
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
       */
-     
+
       // Get or create "All Employees" site using getSiteIdWithName which handles both cases
       siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
         accessType: SITE_TYPES.PUBLIC,

@@ -671,8 +671,7 @@ test.describe(
 
         await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
         await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
-        
-        
+
         await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
         await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
 
