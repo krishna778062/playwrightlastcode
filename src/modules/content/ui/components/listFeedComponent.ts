@@ -38,8 +38,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true }).first();
 
-  readonly successMessage = (message: string) =>
-    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
 
   /**
@@ -339,7 +337,6 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await test.step('Verify image button is not visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
     });
   }
@@ -349,7 +346,7 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to reply to
    * @param replyText - The reply text to add
    */
-  async addReplyToPost(replyText: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
       //add API wait for response
@@ -376,9 +373,7 @@ export class ListFeedComponent extends BaseComponent {
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
-
-      // Click submit reply button
-      await this.clickOnElement(this.submitReplyButton);
+      await this.clickOnReplyButton(postId);
     });
     console.log('replyText :   ', replyText);
     return replyText;
@@ -784,11 +779,85 @@ export class ListFeedComponent extends BaseComponent {
   readonly getPostByUserLocator = (userName: string): Locator =>
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
 
+  /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIcon(postText: string): Promise<void> {
+    await test.step(`Click share icon on post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const shareIconLocator = this.page.getByRole('button', { name: 'Share this post' }).first();
+      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
+        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(shareIconLocator);
+    });
+  }
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
         assertionMessage: 'Embedded URL should be visible',
       });
+    });
+  }
+
+  /**
+   * Verifies that a deleted post message is displayed for a specific post
+   * @param postText - The text of the post to verify deleted message for
+   */
+  async verifyDeletedPostMessage(postText: string): Promise<void> {
+    await test.step(`Verify deleted post message is visible for post: ${postText}`, async () => {
+      // First, find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      // Verify the deleted message is visible within the post container
+      const deletedMessage = postContainer.locator('div').filter({ hasText: /^This post has been deleted\.$/ });
+      await this.verifier.verifyTheElementIsVisible(deletedMessage, {
+        assertionMessage: `Deleted post message should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
+  async verifyPostCannotBeInteracted(postText: string): Promise<void> {
+    await test.step(`Verify post cannot be interacted with: ${postText}`, async () => {
+      // Find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+
+      // Verify share button is not visible
+      const shareButton = postContainer.locator('button[aria-label*="Share"], button:has-text("Share")');
+      await this.verifier.verifyTheElementIsNotVisible(shareButton, {
+        assertionMessage: `Share button should not be visible for deleted post "${postText}"`,
+      });
+
+      // Verify "View Post" link is not visible
+      const viewPostLink = postContainer.getByRole('link', { name: 'View post' });
+      await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
+        assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
+      });
+    });
+  }
+
+  async clickOnReplyButton(postText: string): Promise<void> {
+    await test.step(`Click on reply button for post: ${postText}`, async () => {
+      const postResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.submitReplyButton, { delay: 3_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.comment(postText)) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        {
+          timeout: 20_000,
+        }
+      );
+      return postResponse;
     });
   }
 }

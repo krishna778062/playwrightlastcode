@@ -26,6 +26,14 @@ export interface IEventDetailAssertions {
   verifyEventTitle: (expectedTitle: string) => Promise<void>;
   verifyRsvpIndicators: () => Promise<void>;
   verifyRsvpSelection: (expectedOption: RsvpOption | 'yes' | 'no' | 'maybe', maxRetries?: number) => Promise<void>;
+  verifyOutlookRsvpDisclaimer: () => Promise<void>;
+  verifyEventDetails: () => Promise<void>;
+  verifyRsvpToOutlookCalendarLabel: () => Promise<void>;
+  verifySyncedFromOutlookCalendar: () => Promise<void>;
+  verifyRemovingSyncingWillDeleteEventFromOutlookCalendars: () => Promise<void>;
+  verifyRemovingSyncingWillDeleteEventFromGoogleCalendars: () => Promise<void>;
+  verifyOutlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccounts: () => Promise<void>;
+  verifyGoogleCalendarSyncRequiresUsersConnectTheirGoogleAccounts: () => Promise<void>;
 }
 
 export class EventDetailPage extends BasePage implements IEventDetailActions, IEventDetailAssertions {
@@ -52,6 +60,16 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   readonly removeSyncButtonLocator: Locator;
   readonly eventSyncGoogleCalendarLabelLocator: Locator;
   readonly eventSyncOutlookCalendarLabelLocator: Locator;
+  readonly outlookRsvpDisclaimerLocator: Locator;
+  readonly inviteOrRemoveAttendeesButtonLocator: Locator;
+  readonly locationLocator: Locator;
+  readonly addToOtherCalendarsButtonLocator: Locator;
+  readonly rsvpToOutlookCalendarLabelLocator: Locator;
+  readonly syncedFromOutlookCalendarLocator: Locator;
+  readonly removingSyncingWillDeleteEventFromOutlookCalendarsLocator: Locator;
+  readonly removingSyncingWillDeleteEventFromGoogleCalendarsLocator: Locator;
+  readonly outlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccountsLocator: Locator;
+  readonly googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator: Locator;
 
   constructor(page: Page, siteId: string, eventId: string) {
     super(page, PAGE_ENDPOINTS.getContentPreviewPage(siteId, eventId, 'event'));
@@ -77,6 +95,24 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     );
     this.eventSyncOutlookCalendarLabelLocator = page.locator(
       '//label[@for="eventSync_destinationoutlook" and @title="Outlook Calendar sync"]'
+    );
+    this.outlookRsvpDisclaimerLocator = page.getByText("As the organizer, Outlook doesn't track your RSVP.");
+    this.inviteOrRemoveAttendeesButtonLocator = page.getByRole('button', { name: 'Invite or remove attendees' });
+    this.locationLocator = page.getByText('Location');
+    this.addToOtherCalendarsButtonLocator = page.getByText('Add to other calendars');
+    this.rsvpToOutlookCalendarLabelLocator = page.getByText('RSVPing this event adds it to your Outlook Calendar');
+    this.syncedFromOutlookCalendarLocator = page.getByText(/Synced from Outlook Calendar on/i);
+    this.removingSyncingWillDeleteEventFromOutlookCalendarsLocator = page.getByText(
+      /Removing syncing will delete this event from the Outlook Calendars of all site members and followers. They will no longer be able to RSVP from their Outlook Calendars./i
+    );
+    this.removingSyncingWillDeleteEventFromGoogleCalendarsLocator = page.getByText(
+      /Removing syncing will delete this event from the Google Calendars of all site members and followers. They will no longer be able to RSVP from their Google Calendars./i
+    );
+    this.outlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccountsLocator = page.getByText(
+      /Outlook Calendar sync requires users to connect their Microsoft accounts/i
+    );
+    this.googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator = page.getByText(
+      /Google Calendar sync requires users to connect their Google accounts/i
     );
   }
 
@@ -193,12 +229,23 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
       const ariaChecked = await this.eventSyncToggleLocator.getAttribute('aria-checked');
       const isCurrentlyEnabled = toggleState === 'checked' || ariaChecked === 'true';
 
+      if (destination === EventSyncDestination.OUTLOOK_CALENDAR) {
+        await this.verifyOutlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccounts();
+      } else {
+        await this.verifyGoogleCalendarSyncRequiresUsersConnectTheirGoogleAccounts();
+      }
+
       if (isCurrentlyEnabled !== enable) {
         await this.eventSyncToggleLocator.click({ force: true });
 
         if (!enable) {
           await this.removeSyncButtonLocator.waitFor({ state: 'visible', timeout: 5000 });
           if (await this.removeSyncButtonLocator.isVisible()) {
+            if (destination === EventSyncDestination.OUTLOOK_CALENDAR) {
+              await this.verifyRemovingSyncingWillDeleteEventFromOutlookCalendars();
+            } else if (destination === EventSyncDestination.GOOGLE_CALENDAR) {
+              await this.verifyRemovingSyncingWillDeleteEventFromGoogleCalendars();
+            }
             await this.removeSyncButtonLocator.click({ force: true });
           }
         }
@@ -270,6 +317,96 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
       }
 
       throw new Error(`RSVP ${expectedOption} not verified after ${maxRetries} attempts. Expected: "${expectedCount}"`);
+    });
+  }
+
+  async verifyOutlookRsvpDisclaimer(): Promise<void> {
+    await test.step('Verify Outlook RSVP disclaimer text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.outlookRsvpDisclaimerLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Outlook RSVP disclaimer should be visible',
+      });
+    });
+  }
+
+  async verifyEventDetails(): Promise<void> {
+    await test.step('Verify event details are visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.inviteOrRemoveAttendeesButtonLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Invite or remove attendees button should be visible',
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.locationLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Location should be visible',
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.addToOtherCalendarsButtonLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Add to other calendars button should be visible',
+      });
+    });
+  }
+
+  async verifyRsvpToOutlookCalendarLabel(): Promise<void> {
+    await test.step('Verify RSVP to Outlook Calendar label text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.rsvpToOutlookCalendarLabelLocator, {
+        timeout: 10_000,
+        assertionMessage: 'RSVP to Outlook Calendar label should be visible',
+      });
+    });
+  }
+
+  async verifySyncedFromOutlookCalendar(): Promise<void> {
+    await test.step('Verify Synced from Outlook Calendar on text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.syncedFromOutlookCalendarLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Synced from Outlook Calendar on text should be visible',
+      });
+    });
+  }
+
+  async verifyRemovingSyncingWillDeleteEventFromOutlookCalendars(): Promise<void> {
+    await test.step('Verify removing syncing will delete event from Outlook Calendars warning text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.removingSyncingWillDeleteEventFromOutlookCalendarsLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Removing syncing will delete event from Outlook Calendars warning should be visible',
+      });
+    });
+  }
+
+  async verifyRemovingSyncingWillDeleteEventFromGoogleCalendars(): Promise<void> {
+    await test.step('Verify removing syncing will delete event from Google Calendars warning text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.removingSyncingWillDeleteEventFromGoogleCalendarsLocator, {
+        timeout: 10_000,
+        assertionMessage: 'Removing syncing will delete event from Google Calendars warning should be visible',
+      });
+    });
+  }
+
+  async verifyOutlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccounts(): Promise<void> {
+    await test.step('Verify Outlook Calendar sync requires users to connect their Microsoft accounts text', async () => {
+      await this.verifier.verifyTheElementIsVisible(
+        this.outlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccountsLocator,
+        {
+          timeout: 10_000,
+          assertionMessage:
+            'Outlook Calendar sync requires users to connect their Microsoft accounts text should be visible',
+        }
+      );
+    });
+  }
+
+  async verifyGoogleCalendarSyncRequiresUsersConnectTheirGoogleAccounts(): Promise<void> {
+    await test.step('Verify Google Calendar sync requires users to connect their Google accounts text', async () => {
+      await this.verifier.verifyTheElementIsVisible(
+        this.googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator,
+        {
+          timeout: 10_000,
+          assertionMessage:
+            'Google Calendar sync requires users to connect their Google accounts text should be visible',
+        }
+      );
     });
   }
 }
