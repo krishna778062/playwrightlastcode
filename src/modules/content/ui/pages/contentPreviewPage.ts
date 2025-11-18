@@ -8,6 +8,7 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
@@ -80,7 +81,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
-
+  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
   // Page components
   readonly promotePageModal: PromotePageModal;
   private contentDetailsComponent: ContentDetailsComponent;
@@ -294,6 +295,21 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async clickOnMustReadModalCancelButton(): Promise<void> {
     await test.step('Click on Must Read modal cancel button', async () => {
       await this.clickOnElement(this.mustReadModalCancelButton);
+    });
+  }
+  async clickOnFavouriteContentButton(): Promise<void> {
+    await test.step('Click on favourite content button', async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.favouriteContentButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.favourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await publishResponse.finished();
     });
   }
 

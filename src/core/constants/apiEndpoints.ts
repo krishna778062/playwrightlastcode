@@ -52,6 +52,7 @@ export const API_ENDPOINTS = {
   },
 
   site: {
+    people: '/v1/identity/people',
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
@@ -79,6 +80,7 @@ export const API_ENDPOINTS = {
     topics: '/v1/content/topics/manage/list',
     createTopic: '/v1/content/topics',
     deleteTopics: '/v1/content/topics/bulk-delete',
+    favourites: '/v1/content/sites/content/favorite',
     contentListInSite: '/v1/content/sites/content/list',
     homeCarouselItems: '/v1/content/carousel/items/list',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,

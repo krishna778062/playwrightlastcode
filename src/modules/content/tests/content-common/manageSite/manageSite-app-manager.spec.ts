@@ -12,13 +12,17 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -33,6 +37,9 @@ test.describe(
     let manageFeaturesPage: ManageFeaturesPage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
+    let userProfilePage: UserProfilePage;
+    let orgChartPage: ORGChartPage;
+    let favoritesPage: FavoritesPage;
     let onboardingComponent: OnboardingComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
@@ -78,7 +85,11 @@ test.describe(
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
+      userProfilePage = new UserProfilePage(appManagerFixture.page);
+      orgChartPage = new ORGChartPage(appManagerFixture.page);
+      favoritesPage = new FavoritesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
+
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
     });
@@ -303,7 +314,31 @@ test.describe(
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
-
+    test(
+      'to verify the UI of favorite people section',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26450'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the people follow in site about members and followers tab',
+          zephyrTestId: 'CONT-26450',
+          storyId: 'CONT-26450',
+        });
+        await appManagerFixture.navigationHelper.clickOnFavoritePeopleSection();
+        await favoritesPage.actions.clickOnPeopleButton();
+        const getPeopleList = await appManagerApiFixture.siteManagementHelper.getListOfPeople();
+        const peopleNames = getPeopleList.result.listOfItems.map((item: any) =>
+          `${item.firstName || ''} ${item.lastName || ''}`.trim()
+        );
+        await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
+        await appManagerFixture.navigationHelper.clickOnOrgChartButton();
+        await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.actions.clickOnViewProfileButton();
+        await userProfilePage.actions.clickOnFollowersTab();
+        await userProfilePage.assertions.verifyContactInformation();
+      }
+    );
     test(
       'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
       {
@@ -363,7 +398,9 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+          });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();
@@ -411,6 +448,57 @@ test.describe(
         await manageSiteAppManagerPage.loadPage();
         await manageSiteAppManagerPage.actions.clickOnThePeopleTab();
         await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
+      }
+    );
+    test(
+      'to verify the favourite content filters',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26264'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the favourite content filters',
+          zephyrTestId: 'CONT-26264',
+          storyId: 'CONT-26264',
+        });
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+        });
+        const createEventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'event' },
+        });
+        const contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createPageInfo.contentId,
+          'page'
+        );
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.clickOnFavouriteContentButton();
+        const contentPreviewPageAlbum = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createAlbumInfo.contentId,
+          'album'
+        );
+        await contentPreviewPageAlbum.loadPage();
+        await contentPreviewPageAlbum.clickOnFavouriteContentButton();
+        const contentPreviewPageEvent = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createEventInfo.contentId,
+          'event'
+        );
+        await contentPreviewPageEvent.loadPage();
+        await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        await manageSitesComponent.clickOnTheFavouriteTabsAction();
       }
     );
   }
