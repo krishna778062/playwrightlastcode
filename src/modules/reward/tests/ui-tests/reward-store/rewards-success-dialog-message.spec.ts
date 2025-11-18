@@ -60,13 +60,24 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
   test(
     '[RC-3001] Validate Reward Order confirmation Dialog',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_STORE,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate Reward Order confirmation Dialog',
         zephyrTestId: 'RC-3001',
         storyId: 'RC-3001',
+      });
+      tagTest(test.info(), {
+        description: 'Making a redemption (ordering a gift card)',
+        zephyrTestId: 'RC-3212',
+        storyId: 'RC-3212',
       });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Amazon';

@@ -67,6 +67,7 @@ export interface ICreateFeedPostAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -141,7 +142,8 @@ export class CreateFeedPostComponent
   readonly fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
   readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
   readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
-
+  readonly feedPlaceholderText = (expectedPlaceholder: string) =>
+    this.page.locator('span').filter({ hasText: expectedPlaceholder });
   // Box file browsing section
   readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
   readonly filePickerDialog = this.page.locator('[role="dialog"]');
@@ -579,6 +581,20 @@ export class CreateFeedPostComponent
       await this.verifier.verifyTheElementIsVisible(this.noResultsText, {
         timeout: 5000,
         assertionMessage: 'Expected "No results" message to be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the feed placeholder text matches the expected value
+   * @param expectedPlaceholder - The expected placeholder text
+   */
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await test.step(`Verify feed placeholder text is "${expectedPlaceholder}"`, async () => {
+      const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
+      await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
+        assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
+        timeout: 5000,
       });
     });
   }
