@@ -13,7 +13,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     "[RC-3261] A Verify user profile should show a 'View orders' button in the Recognition section in Admin User profile page",
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -65,7 +65,8 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
 
       const rewardsStore = new RewardsStore(standardUserFixture.page);
       const userProfilePage = new UserProfilePage(standardUserFixture.page);
-      await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
+      await rewardsStore.loadPage();
+      await rewardsStore.verifyThePageIsLoaded();
       await rewardsStore.selectCountryAndRedeemGiftCard('United States', 'Amazon');
       await rewardsStore.navigateToUserProfileAndValidateViewOrders(userProfilePage);
     }
@@ -74,7 +75,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-2963] Verify user wallet in users profile',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -82,7 +83,6 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
         zephyrTestId: 'RC-2963',
         storyId: 'RC-2963',
       });
-
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const userProfilePage = new UserProfilePage(appManagerFixture.page);
       await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
@@ -90,11 +90,15 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
-      const walletData = await userProfilePage.navigateToUserProfileAndCaptureWalletData();
-      await userProfilePage.validateWalletDataStructure(walletData);
-      await userProfilePage.validateWalletDataInUI(walletData);
-      await userProfilePage.validateZeroValuesOnPage();
+      try {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+        const walletData = await userProfilePage.navigateToUserProfileAndCaptureWalletData();
+        await userProfilePage.validateWalletDataStructure(walletData);
+        await userProfilePage.validateWalletDataInUI(walletData);
+        await userProfilePage.validateZeroValuesOnPage();
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      }
     }
   );
 
@@ -120,7 +124,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     '[RC-3418] Verify the tooltip on the User wallet section, when Allowances are refreshing',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -135,12 +139,16 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.verifyThePageIsLoaded();
-      await userProfilePage.navigateToCurrentUserProfile();
-      await userProfilePage.validateAllowanceRefreshingTooltip();
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      try {
+        await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+        await recognitionHub.visitRecognitionHub();
+        await recognitionHub.verifyThePageIsLoaded();
+        await userProfilePage.navigateToCurrentUserProfile();
+        await userProfilePage.validateAllowanceRefreshingTooltip();
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      }
     }
   );
 });

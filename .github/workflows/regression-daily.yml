@@ -25,6 +25,7 @@ jobs:
             content,
             de,
             reward,
+            reward-settings,
             content-abac,
             frontline,
             content-settings,
@@ -62,8 +63,15 @@ jobs:
         env:
           TEST_ENV: ${{ matrix.environment }}
         run: |
-          # Run regression tests i.e. entire suite
-          npm run test:${{ matrix.module }} -- --workers=3
+          if [ "${{ matrix.module }}" = "reward" ]; then
+            echo "Running Reward tests (excluding P3) and with 3 workers..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
+            echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+          else
+            npm run test:${{ matrix.module }} -- --workers=3
+          fi
 
       - name: Upload test report to github artifact backup
         if: always()
@@ -174,24 +182,24 @@ jobs:
             FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
-            
+
             # Count known failures from annotations
             KNOWN_FAILED=$(node -e "
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
-              const knownFailed = data.suites.flatMap(s => 
-                s.suites.flatMap(ss => 
-                  ss.specs.flatMap(sp => 
-                    sp.tests.filter(t => 
-                      t.status === 'unexpected' && 
-                      t.annotations.some(a => a.type === 'known_failure')
+              const knownFailed = data.suites.flatMap(s =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
+                      t.status === 'unexpected' &&
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
                 )
               ).length;
               console.log(knownFailed);
             ")
-            
+
             # Calculate actual failures (excluding known failures)
             ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
           else

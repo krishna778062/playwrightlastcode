@@ -12,6 +12,8 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
+import { MustReadModalComponent } from '@/src/modules/content/ui/components/mustReadModalComponent';
+import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
   handlePromotionPageStep: () => Promise<void>;
@@ -28,7 +30,9 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
-  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
+  addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
+  makeContentForEveryoneInOrganization: () => Promise<void>;
+  clickOnMakeMustReadButton: () => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -44,7 +48,11 @@ export interface IContentPreviewPageAssertions {
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
+  verifyMustReadModalIsVisible: () => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyContentIsMustRead: () => Promise<void>;
+  verifyContentIsNotAMustRead: () => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -77,12 +85,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
-  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
-  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
-  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
+  readonly mustReadModalComponent: MustReadModalComponent;
+  readonly optionMenuComponent: OptionMenuComponent;
   private contentDetailsComponent: ContentDetailsComponent;
   private createFeedPostComponent: CreateFeedPostComponent;
   private listFeedComponent: ListFeedComponent;
@@ -94,6 +101,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
     );
     this.promotePageModal = new PromotePageModal(page);
+    this.mustReadModalComponent = new MustReadModalComponent(page);
+    this.optionMenuComponent = new OptionMenuComponent(page);
     this.contentDetailsComponent = new ContentDetailsComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
@@ -284,7 +293,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    */
   async clickOnMustReadButton(): Promise<void> {
     await test.step('Click on Must Read button', async () => {
-      await this.clickOnElement(this.mustReadButton);
+      await this.clickOnElement(this.optionMenuComponent.mustReadButton);
     });
   }
 
@@ -292,32 +301,72 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    * Clicks on the Cancel button in the Must Read modal
    */
   async clickOnMustReadModalCancelButton(): Promise<void> {
-    await test.step('Click on Must Read modal cancel button', async () => {
-      await this.clickOnElement(this.mustReadModalCancelButton);
-    });
+    await this.mustReadModalComponent.clickOnMustReadModalCancelButton();
   }
 
   /**
    * Verifies that the Must Read modal is not visible
    */
   async verifyMustReadModalIsNotVisible(): Promise<void> {
-    await test.step('Verify Must Read modal is not visible', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.mustReadModal, {
-        assertionMessage: 'Must Read modal should not be visible',
-      });
-    });
+    await this.mustReadModalComponent.verifyMustReadModalIsNotVisible();
+  }
+
+  async likeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async unlikeFeedPost(postText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedPost(postText);
+  }
+
+  async likeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async unlikeFeedReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.likeFeedReply(replyText);
+  }
+
+  async verifyLikeCountOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnPost(postText);
+  }
+
+  async verifyLikeCountOnReply(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyLikeCountOnReply(replyText);
   }
 
   async clickOnOptionMenuButton(): Promise<void> {
-    await test.step('Click on Option menu button', async () => {
-      await this.clickOnElement(this.optionMenuDropdown);
-    });
+    await this.optionMenuComponent.clickOnOptionMenuButton();
   }
 
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
-  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
-    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
+  async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async makeContentForEveryoneInOrganization(): Promise<void> {
+    await this.mustReadModalComponent.selectAllOrganizationToggle();
+  }
+
+  async clickOnMakeMustReadButton(): Promise<void> {
+    await this.mustReadModalComponent.clickOnMakeMustReadButton();
+  }
+
+  async verifyContentIsMustRead(): Promise<void> {
+    await this.mustReadModalComponent.verifyMustReadModalIsVisible();
+  }
+
+  async verifyMustReadModalIsVisible(): Promise<void> {
+    await this.mustReadModalComponent.verifyMustReadModalIsVisible();
+  }
+
+  async verifyContentIsNotAMustRead(): Promise<void> {
+    await this.mustReadModalComponent.verifyContentIsNotAMustRead();
   }
 }
