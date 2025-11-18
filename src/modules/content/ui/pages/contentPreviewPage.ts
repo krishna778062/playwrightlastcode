@@ -34,6 +34,7 @@ export interface IContentPreviewPageActions {
   clickShowMoreCommentsButton: () => Promise<void>;
   getVisibleCommentCount: () => Promise<number>;
   addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
+  addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
 }
@@ -405,8 +406,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
-  async addReplyToComment(replyText: string, mentionUserName?: string): Promise<string> {
-    return await this.listFeedComponent.addReplyToPost(replyText, mentionUserName);
+  async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
   }
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {

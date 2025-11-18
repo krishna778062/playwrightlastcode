@@ -55,7 +55,7 @@ export interface IFeedActions {
   clickOnCloseButton: () => Promise<void>;
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
-  addReplyToPost: (replyText: string) => Promise<void>;
+  addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
@@ -96,6 +96,9 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  clickShareIconOnPost: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -137,7 +140,10 @@ export interface IFeedAssertions {
   clickPostTimestamp: (postText: string) => Promise<void>;
   getVisibleReplyCount: (postText: string) => Promise<number>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyDeletedPostMessage: (postText: string) => Promise<void>;
+  verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -384,8 +390,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyPostIsNotVisible(postText);
   }
 
-  async addReplyToPost(replyText: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(replyText);
+  async addReplyToPost(replyText: string, postId: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText, postId);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
@@ -745,7 +751,50 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
 
+  /**
+   * Verifies that a deleted post message is displayed for a specific post
+   * @param postText - The text of the post to verify deleted message for
+   */
+  async verifyDeletedPostMessage(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyDeletedPostMessage(postText);
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
+  async verifyPostCannotBeInteracted(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
+  }
+
+  /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIconOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareIcon(postText);
+  }
+
+  /**
+   * Enters share description in the share dialog
+   * @param description - The description text to enter
+   */
+  async enterShareDescription(description: string): Promise<void> {
+    await this.shareComponent.actions.enterShareDescription(description);
+  }
+
+  /**
+   * Enters site name for sharing to site feed
+   * @param siteName - The site name to search and select
+   */
+  async enterSiteNameForShare(siteName: string): Promise<void> {
+    await this.shareComponent.actions.enterSiteName(siteName);
+  }
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 }
