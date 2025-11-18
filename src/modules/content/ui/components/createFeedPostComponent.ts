@@ -441,15 +441,11 @@ export class CreateFeedPostComponent
 
       // Check if the site name appears in the dropdown
       const siteLocator = this.addSiteNameFromList(siteName);
-      const isVisible = await siteLocator.isVisible().catch(() => false);
-      console.log(`Site mention dropdown for "${siteName}" is visible: ${isVisible}`);
-
-      if (isVisible) {
-        await siteLocator.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      try {
         await this.clickOnElement(siteLocator);
         console.log(`Successfully added site mention: @${siteName}`);
-      } else {
-        console.log(`Site mention "${siteName}" not found in dropdown, continuing without it`);
+      } catch (error) {
+        console.log(`Error adding site mention: @${siteName}: ${error}`);
         // Just press Enter to continue without the mention
         await this.feedEditor.press('Enter');
       }
