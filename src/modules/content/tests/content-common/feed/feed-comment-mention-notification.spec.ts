@@ -22,7 +22,7 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiContext, appManagerFixture }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiContext }) => {
       // Configure app governance settings and enable timeline comment post(feed)
       /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,

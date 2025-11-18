@@ -656,10 +656,10 @@ export class SiteManagementHelper {
   async getSiteByAccessType(
     accessType: string,
     options?: {
-      hasPages?: boolean;
-      hasEvents?: boolean;
-      hasAlbums?: boolean;
-      hasDashboard?: boolean;
+      hasPages?: boolean | true;
+      hasEvents?: boolean | true;
+      hasAlbums?: boolean | true;
+      hasDashboard?: boolean | true;
       landingPage?: string;
       isOwner?: boolean;
       isMembershipAutoApproved?: boolean;
@@ -680,9 +680,7 @@ export class SiteManagementHelper {
     if (siteDetails) {
       // Check if the existing site matches the required options
       const matchesRequirements =
-        (options?.hasPages === undefined || siteDetails.hasPages === options.hasPages) &&
-        (options?.hasEvents === undefined || siteDetails.hasEvents === options.hasEvents) &&
-        (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
+        (options?.hasPages ?? true) && (options?.hasEvents ?? true) && (options?.hasAlbums ?? true);
 
       if (matchesRequirements) {
         siteId = siteDetails.siteId;

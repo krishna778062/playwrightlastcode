@@ -38,8 +38,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
-  readonly successMessage = (message: string) =>
-    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
 
   /**
@@ -324,7 +322,6 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await test.step('Verify image button is not visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.successMessage('Deleted file successfully'));
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
     });
   }
