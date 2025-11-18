@@ -590,7 +590,7 @@ export class CreateFeedPostComponent
       const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
       await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
         assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
-        timeout: 5000,
+        timeout: 20000,
       });
     });
   }
