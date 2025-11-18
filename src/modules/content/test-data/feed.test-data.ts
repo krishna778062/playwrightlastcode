@@ -41,4 +41,7 @@ export const FEED_TEST_DATA = {
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
+  SEARCH: {
+    RANDOM_TEXT: 'RandomTextThatDoesNotExist12345',
+  },
 } as const;

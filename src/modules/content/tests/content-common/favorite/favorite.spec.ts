@@ -4,7 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FAVORITE_TEST_DATA } from '@/src/modules/content/test-data/favorite.test-data';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
@@ -121,7 +121,7 @@ test.describe('favorite', () => {
 
       // Enter random text and verify "Nothing to show here" message
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        await favoritePage.actions.searchPeople(FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
+        await favoritePage.actions.searchPeople(FEED_TEST_DATA.SEARCH.RANDOM_TEXT);
 
         await favoritePage.assertions.verifyNothingToShowMessage();
       });
@@ -146,7 +146,7 @@ test.describe('favorite', () => {
       await favoritePage.verifyThePageIsLoaded();
 
       // Click on Content tab
-      await favoritePage.clickOnElement(favoritePage.contentTab);
+      await favoritePage.actions.clickOnContentTab();
 
       // Get the first content name from the content tab
       await favoritePage.assertions.verifyFirstContentLinkIsVisible();
@@ -167,7 +167,7 @@ test.describe('favorite', () => {
 
       // Enter random text and verify "Nothing to show here" message
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        await favoritePage.actions.searchContent(FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
+        await favoritePage.actions.searchContent(FEED_TEST_DATA.SEARCH.RANDOM_TEXT);
 
         await favoritePage.assertions.verifyNothingToShowMessage();
       });
@@ -192,7 +192,7 @@ test.describe('favorite', () => {
       await favoritePage.verifyThePageIsLoaded();
 
       // Click on Feed tab
-      await favoritePage.clickOnElement(favoritePage.feedTab);
+      await favoritePage.actions.clickOnFeedTab();
 
       // Verify all the feed posts marked favourite are listing
       await favoritePage.assertions.verifyAllFavoriteFeedPostsAreListed();
@@ -211,13 +211,7 @@ test.describe('favorite', () => {
       const firstFeedPostText = (await postTextParagraph.textContent())?.trim() || '';
 
       // Verify user can like the feed post
-      await test.step('Verify user can like the feed post', async () => {
-        const likeButton = postContainer.getByRole('button', { name: 'React to this post' }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(likeButton, {
-          assertionMessage: 'Like button should be visible on feed post',
-        });
-        await favoritePage.clickOnElement(likeButton);
-      });
+      await favoritePage.actions.likeFeedPost(postContainer);
 
       // Verify user can comment on the feed post
       await test.step('Verify user can comment on the feed post', async () => {
