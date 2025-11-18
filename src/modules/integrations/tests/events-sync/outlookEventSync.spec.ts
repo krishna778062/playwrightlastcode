@@ -992,6 +992,12 @@ test.describe(
         test.setTimeout(360000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-27253',
+          isKnownFailure: true,
+          bugTicket: 'INT-27330', // bug ticket from Jira
+          bugReportedDate: '2025-09-30', // Date when the bug was reported
+          knownFailurePriority: 'Medium', // Medium priority known failure (Eg: High, Medium, Low)
+          knownFailureNote:
+            'Test case for verifying non-member invitees lose event from Outlook Calendar when site changes from public to private', // description of the known failure
         });
 
         const userManagementService = new UserManagementService(

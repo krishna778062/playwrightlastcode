@@ -95,25 +95,4 @@ test.describe('known Failures Demo', { tag: [IntegrationsSuiteTags.ABSOLUTE] }, 
       await page.waitForSelector('h1', { timeout: 5000 });
     }
   );
-
-  test(
-    'change Site from Public to Private and Verify Non-Member Invitees Lose Event from Outlook Calendar',
-    {
-      tag: [TestPriority.P1, TestGroupType.SANITY],
-    },
-    async ({ page }) => {
-      tagTest(test.info(), {
-        isKnownFailure: true,
-        bugTicket: 'INT-27330', // bug ticket from Jira
-        zephyrTestId: 'INT-27253', // test case ID from Zephyr
-        bugReportedDate: '2025-09-30', // Date when the bug was reported
-        knownFailurePriority: 'Medium', // Medium priority known failure (Eg: High, Medium, Low)
-        knownFailureNote:
-          'Test case for verifying non-member invitees lose event from Outlook Calendar when site changes from public to private', // description of the known failure
-      });
-      // Test fails but doesn't count as regression because it is a known failure
-      await page.goto('https://httpstat.in/500');
-      await page.waitForSelector('h1', { timeout: 5000 });
-    }
-  );
 });
