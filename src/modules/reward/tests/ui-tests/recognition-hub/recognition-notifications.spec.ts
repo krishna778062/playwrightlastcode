@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { DialogBox } from '@rewards-components/common/dialog-box';
@@ -26,7 +27,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
-      const recognizedUser = process.env.STANDARD_USER_FULL_NAME!;
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName!;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       if (existingOptions.length < 2) {
         await recognitionHub.setupTheMultipleGiftingOptions();
@@ -35,7 +36,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
 
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
-      const recognitionAward = await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
+      const recognitionAward = await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
@@ -61,8 +62,8 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       // Login with the standard user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: process.env.STANDARD_USER_USERNAME!,
-        password: process.env.STANDARD_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().endUserEmail!,
+        password: getRewardTenantConfigFromCache().endUserPassword!,
       });
 
       // Validate the Recognition with points Notification and redirection to post
@@ -71,7 +72,7 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       await notifications.navigateToRecentActivityNotifications();
       const firstNotificationText = await notifications.getNotificationText();
       expect(firstNotificationText).toContain(
-        `${process.env.APP_MANAGER_FULL_NAME} recognized you for "${recognitionAward}" and gifted you ${rewardPointsText} point`
+        `${getRewardTenantConfigFromCache().appManagerName} recognized you for "${recognitionAward}" and gifted you ${rewardPointsText} point`
       );
       await notifications.notificationListItem.first().click();
 
@@ -90,8 +91,8 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       // Login with the standard user and check the recognition post with points
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: process.env.RECOGNITION_USER_USERNAME!,
-        password: process.env.RECOGNITION_USER_PASSWORD!,
+        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
+        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
       });
 
       notifications = new Notifications(appManagerFixture.page);

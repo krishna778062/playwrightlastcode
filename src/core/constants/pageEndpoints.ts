@@ -13,6 +13,7 @@ export const PAGE_ENDPOINTS = {
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
   MANAGE_REWARDS_ALLOWANCE_PAGE: '/manage/recognition/rewards/peer-gifting/allowances',
+  PEER_GIFTING_OVERVIEW: '/manage/recognition/rewards/peer-gifting',
   REWARDS_OPTIONS_PAGE: '/manage/recognition/rewards/reward-options',
   REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
   CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
