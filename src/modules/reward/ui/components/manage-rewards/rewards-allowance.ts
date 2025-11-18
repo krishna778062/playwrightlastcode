@@ -134,24 +134,27 @@ export class RewardsAllowance extends BasePage {
         break;
     }
 
-    await removeButton.click();
-    await this.page.waitForTimeout(1000);
+    if (await this.verifier.isTheElementVisible(removeButton)) {
+      await removeButton.click();
+      await this.page.waitForTimeout(1000);
 
-    // Handle confirmation dialog
-    const dialogBox = this.page.locator('[role="dialog"]');
-    await this.verifier.verifyTheElementIsVisible(dialogBox);
-    await this.dialogRemoveButton.click();
-    await this.page.waitForTimeout(2000);
+      // Handle confirmation dialog
+      const dialogBox = this.page.locator('[role="dialog"]');
+      await this.verifier.verifyTheElementIsVisible(dialogBox);
+      await this.dialogRemoveButton.click();
+      await this.page.waitForTimeout(2000);
+    }
   }
 
   async validateToastMessage(expectedMessage: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.successToastContainer);
     await this.verifier.verifyElementHasText(this.successToastBoxMessage, expectedMessage);
     await this.page.waitForTimeout(2000);
+    await this.successToastBoxClose.click();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.rewardsUserAllowance.userAllowanceHeading, {
+    await this.verifier.waitUntilElementIsVisible(this.rewardsIndividualAllowance.individualAllowanceDescription, {
       timeout: 15000,
     });
   }

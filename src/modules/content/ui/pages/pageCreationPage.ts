@@ -11,6 +11,7 @@ import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponen
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
+import { MediaManagerComponent } from '@/src/modules/content/ui/components/mediaManagerComponent';
 
 export interface PageCreationOptions {
   // Required fields
@@ -68,6 +69,7 @@ export interface IPageCreationAssertions {
 }
 
 export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
+  readonly mediaManagerComponent: MediaManagerComponent;
   //root locators of some components
   readonly coverImageUploaderContainer: Locator;
   readonly fileAttachmentUploaderContainer: Locator;
@@ -84,15 +86,19 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly addCategoryFromList: (categoryText: string) => Locator;
   readonly successMessage: (message: string) => Locator;
   readonly contentTitleHeading: (title: string) => Locator;
+  readonly mediaManagerDialogAndIntranet: Locator;
+  // readonly uploadedCoverImagePreviewSection: Locator;
   // Page components
   readonly addContentModal: AddContentModalComponent;
   readonly coverImageUploader: AttachementUploaderComponent;
   readonly fileAttachmentUploader: AttachementUploaderComponent;
   readonly imageCropper: ImageCropperComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
+  static actions: any;
 
   constructor(page: Page, siteId?: string, siteManagementHelper?: SiteManagementHelper) {
     super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId ?? ''));
+    this.mediaManagerComponent = new MediaManagerComponent(page);
     //root locators of some components
     this.coverImageUploaderContainer = page
       .locator("[class*='AddFromContainer']")
@@ -104,6 +110,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       .nth(1);
     this.imageCaptionInputBox = page.getByPlaceholder('Add image caption here');
     this.uploadedCoverImagePreviewContainer = page.locator("[class*='Banner-imageContainer']");
+    //this.uploadedCoverImagePreviewSection = page.locator('.flex.h-full.w-full.items-center');
     this.uploadedCoverImagePreviewImage = this.uploadedCoverImagePreviewContainer.locator('img');
     this.categoryDropdown = page.locator('label[for="category"] + div input');
     this.publishButton = page.getByRole('button', { name: 'Publish' });
@@ -116,6 +123,9 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       page.getByRole('listbox').locator('.Panel-item').filter({ hasText: categoryText });
     this.successMessage = (message: string) => page.locator(`text=${message}`);
     this.contentTitleHeading = (title: string) => page.locator(`h1:has-text("${title}")`);
+    this.mediaManagerDialogAndIntranet = page
+      .getByRole('dialog')
+      .filter({ hasText: /Media Manager|Intranet File Manager|Upload|Browse|URL|Unsplash/i });
 
     this.coverImageUploader = new AttachementUploaderComponent(page, this.coverImageUploaderContainer);
     this.fileAttachmentUploader = new AttachementUploaderComponent(page, this.fileAttachmentUploaderContainer);
@@ -298,6 +308,22 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
    */
   async verifyUploadedCoverImagePreviewIsVisible(options?: { timeout?: number }): Promise<void> {
     await test.step(`Verifying that the uploaded cover image preview is visible`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.mediaManagerDialogAndIntranet, {
+        assertionMessage: 'Media Manager dialog and Intranet file manager dialog should not be visible',
+      });
+
+      const imageCount = await this.uploadedCoverImagePreviewImage.count();
+      if (imageCount === 0) {
+        await this.uploadedCoverImagePreviewImage.waitFor({ state: 'attached' }).catch(() => {});
+      }
+
+      await this.page
+        .waitForFunction(imgSelector => {
+          const img = document.querySelector(imgSelector) as HTMLImageElement | null;
+          return img !== null && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && img.src.length > 0;
+        }, `[class*='Banner-imageContainer'] img`)
+        .catch(() => {});
+
       await this.verifier.verifyTheElementIsVisible(this.uploadedCoverImagePreviewImage, {
         assertionMessage: 'expected uploaded cover image preview element to be visible',
         timeout: options?.timeout || CONTENT_TEST_DATA.TIMEOUTS.UPLOAD,
@@ -370,6 +396,26 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         }
       );
       return submitResponse;
+    });
+  }
+  async clickOnCrossIcon(): Promise<void> {
+    await test.step('Click on cross icon', async () => {
+      await this.mediaManagerComponent.clickOnCrossIcon();
+    });
+  }
+  async selectFirstImage(): Promise<void> {
+    await test.step('Select first image', async () => {
+      await this.mediaManagerComponent.selectFirstImage();
+    });
+  }
+  async clickOnAttachButton(): Promise<void> {
+    await test.step('Click on attach button', async () => {
+      await this.mediaManagerComponent.clickOnAttachButton();
+    });
+  }
+  async waitForModalsToClose(): Promise<void> {
+    await test.step('Wait for modals to close', async () => {
+      await this.mediaManagerComponent.waitForModalsToClose();
     });
   }
 }

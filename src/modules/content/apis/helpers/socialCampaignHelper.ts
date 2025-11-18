@@ -10,6 +10,7 @@ import {
   SocialCampaignSharedWith,
   SocialCampaignShareRequest,
 } from '@/src/core/types/social-campaign.types';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { SocialCampaignService } from '@/src/modules/content/apis/services/SocialCampaignService';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@/src/modules/content/test-data/social-campaign.test-data';
 
@@ -24,11 +25,13 @@ interface Campaign {
 export class SocialCampaignHelper {
   private campaigns: Campaign[] = [];
   readonly socialCampaignService: SocialCampaignService;
+  private feedManagementService: FeedManagementService;
   constructor(
     readonly appManagerApiContext: APIRequestContext,
     readonly baseUrl: string
   ) {
     this.socialCampaignService = new SocialCampaignService(appManagerApiContext, baseUrl);
+    this.feedManagementService = new FeedManagementService(appManagerApiContext, baseUrl);
   }
 
   /**
@@ -327,15 +330,30 @@ export class SocialCampaignHelper {
   /**
    * Deletes all campaigns from the system (not just tracked ones)
    * Use with caution - this will delete ALL campaigns
-   * @returns Promise<any[]> - Array of delete responses
+   * Deletes campaigns in parallel for better performance
+   * @returns Promise<void>
    */
   async deleteAllCampaigns(filter?: SocialCampaignFilter): Promise<void> {
-    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
-    console.log(`Deleting ${allCampaigns.length} campaigns`);
-    for (const campaign of allCampaigns) {
-      console.log(`Deleting campaign: ${campaign.message} (${campaign.campaignId})`);
-      await this.deleteCampaign(campaign.campaignId);
-    }
+    return await test.step(`Deleting all campaigns with filter: ${filter || 'none'}`, async () => {
+      const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
+      console.log(`Deleting ${allCampaigns.length} campaigns`);
+
+      if (allCampaigns.length === 0) {
+        return;
+      }
+
+      // Delete campaigns in parallel for better performance
+      const deletePromises = allCampaigns.map(async campaign => {
+        try {
+          await this.deleteCampaign(campaign.campaignId);
+          console.log(`✅ Deleted campaign: ${campaign.message} (${campaign.campaignId})`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete campaign ${campaign.message} (${campaign.campaignId}):`, error);
+        }
+      });
+
+      await Promise.all(deletePromises);
+    });
   }
 
   /**
@@ -413,6 +431,8 @@ export class SocialCampaignHelper {
 
   /**
    * Enables social campaign integrations (Facebook, LinkedIn, Twitter)
+   * Checks app config first - if all are true, does nothing
+   * If any are false, enables them accordingly
    * @param settings - Optional settings to override defaults (all enabled by default)
    * @returns Promise<any> - The response from the API
    */
@@ -421,6 +441,57 @@ export class SocialCampaignHelper {
     linkedinIntegrationEnabled?: boolean;
     twitterIntegrationEnabled?: boolean;
   }): Promise<any> {
-    return await this.getSocialCampaignService().enableSocialCampaign(settings);
+    return await test.step('Enabling social campaign integrations', async () => {
+      // Get current app config to check existing social campaign settings
+      const appConfig = await this.feedManagementService.getAppConfig();
+      const currentSettings = appConfig.result?.socialCampaignsSettings;
+
+      // Default settings - all enabled
+      const defaultSettings = {
+        facebookIntegrationEnabled: true,
+        linkedinIntegrationEnabled: true,
+        twitterIntegrationEnabled: true,
+      };
+
+      // Use provided settings or defaults
+      const requestedSettings = settings || defaultSettings;
+
+      // If settings are provided in the request, use them
+      // Otherwise, check current settings from app config
+      let settingsToApply = requestedSettings;
+
+      if (currentSettings && !settings) {
+        // Check if all current settings are true
+        const allEnabled =
+          currentSettings.facebookIntegrationEnabled === true &&
+          currentSettings.linkedinIntegrationEnabled === true &&
+          currentSettings.twitterIntegrationEnabled === true;
+
+        if (allEnabled) {
+          console.log('All social campaign integrations are already enabled. Skipping update.');
+          return { result: currentSettings };
+        }
+
+        // If any are false, enable all (use defaults)
+        settingsToApply = defaultSettings;
+      } else if (currentSettings && settings) {
+        // If settings are provided, check if they match current settings
+        const isSame =
+          currentSettings.facebookIntegrationEnabled === requestedSettings.facebookIntegrationEnabled &&
+          currentSettings.linkedinIntegrationEnabled === requestedSettings.linkedinIntegrationEnabled &&
+          currentSettings.twitterIntegrationEnabled === requestedSettings.twitterIntegrationEnabled;
+
+        if (isSame) {
+          console.log('Social campaign settings are already configured as requested. Skipping update.');
+          return { result: currentSettings };
+        }
+
+        // Use requested settings
+        settingsToApply = requestedSettings;
+      }
+
+      // Enable social campaign with the determined settings
+      return await this.getSocialCampaignService().enableSocialCampaign(settingsToApply);
+    });
   }
 }
