@@ -71,12 +71,12 @@ test.describe(
     test(
       'home Dashboard Flow - Verify user can view 10 replies on Feed detail page',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@27691'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to view 10 comments or replies on Feed detail page - Home Dashboard Flow',
-          zephyrTestId: '27691',
+          zephyrTestId: 'CONT-27691',
           storyId: '27691',
         });
 
@@ -141,13 +141,13 @@ test.describe(
     test(
       'site Dashboard Flow - Verify user can view 10 replies on Feed detail page',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@27691'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to view 10 comments or replies on Feed detail page - Site Dashboard Flow',
-          zephyrTestId: '27691',
-          storyId: '27691',
+          zephyrTestId: 'CONT-27691',
+          storyId: 'CONT-27691',
         });
 
         // Search and open an existing site
@@ -224,12 +224,12 @@ test.describe(
     test(
       'content Feed Flow - Verify user can view comments on Content detail page',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@27691'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to view 10 comments or replies on Feed detail page - Content Feed Flow',
-          zephyrTestId: '27691',
+          zephyrTestId: 'CONT-27691',
           storyId: '27691',
         });
 

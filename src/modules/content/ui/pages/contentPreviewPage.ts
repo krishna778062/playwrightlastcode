@@ -33,7 +33,6 @@ export interface IContentPreviewPageActions {
   clickAllCommentsLink: () => Promise<void>;
   clickShowMoreCommentsButton: () => Promise<void>;
   getVisibleCommentCount: () => Promise<number>;
-  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
   addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
