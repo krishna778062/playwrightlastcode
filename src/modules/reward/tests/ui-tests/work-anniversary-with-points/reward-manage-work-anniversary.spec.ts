@@ -11,7 +11,6 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
     const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-
     await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
     await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
     await manageRecognitionPage.automatedAwards.editMenuItem.click();
@@ -38,8 +37,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
+      await editAutomatedAwardPage.getHeadingElementByText('Award frequency').scrollIntoViewIfNeeded();
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.enableAndEditPoints();
       await automatedAwardPage.automatedAwardSaveButton.click();
@@ -63,7 +61,6 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.verifyTheErrorForInvalidInput(-12);
@@ -86,40 +83,62 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
         zephyrTestId: 'RC-5730',
         storyId: 'RC-5730',
       });
+      tagTest(test.info(), {
+        description: 'Verify rewards points icon on Milestone award instance',
+        zephyrTestId: 'RC-5721',
+        storyId: 'RC-5721',
+      });
+      tagTest(test.info(), {
+        description: 'Validate remove option for rewards points on edit milestone award instance',
+        zephyrTestId: 'RC-5731',
+        storyId: 'RC-5731',
+      });
+      tagTest(test.info(), {
+        description: 'Verify save button on milestone award instance page while adding reward points',
+        zephyrTestId: 'RC-5733',
+        storyId: 'RC-5733',
+      });
 
       const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
       const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-
       await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
-
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
+      await manageRecognitionPage.workAnniversaryWithPoints.setTheDefaultPointsInWorkAnniversary(10);
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
+        manageRecognitionPage.dialogContainerForm.dialogHeader
+      );
 
       await editAutomatedAwardPage.enableAndEditPointsInDialogBox(automatedAwardPage.page);
-      await manageRecognitionPage.dailogContainerForm.dailogSaveBtn.click();
+      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
+        manageRecognitionPage.dialogContainerForm.dialogHeader
+      );
 
       await editAutomatedAwardPage.disableTheCustomPoint(automatedAwardPage.page);
-      await manageRecognitionPage.dailogContainerForm.dailogSaveBtn.click();
+      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.scrollIntoViewIfNeeded();
+      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
 
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
+        manageRecognitionPage.dialogContainerForm.dialogHeader
+      );
 
       await editAutomatedAwardPage.removeTheCustomPoint(automatedAwardPage.page);
-      await manageRecognitionPage.dailogContainerForm.dailogSaveBtn.click();
+      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.scrollIntoViewIfNeeded();
+      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).not.toBeVisible();
       await automatedAwardPage.automatedAwardSaveButton.click();
@@ -149,10 +168,10 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
       await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dailogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await manageRecognitionPage.dialogContainerForm.dialogHeader.waitFor({ state: 'visible' });
 
       await editAutomatedAwardPage.enableAndEditPointsInDialogBox(automatedAwardPage.page);
-      await manageRecognitionPage.dailogContainerForm.dailogCancelBtn.click();
+      await manageRecognitionPage.dialogContainerForm.dialogCancelBtn.click();
       await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(editAutomatedAwardPage.awardSchedulePointIcon).not.toBeVisible();
     }

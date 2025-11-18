@@ -44,6 +44,7 @@ export enum REWARD_FEATURE_TAGS {
 
   //Allowance refreshing cases
   REWARDS_ALLOWANCE_REFRESH = '@allowance-refreshing',
+  REWARDS_ALLOWANCE_SEEDING = '@allowance-seeding',
 
   //Work Anniversary Related Tags
   REWARDS_WORK_ANNIVERSARY = '@rewards-work-anniversary',

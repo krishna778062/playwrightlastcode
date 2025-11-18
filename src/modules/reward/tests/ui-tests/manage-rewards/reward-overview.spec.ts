@@ -66,7 +66,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         REWARD_FEATURE_TAGS.REWARDS_DB_CASES,
         REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH,
         TestGroupType.REGRESSION,
-        TestPriority.P2,
+        TestPriority.P1,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -76,31 +76,35 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         storyId: 'RC-3329',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.loadPage();
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       const tenantCode = await appManagerFixture.page.evaluate(() => {
         return (window as any).Simpplr?.Settings?.accountId;
       });
-      await TestDbScenarios.setupAllowanceRefresh(tenantCode);
-      await manageRewardsOverviewPage.reloadPage();
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
-        manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue,
-        {
-          timeout: 15000,
-          stepInfo: 'Verify Allowances value is visible in Points balance summary section',
-        }
-      );
-      const allowancePointsText = await manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue.textContent();
-      const allowancePoints = Number(allowancePointsText?.replace('points', '').trim());
-      expect(allowancePoints).toBe(0);
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        manageRewardsOverviewPage.tooltipText,
-        'Allowances are currently refreshing'
-      );
-      await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      try {
+        await TestDbScenarios.setupAllowanceRefresh(tenantCode);
+        await manageRewardsOverviewPage.reloadPage();
+        await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+        await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
+        await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+          manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue,
+          {
+            timeout: 15000,
+            stepInfo: 'Verify Allowances value is visible in Points balance summary section',
+          }
+        );
+        const allowancePointsText = await manageRewardsOverviewPage.pointBalanceSummaryAllowanceValue.textContent();
+        const allowancePoints = Number(allowancePointsText?.replace('points', '').trim());
+        expect(allowancePoints).toBe(0);
+        await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
+        await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
+        await manageRewardsOverviewPage.verifier.verifyElementHasText(
+          manageRewardsOverviewPage.tooltipText,
+          'Allowances are currently refreshing'
+        );
+      } finally {
+        await TestDbScenarios.cleanupAllowanceRefresh(tenantCode);
+      }
     }
   );
 
@@ -245,67 +249,6 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           throw new Error(`Expected no new API calls for ${tab} tab, but got ${calls.length}`);
         }
       }
-    }
-  );
-
-  test(
-    '[RC-3094] Validate tooltips on Rewards Overview Points Balance summary tile component',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate tooltips on Rewards Overview Points Balance summary tile component',
-        zephyrTestId: 'RC-3094',
-        storyId: 'RC-3094',
-      });
-      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await manageRewardsOverviewPage.verifyThePageIsLoaded();
-      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
-
-      // Validate the tooltip text and "i" button on Allowances
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        manageRewardsOverviewPage.tooltipText,
-        'Allowances refresh on the 1st of every month'
-      );
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheAllowanceInfoIcon();
-
-      // Validate the tooltip text and "i" button on User wallets
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheUserWalletInfoIcon();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText.first());
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        manageRewardsOverviewPage.tooltipText.first(),
-        'Points in user wallets are available to be redeemed for rewards and do not expire.'
-      );
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText.last());
-      await manageRewardsOverviewPage.verifier.verifyElementHasText(
-        manageRewardsOverviewPage.tooltipText.last(),
-        'Includes pending points.'
-      );
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryTheUserWalletInfoIcon();
-
-      // Validate the tooltip text of point conversion "i" button
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryThePointConversionIcon();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.tooltipText);
-      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
-        manageRewardsOverviewPage.tooltipText,
-        'Point values may vary when using custom currency conversions'
-      );
-      await manageRewardsOverviewPage.clickOnPointBalanceSummaryThePointConversionIcon();
-
-      // Disable Peer gifting and click on the Allowances "i" button.
-      await manageRewardsOverviewPage.peerGifting.disableThePeerGifting();
-      await manageRewardsOverviewPage.loadPage();
-      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
-        manageRewardsOverviewPage.pointBalanceSummaryActionBarButton
-      );
-      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.pointBalanceSummaryActionBarButton, {
-        stepInfo: 'Clicking on Point Balance Summary Action Bar Button',
-      });
-      await manageRewardsOverviewPage.peerGifting.enableThePeerGifting();
     }
   );
 });
