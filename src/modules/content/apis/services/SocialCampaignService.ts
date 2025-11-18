@@ -113,6 +113,7 @@ export class SocialCampaignService {
       const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.updateStatus(campaignId), {
         data: { action },
       });
+      console.log('response', await response.json());
       return (await response.json()) as SocialCampaignStatusUpdateResponse;
     });
   }
