@@ -8,12 +8,12 @@ import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
 
-initializeRecognitionConfig('onlyPeerToPeer');
+initializeRecognitionConfig('privateRecognition');
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests', 'only-peer-to-peer'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests', 'private-recognition'),
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 1 : 1,
   timeout: 120_000,

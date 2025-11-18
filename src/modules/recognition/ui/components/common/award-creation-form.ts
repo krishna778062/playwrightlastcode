@@ -2,7 +2,7 @@ import { Locator, Page } from '@playwright/test';
 
 import { BasePage } from '@core/pages/basePage';
 
-export class awardCreationForm extends BasePage {
+export class AwardCreationForm extends BasePage {
   awardNameInput: Locator;
   awardDescriptionInput: Locator;
   addBadgeButton: Locator;
@@ -24,7 +24,7 @@ export class awardCreationForm extends BasePage {
     this.nextButton = page.getByRole('button', { name: 'Next' });
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.awardNameInput);
   }
 }

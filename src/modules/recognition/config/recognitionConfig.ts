@@ -1,4 +1,4 @@
-export type TenantKey = 'primary' | 'onlyPeerToPeer';
+export type TenantKey = 'primary' | 'privateRecognition';
 export type EnvironmentKey = 'qa' | 'test';
 
 /**
@@ -97,9 +97,27 @@ export const config = {
       newUxEnabled: true,
     },
   },
-  onlyPeerToPeer: {
+  privateRecognition: {
+    qa: {
+      tenantName: 'Recognition P2P QA',
+      frontendBaseUrl: 'https://reco-p2p-automation.qa.simpplr.xyz/',
+      apiBaseUrl: 'https://reco-p2p-automation-api.qa.simpplr.xyz',
+      appManagerEmail: 'charan.b@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'ac85c159-95d6-4c29-a7e2-c1bec9931f61',
+      appManagerPassword: 'Simpplr@1234',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
     test: {
-      tenantName: 'Recognition Primary',
+      tenantName: 'Recognition P2P',
       frontendBaseUrl: 'https://p2ptestenv.test.simpplr.xyz',
       apiBaseUrl: 'https://p2ptestenv-api.test.simpplr.xyz',
       appManagerEmail: 'charan.b@simpplr.com',

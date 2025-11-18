@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, test } from '@playwright/test';
-import { awardCreationForm } from '@recognition/ui/components/common/award-creation-form';
+import { AwardCreationForm } from '@recognition/ui/components/common/award-creation-form';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -9,7 +9,7 @@ import { BasePage } from '@core/pages/basePage';
 export class RecurringAwardPage extends BasePage {
   readonly recurringTab: Locator;
   newRecurringAwardButton: Locator;
-  awardCreationForm: awardCreationForm;
+  awardCreationForm: AwardCreationForm;
   whoCanWinThisAwardSelectInput: Locator;
   whoCanNominateThisAwardSelectInput: Locator;
   anonymousRadioButton: Locator;
@@ -27,7 +27,7 @@ export class RecurringAwardPage extends BasePage {
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION) {
     super(page, pageUrl);
-    this.awardCreationForm = new awardCreationForm(page);
+    this.awardCreationForm = new AwardCreationForm(page);
 
     this.recurringTab = page.getByRole('tab', { name: 'Recurring awards' });
     this.newRecurringAwardButton = page.getByRole('link', { name: 'New recurring award' });

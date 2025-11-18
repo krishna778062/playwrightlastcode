@@ -23,7 +23,7 @@ on:
           - 'frontline'
           - 'integrations'
           - 'recognition'
-          - 'only-peer-to-peer'
+          - 'privateRecognition'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
