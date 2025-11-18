@@ -5,7 +5,6 @@ import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponen
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FAVORITE_TEST_DATA } from '@/src/modules/content/test-data/favorite.test-data';
-import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
@@ -112,11 +111,7 @@ test.describe('favorite', () => {
       const firstUserName = await favoritePage.actions.getFirstDisplayedUserName();
 
       // Verify the search bar is visible
-      await test.step('Verify the search bar is visible', async () => {
-        await favoritePage.verifier.verifyTheElementIsVisible(favoritePage.searchBar, {
-          assertionMessage: 'Search bar should be visible on favorites people tab',
-        });
-      });
+      await favoritePage.assertions.verifyPeopleSearchBarIsVisible();
 
       // Search for the first user and verify search returns correct data
       await test.step('Search for the first displayed user', async () => {
@@ -126,9 +121,7 @@ test.describe('favorite', () => {
 
       // Enter random text and verify "Nothing to show here" message
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        await favoritePage.clickOnElement(favoritePage.searchBar);
-        await favoritePage.fillInElement(favoritePage.searchBar, FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
-        await favoritePage.clickOnElement(favoritePage.searchIcon);
+        await favoritePage.actions.searchPeople(FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
 
         await favoritePage.assertions.verifyNothingToShowMessage();
       });
@@ -156,11 +149,8 @@ test.describe('favorite', () => {
       await favoritePage.clickOnElement(favoritePage.contentTab);
 
       // Get the first content name from the content tab
+      await favoritePage.assertions.verifyFirstContentLinkIsVisible();
       const firstContentLink = favoritePage.getFirstContentLink();
-      await favoritePage.verifier.verifyTheElementIsVisible(firstContentLink, {
-        assertionMessage: 'First content item should be visible',
-        timeout: 10_000,
-      });
       const firstContentName = (await firstContentLink.textContent())?.trim() || '';
 
       // Verify the search bar is visible
@@ -169,10 +159,7 @@ test.describe('favorite', () => {
       // Search for the first content and verify search returns correct data
       if (firstContentName) {
         await test.step('Search for the first displayed content', async () => {
-          const contentSearchBar = favoritePage.getContentSearchBar();
-          await favoritePage.clickOnElement(contentSearchBar);
-          await favoritePage.fillInElement(contentSearchBar, firstContentName);
-          await favoritePage.clickOnElement(favoritePage.getContentSearchIcon());
+          await favoritePage.actions.searchContent(firstContentName);
 
           await favoritePage.assertions.verifyContentIsVisibleInSearchResults(firstContentName);
         });
@@ -180,10 +167,7 @@ test.describe('favorite', () => {
 
       // Enter random text and verify "Nothing to show here" message
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        const contentSearchBar = favoritePage.getContentSearchBar();
-        await favoritePage.clickOnElement(contentSearchBar);
-        await favoritePage.fillInElement(contentSearchBar, FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
-        await favoritePage.clickOnElement(favoritePage.getContentSearchIcon());
+        await favoritePage.actions.searchContent(FAVORITE_TEST_DATA.SEARCH.RANDOM_TEXT);
 
         await favoritePage.assertions.verifyNothingToShowMessage();
       });
@@ -210,17 +194,8 @@ test.describe('favorite', () => {
       // Click on Feed tab
       await favoritePage.clickOnElement(favoritePage.feedTab);
 
-      // Initialize ListFeedComponent for feed operations
-      const listFeedComponent = new ListFeedComponent(appManagerFixture.page);
-
       // Verify all the feed posts marked favourite are listing
-      await test.step('Verify all favorite feed posts are listed', async () => {
-        const feedPosts = favoritePage.getFeedPosts();
-        const postCount = await feedPosts.count();
-        await favoritePage.verifier.verifyTheElementIsVisible(feedPosts.first(), {
-          assertionMessage: `At least one favorite feed post should be visible. Found ${postCount} posts`,
-        });
-      });
+      await favoritePage.assertions.verifyAllFavoriteFeedPostsAreListed();
 
       // Get the first feed post container
       const firstPostContent = favoritePage.getFirstFeedPostContent();
@@ -246,66 +221,23 @@ test.describe('favorite', () => {
 
       // Verify user can comment on the feed post
       await test.step('Verify user can comment on the feed post', async () => {
-        const commentButton = postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(commentButton, {
-          assertionMessage: 'Comment button should be visible on feed post',
-        });
-        await favoritePage.clickOnElement(commentButton);
-
-        const commentTextbox = postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(commentTextbox, {
-          assertionMessage: 'Comment textbox should be visible after clicking comment button',
-        });
-
         const testComment = 'Test comment from automation';
-        await favoritePage.fillInElement(commentTextbox, testComment);
-
-        const replyButton = postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(replyButton, {
-          assertionMessage: 'Reply button should be visible after typing comment',
-        });
-        await favoritePage.clickOnElement(replyButton);
+        await favoritePage.actions.commentOnFeedPost(postContainer, testComment);
       });
 
       // Verify user can unfavorite the feed post
       await test.step('Verify user can unfavorite the feed post', async () => {
-        const unfavoriteButton = postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(unfavoriteButton, {
-          assertionMessage: 'Unfavorite button should be visible on feed post',
-        });
-        await favoritePage.clickOnElement(unfavoriteButton);
+        await favoritePage.actions.unfavoriteFeedPost(postContainer);
       });
 
       // Verify user can share the feed post
       await test.step('Verify user can share the feed post', async () => {
-        const shareButton = postContainer.getByRole('button', { name: 'Share this post' }).first();
-        await favoritePage.verifier.verifyTheElementIsVisible(shareButton, {
-          assertionMessage: 'Share button should be visible on feed post',
-        });
+        await favoritePage.assertions.verifyShareButtonIsVisible(postContainer);
       });
 
       // Verify the user name and feed created date
       await test.step('Verify user name and feed created date', async () => {
-        const userNameLink = postContainer.getByRole('link').first();
-        await favoritePage.verifier.verifyTheElementIsVisible(userNameLink, {
-          assertionMessage: 'User name (author) should be visible on feed post',
-        });
-
-        const timestampLink = postContainer
-          .getByRole('link')
-          .filter({ hasText: /\w+ \d{1,2}, \d{4}/ })
-          .first();
-        const timestampVisible = await timestampLink.isVisible().catch(() => false);
-        if (timestampVisible) {
-          await favoritePage.verifier.verifyTheElementIsVisible(timestampLink, {
-            assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
-          });
-        } else if (firstFeedPostText) {
-          const timestampLocator = listFeedComponent.getPostTimestampLocator(firstFeedPostText);
-          await favoritePage.verifier.verifyTheElementIsVisible(timestampLocator, {
-            assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
-          });
-        }
+        await favoritePage.assertions.verifyUserNameAndFeedCreatedDate(postContainer, firstFeedPostText);
       });
     }
   );

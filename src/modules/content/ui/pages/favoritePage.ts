@@ -4,11 +4,16 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ContactIconType } from '@/src/modules/content/constants';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 export interface IFavoritePageActions {
   clickOnPeopleTab: () => Promise<void>;
   searchingFavoriteUser: (fullName: string) => Promise<void>;
+  searchPeople: (searchText: string) => Promise<void>;
+  searchContent: (searchText: string) => Promise<void>;
   hoverOnUserProfile: (fullName: string) => Promise<void>;
   getFirstDisplayedUserName: () => Promise<string>;
+  commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
+  unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
 }
 export interface IFavoritePageAssertions {
   verifyTheUserIsVisible: (fullName: string) => Promise<void>;
@@ -16,8 +21,13 @@ export interface IFavoritePageAssertions {
   verifyContactIconsAreVisible: (fullName: string) => Promise<void>;
   verifyContactIconsRemainVisibleAfterHover: (fullName: string) => Promise<void>;
   verifyNothingToShowMessage: () => Promise<void>;
+  verifyPeopleSearchBarIsVisible: () => Promise<void>;
   verifyContentSearchBarIsVisible: () => Promise<void>;
+  verifyFirstContentLinkIsVisible: () => Promise<void>;
   verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
+  verifyAllFavoriteFeedPostsAreListed: () => Promise<void>;
+  verifyShareButtonIsVisible: (postContainer: Locator) => Promise<void>;
+  verifyUserNameAndFeedCreatedDate: (postContainer: Locator, firstFeedPostText?: string) => Promise<void>;
 }
 export class FavoritePage extends BasePage implements IFavoritePageActions, IFavoritePageAssertions {
   readonly favoriteHeading: Locator = this.page.getByRole('heading', { name: 'Favorites' });
@@ -121,12 +131,59 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     });
   }
   async searchingFavoriteUser(fullName: string): Promise<void> {
-    await test.step('Searching favorite user', async () => {
+    await this.searchPeople(fullName);
+  }
+
+  async searchPeople(searchText: string): Promise<void> {
+    await test.step(`Searching people with text: ${searchText}`, async () => {
       await this.clickOnElement(this.searchBar);
-      await this.fillInElement(this.searchBar, fullName);
+      await this.fillInElement(this.searchBar, searchText);
       await this.clickOnElement(this.searchIcon);
     });
   }
+
+  async searchContent(searchText: string): Promise<void> {
+    await test.step(`Searching content with text: ${searchText}`, async () => {
+      const contentSearchBar = this.getContentSearchBar();
+      await this.clickOnElement(contentSearchBar);
+      await this.fillInElement(contentSearchBar, searchText);
+      await this.clickOnElement(this.getContentSearchIcon());
+    });
+  }
+
+  async commentOnFeedPost(postContainer: Locator, commentText: string): Promise<void> {
+    await test.step(`Comment on feed post with text: ${commentText}`, async () => {
+      const commentButton = postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
+      await this.verifier.verifyTheElementIsVisible(commentButton, {
+        assertionMessage: 'Comment button should be visible on feed post',
+      });
+      await this.clickOnElement(commentButton);
+
+      const commentTextbox = postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
+      await this.verifier.verifyTheElementIsVisible(commentTextbox, {
+        assertionMessage: 'Comment textbox should be visible after clicking comment button',
+      });
+
+      await this.fillInElement(commentTextbox, commentText);
+
+      const replyButton = postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
+      await this.verifier.verifyTheElementIsVisible(replyButton, {
+        assertionMessage: 'Reply button should be visible after typing comment',
+      });
+      await this.clickOnElement(replyButton);
+    });
+  }
+
+  async unfavoriteFeedPost(postContainer: Locator): Promise<void> {
+    await test.step('Unfavorite the feed post', async () => {
+      const unfavoriteButton = postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
+      await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+        assertionMessage: 'Unfavorite button should be visible on feed post',
+      });
+      await this.clickOnElement(unfavoriteButton);
+    });
+  }
+
   async verifyTheUserIsVisible(fullName: string): Promise<void> {
     await test.step('Verifying the user is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.getUserProfileLink(fullName), {
@@ -298,10 +355,27 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     });
   }
 
+  async verifyPeopleSearchBarIsVisible(): Promise<void> {
+    await test.step('Verify the search bar is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.searchBar, {
+        assertionMessage: 'Search bar should be visible on favorites people tab',
+      });
+    });
+  }
+
   async verifyContentSearchBarIsVisible(): Promise<void> {
     await test.step('Verify the search bar is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.getContentSearchBar(), {
         assertionMessage: 'Search bar should be visible on favorites content tab',
+      });
+    });
+  }
+
+  async verifyFirstContentLinkIsVisible(): Promise<void> {
+    await test.step('Verify first content item is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getFirstContentLink(), {
+        assertionMessage: 'First content item should be visible',
+        timeout: 10_000,
       });
     });
   }
@@ -312,6 +386,51 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
         assertionMessage: `Content "${contentName}" should be visible in search results`,
         timeout: 10_000,
       });
+    });
+  }
+
+  async verifyAllFavoriteFeedPostsAreListed(): Promise<void> {
+    await test.step('Verify all favorite feed posts are listed', async () => {
+      const feedPosts = this.getFeedPosts();
+      const postCount = await feedPosts.count();
+      await this.verifier.verifyTheElementIsVisible(feedPosts.first(), {
+        assertionMessage: `At least one favorite feed post should be visible. Found ${postCount} posts`,
+      });
+    });
+  }
+
+  async verifyShareButtonIsVisible(postContainer: Locator): Promise<void> {
+    await test.step('Verify share button is visible on feed post', async () => {
+      const shareButton = postContainer.getByRole('button', { name: 'Share this post' }).first();
+      await this.verifier.verifyTheElementIsVisible(shareButton, {
+        assertionMessage: 'Share button should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyUserNameAndFeedCreatedDate(postContainer: Locator, firstFeedPostText?: string): Promise<void> {
+    await test.step('Verify user name and feed created date', async () => {
+      const userNameLink = postContainer.getByRole('link').first();
+      await this.verifier.verifyTheElementIsVisible(userNameLink, {
+        assertionMessage: 'User name (author) should be visible on feed post',
+      });
+
+      const timestampLink = postContainer
+        .getByRole('link')
+        .filter({ hasText: /\w+ \d{1,2}, \d{4}/ })
+        .first();
+      const timestampVisible = await timestampLink.isVisible().catch(() => false);
+      if (timestampVisible) {
+        await this.verifier.verifyTheElementIsVisible(timestampLink, {
+          assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
+        });
+      } else if (firstFeedPostText) {
+        const listFeedComponent = new ListFeedComponent(this.page);
+        const timestampLocator = listFeedComponent.getPostTimestampLocator(firstFeedPostText);
+        await this.verifier.verifyTheElementIsVisible(timestampLocator, {
+          assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
+        });
+      }
     });
   }
 }
