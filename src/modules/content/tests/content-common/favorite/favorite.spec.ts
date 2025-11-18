@@ -4,6 +4,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
@@ -210,6 +211,151 @@ test.describe('favorite', () => {
         await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
           assertionMessage: 'Nothing to show here message should be displayed for random search text',
         });
+      });
+    }
+  );
+
+  test(
+    'should verify the UI of favourite feed post',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'To verify the UI of favourite feed post',
+        zephyrTestId: '26466',
+        storyId: '26466',
+      });
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+      // Navigate directly to favorites page
+      await sideNavBarComponent.clickOnFavorite();
+      await favoritePage.verifyThePageIsLoaded();
+
+      // Click on Feed tab
+      const feedTab = appManagerFixture.page.getByRole('tab', { name: 'Feed' });
+      await favoritePage.clickOnElement(feedTab);
+
+      // Get the feed tab panel
+      const feedTabPanel = appManagerFixture.page.getByRole('tabpanel', { name: 'Feed' });
+
+      // Initialize ListFeedComponent for feed operations
+      const listFeedComponent = new ListFeedComponent(appManagerFixture.page);
+
+      // Verify all the feed posts marked favourite are listing
+      await test.step('Verify all favorite feed posts are listed', async () => {
+        const feedPosts = feedTabPanel.locator('p').filter({ hasText: /./ });
+        const postCount = await feedPosts.count();
+        await favoritePage.verifier.verifyTheElementIsVisible(feedPosts.first(), {
+          assertionMessage: `At least one favorite feed post should be visible. Found ${postCount} posts`,
+        });
+      });
+
+      // Get the first feed post container
+      const firstPostContent = feedTabPanel.locator('div[class*="postContent"]').first();
+      await favoritePage.verifier.verifyTheElementIsVisible(firstPostContent, {
+        assertionMessage: 'First feed post container should be visible',
+      });
+
+      // Get the post wrapper that contains both postContent and action buttons
+      const firstPostWrapper = firstPostContent
+        .locator('xpath=./ancestor::div[contains(@class, "postBody") or contains(@class, "post")]')
+        .first();
+      const postWrapperExists = (await firstPostWrapper.count()) > 0;
+      const postContainer = postWrapperExists
+        ? firstPostWrapper
+        : firstPostContent.locator('xpath=./ancestor::div[4]').first();
+
+      // Get post text for fallback timestamp verification
+      const postTextParagraph = firstPostContent
+        .locator('p')
+        .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
+        .first();
+      const firstFeedPostText = (await postTextParagraph.textContent())?.trim() || '';
+
+      // Verify user can like the feed post
+      await test.step('Verify user can like the feed post', async () => {
+        const likeButton = postContainer
+          .locator(
+            'div:nth-child(3) > .Spacing-module__row__bvKBb.Spacing-module__spacing-15__bvKBb > .Spacing-module__row__bvKBb.Spacing-module__spacing-20__bvKBb > .Spacing-module__row__bvKBb > div > ._actionBtn_l2df2_10'
+          )
+          .first();
+        await favoritePage.verifier.verifyTheElementIsVisible(likeButton, {
+          assertionMessage: 'Like button should be visible on feed post',
+        });
+        await favoritePage.clickOnElement(likeButton);
+      });
+
+      // Verify user can comment on the feed post
+      await test.step('Verify user can comment on the feed post', async () => {
+        const commentButton = postContainer
+          .locator(
+            '._Replies_eonic_20 > ._Reply_qr1ju_1 > ._Reply-inner_qr1ju_11 > ._Reply-body_qr1ju_22 > ._FakeInput_qr1ju_102'
+          )
+          .first();
+        await favoritePage.verifier.verifyTheElementIsVisible(commentButton, {
+          assertionMessage: 'Comment button should be visible on feed post',
+        });
+        await favoritePage.clickOnElement(commentButton);
+
+        const commentTextbox = postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
+        await favoritePage.verifier.verifyTheElementIsVisible(commentTextbox, {
+          assertionMessage: 'Comment textbox should be visible after clicking comment button',
+        });
+
+        const testComment = 'Test comment from automation';
+        await favoritePage.fillInElement(commentTextbox, testComment);
+
+        const replyButton = postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
+        await favoritePage.verifier.verifyTheElementIsVisible(replyButton, {
+          assertionMessage: 'Reply button should be visible after typing comment',
+        });
+        await favoritePage.clickOnElement(replyButton);
+      });
+
+      // Verify user can unfavorite the feed post
+      await test.step('Verify user can unfavorite the feed post', async () => {
+        const unfavoriteButton = postContainer
+          .locator(
+            '._postHeader_tgt5r_1 > .Spacing-module__row__bvKBb > ._postFavoriteContainer_tgt5r_29 > ._favoritePostIcon_1nta9_1 > .u-ignoreLegacyStyle'
+          )
+          .first();
+        await favoritePage.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+          assertionMessage: 'Unfavorite button should be visible on feed post',
+        });
+        await favoritePage.clickOnElement(unfavoriteButton);
+      });
+
+      // Verify user can share the feed post
+      await test.step('Verify user can share the feed post', async () => {
+        const shareButton = postContainer.getByRole('button', { name: 'Share this post' }).first();
+        await favoritePage.verifier.verifyTheElementIsVisible(shareButton, {
+          assertionMessage: 'Share button should be visible on feed post',
+        });
+      });
+
+      // Verify the user name and feed created date
+      await test.step('Verify user name and feed created date', async () => {
+        const userNameLink = postContainer.getByRole('link').first();
+        await favoritePage.verifier.verifyTheElementIsVisible(userNameLink, {
+          assertionMessage: 'User name (author) should be visible on feed post',
+        });
+
+        const timestampLink = postContainer
+          .getByRole('link')
+          .filter({ hasText: /\w+ \d{1,2}, \d{4}/ })
+          .first();
+        const timestampVisible = await timestampLink.isVisible().catch(() => false);
+        if (timestampVisible) {
+          await favoritePage.verifier.verifyTheElementIsVisible(timestampLink, {
+            assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
+          });
+        } else if (firstFeedPostText) {
+          const timestampLocator = listFeedComponent.getPostTimestampLocator(firstFeedPostText);
+          await favoritePage.verifier.verifyTheElementIsVisible(timestampLocator, {
+            assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
+          });
+        }
       });
     }
   );
