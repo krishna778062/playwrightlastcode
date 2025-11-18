@@ -27,6 +27,7 @@ export class AddContentModalComponent extends BaseComponent {
   readonly selectSiteDropdownOption: (siteName: string) => Locator;
   readonly clearButtonOnSelectSiteDropdown: Locator;
   readonly selectSiteDropdownOptionByIndex: (index: number) => Locator;
+  readonly noResultsText: Locator;
 
   //select template dropdown
   readonly selectTemplateDropdown: Locator;
@@ -55,7 +56,7 @@ export class AddContentModalComponent extends BaseComponent {
     this.selectSiteDropdown = page.locator('input.ReactSelectInput-inputField');
     this.selectSiteDropdownOption = (siteName: string) => page.locator(`div.u-textTruncate div:text-is("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
-
+    this.noResultsText = page.getByText('No results');
     this.selectSiteDropdownOptionByIndex = (index: number) => page.locator(`span.u-textTruncate`).nth(index);
 
     //select template dropdown
@@ -132,6 +133,14 @@ export class AddContentModalComponent extends BaseComponent {
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
       await this.typeInElement(this.selectSiteDropdown, siteName);
+
+      // Check if "No results" is visible, if so clear and re-enter the value
+      const isNoResultsVisible = await this.noResultsText.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isNoResultsVisible) {
+        await this.clearSelectedSiteFromDropdown();
+        await this.typeInElement(this.selectSiteDropdown, siteName);
+      }
+
       await this.clickOnElement(this.selectSiteDropdownOption(siteName));
     });
   }

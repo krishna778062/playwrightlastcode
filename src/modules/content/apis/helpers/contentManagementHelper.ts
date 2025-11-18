@@ -443,4 +443,57 @@ export class ContentManagementHelper {
       }
     }
   }
+
+  /**
+   * Gets the must read content list
+   * @param peopleId - The people ID of the user
+   * @param options - Optional parameters for must read content filtering
+   * @returns Promise with the content list response
+   */
+  async getMustReadContentList(
+    peopleId: string,
+    options?: {
+      size?: number;
+      sortBy?: string;
+      isMustRead?: boolean;
+    }
+  ) {
+    return await this.contentManagementService.getMustReadContentList({
+      peopleId,
+      size: options?.size || 16,
+      isMustRead: options?.isMustRead !== undefined ? options.isMustRead : true,
+    });
+  }
+
+  /**
+   * Gets the first must read content item details for navigation
+   * @param peopleId - The people ID of the user
+   * @param options - Optional parameters for must read content filtering
+   * @returns Promise with siteId, contentId, and contentType of the first must read content
+   */
+  async getFirstMustReadContentDetails(
+    peopleId: string,
+    options?: {
+      size?: number;
+      sortBy?: string;
+      isMustRead?: boolean;
+    }
+  ): Promise<{ siteId: string; contentId: string; contentType: string }> {
+    const mustReadContentList = await this.getMustReadContentList(peopleId, options);
+
+    // Verify that we have at least one must read content
+    if (!mustReadContentList.result?.listOfItems || mustReadContentList.result.listOfItems.length === 0) {
+      throw new Error(
+        'No must read content found. Please ensure there is at least one must read content in the system.'
+      );
+    }
+
+    // Get the first content item from the list
+    const firstContent = mustReadContentList.result.listOfItems[0];
+    const siteId = firstContent.site.siteId;
+    const contentId = firstContent.contentId || firstContent.id;
+    const contentType = firstContent.type.toLowerCase();
+
+    return { siteId, contentId, contentType };
+  }
 }
