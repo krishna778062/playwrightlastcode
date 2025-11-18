@@ -12,7 +12,6 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-// import { SiteDashboardPage } from '@/src/modules/content/ui/pages/siteDashboardPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // ==================== HELPER FUNCTIONS ====================
@@ -232,7 +231,7 @@ for (const testData of feedTestData) {
             storyId: testData.storyId,
           });
 
-          const initialPostText = TestDataGenerator.generateRandomText();
+          const initialPostText = TestDataGenerator.generateRandomText('Post', 1, false);
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
@@ -245,9 +244,11 @@ for (const testData of feedTestData) {
             embedUrl: embeedUrl,
           });
           createdPostId = postResult.postId;
+          const postText = postResult.postText;
 
+          console.log('postText :   ', postText);
           // Step 2: Validate post creation
-          await appManagerFeedPage.assertions.validatePostText(postResult.postText);
+          await appManagerFeedPage.assertions.validatePostText(postText);
 
           // Step 3: Prepare for edit - get another user's name
           const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
