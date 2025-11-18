@@ -30,6 +30,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly clickOnThePeopleTab: Locator;
   readonly contentFilterDropdown: Locator;
   readonly contentSearchBar: Locator;
 
@@ -59,6 +60,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
   }
@@ -73,6 +75,10 @@ export class ManageSitesComponent extends BaseComponent {
 
   getMembersListInPeopleTab(membersName: string): Locator {
     return this.page.getByRole('link', { name: membersName });
+  }
+
+  getSiteOwnerStatusForMember(membersName: string): Locator {
+    return this.page.getByRole('listitem').filter({ hasText: membersName }).getByText('Site owner');
   }
 
   getFavoriteButtonForUser(membersName: string): Locator {
@@ -159,6 +165,11 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnTheManageSiteButtonAction(): Promise<void> {
     await test.step('Click on the manage site button', async () => {
       await this.clickOnElement(this.clickOnTheManageSiteButton);
+    });
+  }
+  async clickOnThePeopleTabAction(): Promise<void> {
+    await test.step('Click on the people tab', async () => {
+      await this.clickOnElement(this.clickOnThePeopleTab);
     });
   }
 
@@ -327,6 +338,16 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
+    await test.step(`Verify member name and site owner status for ${membersName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getMembersListInPeopleTab(membersName), {
+        assertionMessage: `Member name ${membersName} should be visible in people tab`,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.getSiteOwnerStatusForMember(membersName), {
+        assertionMessage: `Site owner status should be visible for ${membersName}`,
+      });
+    });
+  }
   async selectContentFilter(filter: ContentFilter): Promise<void> {
     await test.step(`Select content filter: ${filter}`, async () => {
       if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
