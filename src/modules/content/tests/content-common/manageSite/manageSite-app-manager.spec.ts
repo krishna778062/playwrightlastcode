@@ -8,6 +8,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -505,6 +506,88 @@ test.describe(
           createAlbumInfo.albumName,
           createEventInfo.eventName,
         ]);
+      }
+    );
+    test(
+      'to verify the UI of favourite content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26267'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the favourite content filters',
+          zephyrTestId: 'CONT-26267',
+          storyId: 'CONT-26267',
+        });
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const makeContentMustReadResponse = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
+          createPageInfo.contentId,
+          {
+            audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+            duration: MustReadDuration.NINETY_DAYS,
+          }
+        );
+        console.log('makeContentMustReadResponse', makeContentMustReadResponse);
+        const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+        });
+        const makeContentMustReadResponseAlbum = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
+          createAlbumInfo.contentId
+        );
+        console.log('makeContentMustReadResponseAlbum', makeContentMustReadResponseAlbum);
+        const createEventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'event' },
+        });
+        console.log('createEventInfo', createEventInfo);
+        const makeContentMustReadResponseEvent = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
+          createEventInfo.contentId
+        );
+        console.log('makeContentMustReadResponseEvent', makeContentMustReadResponseEvent);
+        const contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createPageInfo.contentId,
+          'page'
+        );
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.clickOnFavouriteContentButton();
+        const contentPreviewPageAlbum = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createAlbumInfo.contentId,
+          'album'
+        );
+        await contentPreviewPageAlbum.loadPage();
+        await contentPreviewPageAlbum.clickOnFavouriteContentButton();
+        const contentPreviewPageEvent = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createEventInfo.contentId,
+          'event'
+        );
+        await contentPreviewPageEvent.loadPage();
+        await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        await manageSitesComponent.clickOnTheFavouriteTabsAction();
+        await favoritesPage.actions.clickOnContentButton();
+        await favoritesPage.assertions.verifyContentNamesAreDisplayed([
+          createPageInfo.pageName,
+          createAlbumInfo.albumName,
+          createEventInfo.eventName,
+        ]);
+
+        const manageAppManagerUserPage = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
+        await favoritesPage.assertions.verifyEventsTabImageIsDisplayed();
+        await favoritesPage.assertions.verifyAlbumTabImageIsDisplayed();
+        await manageAppManagerUserPage.assertions.verifyPageTabImageIsDisplayed();
+        await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.endsAt);
+        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.MUST_READ_TAG);
+        await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
       }
     );
   }

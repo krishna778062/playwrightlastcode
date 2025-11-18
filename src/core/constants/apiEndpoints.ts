@@ -70,6 +70,7 @@ export const API_ENDPOINTS = {
   },
 
   content: {
+    makeContentMustRead: (contentId: string) => `/v1/content/sites/content/${contentId}/mustRead`,
     category: '/pageCategories/list',
     publish: '/content?action=publish',
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
