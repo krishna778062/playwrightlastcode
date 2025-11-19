@@ -51,7 +51,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.locator('span', { hasText: 'Create' });
+    this.createSection = page.getByRole('button', { name: 'Create', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
@@ -280,7 +280,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async verifyingCreateButtonIsVisible(): Promise<void> {
     await test.step('Verifying Create button is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
+      await this.verifier.verifyTheElementIsVisible(this.createSection);
     });
   }
 }
