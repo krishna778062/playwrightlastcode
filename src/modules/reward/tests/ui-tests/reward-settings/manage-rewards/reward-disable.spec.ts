@@ -13,13 +13,18 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   test(
     '[RC-2198] Validate disable rewards flow',
     {
-      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0, '@only-running-test'],
+      tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Validate disable rewards flow',
         zephyrTestId: 'RC-2198',
         storyId: 'RC-2198',
+      });
+      tagTest(test.info(), {
+        description: 'Validate disable rewards prompt modal',
+        zephyrTestId: 'RC-3233',
+        storyId: 'RC-3233',
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);

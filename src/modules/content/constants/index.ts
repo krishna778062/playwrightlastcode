@@ -1,3 +1,4 @@
+export * from './contactIconType';
 export * from './contentSortBy';
 export * from './contentStatus';
 export * from './contentType';
