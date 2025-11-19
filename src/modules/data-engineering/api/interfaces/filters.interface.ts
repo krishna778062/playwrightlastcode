@@ -84,3 +84,22 @@ export interface GetDivisionsResponse {
   data: Division[];
   metadata: FilterMetadata;
 }
+
+// Batch Run Details
+export interface BatchRunDetail {
+  batch_name: string;
+  latest_process_end_time: string;
+  dag_interval_in_seconds: string;
+}
+
+export interface BatchRunMetadata {
+  tenantId: string;
+  timestamp: string;
+  count: number;
+}
+
+export interface GetBatchRunDetailsResponse {
+  success: boolean;
+  data: BatchRunDetail[];
+  metadata: BatchRunMetadata;
+}

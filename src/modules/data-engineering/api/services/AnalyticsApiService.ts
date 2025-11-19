@@ -3,6 +3,7 @@ import { APIRequestContext } from '@playwright/test';
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import {
   FilterRequest,
+  GetBatchRunDetailsResponse,
   GetCompanyNamesResponse,
   GetDepartmentsResponse,
   GetDivisionsResponse,
@@ -104,5 +105,22 @@ export class AnalyticsApiService extends HttpClient {
 
   async getActiveDivisions(): Promise<GetDivisionsResponse> {
     return this.getDivisions({ status: 'active' });
+  }
+
+  /**
+   * Get batch run details for analytics
+   * This endpoint doesn't require status parameter as it shows batch processing information
+   */
+  async getBatchRunDetails(): Promise<GetBatchRunDetailsResponse> {
+    const endpoint = '/v2/analytics/batchRunDetails';
+
+    const response = await this.get(endpoint);
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as GetBatchRunDetailsResponse;
   }
 }

@@ -3,4 +3,4 @@
  */
 
 export * from '@data-engineering/api/interfaces/filters.interface';
-export * from '@data-engineering/helpers/duckdbFiltersQueryHelper';
+export * from '@data-engineering/helpers/analyticsQueryHelper';

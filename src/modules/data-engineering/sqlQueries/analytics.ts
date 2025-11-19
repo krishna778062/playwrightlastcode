@@ -1,4 +1,4 @@
-export const DuckDBFiltersSql = {
+export const AnalyticsSql = {
   Active_Segments: `
 SELECT DISTINCT segment_code, segment_name 
 FROM udl.vw_user_as_is 
@@ -49,5 +49,24 @@ WHERE tenant_code = ?
 AND status_code = 'US001' 
 AND division IS NOT NULL
 ORDER BY division
+  `,
+
+  ANALYTICS_LAST_UPDATED_DATETIME: `
+select batch_name, max(data_process_end_time) as last_batch_end_time from simpplr_common_tenant.execution_run_stats.batch_run
+where batch_name in 
+('simpplr_core_warehouse_load',
+'simpplr_aggregate_warehouse_load',
+'simpplr_daily_snapshots_warehouse_load',
+'simpplr_employee_listening_warehouse_load',
+'simpplr_employee_newsletter_warehouse_load',
+'simpplr_integration_warehouse_load',
+'simpplr_monthly_snapshots_warehouse_load',
+'simpplr_virtual_assistant_warehouse_load',
+'simpplr_zeus_aqua_warehouse_load',
+'simpplr_zeus_chat_warehouse_load',
+'simpplr_zeus_warehouse_load') 
+and batch_status ='SUCCESS'
+group by 1
+order by 1;
   `,
 };
