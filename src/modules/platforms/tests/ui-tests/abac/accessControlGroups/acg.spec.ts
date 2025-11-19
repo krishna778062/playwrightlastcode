@@ -8,7 +8,14 @@ import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 // import { User } from '@core/types/user.type';
 import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
-import { ACG_COLUMNS, ACG_EDIT_ASSETS, ACG_STATUS } from '@platforms/constants/acg';
+import {
+  ACG_COLUMNS,
+  ACG_EDIT_ASSETS,
+  ACG_EDIT_ASSETS_SUMMARY_SCREEN,
+  ACG_STATUS,
+  ACG_ACCESS_CONTROL_TYPE,
+  ACG_TOOLTIPS,
+} from '@platforms/constants/acg';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AccessControlGroupsPage, ACGFeature } from '@platforms/pages/abacPage/acgPage/accessControlGroupsPage';
 import { FeatureOwnersPage } from '@platforms/pages/abacPage/featureOwnersPage/featureOwnersPage';
@@ -17,6 +24,7 @@ import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@/src/core/cons
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { Roles } from '@/src/core/constants/roles';
 
 test.describe(
   'ACG Testcases',
@@ -96,11 +104,11 @@ test.describe(
     test(
       'Verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'PS-32216',
+          zephyrTestId: ['PS-32216', 'PS-30117'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         // Test Scenario - Verify that status of the ACG should be displayed as Inactive immediately after creation
@@ -116,6 +124,26 @@ test.describe(
           'Access control group was successfully updated'
         );
         await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_TARGET_AUDIENCE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_MANAGER
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_ADMIN
+        );
+        await accessControlGroupsPage.editACGModal.verifyTooltipForButton(
+          ACG_EDIT_ASSETS.FEATURE,
+          ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED
+        );
+        await accessControlGroupsPage.editACGModal.clickCloseButton();
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
@@ -266,7 +294,7 @@ test.describe(
     test(
       'Verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -278,12 +306,12 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         await accessControlGroupsPage.clickOnCreateButtonToInitiateControlGroupCreationFlowFor('Single');
         await accessControlGroupsPage.selectFeatureToAddToControlGroup(ACGFeature.ALERTS);
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
-        await accessControlGroupsPage.clickOnButtonWithName('Browse');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
         await accessControlGroupsPage.searchForValues(audienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(audienceToCreate[0]);
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
-        await accessControlGroupsPage.clickOnButtonWithName('Next');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
 
         // Select Manager and Admin users for the ACG
         await accessControlGroupsPage.browseSelectUserAndProceed('Admin', 'Manager');
@@ -293,7 +321,7 @@ test.describe(
         await accessControlGroupsPage.clickOnEditManagerButton();
         await accessControlGroupsPage.clickOnAddUsersButton();
         await accessControlGroupsPage.searchAndSelectUserWithEnter('Admin');
-        await accessControlGroupsPage.clickOnButtonWithName('Done');
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.clickOnUpdateButton();
 
         // Click edit manager button again to verify the added users
@@ -341,16 +369,16 @@ test.describe(
     test(
       'Verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerPage, appManagerApiClient }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-32212'],
+          zephyrTestId: ['PS-32212', 'PS-30110'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
         await accessControlGroupsPage.loadPage();
         // Prerequisite
-        // Create an ACG with target audiecne only
+        // Create an ACG with target audience only
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(audienceToCreate[0]));
         await appManagerApiClient.getIdentityService().waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
@@ -363,10 +391,26 @@ test.describe(
           'Access control group was successfully updated'
         );
         await accessControlGroupsPage.dismissTheToastMessage();
-        // Test Scenario
+        // Test Scenarios
         await accessControlGroupsPage.searchForACG(acgName[1]);
         await accessControlGroupsPage.editACG(acgName[1]);
         await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_TARGET_AUDIENCE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_MANAGER
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_ADMIN
+        );
+        await accessControlGroupsPage.editACGModal.verifyTooltipForButton(
+          ACG_EDIT_ASSETS.FEATURE,
+          ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED
+        );
         await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
         await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(audienceToCreate[1]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
@@ -424,7 +468,7 @@ test.describe(
     test(
       `Verify the sorting functionality of Name column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
@@ -438,6 +482,42 @@ test.describe(
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.GROUP_TYPE);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.STATUS);
         await accessControlGroupsPage.verifyTheSortingFunctionalityOfColumn(ACG_COLUMNS.MODIFIED);
+      }
+    );
+
+    test(
+      `Verify the state of different edit buttons when Feature Owner is editing System RBAC ACG`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-31255', `PS-31223`],
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerPage);
+        // Test Scenario
+        await accessControlGroupsPage.loadPage();
+        await accessControlGroupsPage.searchForACG('Users | All org | System ACG');
+        await accessControlGroupsPage.editACG('Users | All org | System ACG');
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_TARGET_AUDIENCE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_MANAGER
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_ADMIN
+        );
+        await accessControlGroupsPage.editACGModal.verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedErrorMessage(
+          ACG_ACCESS_CONTROL_TYPE.RBAC
+        );
+        await accessControlGroupsPage.editACGModal.verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedTooltip(
+          ACG_ACCESS_CONTROL_TYPE.RBAC
+        );
       }
     );
   }
