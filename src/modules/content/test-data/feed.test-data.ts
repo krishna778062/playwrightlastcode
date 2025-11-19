@@ -50,7 +50,4 @@ export const FEED_TEST_DATA = {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
   },
-  API_RESPONSE_MESSAGES: {
-    FEED_POST_CREATED: 'Feed Post has been successfully created',
-  },
 } as const;
