@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   integrations-regression-tests:
-    timeout-minutes: 120
+    timeout-minutes: 300
     runs-on: [kubernetes]
     strategy:
       fail-fast: false
@@ -68,7 +68,7 @@ jobs:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run integrations regression tests
-          npm run test:${{ matrix.module }} -- --workers=5
+          npm run test:${{ matrix.module }} -- --workers=3
 
       - name: Upload test report to github artifact backup
         if: always()
