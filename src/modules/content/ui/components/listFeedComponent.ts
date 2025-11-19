@@ -914,7 +914,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for

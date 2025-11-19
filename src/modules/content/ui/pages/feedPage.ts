@@ -765,7 +765,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async closeReactionModal(): Promise<void> {
     await this.listFeedComponent.closeReactionModal();
   }
-  
+
   /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for
@@ -793,7 +793,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async enterSiteNameForShare(siteName: string): Promise<void> {
     await this.shareComponent.actions.enterSiteName(siteName);
   }
-  
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
