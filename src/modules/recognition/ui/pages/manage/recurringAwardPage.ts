@@ -9,6 +9,7 @@ import { BasePage } from '@core/pages/basePage';
 export class RecurringAwardPage extends BasePage {
   readonly recurringTab: Locator;
   newRecurringAwardButton: Locator;
+  readonly recurringAwardsFilter: Locator;
   awardCreationForm: AwardCreationForm;
   whoCanWinThisAwardSelectInput: Locator;
   whoCanNominateThisAwardSelectInput: Locator;
@@ -25,12 +26,27 @@ export class RecurringAwardPage extends BasePage {
   defaultNominationsClose: Locator;
   defaultAwardOverdue: Locator;
 
+  // Award table elements
+  readonly noRecurringAwardsMessage: Locator;
+  readonly recurringAwardTable: Locator;
+  readonly recurringAwardTableHeading: Locator;
+  readonly recurringAwardTableRows: Locator;
+
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION) {
     super(page, pageUrl);
     this.awardCreationForm = new AwardCreationForm(page);
 
     this.recurringTab = page.getByRole('tab', { name: 'Recurring awards' });
     this.newRecurringAwardButton = page.getByRole('link', { name: 'New recurring award' });
+    // Award Filters
+    this.recurringAwardsFilter = page.locator('div[class*="FilterOptions_filterContainer"] [role="tablist"] button');
+
+    // Award table
+    this.recurringAwardTable = page.locator('table[class*="Table-module__table"]');
+    this.recurringAwardTableHeading = this.recurringAwardTable.locator('thead button');
+    this.recurringAwardTableRows = this.recurringAwardTable.locator('tbody tr');
+    this.noRecurringAwardsMessage = page.locator('div[class*="DataGrid-module__emptyWrapper"] h3');
+
     this.whoCanWinThisAwardSelectInput = page.getByTestId('field-Who can win this award').getByTestId('SelectInput');
     this.whoCanNominateThisAwardSelectInput = page.getByTestId('field-Who can nominate').getByTestId('SelectInput');
     this.anonymousRadioButton = page.getByRole('radio', { name: 'Anonymous Nominating employee' });
@@ -231,5 +247,73 @@ export class RecurringAwardPage extends BasePage {
         throw new Error(`Invalid frequency type: ${frequencyType}. Expected 'Monthly' or 'Quarterly'.`);
       }
     });
+  }
+
+  async validateTheFilters(): Promise<void> {
+    await this.verifier.verifyElementHasAttribute(this.recurringTab, 'aria-selected', 'true');
+    const filterNames = ['All', 'Active', 'Inactive', 'Draft', 'Scheduled'];
+    for (let i = 0; i < filterNames.length; i++) {
+      await this.verifier.verifyTheElementIsVisible(this.recurringAwardsFilter.nth(i));
+      await this.verifier.verifyElementHasText(this.recurringAwardsFilter.nth(i), filterNames[i]);
+    }
+  }
+
+  async validateNewRecurringAwardCreationButton(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.newRecurringAwardButton);
+    await this.verifier.verifyTheElementIsEnabled(this.newRecurringAwardButton);
+  }
+
+  async validateTheRecurringAwardTable(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.recurringAwardTable);
+    const tableHeadings = [
+      'Award',
+      'Award delegate',
+      'Frequency',
+      'Award process',
+      'Status',
+      'Last instance',
+      'Created',
+    ];
+    for (let i = 0; i < tableHeadings.length - 1; i++) {
+      await this.verifier.verifyElementHasText(this.recurringAwardTableHeading.nth(i), tableHeadings[i]);
+    }
+    const rowCount = await this.recurringAwardTableRows.count();
+    for (let i = 0; i < (rowCount < 3 ? rowCount : 3); i++) {
+      const row = this.recurringAwardTableRows.nth(i);
+      for (let j = 0; j < tableHeadings.length; j++) {
+        const cellHandle = await row.locator('td').nth(j).elementHandle();
+        if (!cellHandle) continue;
+        await this.page.evaluate(el => {
+          if (el && el instanceof HTMLElement) {
+            el.style.outline = '3px solid red';
+            el.style.transition = 'outline 0.3s ease-in-out';
+          }
+        }, cellHandle);
+        await this.verifier.verifyTheElementIsVisible(row.locator('td').nth(j));
+        await this.page.evaluate(el => {
+          if (el && el instanceof HTMLElement) {
+            el.style.outline = '';
+          }
+        }, cellHandle);
+      }
+    }
+  }
+
+  async mockTheRecurringAwardListApidCall(): Promise<void> {
+    await this.page.route('**/recognition/admin/award/recurring/listing*', route => void route.abort());
+    await this.page.reload();
+    await this.verifyThePageIsLoaded();
+  }
+
+  async validateNoRecurringAwardsMessage(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.newRecurringAwardButton);
+    await this.verifier.verifyTheElementIsEnabled(this.noRecurringAwardsMessage);
+    return;
+  }
+
+  async unrouteTheRecurringAwardListApidCall(): Promise<void> {
+    await this.page.unroute('**/recognition/admin/award/recurring/listing*');
+    await this.page.reload();
+    await this.verifyThePageIsLoaded();
   }
 }
