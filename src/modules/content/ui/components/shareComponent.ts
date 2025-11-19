@@ -208,7 +208,7 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
       await this.shareDescriptionInput.clear();
     });
   }
-  
+
   readonly getViewPostLinkInShareDialog = (): Locator =>
     this.page.getByRole('dialog').getByRole('link', { name: 'View Post' });
 

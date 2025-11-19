@@ -951,7 +951,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.listFeedComponent.validatePostText(postText);
     });
   }
-  
+
   async verifyShareCount(postText: string, expectedCount: number): Promise<void> {
     await this.listFeedComponent.verifyShareCount(postText, expectedCount);
   }
@@ -963,7 +963,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyRepliesCount(postText: string, expectedCount: number): Promise<void> {
     await this.listFeedComponent.verifyRepliesCount(postText, expectedCount);
   }
-  
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
