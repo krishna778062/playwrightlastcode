@@ -5,6 +5,7 @@ import { FeedMode } from '@core/types/feedManagement.types';
 export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
+    SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -14,8 +15,10 @@ export const FEED_TEST_DATA = {
   POST_TEXT: {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
-    REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    COMMENT: `Automated Test Comment ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
+    TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
+    REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
