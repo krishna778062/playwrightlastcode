@@ -797,34 +797,17 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `Post container should be visible for post "${postText}"`,
       });
 
+      const embedURLocator = postContainer.locator('iframe').first();
+      await this.verifier.verifyTheElementIsNotVisible(embedURLocator, {
+        assertionMessage: `Embedded URL should be visible for post "${postText}"`,
+      });
+
       // Verify no iframe/embed/preview elements are present (indicating no unfurl)
-      const embedPreviewLocators = postContainer.locator(
-        'iframe[src*="youtube.com"], iframe[src*="youtu.be"], div[class*="embed"], div[class*="preview"], div[class*="linkPreview"], div[class*="unfurl"]'
-      );
-
-      await this.verifier.verifyTheElementIsNotVisible(embedPreviewLocators.first(), {
-        assertionMessage: `URL "${embedUrl}" should NOT be unfurled - no preview/embed elements should be visible`,
-      });
-    });
-  }
-
-  /**
-   * Verifies that a deleted post message is displayed for a specific post
-   * @param postText - The text of the post to verify deleted message for
-   */
-  async verifyDeletedPostMessage(postText: string): Promise<void> {
-    await test.step(`Verify deleted post message is visible for post: ${postText}`, async () => {
-      // First, find the post container
-      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
-      await this.verifier.verifyTheElementIsVisible(postContainer, {
-        assertionMessage: `Post container should be visible for post "${postText}"`,
-      });
-
-      // Verify the deleted message is visible within the post container
-      const deletedMessage = postContainer.locator('div').filter({ hasText: /^This post has been deleted\.$/ });
-      await this.verifier.verifyTheElementIsVisible(deletedMessage, {
+      const embedPlayButton = postContainer.locator('iframe').first().contentFrame().getByRole('button', { name: 'Play' });
+      await this.verifier.verifyTheElementIsNotVisible(embedPlayButton, {
         assertionMessage: `Deleted post message should be visible for post "${postText}"`,
       });
+
     });
   }
 
