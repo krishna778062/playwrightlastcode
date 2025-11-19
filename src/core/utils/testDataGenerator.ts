@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
 
-import { User } from '@core/types/user.type';
+import { User, UserWithLicenseAndDepartment } from '@core/types/user.type';
 
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
-import { AlbumCreationOptions } from '@/src/modules/content/pages/albumCreationPage';
-import { EventCreationOptions } from '@/src/modules/content/pages/eventCreationPage';
-import { PageCreationOptions } from '@/src/modules/content/pages/pageCreationPage';
+import { AlbumCreationOptions } from '@/src/modules/content/ui/pages/albumCreationPage';
+import { EventCreationOptions } from '@/src/modules/content/ui/pages/eventCreationPage';
+import { PageCreationOptions } from '@/src/modules/content/ui/pages/pageCreationPage';
 
 export class TestDataGenerator {
   /**
@@ -131,7 +131,7 @@ export class TestDataGenerator {
    * @param overrides Optional properties to override in the generated user
    * @returns A User object with only emp
    */
-  static generateUserWithEmp(overrides?: Partial<User>): User {
+  static generateUserWithEmp(overrides?: Partial<UserWithLicenseAndDepartment>): UserWithLicenseAndDepartment {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
 
@@ -142,6 +142,8 @@ export class TestDataGenerator {
       email: '', // Empty string for compatibility
       mobile: 0, // Default value for compatibility
       emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
       timezone_id: 17,
       language_id: 1,
       locale_id: 1,
@@ -217,6 +219,33 @@ export class TestDataGenerator {
       ...overrides,
     };
   }
+  /**
+   * Generates a user with only email as login identifier
+   * @param overrides Optional properties to override in the generated user
+   * @returns A User object with only email
+   */
+  static generateUserWithEmpIdAndGivenEmail(
+    email: string,
+    overrides?: Partial<UserWithLicenseAndDepartment>
+  ): UserWithLicenseAndDepartment {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      username: `${firstName} ${lastName}`,
+      email: email,
+      mobile: 0, // Default value for compatibility
+      emp: faker.string.alphanumeric(8).toUpperCase(),
+      license_type: 'Corporate',
+      department: 'QA',
+      timezone_id: 17,
+      language_id: 1,
+      locale_id: 1,
+      ...overrides,
+    };
+  }
 
   /**
    * Generates multiple random users
@@ -261,8 +290,9 @@ export class TestDataGenerator {
   }
 
   // Helper function to generate test description with timestamp
-  static generateRandomString(prefix: string = 'Test description for category'): string {
-    return `${prefix} created at ${new Date().toISOString()}`;
+  static generateRandomString(prefix: string = 'Test'): string {
+    const randomString = faker.lorem.word();
+    return `${prefix} ${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -272,16 +302,17 @@ export class TestDataGenerator {
   }
 
   /**
+   *
    * Generates a random page with realistic data
    * @param contentType Content type for the page
-   * @param fileName Cover image file name
+   * @param imagePath Cover image file path
    * @param category Optional category for the page (if empty string generates random category)
    * @param overrides Optional properties to override in the generated page
    * @returns A PageCreationOptions object with random realistic data
    */
   static generatePage(
     contentType: PageContentType,
-    fileName: string,
+    imagePath: string,
     category?: string,
     overrides?: Partial<PageCreationOptions>
   ): PageCreationOptions {
@@ -294,7 +325,7 @@ export class TestDataGenerator {
       category: finalCategory,
       contentType: contentType,
       coverImage: {
-        fileName,
+        imagePath,
         cropOptions: {
           widescreen: false,
           square: false,
@@ -329,49 +360,68 @@ export class TestDataGenerator {
 
   /**
    * Generates a random album with realistic data
-   * @param overrides Optional properties to override in the generated album
+   * @param params - Parameters for album generation
+   * @param params.fileName - Path to the image file
+   * @param params.attachmentFileName - Optional path to attachment file
+   * @param params.videoUrl - Optional video URL
+   * @param params.openAlbum - Optional flag to open album for submissions
+   * @param params.overrides - Optional properties to override in the generated album
    * @returns An AlbumCreationOptions object with random realistic data
+   *
+   * @example
+   * const albumOptions = TestDataGenerator.generateAlbum({
+   *   fileName: '/path/to/image.jpg',
+   *   attachmentFileName: '/path/to/attachment.docx',
+   *   videoUrl: 'https://youtu.be/example',
+   *   openAlbum: true
+   * });
    */
-  static generateAlbum(
-    fileName: string,
-    attachmentFileName?: string,
-    videoUrl?: string,
-    openAlbum?: boolean,
-    overrides?: Partial<AlbumCreationOptions>
-  ): AlbumCreationOptions {
+  static generateAlbum(params: {
+    fileName: string;
+    attachmentFileName?: string;
+    videoUrl?: string;
+    openAlbum?: boolean;
+    topics?: string[];
+    overrides?: Partial<AlbumCreationOptions>;
+  }): AlbumCreationOptions {
     const albumOptions: AlbumCreationOptions = {
       title: `Automated Test Page ${faker.company.name()} - ${faker.commerce.productName()}`,
       description: `This is an automated test description ${faker.lorem.paragraph()}`,
-      images: [fileName],
-      videoUrl: videoUrl,
-      attachments: attachmentFileName ? [attachmentFileName] : undefined,
-      openAlbum: openAlbum,
-      topics: [faker.company.name()],
+      images: [params.fileName],
+      videoUrl: params.videoUrl,
+      attachments: params.attachmentFileName ? [params.attachmentFileName] : undefined,
+      openAlbum: params.openAlbum,
+      topics: params.topics || [faker.company.name()],
     };
 
     return {
       ...albumOptions,
-      ...overrides,
+      ...(params.overrides || {}),
     };
   }
 
   /**
    * Generates multiple random albums
    * @param count Number of albums to generate
-   * @param overrides Optional properties to override in all generated albums
+   * @param params - Parameters for album generation
+   * @param params.fileName - Path to the image file
+   * @param params.attachmentFileName - Optional path to attachment file
+   * @param params.videoUrl - Optional video URL
+   * @param params.openAlbum - Optional flag to open album for submissions
+   * @param params.overrides - Optional properties to override in all generated albums
    * @returns Array of AlbumCreationOptions objects
    */
   static generateAlbums(
     count: number,
-    fileName: string,
-    attachmentFileName?: string,
-    videoUrl?: string,
-    openAlbum?: boolean,
-    overrides?: Partial<AlbumCreationOptions>
+    params: {
+      fileName: string;
+      attachmentFileName?: string;
+      videoUrl?: string;
+      openAlbum?: boolean;
+      overrides?: Partial<AlbumCreationOptions>;
+    }
   ): AlbumCreationOptions[] {
-    return Array.from({ length: count }, () =>
-      this.generateAlbum(fileName, attachmentFileName, videoUrl, openAlbum, overrides)
-    );
+    return Array.from({ length: count }, () => this.generateAlbum(params));
   }
 
   /**
@@ -426,7 +476,7 @@ export class TestDataGenerator {
    */
   static generateSite(access: string, overrides?: Partial<any>): any {
     const siteOptions = {
-      name: `Automated Test Site ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
+      name: `${faker.animal.type()} - ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
       description: `This is an automated test site description ${faker.lorem.paragraph()}`,
       siteCategory: faker.word.noun().toLowerCase(),
       access: access,
@@ -502,7 +552,7 @@ export class TestDataGenerator {
 
   static generateRandomText(
     prefix: string = 'Automated Test Post',
-    wordCount: number = 2,
+    wordCount: number = 1,
     includeCompanyName: boolean = true
   ): string {
     const text = faker.lorem.words(wordCount);
@@ -648,6 +698,53 @@ export class TestDataGenerator {
     };
   }
 
+  /**
+   * Generates simple test data for feed comment/reply without user mention
+   * @param params Configuration for the reply
+   * @returns Object with reply creation parameters including textHtml, textJson, and other payload data
+   *
+   * @example
+   * // Generate simple reply without mention
+   * const reply = TestDataGenerator.generateSimpleReply({
+   *   replyText: 'This is a simple reply'
+   * });
+   */
+  static generateSimpleReply(params: { replyText?: string } = {}) {
+    const { replyText } = params;
+    const text = replyText || faker.lorem.sentence();
+
+    // Generate textHtml without user mention
+    const textHtml = `<p>${text}</p>`;
+
+    // Generate textJson without user mention
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      textHtml,
+      textJson,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      replyText: text,
+    };
+  }
+
   static generateValidLinkPair() {
     return faker.internet.url();
   }
@@ -696,5 +793,68 @@ export class TestDataGenerator {
       networks,
       ...(audienceId && { audienceId }),
     };
+  }
+
+  /**
+   * Generates a random number between min and max (inclusive),
+   * excluding a single existing number.
+   * If no valid number is available, it throws an error.
+   *
+   * @param min Minimum number (inclusive)
+   * @param max Maximum number (inclusive)
+   * @param existingNumber The number to exclude
+   * @returns A unique random number
+   */
+  static getRandomNo(min: number, max: number, existingNumber?: number): number {
+    if (min > max) {
+      throw new Error('min cannot be greater than max');
+    }
+
+    const rangeSize = max - min + 1;
+
+    // If the range only has one number and existingNumber is equal to it, no unique number can be generated
+    if (existingNumber !== undefined && rangeSize <= 1 && existingNumber >= min && existingNumber <= max) {
+      throw new Error('No unique number can be generated in the given range');
+    }
+
+    let randomNumber: number;
+
+    do {
+      randomNumber = Math.floor(Math.random() * rangeSize) + min;
+    } while (existingNumber !== undefined && randomNumber === existingNumber);
+
+    return randomNumber;
+  }
+
+  /**
+   * Generates a random alphanumeric string with special characters
+   * @param length - Length of the generated string (default: 12)
+   * @returns A random string containing numbers, letters, and special characters
+   *
+   * @example
+   * // Generate a 12-character string (default)
+   * const topicName = TestDataGenerator.generateRandomAlphanumericWithSpecialChars();
+   *
+   * // Generate a custom length string
+   * const customTopicName = TestDataGenerator.generateRandomAlphanumericWithSpecialChars(15);
+   */
+  static generateRandomAlphanumericWithSpecialChars(length: number = 12): string {
+    const numbers = '0123456789';
+    const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const specialChars = '*&^!@#$%';
+    const allChars = numbers + letters + specialChars;
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += allChars.charAt(Math.floor(Math.random() * allChars.length));
+    }
+    return result;
+  }
+
+  static generateYouTubeEmbedUrl(): string {
+    return `https://www.youtube.com/watch?v=7muxnzQZS28&list=PLsNBVaY0LV8Q087q_S_rl33E5a93mK0B2`;
+  }
+
+  static generateYouTubeEmbedUrl2(): string {
+    return `https://www.youtube.com/watch?v=BMRaz6EmDqI&list=RDBMRaz6EmDqI&start_radio=1`;
   }
 }

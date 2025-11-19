@@ -1,0 +1,1010 @@
+import { expect } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
+import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
+import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
+
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { CSVUtils } from '@core/utils/csvUtils';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { FileUtil } from '@/src/core/utils';
+
+test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+    await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
+  });
+
+  test(
+    '[RC-3004] Validate Rewards Activity table if there is no activity',
+    {
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate Rewards Activity table if there is no activity',
+        zephyrTestId: 'RC-3004',
+        storyId: 'RC-3004',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+
+      // Abort the transactions API to simulate no activity
+      await appManagerFixture.page.route('**/recognition/admin/rewards/transactions?**', async route => {
+        await route.abort(); // Simulates network interruption
+      });
+      await appManagerFixture.page.reload({ waitUntil: 'domcontentloaded' });
+
+      // Navigate to the Activity table
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityContainer.last(),
+        {
+          timeout: 15000,
+          stepInfo: 'Wait for activity container to be visible',
+        }
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelHeader.first()
+      );
+
+      // Validate the filter buttons
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(0),
+        'Points given'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelFiltersButtonText.nth(1),
+        'Points redeemed'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(0),
+        'value',
+        'RECOGNITION_PEER_GIFTING'
+      );
+      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(0)).toBeChecked();
+      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(1),
+        'value',
+        'REDEMPTION'
+      );
+
+      // Validate the Days filter buttons
+      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(2),
+        'value',
+        '30D'
+      );
+      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(2)).toBeChecked();
+      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(3),
+        'value',
+        '3M'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(4),
+        'value',
+        '12M'
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsEnabled(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(2)
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsEnabled(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(3)
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsEnabled(
+        manageRewardsOverviewPage.activityPanelFiltersButton.nth(4)
+      );
+
+      // Validate the Points Redeemed table (no activity)
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityTableNoResultHeading
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityTableNoResultText
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityTableNoResultHeading,
+        'No activity'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityTableNoResultText,
+        'Activity will appear here once users begin receiving points'
+      );
+
+      // Validate the Points Given table (no activity)
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelFiltersButton.nth(1), {
+        stepInfo: 'Clicking on Points Redeemed filter',
+        force: true,
+      });
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityTableNoResultHeading
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityTableNoResultText
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityTableNoResultHeading,
+        'No activity'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityTableNoResultText,
+        'Redemption activity will appear here once users begin redeeming rewards'
+      );
+    }
+  );
+
+  test(
+    '[RC-3264] Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
+    {
+      tag: [
+        REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
+        REWARD_FEATURE_TAGS.POINTS_GIVEN_ACTIVITY,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
+        zephyrTestId: 'RC-3264',
+        storyId: 'RC-3264',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      let items: any;
+
+      const apiPromise = Promise.all([
+        appManagerFixture.page.waitForResponse(
+          resp =>
+            resp.request().resourceType() === 'xhr' &&
+            resp.url().includes('/recognition/admin/rewards/transactions') &&
+            resp.status() === 200
+        ),
+        manageRewardsOverviewPage.loadPage(),
+        manageRewardsOverviewPage.verifyThePageIsLoaded(),
+      ]).then(([response]) => response);
+
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+
+      const apiResponse = await apiPromise;
+      const json = await apiResponse.json();
+      items = json?.total ?? 0;
+      console.log(`Total Items: ${items}`);
+
+      // Click on Show more button till all the records listed
+      const oldCount = items;
+      await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
+      while (items > 0) {
+        if (items <= 10) {
+          break;
+        }
+        await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableShowMoreButton, {
+          stepInfo: 'Clicking on Show More button',
+        });
+        await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
+        items = items - 10;
+      }
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableRows.last()
+      );
+      const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
+      await expect(updatedCount).toHaveCount(oldCount);
+    }
+  );
+
+  test(
+    '[RC-3421] Validate Pending Recognition activity in Rewards Activity table',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate Pending Recognition activity in Rewards Activity table',
+        zephyrTestId: 'RC-3421',
+        storyId: 'RC-3421',
+      });
+
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const rewardOptionIndex = 3;
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      if (existingOptions.length < 2) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+
+      // Visit the Recognition Hub and give one recognition
+      await recognitionHub.clickOnGiveRecognition();
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+      await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
+      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+      // Handle dialog box if it appears
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+      // Validate the new Entry in the Downloaded CSV file
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.loadPage();
+
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
+
+      try {
+        const validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
+
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        String(rewardOptionIndex),
+        'Only visible to recipients, their managers and app administrators'
+      );
+      await recognitionHub.deleteTheFirstRecognitionPost();
+    }
+  );
+
+  test(
+    '[RC-5711] Validate show more button on Points redeemed activity table',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate show more button on Points redeemed activity table',
+        zephyrTestId: 'RC-5711',
+        storyId: 'RC-5711',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+
+      // Navigate to the Activity table
+      const apiPromise = appManagerFixture.page.waitForResponse(
+        resp => resp.url().includes('/recognition/admin/rewards/transactions') && resp.status() === 200
+      );
+
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityContainer.last(),
+        { timeout: 15000, stepInfo: 'Wait for activity container' }
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelHeader.first()
+      );
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsRedeemTable, {
+        stepInfo: 'Clicking on Points Redeemed filter',
+        force: true,
+      });
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+
+      const apiResponse = await apiPromise;
+      const json = await apiResponse.json();
+      const items = json?.total ?? null;
+      console.log(`Items: ${items}`);
+
+      // Validate show more button
+      if (Number(items) > 10) {
+        const initialCount = await manageRewardsOverviewPage.activityPanelTableRows.count();
+        await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+          manageRewardsOverviewPage.activityPanelTableShowMoreButton
+        );
+        await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableShowMoreButton, {
+          stepInfo: 'Clicking on Show More button',
+        });
+        await manageRewardsOverviewPage.activityPanelTableRows.last().waitFor({ state: 'attached' });
+        const updatedCount = manageRewardsOverviewPage.activityPanelTableRows;
+        await expect(updatedCount).toHaveCount(initialCount + 10);
+      }
+    }
+  );
+
+  test(
+    '[RC-5712] Validate filter on Rewards activity table for points redeemed',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate filter on Rewards activity table for points redeemed',
+        zephyrTestId: 'RC-5712',
+        storyId: 'RC-5712',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityContainer.last(),
+        { timeout: 15000, stepInfo: 'Wait for activity container' }
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelHeader.first()
+      );
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsRedeemTable, {
+        stepInfo: 'Clicking on Points Redeemed filter',
+        force: true,
+      });
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+      const apiPromise = appManagerFixture.page.waitForResponse(
+        resp =>
+          resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
+      );
+      const apiResponse = await apiPromise;
+      const json = await apiResponse.json();
+      const items = json?.total ?? null;
+      expect(items).toBeDefined();
+      await expect(manageRewardsOverviewPage.activityPanelFiltersButton.nth(2)).toBeChecked();
+
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelFiltersButton.nth(3), {
+        stepInfo: 'Clicking on 3M filter',
+        force: true,
+      });
+      const apiPromise3M = appManagerFixture.page.waitForResponse(
+        resp =>
+          resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+      const apiResponse3M = await apiPromise3M;
+      const json3M = await apiResponse3M.json();
+      const newJsonValue = json3M?.total ?? null;
+      expect(newJsonValue).toBeGreaterThanOrEqual(items);
+
+      // Validate 12M filter button
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelFiltersButton.nth(4), {
+        stepInfo: 'Clicking on 12M filter',
+        force: true,
+      });
+      const apiPromise12M = appManagerFixture.page.waitForResponse(
+        resp =>
+          resp.url().includes('&category=REDEMPTION&size=10&skip=0&dir=desc&sort=createdAt') && resp.status() === 200
+      );
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+      const apiResponse12M = await apiPromise12M;
+      const json12M = await apiResponse12M.json();
+      const newJsonValue12M = json12M?.total ?? null;
+      expect(newJsonValue12M).toBeGreaterThanOrEqual(items);
+    }
+  );
+
+  // CSV Download tests
+  const tests = [
+    {
+      testId: 'RC-3525',
+      testTitle: 'Validate additional CSV download Fields when points given',
+    },
+    {
+      testId: 'RC-3527',
+      testTitle: 'Validate additional CSV download Fields when points redeemed',
+    },
+  ];
+
+  // Predefine headers for both cases
+  const HEADERS = {
+    given: [
+      'Date time',
+      'Gifter name',
+      'Gifter email',
+      'Gifter department',
+      'Gifter location',
+      'Receiver name',
+      'Receiver email',
+      'Receiver department',
+      'Receiver location',
+      'Receiver payroll currency',
+      'Custom conversion rate',
+      'Type',
+      'Points value',
+      'USD value',
+      'Transaction status',
+      'Message',
+      'URL',
+    ],
+    redeemed: [
+      'Date time',
+      'Redeemer name',
+      'Redeemer email',
+      'Redeemer department',
+      'Redeemer location',
+      'Redeemer payroll currency',
+      'Reward class',
+      'Reward type',
+      'Reward category',
+      'Reward',
+      'Reward currency',
+      'Reward value',
+      'Exchange rate',
+      'USD value',
+      'Point cost',
+      'Reward email',
+      'Transaction status',
+    ],
+  };
+
+  tests.forEach(({ testId, testTitle }) => {
+    test(
+      `[${testId}] ${testTitle}`,
+      {
+        tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.HEALTHCHECK],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: testTitle,
+          zephyrTestId: testId,
+          storyId: testId,
+        });
+        tagTest(test.info(), {
+          description: 'Validate activity table CSV download',
+          zephyrTestId: 'RC-3051',
+          storyId: 'RC-3051',
+        });
+        tagTest(test.info(), {
+          description: 'Verify  "Recognition Type" is change to "Type" for WA in the Activity table CSV',
+          zephyrTestId: 'RC-5811',
+          storyId: 'RC-5811',
+        });
+        const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+        await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
+        if (testTitle.includes('points redeemed')) {
+          await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsRedeemTable, {
+            stepInfo: 'Clicking on Points Redeemed filter',
+            force: true,
+          });
+          await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
+        }
+
+        // Download with unique filename using BaseActionUtil
+        const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+          () =>
+            manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+              stepInfo: 'Clicking on Download CSV button',
+            }),
+          { stepInfo: 'Download CSV file' }
+        );
+
+        try {
+          const csvHeaders = testTitle.includes('points given') ? HEADERS.given : HEADERS.redeemed;
+          const headersValidation = await CSVUtils.validateHeaders(csvHeaders, csvFile.filePath);
+          expect(
+            headersValidation.isValid,
+            `Expecting csv headers: ${csvHeaders} to be present in the downloaded CSV file`
+          ).toBeTruthy();
+        } finally {
+          // Clean up using FileUtil
+          FileUtil.deleteTemporaryFile(csvFile.filePath);
+        }
+      }
+    );
+  });
+
+  test(
+    '[RC-3563] Validate removal sorting of reward name from Activity table of Points Redeemed',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate removal sorting of reward name from Activity table of Points Redeemed',
+        zephyrTestId: 'RC-3563',
+        storyId: 'RC-3563',
+      });
+      tagTest(test.info(), {
+        description: 'Verify if Rewards Activity Table fields gets sorted on clicking',
+        zephyrTestId: 'RC-3074',
+        storyId: 'RC-3074',
+      });
+      tagTest(test.info(), {
+        description: 'Verify the Reward activity table column "Recognition Type" change is changed to "Type" for WA',
+        zephyrTestId: 'RC-5810',
+        storyId: 'RC-5810',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
+      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
+
+      await manageRewardsOverviewPage.verifier.verifyElementHasText(
+        manageRewardsOverviewPage.activityPanelHeader,
+        'Activity'
+      );
+      await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
+
+      // Validate the Sorting columns in the Activity Table
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(0),
+        'Date'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelTableHeader.nth(3),
+        'Type'
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(0),
+        { stepInfo: 'Clicking on Date header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(0)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(1),
+        { stepInfo: 'Clicking on Gifter header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(1)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(2),
+        { stepInfo: 'Clicking on Receiver header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(2)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(3),
+        { stepInfo: 'Clicking on Points header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(3)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(4),
+        { stepInfo: 'Clicking on USD value header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(4)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      // Validate the "Type" is not sortable in the Activity Table
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableHeader.nth(3), {
+        stepInfo: 'Clicking on Type header',
+      });
+      await expect(manageRewardsOverviewPage.activityPanelTableHeader.nth(3)).not.toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      // Validate the Sorting columns in the Points Redeemed Activity Table
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPointsRedeemTable, {
+        stepInfo: 'Clicking on Points Redeemed filter',
+        force: true,
+      });
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(0),
+        'Date'
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementContainsText(
+        manageRewardsOverviewPage.activityPanelTableHeader.nth(2),
+        'Reward'
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(0),
+        { stepInfo: 'Clicking on Date header in Points Redeemed' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(0)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(1),
+        { stepInfo: 'Clicking on Redeemer header' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(1)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(2),
+        { stepInfo: 'Clicking on Points header in Points Redeemed' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(2)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableSortableHeaderText.nth(3),
+        { stepInfo: 'Clicking on USD value header in Points Redeemed' }
+      );
+      await expect(manageRewardsOverviewPage.activityPanelTableSortableHeader.nth(3)).toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+
+      // Validate the "Reward" is not sortable in the Points Redeemed Activity Table
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableHeader.nth(2), {
+        stepInfo: 'Clicking on Reward header',
+      });
+      await expect(manageRewardsOverviewPage.activityPanelTableHeader.nth(2)).not.toHaveClass(
+        /SortableHeader-module__isSorted/
+      );
+    }
+  );
+
+  test(
+    '[RC-3031] Validate Rewards Overview Activity Table for points Given',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate Rewards Overview Activity Table for points Given',
+        zephyrTestId: 'RC-3031',
+        storyId: 'RC-3031',
+      });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
+      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
+
+      await manageRewardsOverviewPage.verifier.verifyElementHasText(
+        manageRewardsOverviewPage.activityPanelHeader,
+        'Activity'
+      );
+      await manageRewardsOverviewPage.activityPanelHeader.scrollIntoViewIfNeeded();
+
+      // Validate the Filters button in the Activity Table
+      const filterButtons = manageRewardsOverviewPage.activityPanelFiltersButton;
+      const expectedValues = ['RECOGNITION_PEER_GIFTING', 'REDEMPTION', '30D', '3M', '12M'];
+
+      for (let i = 0; i < expectedValues.length; i++) {
+        await manageRewardsOverviewPage.verifier.verifyElementHasAttribute(
+          filterButtons.nth(i),
+          'value',
+          expectedValues[i]
+        );
+      }
+
+      await expect(filterButtons.nth(0)).toBeChecked();
+      await expect(filterButtons.nth(2)).toBeChecked();
+
+      // Click and verify "Show more" button until transaction data is fully loaded
+      const showMoreButton = manageRewardsOverviewPage.activityPanelTableShowMoreButton;
+      const expectedTransactionCount = 10;
+      let totalTransactions = 0;
+      let counter = 0;
+      while (await manageRewardsOverviewPage.verifier.isTheElementVisible(showMoreButton)) {
+        // Intercept the next transaction API call
+        const [response] = await Promise.all([
+          appManagerFixture.page.waitForResponse(
+            res => res.url().includes('/recognition/admin/rewards/transactions') && res.status() === 200
+          ),
+          showMoreButton.click(),
+        ]);
+
+        const responseBody = await response.json();
+        totalTransactions = responseBody?.total || 0;
+        if (totalTransactions <= expectedTransactionCount || counter <= 10) {
+          break;
+        }
+        counter++;
+      }
+      console.log(`Final transaction count: ${totalTransactions}`);
+
+      // Click on the View Recognition and validate it's opening on the same tab
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
+      );
+      await manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last().scrollIntoViewIfNeeded();
+      await manageRewardsOverviewPage.clickOnElement(
+        manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last(),
+        { stepInfo: 'Clicking on View Recognition item' }
+      );
+      const receiverName = await manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.nth(2).textContent();
+      await manageRewardsOverviewPage.verifier.waitUntilElementIsVisible(
+        manageRewardsOverviewPage.viewRecognitionDropdown
+      );
+      await manageRewardsOverviewPage.viewRecognitionDropdown.scrollIntoViewIfNeeded();
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
+        manageRewardsOverviewPage.viewRecognitionDropdown
+      );
+      await manageRewardsOverviewPage.verifier.verifyElementHasText(
+        manageRewardsOverviewPage.viewRecognitionDropdownText,
+        'View recognition'
+      );
+      const getTheRecognitionUrl = await manageRewardsOverviewPage.viewRecognitionDropdownLink.getAttribute('href');
+      await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.viewRecognitionDropdownLink, {
+        stepInfo: 'Clicking on View Recognition link',
+      });
+      await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo(getTheRecognitionUrl || '');
+      await appManagerFixture.page.locator('[data-testid="awardeeNames_"]').waitFor({ state: 'visible' });
+      const awardeeNames = await appManagerFixture.page.locator('[data-testid="awardeeNames_"]').textContent();
+      if (!awardeeNames?.includes(receiverName || '')) {
+        throw new Error(`Expected awardee name to contain ${receiverName}, but got ${awardeeNames}`);
+      }
+    }
+  );
+
+  test(
+    '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
+        zephyrTestId: 'RC-6080',
+        storyId: 'RC-6080',
+      });
+
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName || 'aishma enduser';
+
+      // Visit the Recognition Hub and give one recognition
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      if (existingOptions.length < 2) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+      const rewardOptionIndex = 3;
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      const rewardOptionText = await giveRecognitionModal.giftThePoints(rewardOptionIndex);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+      const shareModal = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.isTheElementVisible(shareModal.container, { timeout: 2000 })) {
+        await shareModal.skipButton.click();
+        await expect(shareModal.container).not.toBeVisible();
+      }
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+
+      await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardOptionText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Validate the new Entry in the Downloaded CSV file
+      await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
+
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
+
+      try {
+        // Validate last row column values
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+        validationResult = await CSVUtils.validateRowValue('last', 15, recognitionPostMessage, csvFile.filePath);
+        expect(
+          validationResult.isMatch,
+          `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+
+        const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
+        validationResult = await CSVUtils.validateRowValue(
+          'last',
+          16,
+          `${appURL}/recognition/recognition/${recognitionPostId}`,
+          csvFile.filePath
+        );
+        expect(
+          validationResult.isMatch,
+          `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardOptionText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Delete the Recognition post and validate the Download CSV again
+      await recognitionHub.deleteTheFirstRecognitionPost();
+
+      // Validate the new Entry in the Downloaded CSV file after deletion
+      await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
+      // Download with unique filename using BaseActionUtil
+      const csvFileAfterDelete = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button after deletion',
+          }),
+        { stepInfo: 'Download CSV file after deletion' }
+      );
+
+      try {
+        // Validate last row column values after deletion
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'REJECTED', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "REJECTED" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+        validationResult = await CSVUtils.validateRowValue('last', 15, 'deleted', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+        validationResult = await CSVUtils.validateRowValue('last', 16, 'deleted', csvFileAfterDelete.filePath);
+        expect(validationResult.isMatch, `Expected "deleted" but got "${validationResult.actualValue}"`).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFileAfterDelete.filePath);
+      }
+
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRecognitionPostIsDeleted();
+    }
+  );
+
+  test(
+    '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+        zephyrTestId: 'RC-6082',
+        storyId: 'RC-6082',
+      });
+
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName || 'aishma enduser';
+
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      if (existingOptions.length < 2) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      const rewardPointsText = await giveRecognitionModal.giftThePoints(1);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      if (await manageRewardsOverviewPage.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostId = String(body.id);
+
+      await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+
+      // Validate the new Entry in the Downloaded CSV file
+      await manageRewardsOverviewPage.loadPage();
+
+      // Download with unique filename using BaseActionUtil
+      const csvFile = await manageRewardsOverviewPage.downloadAndSaveFile(
+        () =>
+          manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityTableDownloadCSVButton, {
+            stepInfo: 'Clicking on Download CSV button',
+          }),
+        { stepInfo: 'Download CSV file' }
+      );
+
+      try {
+        let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFile.filePath);
+        expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
+
+        validationResult = await CSVUtils.validateRowValue('last', 15, recognitionPostMessage, csvFile.filePath);
+        expect(
+          validationResult.isMatch,
+          `Expected "${recognitionPostMessage}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+
+        const appURL = getRewardTenantConfigFromCache().frontendBaseUrl || 'https://reco.qa.simpplr.xyz';
+        validationResult = await CSVUtils.validateRowValue(
+          'last',
+          16,
+          `${appURL}/recognition/recognition/${recognitionPostId}`,
+          csvFile.filePath
+        );
+        expect(
+          validationResult.isMatch,
+          `Expected "${appURL}/recognition/recognition/${recognitionPostId}" but got "${validationResult.actualValue}"`
+        ).toBeTruthy();
+      } finally {
+        // Clean up using FileUtil
+        FileUtil.deleteTemporaryFile(csvFile.filePath);
+      }
+
+      await appManagerFixture.page.goto(`/recognition/recognition/${recognitionPostId}`);
+      await recognitionHub.validateTheRewardElementsInRecognitionPost(
+        true,
+        rewardPointsText,
+        'Only visible to you, your manager and app administrators'
+      );
+      await recognitionHub.deleteTheFirstRecognitionPost();
+    }
+  );
+
+  test(
+    '[RC-3021] Validate Rewards Overview Activity Table for points redeemed',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate Rewards Overview Activity Table for points redeemed',
+        zephyrTestId: 'RC-3021',
+        storyId: 'RC-3021',
+      });
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+
+      // Redeem gift card and validate activity table
+      await manageRewardsPage.redeemGiftCardAndValidateActivityTable('Amazon');
+
+      // Verify the activity table for the gift card
+      await manageRewardsPage.verifyTheActivityTableForGiftCard();
+    }
+  );
+});

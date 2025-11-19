@@ -51,6 +51,8 @@ I want you to:
    - Create placeholder objects for dialog boxes and modals
    - Use proper locator strategies for dynamic content
    - Implement proper error handling for missing elements
+
+10. Avoid test.step function in the spec file
 ```
 
 ## Key Migration Patterns
@@ -301,6 +303,68 @@ await rewardsStore.fillInElement(rewardsStore.rewardsDialogBox.rewardAmountInput
 await rewardsStore.rewardsDialogBox.rewardAmountInputBox.blur();
 ```
 
+### 9. Order History and Resend Functionality
+
+**Before (Old Rewards):**
+
+```typescript
+await rewardsStorePage.validateTheOrderHistoryElements();
+await rewardsStorePage.clickOnTheResendButton(1);
+await rewardsStorePage.validateTheResendDialogElements();
+await rewardsStorePage.enterAllTheDetailsAndClickOnResend('primary');
+```
+
+**After (Central Framework):**
+
+```typescript
+await rewardsStore.validateTheOrderHistoryElements();
+await rewardsStore.clickOnTheResendButton(1);
+await rewardsStore.validateTheResendDialogElements();
+await rewardsStore.enterAllTheDetailsAndClickOnResend('primary');
+```
+
+### 10. Form Validation and Error Handling
+
+**Before (Old Rewards):**
+
+```typescript
+await expect(rewardsStorePage.resentRewardInvalidEmailError).toBeVisible();
+await expect(rewardsStorePage.resentRewardInvalidEmailError).toHaveText('This is not a valid email address');
+```
+
+**After (Central Framework):**
+
+```typescript
+await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.resentRewardInvalidEmailError);
+await rewardsStore.verifier.verifyElementHasText(
+  rewardsStore.resentRewardInvalidEmailError,
+  'This is not a valid email address'
+);
+```
+
+### 11. Tooltip Validation
+
+**Before (Old Rewards):**
+
+```typescript
+await rewardsStorePage.disabledResendButton.hover({ force: true });
+await expect(rewardsStorePage.resendOrderTooltip).toBeVisible();
+await expect(rewardsStorePage.resendOrderTooltip).toHaveText(
+  'Rewards can only be resent within 90 days of your order date'
+);
+```
+
+**After (Central Framework):**
+
+```typescript
+await rewardsStore.disabledResendButton.hover({ force: true });
+await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.resendOrderTooltip);
+await rewardsStore.verifier.verifyElementHasText(
+  rewardsStore.resendOrderTooltip,
+  'Rewards can only be resent within 90 days of your order date'
+);
+```
+
 ## Common Utility Function Mappings
 
 | Old Function                          | Central Framework Equivalent                         |
@@ -363,6 +427,14 @@ See the following migrated files for complete examples of how to migrate test fi
    - Input field interactions with blur events
    - Error message validation patterns
    - Complex dialog box interactions
+
+4. **Order Resend Test Migration**: `rewards-orders-resend.spec.ts` in `/src/modules/reward/tests/reward-store/`
+   - Order history functionality testing
+   - Resend dialog box interactions
+   - Form validation testing
+   - Email validation patterns
+   - Tooltip validation
+   - API mocking for order data
 
 ## Notes
 

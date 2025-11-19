@@ -22,10 +22,21 @@ export enum SocialCampaignNetwork {
   TWITTER = 'tw',
 }
 
+export enum SocialCampaignNetworkUI {
+  FACEBOOK = 'Facebook',
+  LINKEDIN = 'LinkedIn',
+  TWITTER = 'X',
+}
+
 export enum SocialCampaignFilter {
   LATEST = 'latest',
   EXPIRED = 'expired',
   POPULAR = 'popular',
+}
+
+export enum SocialCampaignSharedWith {
+  FOLLOWERS = 'followers',
+  SITE = 'site',
 }
 
 export interface SocialCampaignOptions {
@@ -33,7 +44,9 @@ export interface SocialCampaignOptions {
   url: string;
   linkText: string;
   recipient?: SocialCampaignRecipient;
-  networks?: SocialCampaignNetwork[];
+  networks?: SocialCampaignNetworkUI[];
+  audienceId?: string;
+  audienceDetails?: { name: string; description: string; audienceId: string; audienceCount: string | number };
 }
 
 export interface SocialCampaign {
@@ -164,5 +177,23 @@ export interface SocialCampaignStatusUpdateResponse {
   result: {
     data: SocialCampaign;
   };
+  errors: any[];
+}
+
+export interface SocialCampaignShareRequest {
+  textToPost: string;
+  bodyHtml: string;
+  isNewTiptap: true;
+  siteId?: string;
+  sharedWith: SocialCampaignSharedWith;
+}
+
+export interface SocialCampaignShareResponse {
+  success: boolean;
+  status: number;
+  textStatus: string;
+  message: string;
+  responseTimeStamp: number;
+  result: any;
   errors: any[];
 }

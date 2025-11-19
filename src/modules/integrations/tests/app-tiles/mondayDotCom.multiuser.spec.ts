@@ -10,12 +10,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { waitUntilTilePresentInApi } from '@/src/modules/integrations/api/helpers/tileApiHelpers';
-import { HomeDashboard } from '@/src/modules/integrations/pages/homeDashboard';
-import { SiteDashboard } from '@/src/modules/integrations/pages/siteDashboard';
+import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
-  'Monday.com App Tiles Multi-user Tests',
+  'monday.com App Tiles Multi-user Tests',
   {
     tag: [IntegrationsSuiteTags.MONDAY_DOT_COM, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -42,7 +42,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25881',
+          zephyrTestId: 'INT-25555',
           storyId: 'INT-24586',
         });
 
@@ -74,9 +74,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ adminPage, endUserPage, siteManagementHelper, appManagerApiClient, tileManagementHelper }) => {
+      async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25165',
+          zephyrTestId: 'INT-23685',
           storyId: 'INT-24586',
         });
 
@@ -86,7 +86,7 @@ test.describe(
         const siteDashboard = new SiteDashboard(adminPage, tileManagementHelper);
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

@@ -24,9 +24,10 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
   },
   LINK_TEXT: {
     YOUTUBE: 'How Life Will Look Like In 2050',
+    YOUTUBE_2: 'Simpplr Review: Great Platform for our Intranet',
     SIMPPLR_BLOG: 'Building Transparent Leadership and Trust',
     SIMPPLR_ALL_EMPLOYEES: 'Find the best intranet solution with the 2023 G2 report',
-    SIMPPLR_NEW_BRAND: 'Simpplr rebrand announcement | Official',
+    SIMPPLR_NEW_BRAND: 'You’ve always been at the center.',
   },
 
   // Social networks

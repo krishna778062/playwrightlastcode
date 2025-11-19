@@ -11,11 +11,11 @@ import { tagTest } from '@/src/core/utils/testDecorator';
  * Example test suite demonstrating how to use the dualUserChatFixture
  * for testing chat functionality with two users simultaneously
  */
-test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
+test.describe('direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   test(
-    "Message Deletion: Verify deletion of user's own message with no time limit",
+    "message Deletion: Verify deletion of user's own message with no time limit",
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {
@@ -96,7 +96,7 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   );
 
   test(
-    "Message Deletion: Verify deletion of user's own message in group chat",
+    "message Deletion: Verify deletion of user's own message in group chat",
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },
@@ -179,7 +179,7 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   );
 
   test(
-    'Message Deletion: Verify "Deleted" message cannot be edited or interacted with',
+    'message Deletion: Verify "Deleted" message cannot be edited or interacted with',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },
@@ -257,7 +257,7 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   );
 
   test(
-    'Message Deletion: Verify "Deleted" message in group chat cannot be interacted with',
+    'message Deletion: Verify "Deleted" message in group chat cannot be interacted with',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE],
     },

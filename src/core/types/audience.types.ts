@@ -8,6 +8,24 @@ export interface Audience {
   displayName: string;
   isDeleted: boolean;
   audienceId: string;
+  description?: string | null;
+  type?: string;
+  audienceCount?: number;
+  createdAt?: string;
+  createdBy?: {
+    name: string;
+    id: string;
+  };
+  modifiedAt?: string;
+  modifiedBy?: {
+    name: string;
+    id: string;
+  };
+  audienceRule?: AudienceRule;
+  status?: string | null;
+  usage?: {
+    subscriptionCount: number | string;
+  };
 }
 
 export interface AudienceListResponse {
@@ -57,6 +75,7 @@ export interface CreateAudienceResponse {
     description: string;
     type: string;
     audienceRule: AudienceRule;
+    audienceMemberCount: number;
   };
   errors: any[];
 }

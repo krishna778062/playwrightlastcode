@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -13,15 +11,15 @@ import { CHAT_SUITE_TAGS } from '../../../constants/testTags';
  * Tests message editing functionality in direct messages and group chats
  */
 test.describe(
-  'Message Editing Tests - Direct Message',
+  'message Editing Tests - Direct Message',
   {
     tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE],
   },
   () => {
     test(
-      'Message Editing: Verify user can edit and update their sent message in direct chat',
+      'message Editing: Verify user can edit and update their sent message in direct chat',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ multiUserChatTestHelper, chatPages, user1Page }) => {
         tagTest(test.info(), {
@@ -87,7 +85,7 @@ test.describe(
     );
 
     test(
-      "Message Editing: Verify access control in direct chat - users cannot edit others' messages",
+      "message Editing: Verify access control in direct chat - users cannot edit others' messages",
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },
@@ -139,13 +137,13 @@ test.describe(
  * Tests message editing functionality in group conversations
  */
 test.describe(
-  'Message Editing Tests - Group Chat',
+  'message Editing Tests - Group Chat',
   {
     tag: [CHAT_SUITE_TAGS.GROUP_CHAT],
   },
   () => {
     test(
-      'Message Editing: Verify user can edit and update their sent message in group chat',
+      'message Editing: Verify user can edit and update their sent message in group chat',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
@@ -219,7 +217,7 @@ test.describe(
     );
 
     test(
-      "Message Editing: Verify access control in group chat - users cannot edit others' messages",
+      "message Editing: Verify access control in group chat - users cannot edit others' messages",
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },

@@ -12,7 +12,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'Monday.com App Tiles Integration',
+  'monday.com App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.MONDAY_DOT_COM, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -23,7 +23,8 @@ test.describe(
     const BoardIdOption = 'Board ID';
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ homeDashboard, tileManagementHelper }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -34,12 +35,13 @@ test.describe(
     test(
       'verify app/site manager is able to edit Display tasks App tile  on Home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25171',
+          zephyrTestId: ['INT-23676', 'INT-23620', 'INT-23618'],
           storyId: 'INT-24586',
         });
 
@@ -68,9 +70,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25172',
+          zephyrTestId: ['INT-23619', 'INT-23621'],
           storyId: 'INT-24586',
         });
 
@@ -78,7 +81,7 @@ test.describe(
         createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -106,11 +109,12 @@ test.describe(
     test(
       'verify "Display tasks" details are visible on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25170',
+          zephyrTestId: ['INT-25178', 'INT-25556'],
           storyId: 'INT-24586',
         });
 
@@ -136,9 +140,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25169',
+          zephyrTestId: 'INT-23677',
           storyId: 'INT-24586',
         });
 
@@ -146,7 +151,7 @@ test.describe(
         createdTileTitle = `Monday.com tasks ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 

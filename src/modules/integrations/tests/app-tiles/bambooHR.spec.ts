@@ -3,7 +3,7 @@ import {
   TimeOffCategoryConfig,
   TimeOffRequestTileComponent,
 } from '@integrations-components/timeOffRequestTileComponent';
-import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { IntegrationsSuiteTags, TEST_TAGS } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -29,7 +29,8 @@ test.describe(
 
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -40,11 +41,12 @@ test.describe(
     test(
       'create and edit BambooHR Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-21038', 'INT-21609', 'INT-21611'],
           storyId: 'INT-22854',
         });
 
@@ -67,11 +69,12 @@ test.describe(
     test(
       'create and edit BambooHR Display Time Off Balance tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ siteDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21575',
+          zephyrTestId: ['INT-21612', 'INT-21039', 'INT-21610'],
           storyId: 'INT-22854',
         });
 
@@ -79,7 +82,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -100,12 +103,13 @@ test.describe(
     test(
       'create and edit BambooHR Apply for Time Off tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23137',
+          zephyrTestId: ['INT-23131', 'INT-23132', 'INT-23139'],
           storyId: 'INT-22854',
         });
 
@@ -113,7 +117,7 @@ test.describe(
         createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -134,9 +138,10 @@ test.describe(
     test(
       'create and verify metadata for BambooHR Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-21608',
           storyId: 'INT-22854',
@@ -157,9 +162,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-23138', 'INT-23136', 'INT-23129'],
           storyId: 'INT-22854',
         });
 
@@ -181,11 +187,12 @@ test.describe(
     test(
       'verify BambooHR Apply for Time Off tile form submission and create another request functionality',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23143',
+          zephyrTestId: ['INT-23146', 'INT-23145'],
           storyId: 'INT-22854',
         });
 
@@ -199,7 +206,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -224,7 +231,8 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23132',
@@ -236,14 +244,14 @@ test.describe(
         const comments = faker.lorem.sentence();
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
         await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Verify all required fields are present
@@ -271,10 +279,11 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23139',
+          zephyrTestId: ['INT-23039', 'INT-21610', 'INT-21612'],
           storyId: 'INT-22854',
         });
 
@@ -282,7 +291,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -305,10 +314,11 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
         void homeDashboard;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23131',
+          zephyrTestId: 'INT-29065',
           storyId: 'INT-22854',
         });
 
@@ -316,7 +326,7 @@ test.describe(
         createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -335,9 +345,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23140',
+          zephyrTestId: 'INT-23143',
           storyId: 'INT-22854',
         });
 
@@ -350,7 +361,7 @@ test.describe(
           CONNECTOR_IDS.BAMBOOHR
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 3;
 
         // Verify all required fields are present
@@ -370,6 +381,30 @@ test.describe(
         const sickConfig: TimeOffCategoryConfig = { unit: 'hours', amountPerDay: 8 };
         const expectedTotalHours = workingDays * 8; // 3 working days * 8 hours = 24 hours
         await leaveForm.verifyAmountValues(workingDays, expectedTotalHours, sickConfig, false);
+      }
+    );
+    test(
+      'verify show more behaviour for display bambooHR tasks apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21607',
+          storyId: 'INT-22854',
+        });
+        createdTileTitle = `Display Time Off Balance ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.BAMBOOHR_DISPLAY_TIMEOFF_BALANCE,
+          CONNECTOR_IDS.BAMBOOHR
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 time off requests and then click on show more button and verify all time off requests are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }

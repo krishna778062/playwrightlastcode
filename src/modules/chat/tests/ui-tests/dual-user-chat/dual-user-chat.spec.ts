@@ -11,11 +11,11 @@ import { tagTest } from '@/src/core/utils/testDecorator';
  * Example test suite demonstrating how to use the dualUserChatFixture
  * for testing chat functionality with two users simultaneously
  */
-test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
+test.describe('direct Message between two static users', { tag: [CHAT_SUITE_TAGS.DIRECT_MESSAGE] }, () => {
   test(
-    'Messaging: Real time conversation in a group chat',
+    'messaging: Real time conversation in a group chat',
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {
@@ -58,9 +58,9 @@ test.describe('Direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   );
 
   test(
-    'Messaging: Real time conversation between static user in direct message',
+    'messaging: Real time conversation between static user in direct message',
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {

@@ -23,6 +23,8 @@ export default defineConfig({
       name: 'data-engineering-chromium',
       use: {
         ...devices['Desktop Chrome'],
+        headless: process.env.CI ? true : false,
+        viewport: { width: 1920, height: 1080 },
       },
     },
   ],

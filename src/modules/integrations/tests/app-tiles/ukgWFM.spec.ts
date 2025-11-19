@@ -12,7 +12,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 test.describe(
-  'UKG WFM App Tiles Integration',
+  'uKG WFM App Tiles Integration',
   {
     tag: [IntegrationsSuiteTags.UKG_WFM, IntegrationsSuiteTags.ABSOLUTE],
   },
@@ -33,7 +33,8 @@ test.describe(
 
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ tileManagementHelper, homeDashboard }) => {
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { tileManagementHelper, homeDashboard } = appManagerFixture;
       if (createdTileTitle) {
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
@@ -44,11 +45,12 @@ test.describe(
     test(
       'create and edit UKG WFM Apply for Time Off tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: 'INT-23638',
           storyId: 'INT-22854',
         });
 
@@ -72,9 +74,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ homeDashboard, tileManagementHelper, appManagerPage }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23143',
+          zephyrTestId: 'INT-26507',
           storyId: 'INT-22854',
         });
 
@@ -88,7 +91,7 @@ test.describe(
           CONNECTOR_IDS.UKG_WFM
         );
         await homeDashboard.isTilePresent(createdTileTitle);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Select leave dates starting tomorrow for the specified working days
@@ -107,10 +110,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient }) => {
-        void homeDashboard;
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23139',
+          zephyrTestId: 'INT-26931',
           storyId: 'INT-22854',
         });
 
@@ -118,7 +121,7 @@ test.describe(
         createdTileTitle = `UKG WFM Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
@@ -141,10 +144,10 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ siteDashboard, homeDashboard, siteManagementHelper, appManagerApiClient, appManagerPage }) => {
-        void homeDashboard;
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23132',
+          zephyrTestId: 'INT-26931',
           storyId: 'INT-22854',
         });
 
@@ -153,14 +156,14 @@ test.describe(
         const comments = faker.lorem.sentence();
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
         await siteDashboard.addTile(createdTileTitle, AppName, ApplyForTimeOff, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        const leaveForm = new TimeOffRequestTileComponent(appManagerPage);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
         const workingDays = 2;
 
         // Select leave dates starting tomorrow for the specified working days
@@ -178,11 +181,12 @@ test.describe(
     test(
       'create and edit UKG WFM Display upcoming schedule tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-22844', 'INT-22842', 'INT-23186'],
           storyId: 'INT-22854',
         });
 
@@ -207,19 +211,20 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-22843', 'INT-23186'],
           storyId: 'INT-22854',
         });
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
-        await siteDashboard.addTilewithAppManagerDefined(
+        await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,
@@ -240,11 +245,12 @@ test.describe(
     test(
       'verify metadata for UKG WFM Display upcoming schedule tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ homeDashboard, tileManagementHelper }) => {
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23693',
+          zephyrTestId: 'INT-23210',
           storyId: 'INT-22854',
         });
 
@@ -266,19 +272,20 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
-      async ({ appManagerApiClient, siteManagementHelper, siteDashboard }) => {
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23186',
+          zephyrTestId: 'INT-23208',
           storyId: 'INT-22854',
         });
 
         // Create site and navigate
-        const category = await appManagerApiClient.getSiteManagementService().getCategoryId('Uncategorized');
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         createdTileTitle = `UKG WFM Display upcoming schedule ${faker.string.alphanumeric({ length: 6 })}`;
-        await siteDashboard.addTilewithAppManagerDefined(
+        await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
           AppName,
           DisplayUpcomingSchedule,
