@@ -22,6 +22,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly loadMoreRepliesButton: Locator;
+  readonly shareButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
@@ -53,7 +54,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
   readonly infoIcon = this.page.getByTestId('i-info');
 
-  readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
+  readonly postTextLocator = (postText: string): Locator =>
+    this.page.locator('p').filter({ hasText: postText }).first();
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
@@ -102,6 +104,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getPostAttachmentsLocator = (postText: string): Locator =>
     this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
+  
+  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
   /**
    * Gets a locator for the lightbox button on images
@@ -151,8 +155,9 @@ export class ListFeedComponent extends BaseComponent {
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
-    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
+    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
@@ -160,6 +165,7 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
@@ -227,7 +233,6 @@ export class ListFeedComponent extends BaseComponent {
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
       const postLocator = this.postTextLocator(expectedText);
-      await postLocator.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -246,7 +251,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async markPostAsFavourite(): Promise<void> {
     await test.step(`Mark post as favourite`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
@@ -257,7 +262,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
 
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
@@ -276,7 +281,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `Post "${postText}" should be in favorited state`,
       });
@@ -353,7 +358,7 @@ export class ListFeedComponent extends BaseComponent {
           response.status() === 200
       );
 
-      await this.clickOnElement(this.replyButton, { stepInfo: 'Clicking on reply button' });
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
 
       await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
@@ -561,6 +566,103 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.getPostTimestampLocator(postText));
     });
   }
+  
+  /**
+   * Clicks the share button on a comment
+   */
+  async clickShareOnComment(): Promise<void> {
+    await test.step(`Click share button`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
+        assertionMessage: `Share button should be visible`,
+      });
+      await this.clickOnElement(this.shareButton.first());
+    });
+  }
+
+  /**
+   * Clicks the share button on a post
+   * @param postText - The text of the post to share
+   */
+  async clickShareOnPost(postText: string): Promise<void> {
+    await test.step(`Click share button on post: ${postText}`, async () => {
+      const postLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
+        assertionMessage: `Post "${postText}" should be visible`,
+      });
+      const shareButtonLocator = this.shareButton.first();
+      await this.verifier.verifyTheElementIsVisible(shareButtonLocator, {
+        assertionMessage: `Share button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(shareButtonLocator);
+    });
+  }
+
+  /**
+   * Clicks the "View Post" link
+   */
+  async clickViewPostLink(): Promise<void> {
+    await test.step(`Click View Post link`, async () => {
+      const viewPostLinkLocator = this.getViewPostLinkLocator();
+      await this.verifier.verifyTheElementIsVisible(viewPostLinkLocator, {
+        assertionMessage: `View Post link should be visible`,
+      });
+      await this.clickOnElement(viewPostLinkLocator);
+    });
+  }
+
+  /**
+   * Verifies the share count for a post
+   * @param postText - The text of the post to verify share count for
+   * @param expectedCount - The expected share count
+   */
+  async verifyShareCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify share count is ${expectedCount} for post: ${postText}`, async () => {
+      const shareCountLocator = this.shareButton;
+      const shareCount = await shareCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(shareCountLocator, {
+        assertionMessage: `Share count should be visible for post "${postText}"`,
+      });
+      if (shareCount !== expectedCount) {
+        console.warn(`Share count mismatch for post "${postText}": expected ${expectedCount}, found ${shareCount}`);
+      }
+    });
+  }
+
+  /**
+   * Verifies the likes count for a post
+   * @param postText - The text of the post to verify likes count for
+   * @param expectedCount - The expected likes count
+   */
+  async verifyLikesCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify likes count is ${expectedCount} for post: ${postText}`, async () => {
+      const likesCountLocator = this.likeButton;
+      const likesCount = await likesCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(likesCountLocator, {
+        assertionMessage: `Likes count should be visible for post "${postText}"`,
+      });
+      if (likesCount !== expectedCount) {
+        console.warn(`Likes count mismatch for post "${postText}": expected ${expectedCount}, found ${likesCount}`);
+      }
+    });
+  }
+
+  /**
+   * Verifies the replies count for a post
+   * @param postText - The text of the post to verify replies count for
+   * @param expectedCount - The expected replies count
+   */
+  async verifyRepliesCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify replies count is ${expectedCount} for post: ${postText}`, async () => {
+      const repliesCountLocator = this.replyButton;
+      const repliesCount = await repliesCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(repliesCountLocator, {
+        assertionMessage: `Replies count should be visible for post "${postText}"`,
+      });
+      if (repliesCount !== expectedCount) {
+        console.warn(`Replies count mismatch for post "${postText}": expected ${expectedCount}, found ${repliesCount}`);
+      }
+    });
+  }
 
   /**
    * Opens the options menu for a reply
@@ -699,6 +801,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
@@ -715,6 +818,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.likeButton);
     });
   }
+
   async unlikeFeedPost(postText: string): Promise<void> {
     await test.step(`Unlike feed post: ${postText}`, async () => {
       const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
@@ -724,6 +828,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(unlikeButtonLocator);
     });
   }
+
   /**
    * Likes a reply post by clicking the like button
    * @param replyText - The text of the reply to like

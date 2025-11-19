@@ -22,7 +22,9 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
 
   constructor(page: Page) {
     super(page);
-    this.shareDescriptionInput = page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.shareDescriptionInput = page
+      .getByRole('dialog')
+      .getByRole('textbox', { name: 'You are in the content editor' });
     this.siteNameInput = page.locator('div[id*="listbox"]');
     this.shareButton = page.getByRole('dialog').getByRole('button', { name: 'Share' });
     this.shareOptionDropdown = page.getByLabel('Post in');
@@ -66,6 +68,25 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
   async selectShareOptionAsSiteFeed(): Promise<void> {
     await test.step(`Select share option: site feed`, async () => {
       await this.shareOptionDropdown.selectOption('site');
+    });
+  }
+
+  /**
+   * Gets a locator for the "View Post" link in the share dialog
+   * @returns Locator for the View Post link in share dialog
+   */
+  readonly getViewPostLinkInShareDialog = (): Locator =>
+    this.page.getByRole('dialog').getByRole('link', { name: 'View Post' });
+
+  /**
+   * Verifies that "View Post" link is visible in the share dialog
+   */
+  async verifyViewPostLinkInShareDialog(): Promise<void> {
+    await test.step('Verify View Post link is visible in share dialog', async () => {
+      const viewPostLink = this.getViewPostLinkInShareDialog();
+      await this.verifier.verifyTheElementIsVisible(viewPostLink, {
+        assertionMessage: 'View Post link should be visible in share dialog',
+      });
     });
   }
 }
