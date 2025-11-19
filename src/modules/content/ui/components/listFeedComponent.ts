@@ -104,7 +104,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getPostAttachmentsLocator = (postText: string): Locator =>
     this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
-  
+
   readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
   /**
@@ -443,7 +443,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.loadMoreRepliesButton);
 
       await this.verifier.verifyTheElementIsNotVisible(this.loadMoreRepliesButton, {
-        assertionMessage: `Load more replies button should be visible`,
+        assertionMessage: `Load more replies button should not be visible after clicking`,
       });
     });
   }
@@ -566,7 +566,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.getPostTimestampLocator(postText));
     });
   }
-  
+
   /**
    * Clicks the share button on a comment
    */
