@@ -11,8 +11,6 @@ export class TagComponent extends BaseComponent {
   readonly tagStylingField: Locator;
   readonly tagTextDisplay: Locator;
   private readonly fieldSelector: string;
-
-  // Dialog locators
   readonly dialog: Locator;
   readonly dialogTitle: Locator;
   readonly dialogTagStyleLabel: Locator;
@@ -50,17 +48,11 @@ export class TagComponent extends BaseComponent {
   readonly iconPreviewFileSize: Locator;
   readonly iconPreviewDeleteButton: Locator;
   private readonly dialogRadios: Record<string, Locator>;
-
-  // Color picker locators
   readonly colorPickerDialog: Locator;
   readonly colorPickerHexInput: Locator;
   readonly colorPickerOkButton: Locator;
-
-  // Default color theme field locators
   readonly dialogDefaultLightThemeField: Locator;
   readonly dialogDefaultDarkThemeField: Locator;
-
-  // Dynamic locators (created in methods but base patterns defined here)
   readonly backButton: Locator;
   readonly tagContainer: Locator;
 
@@ -68,16 +60,12 @@ export class TagComponent extends BaseComponent {
     super(page);
     this.page = page;
     this.fieldSelector = fieldSelector;
-
-    // Initialize form field locators
     this.tagTextField = page.getByPlaceholder('Tag text…');
     this.tooltipTextField = page.getByPlaceholder('Tooltip text…');
     this.tagTextHelperText = page.getByText('Longer text will be cut off to fit one line');
     this.tooltipTextHelperText = page.getByText('Appears on hover. Text over 150 chars will be cut off.');
     this.tagStylingField = page.locator(fieldSelector.replace('{fieldName}', 'Tag styling'));
     this.tagTextDisplay = page.locator('span._contentEditableText_6ubwg_36');
-
-    // Initialize dialog locators
     this.dialog = page.getByRole('dialog');
     this.dialogTitle = this.dialog.getByRole('heading', { name: 'Add custom settings' });
     this.dialogTagStyleLabel = this.dialog.getByRole('heading', { name: /Tag style/ });
@@ -111,7 +99,6 @@ export class TagComponent extends BaseComponent {
       .first();
     this.dialogMappingRuleColorField = this.dialog.locator('[data-testid="field-Color"]').getByRole('combobox').first();
     this.dialogSelectIconButton = this.dialog.getByRole('button', { name: 'Select icon' });
-    // Icon dialog locators - will be scoped when dialog is visible
     this.iconDialogTitle = this.page.getByRole('heading', { name: 'Select icon' });
     this.dialogIconSourceField = this.page.locator('[data-testid="field-Icon source"]');
     this.dialogIconUrlInput = this.page.locator('[data-testid="field-Icon URL"]').getByPlaceholder('Icon URL…');
@@ -119,33 +106,25 @@ export class TagComponent extends BaseComponent {
     this.iconPreviewImage = this.page.locator('img._previewImage_198co_16[alt="Icon preview"]');
     this.iconUrlLink = this.page.locator('a._urlLink_198co_24');
     this.iconPreviewContainer = this.page.locator('div._previewContainer_198co_1');
-    // File name is the first paragraph in the preview container (not the secondary one which is file size)
     this.iconPreviewFileName = this.iconPreviewContainer
       .locator('div.Spacing-module__column__bvKBb')
       .locator('p.Typography-module__paragraph__OGpiQ')
       .first();
-    // File size contains file type and size (e.g., "JPG - 43.93kb")
     this.iconPreviewFileSize = this.iconPreviewContainer
       .locator('p.Typography-module__secondary__OGpiQ')
       .filter({ hasText: /kb|KB|mb|MB/ })
       .first();
     this.iconPreviewDeleteButton = this.iconPreviewContainer.getByRole('button', { name: 'Delete image' });
-
     this.colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
     this.colorPickerHexInput = this.colorPickerDialog
       .locator('[data-testid="hex-color-picker"]')
       .locator('input[id^="rc-editable-input-"]')
       .first();
     this.colorPickerOkButton = this.colorPickerDialog.getByRole('button', { name: 'OK' });
-
     this.dialogDefaultLightThemeField = this.dialog.locator('[data-testid="field-Light theme"]');
     this.dialogDefaultDarkThemeField = this.dialog.locator('[data-testid="field-Dark theme (mobile app only)"]');
-
     this.backButton = this.page.getByRole('button', { name: 'Back' });
     this.tagContainer = this.page.locator('[data-testid="tag"]');
-
-    // Note: Mapping rule and fallback icon locators are created dynamically in methods
-    // for better reliability and readability
     this.dialogRadios = {
       status: this.dialogStatusRadio,
       icon: this.dialogIconRadio,
@@ -186,7 +165,6 @@ export class TagComponent extends BaseComponent {
           expectedValue
         );
       }
-
       await expect(this.tagTextHelperText, 'Tag text helper text should be visible').toBeVisible();
     });
   }
@@ -204,7 +182,6 @@ export class TagComponent extends BaseComponent {
           expectedValue
         );
       }
-
       await expect(this.tooltipTextHelperText, 'Tooltip text helper text should be visible').toBeVisible();
     });
   }
@@ -229,7 +206,6 @@ export class TagComponent extends BaseComponent {
     await test.step(`Verify styling "${expectedValue}" radio button is selected`, async () => {
       const radioButton = this.tagStylingField.locator(`input[type="radio"][value="${expectedValue}"]`);
       await expect(radioButton, `Styling "${expectedValue}" radio button should be checked`).toBeChecked();
-
       // Also verify the label has the checked class
       const radioLabel = this.tagStylingField.locator(`label:has(input[value="${expectedValue}"])`);
       await expect(radioLabel, `Styling "${expectedValue}" label should have checked class`).toHaveClass(
@@ -269,7 +245,6 @@ export class TagComponent extends BaseComponent {
           throw new Error(`Radio button "${option}" not found in field "${fieldName || 'Tag styling'}".`);
         }
       }
-
       await this.clickOnElement(radioButton);
     });
   }
@@ -306,7 +281,6 @@ export class TagComponent extends BaseComponent {
   async verifyNoRadioButtonSelected(): Promise<void> {
     await test.step('Verify no radio button is pre-selected in dialog', async () => {
       const count = await this.dialogRadioButtons.count();
-
       for (let i = 0; i < count; i++) {
         const radioButton = this.dialogRadioButtons.nth(i);
         await expect(radioButton, `Radio button at index ${i} should not be checked`).not.toBeChecked();
@@ -358,7 +332,6 @@ export class TagComponent extends BaseComponent {
       const formattedColor = this.formatHexColor(hexColor);
       await this.clickOnElement(colorButton);
       await expect(this.colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
-
       await this.colorPickerHexInput.clear();
       await this.colorPickerHexInput.fill(formattedColor);
       await this.clickOnElement(this.colorPickerOkButton);
@@ -635,11 +608,9 @@ export class TagComponent extends BaseComponent {
     await test.step(`Verify tag icon is visible for "${expectedText}"`, async () => {
       const tagContainer = this.tagContainer.filter({ hasText: expectedText }).first();
       await expect(tagContainer, `Tag container for "${expectedText}" should be visible`).toBeVisible();
-
       const iconElement = tagContainer.locator('img._iconImg_6ubwg_24').first();
       await expect(iconElement, `Icon for tag "${expectedText}" should be visible`).toBeVisible();
       await expect(iconElement, `Icon for tag "${expectedText}" should have a src attribute`).toHaveAttribute('src');
-
       if (expectedUrlPattern) {
         const actualSrc = await iconElement.getAttribute('src');
         if (actualSrc) {
@@ -682,11 +653,9 @@ export class TagComponent extends BaseComponent {
           break;
         }
       }
-
       if (!radioButton) {
         throw new Error(`Icon source radio button "${option}" not found.`);
       }
-
       await this.clickOnElement(radioButton);
     });
   }
@@ -748,7 +717,6 @@ export class TagComponent extends BaseComponent {
   async verifyIconPreviewAndUrlLink(expectedUrl?: string): Promise<void> {
     await test.step('Verify icon preview and URL link are visible', async () => {
       await expect(this.iconPreviewImage, 'Icon preview image should be visible').toBeVisible();
-
       if (expectedUrl) {
         await expect(this.iconPreviewImage, `Icon preview image should have src "${expectedUrl}"`).toHaveAttribute(
           'src',
@@ -757,9 +725,7 @@ export class TagComponent extends BaseComponent {
       } else {
         await expect(this.iconPreviewImage, 'Icon preview image should have a src attribute').toHaveAttribute('src');
       }
-
       await expect(this.iconUrlLink, 'Icon URL link should be visible').toBeVisible();
-
       if (expectedUrl) {
         await expect(this.iconUrlLink, `Icon URL link should contain "${expectedUrl}"`).toContainText(expectedUrl);
         await expect(this.iconUrlLink, `Icon URL link href should contain "${expectedUrl}"`).toHaveAttribute(
@@ -824,13 +790,11 @@ export class TagComponent extends BaseComponent {
     await expect(iconImage, `${context} image should be visible`).toBeVisible();
     await expect(iconImage, `${context} image should have a src attribute`).toHaveAttribute('src');
     await expect(fileName, `${context} file name should be visible`).toBeVisible();
-
     if (expectedFileName) {
       await expect(fileName, `${context} file name should be "${expectedFileName}"`).toHaveText(expectedFileName);
     }
 
     await expect(fileSize, `${context} file size should be visible`).toBeVisible();
-
     if (expectedFileSize) {
       await expect(fileSize, `${context} file size should contain "${expectedFileSize}"`).toContainText(
         expectedFileSize

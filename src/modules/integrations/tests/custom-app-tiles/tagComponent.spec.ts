@@ -38,7 +38,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28725',
+          zephyrTestId: 'INT-29219',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -67,13 +67,86 @@ test.describe(
     );
 
     test(
+      'verify tag component text option of tile builder',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26828', // this test case is correct
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Text Option Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        // Verify Text and Color options are visible when Text option is selected
+        await customAppTilesPage.tagComponent.selectRadio('Text', 'dialog');
+
+        // Verify Text and Color options are visible
+        await customAppTilesPage.tagComponent.verifyTextDialogFields();
+        await expect(
+          customAppTilesPage.tagComponent.dialogDefaultColorField,
+          'Color option should be visible in Default section'
+        ).toBeVisible();
+
+        // Click on Color option to open dropdown
+        await customAppTilesPage.tagComponent.dialogDefaultColorField.click();
+
+        // Verify all color options are visible: None, Low, Medium, High, Highest
+        const expectedColorOptions = ['None', 'Low', 'Medium', 'High', 'Highest'];
+        const listbox = customAppTilesPage.tagComponent.dialog.getByRole('listbox');
+        await expect(listbox, 'Color dropdown listbox should be visible').toBeVisible();
+
+        for (const colorOption of expectedColorOptions) {
+          const menuItem = listbox.getByRole('menuitem').filter({ hasText: colorOption }).first();
+          await expect(menuItem, `Color option "${colorOption}" should be visible`).toBeVisible();
+        }
+
+        // Select a particular configuration (Medium color)
+        await listbox.getByRole('menuitem').filter({ hasText: 'Medium' }).first().click();
+
+        // Verify the configuration is applied
+        await expect(
+          customAppTilesPage.tagComponent.dialogDefaultColorField,
+          'Default color field should show selected value'
+        ).toContainText('Medium');
+
+        await customAppTilesPage.clickButton('Save');
+
+        // Verify configuration is applied to tile by checking the Data tab
+        await customAppTilesPage.clickTab('Data', 'Tag');
+
+        // Enter some text and verify the default color (Medium) is applied
+        await customAppTilesPage.tagComponent.enterTagText('Test Text');
+        await customAppTilesPage.tagComponent.verifyTagTextColor('Test Text', 'rgb(252, 121, 59)'); // Medium color RGB
+      }
+    );
+
+    test(
       'verify tag component custom styling functionality',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29220',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -109,7 +182,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29221',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -150,7 +223,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29222',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -255,7 +328,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29225',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -310,7 +383,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29226',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -392,7 +465,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-29227',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -470,7 +543,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28951',
+          zephyrTestId: 'INT-29228',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -553,7 +626,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28952',
+          zephyrTestId: 'INT-29229',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -600,13 +673,67 @@ test.describe(
     );
 
     test(
+      'verify mapping rule section of tile builder',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27112', // test case no is correct
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const { tileName, tileDescription } = generateTileData('Mapping Rule Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Text', 'dialog');
+
+        await customAppTilesPage.tagComponent.selectDefaultColor('Medium');
+
+        // Add mapping rule with regex pattern "um" and Medium color
+        await customAppTilesPage.clickButton('Add mapping rule');
+
+        await customAppTilesPage.tagComponent.enterMappingRuleText('um');
+
+        await customAppTilesPage.tagComponent.selectMappingRuleColor('Medium');
+
+        await customAppTilesPage.tagComponent.toggleParseAsRegex();
+
+        await customAppTilesPage.clickButton('Save');
+
+        // Verify the configuration is applied by checking preview or data tab
+        await customAppTilesPage.clickTab('Data', 'Tag');
+
+        // Enter text that matches the regex pattern "um" (e.g., "Medium", "drum", etc.)
+        await customAppTilesPage.tagComponent.enterTagText('Medium');
+
+        await customAppTilesPage.tagComponent.verifyTagTextColor('Medium', 'rgb(252, 121, 59)');
+      }
+    );
+
+    test(
       'verify tag component multiple mapping rules functionality',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28953',
+          zephyrTestId: 'INT-29231',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -674,7 +801,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28954',
+          zephyrTestId: 'INT-29230',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -731,7 +858,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28955',
+          zephyrTestId: 'INT-29232',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -770,7 +897,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28956',
+          zephyrTestId: 'INT-29233',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -827,7 +954,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28957',
+          zephyrTestId: 'INT-29234',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -891,7 +1018,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28958',
+          zephyrTestId: 'INT-29235',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -961,7 +1088,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28959',
+          zephyrTestId: 'INT-29236',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1018,7 +1145,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28961',
+          zephyrTestId: 'INT-29237',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1077,7 +1204,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28962',
+          zephyrTestId: 'INT-29238',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1108,7 +1235,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28963',
+          zephyrTestId: 'INT-29239',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1159,7 +1286,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28964',
+          zephyrTestId: 'INT-29240',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1204,7 +1331,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28965',
+          zephyrTestId: 'INT-29241',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1249,7 +1376,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28967',
+          zephyrTestId: 'INT-29242',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1310,7 +1437,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28968',
+          zephyrTestId: 'INT-29243',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1359,7 +1486,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28969',
+          zephyrTestId: 'INT-29244',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1416,7 +1543,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28970',
+          zephyrTestId: 'INT-29245',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1497,7 +1624,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28972',
+          zephyrTestId: 'INT-29246',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1540,7 +1667,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28973',
+          zephyrTestId: 'INT-29247',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1595,7 +1722,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28974',
+          zephyrTestId: 'INT-29248',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1646,7 +1773,7 @@ test.describe(
           bugReportedDate: '2025-11-18',
           knownFailurePriority: 'Low',
           knownFailureNote: 'The Done button should not close the dialog when file upload is empty in icon selection.',
-          zephyrTestId: 'INT-36302',
+          zephyrTestId: 'INT-29249',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1689,7 +1816,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28975',
+          zephyrTestId: 'INT-29250',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1823,6 +1950,68 @@ test.describe(
         }
 
         await customAppTilesPage.clickButton('Cancel');
+      }
+    );
+
+    test(
+      'verify tag component file size validation for icon upload exceeding 200KB',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29252',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('File Size Validation Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        // Attempt to upload icon with file size > 200KB
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+
+        // Upload file larger than 200KB
+        await customAppTilesPage.uploadFile('SizeMoreThan300KB.jpg', 'image');
+
+        // Verify toast messages
+        await customAppTilesPage.verifyToastMessage('Image upload failed');
+        await customAppTilesPage.verifyToastMessage('File size should not exceed 200 KB');
+      }
+    );
+
+    test(
+      'clean up tag component test tiles',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-FORM-CLEANUP',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        // Delete all form test tiles created during test runs
+        await customAppTilesPage.deleteAllTilesWithPrefix('', /.*\bTest\s[a-zA-Z0-9]{6}$/);
       }
     );
   }
