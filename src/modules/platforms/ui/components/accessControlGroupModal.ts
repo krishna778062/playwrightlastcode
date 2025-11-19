@@ -1,12 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import {
-  ACG_ERROR_MESSAGES_TITLE,
-  ACG_ERROR_MESSAGES_DESCRIPTION,
   ACG_EDIT_ASSETS,
+  ACG_ERROR_MESSAGES_DESCRIPTION,
+  ACG_ERROR_MESSAGES_TITLE,
   ACG_TOOLTIPS,
 } from '../../constants/acg';
+
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export type AccessControlGroupModalMode = 'create' | 'edit' | 'view';
 

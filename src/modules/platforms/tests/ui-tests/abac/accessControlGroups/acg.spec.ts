@@ -8,13 +8,13 @@ import { tagTest } from '@core/utils/testDecorator';
 // @platforms imports
 import { AUDIENCE_API_ATTRIBUTES, AUDIENCE_API_OPERATORS } from '@platforms/apis/payloads/createAudienceAPI';
 import {
+  ACG_ACCESS_CONTROL_TYPE,
   ACG_COLUMNS,
   ACG_EDIT_ASSETS,
   ACG_EDIT_ASSETS_SUMMARY_SCREEN,
-  ACG_STATUS,
-  ACG_ACCESS_CONTROL_TYPE,
-  ACG_TOOLTIPS,
   ACG_FEATURE_FOR_API,
+  ACG_STATUS,
+  ACG_TOOLTIPS,
 } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
@@ -638,7 +638,7 @@ test.describe(
     );
 
     test(
-      `Verify the state of different edit buttons when Feature Owner is editing System RBAC ACG`,
+      `verify the state of different edit buttons when Feature Owner is editing System RBAC ACG`,
       {
         tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
