@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
@@ -171,9 +172,30 @@ export class ListFeedComponent extends BaseComponent {
   /**
    * Gets the timestamp text for a specific post
    * @param postText - The text of the post to find timestamp for
+   * @returns Promise<string> - The timestamp text content
    */
-  async getPostTimestamp(postText: string): Promise<void> {
-    (await this.getPostTimestampLocator(postText).textContent()) || '';
+  async getPostTimestamp(postText: string): Promise<string> {
+    return await test.step(`Get timestamp for post: ${postText}`, async () => {
+      const timestampLocator = this.getPostTimestampLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(timestampLocator, {
+        assertionMessage: `Timestamp should be visible for post: ${postText}`,
+      });
+      const timestampText = (await timestampLocator.textContent()) || '';
+      return timestampText.trim();
+    });
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await test.step(`Verify timestamp format for post: ${postText}`, async () => {
+      const timestampText = await this.getPostTimestamp(postText);
+      const isValidFormat = validateTimestampFormat(timestampText);
+      console.log(`Timestamp format validation result: ${isValidFormat}`);
+      if (!isValidFormat) {
+        throw new Error(
+          `Timestamp format validation failed. Expected format: "Month Date, Year at Time" (e.g., "January 15, 2025 at 03:45 PM"). Actual: "${timestampText}"`
+        );
+      }
+    });
   }
 
   /**
