@@ -803,11 +803,14 @@ export class ListFeedComponent extends BaseComponent {
       });
 
       // Verify no iframe/embed/preview elements are present (indicating no unfurl)
-      const embedPlayButton = postContainer.locator('iframe').first().contentFrame().getByRole('button', { name: 'Play' });
+      const embedPlayButton = postContainer
+        .locator('iframe')
+        .first()
+        .contentFrame()
+        .getByRole('button', { name: 'Play' });
       await this.verifier.verifyTheElementIsNotVisible(embedPlayButton, {
         assertionMessage: `Deleted post message should be visible for post "${postText}"`,
       });
-
     });
   }
 
