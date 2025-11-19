@@ -825,7 +825,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-inbox',
+          '@workday-paystubs',
         ],
       },
 
@@ -871,7 +871,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-inbox',
+          '@workday-paystubs',
         ],
       },
 
@@ -921,7 +921,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-inbox',
+          '@workday-paystubs',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -957,7 +957,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-inbox',
+          '@workday-paystubs',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -994,7 +994,7 @@ test.describe(
     test(
       'verify personalize behaviour for Workday Display Inbox app manager defined user editable tile on home dashboard',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY, '@workday-inbox'],
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workday-paystubs'],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
