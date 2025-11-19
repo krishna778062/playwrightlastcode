@@ -230,7 +230,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.postTextLocator(expectedText);
+      const postLocator = this.postTextLocator(expectedText).first();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -777,6 +777,33 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
         assertionMessage: 'Embedded URL should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that an embedded URL does NOT unfurl (no link preview is displayed)
+   * @param embedUrl - The URL that should not be unfurled
+   * @param postText - The text of the post containing the URL
+   */
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
+      // First, verify the post is visible
+      await this.waitForPostToBeVisible(postText);
+
+      // Get the post container (using same pattern as verifyDeletedPostMessage)
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      // Verify no iframe/embed/preview elements are present (indicating no unfurl)
+      const embedPreviewLocators = postContainer.locator(
+        'iframe[src*="youtube.com"], iframe[src*="youtu.be"], div[class*="embed"], div[class*="preview"], div[class*="linkPreview"], div[class*="unfurl"]'
+      );
+
+      await this.verifier.verifyTheElementIsNotVisible(embedPreviewLocators.first(), {
+        assertionMessage: `URL "${embedUrl}" should NOT be unfurled - no preview/embed elements should be visible`,
       });
     });
   }

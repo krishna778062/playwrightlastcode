@@ -136,6 +136,7 @@ export interface IFeedAssertions {
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
@@ -728,6 +729,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
   }
 
   /**

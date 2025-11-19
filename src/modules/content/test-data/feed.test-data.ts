@@ -14,6 +14,7 @@ export const FEED_TEST_DATA = {
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    COMMENT: `Automated Test Comment ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -49,5 +50,8 @@ export const FEED_TEST_DATA = {
   PLACEHOLDER_TEXT: {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
+  TOAST_MESSAGES: {
+    SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
   },
 } as const;
