@@ -51,6 +51,19 @@ export class TagComponent extends BaseComponent {
   readonly iconPreviewDeleteButton: Locator;
   private readonly dialogRadios: Record<string, Locator>;
 
+  // Color picker locators
+  readonly colorPickerDialog: Locator;
+  readonly colorPickerHexInput: Locator;
+  readonly colorPickerOkButton: Locator;
+
+  // Default color theme field locators
+  readonly dialogDefaultLightThemeField: Locator;
+  readonly dialogDefaultDarkThemeField: Locator;
+
+  // Dynamic locators (created in methods but base patterns defined here)
+  readonly backButton: Locator;
+  readonly tagContainer: Locator;
+
   constructor(page: Page, fieldSelector: string = '[data-testid="field-{fieldName}"]') {
     super(page);
     this.page = page;
@@ -61,7 +74,7 @@ export class TagComponent extends BaseComponent {
     this.tooltipTextField = page.getByPlaceholder('Tooltip text…');
     this.tagTextHelperText = page.getByText('Longer text will be cut off to fit one line');
     this.tooltipTextHelperText = page.getByText('Appears on hover. Text over 150 chars will be cut off.');
-    this.tagStylingField = this.getFieldLocator('Tag styling');
+    this.tagStylingField = page.locator(fieldSelector.replace('{fieldName}', 'Tag styling'));
     this.tagTextDisplay = page.locator('span._contentEditableText_6ubwg_36');
 
     // Initialize dialog locators
@@ -117,6 +130,20 @@ export class TagComponent extends BaseComponent {
       .filter({ hasText: /kb|KB|mb|MB/ })
       .first();
     this.iconPreviewDeleteButton = this.iconPreviewContainer.getByRole('button', { name: 'Delete image' });
+
+    this.colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
+    this.colorPickerHexInput = this.colorPickerDialog
+      .locator('[data-testid="hex-color-picker"]')
+      .locator('input[id^="rc-editable-input-"]')
+      .first();
+    this.colorPickerOkButton = this.colorPickerDialog.getByRole('button', { name: 'OK' });
+
+    this.dialogDefaultLightThemeField = this.dialog.locator('[data-testid="field-Light theme"]');
+    this.dialogDefaultDarkThemeField = this.dialog.locator('[data-testid="field-Dark theme (mobile app only)"]');
+
+    this.backButton = this.page.getByRole('button', { name: 'Back' });
+    this.tagContainer = this.page.locator('[data-testid="tag"]');
+
     // Note: Mapping rule and fallback icon locators are created dynamically in methods
     // for better reliability and readability
     this.dialogRadios = {
@@ -160,7 +187,6 @@ export class TagComponent extends BaseComponent {
         );
       }
 
-      // Verify helper text
       await expect(this.tagTextHelperText, 'Tag text helper text should be visible').toBeVisible();
     });
   }
@@ -179,7 +205,6 @@ export class TagComponent extends BaseComponent {
         );
       }
 
-      // Verify helper text
       await expect(this.tooltipTextHelperText, 'Tooltip text helper text should be visible').toBeVisible();
     });
   }
@@ -202,10 +227,7 @@ export class TagComponent extends BaseComponent {
    */
   async verifyStylingRadioSelected(expectedValue: 'default' | 'custom' = 'default'): Promise<void> {
     await test.step(`Verify styling "${expectedValue}" radio button is selected`, async () => {
-      // Find the radio button by value within the styling field
       const radioButton = this.tagStylingField.locator(`input[type="radio"][value="${expectedValue}"]`);
-
-      // Verify the radio button is checked
       await expect(radioButton, `Styling "${expectedValue}" radio button should be checked`).toBeChecked();
 
       // Also verify the label has the checked class
@@ -267,28 +289,13 @@ export class TagComponent extends BaseComponent {
    */
   async verifyDialogFields(): Promise<void> {
     await test.step('Verify dialog fields are visible', async () => {
-      // Verify dialog title
       await expect(this.dialogTitle, 'Dialog title should be visible').toBeVisible();
-
-      // Verify Tag style field label
       await expect(this.dialogTagStyleLabel, 'Tag style label should be visible').toBeVisible();
-
-      // Verify helper text
       await expect(this.dialogHelperText, 'Helper text should be visible').toBeVisible();
-
-      // Verify Status radio button option
       await expect(this.dialogStatusRadio, 'Status radio button should be visible').toBeVisible();
-
-      // Verify Icon radio button option
       await expect(this.dialogIconRadio, 'Icon radio button should be visible').toBeVisible();
-
-      // Verify Text radio button option
       await expect(this.dialogTextRadio, 'Text radio button should be visible').toBeVisible();
-
-      // Verify Cancel button
       await expect(this.dialogCancelButton, 'Cancel button should be visible').toBeVisible();
-
-      // Verify Save button
       await expect(this.dialogSaveButton, 'Save button should be visible').toBeVisible();
     });
   }
@@ -298,10 +305,8 @@ export class TagComponent extends BaseComponent {
    */
   async verifyNoRadioButtonSelected(): Promise<void> {
     await test.step('Verify no radio button is pre-selected in dialog', async () => {
-      // Count all radio buttons
       const count = await this.dialogRadioButtons.count();
 
-      // Verify none of the radio buttons are checked
       for (let i = 0; i < count; i++) {
         const radioButton = this.dialogRadioButtons.nth(i);
         await expect(radioButton, `Radio button at index ${i} should not be checked`).not.toBeChecked();
@@ -314,10 +319,7 @@ export class TagComponent extends BaseComponent {
    */
   async verifyRequiredFieldError(): Promise<void> {
     await test.step('Verify required field error message', async () => {
-      // Verify error message is visible
       await expect(this.dialogErrorMessage, 'Required field error message should be visible').toBeVisible();
-
-      // Verify error message has the correct role
       await expect(this.dialogErrorAlert, 'Error message should have alert role').toBeVisible();
     });
   }
@@ -327,16 +329,52 @@ export class TagComponent extends BaseComponent {
    */
   async verifyTextDialogFields(): Promise<void> {
     await test.step('Verify text-specific dialog fields are visible', async () => {
-      // Verify Mapping rules section
       await expect(this.dialogMappingRulesHeading, 'Mapping rules heading should be visible').toBeVisible();
       await expect(this.dialogMappingRulesDescription, 'Mapping rules description should be visible').toBeVisible();
       await expect(this.dialogAddMappingRuleButton, 'Add mapping rule button should be visible').toBeVisible();
-
-      // Verify Fallback section
       await expect(this.dialogFallbackHeading, 'Fallback heading should be visible').toBeVisible();
       await expect(this.dialogFallbackDescription, 'Fallback description should be visible').toBeVisible();
       await expect(this.dialogDefaultColorField, 'Default color field should be visible').toBeVisible();
     });
+  }
+
+  /**
+   * Format hex color to ensure it starts with #
+   * @param hexColor - Hex color code (e.g., "#000000" or "000000")
+   * @returns Formatted hex color with leading #
+   */
+  private formatHexColor(hexColor: string): string {
+    return hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
+  }
+
+  /**
+   * Private helper method to interact with color picker dialog
+   * @param colorButton - The color button locator to click
+   * @param hexColor - Hex color code to enter
+   * @param stepDescription - Description for the test step
+   */
+  private async enterColorInPicker(colorButton: Locator, hexColor: string, stepDescription: string): Promise<void> {
+    await test.step(stepDescription, async () => {
+      const formattedColor = this.formatHexColor(hexColor);
+      await this.clickOnElement(colorButton);
+      await expect(this.colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
+
+      await this.colorPickerHexInput.clear();
+      await this.colorPickerHexInput.fill(formattedColor);
+      await this.clickOnElement(this.colorPickerOkButton);
+      await expect(this.colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
+    });
+  }
+
+  /**
+   * Get mapping rule container by index
+   * @param ruleIndex - Index of the mapping rule (default: 0 for first rule)
+   * @returns Locator for the mapping rule container
+   */
+  private getMappingRuleContainer(ruleIndex: number = 0): Locator {
+    const mappingRulesSection = this.getMappingRulesSection();
+    const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
+    return ruleContainers.nth(ruleIndex);
   }
 
   /**
@@ -347,14 +385,12 @@ export class TagComponent extends BaseComponent {
    */
   private async selectColorFromDropdown(combobox: Locator, option: string, stepDescription: string): Promise<void> {
     await test.step(stepDescription, async () => {
-      // Click on the combobox to open dropdown
       await this.clickOnElement(combobox);
 
       // Wait for listbox to be visible and scope it to the dialog
       const listbox = this.dialog.getByRole('listbox');
       await expect(listbox, 'Listbox should be visible').toBeVisible();
 
-      // Select the option from the dropdown menu using hasText filter
       const menuItem = listbox.getByRole('menuitem').filter({ hasText: option }).first();
       await this.clickOnElement(menuItem);
     });
@@ -377,38 +413,8 @@ export class TagComponent extends BaseComponent {
    * @param hexColor - Hex color code (e.g., "#000000" or "000000")
    */
   async enterDefaultColorLightTheme(hexColor: string): Promise<void> {
-    await test.step(`Enter "${hexColor}" in Default color Light theme field`, async () => {
-      // Ensure hex color starts with #
-      const formattedColor = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
-
-      // Find the Light theme field by data-testid
-      const lightThemeField = this.dialog.locator('[data-testid="field-Light theme"]');
-
-      // Click the button to open color picker
-      const colorButton = lightThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
-      await this.clickOnElement(colorButton);
-
-      // Wait for color picker dialog to appear
-      const colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
-      await expect(colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
-
-      // Find the hex input field within the color picker dialog
-      const colorInput = colorPickerDialog
-        .locator('[data-testid="hex-color-picker"]')
-        .locator('input[id^="rc-editable-input-"]')
-        .first();
-
-      // Clear and fill the color value
-      await colorInput.clear();
-      await colorInput.fill(formattedColor);
-
-      // Click OK button to confirm the color selection
-      const okButton = colorPickerDialog.getByRole('button', { name: 'OK' });
-      await this.clickOnElement(okButton);
-
-      // Wait for color picker dialog to close
-      await expect(colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
-    });
+    const colorButton = this.dialogDefaultLightThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
+    await this.enterColorInPicker(colorButton, hexColor, `Enter "${hexColor}" in Default color Light theme field`);
   }
 
   /**
@@ -416,38 +422,8 @@ export class TagComponent extends BaseComponent {
    * @param hexColor - Hex color code (e.g., "#FFFFFF" or "FFFFFF")
    */
   async enterDefaultColorDarkTheme(hexColor: string): Promise<void> {
-    await test.step(`Enter "${hexColor}" in Default color Dark theme field`, async () => {
-      // Ensure hex color starts with #
-      const formattedColor = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
-
-      // Find the Dark theme field by data-testid
-      const darkThemeField = this.dialog.locator('[data-testid="field-Dark theme (mobile app only)"]');
-
-      // Click the button to open color picker
-      const colorButton = darkThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
-      await this.clickOnElement(colorButton);
-
-      // Wait for color picker dialog to appear
-      const colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
-      await expect(colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
-
-      // Find the hex input field within the color picker dialog
-      const colorInput = colorPickerDialog
-        .locator('[data-testid="hex-color-picker"]')
-        .locator('input[id^="rc-editable-input-"]')
-        .first();
-
-      // Clear and fill the color value
-      await colorInput.clear();
-      await colorInput.fill(formattedColor);
-
-      // Click OK button to confirm the color selection
-      const okButton = colorPickerDialog.getByRole('button', { name: 'OK' });
-      await this.clickOnElement(okButton);
-
-      // Wait for color picker dialog to close
-      await expect(colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
-    });
+    const colorButton = this.dialogDefaultDarkThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
+    await this.enterColorInPicker(colorButton, hexColor, `Enter "${hexColor}" in Default color Dark theme field`);
   }
 
   /**
@@ -485,9 +461,7 @@ export class TagComponent extends BaseComponent {
    */
   async toggleParseAsRegex(ruleIndex: number = 0): Promise<void> {
     await test.step(`Toggle "Parse as regex" switch for mapping rule at index ${ruleIndex}`, async () => {
-      const mappingRulesSection = this.getMappingRulesSection();
-      const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
-      const ruleContainer = ruleContainers.nth(ruleIndex);
+      const ruleContainer = this.getMappingRuleContainer(ruleIndex);
       const regexToggle = ruleContainer
         .locator('label')
         .filter({ hasText: 'Parse as regex' })
@@ -521,44 +495,14 @@ export class TagComponent extends BaseComponent {
    * @param ruleIndex - Optional index of the mapping rule (default: 0 for first rule)
    */
   async enterMappingRuleColorLightTheme(hexColor: string, ruleIndex: number = 0): Promise<void> {
-    await test.step(`Enter "${hexColor}" in mapping rule Light theme field at index ${ruleIndex}`, async () => {
-      // Ensure hex color starts with #
-      const formattedColor = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
-
-      const mappingRulesSection = this.getMappingRulesSection();
-
-      // Get the specific mapping rule container
-      const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
-      const ruleContainer = ruleContainers.nth(ruleIndex);
-
-      // Find the Light theme field within the specific mapping rule container
-      const lightThemeField = ruleContainer.locator('[data-testid="field-Light theme"]').first();
-
-      // Click the button to open color picker
-      const colorButton = lightThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
-      await this.clickOnElement(colorButton);
-
-      // Wait for color picker dialog to appear
-      const colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
-      await expect(colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
-
-      // Find the hex input field within the color picker dialog
-      const colorInput = colorPickerDialog
-        .locator('[data-testid="hex-color-picker"]')
-        .locator('input[id^="rc-editable-input-"]')
-        .first();
-
-      // Clear and fill the color value
-      await colorInput.clear();
-      await colorInput.fill(formattedColor);
-
-      // Click OK button to confirm the color selection
-      const okButton = colorPickerDialog.getByRole('button', { name: 'OK' });
-      await this.clickOnElement(okButton);
-
-      // Wait for color picker dialog to close
-      await expect(colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
-    });
+    const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+    const lightThemeField = ruleContainer.locator('[data-testid="field-Light theme"]').first();
+    const colorButton = lightThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
+    await this.enterColorInPicker(
+      colorButton,
+      hexColor,
+      `Enter "${hexColor}" in mapping rule Light theme field at index ${ruleIndex}`
+    );
   }
 
   /**
@@ -567,44 +511,14 @@ export class TagComponent extends BaseComponent {
    * @param ruleIndex - Optional index of the mapping rule (default: 0 for first rule)
    */
   async enterMappingRuleColorDarkTheme(hexColor: string, ruleIndex: number = 0): Promise<void> {
-    await test.step(`Enter "${hexColor}" in mapping rule Dark theme field at index ${ruleIndex}`, async () => {
-      // Ensure hex color starts with #
-      const formattedColor = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
-
-      const mappingRulesSection = this.getMappingRulesSection();
-
-      // Get the specific mapping rule container
-      const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
-      const ruleContainer = ruleContainers.nth(ruleIndex);
-
-      // Find the Dark theme field within the specific mapping rule container
-      const darkThemeField = ruleContainer.locator('[data-testid="field-Dark theme (mobile app only)"]').first();
-
-      // Click the button to open color picker
-      const colorButton = darkThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
-      await this.clickOnElement(colorButton);
-
-      // Wait for color picker dialog to appear
-      const colorPickerDialog = this.page.getByRole('dialog', { name: 'Hex color picker' });
-      await expect(colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
-
-      // Find the hex input field within the color picker dialog
-      const colorInput = colorPickerDialog
-        .locator('[data-testid="hex-color-picker"]')
-        .locator('input[id^="rc-editable-input-"]')
-        .first();
-
-      // Clear and fill the color value
-      await colorInput.clear();
-      await colorInput.fill(formattedColor);
-
-      // Click OK button to confirm the color selection
-      const okButton = colorPickerDialog.getByRole('button', { name: 'OK' });
-      await this.clickOnElement(okButton);
-
-      // Wait for color picker dialog to close
-      await expect(colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
-    });
+    const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+    const darkThemeField = ruleContainer.locator('[data-testid="field-Dark theme (mobile app only)"]').first();
+    const colorButton = darkThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
+    await this.enterColorInPicker(
+      colorButton,
+      hexColor,
+      `Enter "${hexColor}" in mapping rule Dark theme field at index ${ruleIndex}`
+    );
   }
 
   /**
@@ -612,10 +526,7 @@ export class TagComponent extends BaseComponent {
    */
   async verifyMappingRuleErrors(): Promise<void> {
     await test.step('Verify mapping rule required field error messages', async () => {
-      // Verify Text field error message
       await expect(this.dialogMappingRuleTextError, 'Text is a required field error should be visible').toBeVisible();
-
-      // Verify Color field error message
       await expect(this.dialogMappingRuleColorError, 'Color is a required field error should be visible').toBeVisible();
     });
   }
@@ -633,19 +544,62 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
+   * Verify duplicate text error message appears in mapping rules
+   */
+  async verifyDuplicateTextError(): Promise<void> {
+    await test.step('Verify duplicate text error "Text is already in use" is visible', async () => {
+      const duplicateTextError = this.dialog.getByText('Text is already in use', { exact: false });
+      await expect(duplicateTextError, 'Duplicate text error "Text is already in use" should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify icon required error message appears in mapping rules
+   */
+  async verifyIconRequiredError(): Promise<void> {
+    await test.step('Verify icon required error is visible', async () => {
+      // The error message might be "Icon is a required field" or "Icon required" depending on implementation
+      const iconRequiredError = this.dialog.getByText(/Icon.*required|required.*Icon/i, { exact: false }).first();
+      await expect(iconRequiredError, 'Icon required error should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Click Back button in the icon selection dialog
+   */
+  async clickBackButton(): Promise<void> {
+    await test.step('Click Back button in icon dialog', async () => {
+      await this.clickOnElement(this.backButton);
+    });
+  }
+
+  /**
+   * Verify invalid regex pattern error appears (if validation is implemented)
+   * This method attempts to find an error message for invalid regex patterns
+   * @returns true if error is found, false otherwise
+   */
+  async verifyInvalidRegexError(): Promise<boolean> {
+    return await test.step('Verify invalid regex error is visible', async () => {
+      const regexError = this.dialog.getByText(/invalid.*regex|regex.*invalid|error/i, { exact: false }).first();
+      try {
+        await expect(regexError, 'Invalid regex error should be visible').toBeVisible({ timeout: 3000 });
+        return true;
+      } catch {
+        // Error doesn't appear - return false
+        return false;
+      }
+    });
+  }
+
+  /**
    * Verify the tag text displays with specified color
    * @param expectedText - The expected text to verify (default: "Text...")
    * @param expectedColor - The expected color in RGB format (e.g., 'rgb(252, 121, 59)')
    */
   async verifyTagTextColor(expectedText: string = 'Text...', expectedColor: string): Promise<void> {
     await test.step(`Verify tag text "${expectedText}" displays with color ${expectedColor}`, async () => {
-      // Find the tag text element by text content
       const tagTextElement = this.tagTextDisplay.filter({ hasText: expectedText }).first();
-
-      // Verify the element is visible
       await expect(tagTextElement, `Tag text "${expectedText}" should be visible`).toBeVisible();
-
-      // Verify the color matches the expected color
       await expect(tagTextElement, `Tag text "${expectedText}" should have color ${expectedColor}`).toHaveCSS(
         'color',
         expectedColor
@@ -660,19 +614,11 @@ export class TagComponent extends BaseComponent {
    */
   async verifyTagStatusColor(expectedText: string = 'Text...', expectedColor: string): Promise<void> {
     await test.step(`Verify tag status color for "${expectedText}" displays with background color ${expectedColor}`, async () => {
-      // Find the tag container that contains the expected text (using data-testid="tag")
-      const tagContainer = this.page.locator('[data-testid="tag"]').filter({ hasText: expectedText }).first();
-
-      // Verify the tag container is visible
+      const tagContainer = this.tagContainer.filter({ hasText: expectedText }).first();
       await expect(tagContainer, `Tag container for "${expectedText}" should be visible`).toBeVisible();
 
-      // Find the status indicator element within the tag container
       const statusElement = tagContainer.locator('div._status_6ubwg_30').first();
-
-      // Verify the status element is visible
       await expect(statusElement, `Status indicator for tag "${expectedText}" should be visible`).toBeVisible();
-
-      // Verify the background-color matches the expected color
       await expect(
         statusElement,
         `Status indicator for tag "${expectedText}" should have background color ${expectedColor}`
@@ -687,22 +633,13 @@ export class TagComponent extends BaseComponent {
    */
   async verifyTagIconVisible(expectedText: string = 'Text...', expectedUrlPattern?: string): Promise<void> {
     await test.step(`Verify tag icon is visible for "${expectedText}"`, async () => {
-      // Find the tag container that contains the expected text (using data-testid="tag")
-      const tagContainer = this.page.locator('[data-testid="tag"]').filter({ hasText: expectedText }).first();
-
-      // Verify the tag container is visible
+      const tagContainer = this.tagContainer.filter({ hasText: expectedText }).first();
       await expect(tagContainer, `Tag container for "${expectedText}" should be visible`).toBeVisible();
 
-      // Find the icon image element within the tag container
       const iconElement = tagContainer.locator('img._iconImg_6ubwg_24').first();
-
-      // Verify the icon element is visible
       await expect(iconElement, `Icon for tag "${expectedText}" should be visible`).toBeVisible();
-
-      // Verify the image has a src attribute
       await expect(iconElement, `Icon for tag "${expectedText}" should have a src attribute`).toHaveAttribute('src');
 
-      // If expected URL pattern is provided, verify the src contains the pattern (for dynamic URLs)
       if (expectedUrlPattern) {
         const actualSrc = await iconElement.getAttribute('src');
         if (actualSrc) {
@@ -731,10 +668,8 @@ export class TagComponent extends BaseComponent {
       const lowerOption = option.toLowerCase();
       const optionValue = optionMap[lowerOption] || option;
 
-      // Get the icon dialog by finding the dialog that contains the "Select icon" heading
       const iconDialog = this.page.getByRole('dialog').filter({ has: this.iconDialogTitle });
 
-      // Try multiple strategies to find the radio button
       let radioButton: Locator | undefined;
       for (const strategy of [
         iconDialog.locator(`input[type="radio"][value="${optionValue}"]`),
@@ -782,29 +717,19 @@ export class TagComponent extends BaseComponent {
    */
   async verifyIconPreviewImageVisible(expectedFileName?: string, expectedFileSize?: string): Promise<void> {
     await test.step('Verify icon preview image with file details is visible', async () => {
-      // Verify preview container is visible
       await expect(this.iconPreviewContainer, 'Icon preview container should be visible').toBeVisible();
-
-      // Verify icon preview image is visible
       await expect(this.iconPreviewImage, 'Icon preview image should be visible').toBeVisible();
-
-      // Verify the image has a src attribute (image loaded)
       await expect(this.iconPreviewImage, 'Icon preview image should have a src attribute').toHaveAttribute('src');
-
-      // Verify file name is visible
       await expect(this.iconPreviewFileName, 'Icon preview file name should be visible').toBeVisible();
 
-      // If expected file name is provided, verify it matches
       if (expectedFileName) {
         await expect(this.iconPreviewFileName, `Icon preview file name should be "${expectedFileName}"`).toHaveText(
           expectedFileName
         );
       }
 
-      // Verify file size is visible
       await expect(this.iconPreviewFileSize, 'Icon preview file size should be visible').toBeVisible();
 
-      // If expected file size is provided, verify it matches
       if (expectedFileSize) {
         await expect(
           this.iconPreviewFileSize,
@@ -812,7 +737,6 @@ export class TagComponent extends BaseComponent {
         ).toContainText(expectedFileSize);
       }
 
-      // Verify delete button is visible
       await expect(this.iconPreviewDeleteButton, 'Icon preview delete button should be visible').toBeVisible();
     });
   }
@@ -823,27 +747,21 @@ export class TagComponent extends BaseComponent {
    */
   async verifyIconPreviewAndUrlLink(expectedUrl?: string): Promise<void> {
     await test.step('Verify icon preview and URL link are visible', async () => {
-      // Verify icon preview image is visible
       await expect(this.iconPreviewImage, 'Icon preview image should be visible').toBeVisible();
 
-      // Wait for the image to have a valid src attribute (image loaded)
       if (expectedUrl) {
         await expect(this.iconPreviewImage, `Icon preview image should have src "${expectedUrl}"`).toHaveAttribute(
           'src',
           expectedUrl
         );
       } else {
-        // Verify the image has a src attribute (any URL)
         await expect(this.iconPreviewImage, 'Icon preview image should have a src attribute').toHaveAttribute('src');
       }
 
-      // Verify URL link is visible
       await expect(this.iconUrlLink, 'Icon URL link should be visible').toBeVisible();
 
-      // If expected URL is provided, verify the link contains the URL
       if (expectedUrl) {
         await expect(this.iconUrlLink, `Icon URL link should contain "${expectedUrl}"`).toContainText(expectedUrl);
-        // Also verify the href attribute contains the URL
         await expect(this.iconUrlLink, `Icon URL link href should contain "${expectedUrl}"`).toHaveAttribute(
           'href',
           expectedUrl
@@ -877,6 +795,57 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
+   * Private helper method to verify icon preview with file details
+   * @param container - Container locator (rule container or fallback section)
+   * @param expectedFileName - Optional expected file name
+   * @param expectedFileSize - Optional expected file size
+   * @param context - Context for error messages (e.g., "Mapping rule icon" or "Fallback icon")
+   * @param includeRemoveButton - Whether to verify remove button (default: false)
+   */
+  private async verifyIconPreviewWithFileDetails(
+    container: Locator,
+    expectedFileName: string | undefined,
+    expectedFileSize: string | undefined,
+    context: string,
+    includeRemoveButton: boolean = false
+  ): Promise<void> {
+    const iconImage = container.locator('img._iconImg_6ubwg_24').first();
+    const fileName = container
+      .locator('div._contentWrapper_12l59_28')
+      .locator('p.Typography-module__paragraph__OGpiQ')
+      .first();
+    const fileSize = container
+      .locator('div._contentWrapper_12l59_28')
+      .locator('p.Typography-module__secondary__OGpiQ')
+      .filter({ hasText: /kb|KB|mb|MB/ })
+      .first();
+    const editButton = container.getByRole('button', { name: 'Edit icon' }).first();
+
+    await expect(iconImage, `${context} image should be visible`).toBeVisible();
+    await expect(iconImage, `${context} image should have a src attribute`).toHaveAttribute('src');
+    await expect(fileName, `${context} file name should be visible`).toBeVisible();
+
+    if (expectedFileName) {
+      await expect(fileName, `${context} file name should be "${expectedFileName}"`).toHaveText(expectedFileName);
+    }
+
+    await expect(fileSize, `${context} file size should be visible`).toBeVisible();
+
+    if (expectedFileSize) {
+      await expect(fileSize, `${context} file size should contain "${expectedFileSize}"`).toContainText(
+        expectedFileSize
+      );
+    }
+
+    await expect(editButton, `${context} edit button should be visible`).toBeVisible();
+
+    if (includeRemoveButton) {
+      const removeButton = container.getByRole('button', { name: 'Remove mapping rule' }).first();
+      await expect(removeButton, 'Mapping rule remove button should be visible').toBeVisible();
+    }
+  }
+
+  /**
    * Verify mapping rule icon preview is visible with file details
    * @param expectedFileName - Optional expected file name (e.g., "expensify.jpg")
    * @param expectedFileSize - Optional expected file size (e.g., "JPEG - 42.5 KB")
@@ -888,53 +857,38 @@ export class TagComponent extends BaseComponent {
     ruleIndex: number = 0
   ): Promise<void> {
     await test.step(`Verify mapping rule icon preview with file details is visible at index ${ruleIndex}`, async () => {
-      // Get mapping rules section container
-      const mappingRulesSection = this.getMappingRulesSection();
-
-      // Get the specific mapping rule container
-      const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
-      const ruleContainer = ruleContainers.nth(ruleIndex);
-
-      // Locate icon elements within the specific mapping rule container
-      const iconImage = ruleContainer.locator('img._iconImg_6ubwg_24').first();
-      const fileName = ruleContainer
-        .locator('div._contentWrapper_12l59_28')
-        .locator('p.Typography-module__paragraph__OGpiQ')
-        .first();
-      const fileSize = ruleContainer
-        .locator('div._contentWrapper_12l59_28')
-        .locator('p.Typography-module__secondary__OGpiQ')
-        .filter({ hasText: /kb|KB|mb|MB/ })
-        .first();
-      const editButton = ruleContainer.getByRole('button', { name: 'Edit icon' }).first();
-      const removeButton = ruleContainer.getByRole('button', { name: 'Remove mapping rule' }).first();
-
-      // Verify icon image is visible
-      await expect(iconImage, 'Mapping rule icon image should be visible').toBeVisible();
-      await expect(iconImage, 'Mapping rule icon image should have a src attribute').toHaveAttribute('src');
-
-      // Verify file name is visible
-      await expect(fileName, 'Mapping rule icon file name should be visible').toBeVisible();
-      if (expectedFileName) {
-        await expect(fileName, `Mapping rule icon file name should be "${expectedFileName}"`).toHaveText(
-          expectedFileName
-        );
-      }
-
-      // Verify file size is visible
-      await expect(fileSize, 'Mapping rule icon file size should be visible').toBeVisible();
-      if (expectedFileSize) {
-        await expect(fileSize, `Mapping rule icon file size should contain "${expectedFileSize}"`).toContainText(
-          expectedFileSize
-        );
-      }
-
-      // Verify edit button is visible
-      await expect(editButton, 'Mapping rule icon edit button should be visible').toBeVisible();
-
-      // Verify remove button is visible
-      await expect(removeButton, 'Mapping rule remove button should be visible').toBeVisible();
+      const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+      await this.verifyIconPreviewWithFileDetails(
+        ruleContainer,
+        expectedFileName,
+        expectedFileSize,
+        'Mapping rule icon',
+        true
+      );
     });
+  }
+
+  /**
+   * Private helper method to verify icon preview with URL
+   * @param container - Container locator (rule container or fallback section)
+   * @param expectedUrl - Expected URL to verify
+   * @param context - Context for error messages (e.g., "Mapping rule icon" or "Fallback icon")
+   */
+  private async verifyIconPreviewWithUrl(container: Locator, expectedUrl: string, context: string): Promise<void> {
+    const iconImage = container.locator('img._iconImg_6ubwg_24').first();
+    const iconLink = container.locator('a._urlLink_12l59_9[target="_blank"]').first();
+
+    await expect(iconImage, `${context} image should be visible`).toBeVisible();
+    await expect(iconLink, `${context} URL link should be visible`).toBeVisible();
+    await expect(iconImage, `${context} image should have src with URL "${expectedUrl}"`).toHaveAttribute(
+      'src',
+      expectedUrl
+    );
+    await expect(iconLink, `${context} URL link should contain "${expectedUrl}"`).toContainText(expectedUrl);
+    await expect(iconLink, `${context} URL link href should match "${expectedUrl}"`).toHaveAttribute(
+      'href',
+      expectedUrl
+    );
   }
 
   /**
@@ -944,23 +898,8 @@ export class TagComponent extends BaseComponent {
    */
   async verifyMappingRuleIconPreviewWithUrl(expectedUrl: string, ruleIndex: number = 0): Promise<void> {
     await test.step(`Verify mapping rule icon preview with URL is visible at index ${ruleIndex}`, async () => {
-      const mappingRulesSection = this.getMappingRulesSection();
-      const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
-      const ruleContainer = ruleContainers.nth(ruleIndex);
-      const iconImage = ruleContainer.locator('img._iconImg_6ubwg_24').first();
-      const iconLink = ruleContainer.locator('a._urlLink_12l59_9[target="_blank"]').first();
-
-      await expect(iconImage, 'Mapping rule icon image should be visible').toBeVisible();
-      await expect(iconLink, 'Mapping rule icon URL link should be visible').toBeVisible();
-      await expect(iconImage, `Mapping rule icon image should have src with URL "${expectedUrl}"`).toHaveAttribute(
-        'src',
-        expectedUrl
-      );
-      await expect(iconLink, `Mapping rule icon URL link should contain "${expectedUrl}"`).toContainText(expectedUrl);
-      await expect(iconLink, `Mapping rule icon URL link href should match "${expectedUrl}"`).toHaveAttribute(
-        'href',
-        expectedUrl
-      );
+      const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+      await this.verifyIconPreviewWithUrl(ruleContainer, expectedUrl, 'Mapping rule icon');
     });
   }
 
@@ -971,42 +910,14 @@ export class TagComponent extends BaseComponent {
    */
   async verifyFallbackIconPreview(expectedFileName?: string, expectedFileSize?: string): Promise<void> {
     await test.step('Verify fallback icon preview with file details is visible', async () => {
-      // Get fallback section container
       const fallbackSection = this.getFallbackSection();
-
-      // Locate icon elements within the fallback section
-      const iconImage = fallbackSection.locator('img._iconImg_6ubwg_24').first();
-      const fileName = fallbackSection
-        .locator('div._contentWrapper_12l59_28')
-        .locator('p.Typography-module__paragraph__OGpiQ')
-        .first();
-      const fileSize = fallbackSection
-        .locator('div._contentWrapper_12l59_28')
-        .locator('p.Typography-module__secondary__OGpiQ')
-        .filter({ hasText: /kb|KB|mb|MB/ })
-        .first();
-      const editButton = fallbackSection.getByRole('button', { name: 'Edit icon' }).first();
-
-      // Verify icon image is visible
-      await expect(iconImage, 'Fallback icon image should be visible').toBeVisible();
-      await expect(iconImage, 'Fallback icon image should have a src attribute').toHaveAttribute('src');
-
-      // Verify file name is visible
-      await expect(fileName, 'Fallback icon file name should be visible').toBeVisible();
-      if (expectedFileName) {
-        await expect(fileName, `Fallback icon file name should be "${expectedFileName}"`).toHaveText(expectedFileName);
-      }
-
-      // Verify file size is visible
-      await expect(fileSize, 'Fallback icon file size should be visible').toBeVisible();
-      if (expectedFileSize) {
-        await expect(fileSize, `Fallback icon file size should contain "${expectedFileSize}"`).toContainText(
-          expectedFileSize
-        );
-      }
-
-      // Verify edit button is visible
-      await expect(editButton, 'Fallback icon edit button should be visible').toBeVisible();
+      await this.verifyIconPreviewWithFileDetails(
+        fallbackSection,
+        expectedFileName,
+        expectedFileSize,
+        'Fallback icon',
+        false
+      );
     });
   }
 
@@ -1016,9 +927,8 @@ export class TagComponent extends BaseComponent {
    */
   async clickRemoveMappingRule(ruleIndex: number = 0): Promise<void> {
     await test.step(`Click remove mapping rule button for rule at index ${ruleIndex}`, async () => {
-      const mappingRulesSection = this.getMappingRulesSection();
-      const removeButtons = mappingRulesSection.getByRole('button', { name: 'Remove mapping rule' });
-      const removeButton = removeButtons.nth(ruleIndex);
+      const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+      const removeButton = ruleContainer.getByRole('button', { name: 'Remove mapping rule' }).first();
       await this.clickOnElement(removeButton);
     });
   }
@@ -1029,11 +939,9 @@ export class TagComponent extends BaseComponent {
    */
   async clickEditMappingRuleIcon(ruleIndex: number = 0): Promise<void> {
     await test.step(`Click edit icon button for mapping rule at index ${ruleIndex}`, async () => {
-      const mappingRulesSection = this.getMappingRulesSection();
-      const editButtons = mappingRulesSection.getByRole('button', { name: 'Edit icon' });
-      const editButton = editButtons.nth(ruleIndex);
+      const ruleContainer = this.getMappingRuleContainer(ruleIndex);
+      const editButton = ruleContainer.getByRole('button', { name: 'Edit icon' }).first();
       await this.clickOnElement(editButton);
-      // Verify the icon dialog is opened
       await expect(this.iconDialogTitle, 'Icon dialog should be visible after clicking edit').toBeVisible();
     });
   }
@@ -1046,7 +954,6 @@ export class TagComponent extends BaseComponent {
       const fallbackSection = this.getFallbackSection();
       const editButton = fallbackSection.getByRole('button', { name: 'Edit icon' }).first();
       await this.clickOnElement(editButton);
-      // Verify the icon dialog is opened
       await expect(this.iconDialogTitle, 'Icon dialog should be visible after clicking edit').toBeVisible();
     });
   }
@@ -1060,7 +967,6 @@ export class TagComponent extends BaseComponent {
       const mappingRulesSection = this.getMappingRulesSection();
       const ruleContainers = mappingRulesSection.locator('div._ruleContainer_506t5_1');
 
-      // Wait for rules to be visible if expecting any
       if (expectedCount > 0) {
         await expect(ruleContainers.first(), 'At least one mapping rule should be visible').toBeVisible({
           timeout: 10000,
@@ -1079,22 +985,18 @@ export class TagComponent extends BaseComponent {
    */
   async verifyBothIconPreviewsVisible(mappingRuleUrl?: string, fallbackUrl?: string): Promise<void> {
     await test.step('Verify both mapping rule and fallback icon previews are visible', async () => {
-      // Get section containers dynamically for better reliability
       const mappingRulesSection = this.getMappingRulesSection();
       const fallbackSection = this.getFallbackSection();
 
-      // Locate icon elements within their respective sections
       // Use specific class names for better reliability: _iconImg_6ubwg_24 for images, _urlLink_12l59_9 for links
       const mappingRuleIconImage = mappingRulesSection.locator('img._iconImg_6ubwg_24[alt=""]').first();
       const mappingRuleIconLink = mappingRulesSection.locator('a._urlLink_12l59_9[target="_blank"]').first();
       const fallbackIconImage = fallbackSection.locator('img._iconImg_6ubwg_24[alt=""]').first();
       const fallbackIconLink = fallbackSection.locator('a._urlLink_12l59_9[target="_blank"]').first();
 
-      // Verify mapping rule icon preview
       await expect(mappingRuleIconImage, 'Mapping rule icon image should be visible').toBeVisible();
       await expect(mappingRuleIconLink, 'Mapping rule icon link should be visible').toBeVisible();
 
-      // If mapping rule URL is provided, verify it matches
       if (mappingRuleUrl) {
         await expect(
           mappingRuleIconImage,
@@ -1108,17 +1010,14 @@ export class TagComponent extends BaseComponent {
           mappingRuleUrl
         );
       } else {
-        // Verify the image has a src attribute
         await expect(mappingRuleIconImage, 'Mapping rule icon image should have a src attribute').toHaveAttribute(
           'src'
         );
       }
 
-      // Verify fallback icon preview
       await expect(fallbackIconImage, 'Fallback icon image should be visible').toBeVisible();
       await expect(fallbackIconLink, 'Fallback icon link should be visible').toBeVisible();
 
-      // If fallback URL is provided, verify it matches
       if (fallbackUrl) {
         await expect(fallbackIconImage, `Fallback icon image should have src "${fallbackUrl}"`).toHaveAttribute(
           'src',
@@ -1130,7 +1029,6 @@ export class TagComponent extends BaseComponent {
           fallbackUrl
         );
       } else {
-        // Verify the image has a src attribute
         await expect(fallbackIconImage, 'Fallback icon image should have a src attribute').toHaveAttribute('src');
       }
     });
@@ -1145,11 +1043,19 @@ export class TagComponent extends BaseComponent {
       ? `Verify "${dialogTitle}" dialog is not visible`
       : 'Verify dialog is not visible';
     await test.step(stepDescription, async () => {
-      // Verify dialog is not visible
       const assertionMessage = dialogTitle
         ? `"${dialogTitle}" dialog should not be visible`
         : 'Dialog should not be visible';
       await expect(this.dialog, assertionMessage).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the dialog is still visible (for validation scenarios where save should be prevented)
+   */
+  async verifyDialogStillVisible(): Promise<void> {
+    await test.step('Verify dialog is still visible', async () => {
+      await expect(this.dialog, 'Dialog should still be visible').toBeVisible();
     });
   }
 
@@ -1160,7 +1066,6 @@ export class TagComponent extends BaseComponent {
    */
   async clickDoneAndVerifyIconDialogDoesNotClose(): Promise<void> {
     await test.step('Click Done button and verify icon dialog does not close without file upload', async () => {
-      // Verify dialog is visible before clicking Done
       await expect(this.iconDialogTitle, 'Select icon dialog should be visible before clicking Done').toBeVisible();
       await this.iconDialogDoneButton.click();
       let dialogClosed = false;

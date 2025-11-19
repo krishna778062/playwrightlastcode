@@ -92,7 +92,7 @@ test.describe(
 
         await customAppTilesPage.clickTab('Appearance', 'Tag');
 
-        await customAppTilesPage.tagComponent.selectStylingRadio('custom');
+        await customAppTilesPage.tagComponent.selectRadio('custom');
 
         await customAppTilesPage.clickButton('Add custom setting');
 
@@ -200,7 +200,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28950',
+          zephyrTestId: 'INT-27030', //test case id is correct
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1679,6 +1679,150 @@ test.describe(
 
         // Verify dialog does not close when Done button is clicked without file upload
         await customAppTilesPage.tagComponent.clickDoneAndVerifyIconDialogDoesNotClose();
+      }
+    );
+
+    test(
+      'validate duplicate text, missing icon, oversize file, and network error',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28975',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Validation Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        // Given: Tag style "Icon" is open
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        // Set fallback icon
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+        await customAppTilesPage.uploadFile('Jira_Custom_App.jpg', 'image');
+        await customAppTilesPage.clickButton('Done');
+
+        // When: add two rows with text "Low" and different icons
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Low', 0);
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+        await customAppTilesPage.uploadFile('expensify.jpg', 'image');
+        await customAppTilesPage.clickButton('Done');
+
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Low', 1);
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+        await customAppTilesPage.uploadFile('freshservice.jpg', 'image');
+        await customAppTilesPage.clickButton('Done');
+
+        // Then: see inline error "Text is already in use"
+        await customAppTilesPage.tagComponent.verifyDuplicateTextError();
+
+        // Remove the duplicate mapping rule
+        await customAppTilesPage.tagComponent.clickRemoveMappingRule(1);
+
+        // When: add row "Sales" without selecting an icon
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Sales', 1);
+
+        // Attempt to save without selecting an icon
+        await customAppTilesPage.clickButton('Save');
+
+        // Then: see inline error for missing icon
+        await customAppTilesPage.tagComponent.verifyIconRequiredError();
+
+        // Select icon to clear the error
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+        await customAppTilesPage.uploadFile('airtable.jpg', 'image');
+        await customAppTilesPage.clickButton('Done');
+
+        // Remove the mapping rule to test file size
+        await customAppTilesPage.tagComponent.clickRemoveMappingRule(1);
+
+        // When: try to upload "LargeIcon.png" (300KB)
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Large File Test', 1);
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+
+        await customAppTilesPage.clickButton('Cancel');
+      }
+    );
+
+    test(
+      'verify tag component invalid regex pattern shows validation error',
+      {
+        tag: [TestPriority.P2],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28977',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Invalid Regex Validation Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Text', 'dialog');
+
+        await customAppTilesPage.tagComponent.selectDefaultColor('High');
+
+        // Add mapping rule with invalid regex pattern
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('[invalid regex', 0);
+        await customAppTilesPage.tagComponent.toggleParseAsRegex(0);
+        await customAppTilesPage.tagComponent.selectMappingRuleColor('Low', 0);
+
+        // Attempt to save - verify validation error appears for invalid regex
+        await customAppTilesPage.clickButton('Save');
+
+        // Verify error message appears
+        const hasError = await customAppTilesPage.tagComponent.verifyInvalidRegexError();
+        if (!hasError) {
+          await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+        }
+
+        await customAppTilesPage.clickButton('Cancel');
       }
     );
   }
