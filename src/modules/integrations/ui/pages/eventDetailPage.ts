@@ -55,7 +55,13 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   readonly deleteSpanLocator: Locator;
   readonly unpublishButtonLocator: Locator;
   readonly publishButtonLocator: Locator;
+  readonly publishChangesButtonLocator: Locator;
   readonly editButtonLocator: Locator;
+  readonly changeButtonLocator: Locator;
+  readonly noChangeConnectedAccountButtonLocator: Locator;
+  readonly confirmChangeButtonLocator: Locator;
+  readonly crossIconLocator: Locator;
+  readonly inputBoxAuthorByNameLocator: Locator;
   readonly eventSyncToggleLocator: Locator;
   readonly removeSyncButtonLocator: Locator;
   readonly eventSyncGoogleCalendarLabelLocator: Locator;
@@ -74,6 +80,11 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
   constructor(page: Page, siteId: string, eventId: string) {
     super(page, PAGE_ENDPOINTS.getContentPreviewPage(siteId, eventId, 'event'));
 
+    this.crossIconLocator = page.getByLabel('Clear search');
+    this.changeButtonLocator = page.getByRole('button', { name: 'Change', exact: true });
+    this.inputBoxAuthorByNameLocator = page.locator("//input[@id='authoredBy']");
+    this.noChangeConnectedAccountButtonLocator = page.getByText(/No, change connected account/i);
+    this.confirmChangeButtonLocator = page.getByText(/Confirm/i);
     this.eventTitleHeading = page.locator('//h1[@class="type--h1 Hero-heading"]');
     this.attendingCountLocator = page.locator('//h3[@class="type--stamp" and contains(text(), "Attending")]');
     this.attendingStatusTextLocator = page.locator(
@@ -87,6 +98,8 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     this.deleteSpanLocator = page.locator('//span[text()="Delete"]');
     this.unpublishButtonLocator = page.locator('//button[@title="Unpublish this event"]');
     this.publishButtonLocator = page.locator('//button[@title="Publish this event"]');
+    this.publishChangesButtonLocator = page.getByText(/Publish changes/i);
+
     this.editButtonLocator = page.getByRole('button', { name: 'Edit' });
     this.eventSyncToggleLocator = page.getByRole('switch');
     this.removeSyncButtonLocator = page.getByRole('button', { name: 'Remove sync' });
@@ -179,9 +192,6 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     });
   }
 
-  /**
-   * Publishes the event via three dots menu
-   */
   async publishEvent(): Promise<void> {
     await test.step('Publish event via three dots menu', async () => {
       await this.threeDotsMenuLocator.click({ force: true });
@@ -194,9 +204,37 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     });
   }
 
-  /**
-   * Edits the event details and publishes changes
-   */
+  async changeEventAuthor(author: string): Promise<void> {
+    await test.step('Change event author', async () => {
+      await this.editButtonLocator.click();
+      await this.page.waitForLoadState('domcontentloaded');
+
+      await this.changeButtonLocator.click();
+      await this.crossIconLocator.click();
+      await this.inputBoxAuthorByNameLocator.fill(author);
+      await this.page.waitForTimeout(5000);
+      await this.page.keyboard.press('Enter');
+
+      await this.noChangeConnectedAccountButtonLocator.click();
+      await this.confirmChangeButtonLocator.click();
+
+      await this.publishChangesButtonLocator.click();
+    });
+  }
+
+  getEventAuthorLocator(expectedAuthor: string): Locator {
+    return this.page.getByRole('link', { name: expectedAuthor });
+  }
+
+  async verifyEventAuthor(expectedAuthor: string): Promise<void> {
+    await test.step('Verify event author', async () => {
+      const eventAuthorLocator = this.getEventAuthorLocator(expectedAuthor);
+      await this.verifier.verifyElementContainsText(eventAuthorLocator, expectedAuthor, {
+        assertionMessage: `Event author should contain "${expectedAuthor}"`,
+      });
+    });
+  }
+
   async editEvent(options: { title?: string; description?: string; location?: string }): Promise<void> {
     return await test.step('Edit event details', async () => {
       await this.editButtonLocator.click();
@@ -216,9 +254,6 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     });
   }
 
-  /**
-   * Toggles event sync on/off
-   */
   async toggleEventSync(enable: boolean, destination?: EventSyncDestination): Promise<void> {
     await test.step(`${enable ? 'Enable' : 'Disable'} event sync`, async () => {
       await this.editButtonLocator.click();

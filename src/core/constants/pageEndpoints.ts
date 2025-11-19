@@ -28,6 +28,7 @@ export const PAGE_ENDPOINTS = {
     `/manage/users?searchTerm=${firstName}+${lastName}`,
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
+  FAVORITE_PAGE: '/favorites/sites',
   LOGOUT: '/logout',
   CONTENT_SITES: '/v1/content/sites',
   CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
