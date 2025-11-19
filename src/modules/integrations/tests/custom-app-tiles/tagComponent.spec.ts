@@ -69,7 +69,7 @@ test.describe(
     test(
       'verify tag component text option of tile builder',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -101,32 +101,9 @@ test.describe(
 
         // Verify Text and Color options are visible
         await customAppTilesPage.tagComponent.verifyTextDialogFields();
-        await expect(
-          customAppTilesPage.tagComponent.dialogDefaultColorField,
-          'Color option should be visible in Default section'
-        ).toBeVisible();
 
-        // Click on Color option to open dropdown
-        await customAppTilesPage.tagComponent.dialogDefaultColorField.click();
-
-        // Verify all color options are visible: None, Low, Medium, High, Highest
-        const expectedColorOptions = ['None', 'Low', 'Medium', 'High', 'Highest'];
-        const listbox = customAppTilesPage.tagComponent.dialog.getByRole('listbox');
-        await expect(listbox, 'Color dropdown listbox should be visible').toBeVisible();
-
-        for (const colorOption of expectedColorOptions) {
-          const menuItem = listbox.getByRole('menuitem').filter({ hasText: colorOption }).first();
-          await expect(menuItem, `Color option "${colorOption}" should be visible`).toBeVisible();
-        }
-
-        // Select a particular configuration (Medium color)
-        await listbox.getByRole('menuitem').filter({ hasText: 'Medium' }).first().click();
-
-        // Verify the configuration is applied
-        await expect(
-          customAppTilesPage.tagComponent.dialogDefaultColorField,
-          'Default color field should show selected value'
-        ).toContainText('Medium');
+        // Verify all color options are available and select Medium
+        await customAppTilesPage.tagComponent.verifyAndSelectDefaultColorOption('Medium');
 
         await customAppTilesPage.clickButton('Save');
 

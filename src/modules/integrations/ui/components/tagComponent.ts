@@ -29,6 +29,7 @@ export class TagComponent extends BaseComponent {
   readonly dialogFallbackHeading: Locator;
   readonly dialogFallbackDescription: Locator;
   readonly dialogDefaultColorField: Locator;
+  readonly dialogDefaultColorFieldContainer: Locator;
   readonly dialogMappingRuleTextError: Locator;
   readonly dialogMappingRuleColorError: Locator;
   readonly dialogDefaultColorError: Locator;
@@ -88,6 +89,7 @@ export class TagComponent extends BaseComponent {
       'Display this status when no matching text is available or if an error occurs'
     );
     this.dialogDefaultColorField = this.dialog.locator('[data-testid="field-Default color"]').getByRole('combobox');
+    this.dialogDefaultColorFieldContainer = this.dialog.locator('[data-testid="field-Default color"]');
     this.dialogMappingRuleTextError = this.dialog.getByText('Text is a required field');
     this.dialogMappingRuleColorError = this.dialog.getByText('Color is a required field');
     this.dialogDefaultColorError = this.dialog.getByText('Default color is a required field');
@@ -360,11 +362,10 @@ export class TagComponent extends BaseComponent {
     await test.step(stepDescription, async () => {
       await this.clickOnElement(combobox);
 
-      // Wait for listbox to be visible and scope it to the dialog
-      const listbox = this.dialog.getByRole('listbox');
-      await expect(listbox, 'Listbox should be visible').toBeVisible();
+      // Wait for listbox to be visible
+      await expect(this.dialogListbox, 'Listbox should be visible').toBeVisible();
 
-      const menuItem = listbox.getByRole('menuitem').filter({ hasText: option }).first();
+      const menuItem = this.dialogListbox.getByRole('menuitem').filter({ hasText: option }).first();
       await this.clickOnElement(menuItem);
     });
   }
@@ -379,6 +380,39 @@ export class TagComponent extends BaseComponent {
       option,
       `Select "${option}" from Default color dropdown`
     );
+  }
+
+  /**
+   * Verify all default color options are available and select a specific option
+   * @param selectedOption - The color option to select (e.g., 'None', 'Low', 'Medium', 'High', 'Highest')
+   * @param expectedOptions - Array of expected color options (default: ['None', 'Low', 'Medium', 'High', 'Highest'])
+   */
+  async verifyAndSelectDefaultColorOption(
+    selectedOption: string,
+    expectedOptions: string[] = ['None', 'Low', 'Medium', 'High', 'Highest']
+  ): Promise<void> {
+    await test.step(`Verify all color options and select "${selectedOption}"`, async () => {
+      // Click on Default color field to open dropdown
+      await this.clickOnElement(this.dialogDefaultColorField);
+
+      // Wait for listbox to be visible
+      await expect(this.dialogListbox, 'Color dropdown listbox should be visible').toBeVisible();
+
+      // Verify all expected color options are visible
+      for (const colorOption of expectedOptions) {
+        const menuItem = this.dialogListbox.getByRole('menuitem').filter({ hasText: colorOption }).first();
+        await expect(menuItem, `Color option "${colorOption}" should be visible`).toBeVisible();
+      }
+
+      // Select the specified option
+      await this.dialogListbox.getByRole('menuitem').filter({ hasText: selectedOption }).first().click();
+
+      // Verify the selection was applied
+      await expect(
+        this.dialogDefaultColorFieldContainer,
+        'Default color field should show selected value'
+      ).toContainText(selectedOption);
+    });
   }
 
   /**
