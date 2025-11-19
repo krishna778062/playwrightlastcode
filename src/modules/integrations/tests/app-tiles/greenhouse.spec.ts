@@ -395,7 +395,7 @@ test.describe(
           Job_board_token_value,
           UI_ACTIONS.ADD_TO_HOME
         );
-        await homeDashboard.setUpTile(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
+        await homeDashboard.setUpTileDropdown(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
         await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await homeDashboard.verifyGreenhouseContentStructure(createdTileTitle);
       }
@@ -431,7 +431,7 @@ test.describe(
           Job_board_token_value,
           UI_ACTIONS.ADD_TO_SITE
         );
-        await siteDashboard.setUpTile(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
+        await siteDashboard.setUpTileDropdown(createdTileTitle, GREENHOUSE_VALUES.JOB_TYPE, GREENHOUSE_VALUES.ALL);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyGreenhouseContentStructure(createdTileTitle);
         createdTileTitle = undefined;
