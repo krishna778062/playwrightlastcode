@@ -536,13 +536,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -580,13 +574,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -627,15 +615,9 @@ test.describe(
     );
 
     test(
-      'verify metadata for Workday Display Recent Paystubs user defined tile on home dashboard',
+      'verify metadata and view all payslips in Workdayfor Workday Display Recent Paystubs user defined tile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
 
       async ({ appManagerFixture }) => {
@@ -664,19 +646,14 @@ test.describe(
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
         await homeDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await homeDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
       }
     );
 
     test(
-      'verify metadata for Workday Display Recent Paystubs site manager defined tile on site dashboard',
+      'verify metadata and view all payslips in Workday for Workday Display Recent Paystubs site manager defined tile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -705,6 +682,40 @@ test.describe(
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await siteDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify personalize behaviour for Workday Display Recent Paystubs app manager defined user editable tile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Recent Paystubs app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettingsEnableToggle(
+          createdTileTitle,
+          AppName,
+          tileName,
+          AppManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        //verify personalize button behaviour
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.PAYSLIP_LIST_URL);
         createdTileTitle = undefined;
       }
     );
