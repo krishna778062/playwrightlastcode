@@ -14,6 +14,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // Test data for approve/reject scenarios
@@ -98,9 +99,15 @@ test.describe(
             ContentType.PAGE
           );
 
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [users.endUser.email],
+            SITE_TYPES.PUBLIC
+          );
+
           // Navigate to page creation by standard user
           pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
-            ContentType.PAGE
+            ContentType.PAGE,
+            { siteName: siteInfo.siteName }
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator

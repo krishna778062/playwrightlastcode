@@ -159,5 +159,74 @@ test.describe(
         placeholder = true;
       }
     );
+
+    test(
+      'verify Selection of Default Placeholder Text',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33862'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Selection of Default Placeholder Text',
+          zephyrTestId: 'CONT-33862',
+          storyId: 'CONT-33862',
+        });
+
+        // Navigate to Governance Settings
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.verifyThePageIsLoaded();
+
+        // Select Default Placeholder option
+        await governanceScreenPage.actions.makePlaceholderDefault();
+
+        const appConfig = await appManagerFixture.feedManagementHelper.getAppConfig();
+        const isRecognitionEnabled = appConfig.result?.isRecognitionEnabled || false;
+
+        // Expected placeholder texts based on Recognition feature flag
+        const expectedPlaceholderWithRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITH_RECOGNITION;
+        const expectedPlaceholderWithoutRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITHOUT_RECOGNITION;
+
+        // Navigate to Global Feed and verify placeholder
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(appManagerFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Verify placeholder text matches expected based on Recognition flag
+        if (isRecognitionEnabled) {
+          await feedPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+        } else {
+          await feedPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+        }
+
+        // Also verify on Site Feed
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+
+        if (isRecognitionEnabled) {
+          await siteDashboardPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+        } else {
+          await siteDashboardPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+        }
+
+        // Verify on Content Feed
+        const contentInfo = await appManagerFixture.contentManagementHelper.getContentId();
+        contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          contentInfo.contentId,
+          contentInfo.contentType
+        );
+        await contentPreviewPage.loadPage();
+
+        if (isRecognitionEnabled) {
+          await contentPreviewPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+        } else {
+          await contentPreviewPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+        }
+      }
+    );
   }
 );

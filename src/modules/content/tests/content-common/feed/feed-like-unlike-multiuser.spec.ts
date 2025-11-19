@@ -179,7 +179,7 @@ test.describe(
         await siteOwnerFeedPage.assertions.waitForPostToBeVisible(postText);
 
         // Create a reply to the post
-        await siteOwnerFeedPage.actions.addReplyToPost(createdReplyText);
+        await siteOwnerFeedPage.actions.addReplyToPost(createdReplyText, createdPostId);
         await siteOwnerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
       }
     );
@@ -431,7 +431,7 @@ test.describe(
         ]);
 
         // Create a reply to the post via UI (as Site Owner)
-        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText);
+        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText, feedResponse.result.feedId);
         await ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText);
 
         // Wait for posts to be visible on all pages in parallel

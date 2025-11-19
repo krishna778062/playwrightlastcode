@@ -55,7 +55,7 @@ export interface IFeedActions {
   clickOnCloseButton: () => Promise<void>;
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
-  addReplyToPost: (replyText: string) => Promise<void>;
+  addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
@@ -102,6 +102,9 @@ export interface IFeedActions {
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
+  clickShareIconOnPost: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -139,7 +142,10 @@ export interface IFeedAssertions {
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyDeletedPostMessage: (postText: string) => Promise<void>;
+  verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -383,8 +389,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.filePreviewComponent.clickOnEditVersionButton();
   }
 
-  async addReplyToPost(replyText: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(replyText);
+  async addReplyToPost(replyText: string, postId: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText, postId);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
@@ -759,7 +765,40 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async closeReactionModal(): Promise<void> {
     await this.listFeedComponent.closeReactionModal();
   }
+  
+  /**
+   * Verifies that a deleted post message is displayed for a specific post
+   * @param postText - The text of the post to verify deleted message for
+   */
+  async verifyDeletedPostMessage(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyDeletedPostMessage(postText);
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
+  async verifyPostCannotBeInteracted(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
+  }
+
+  async clickShareIconOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareIcon(postText);
+  }
+
+  async enterShareDescription(description: string): Promise<void> {
+    await this.shareComponent.actions.enterShareDescription(description);
+  }
+
+  async enterSiteNameForShare(siteName: string): Promise<void> {
+    await this.shareComponent.actions.enterSiteName(siteName);
+  }
+  
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 }

@@ -39,7 +39,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.coverImage = page.locator('.SiteHeader-image:has(img[src])');
     this.contentTab = page.getByRole('tab', { name: 'Content' });
     this.eventsTab = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
-    this.searchEventInSearchBar = page.getByRole('textbox', { name: 'Search…' });
+    this.searchEventInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
     this.albumCoverImage = page.locator('[aria-label="Open album"]').first();
     this.authorName = page.locator('[class="ContentCard"]').first();
     this.clickOnTheManageSiteButton = page.getByRole('link', { name: 'Manage site' });
