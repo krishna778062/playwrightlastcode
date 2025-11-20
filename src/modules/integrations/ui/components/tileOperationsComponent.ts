@@ -917,6 +917,25 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await popup.close();
     });
   }
+  /**
+   * Verify "View all payslips in Workday" link is visible AND clickable and redirects correctly
+   */
+  async verifyViewAllPayslipsInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all payslips in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
+      const viewAllLink = tile.getByRole('link', { name: 'View all payslips in Workday' }).first();
+
+      await expect(viewAllLink, `'View all payslips in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
+
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
+      await popup.close();
+    });
+  }
 
   async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
     await test.step(`Verify Workday paystubs metadata for '${tileTitle}'`, async () => {
