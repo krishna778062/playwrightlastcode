@@ -1035,7 +1035,7 @@ export class ListFeedComponent extends BaseComponent {
       assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
     });
     await this.clickOnElement(reactionButton);
-    await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+    await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
       assertionMessage: `Like button should be visible for post "${postText}"`,
     });
   }
