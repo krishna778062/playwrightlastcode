@@ -57,6 +57,7 @@ export interface IFeedActions {
   clickOnEditVersionButton: () => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
+  clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
@@ -94,6 +95,7 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  clickPostTimestamp: (postText: string) => Promise<void>;
   shareFeedPost: (params: {
     postText: string;
     mentionUserName?: string;
@@ -142,6 +144,7 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
+  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
@@ -168,9 +171,11 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyReplyCount: (postText: string, expectedCount: number, replyText?: string) => Promise<void>;
+  clickPostTimestamp: (postText: string) => Promise<void>;
+  getVisibleReplyCount: (postText: string) => Promise<number>;
   verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
   verifyPostIsAtTop: (postText: string) => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
   verifyShareModalIsOpen: () => Promise<void>;
@@ -439,6 +444,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickReplyShowMoreButton(): Promise<void> {
     await this.listFeedComponent.clickReplyShowMoreButton();
+  }
+
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
+  }
+
+  async getVisibleReplyCount(postText: string): Promise<number> {
+    return await this.listFeedComponent.getVisibleReplyCount(postText);
+  }
+
+  async verifyReplyCount(postText: string, expectedCount: number): Promise<void> {
+    await this.listFeedComponent.verifyReplyCount(postText, expectedCount);
+  }
+
+  async clickPostTimestamp(postText: string): Promise<void> {
+    await this.listFeedComponent.clickPostTimestamp(postText);
   }
 
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {
