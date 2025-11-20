@@ -38,10 +38,11 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageRolesButton: Locator;
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
-
+  readonly peopleButton: Locator;
   //social campaigns section
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly favoriteButton: Locator;
 
   //recognition section
   readonly recognitionLink: Locator;
@@ -84,6 +85,8 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
 
     //recognition section
     this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
@@ -249,6 +252,11 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
+  async clickOnFavorite(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
+      await this.clickOnElement(this.favoriteButton);
+    });
+  }
   /**
    * Clicks on Recognition Link under home menu of side navigation bar
    * @param options - The options for the step
