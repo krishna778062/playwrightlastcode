@@ -279,12 +279,12 @@ test.describe(
         await accessControlGroupsPage.viewACGModal.verifyTitleOfTheModal('Managers');
         await accessControlGroupsPage.viewACGModal.clickCloseButton();
 
-        await accessControlGroupsPage.clickOnAdminsCountButton(acgName.pop() as string);
+        await accessControlGroupsPage.clickOnAdminsCountButton(acgName[0]);
         await accessControlGroupsPage.viewACGModal.verifyTitleOfTheModal('Admins');
         await accessControlGroupsPage.viewACGModal.clickCloseButton();
 
         await accessControlGroupsPage.searchForACG(acgName[0]);
-        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName.pop() as string);
         await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
         await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
           ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
