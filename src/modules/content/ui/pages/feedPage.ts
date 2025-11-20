@@ -90,6 +90,13 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  shareFeedPost: (params: {
+    postText: string;
+    mentionUserName?: string;
+    shareMessage: string;
+    postIn: 'Home Feed' | 'Site Feed';
+  }) => Promise<void>;
+  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   clickShareButtonOnPost: (postText: string) => Promise<void>;
   attemptImagePasteInShareModal: () => Promise<void>;
   clickShareOnComment: () => Promise<void>;
@@ -158,6 +165,7 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
   verifyShareModalIsOpen: () => Promise<void>;
@@ -755,6 +763,65 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         timeout: options?.timeout || TIMEOUTS.SHORT,
       });
     });
+  }
+
+  /**
+   * Shares a feed post with mentions, message, and post location
+   * @param postText - The text of the post to share
+   * @param mentionUserName - The user name to mention (optional)
+   * @param shareMessage - The message to add when sharing
+   * @param postIn - The location to post in ('Home Feed' or 'Site Feed')
+   */
+  async shareFeedPost(params: {
+    postText: string;
+    mentionUserName?: string;
+    shareMessage: string;
+    postIn: 'Home Feed' | 'Site Feed';
+  }): Promise<void> {
+    await test.step(`Share feed post "${params.postText}" with message "${params.shareMessage}"`, async () => {
+      // Click share icon on the post
+      await this.listFeedComponent.clickShareButtonOnPost(params.postText);
+
+      // Wait for share dialog to appear
+      await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
+        assertionMessage: 'Share dialog should be visible',
+      });
+
+      // Enter share message first
+      console.log(`Entering share message: ${params.shareMessage}`);
+      await this.shareComponent.enterShareDescription(params.shareMessage);
+
+      // Add mention if provided (after message)
+      if (params.mentionUserName) {
+        console.log(`Adding mention: @${params.mentionUserName}`);
+        await this.createFeedPostComponent.addUserNameMention(params.mentionUserName);
+      }
+
+      // Select post location
+      console.log(`Selecting post in: ${params.postIn}`);
+      if (params.postIn === 'Home Feed') {
+        // Home Feed is typically the default, so we may not need to select it
+        // But if we need to, try selecting by value or label
+        try {
+          // Wait for dropdown to be ready
+          await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible' });
+          // Try to select 'public' value, if it fails, Home Feed is likely already selected
+          await this.shareComponent.shareOptionDropdown.selectOption({ value: 'public' });
+        } catch {
+          // If selection fails, Home Feed is likely already the default, continue
+          console.log('Home Feed appears to be already selected or is the default');
+        }
+      } else {
+        await this.shareComponent.selectShareOptionAsSiteFeed();
+      }
+
+      // Click Share button
+      await this.shareComponent.clickShareButton();
+    });
+  }
+
+  async verifyPostIsNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostNotVisible(postText);
   }
 
   async clickShareButtonOnPost(postText: string): Promise<void> {

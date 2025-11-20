@@ -243,7 +243,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.postTextLocator(expectedText);
+      const postLocator = this.postTextLocator(expectedText).first();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -509,12 +509,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async clickShareButtonOnPost(postText: string): Promise<void> {
-    await test.step(`Click Share button on post: ${postText}`, async () => {
-      await this.clickOnElement(this.getShareButtonLocator(postText));
-    });
-  }
-
   async clickShareOnComment(): Promise<void> {
     await test.step(`Click share button`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
@@ -539,8 +533,15 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Clicks the "View Post" link
+   * Clicks the share button on a specific feed post
+   * @param postText - The text of the post to share
    */
+  async clickShareButtonOnPost(postText: string): Promise<void> {
+    await test.step(`Click share button on post: ${postText}`, async () => {
+      await this.clickOnElement(this.getShareButtonLocator(postText));
+    });
+  }
+
   async clickViewPostLink(): Promise<void> {
     await test.step(`Click View Post link`, async () => {
       const viewPostLinkLocator = this.getViewPostLinkLocator();
