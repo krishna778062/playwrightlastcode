@@ -28,13 +28,13 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
   test.afterEach('Site Clean up', async ({ appManagerFixture }) => {});
 
   test(
-    'verify Warning Message Appears After Changing Target Audience',
+    'verify Warning Message Appears After Changing Site visibility',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38912'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Verify Warning Message Appears After Changing Target Audience',
+        description: 'Verify Warning Message Appears After Changing Site visibility',
         zephyrTestId: 'CONT-38912',
         storyId: 'CONT-38912',
       });

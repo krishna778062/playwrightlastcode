@@ -20,9 +20,10 @@ test.describe(
     let createdPostId: string = '';
 
     test.beforeEach(async ({ appManagerFixture }) => {
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       await appManagerFixture.navigationHelper.clickOnGlobalFeed();

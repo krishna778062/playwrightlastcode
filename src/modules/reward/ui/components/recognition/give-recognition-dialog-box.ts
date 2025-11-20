@@ -203,10 +203,12 @@ export class GiveRecognitionDialogBox extends DialogBox {
   /**
    * Select the peer recognition award for recognition
    */
-  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<void> {
+  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
     await this.selectPeerRecognitionInput.click();
     await this.suggesterContainer.waitFor();
     await this.getOption(awardName).click();
+    const text = await this.selectedAwardInRecognition.textContent();
+    return text || '';
   }
 
   /**

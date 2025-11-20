@@ -2,6 +2,8 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
+import { API_ENDPOINTS } from '@/src/core';
+
 export class UpdateSiteCategoryComponent extends BaseComponent {
   readonly ellipses: Locator;
   readonly cancelOption: Locator;
@@ -12,8 +14,8 @@ export class UpdateSiteCategoryComponent extends BaseComponent {
     super(page);
     this.ellipses = page.locator('[aria-label="Category option"]').first();
     this.cancelOption = page.getByRole('button', { name: 'Cancel' });
-    this.openingDropdown = page.locator('#react-select-3-input');
-    this.clickOnSaveCategoryOption = page.locator('button:has-text("Save")');
+    this.openingDropdown = page.getByRole('dialog').getByRole('combobox');
+    this.clickOnSaveCategoryOption = page.getByRole('button', { name: 'Save' });
   }
 
   async clickOnCancelOption(): Promise<void> {
@@ -28,7 +30,16 @@ export class UpdateSiteCategoryComponent extends BaseComponent {
       await this.clickOnElement(this.openingDropdown);
       await this.fillInElement(this.openingDropdown, categoryName);
       await this.page.keyboard.press('Enter');
-      await this.clickOnElement(this.clickOnSaveCategoryOption);
+      await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.clickOnSaveCategoryOption, { delay: 2_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.site.updateCategory) &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
     });
   }
 }

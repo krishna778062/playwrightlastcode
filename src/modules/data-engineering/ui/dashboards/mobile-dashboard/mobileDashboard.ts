@@ -1,7 +1,10 @@
 import {
   AvgMobileContentViewsPerUserMetrics,
+  MobileAdoptionRateBarChartMetric,
+  MobileAdoptionRateMetrics,
   MobileContentViewersMetrics,
   MobileContentViewsByTypeMetric,
+  MobileContentViewsMetric,
   MobileDeviceLoginsMetric,
   MobileLoggedInUsersMetrics,
   TotalMobileContentViewsMetrics,
@@ -23,6 +26,9 @@ export class MobileDashboard extends BaseAnalyticsDashboardPage {
   readonly uniqueMobileContentViewsMetrics: UniqueMobileContentViewsMetrics;
   readonly mobileDeviceLoginsMetric: MobileDeviceLoginsMetric;
   readonly mobileContentViewsByTypeMetric: MobileContentViewsByTypeMetric;
+  readonly mobileContentViewsMetric: MobileContentViewsMetric;
+  readonly mobileAdoptionRateBarChartMetric: MobileAdoptionRateBarChartMetric;
+  readonly mobileAdoptionRateMetrics: MobileAdoptionRateMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MOBILE_DASHBOARD);
@@ -34,6 +40,9 @@ export class MobileDashboard extends BaseAnalyticsDashboardPage {
     this.uniqueMobileContentViewsMetrics = new UniqueMobileContentViewsMetrics(page, this.thoughtSpotIframe);
     this.mobileDeviceLoginsMetric = new MobileDeviceLoginsMetric(page, this.thoughtSpotIframe);
     this.mobileContentViewsByTypeMetric = new MobileContentViewsByTypeMetric(page, this.thoughtSpotIframe);
+    this.mobileContentViewsMetric = new MobileContentViewsMetric(page, this.thoughtSpotIframe);
+    this.mobileAdoptionRateBarChartMetric = new MobileAdoptionRateBarChartMetric(page, this.thoughtSpotIframe);
+    this.mobileAdoptionRateMetrics = new MobileAdoptionRateMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

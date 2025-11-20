@@ -504,4 +504,37 @@ export class ContentManagementService implements IContentManagementServices {
       return await this.httpClient.parseResponse<ContentListResponse>(response);
     });
   }
+
+  /**
+   * Gets the must read content list
+   * @param options - Optional parameters for must read content filtering
+   * @param options.size - Number of items to return (default: 16)
+   * @param options.sortBy - Sort order (default: 'unreadMustReadNewest')
+   * @param options.peopleId - The people ID of the user
+   * @param options.isMustRead - Filter for must read content (default: true)
+   * @returns Promise with the content list response
+   */
+  async getMustReadContentList(options: { size?: number; sortBy?: string; peopleId: string; isMustRead?: boolean }) {
+    return await test.step('Getting must read content list', async () => {
+      const requestData: {
+        size: number;
+        peopleId: string;
+        isMustRead: boolean;
+        sortBy?: string;
+      } = {
+        size: options.size || 16,
+        peopleId: options.peopleId,
+        isMustRead: options.isMustRead !== undefined ? options.isMustRead : true,
+      };
+
+      if (options.sortBy) {
+        requestData.sortBy = options.sortBy;
+      }
+
+      const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {
+        data: requestData,
+      });
+      return await this.httpClient.parseResponse<ContentListResponse>(response);
+    });
+  }
 }
