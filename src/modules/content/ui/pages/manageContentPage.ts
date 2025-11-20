@@ -32,6 +32,7 @@ export interface IActions {
   openContentDetailsPage: () => Promise<void>;
   selectContentFilterByType: (filterType: 'manageByme' | 'authorByMe') => Promise<void>;
   verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
+  verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
 }
 
@@ -60,6 +61,11 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
     this.onboardingComponent = new OnboardingComponent(page);
+    this.editButton = this.manageContentComponent.editButton;
+    this.deleteButton = this.manageContentComponent.deleteButton;
+    this.unpublishButton = this.manageContentComponent.unpublishButton;
+    this.publishButton = this.manageContentComponent.publishButton;
+    this.moveButton = this.manageContentComponent.moveButton;
   }
 
   async load(): Promise<void> {
@@ -115,6 +121,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnApplyButton(): Promise<void> {
     await this.manageContentComponent.selectApplyButton();
+  }
+  async clickOnApply(): Promise<void> {
+    await this.manageContentComponent.clickOnApply();
   }
 
   async clickOnPublishButton(): Promise<void> {
@@ -194,6 +203,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+  async clickOnActivateButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateButton();
+  }
+  async clickOnActivateApplyButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateApplyButton();
   }
 
   async authorNameShouldBeVisible(): Promise<void> {
@@ -337,10 +352,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
-  }
-
   /**
    * Unified function to verify any option visibility in manage content
    * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
@@ -353,6 +364,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
   }
 
+  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
+  }
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }

@@ -77,7 +77,7 @@ test.describe(
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.name;
         await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.reloadPage();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }

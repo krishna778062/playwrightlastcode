@@ -8,6 +8,12 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
@@ -204,6 +210,11 @@ test.describe(
         const siteInfo = await standardUserApiFixture.siteManagementHelper.getListOfSites();
         await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.result.listOfItems[0].siteId,
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          hasPages: true,
+        });
+        await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
           options: {
             pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateUniqueName('page'),
@@ -211,6 +222,7 @@ test.describe(
           },
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.result.listOfItems[0].siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
@@ -218,6 +230,11 @@ test.describe(
         await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.MANAGING);
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
+        await manageSitesComponent.searchContentInManageSite(contentNames[0]);
+        await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
+        await standardUserFixture.page.reload();
+        await manageSitesComponent.selectContentFilter(ContentFilter.OWNED);
+        await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.OWNED);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
       }
@@ -248,6 +265,70 @@ test.describe(
 
         // Verify all site names are displayed (method handles the loop internally)
         await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
+      }
+    );
+    test(
+      'to verify the bulk action from end user can deactivate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
+      },
+      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'deactivated',
+        });
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnActivateButton();
+        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('siteNames', siteNames);
+
+        await manageSiteStandardUserPage.loadPage();
+      }
+    );
+    test(
+      'to verify the bulk action from end user can activate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
+      },
+      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action from end user can activate the site',
+          zephyrTestId: 'CONT-26574',
+          storyId: 'CONT-26574',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageSitesComponent.clickOnUpdateCategoryButtonAction();
+        await manageContentPage.actions.clickOnApply();
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
+        await manageSiteStandardUserPage.actions.updatingCategoryToUncategorized('Uncategorized');
       }
     );
   }

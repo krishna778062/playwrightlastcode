@@ -88,9 +88,19 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly freshserviceTicketIdPattern: RegExp;
   readonly freshserviceDueDatePattern: RegExp;
   readonly freshserviceCreatedDatePattern: RegExp;
+  readonly workdayPayStubsDate: RegExp;
+  readonly dollarsAmountPattern: RegExp;
+  readonly workdayGrossPayLabel: string;
+  readonly workdayTaxesLabel: string;
+  readonly workdayDeductionsLabel: string;
+  readonly workdayNetPayLabel: string;
 
   constructor(page: Page) {
     super(page);
+    this.workdayGrossPayLabel = 'Gross pay';
+    this.workdayTaxesLabel = 'Taxes';
+    this.workdayDeductionsLabel = 'Deductions';
+    this.workdayNetPayLabel = 'Net pay';
     this.tagElement = page.locator('[data-testid="tag"]');
     this.button = (name: string) => page.getByRole('button', { name });
     this.heading = (level: number) => page.getByRole('heading', { level });
@@ -187,6 +197,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.freshserviceDueDatePattern = /^Due\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
     this.freshserviceCreatedDatePattern =
       /^Created\s+(on\s+)?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
+    this.workdayPayStubsDate =
+      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+-\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
+    this.dollarsAmountPattern = /^\$\d{1,3}(?:,\d{3})*(?:\.\d{2})$/;
   }
 
   /**
@@ -905,12 +918,67 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     });
   }
   /**
+   * Verify "View all payslips in Workday" link is visible AND clickable and redirects correctly
+   */
+  async verifyViewAllPayslipsInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await test.step(`Verify 'View all payslips in Workday' link is visible and redirects for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, 'Tile should be visible').toBeVisible({ timeout: 10_000 });
+      const viewAllLink = tile.getByRole('link', { name: 'View all payslips in Workday' }).first();
+
+      await expect(viewAllLink, `'View all payslips in Workday' link should be visible before clicking`).toBeVisible({
+        timeout: 5_000,
+      });
+
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const [popup] = await Promise.all([this.page.waitForEvent('popup', { timeout: 5000 }), viewAllLink.click()]);
+      await expect(popup, `URL should start with '${expectedUrl}'`).toHaveURL(urlRegex);
+      await popup.close();
+    });
+  }
+
+  async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify Workday paystubs metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const firstRow = tile.locator('[data-testid="container"]').first();
+      await expect(firstRow, 'First paystub row should be visible').toBeVisible();
+
+      // Verify date heading format like "Sep 2 - Sep 15, 2024"
+      const dateHeading = firstRow.getByRole('heading', { level: 3 }).first();
+      await expect(dateHeading, 'Pay period heading should be visible').toBeVisible();
+      const dateText = (await dateHeading.textContent())?.trim() ?? '';
+      expect(dateText, 'Date should match "Mon d - Mon d, yyyy" format').toMatch(this.workdayPayStubsDate);
+
+      // Verify labels
+      await expect(firstRow.getByText(this.workdayGrossPayLabel).first()).toBeVisible();
+      await expect(firstRow.getByText(this.workdayTaxesLabel).first()).toBeVisible();
+      await expect(firstRow.getByText(this.workdayDeductionsLabel).first()).toBeVisible();
+      await expect(firstRow.getByText(this.workdayNetPayLabel).first()).toBeVisible();
+
+      // Verify amounts in dollars with two decimals
+      const amounts = firstRow.getByText(this.dollarsAmountPattern);
+      await expect(amounts.first(), 'Dollar amount should be visible').toBeVisible();
+      const amountCount = await amounts.count();
+      expect(amountCount, 'At least four dollar amounts should be visible').toBeGreaterThanOrEqual(4);
+    });
+  }
+  /**
    * Set Up tile with field selection
    */
-  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await test.step(` tile: ${tileTitle}`, async () => {
       await this.openSetUpOptions(tileTitle);
       await this.selectFromDropdown(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  /**
+   * Set Up tile with textbox input
+   */
+  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.inputFieldByName(fieldName, fieldValue);
       await this.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }

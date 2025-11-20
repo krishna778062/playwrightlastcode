@@ -4,6 +4,8 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/contentFilter';
+import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
 export class ManageSitesComponent extends BaseComponent {
@@ -32,6 +34,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly pageTabImage: Locator;
   readonly contentFilterDropdown: Locator;
   readonly contentFilterSelectedValue: Locator;
+  readonly clickOnUpdateCategoryButton: Locator;
+  readonly contentFilterDropdown: Locator;
   readonly contentSearchBar: Locator;
 
   constructor(readonly page: Page) {
@@ -40,7 +44,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.coverImage = page.locator('.SiteHeader-image:has(img[src])');
     this.contentTab = page.getByRole('tab', { name: 'Content' });
     this.eventsTab = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
-    this.searchEventInSearchBar = page.getByRole('textbox', { name: 'Search…' });
+    this.searchEventInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
     this.albumCoverImage = page.locator('[aria-label="Open album"]').first();
     this.authorName = page.locator('[class="ContentCard"]').first();
     this.clickOnTheManageSiteButton = page.getByRole('link', { name: 'Manage site' });
@@ -62,6 +66,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
+    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
+    this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
   }
 
@@ -261,6 +267,11 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async clickOnUpdateCategoryButtonAction(): Promise<void> {
+    await test.step('Click on the update category button', async () => {
+      await this.clickOnElement(this.clickOnUpdateCategoryButton);
+    });
+  }
   async markAsUnfavorite(membersName: string): Promise<void> {
     await test.step('Mark as Favorite', async () => {
       await this.clickOnElement(this.getFavoriteButtonForUser(membersName));
@@ -313,6 +324,25 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  getSiteFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
+    return this.page.getByText(bulkActionOption).first();
+  }
+
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await test.step('Select site filter by text', async () => {
+      const locator = this.getSiteFilterByTextLocator(bulkActionOption);
+      await this.clickOnElement(locator);
+    });
+  }
+  getFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
+    return this.page.locator('#react-select-2-listbox').getByText(bulkActionOption);
+  }
+  async selectFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await test.step('Select filter by text', async () => {
+      const filterByTextLocator = this.getFilterByTextLocator(bulkActionOption);
+      await this.clickOnElement(filterByTextLocator);
+    });
+  }
   async verifyAlbumTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify album tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
@@ -335,6 +365,36 @@ export class ManageSitesComponent extends BaseComponent {
         () => this.contentFilterDropdown.selectOption(filter),
         response =>
           response.request().url().includes(API_ENDPOINTS.content.contentListInSite) &&
+  /**
+   * Gets the locator for a site row by exact site name
+   * @param siteName - The exact name of the site
+   * @returns Locator for the site row
+   */
+  getSiteRowByExactName(siteName: string): Locator {
+    return this.page
+      .locator('tr')
+      .filter({ has: this.page.locator('h2', { hasText: siteName }) })
+      .first();
+  }
+
+  /**
+   * Selects the checkbox for a site by its exact name
+   * @param siteName - The exact name of the site
+   */
+  async selectSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Selecting checkbox for site: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      const checkbox = siteRow.getByLabel('Select');
+      await this.clickOnElement(checkbox);
+    });
+  }
+
+  async selectContentFilter(filter: ContentFilter): Promise<void> {
+    await test.step(`Select content filter: ${filter}`, async () => {
+      const contentFilterResponse = await this.performActionAndWaitForResponse(
+        () => this.contentFilterDropdown.selectOption(filter),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
@@ -345,6 +405,11 @@ export class ManageSitesComponent extends BaseComponent {
   }
 
   async verifyContentFilterIsSelectedWithValue(value: ContentFilter | string): Promise<void> {
+      await contentFilterResponse.finished();
+    });
+  }
+
+  async verifyContentFilterIsSelectedWithValue(value: ContentFilter): Promise<void> {
     await test.step(`Verify content filter is selected with value: ${value}`, async () => {
       const selectedValue = await this.contentFilterDropdown.inputValue();
       if (selectedValue !== value) {
