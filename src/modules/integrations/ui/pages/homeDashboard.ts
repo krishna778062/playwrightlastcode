@@ -169,6 +169,12 @@ export class HomeDashboard extends BasePage {
   async verifyPersonalizeVisible(tileTitle: string): Promise<void> {
     return this.appTileComponent.verifyPersonalizeVisible(tileTitle);
   }
+  /**
+   * Click personalize and verify heading and field label are visible
+   */
+  async openPersonalizeAndVerify(tileTitle: string, fieldLabel: string): Promise<void> {
+    await this.appTileComponent.openPersonalizeAndVerify(tileTitle, fieldLabel);
+  }
 
   /**
    * Verify toast message appears
@@ -537,6 +543,25 @@ export class HomeDashboard extends BasePage {
     });
   }
   /**
+   * Complete workflow to add an app tile with app manager defined and enable "Make user editable" before submitting
+   */
+  async addTilewithDefinedSettingsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile (enable toggle): ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.tileOperationsComponent.enableToggleButton(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  /**
    * Verify Calendar upcoming events tile data
    */
   async verifyCalendarUpcomingEventsTileData(tileTitle: string): Promise<void> {
@@ -859,13 +884,34 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Verify the "View all courses in Workday" link is visible on the tile
+   * Verify the "View all courses in Workday" link is visible
    */
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
   }
-  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
-    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
+  /**
+   * Verify the "View all payslips in Workday" link is visible
+   */
+  async verifyViewAllPayslipsInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.verifyViewAllPayslipsInWorkdayLink(tileTitle, expectedUrl);
+  }
+  /**
+   * Verify Workday Display Recent Paystubs metadata
+   */
+  async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
+  }
+  /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
+  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
+  }
+  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
   }
   /**
    * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
