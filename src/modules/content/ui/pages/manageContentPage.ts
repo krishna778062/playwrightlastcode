@@ -129,6 +129,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnApplyButton(): Promise<void> {
     await this.manageContentComponent.selectApplyButton();
   }
+  async clickOnApply(): Promise<void> {
+    await this.manageContentComponent.clickOnApply();
+  }
 
   async clickOnPublishButton(): Promise<void> {
     await this.manageContentComponent.selectPublishButton();
@@ -207,6 +210,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
+  }
+  async clickOnActivateButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateButton();
+  }
+  async clickOnActivateApplyButton(): Promise<void> {
+    await this.manageContentComponent.clickOnActivateApplyButton();
   }
 
   async authorNameShouldBeVisible(): Promise<void> {
