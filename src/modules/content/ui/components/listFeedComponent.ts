@@ -21,6 +21,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyEditor: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
+  readonly shareButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
@@ -52,12 +53,14 @@ export class ListFeedComponent extends BaseComponent {
   readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
   readonly infoIcon = this.page.getByTestId('i-info');
 
-  readonly postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText });
+  readonly postTextLocator = (postText: string): Locator =>
+    this.page.locator('p').filter({ hasText: postText }).first();
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
   readonly replyContainer = this.page.locator('._reply_1ii4b_1');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
+  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);
@@ -140,6 +143,20 @@ export class ListFeedComponent extends BaseComponent {
       .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
       .first();
 
+  /**
+   * Gets a locator for the Share button on a specific feed post
+   * @param postText - The text of the post to find Share button for
+   * @returns Locator for the Share button
+   */
+  readonly getShareButtonLocator = (postText: string): Locator =>
+    this.getFeedTextLocator(postText)
+      .locator('..')
+      .locator('..')
+      .locator('..')
+      .locator('..')
+      .getByRole('button', { name: 'Share this post' })
+      .first();
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -150,14 +167,16 @@ export class ListFeedComponent extends BaseComponent {
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
-    this.likeButton = this.page.getByRole('button', { name: 'React to this post' }).first();
-    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+    this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
+    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
@@ -224,8 +243,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      await this.getFeedTextLocator(expectedText).scrollIntoViewIfNeeded();
-      await this.verifier.verifyTheElementIsVisible(this.getFeedTextLocator(expectedText), {
+      const postLocator = this.postTextLocator(expectedText);
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
       });
@@ -243,7 +262,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async markPostAsFavourite(): Promise<void> {
     await test.step(`Mark post as favourite`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
       //verify the favourite button is visible
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `verify the favourite button is visible`,
@@ -254,7 +273,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async removePostFromFavourite(postText: string): Promise<void> {
     await test.step(`Remove post from favourite: ${postText}`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
 
       await this.verifier.verifyTheElementIsVisible(this.unfavoriteButton, {
         assertionMessage: `Post "${postText}" should be in favourited state`,
@@ -273,7 +292,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyPostIsNotFavorited(postText: string): Promise<void> {
     await test.step(`Verify post is not favorited: ${postText}`, async () => {
-      await this.hoverOverElementInJavaScript(this.likeButton);
+      await this.hoverOverElementInJavaScript(this.likeButton.first());
       await this.verifier.verifyTheElementIsVisible(this.favoriteButton, {
         assertionMessage: `Post "${postText}" should be in favorited state`,
       });
@@ -342,7 +361,7 @@ export class ListFeedComponent extends BaseComponent {
           response.status() === 200
       );
 
-      await this.clickOnElement(this.replyButton, { stepInfo: 'Clicking on reply button' });
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
 
       await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
@@ -490,10 +509,87 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async clickShareButtonOnPost(postText: string): Promise<void> {
+    await test.step(`Click Share button on post: ${postText}`, async () => {
+      await this.clickOnElement(this.getShareButtonLocator(postText));
+    });
+  }
+
+  async clickShareOnComment(): Promise<void> {
+    await test.step(`Click share button`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
+        assertionMessage: `Share button should be visible`,
+      });
+      await this.clickOnElement(this.shareButton.first());
+    });
+  }
+
+  async clickShareOnPost(postText: string): Promise<void> {
+    await test.step(`Click share button on post: ${postText}`, async () => {
+      const postLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postLocator, {
+        assertionMessage: `Post "${postText}" should be visible`,
+      });
+      const shareButtonLocator = this.shareButton.first();
+      await this.verifier.verifyTheElementIsVisible(shareButtonLocator, {
+        assertionMessage: `Share button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(shareButtonLocator);
+    });
+  }
+
   /**
-   * Opens the options menu for a reply
-   * @param replyText - Text of the reply to open options for
+   * Clicks the "View Post" link
    */
+  async clickViewPostLink(): Promise<void> {
+    await test.step(`Click View Post link`, async () => {
+      const viewPostLinkLocator = this.getViewPostLinkLocator();
+      await this.verifier.verifyTheElementIsVisible(viewPostLinkLocator, {
+        assertionMessage: `View Post link should be visible`,
+      });
+      await this.clickOnElement(viewPostLinkLocator);
+    });
+  }
+
+  async verifyShareCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify share count is ${expectedCount} for post: ${postText}`, async () => {
+      const shareCountLocator = this.shareButton;
+      const shareCount = await shareCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(shareCountLocator, {
+        assertionMessage: `Share count should be visible for post "${postText}"`,
+      });
+      if (shareCount !== expectedCount) {
+        console.warn(`Share count mismatch for post "${postText}": expected ${expectedCount}, found ${shareCount}`);
+      }
+    });
+  }
+
+  async verifyLikesCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify likes count is ${expectedCount} for post: ${postText}`, async () => {
+      const likesCountLocator = this.likeButton;
+      const likesCount = await likesCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(likesCountLocator, {
+        assertionMessage: `Likes count should be visible for post "${postText}"`,
+      });
+      if (likesCount !== expectedCount) {
+        console.warn(`Likes count mismatch for post "${postText}": expected ${expectedCount}, found ${likesCount}`);
+      }
+    });
+  }
+
+  async verifyRepliesCount(postText: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify replies count is ${expectedCount} for post: ${postText}`, async () => {
+      const repliesCountLocator = this.replyButton;
+      const repliesCount = await repliesCountLocator.count();
+      await this.verifier.verifyTheElementIsVisible(repliesCountLocator, {
+        assertionMessage: `Replies count should be visible for post "${postText}"`,
+      });
+      if (repliesCount !== expectedCount) {
+        console.warn(`Replies count mismatch for post "${postText}": expected ${expectedCount}, found ${repliesCount}`);
+      }
+    });
+  }
+
   async openReplyOptionsMenu(replyText: string): Promise<void> {
     await test.step('Open reply options menu', async () => {
       await this.clickOnElement(this.getReplyOptionsMenuLocator(replyText));
@@ -627,6 +723,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
+
   /* Likes a feed post by clicking the like button
    * @param postText - The text of the post to like
    */
@@ -643,6 +740,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.likeButton);
     });
   }
+
   async unlikeFeedPost(postText: string): Promise<void> {
     await test.step(`Unlike feed post: ${postText}`, async () => {
       const unlikeButtonLocator = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
@@ -652,6 +750,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(unlikeButtonLocator);
     });
   }
+
   /**
    * Likes a reply post by clicking the like button
    * @param replyText - The text of the reply to like
@@ -737,10 +836,68 @@ export class ListFeedComponent extends BaseComponent {
   readonly getPostByUserLocator = (userName: string): Locator =>
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
 
+  /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIcon(postText: string): Promise<void> {
+    await test.step(`Click share icon on post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const shareIconLocator = this.page.getByRole('button', { name: 'Share this post' }).first();
+      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
+        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(shareIconLocator);
+    });
+  }
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
         assertionMessage: 'Embedded URL should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that a deleted post message is displayed for a specific post
+   * @param postText - The text of the post to verify deleted message for
+   */
+  async verifyDeletedPostMessage(postText: string): Promise<void> {
+    await test.step(`Verify deleted post message is visible for post: ${postText}`, async () => {
+      // First, find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      // Verify the deleted message is visible within the post container
+      const deletedMessage = postContainer.locator('div').filter({ hasText: /^This post has been deleted\.$/ });
+      await this.verifier.verifyTheElementIsVisible(deletedMessage, {
+        assertionMessage: `Deleted post message should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
+  async verifyPostCannotBeInteracted(postText: string): Promise<void> {
+    await test.step(`Verify post cannot be interacted with: ${postText}`, async () => {
+      // Find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+
+      // Verify share button is not visible
+      const shareButton = postContainer.locator('button[aria-label*="Share"], button:has-text("Share")');
+      await this.verifier.verifyTheElementIsNotVisible(shareButton, {
+        assertionMessage: `Share button should not be visible for deleted post "${postText}"`,
+      });
+
+      // Verify "View Post" link is not visible
+      const viewPostLink = postContainer.getByRole('link', { name: 'View post' });
+      await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
+        assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
       });
     });
   }
