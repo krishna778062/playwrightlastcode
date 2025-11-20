@@ -10,8 +10,10 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   '@FeedPost',
@@ -23,6 +25,13 @@ test.describe(
     let createdPostText: string;
     let createdPostId: string = '';
     let siteDashboardPage: SiteDashboardPage;
+    // Variables for share-attachment test
+    let adminFeedPage: FeedPage;
+    let endUserFeedPage: FeedPage;
+    let standardUserFullName: string;
+    let publicSiteName: string;
+    let simpplrTopic: any;
+    let identityManagementHelper: IdentityManagementHelper;
 
     test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -46,6 +55,7 @@ test.describe(
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
+        createdPostId = ''; // Reset after cleanup attempt
       } else {
         console.log('No feed was published or feed already deleted, hence skipping the deletion');
       }
@@ -373,6 +383,104 @@ test.describe(
           await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
           createdPostId = '';
         });
+      }
+    );
+
+    test(
+      'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-26727'],
+      },
+      async ({ appManagerFixture, appManagerApiContext, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
+          zephyrTestId: 'CONT-26727',
+          storyId: 'CONT-26727',
+        });
+
+        // Initialize identity management helper
+        identityManagementHelper = new IdentityManagementHelper(
+          appManagerApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
+
+        // Fetch common test data via API calls
+        const [endUserInfo, topicList, publicSite] = await Promise.all([
+          identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          appManagerFixture.contentManagementHelper.getTopicList(),
+          appManagerFixture.siteManagementHelper.getSiteByAccessType('public'),
+        ]);
+
+        // Set data for test use via API calls
+        standardUserFullName = endUserInfo.fullName;
+        publicSiteName = publicSite.name;
+
+        // Search for "Simpplr" topic, otherwise use first available topic
+        simpplrTopic = topicList.result.listOfItems.find((topic: any) => topic.name.toLowerCase() === 'simpplr');
+        if (!simpplrTopic) {
+          console.log('Simpplr topic not found, using first available topic');
+          simpplrTopic = topicList.result.listOfItems[0];
+        }
+
+        console.log('Test data retrieved:');
+        console.log('Standard User Full Name:', standardUserFullName);
+        console.log('Public Site Name:', publicSiteName);
+        console.log('Simpplr Topic:', simpplrTopic?.name);
+
+        // Initialize feed page for admin
+        adminFeedPage = new FeedPage(appManagerFixture.page);
+
+        // Navigate to Home-Global Feed as Admin
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Create a Feed post with mentions, topics, and a message
+        await test.step('Create a Feed post with mentions, topics, and a message', async () => {
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+
+          // Click "Share your thoughts" button
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          // Create post with text, topic, user mention, site mentions, and embedded URL
+          const postResult = await adminFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+            text: postText,
+            userName: standardUserFullName,
+            topicName: simpplrTopic.name,
+            siteName: [publicSiteName],
+            embedUrl: embedUrl,
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Wait for post to be visible
+          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        });
+
+        // Navigate end user to the feed post
+        await test.step('Navigate EndUser to the feed post', async () => {
+          endUserFeedPage = new FeedPage(standardUserFixture.page, createdPostId);
+          await standardUserFixture.page.goto(endUserFeedPage.url);
+          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        });
+
+        // Click Share button on the post
+        await endUserFeedPage.actions.clickShareButtonOnPost(createdPostText);
+        await endUserFeedPage.assertions.verifyShareModalIsOpen();
+        // Attempt to paste an image (simulates user pasting image from clipboard)
+        await endUserFeedPage.actions.attemptImagePasteInShareModal();
+
+        await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.IMAGE_ADDED_TO_ATTACHMENTS);
+
+        // Verify no attachments are visible
+        await endUserFeedPage.assertions.verifyNoAttachmentsInShareModal();
+
+        // Verify share modal remains functional
+        await endUserFeedPage.assertions.verifyShareModalIsFunctional();
       }
     );
 
