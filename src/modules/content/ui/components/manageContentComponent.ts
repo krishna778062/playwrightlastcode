@@ -71,6 +71,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
+  readonly activateButton: Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -115,6 +116,7 @@ export class ManageContentComponent extends BaseComponent {
     this.siteName = page.locator(`[class="meta-link"]`).last();
     this.sortByButton = page.locator(`[name="sortBy"]`);
     this.statusField = page.locator('[name="status"]');
+    this.activateButton = page.getByText('Activate', { exact: true });
 
     this.pageCategorySelectorDropdown = page
       .locator('div')
@@ -159,6 +161,9 @@ export class ManageContentComponent extends BaseComponent {
   }
   getGlobalSearchResultPageName(pageName: string): Locator {
     return this.page.locator(`h2:has-text("${pageName}")`).first();
+  }
+  getContentNameLocator(text: string): Locator {
+    return this.manageContentListItems.locator(`a:has-text("${text}")`).first();
   }
 
   createdAtDate(createdAtDate: string): Locator {
@@ -273,6 +278,11 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.unpublishButton);
     });
   }
+  async clickOnApply(): Promise<void> {
+    await test.step(`Clicking on the apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
 
   async selectApplyButton(): Promise<void> {
     await test.step(`Selecting the confirm unpublish button`, async () => {
@@ -335,7 +345,6 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectPublishButton(): Promise<void> {
     await test.step(`Selecting the publish button`, async () => {
-      await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.publishButton);
     });
   }
@@ -345,7 +354,27 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.moveButton);
     });
   }
+  async clickOnActivateButton(): Promise<void> {
+    await test.step(`Clicking on the activate button`, async () => {
+      await this.clickOnElement(this.activateButton);
+    });
+  }
 
+  async clickOnActivateApplyButton(): Promise<void> {
+    await test.step(`Clicking on the activate button`, async () => {
+      const activateResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.applyButton, { delay: 2_000, force: true }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_ACTIVATE_API) &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return activateResponse;
+    });
+  }
   async moveContentSearchBar(siteName: string): Promise<void> {
     await test.step(`Moving the content search bar`, async () => {
       await this.clickOnElement(this.moveContentSearchBarField);
@@ -840,14 +869,6 @@ export class ManageContentComponent extends BaseComponent {
     }
   }
 
-  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
-    await test.step('Verifying the add to campaign option is not visible in manage content', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.addToCampaignOption, {
-        assertionMessage: 'Add to campaign option should not be visible',
-      });
-    });
-  }
-
   async clickOnContentEditButton(): Promise<void> {
     await test.step('Clicking on content edit button', async () => {
       await this.clickOnElement(this.editButton);
@@ -897,6 +918,24 @@ export class ManageContentComponent extends BaseComponent {
       }
 
       console.log(`✓ Verified ${actualCount} checkboxes are selected`);
+    });
+  }
+
+  async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
+    await test.step('Verifying all contents are deleted', async () => {
+      const contentNameLocator = this.getContentNameLocator(contentNames[0]);
+      await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
+        assertionMessage: `Content ${contentNames[0]} should not be visible`,
+      });
+    });
+  }
+
+  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
+    await test.step(`Verifying content ${contentName} is visible in manage site`, async () => {
+      const contentLocator = this.getContentNameLocator(contentName);
+      await this.verifier.verifyTheElementIsVisible(contentLocator, {
+        assertionMessage: `Content ${contentName} should be visible`,
+      });
     });
   }
 

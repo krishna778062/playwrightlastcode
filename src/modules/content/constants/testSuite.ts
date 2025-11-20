@@ -23,4 +23,7 @@ export enum ContentTestSuite {
   QUESTION_SETTINGS = '@question-settings',
   FEED_LAYOUT = '@feed-layout',
   MUST_READ = '@must-read',
+  FEED_COMMENTS_REPLIES_VISIBILITY = '@feed-comments-replies-visibility',
+  FEED_POST_CREATION_WITH_EMBED_URL = '@feed-post-creation-with-embed-url',
+  API = '@api',
 }

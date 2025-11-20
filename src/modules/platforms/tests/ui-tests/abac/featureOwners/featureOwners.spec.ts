@@ -139,13 +139,13 @@ test.describe(
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([user1.username]);
           await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage();
+          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
 
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([user1.username]);
           await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage();
+          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
         }
       );
 
@@ -242,7 +242,7 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck'],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -256,12 +256,12 @@ test.describe(
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([user1.username]);
           await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage();
+          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([user1.username]);
           await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage();
+          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
         }
       );
 
