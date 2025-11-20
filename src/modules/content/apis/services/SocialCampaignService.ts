@@ -113,6 +113,7 @@ export class SocialCampaignService {
       const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.updateStatus(campaignId), {
         data: { action },
       });
+      console.log('response', await response.json());
       return (await response.json()) as SocialCampaignStatusUpdateResponse;
     });
   }
@@ -190,9 +191,12 @@ export class SocialCampaignService {
 
       const socialCampaignsSettings = settings || defaultSettings;
 
-      const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.enableSettings, {
+      const response = await this.httpClient.post(API_ENDPOINTS.socialCampaign.enableSettings, {
         data: {
           socialCampaignsSettings,
+        },
+        headers: {
+          'Content-Type': 'application/json',
         },
       });
 

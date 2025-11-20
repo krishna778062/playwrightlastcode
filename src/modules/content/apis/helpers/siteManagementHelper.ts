@@ -491,7 +491,7 @@ export class SiteManagementHelper {
    */
   async getListOfSites(options?: { size?: number; filter?: string; sortBy?: string }) {
     const defaultOptions = {
-      size: options?.size || 16,
+      size: options?.size || 1000,
       filter: options?.filter || 'active',
       sortBy: options?.sortBy || 'createdNewest',
       ...options,
@@ -663,10 +663,10 @@ export class SiteManagementHelper {
   async getSiteByAccessType(
     accessType: string,
     options?: {
-      hasPages?: boolean;
-      hasEvents?: boolean;
-      hasAlbums?: boolean;
-      hasDashboard?: boolean;
+      hasPages?: boolean | true;
+      hasEvents?: boolean | true;
+      hasAlbums?: boolean | true;
+      hasDashboard?: boolean | true;
       landingPage?: string;
       isOwner?: boolean;
       isMembershipAutoApproved?: boolean;
@@ -687,9 +687,7 @@ export class SiteManagementHelper {
     if (siteDetails) {
       // Check if the existing site matches the required options
       const matchesRequirements =
-        (options?.hasPages === undefined || siteDetails.hasPages === options.hasPages) &&
-        (options?.hasEvents === undefined || siteDetails.hasEvents === options.hasEvents) &&
-        (options?.hasAlbums === undefined || siteDetails.hasAlbums === options.hasAlbums);
+        (options?.hasPages ?? true) && (options?.hasEvents ?? true) && (options?.hasAlbums ?? true);
 
       if (matchesRequirements) {
         siteId = siteDetails.siteId;
@@ -1112,6 +1110,7 @@ export class SiteManagementHelper {
           (member: any) => member.peopleId === userId && member.isOwner === true
         );
         if (isOwner) {
+          console.log(`Found site ${site.name} (${site.siteId}) where user ${userId} is an owner`);
           return {
             siteId: site.siteId,
             siteName: site.name,
@@ -1119,8 +1118,10 @@ export class SiteManagementHelper {
         }
       }
       // If no site found where user is owner, create a new one
+      console.log(`No site found where user ${userId} is an owner, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     } else {
+      console.log(`No active sites found, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     }
   }
@@ -1131,7 +1132,9 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site in user is not a member or owner: ${userId}`, async () => {
       const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-      const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+      const activeSites = siteListResponse.result.listOfItems.filter(
+        site => site.isActive === true && site.hasAlbums === true && site.hasEvents === true && site.hasPages === true
+      );
       if (activeSites.length) {
         // Iterate through each site and check membership
         for (const site of activeSites) {
@@ -1144,6 +1147,7 @@ export class SiteManagementHelper {
           const allUsersNotMembers = userId.every(userId => !memberPeopleIds.includes(userId));
 
           if (allUsersNotMembers) {
+            console.log('Found site:' + site);
             return { siteId: site.siteId, siteName: site.name };
           }
         }

@@ -271,6 +271,58 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Gets the current app configuration
+   * @returns Promise with the app configuration response
+   */
+  async getAppConfig() {
+    return await test.step('Getting app configuration', async () => {
+      const response = await this.feedManagementService.getAppConfig();
+      return response;
+    });
+  }
+
+  /**
+   * Sets one language in app configuration
+   * Gets current config, preserves all settings, and sets selectedLanguages to [1]
+   * @returns Promise with the API response
+   */
+  async setOneLanguage() {
+    return await test.step('Setting one language in app configuration', async () => {
+      // Get current app configuration
+      const currentConfig = await this.feedManagementService.getAppConfig();
+
+      // Prepare update payload preserving all current values except selectedLanguages
+      const updatePayload = {
+        appName: currentConfig.result.appName,
+        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+        availableContentTypes: currentConfig.result.availableContentTypes,
+        addToCalendar: currentConfig.result.addToCalendar,
+        feedbackRecipients: currentConfig.result.feedbackRecipients || [],
+        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+        selectedLanguages: [1], // Set to one language (language ID 1)
+        orgChartEnabled: currentConfig.result.orgChartEnabled,
+        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url || '',
+        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+        isQuestionAnswerEnabled: currentConfig.result.isQuestionAnswerEnabled,
+        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+      };
+
+      // Update app configuration
+      const response = await this.feedManagementService.updateAppConfig(updatePayload);
+
+      const responseBody = await response.json();
+      console.log('App configuration updated with one language. Response:', JSON.stringify(responseBody, null, 2));
+
+      return responseBody;
+    });
+  }
+
+  /**
    * Enables Q&A feature by getting current app config and updating it with isQuestionAnswerEnabled: true
    * This preserves all other existing settings while ensuring Q&A is always enabled
    * @returns Promise with the API response
