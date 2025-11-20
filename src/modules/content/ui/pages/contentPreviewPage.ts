@@ -30,6 +30,14 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  openReplyEditorForPost: (postText: string) => Promise<void>;
+  verifyCancelButtonVisible: (postText: string) => Promise<void>;
+  clickCancelButton: (postText: string) => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
+  verifyReplyEditorClosed: (postText: string) => Promise<void>;
+  clickAllCommentsLink: () => Promise<void>;
+  clickShowMoreCommentsButton: () => Promise<void>;
+  getVisibleCommentCount: () => Promise<number>;
   addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
@@ -51,6 +59,7 @@ export interface IContentPreviewPageAssertions {
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
   verifyMustReadModalIsNotVisible: () => Promise<void>;
+  verifyCommentCount: (expectedCount: number) => Promise<void>;
   verifyMustReadModalIsVisible: () => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
@@ -342,11 +351,90 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await this.optionMenuComponent.clickOnOptionMenuButton();
   }
 
+  /**
+   * Gets the count of visible comments on content detail page
+   * @returns Promise<number> - Count of visible comments
+   */
+  async getVisibleCommentCount(): Promise<number> {
+    return await test.step('Get visible comment count', async () => {
+      // Find reply containers using the new classes - this is the primary method
+      // Count only visible comment containers
+      const count = await this.page.locator('div[class*="_postBody_eonic_8"]').count();
+
+      console.log('Count of visible comments: ', count);
+
+      return count;
+    });
+  }
+
+  /**
+   * Verifies the count of visible comments on content detail page
+   * @param expectedCount - Expected number of visible comments
+   */
+  async verifyCommentCount(expectedCount: number): Promise<void> {
+    await test.step(`Verify comment count is ${expectedCount}`, async () => {
+      const actualCount = await this.getVisibleCommentCount();
+      if (actualCount !== expectedCount) {
+        throw new Error(`Expected ${expectedCount} visible comments, but found ${actualCount}`);
+      }
+    });
+  }
+
+  /**
+   * Clicks the "Show more" button for comments
+   */
+  async clickShowMoreCommentsButton(): Promise<void> {
+    await test.step('Click "Show more" button for comments', async () => {
+      const showMoreButton = this.page.getByText('Show more');
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: 'Show more button should be visible',
+      });
+
+      await this.clickOnElement(showMoreButton);
+      const endOfComments = this.page.getByText('End of results');
+
+      await this.verifier.verifyTheElementIsVisible(endOfComments, {
+        assertionMessage: 'End of results should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the "All Comments" link to navigate to content detail page
+   */
+  async clickAllCommentsLink(): Promise<void> {
+    await test.step('Click "All Comments" link', async () => {
+      // The link text is "All comments" (lowercase 'c'), not "All Comments"
+      const allCommentsLink = this.page.getByRole('link', { name: 'All comments' }).first();
+      await this.clickOnElement(allCommentsLink);
+    });
+  }
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
+  }
+
+  async openReplyEditorForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async verifyCancelButtonVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyCancelButtonVisible(postText);
+  }
+
+  async clickCancelButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickCancelButton(postText);
+  }
+
+  async verifyReplyEditorVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorVisible(postText);
+  }
+
+  async verifyReplyEditorClosed(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorClosed(postText);
   }
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {

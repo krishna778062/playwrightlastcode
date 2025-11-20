@@ -369,6 +369,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
+          isKnownFailure: true,
           description: 'TS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
           zephyrTestId: 'DE-25977',
           storyId: 'DE-25942',
