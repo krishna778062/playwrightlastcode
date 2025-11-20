@@ -9,6 +9,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { REDIRECT_URLS } from '../../test-data/app-tiles.test-data';
+
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
@@ -20,8 +22,14 @@ test.describe(
   },
   () => {
     const AppName = 'Workday';
-    const tileName1 = 'Display pending learning courses';
-    const tileName2 = 'Apply for time off';
+    const pendingLearningCoursesTile = 'Display pending learning courses';
+    const applyTimeOffTile = 'Apply for time off';
+    const paystubsTile = 'Display recent paystubs';
+    const inboxTile = 'Display inbox';
+    const AppManagerDefined = 'App manager defined';
+    const SiteManagerDefined = 'Site manager defined';
+    const PayslipListUrl = 'Payslip list URL';
+    const InboxTasksReportUrl = 'Inbox tasks report URL';
     let createdTileTitle: string | undefined = undefined;
 
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
@@ -49,7 +57,7 @@ test.describe(
 
         // Add tile, verify by both users, then remove
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
-        await adminHomeDashboard.addTile(createdTileTitle, AppName, tileName1, UI_ACTIONS.ADD_TO_HOME);
+        await adminHomeDashboard.addTile(createdTileTitle, AppName, pendingLearningCoursesTile, UI_ACTIONS.ADD_TO_HOME);
         await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await adminHomeDashboard.isTilePresent(createdTileTitle);
         const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
@@ -80,7 +88,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add tile, verify by both users, then remove
-        await siteDashboard.addTile(createdTileTitle, AppName, tileName1, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTile(createdTileTitle, AppName, pendingLearningCoursesTile, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
         await endUserSiteDashboard.navigateToSite(createdSite.siteId);
@@ -107,7 +115,7 @@ test.describe(
 
         // Add tile, verify by both users, then remove
         const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
-        await adminHomeDashboard.addTile(createdTileTitle, AppName, tileName2, UI_ACTIONS.ADD_TO_HOME);
+        await adminHomeDashboard.addTile(createdTileTitle, AppName, applyTimeOffTile, UI_ACTIONS.ADD_TO_HOME);
         await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await adminHomeDashboard.isTilePresent(createdTileTitle);
         const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
@@ -138,7 +146,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add tile, verify by both users, then remove
-        await siteDashboard.addTile(createdTileTitle, AppName, tileName2, UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTile(createdTileTitle, AppName, applyTimeOffTile, UI_ACTIONS.ADD_TO_SITE);
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
         await endUserSiteDashboard.navigateToSite(createdSite.siteId);
@@ -146,6 +154,39 @@ test.describe(
         await endUserSiteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+
+    multiUserTileFixture(
+      'verify Display recent paystubs app manager defined workday apptile is visible to end users on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28964',
+          storyId: 'INT-20803',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday display recent paystubs apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTile,
+          AppManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
       }
     );
   }
