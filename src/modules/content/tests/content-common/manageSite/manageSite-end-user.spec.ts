@@ -23,7 +23,6 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSiteSetUpPage;
-    let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
     let manageSitesComponent: ManageSitesComponent;
@@ -280,6 +279,9 @@ test.describe(
         await editSitePage.actions.clickOnEditOption();
         await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
         await editSitePage.actions.clickOnUpdateButton();
+      }
+    );
+    test(
       'to verify the bulk action from end user can deactivate the site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],

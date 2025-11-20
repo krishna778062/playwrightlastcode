@@ -330,6 +330,7 @@ test.describe(
         await editSitePage.actions.clickOnUpdateButton();
       }
     );
+    test(
       'to verify the bulk action activate in manage site user drop down',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
