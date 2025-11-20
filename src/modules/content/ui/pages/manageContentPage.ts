@@ -69,6 +69,10 @@ export interface IActions {
   UpdatedPageName: (pageName: string) => Promise<void>;
   clickOnPublishChangesButton: () => Promise<void>;
   verifyAllContentsAreSelected: (expectedCount?: number) => Promise<void>;
+  clickOnActivateButton: () => Promise<void>;
+  clickOnActivateApplyButton: () => Promise<void>;
+  clickOnApply: () => Promise<void>;
+  verifyAllContentsAreDeleted: (contentNames: string[]) => Promise<void>;
 }
 
 export interface IAssertions {
@@ -414,13 +418,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnOptionButton(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.clickOnOptionButton(option);
   }
-
-  async verifyPublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyPublishedStampVisibleInManageContent();
-  }
-
-  async verifyUnpublishedStampVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyUnpublishedStampVisibleInManageContent();
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
   }
