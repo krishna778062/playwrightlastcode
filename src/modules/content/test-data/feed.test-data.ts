@@ -15,7 +15,7 @@ export const FEED_TEST_DATA = {
   POST_TEXT: {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
-    SHARED: `Shared App Manager's Post - ${faker.commerce.productName()}`,
+    SHARED: `Shared Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARED_WITH_MENTION: `Shared App Manager's Post - ${faker.commerce.productName()} - @${faker.person.fullName()}`,
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     COMMENT: `Automated Test Comment ${faker.company.name()} - ${faker.commerce.productName()}`,
