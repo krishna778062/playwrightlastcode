@@ -1,6 +1,6 @@
 /**
- * Interface definitions for Analytics Filter APIs (DuckDB-powered)
- * Includes: Segments, Departments, Locations, User Categories, Company Names, Divisions
+ * Interface definitions for Analytics APIs (DuckDB-powered)
+ * Includes: Segments, Departments, Locations, User Categories, Company Names, Divisions, Batch Run Details
  */
 
 // Common metadata structure for all filter APIs

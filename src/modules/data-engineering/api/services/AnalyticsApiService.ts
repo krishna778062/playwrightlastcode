@@ -10,7 +10,8 @@ import {
   GetLocationsResponse,
   GetSegmentsResponse,
   GetUserCategoriesResponse,
-} from '@/src/modules/data-engineering/api/interfaces/filters.interface';
+} from '@/src/modules/data-engineering/api/interfaces/analytics.interface';
+import { DATA_ENGINEERING_API_ENDPOINTS } from '@/src/modules/data-engineering/constants/apiEndpoints';
 
 /**
  * Service class for Analytics API operations
@@ -26,11 +27,11 @@ export class AnalyticsApiService extends HttpClient {
 
   /**
    * Generic method to fetch analytics filter data
-   * @param filterType - The type of filter (segments, departments, locations, etc.)
+   * @param endpoint - The API endpoint to fetch from
    * @param params - Query parameters for filtering
    * @returns Promise with the response data
    */
-  private async getFilterData<T>(filterType: string, params: FilterRequest = { status: 'active' }): Promise<T> {
+  private async getFilterData<T>(endpoint: string, params: FilterRequest = { status: 'active' }): Promise<T> {
     const queryParams = new URLSearchParams();
 
     if (params.status) {
@@ -43,10 +44,10 @@ export class AnalyticsApiService extends HttpClient {
       queryParams.append('pageSize', params.pageSize.toString());
     }
 
-    const endpoint = `/v2/analytics/${filterType}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const fullEndpoint = `${endpoint}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
 
     // Session-based auth: cookies and x-smtip-csrfid are automatically handled by the APIRequestContext
-    const response = await this.get(endpoint);
+    const response = await this.get(fullEndpoint);
 
     await this.validateResponse(response, {
       expectedStatusCodes: [200],
@@ -60,7 +61,7 @@ export class AnalyticsApiService extends HttpClient {
    * Get segments by status
    */
   async getSegments(params: FilterRequest = { status: 'active' }): Promise<GetSegmentsResponse> {
-    return this.getFilterData<GetSegmentsResponse>('segments', params);
+    return this.getFilterData<GetSegmentsResponse>(DATA_ENGINEERING_API_ENDPOINTS.analytics.segments, params);
   }
 
   async getActiveSegments(): Promise<GetSegmentsResponse> {
@@ -68,7 +69,7 @@ export class AnalyticsApiService extends HttpClient {
   }
 
   async getDepartments(params: FilterRequest = { status: 'active' }): Promise<GetDepartmentsResponse> {
-    return this.getFilterData<GetDepartmentsResponse>('departments', params);
+    return this.getFilterData<GetDepartmentsResponse>(DATA_ENGINEERING_API_ENDPOINTS.analytics.departments, params);
   }
 
   async getActiveDepartments(): Promise<GetDepartmentsResponse> {
@@ -76,7 +77,7 @@ export class AnalyticsApiService extends HttpClient {
   }
 
   async getLocations(params: FilterRequest = { status: 'active' }): Promise<GetLocationsResponse> {
-    return this.getFilterData<GetLocationsResponse>('locations', params);
+    return this.getFilterData<GetLocationsResponse>(DATA_ENGINEERING_API_ENDPOINTS.analytics.locations, params);
   }
 
   async getActiveLocations(): Promise<GetLocationsResponse> {
@@ -84,7 +85,10 @@ export class AnalyticsApiService extends HttpClient {
   }
 
   async getUserCategories(params: FilterRequest = { status: 'active' }): Promise<GetUserCategoriesResponse> {
-    return this.getFilterData<GetUserCategoriesResponse>('userCategories', params);
+    return this.getFilterData<GetUserCategoriesResponse>(
+      DATA_ENGINEERING_API_ENDPOINTS.analytics.userCategories,
+      params
+    );
   }
 
   async getActiveUserCategories(): Promise<GetUserCategoriesResponse> {
@@ -92,7 +96,7 @@ export class AnalyticsApiService extends HttpClient {
   }
 
   async getCompanyNames(params: FilterRequest = { status: 'active' }): Promise<GetCompanyNamesResponse> {
-    return this.getFilterData<GetCompanyNamesResponse>('companyNames', params);
+    return this.getFilterData<GetCompanyNamesResponse>(DATA_ENGINEERING_API_ENDPOINTS.analytics.companyNames, params);
   }
 
   async getActiveCompanyNames(): Promise<GetCompanyNamesResponse> {
@@ -100,7 +104,7 @@ export class AnalyticsApiService extends HttpClient {
   }
 
   async getDivisions(params: FilterRequest = { status: 'active' }): Promise<GetDivisionsResponse> {
-    return this.getFilterData<GetDivisionsResponse>('divisions', params);
+    return this.getFilterData<GetDivisionsResponse>(DATA_ENGINEERING_API_ENDPOINTS.analytics.divisions, params);
   }
 
   async getActiveDivisions(): Promise<GetDivisionsResponse> {
@@ -112,9 +116,7 @@ export class AnalyticsApiService extends HttpClient {
    * This endpoint doesn't require status parameter as it shows batch processing information
    */
   async getBatchRunDetails(): Promise<GetBatchRunDetailsResponse> {
-    const endpoint = '/v2/analytics/batchRunDetails';
-
-    const response = await this.get(endpoint);
+    const response = await this.get(DATA_ENGINEERING_API_ENDPOINTS.analytics.batchRunDetails);
 
     await this.validateResponse(response, {
       expectedStatusCodes: [200],
