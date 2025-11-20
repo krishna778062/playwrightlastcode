@@ -4,6 +4,7 @@ export * from './contentStatus';
 export * from './contentType';
 export * from './dateField';
 export * from './feedPostingPermission';
+export * from './feedSortBy';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';
 export * from './manageSiteOptions';
