@@ -9,6 +9,7 @@ export const PAGE_ENDPOINTS = {
   SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
+  MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
@@ -37,6 +38,7 @@ export const PAGE_ENDPOINTS = {
   // Recognition pages
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
+  MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',

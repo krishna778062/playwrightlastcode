@@ -60,7 +60,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
       { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'ABAC: Verify Target Audience and Subscriptions and create site',
+          description: 'ABAC: Verify Site visibility and Subscriptions and create site',
           zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-38637' : 'CONT-37643',
           storyId: 'CONT-33515',
         });
@@ -90,19 +90,22 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
   }
 
   test(
-    'verify UI shows Add target audience section when All Org is removed',
+    'verify UI shows Add Site visibility section when All Org is removed',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_TARGET_AUDIENCE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Verify UI shows Add target audience section when All Org is removed',
+        description: 'Verify UI shows Add Site visibility section when All Org is removed',
         zephyrTestId: 'CONT-35709',
         storyId: 'CONT-35709',
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturePage.actions.clickOnSitesCard();
       await manageSiteSetUpPage.actions.selectSite();
+      await addSiteScreenPage.actions.clickOnRemoveAudienceButton();
+      await addSiteScreenPage.actions.clickOnIUnderstandCheckbox();
+      await addSiteScreenPage.actions.clickOnContinueButton();
       await addSiteScreenPage.actions.clickOnBrowseButton();
       await audienceModalPage.actions.verifyingAudienceModalHeading();
       await audienceModalPage.assertions.clickOnAllOrganizationOption();

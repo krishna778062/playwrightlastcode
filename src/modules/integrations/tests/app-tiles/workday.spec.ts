@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { UI_ACTIONS } from '@integrations-constants/common';
+import { FIELD_NAMES } from '@integrations-constants/common';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
 import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
@@ -14,6 +15,13 @@ import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integratio
 const CreateAnotherRequest = 'Create another request';
 const Vacation = 'Vacation';
 const Wedding = 'Wedding';
+const AppName = 'Workday';
+const paystubsTileName = 'Display recent paystubs';
+const inboxTileName = 'Display inbox';
+const AppManagerDefined = 'App manager defined';
+const SiteManagerDefined = 'Site manager defined';
+const PayslipListUrl = 'Payslip list URL';
+const InboxTasksReportUrl = 'Inbox tasks report URL';
 
 test.describe(
   'workday App Tiles Integration',
@@ -468,10 +476,10 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          'Workday',
-          'Display recent paystubs',
-          'App manager defined',
-          'Payslip list URL',
+          AppName,
+          paystubsTileName,
+          AppManagerDefined,
+          PayslipListUrl,
           REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
           UI_ACTIONS.ADD_TO_HOME
         );
@@ -497,8 +505,7 @@ test.describe(
           storyId: 'INT-21590',
         });
 
-        //Generate a random tile title
-        createdTileTitle = `Workday Display Recent Paystubs app ${faker.string.alphanumeric({ length: 6 })}`;
+        createdTileTitle = `Workday Display Recent Paystubs user ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
@@ -508,10 +515,10 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          'Workday',
-          'Display recent paystubs',
-          'Site manager defined',
-          'Payslip list URL',
+          AppName,
+          paystubsTileName,
+          SiteManagerDefined,
+          PayslipListUrl,
           REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
           UI_ACTIONS.ADD_TO_SITE
         );
@@ -524,6 +531,206 @@ test.describe(
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata and view all payslips in Workday for Display Recent Paystubs user defined tile on home dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
+        await homeDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await homeDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+      }
+    );
+
+    test(
+      'verify metadata and view all payslips in Workday for Workday Display Recent Paystubs site manager defined tile on site dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22734',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday Display Recent Paystubs site ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          SiteManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await siteDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify personalize behaviour for Workday Display Recent Paystubs app manager defined user editable tile on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Recent Paystubs app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettingsEnableToggle(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          AppManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        //verify personalize button behaviour
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.PAYSLIP_LIST_URL);
         createdTileTitle = undefined;
       }
     );
@@ -545,10 +752,10 @@ test.describe(
 
         await homeDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          'Workday',
-          'Display inbox',
-          'App manager defined',
-          'Inbox tasks report URL',
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
           REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
           UI_ACTIONS.ADD_TO_HOME
         );
@@ -586,10 +793,10 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          'Workday',
-          'Display inbox',
-          'Site manager defined',
-          'Inbox tasks report URL',
+          AppName,
+          inboxTileName,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
           REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
           UI_ACTIONS.ADD_TO_SITE
         );
@@ -606,6 +813,214 @@ test.describe(
         createdTileTitle = updatedTileTitle;
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Inbox user defined tile on home dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          FIELD_NAMES.INBOX_REPORT_URL
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.INBOX_REPORT_URL,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday Display Inbox user defined tile on site dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          FIELD_NAMES.INBOX_REPORT_URL
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.INBOX_REPORT_URL,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for Workday Display Inbox apptile on home dashboard',
+      {
+        tag: [
+          TestPriority.P2,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14010',
+          storyId: 'INT-13791',
+        });
+        createdTileTitle = `Workday Display Inbox apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        await homeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for Workday Display Inbox site manager defined tile on site dashboard',
+      {
+        tag: [
+          TestPriority.P2,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workday-paystubs',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14011',
+          storyId: 'INT-13791',
+        });
+        createdTileTitle = `Workday Display Inbox site manager defined ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify personalize behaviour for Workday Display Inbox app manager defined user editable tile on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Inbox app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettingsEnableToggle(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(7000); //Actual behaviour: It takes more than 7 seconds to load the tile.
+        //verify personalize button behaviour
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.INBOX_REPORT_URL);
         createdTileTitle = undefined;
       }
     );
