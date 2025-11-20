@@ -60,6 +60,7 @@ export class ListFeedComponent extends BaseComponent {
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
   readonly replyContainer = this.page.locator('._reply_1ii4b_1');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
+  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);
@@ -140,6 +141,20 @@ export class ListFeedComponent extends BaseComponent {
       .filter({ hasText: postText })
       .locator('xpath=./ancestor::div[4]')
       .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
+      .first();
+
+  /**
+   * Gets a locator for the Share button on a specific feed post
+   * @param postText - The text of the post to find Share button for
+   * @returns Locator for the Share button
+   */
+  readonly getShareButtonLocator = (postText: string): Locator =>
+    this.getFeedTextLocator(postText)
+      .locator('..')
+      .locator('..')
+      .locator('..')
+      .locator('..')
+      .getByRole('button', { name: 'Share this post' })
       .first();
 
   constructor(page: Page) {
@@ -494,16 +509,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Gets a locator for the "View Post" link in a shared post
-   * @param postText - The text of the post to find View Post link for
-   * @returns Locator for the View Post link
-   */
-  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
+  async clickShareButtonOnPost(postText: string): Promise<void> {
+    await test.step(`Click Share button on post: ${postText}`, async () => {
+      await this.clickOnElement(this.getShareButtonLocator(postText));
+    });
+  }
 
-  /**
-   * Clicks the share button on a comment
-   */
   async clickShareOnComment(): Promise<void> {
     await test.step(`Click share button`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
@@ -513,10 +524,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks the share button on a post
-   * @param postText - The text of the post to share
-   */
   async clickShareOnPost(postText: string): Promise<void> {
     await test.step(`Click share button on post: ${postText}`, async () => {
       const postLocator = this.postTextLocator(postText);
@@ -544,11 +551,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies the share count for a post
-   * @param postText - The text of the post to verify share count for
-   * @param expectedCount - The expected share count
-   */
   async verifyShareCount(postText: string, expectedCount: number): Promise<void> {
     await test.step(`Verify share count is ${expectedCount} for post: ${postText}`, async () => {
       const shareCountLocator = this.shareButton;
@@ -562,11 +564,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies the likes count for a post
-   * @param postText - The text of the post to verify likes count for
-   * @param expectedCount - The expected likes count
-   */
   async verifyLikesCount(postText: string, expectedCount: number): Promise<void> {
     await test.step(`Verify likes count is ${expectedCount} for post: ${postText}`, async () => {
       const likesCountLocator = this.likeButton;
@@ -580,11 +577,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies the replies count for a post
-   * @param postText - The text of the post to verify replies count for
-   * @param expectedCount - The expected replies count
-   */
   async verifyRepliesCount(postText: string, expectedCount: number): Promise<void> {
     await test.step(`Verify replies count is ${expectedCount} for post: ${postText}`, async () => {
       const repliesCountLocator = this.replyButton;
@@ -598,10 +590,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Opens the options menu for a reply
-   * @param replyText - Text of the reply to open options for
-   */
   async openReplyOptionsMenu(replyText: string): Promise<void> {
     await test.step('Open reply options menu', async () => {
       await this.clickOnElement(this.getReplyOptionsMenuLocator(replyText));
