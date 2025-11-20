@@ -20,206 +20,188 @@ test.describe(
   },
   () => {
     test(
-      'verify clicking View Post button closes Share modal from Home Dashboard',
+      'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27969'],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27696'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'Verify clicking View Post button on Feed Detail page closes the Share modal from Home Dashboard',
-          zephyrTestId: 'CONT-27969',
-          storyId: 'CONT-27969',
+            'Verify clicking View Post button on Feed Detail page closes the Share modal from Home Dashboard, Site Dashboard, and Content Detail Page',
+          zephyrTestId: 'CONT-27696',
+          storyId: 'CONT-27696',
         });
 
-        // Create feed post as Admin
-        const feedTestData = TestDataGenerator.generateFeed({
-          scope: 'public',
-          siteId: undefined,
-          withAttachment: false,
-          waitForSearchIndex: false,
-        });
-
-        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
-        const createdPostText = feedTestData.text;
-        const createdPostId = feedResponse.result.feedId;
+        const createdPostIds: string[] = [];
 
         try {
-          // Navigate to Home Dashboard as Standard User
-          await standardUserFixture.homePage.loadPage();
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
-          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          // ==================== HOME DASHBOARD SCENARIO ====================
+          await test.step('Home Dashboard: Verify View Post button closes Share modal', async () => {
+            // Create feed post as Admin
+            const feedTestData = TestDataGenerator.generateFeed({
+              scope: 'public',
+              siteId: undefined,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
 
-          const feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+            const createdPostText = feedTestData.text;
+            const createdPostId = feedResponse.result.feedId;
+            createdPostIds.push(createdPostId);
 
-          // Click Share icon on post
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
+            // Navigate to Home Dashboard as Standard User
+            await standardUserFixture.homePage.loadPage();
+            await standardUserFixture.homePage.verifyThePageIsLoaded();
+            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
+            const feedPage = new FeedPage(standardUserFixture.page);
+            await feedPage.verifyThePageIsLoaded();
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-          // Click "View Post" link in Share modal
-          await feedPage.actions.clickViewPostLinkInShareModal();
+            // Click Share icon on post
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
 
-          // Verify we're on the Feed Detail page
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
 
-          // Click Share icon again from Feed Detail page
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
+            // Click "View Post" link in Share modal
+            await feedPage.actions.clickViewPostLinkInShareModal();
 
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
+            // Verify we're on the Feed Detail page
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-          // Click "View Post" link again
-          await feedPage.actions.clickViewPostLinkInPostDetailPage();
+            // Click Share icon again from Feed Detail page
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
 
-          // Verify Share modal closes
-          await feedPage.assertions.verifyShareModalIsClosed();
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
+
+            // Click "View Post" link again
+            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+
+            // Verify Share modal closes
+            await feedPage.assertions.verifyShareModalIsClosed();
+          });
+
+          // ==================== SITE DASHBOARD SCENARIO ====================
+          await test.step('Site Dashboard: Verify View Post button closes Share modal', async () => {
+            // Get or create site
+            const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+            const siteId = siteInfo.siteId;
+
+            // Create feed post as Admin
+            const feedTestData = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
+
+            const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+            const createdPostText = feedTestData.text;
+            const createdPostId = feedResponse.result.feedId;
+            createdPostIds.push(createdPostId);
+
+            // Navigate to Site Dashboard as Standard User
+            const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+            await siteDashboardPage.actions.clickOnFeedLink();
+
+            const feedPage = new FeedPage(standardUserFixture.page);
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+            // Click Share icon on post
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
+
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
+
+            // Click "View Post" link in Share modal
+            await feedPage.actions.clickViewPostLinkInShareModal();
+
+            // Verify we're on the Feed Detail page
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+            // Click Share icon again from Feed Detail page
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
+
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
+
+            // Click "View Post" link again
+            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+
+            // Verify Share modal closes
+            await feedPage.assertions.verifyShareModalIsClosed();
+          });
+
+          // ==================== CONTENT DETAIL PAGE SCENARIO ====================
+          await test.step('Content Detail Page: Verify View Post button closes Share modal', async () => {
+            // Get content details
+            const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
+
+            // Create feed post as Admin
+            const feedTestData = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              contentId: contentId,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
+
+            const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
+            const createdPostText = feedTestData.text;
+            const createdPostId = feedResponse.result.feedId;
+            createdPostIds.push(createdPostId);
+
+            // Navigate to Content Detail Page as End User
+            const contentPreviewPage = new ContentPreviewPage(
+              standardUserFixture.page,
+              siteId,
+              contentId,
+              ContentType.PAGE.toLowerCase()
+            );
+            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+            const feedPage = new FeedPage(standardUserFixture.page);
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+            // Click Share icon on post
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
+
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
+
+            // Click "View Post" link in Share modal
+            await feedPage.actions.clickViewPostLinkInShareModal();
+
+            // Verify we're on the Feed Detail page
+            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+            // Click Share icon again from Feed Detail page
+            await feedPage.actions.clickShareIconOnPost(createdPostText);
+
+            // Verify Share modal is open
+            await feedPage.assertions.verifyShareModalIsVisible();
+
+            // Click "View Post" link again
+            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+
+            // Verify Share modal closes
+            await feedPage.assertions.verifyShareModalIsClosed();
+          });
         } finally {
-          // Cleanup
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
-        }
-      }
-    );
-
-    test(
-      'verify clicking View Post button closes Share modal from Site Dashboard',
-      {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27969'],
-      },
-      async ({ appManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify clicking View Post button on Feed Detail page closes the Share modal from Site Dashboard',
-          zephyrTestId: 'CONT-27969',
-          storyId: 'CONT-27969',
-        });
-
-        // Get or create site
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
-        const siteId = siteInfo.siteId;
-
-        // Create feed post as Admin
-        const feedTestData = TestDataGenerator.generateFeed({
-          scope: 'site',
-          siteId: siteId,
-          withAttachment: false,
-          waitForSearchIndex: false,
-        });
-
-        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
-        const createdPostText = feedTestData.text;
-        const createdPostId = feedResponse.result.feedId;
-
-        try {
-          // Navigate to Site Dashboard as Standard User
-          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
-          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
-
-          const feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-          // Click Share icon on post
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
-
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
-
-          // Click "View Post" link in Share modal
-          await feedPage.actions.clickViewPostLinkInShareModal();
-
-          // Verify we're on the Feed Detail page
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-          // Click Share icon again from Feed Detail page
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
-
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
-
-          // Click "View Post" link again
-          await feedPage.actions.clickViewPostLinkInPostDetailPage();
-
-          // Verify Share modal closes
-          await feedPage.assertions.verifyShareModalIsClosed();
-        } finally {
-          // Cleanup
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
-        }
-      }
-    );
-
-    test(
-      'verify clicking View Post button closes Share modal from Content Detail Page',
-      {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27969'],
-      },
-      async ({ appManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify clicking View Post button on Feed Detail page closes the Share modal from Content Detail Page',
-          zephyrTestId: 'CONT-27969',
-          storyId: 'CONT-27969',
-        });
-
-        // Get content details
-        const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
-
-        // Create feed post as Admin
-        const feedTestData = TestDataGenerator.generateFeed({
-          scope: 'site',
-          siteId: siteId,
-          contentId: contentId,
-          withAttachment: false,
-          waitForSearchIndex: false,
-        });
-
-        const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
-        const createdPostText = feedTestData.text;
-        const createdPostId = feedResponse.result.feedId;
-
-        try {
-          // Navigate to Content Detail Page as End User
-          const contentPreviewPage = new ContentPreviewPage(
-            standardUserFixture.page,
-            siteId,
-            contentId,
-            ContentType.PAGE.toLowerCase()
-          );
-          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-
-          const feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-          // Click Share icon on post
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
-
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
-
-          // Click "View Post" link in Share modal
-          await feedPage.actions.clickViewPostLinkInShareModal();
-
-          // Verify we're on the Feed Detail page
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-          // Click Share icon again from Feed Detail page
-          await feedPage.actions.clickShareIconOnPost(createdPostText);
-
-          // Verify Share modal is open
-          await feedPage.assertions.verifyShareModalIsVisible();
-
-          // Click "View Post" link again
-          await feedPage.actions.clickViewPostLinkInPostDetailPage();
-
-          // Verify Share modal closes
-          await feedPage.assertions.verifyShareModalIsClosed();
-        } finally {
-          // Cleanup
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          // Cleanup: Delete all created posts
+          for (const createdPostId of createdPostIds) {
+            if (createdPostId) {
+              try {
+                await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+              } catch (error) {
+                console.warn(`Failed to delete post ${createdPostId}:`, error);
+              }
+            }
+          }
         }
       }
     );
