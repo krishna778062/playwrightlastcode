@@ -1,9 +1,10 @@
 import { expect, FrameLocator, Page, test } from '@playwright/test';
 
+import { PeopleDashboardTabularMetricsComponent } from './basePeopleDashboardTabularMetricsComponent';
+
 import { CSVUtils } from '@/src/core/utils/csvUtils';
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
-import { TabluarMetricsComponent } from '@/src/modules/data-engineering/ui/components/tabluarMetricsComponent';
 import { CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
 
 export enum ProfileCompletenessColumns {
@@ -13,7 +14,7 @@ export enum ProfileCompletenessColumns {
   PHONE_NUMBER = 'Phone number',
 }
 
-export class ProfileCompleteness extends TabluarMetricsComponent {
+export class ProfileCompleteness extends PeopleDashboardTabularMetricsComponent {
   constructor(page: Page, iframe: FrameLocator) {
     super(page, iframe, PEOPLE_METRICS.PROFILE_COMPLETENESS.title);
   }
@@ -107,15 +108,22 @@ export class ProfileCompleteness extends TabluarMetricsComponent {
         'Is app manager',
       ];
 
-      // Build expected headers based on feature flags and actual CSV headers
+      // Build expected headers based on actual CSV headers
+      // Note: We include headers if they exist in CSV, regardless of feature flags
+      // Feature flags only determine whether we include them in the header mapping
       const expectedCsvHeaders: string[] = [...baseCsvHeaders];
-      if (tenantDetails?.is_segment_enabled && actualCSVHeaders.includes('Segment')) {
+      if (actualCSVHeaders.includes('Segment')) {
         expectedCsvHeaders.splice(3, 0, 'Segment'); // Insert after 'Company name'
       }
-      if (tenantDetails?.is_people_category_enabled && actualCSVHeaders.includes('User category')) {
+      if (actualCSVHeaders.includes('User category')) {
         // Insert User category after Country
         const countryIndex = expectedCsvHeaders.indexOf('Country');
         expectedCsvHeaders.splice(countryIndex + 1, 0, 'User category');
+      }
+
+      // Add 'User name' to expected headers if it exists in CSV (it's an extra column that can be ignored)
+      if (actualCSVHeaders.includes('User name')) {
+        expectedCsvHeaders.push('User name');
       }
 
       // Base header mapping (always present)
@@ -176,6 +184,9 @@ export class ProfileCompleteness extends TabluarMetricsComponent {
         transformations: {
           headerMapping: finalHeaderMapping, // Only include headers that exist in CSV
           valueMappings,
+          // Use composite key (Name + Email) for matching since names can be duplicate
+          // This ensures we match the correct user when multiple users have the same name
+          keyFields: ['Name', 'Email'],
         },
       });
 

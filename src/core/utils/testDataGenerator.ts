@@ -291,8 +291,9 @@ export class TestDataGenerator {
 
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test'): string {
-    const randomString = faker.lorem.word();
-    return `${prefix} ${randomString}`;
+    const timestamp = Date.now();
+    const randomString = faker.string.alphanumeric(4);
+    return `${prefix}_${timestamp}_${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
@@ -593,6 +594,7 @@ export class TestDataGenerator {
           mimeType?: undefined;
           filePath?: undefined;
           waitForSearchIndex?: boolean;
+          topics?: string[];
         }
       | {
           scope: string;
@@ -604,6 +606,7 @@ export class TestDataGenerator {
           mimeType: string;
           filePath: string; // Required when withAttachment is true
           waitForSearchIndex?: boolean;
+          topics?: string[];
         }
   ) {
     if ('withAttachment' in options && options.withAttachment) {
@@ -639,6 +642,188 @@ export class TestDataGenerator {
         },
       };
     }
+  }
+
+  /**
+   * Generates feed test data with all features: emoji, site mention, user mention, topic mentions,
+   * formatted bullet list (bold, italic, strikethrough, underline), nested list with link, and attachments
+   * @param options Configuration options for the feed with all features
+   * @returns Object with feed creation parameters for createWithAllFeatures
+   *
+   * @example
+   * // Generate feed with all features
+   * const feedData = TestDataGenerator.generateFeedWithAllFeatures({
+   *   scope: 'public',
+   *   baseText: 'Add a Feed',
+   *   siteMention: { id: '34a91ba1-2982-48d1-9c0a-1f6f5b674f37', label: 'Public_subscription_site' },
+   *   userMention: { id: 'd18d9abc-88d8-486a-a034-d8451cf2e7f5', label: 'Application Manager1' },
+   *   topics: [
+   *     { id: 'new_topicCreat', label: 'topicCreat' },
+   *     { id: '2b92cfc0-21d9-4da4-a663-f09314b12741', label: 'best practices' }
+   *   ],
+   *   withAttachment: true,
+   *   fileName: 'image1.jpg',
+   *   fileSize: 187288,
+   *   mimeType: 'image/jpeg'
+   * });
+   */
+  static generateFeedWithAllFeatures(options: {
+    scope: string;
+    baseText?: string;
+    emoji?: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl?: string;
+    siteId?: string | null;
+    contentId?: string | null;
+    ignoreToxic?: boolean;
+    type?: string;
+    variant?: string;
+    withAttachment?: false;
+    fileName?: undefined;
+    fileSize?: undefined;
+    mimeType?: undefined;
+    fileId?: undefined;
+    provider?: undefined;
+  }): {
+    baseText: string;
+    emoji: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl: string;
+    listOfAttachedFiles: Array<{
+      fileId: string;
+      provider: string;
+      size: number;
+      name: string;
+      type: string;
+      thumbnail?: string;
+    }>;
+    scope: string;
+    siteId: string | null;
+    contentId?: string | null;
+    ignoreToxic: boolean;
+    type: string;
+    variant: string;
+  };
+  static generateFeedWithAllFeatures(options: {
+    scope: string;
+    baseText?: string;
+    emoji?: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl?: string;
+    siteId?: string | null;
+    contentId?: string | null;
+    ignoreToxic?: boolean;
+    type?: string;
+    variant?: string;
+    withAttachment: true;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    fileId: string;
+    provider?: string;
+  }): {
+    baseText: string;
+    emoji: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl: string;
+    listOfAttachedFiles: Array<{
+      fileId: string;
+      provider: string;
+      size: number;
+      name: string;
+      type: string;
+      thumbnail?: string;
+    }>;
+    scope: string;
+    siteId: string | null;
+    contentId?: string | null;
+    ignoreToxic: boolean;
+    type: string;
+    variant: string;
+  };
+  static generateFeedWithAllFeatures(options: {
+    scope: string;
+    baseText?: string;
+    emoji?: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl?: string;
+    siteId?: string | null;
+    contentId?: string | null;
+    ignoreToxic?: boolean;
+    type?: string;
+    variant?: string;
+    withAttachment?: boolean;
+    fileName?: string;
+    fileSize?: number;
+    mimeType?: string;
+    fileId?: string;
+    provider?: string;
+  }) {
+    const {
+      scope,
+      baseText = 'Add a Feed',
+      emoji = { name: 'monkey', emoji: '🐒' },
+      siteMention,
+      userMention,
+      topics = [],
+      linkUrl = 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+      siteId = null,
+      contentId,
+      ignoreToxic = false,
+      type = 'post',
+      variant = 'standard',
+      withAttachment = false,
+      fileName,
+      fileSize,
+      mimeType,
+      fileId,
+      provider = 'intranet',
+    } = options;
+
+    const listOfAttachedFiles: Array<{
+      fileId: string;
+      provider: string;
+      size: number;
+      name: string;
+      type: string;
+      thumbnail?: string;
+    }> = [];
+
+    if (withAttachment && fileId && fileName && fileSize && mimeType) {
+      listOfAttachedFiles.push({
+        fileId,
+        provider,
+        size: fileSize,
+        name: fileName,
+        type: mimeType,
+      });
+    }
+
+    return {
+      baseText,
+      emoji,
+      siteMention,
+      userMention,
+      topics: topics.length > 0 ? topics : undefined,
+      linkUrl,
+      listOfAttachedFiles,
+      scope,
+      siteId,
+      contentId,
+      ignoreToxic,
+      type,
+      variant,
+    };
   }
 
   /**
