@@ -25,6 +25,7 @@ export interface IContentStudioPageCreationActions extends IPageCreationActions 
 export interface IContentStudioPageCreationAssertions extends IPageCreationAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyCoverImageModalTabIsVisible: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash' | 'Select color') => Promise<void>;
+  verifyAllCoverImageModalTabsAreVisible: () => Promise<void>;
   verifyopenMediaManagerDialogIsVisible: () => Promise<void>;
   verifyToolbarIsVisible: () => Promise<void>;
   verifyEditPageCoverPanelIsVisible: () => Promise<void>;
@@ -38,7 +39,6 @@ export class ContentStudioPageCreationPage
   extends PageCreationPage
   implements IContentStudioPageCreationActions, IContentStudioPageCreationAssertions
 {
-  // Cover image modal locators
   readonly addCoverImageIcon: Locator;
   readonly coverTitleInput: Locator;
   readonly addCoverImageComponent: AddCoverImageComponent;
@@ -46,7 +46,6 @@ export class ContentStudioPageCreationPage
   readonly toolbarComponent: ContentStudioToolbarComponent;
   readonly uploadedCoverImagePreviewContainerForContentStudio: Locator;
   readonly uploadedCoverImagePreviewImageForContentStudio: Locator;
-  // Edit cover panel locators
   readonly editPageCoverPanel: Locator;
   readonly coverLayoutSection: Locator;
   readonly coverLayoutCard: Locator;
@@ -56,7 +55,6 @@ export class ContentStudioPageCreationPage
 
   constructor(page: Page, siteId?: string) {
     super(page, siteId);
-    // Cover image modal locators
     // Use exact match to avoid strict-mode ambiguity with wrapper elements
     this.addCoverImageIcon = page.getByRole('button', { name: 'Add cover image', exact: true });
     this.coverTitleInput = page.locator("textarea[name='cover-title']");
@@ -67,7 +65,6 @@ export class ContentStudioPageCreationPage
     this.uploadedCoverImagePreviewContainerForContentStudio = page.locator('.flex.h-full.w-full.items-center');
     this.uploadedCoverImagePreviewImageForContentStudio =
       this.uploadedCoverImagePreviewContainerForContentStudio.locator('img');
-    // Edit cover panel locators
     this.editPageCoverPanel = page.getByText('Edit page cover');
     this.coverLayoutSection = page.getByRole('button', { name: 'Cover layout Default' });
     this.coverLayoutCard = page.getByText('DefaultBackground overlaySplit viewNo cover');
@@ -84,9 +81,6 @@ export class ContentStudioPageCreationPage
     return this;
   }
 
-  /**
-   * Clicks on the "Add cover image" icon to open the cover image modal
-   */
   async clickAddCoverImageIcon(): Promise<void> {
     await test.step('Click on Add cover image icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addCoverImageIcon, {
@@ -113,6 +107,20 @@ export class ContentStudioPageCreationPage
   ): Promise<void> {
     await this.addCoverImageComponent.verifyCoverImageModalTabIsVisible(tab);
   }
+
+  /**
+   * Verifies that all cover image modal tabs are visible
+   * Note: "Select color" tab is only visible when Background overlay layout is selected
+   */
+  async verifyAllCoverImageModalTabsAreVisible(): Promise<void> {
+    await test.step('Verify all cover image modal tabs are visible', async () => {
+      await this.verifyCoverImageModalTabIsVisible('Upload');
+      await this.verifyCoverImageModalTabIsVisible('Select color');
+      await this.verifyCoverImageModalTabIsVisible('Browse');
+      await this.verifyCoverImageModalTabIsVisible('URL');
+      await this.verifyCoverImageModalTabIsVisible('Unsplash');
+    });
+  }
   async verifyopenMediaManagerDialogIsVisible(): Promise<void> {
     await test.step('Verify open media manager dialog is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addCoverImageComponent.openMediaManagerDialog, {
@@ -125,9 +133,6 @@ export class ContentStudioPageCreationPage
       await this.clickOnElement(this.addCoverImageComponent.openMediaManagerDialog);
     });
   }
-  /**
-   * Clicks the options (tab) button and selects the provided tab in the Add Cover Image modal
-   */
   async clickOnOptionsButtonAndSelectAddCoverImageTab(
     tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash' | 'Select color'
   ): Promise<void> {
@@ -149,16 +154,10 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Clicks on the "Edit cover" button in the toolbar
-   */
   async clickEditCover(): Promise<void> {
     await this.toolbarComponent.actions.clickEditCover();
   }
 
-  /**
-   * Clicks on the "Add image" button in the toolbar
-   */
   async clickAddImage(): Promise<void> {
     await this.toolbarComponent.actions.clickAddImage();
   }
@@ -192,9 +191,6 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Clicks on the Cover layout section to open layout options
-   */
   async clickCoverLayoutSection(): Promise<void> {
     await test.step('Click on Cover layout section', async () => {
       await this.verifier.verifyTheElementIsVisible(this.coverLayoutSection, {
@@ -217,10 +213,6 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Clicks on the "Select color" tab in the cover image modal
-   * Note: This tab is only visible when "Background overlay" layout is selected
-   */
   async clickSelectColorTab(): Promise<void> {
     await test.step('Click on Select color tab', async () => {
       await this.addCoverImageComponent.clickSelectColorTab();
@@ -247,16 +239,10 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Verifies that the Content Studio toolbar is visible
-   */
   async verifyToolbarIsVisible(): Promise<void> {
     await this.toolbarComponent.assertions.verifyToolbarIsVisible();
   }
 
-  /**
-   * Verifies that the Edit page cover panel is visible
-   */
   async verifyEditPageCoverPanelIsVisible(): Promise<void> {
     await test.step('Verify Edit page cover panel is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.editPageCoverPanel, {
@@ -265,9 +251,6 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Verifies that the layout options are visible
-   */
   async verifyLayoutOptionsAreVisible(): Promise<void> {
     await test.step('Verify layout options are visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.coverLayoutCard, {
@@ -283,9 +266,6 @@ export class ContentStudioPageCreationPage
     await this.addCoverImageComponent.verifyColorPaletteIsVisible();
   }
 
-  /**
-   * Verifies that the selected color is applied to the cover area
-   */
   async verifyCoverColorIsApplied(): Promise<void> {
     await test.step('Verify cover color is applied', async () => {
       await this.verifier.verifyTheElementIsVisible(this.coverAreaWithColor, {
@@ -294,9 +274,6 @@ export class ContentStudioPageCreationPage
     });
   }
 
-  /**
-   * Verifies that the page title appears over the cover background
-   */
   async verifyPageTitleOverCoverIsVisible(): Promise<void> {
     await test.step('Verify page title over cover is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageTitleOverCover, {
