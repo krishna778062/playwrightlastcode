@@ -263,5 +263,46 @@ test.describe(
         await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
       }
     );
+    multiUserTileFixture(
+      'Verify Display inbox workday apptile is visible to end users on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28967',
+          storyId: 'INT-20803',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday display inbox apptile${faker.string.alphanumeric({ length: 6 })}`;
+        const endUserSiteDashboard = new SiteDashboard(endUserPage);
+        const siteDashboard = new SiteDashboard(adminPage, tileManagementHelper);
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add tile, verify by both users, then remove
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTile,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await adminPage.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.navigateToSite(createdSite.siteId);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );
