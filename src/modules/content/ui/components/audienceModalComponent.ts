@@ -11,7 +11,7 @@ export class AudienceModalComponent extends BaseComponent {
 
   constructor(readonly page: Page) {
     super(page);
-    this.audienceModalHeading = page.getByText('Audiences', { exact: true });
+    this.audienceModalHeading = page.getByLabel('Audiences').getByText('Audiences');
     this.allOrganizationToggle = page.getByRole('switch', { name: 'All organization' });
     this.allOrganizationMessage = page.getByText("You've selected 'All organization'");
     this.openParentContainer = page.getByTestId('i-arrowRight').first();
@@ -38,17 +38,23 @@ export class AudienceModalComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.allOrganizationMessage, {
         assertionMessage: 'All organization switch should be visible on audience modal page',
       });
-      await this.clickOnElement(this.allOrganizationToggle);
     });
   }
 
   async selectingAudience(): Promise<void> {
     await test.step('Selecting audience', async () => {
-      await this.clickOnElement(this.openParentContainer);
-      await this.page.keyboard.press('Tab');
-      await this.page.keyboard.press('Tab');
-      await this.page.keyboard.press('Space');
-      await this.clickOnElement(this.clickingOnDoneButton);
+      // Check if "All organization" is enabled - if so, just click Done
+      const isAllOrgEnabled = await this.allOrganizationToggle.isChecked();
+      if (isAllOrgEnabled) {
+        await this.clickOnElement(this.clickingOnDoneButton);
+      } else {
+        // If "All organization" is not enabled, select a specific audience
+        await this.clickOnElement(this.openParentContainer);
+        await this.page.keyboard.press('Tab');
+        await this.page.keyboard.press('Tab');
+        await this.page.keyboard.press('Space');
+        await this.clickOnElement(this.clickingOnDoneButton);
+      }
     });
   }
 }
