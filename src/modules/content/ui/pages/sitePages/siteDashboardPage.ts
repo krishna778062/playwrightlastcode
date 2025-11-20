@@ -57,6 +57,7 @@ export interface ISiteDashboardAssertions {
   validatePostText: (postText: string) => Promise<void>;
   validatePostNotVisible: (postText: string) => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -346,5 +347,8 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 }

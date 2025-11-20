@@ -864,8 +864,17 @@ export class HomeDashboard extends BasePage {
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
   }
-  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
-    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
+  /**
+   * Verify Workday Display Recent Paystubs metadata
+   */
+  async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
+  }
+  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
+  }
+  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
   }
   /**
    * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on

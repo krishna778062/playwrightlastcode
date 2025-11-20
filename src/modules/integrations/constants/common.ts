@@ -52,6 +52,7 @@ export const FIELD_NAMES = {
   STATUS: 'Status',
   SORT_BY: 'Sort by',
   SORT_ORDER: 'Sort order',
+  PAYSLIP_LIST_URL: 'Payslip list URL',
 } as const;
 
 export const DEFAULT_SITES = {
