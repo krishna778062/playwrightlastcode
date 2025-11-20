@@ -14,6 +14,7 @@ export interface IFavoritePageActions {
   getFirstDisplayedUserName: () => Promise<string>;
   commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
   unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
+  clickUnfavoriteButtonForFileInFilesTab: (fileName: string) => Promise<void>;
 }
 export interface IFavoritePageAssertions {
   verifyTheUserIsVisible: (fullName: string) => Promise<void>;
@@ -28,12 +29,15 @@ export interface IFavoritePageAssertions {
   verifyAllFavoriteFeedPostsAreListed: () => Promise<void>;
   verifyShareButtonIsVisible: (postContainer: Locator) => Promise<void>;
   verifyUserNameAndFeedCreatedDate: (postContainer: Locator, firstFeedPostText?: string) => Promise<void>;
+  verifyVideoIsVisibleInFilesTab: (videoName: string) => Promise<void>;
+  verifyVideoIsNotVisibleInFilesTab: (videoName: string) => Promise<void>;
 }
 export class FavoritePage extends BasePage implements IFavoritePageActions, IFavoritePageAssertions {
   readonly favoriteHeading: Locator = this.page.getByRole('heading', { name: 'Favorites' });
   readonly peopleTab: Locator = this.page.getByRole('tab', { name: 'People' });
   readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
   readonly feedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
+  readonly filesTab: Locator = this.page.getByRole('tab', { name: 'Files' });
   readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search favorite people…' });
   readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"][type="submit"]');
   readonly nothingToShowMessage: Locator = this.page.locator('text=Nothing to show here').first();
@@ -42,6 +46,8 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getContentTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Content' });
   // Feed tab locators
   readonly getFeedTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Feed' });
+  // Files tab locators
+  readonly getFilesTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Files' });
   readonly getFeedPosts = (): Locator => this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
   readonly getFirstFeedPostContent = (): Locator => this.getFeedTabPanel().locator('div[class*="postContent"]').first();
   readonly getPostContainer = (postContentLocator: Locator): Locator => {
@@ -60,6 +66,29 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
   readonly getContentLinkByName = (contentName: string): Locator =>
     this.getContentTabPanel().getByRole('link', { name: contentName }).first();
+  readonly getVideoLinkByName = (videoName: string): Locator =>
+    this.getContentTabPanel().getByRole('link', { name: videoName }).first();
+
+  readonly getVideoLinkInFilesTabByName = (videoName: string): Locator =>
+    this.getFilesTabPanel().getByRole('link', { name: videoName }).first();
+
+  readonly getFileRowInFilesTab = (fileName: string): Locator =>
+    this.getFilesTabPanel().getByRole('table').getByRole('row').filter({ hasText: fileName }).first();
+
+  readonly getUnfavoriteButtonForFileInFilesTab = (fileName: string): Locator =>
+    this.getFileRowInFilesTab(fileName).getByRole('button', { name: 'Unfavorite this file' }).first();
+
+  async clickUnfavoriteButtonForFileInFilesTab(fileName: string): Promise<void> {
+    await test.step(`Click unfavorite star icon for file "${fileName}" in favorites Files tab`, async () => {
+      const unfavoriteButton = this.getUnfavoriteButtonForFileInFilesTab(fileName);
+
+      await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+        assertionMessage: `Unfavorite button should be visible for file "${fileName}"`,
+      });
+
+      await this.clickOnElement(unfavoriteButton);
+    });
+  }
 
   // User profile locators
   readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
@@ -375,7 +404,6 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     await test.step('Verify first content item is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.getFirstContentLink(), {
         assertionMessage: 'First content item should be visible',
-        timeout: 10_000,
       });
     });
   }
@@ -384,7 +412,6 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     await test.step(`Verify content "${contentName}" is visible in search results`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getContentLinkByName(contentName), {
         assertionMessage: `Content "${contentName}" should be visible in search results`,
-        timeout: 10_000,
       });
     });
   }
@@ -431,6 +458,40 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
           assertionMessage: 'Feed created date (timestamp) should be visible on feed post',
         });
       }
+    });
+  }
+
+  async verifyVideoIsVisibleInContentTab(videoName: string): Promise<void> {
+    await test.step(`Verify video "${videoName}" is visible in favorites content tab`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getVideoLinkByName(videoName), {
+        assertionMessage: `Video "${videoName}" should be visible in favorites content tab`,
+      });
+    });
+  }
+
+  async verifyVideoIsNotVisibleInContentTab(videoName: string): Promise<void> {
+    await test.step(`Verify video "${videoName}" is not visible in favorites content tab`, async () => {
+      const videoLink = this.getVideoLinkByName(videoName);
+      const isVisible = await videoLink.isVisible().catch(() => false);
+      if (isVisible) {
+        throw new Error(`Video "${videoName}" should not be visible in favorites content tab`);
+      }
+    });
+  }
+
+  async verifyVideoIsVisibleInFilesTab(videoName: string): Promise<void> {
+    await test.step(`Verify video "${videoName}" is visible in favorites files tab`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getVideoLinkInFilesTabByName(videoName), {
+        assertionMessage: `Video "${videoName}" should be visible in favorites files tab`,
+      });
+    });
+  }
+
+  async verifyVideoIsNotVisibleInFilesTab(videoName: string): Promise<void> {
+    await test.step(`Verify video "${videoName}" is NOT visible in favorites files tab`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.getVideoLinkInFilesTabByName(videoName), {
+        assertionMessage: `Video "${videoName}" should NOT be visible in favorites files tab`,
+      });
     });
   }
 }
