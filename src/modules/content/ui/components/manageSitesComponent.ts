@@ -3,7 +3,6 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-import { ContentFilter } from '@/src/modules/content/constants/contentFilter';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -35,7 +34,6 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterDropdown: Locator;
   readonly contentFilterSelectedValue: Locator;
   readonly clickOnUpdateCategoryButton: Locator;
-  readonly contentFilterDropdown: Locator;
   readonly contentSearchBar: Locator;
 
   constructor(readonly page: Page) {
@@ -67,7 +65,6 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
-    this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
   }
 
@@ -359,12 +356,6 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
-  async selectContentFilter(filter: ContentFilter): Promise<void> {
-    await test.step(`Select content filter: ${filter}`, async () => {
-      await this.performActionAndWaitForResponse(
-        () => this.contentFilterDropdown.selectOption(filter),
-        response =>
-          response.request().url().includes(API_ENDPOINTS.content.contentListInSite) &&
   /**
    * Gets the locator for a site row by exact site name
    * @param siteName - The exact name of the site
@@ -401,10 +392,6 @@ export class ManageSitesComponent extends BaseComponent {
           timeout: 20_000,
         }
       );
-    });
-  }
-
-  async verifyContentFilterIsSelectedWithValue(value: ContentFilter | string): Promise<void> {
       await contentFilterResponse.finished();
     });
   }

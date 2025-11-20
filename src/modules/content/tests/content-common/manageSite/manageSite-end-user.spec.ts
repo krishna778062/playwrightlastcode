@@ -3,17 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentFilter } from '@/src/modules/content/constants';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
@@ -207,9 +202,6 @@ test.describe(
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
         });
-        const siteInfo = await standardUserApiFixture.siteManagementHelper.getListOfSites();
-        await appManagerApiFixture.contentManagementHelper.createPage({
-          siteId: siteInfo.result.listOfItems[0].siteId,
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
           hasPages: true,
         });
@@ -221,7 +213,6 @@ test.describe(
             contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
           },
         });
-        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.result.listOfItems[0].siteId);
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
@@ -307,7 +298,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
-      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action from end user can activate the site',
           zephyrTestId: 'CONT-26574',
