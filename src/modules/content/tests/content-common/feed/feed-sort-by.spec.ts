@@ -7,6 +7,7 @@ import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedSortBy } from '@/src/modules/content/constants/feedSortBy';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -32,7 +33,7 @@ test.describe(
           users.endUser.email
         );
         // Create a public site
-        createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+        createdSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
           waitForSearchIndex: false,
         });
 

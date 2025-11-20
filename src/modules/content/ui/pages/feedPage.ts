@@ -105,7 +105,6 @@ export interface IFeedActions {
   attemptImagePasteInShareModal: () => Promise<void>;
   clickShareOnComment: () => Promise<void>;
   clickShareOnPost: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   addUserNameMentionInShareDialog: (userName: string) => Promise<void>;
   addSiteMentionInShareDialog: (siteName: string) => Promise<void>;
   addTopicMentionInShareDialog: (topicName: string) => Promise<void>;
@@ -797,7 +796,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }): Promise<void> {
     await test.step(`Share feed post "${params.postText}" with message "${params.shareMessage}"`, async () => {
       // Click share icon on the post
-      await this.listFeedComponent.clickShareButtonOnPost(params.postText);
+      await this.listFeedComponent.clickShareIcon(params.postText);
 
       // Wait for share dialog to appear
       await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
@@ -842,7 +841,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async clickShareButtonOnPost(postText: string): Promise<void> {
-    await this.listFeedComponent.clickShareButtonOnPost(postText);
+    await this.listFeedComponent.clickShareIcon(postText);
   }
 
   async attemptImagePasteInShareModal(): Promise<void> {
