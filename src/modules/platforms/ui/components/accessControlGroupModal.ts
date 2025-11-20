@@ -113,21 +113,19 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   async verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedErrorMessage(
     accessControlType: string
   ): Promise<void> {
+    const errorMessageTitleCommonLocator = this.acgDialog.locator('[class*="Panel-module__panel"] span');
+    const errorMessageDescriptionCommonLocator = this.acgDialog.locator('[class*="Panel-module__panel"] p');
     const errorMessageTitle =
       accessControlType == 'RBAC'
-        ? this.acgDialog
-            .locator('[class*="Panel-module__panel"] span')
-            .filter({ hasText: ACG_ERROR_MESSAGES_TITLE.RBAC })
-        : this.acgDialog
-            .locator('[class*="Panel-module__panel"] span')
-            .filter({ hasText: ACG_ERROR_MESSAGES_TITLE.ABAC });
+        ? errorMessageTitleCommonLocator.filter({ hasText: ACG_ERROR_MESSAGES_TITLE.RBAC })
+        : errorMessageTitleCommonLocator.filter({ hasText: ACG_ERROR_MESSAGES_TITLE.ABAC });
     await expect(errorMessageTitle).toBeVisible();
     const errorMessageDescription =
       accessControlType == 'RBAC'
-        ? this.acgDialog.locator('[class*="Panel-module__panel"] p').filter({
+        ? errorMessageDescriptionCommonLocator.filter({
             hasText: ACG_ERROR_MESSAGES_DESCRIPTION.RBAC,
           })
-        : this.acgDialog.locator('[class*="Panel-module__panel"] p').filter({
+        : errorMessageDescriptionCommonLocator.filter({
             hasText: ACG_ERROR_MESSAGES_DESCRIPTION.ABAC,
           });
     await expect(errorMessageDescription).toBeVisible();
@@ -142,37 +140,46 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   }
 
   /**
-   * Verifies the feature cannot be edited tooltip is visible
+   * Verifies the tooltip message for the button
+   * @param buttonName - Name of the button for which the tooltip message need to be verified
+   * @param message - Message to be displayed on the tooltip
    */
-  async verifyTooltipForButton(buttonName: string, accessControlType: string): Promise<void> {
-    await this.hoverOverButtonAndVerifyTooltip(buttonName, accessControlType);
+  async verifyTooltipForButton(buttonName: string, message: string): Promise<void> {
+    await this.hoverOverButtonAndVerifyTooltip(buttonName, message);
   }
 
   /**
    * Hovers cursor over a button and verify the tooltip is visible
    * @param buttonName - The name of the button to hover over and verify the tooltip for
-   * @param accessControlType - The type of access control (RBAC or ABAC)
+   * @param message - The message to be displayed on the tooltip
    */
-  async hoverOverButtonAndVerifyTooltip(buttonName: string, accessControlType: string) {
-    const buttonLocator: Locator = this.editSummaryScreenAssetButtons.filter({
+  async hoverOverButtonAndVerifyTooltip(buttonName: string, message: string) {
+    // Complete mapping (message → tooltip text)
+    const tooltipMap: Record<string, string> = {
+      RBAC: ACG_TOOLTIPS.RBAC,
+      ABAC: ACG_TOOLTIPS.ABAC,
+      FEATURE_CANNOT_BE_EDITED: ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED,
+    };
+
+    const tooltipText = tooltipMap[message];
+
+    const buttonLocator = this.editSummaryScreenAssetButtons.filter({
       has: this.page.getByRole('button', {
         name: buttonName,
         exact: true,
       }),
     });
-    const tooltipLocator: Locator = buttonLocator.getByRole('tooltip', {
-      name:
-        accessControlType == 'RBAC'
-          ? ACG_TOOLTIPS.RBAC
-          : accessControlType == 'ABAC'
-            ? ACG_TOOLTIPS.ABAC
-            : ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED,
+
+    const tooltipLocator = buttonLocator.getByRole('tooltip', {
+      name: tooltipText,
       exact: true,
     });
-    await test.step(`Hover over the ${buttonName} button`, async () => {
+
+    await test.step(`Hover over the "${buttonName}" button`, async () => {
       await buttonLocator.hover({ force: true });
     });
-    await test.step(`Verify the tooltip with message ${accessControlType == 'RBAC' ? ACG_TOOLTIPS.RBAC : accessControlType == 'ABAC' ? ACG_TOOLTIPS.ABAC : ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED} is visible`, async () => {
+
+    await test.step(`Verify tooltip: "${tooltipText}" is visible`, async () => {
       await expect(tooltipLocator).toBeVisible();
     });
   }
