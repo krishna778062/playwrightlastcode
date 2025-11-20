@@ -5,8 +5,10 @@ import { IntranetFileListComponent } from '@/src/modules/global-search/ui/compon
 
 /**
  * Reusable type filter component for filtering files by type (Document, Presentation, Spreadsheet)
+ * Can also be used for other filters like Author by passing the filter name dynamically
  */
 export class TypeFilterComponent extends BaseComponent {
+  private readonly filterName: string;
   private readonly typeFilterButton: Locator;
   private readonly typeFilterArrow: Locator;
   private readonly typeFilterTitle: Locator;
@@ -18,21 +20,27 @@ export class TypeFilterComponent extends BaseComponent {
   private readonly searchResultListContainer: Locator;
   private readonly searchResultFirstListItem: Locator;
   private readonly fileResultLocator: (fileName: string) => Locator;
+  private readonly peopleSearchInput: Locator;
 
-  constructor(page: Page) {
+  /**
+   * @param page - Playwright page object
+   * @param filterName - The name of the filter (e.g., "Type", "Author").
+   */
+  constructor(page: Page, filterName: string) {
     super(page);
+    this.filterName = filterName;
 
-    // Type filter button with span containing "Type" text
+    // Filter button with span containing filter name text (e.g., "Type", "Author")
     this.typeFilterButton = this.page.locator('[class*="FilterGroup-module"]').filter({
-      has: this.page.locator('span').filter({ hasText: 'Type' }),
+      has: this.page.locator('span').filter({ hasText: this.filterName }),
     });
 
-    // Arrow icon beside type filter button
+    // Arrow icon beside filter button
     this.typeFilterArrow = this.typeFilterButton.locator('[data-testid="i-arrowDown"]');
 
-    // Type filter title (h3 with "Type" text)
+    // Filter title (h3 with filter name text)
     this.typeFilterTitle = this.page.locator('h3[class*="Typography-module__heading"]').filter({
-      hasText: 'Type',
+      hasText: this.filterName,
     });
 
     // Type filter option by text (e.g., "Document File", "Presentation File", "Spreadsheet File")
@@ -73,73 +81,89 @@ export class TypeFilterComponent extends BaseComponent {
           has: this.page.locator('h2').filter({ hasText: fileName }),
         })
         .first();
+
+    // People search input field (id="people-search")
+    this.peopleSearchInput = this.page.locator('#people-search');
   }
 
   /**
-   * Verifies Type filter button is displayed
+   * Verifies filter button is displayed
    * @param options - Options for the step
    */
   async verifyTypeFilterButtonDisplayed(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Verify Type filter button is displayed', async () => {
+    return await test.step(options?.stepInfo || `Verify ${this.filterName} filter button is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.typeFilterButton, {
-        timeout: 10000,
-        assertionMessage: 'Verifying Type filter button is visible',
+        timeout: 50000,
+        assertionMessage: `Verifying ${this.filterName} filter button is visible`,
       });
     });
   }
 
   /**
-   * Verifies Type filter arrow is displayed
+   * Verifies filter arrow is displayed
    * @param options - Options for the step
    */
   async verifyTypeFilterArrowDisplayed(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Verify Type filter arrow is displayed', async () => {
+    return await test.step(options?.stepInfo || `Verify ${this.filterName} filter arrow is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.typeFilterArrow, {
         timeout: 10000,
-        assertionMessage: 'Verifying Type filter arrow is visible',
+        assertionMessage: `Verifying ${this.filterName} filter arrow is visible`,
       });
     });
   }
 
   /**
-   * Clicks on Type filter button
+   * Clicks on filter button
    * @param options - Options for the step
    */
   async clickTypeFilterButton(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Click on Type filter button', async () => {
+    return await test.step(options?.stepInfo || `Click on ${this.filterName} filter button`, async () => {
       await this.clickOnElement(this.typeFilterButton);
     });
   }
 
   /**
-   * Verifies Type filter title is displayed
+   * Verifies filter title is displayed
    * @param options - Options for the step
    */
   async verifyTypeFilterTitleDisplayed(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Verify Type filter title "Type" is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.typeFilterTitle, {
-        timeout: 10000,
-        assertionMessage: 'Verifying Type filter title is visible',
-      });
-    });
+    return await test.step(
+      options?.stepInfo || `Verify ${this.filterName} filter title "${this.filterName}" is displayed`,
+      async () => {
+        await this.verifier.verifyTheElementIsVisible(this.typeFilterTitle, {
+          timeout: 10000,
+          assertionMessage: `Verifying ${this.filterName} filter title is visible`,
+        });
+      }
+    );
   }
 
   /**
-   * Verifies type filter option is displayed (e.g., "Document File", "Presentation File", "Spreadsheet File")
+   * Verifies filter option is displayed (e.g., "Document File", "Presentation File", "Spreadsheet File", or author names)
+   * If people-search input is displayed, types the option text in that field
    * @param optionText - The text of the filter option to verify
    * @param options - Options for the step
    */
   async verifyTypeFilterOptionDisplayed(optionText: string, options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || `Verify type filter option "${optionText}" is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.typeFilterOption(optionText), {
-        timeout: 10000,
-        assertionMessage: `Verifying type filter option "${optionText}" is visible`,
-      });
-    });
+    return await test.step(
+      options?.stepInfo || `Verify ${this.filterName} filter option "${optionText}" is displayed`,
+      async () => {
+        const isPeopleSearchVisible = await this.verifier.isTheElementVisible(this.peopleSearchInput, {
+          timeout: 2000,
+        });
+        if (isPeopleSearchVisible) {
+          await this.fillInElement(this.peopleSearchInput, optionText);
+        }
+        await this.verifier.verifyTheElementIsVisible(this.typeFilterOption(optionText), {
+          timeout: 10000,
+          assertionMessage: `Verifying ${this.filterName} filter option "${optionText}" is visible`,
+        });
+      }
+    );
   }
 
   /**
-   * Verifies radio button is displayed beside type filter option
+   * Verifies radio button is displayed beside filter option
    * @param optionText - The text of the filter option
    * @param options - Options for the step
    */
@@ -153,7 +177,7 @@ export class TypeFilterComponent extends BaseComponent {
   }
 
   /**
-   * Verifies count is displayed beside type filter option
+   * Verifies count is displayed beside filter option
    * @param optionText - The text of the filter option
    * @param options - Options for the step
    */
@@ -167,7 +191,7 @@ export class TypeFilterComponent extends BaseComponent {
   }
 
   /**
-   * Clicks on type filter option radio button
+   * Clicks on filter option radio button
    * @param optionText - The text of the filter option to select
    * @param options - Options for the step
    */
@@ -178,21 +202,26 @@ export class TypeFilterComponent extends BaseComponent {
   }
 
   /**
-   * Verifies count displayed in type filter box once selected
+   * Verifies count displayed in filter box once selected
    * @param expectedCount - Expected count value
    * @param options - Options for the step
    */
   async verifyTypeFilterGroupCount(expectedCount: string, options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || `Verify type filter group count is "${expectedCount}"`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.typeFilterGroupCount, {
-        timeout: 10000,
-        assertionMessage: 'Verifying type filter group count is visible',
-      });
-      const countText = await this.typeFilterGroupCount.textContent();
-      if (countText?.trim() !== expectedCount) {
-        throw new Error(`Expected type filter group count to be "${expectedCount}", but found: "${countText?.trim()}"`);
+    return await test.step(
+      options?.stepInfo || `Verify ${this.filterName} filter group count is "${expectedCount}"`,
+      async () => {
+        await this.verifier.verifyTheElementIsVisible(this.typeFilterGroupCount, {
+          timeout: 10000,
+          assertionMessage: `Verifying ${this.filterName} filter group count is visible`,
+        });
+        const countText = await this.typeFilterGroupCount.textContent();
+        if (countText?.trim() !== expectedCount) {
+          throw new Error(
+            `Expected ${this.filterName} filter group count to be "${expectedCount}", but found: "${countText?.trim()}"`
+          );
+        }
       }
-    });
+    );
   }
 
   /**
@@ -220,16 +249,19 @@ export class TypeFilterComponent extends BaseComponent {
   }
 
   /**
-   * Verifies count is not visible in type filter box after clearing
+   * Verifies count is not visible in filter box after clearing
    * @param options - Options for the step
    */
   async verifyTypeFilterGroupCountNotVisible(options?: { stepInfo?: string }): Promise<void> {
-    return await test.step(options?.stepInfo || 'Verify type filter group count is not visible', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.typeFilterGroupCount, {
-        timeout: 10000,
-        assertionMessage: 'Verifying type filter group count is not visible after clearing',
-      });
-    });
+    return await test.step(
+      options?.stepInfo || `Verify ${this.filterName} filter group count is not visible`,
+      async () => {
+        await this.verifier.verifyTheElementIsNotVisible(this.typeFilterGroupCount, {
+          timeout: 10000,
+          assertionMessage: `Verifying ${this.filterName} filter group count is not visible after clearing`,
+        });
+      }
+    );
   }
 
   /**

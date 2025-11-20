@@ -21,9 +21,9 @@ export const PAGE_SEARCH_TEST_DATA: ContentSearchTestCase = {
 };
 
 export const EVENT_SEARCH_TEST_DATA: ContentSearchTestCase = {
-  label: 'Event',
   content: 'event',
   category: 'Uncategorized',
+  label: 'Event',
   description: 'Test event content for global search verification and validation',
   accessType: SITE_TYPES.PUBLIC,
 };

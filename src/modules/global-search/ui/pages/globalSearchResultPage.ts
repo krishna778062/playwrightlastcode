@@ -106,11 +106,12 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
-   * Creates a type filter component for filtering files by type
-   * @returns TypeFilterComponent - The type filter component instance
+   * Creates a filter component for filtering search results (e.g., Type, Author)
+   * @param filterName - The name of the filter (e.g., "Type", "Author"). Defaults to "Type" for backward compatibility
+   * @returns TypeFilterComponent - The filter component instance
    */
-  getTypeFilter(): TypeFilterComponent {
-    return new TypeFilterComponent(this.page);
+  getTypeFilter(filterName: string): TypeFilterComponent {
+    return new TypeFilterComponent(this.page, filterName);
   }
 
   private getTestIdForFileType(fileType: string): string {

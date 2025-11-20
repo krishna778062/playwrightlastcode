@@ -7,6 +7,10 @@ import {
   EVENT_SEARCH_TEST_DATA,
   PAGE_SEARCH_TEST_DATA,
 } from '@/src/modules/global-search/test-data/content-search.test-data';
+import {
+  AUTHOR_FILTER_TEST_DATA,
+  TYPE_FILTER_TEST_DATA,
+} from '@/src/modules/global-search/test-data/filter-names.test-data';
 import { INTRANET_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/intranet-file-search.test-data';
 import { VIDEO_FILE_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/video-file-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
@@ -53,7 +57,7 @@ for (const fileType of typeFilterTestData) {
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'SEN-XXXXX',
+            zephyrTestId: 'SEN-15493',
           });
 
           // Search for the file
@@ -61,73 +65,58 @@ for (const fileType of typeFilterTestData) {
             stepInfo: `Searching with term "${uploadedFileName}" to verify file appears in search results`,
           });
 
-          // Dismiss any survey popup that might appear
           await globalSearchResultPage.dismissSurveyPopupIfPresent();
-
-          // Get Type filter component
-          const typeFilter = globalSearchResultPage.getTypeFilter();
-
-          // Verify Type filter button is displayed
+          // TYPE_FILTER_TEST_DATA.filterName returns 'Type' string from filter-names.test-data.ts
+          const filterName = TYPE_FILTER_TEST_DATA.filterName; // This is 'Type'
+          const typeFilter = globalSearchResultPage.getTypeFilter(filterName); // Passes 'Type' to getTypeFilter
           await typeFilter.verifyTypeFilterButtonDisplayed({
             stepInfo: 'Verify Type filter button is displayed',
           });
 
-          // Verify arrow is displayed beside Type filter
           await typeFilter.verifyTypeFilterArrowDisplayed({
             stepInfo: 'Verify arrow is displayed beside Type filter',
           });
 
-          // Click on Type filter
           await typeFilter.clickTypeFilterButton({
             stepInfo: 'Click on Type filter',
           });
 
-          // Verify "Type" text is displayed
           await typeFilter.verifyTypeFilterTitleDisplayed({
-            stepInfo: 'Verify "Type" text is displayed',
+            stepInfo: `Verify "${filterName}" text is displayed`,
           });
 
-          // Verify type filter option is displayed (e.g., "Document File", "Presentation File", "Spreadsheet File")
           await typeFilter.verifyTypeFilterOptionDisplayed(fileType.typeFilter, {
             stepInfo: `Verify "${fileType.typeFilter}" text is displayed`,
           });
 
-          // Verify radio button is displayed beside the type filter option
           await typeFilter.verifyTypeFilterRadioButtonDisplayed(fileType.typeFilter, {
             stepInfo: `Verify radio button is displayed beside "${fileType.typeFilter}"`,
           });
 
-          // Verify count is displayed beside the type filter option
           await typeFilter.verifyTypeFilterCountDisplayed(fileType.typeFilter, {
             stepInfo: `Verify count is displayed beside "${fileType.typeFilter}"`,
           });
 
-          // Click on the radio button for the type filter option
           await typeFilter.clickTypeFilterOption(fileType.typeFilter, {
             stepInfo: `Click on "${fileType.typeFilter}" radio button`,
           });
 
-          // Verify the file appears in the filtered results
           await typeFilter.verifyFileNameIsDisplayedInResults(uploadedFileName, {
             stepInfo: `Verify the file "${uploadedFileName}" appears in the filtered results`,
           });
 
-          // Verify count displayed in type filter box once selected
           await typeFilter.verifyTypeFilterGroupCount('1', {
             stepInfo: 'Verify count displayed in type filter box is "1"',
           });
 
-          // Verify Clear button is displayed
           await typeFilter.verifyClearButtonDisplayed({
             stepInfo: 'Verify Clear button is displayed',
           });
 
-          // Click on Clear button
           await typeFilter.clickClearButton({
             stepInfo: 'Click on Clear button',
           });
 
-          // Verify count is not visible after clearing
           await typeFilter.verifyTypeFilterGroupCountNotVisible({
             stepInfo: 'Verify count is not visible after clearing',
           });
@@ -137,7 +126,6 @@ for (const fileType of typeFilterTestData) {
   );
 }
 
-// Test for Page type filter
 test.describe(
   'global Search - Page Search Type Filter functionality',
   {
@@ -179,81 +167,66 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-XXXXX',
+          zephyrTestId: 'SEN-19822',
         });
 
-        // Search for the page
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
 
-        // Dismiss any survey popup that might appear
         await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
-        // Get Type filter component
-        const typeFilter = globalSearchResultPage.getTypeFilter();
+        const filterName = TYPE_FILTER_TEST_DATA.filterName;
+        const typeFilter = globalSearchResultPage.getTypeFilter(filterName);
 
-        // Verify Type filter button is displayed
         await typeFilter.verifyTypeFilterButtonDisplayed({
           stepInfo: 'Verify Type filter button is displayed',
         });
 
-        // Verify arrow is displayed beside Type filter
         await typeFilter.verifyTypeFilterArrowDisplayed({
           stepInfo: 'Verify arrow is displayed beside Type filter',
         });
 
-        // Click on Type filter
         await typeFilter.clickTypeFilterButton({
           stepInfo: 'Click on Type filter',
         });
 
-        // Verify "Type" text is displayed
         await typeFilter.verifyTypeFilterTitleDisplayed({
-          stepInfo: 'Verify "Type" text is displayed',
+          stepInfo: `Verify "${filterName}" text is displayed`,
         });
 
-        // Verify type filter option is displayed
         await typeFilter.verifyTypeFilterOptionDisplayed(testData.typeFilter!, {
           stepInfo: `Verify "${testData.typeFilter}" text is displayed`,
         });
 
-        // Verify radio button is displayed beside the type filter option
         await typeFilter.verifyTypeFilterRadioButtonDisplayed(testData.typeFilter!, {
           stepInfo: `Verify radio button is displayed beside "${testData.typeFilter}"`,
         });
 
-        // Verify count is displayed beside the type filter option
         await typeFilter.verifyTypeFilterCountDisplayed(testData.typeFilter!, {
           stepInfo: `Verify count is displayed beside "${testData.typeFilter}"`,
         });
 
-        // Click on the radio button for the type filter option
         await typeFilter.clickTypeFilterOption(testData.typeFilter!, {
           stepInfo: `Click on "${testData.typeFilter}" radio button`,
         });
 
-        // Verify the page appears in the filtered results
         await typeFilter.verifyFileNameIsDisplayedInResults(pageName, {
           stepInfo: `Verify the page "${pageName}" appears in the filtered results`,
         });
 
-        // Verify count displayed in type filter box once selected
         await typeFilter.verifyTypeFilterGroupCount('1', {
           stepInfo: 'Verify count displayed in type filter box is "1"',
         });
 
-        // Verify Clear button is displayed
         await typeFilter.verifyClearButtonDisplayed({
           stepInfo: 'Verify Clear button is displayed',
         });
 
-        // Click on Clear button
         await typeFilter.clickClearButton({
           stepInfo: 'Click on Clear button',
         });
 
-        // Verify count is not visible after clearing
         await typeFilter.verifyTypeFilterGroupCountNotVisible({
           stepInfo: 'Verify count is not visible after clearing',
         });
@@ -262,7 +235,6 @@ test.describe(
   }
 );
 
-// Test for Event type filter
 test.describe(
   'global Search - Event Search Type Filter functionality',
   {
@@ -310,81 +282,66 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-XXXXX',
+          zephyrTestId: 'SEN-19823',
         });
 
-        // Search for the event
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(eventName, {
           stepInfo: `Searching with term "${eventName}" to verify event appears in search results`,
         });
 
-        // Dismiss any survey popup that might appear
         await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
-        // Get Type filter component
-        const typeFilter = globalSearchResultPage.getTypeFilter();
+        const filterName = TYPE_FILTER_TEST_DATA.filterName;
+        const typeFilter = globalSearchResultPage.getTypeFilter(filterName);
 
-        // Verify Type filter button is displayed
         await typeFilter.verifyTypeFilterButtonDisplayed({
           stepInfo: 'Verify Type filter button is displayed',
         });
 
-        // Verify arrow is displayed beside Type filter
         await typeFilter.verifyTypeFilterArrowDisplayed({
           stepInfo: 'Verify arrow is displayed beside Type filter',
         });
 
-        // Click on Type filter
         await typeFilter.clickTypeFilterButton({
           stepInfo: 'Click on Type filter',
         });
 
-        // Verify "Type" text is displayed
         await typeFilter.verifyTypeFilterTitleDisplayed({
-          stepInfo: 'Verify "Type" text is displayed',
+          stepInfo: `Verify "${filterName}" text is displayed`,
         });
 
-        // Verify type filter option is displayed
         await typeFilter.verifyTypeFilterOptionDisplayed(testData.label, {
           stepInfo: `Verify "${testData.label}" text is displayed`,
         });
 
-        // Verify radio button is displayed beside the type filter option
         await typeFilter.verifyTypeFilterRadioButtonDisplayed(testData.label, {
           stepInfo: `Verify radio button is displayed beside "${testData.label}"`,
         });
 
-        // Verify count is displayed beside the type filter option
         await typeFilter.verifyTypeFilterCountDisplayed(testData.label, {
           stepInfo: `Verify count is displayed beside "${testData.label}"`,
         });
 
-        // Click on the radio button for the type filter option
         await typeFilter.clickTypeFilterOption(testData.label, {
           stepInfo: `Click on "${testData.label}" radio button`,
         });
 
-        // Verify the event appears in the filtered results
         await typeFilter.verifyFileNameIsDisplayedInResults(eventName, {
           stepInfo: `Verify the event "${eventName}" appears in the filtered results`,
         });
 
-        // Verify count displayed in type filter box once selected
         await typeFilter.verifyTypeFilterGroupCount('1', {
           stepInfo: 'Verify count displayed in type filter box is "1"',
         });
 
-        // Verify Clear button is displayed
         await typeFilter.verifyClearButtonDisplayed({
           stepInfo: 'Verify Clear button is displayed',
         });
 
-        // Click on Clear button
         await typeFilter.clickClearButton({
           stepInfo: 'Click on Clear button',
         });
 
-        // Verify count is not visible after clearing
         await typeFilter.verifyTypeFilterGroupCountNotVisible({
           stepInfo: 'Verify count is not visible after clearing',
         });
@@ -393,7 +350,6 @@ test.describe(
   }
 );
 
-// Test for Video type filter
 test.describe(
   'global Search - Video Search Type Filter functionality',
   {
@@ -428,86 +384,183 @@ test.describe(
     test(
       'verify Type filter functionality for Video',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'SEN-XXXXX',
+          zephyrTestId: 'SEN-19824',
         });
 
-        // Search for the video
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
           stepInfo: `Searching with term "${uploadedFileName}" to verify video appears in search results`,
         });
 
-        // Dismiss any survey popup that might appear
         await globalSearchResultPage.dismissSurveyPopupIfPresent();
 
-        // Get Type filter component
-        const typeFilter = globalSearchResultPage.getTypeFilter();
+        const filterName = TYPE_FILTER_TEST_DATA.filterName;
+        const typeFilter = globalSearchResultPage.getTypeFilter(filterName);
 
-        // Verify Type filter button is displayed
         await typeFilter.verifyTypeFilterButtonDisplayed({
           stepInfo: 'Verify Type filter button is displayed',
         });
 
-        // Verify arrow is displayed beside Type filter
         await typeFilter.verifyTypeFilterArrowDisplayed({
           stepInfo: 'Verify arrow is displayed beside Type filter',
         });
 
-        // Click on Type filter
         await typeFilter.clickTypeFilterButton({
           stepInfo: 'Click on Type filter',
         });
 
-        // Verify "Type" text is displayed
         await typeFilter.verifyTypeFilterTitleDisplayed({
-          stepInfo: 'Verify "Type" text is displayed',
+          stepInfo: `Verify "${filterName}" text is displayed`,
         });
 
-        // Verify type filter option is displayed
         await typeFilter.verifyTypeFilterOptionDisplayed(videoFileType.label, {
           stepInfo: `Verify "${videoFileType.label}" text is displayed`,
         });
 
-        // Verify radio button is displayed beside the type filter option
         await typeFilter.verifyTypeFilterRadioButtonDisplayed(videoFileType.label, {
           stepInfo: `Verify radio button is displayed beside "${videoFileType.label}"`,
         });
 
-        // Verify count is displayed beside the type filter option
         await typeFilter.verifyTypeFilterCountDisplayed(videoFileType.label, {
           stepInfo: `Verify count is displayed beside "${videoFileType.label}"`,
         });
 
-        // Click on the radio button for the type filter option
         await typeFilter.clickTypeFilterOption(videoFileType.label, {
           stepInfo: `Click on "${videoFileType.label}" radio button`,
         });
 
-        // Verify the video appears in the filtered results
         await typeFilter.verifyFileNameIsDisplayedInResults(uploadedFileName, {
           stepInfo: `Verify the video "${uploadedFileName}" appears in the filtered results`,
         });
 
-        // Verify count displayed in type filter box once selected
         await typeFilter.verifyTypeFilterGroupCount('1', {
           stepInfo: 'Verify count displayed in type filter box is "1"',
         });
 
-        // Verify Clear button is displayed
         await typeFilter.verifyClearButtonDisplayed({
           stepInfo: 'Verify Clear button is displayed',
         });
 
-        // Click on Clear button
         await typeFilter.clickClearButton({
           stepInfo: 'Click on Clear button',
         });
 
-        // Verify count is not visible after clearing
         await typeFilter.verifyTypeFilterGroupCountNotVisible({
+          stepInfo: 'Verify count is not visible after clearing',
+        });
+      }
+    );
+  }
+);
+
+test.describe(
+  'global Search - Author Filter functionality',
+  {
+    tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.CONTENT_SEARCH],
+  },
+  () => {
+    const testData = PAGE_SEARCH_TEST_DATA;
+    let siteId: string;
+    let contentId: string;
+    let pageName: string;
+    let authorName: string;
+
+    test.beforeEach('Page Setup', async ({ appManagerFixture, publicSite }) => {
+      const pageDetails = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: publicSite.siteId,
+        contentInfo: {
+          contentType: testData.content,
+          contentSubType: testData.contentType!,
+        },
+        options: {
+          contentDescription: testData.description,
+        },
+      });
+
+      siteId = publicSite.siteId;
+      contentId = pageDetails.contentId;
+      pageName = pageDetails.pageName;
+      authorName = pageDetails.authorName;
+    });
+
+    test.afterEach('Cleanup page content', async ({ appManagerFixture }) => {
+      if (contentId && siteId) {
+        await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
+      }
+    });
+
+    test(
+      'verify Author filter functionality',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-19825',
+        });
+
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
+          stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
+        });
+
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        // AUTHOR_FILTER_TEST_DATA.filterName returns 'Author' string from filter-names.test-data.ts
+        const filterName = AUTHOR_FILTER_TEST_DATA.filterName; // This is 'Author'
+        const authorFilter = globalSearchResultPage.getTypeFilter(filterName); // Passes 'Author' to getTypeFilter
+
+        await authorFilter.verifyTypeFilterButtonDisplayed({
+          stepInfo: 'Verify Author filter button is displayed',
+        });
+
+        await authorFilter.verifyTypeFilterArrowDisplayed({
+          stepInfo: 'Verify arrow is displayed beside Author filter',
+        });
+
+        await authorFilter.clickTypeFilterButton({
+          stepInfo: 'Click on Author filter',
+        });
+
+        await authorFilter.verifyTypeFilterTitleDisplayed({
+          stepInfo: `Verify "${filterName}" text is displayed`,
+        });
+
+        await authorFilter.verifyTypeFilterOptionDisplayed(authorName, {
+          stepInfo: `Verify "${authorName}" text is displayed`,
+        });
+
+        await authorFilter.verifyTypeFilterRadioButtonDisplayed(authorName, {
+          stepInfo: `Verify radio button is displayed beside "${authorName}"`,
+        });
+
+        await authorFilter.verifyTypeFilterCountDisplayed(authorName, {
+          stepInfo: `Verify count is displayed beside "${authorName}"`,
+        });
+
+        await authorFilter.clickTypeFilterOption(authorName, {
+          stepInfo: `Click on "${authorName}" radio button`,
+        });
+
+        await authorFilter.verifyFileNameIsDisplayedInResults(pageName, {
+          stepInfo: `Verify the page "${pageName}" appears in the filtered results`,
+        });
+
+        await authorFilter.verifyTypeFilterGroupCount('1', {
+          stepInfo: 'Verify count displayed in author filter box is "1"',
+        });
+
+        await authorFilter.verifyClearButtonDisplayed({
+          stepInfo: 'Verify Clear button is displayed',
+        });
+
+        await authorFilter.clickClearButton({
+          stepInfo: 'Click on Clear button',
+        });
+
+        await authorFilter.verifyTypeFilterGroupCountNotVisible({
           stepInfo: 'Verify count is not visible after clearing',
         });
       }
