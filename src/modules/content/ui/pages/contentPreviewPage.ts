@@ -30,7 +30,6 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
-  addReplyToComment: (replyText: string, mentionUserName?: string) => Promise<string>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
   verifyCancelButtonVisible: (postText: string) => Promise<void>;
   clickCancelButton: (postText: string) => Promise<void>;

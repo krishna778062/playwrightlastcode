@@ -55,7 +55,6 @@ export interface IFeedActions {
   clickOnCloseButton: () => Promise<void>;
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
-  addReplyToPost: (replyText: string) => Promise<void>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
