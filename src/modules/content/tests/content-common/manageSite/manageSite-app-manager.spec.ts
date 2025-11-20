@@ -6,6 +6,14 @@ import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { BulkActionOptions, ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import {
+  BulkActionOptions,
+  ManageContentOptions,
+  ManageContentTags,
+  SortOptionLabels,
+  TagOption,
+} from '@/src/modules/content/constants';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -226,6 +234,7 @@ test.describe(
         await manageContentPage.actions.clickOnPublishButton();
       }
     );
+
     test(
       'to verify the site author name and event start date',
       {
@@ -281,7 +290,7 @@ test.describe(
         await manageSitesComponent.clickOnInsideContentButtonAction();
         await siteDetailsPage.actions.clickOnContentTab();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
@@ -326,6 +335,7 @@ test.describe(
             'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
           );
         }
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
         await manageContentPage.actions.clickOnActivateApplyButton();
@@ -341,6 +351,78 @@ test.describe(
         await manageDeactivatedSitePage.loadPage();
       }
     );
+        await manageSiteAppManagerPage.loadPage();
+      }
+    );
+    test(
+      'to verify the bulk action from app manager can activate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action from end user can activate the site',
+          zephyrTestId: 'CONT-26574',
+          storyId: 'CONT-26574',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageSitesComponent.clickOnUpdateCategoryButtonAction();
+        await manageContentPage.actions.clickOnApply();
+        const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
+    test(
+      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-20538',
+          storyId: 'CONT-20538',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await appManagerFixture.page.reload();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await appManagerFixture.page.reload();
+        const contentNames = await manageContentPage.actions.getAllContentNames();
+        console.log('contentNames', contentNames);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+      }
+    );
+
     test(
       'verify the site activate option in manage site user drop down sites for all site types',
       {

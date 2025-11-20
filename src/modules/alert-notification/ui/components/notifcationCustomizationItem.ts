@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from 'playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
 

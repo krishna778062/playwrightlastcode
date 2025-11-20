@@ -64,6 +64,11 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
         zephyrTestId: 'RC-2720',
         storyId: 'RC-2720',
       });
+      tagTest(test.info(), {
+        description: "Validate peer gifting points selection for the 'give recognition' modal.",
+        zephyrTestId: 'RC-2719',
+        storyId: 'RC-2719',
+      });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
       await recognitionHub.visitRecognitionHub();

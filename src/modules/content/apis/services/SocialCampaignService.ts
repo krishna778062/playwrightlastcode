@@ -113,6 +113,7 @@ export class SocialCampaignService {
       const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.updateStatus(campaignId), {
         data: { action },
       });
+      console.log('response', await response.json());
       return (await response.json()) as SocialCampaignStatusUpdateResponse;
     });
   }
@@ -168,6 +169,45 @@ export class SocialCampaignService {
         }
       );
       return (await response.json()) as SocialCampaignShareResponse;
+    });
+  }
+
+  /**
+   * Enables social campaign integrations (Facebook, LinkedIn, Twitter)
+   * @param settings - Social campaign settings configuration
+   * @returns Promise<any> - The response from the API
+   */
+  async enableSocialCampaign(settings?: {
+    facebookIntegrationEnabled?: boolean;
+    linkedinIntegrationEnabled?: boolean;
+    twitterIntegrationEnabled?: boolean;
+  }): Promise<any> {
+    return await test.step('Enabling social campaign integrations', async () => {
+      const defaultSettings = {
+        facebookIntegrationEnabled: true,
+        linkedinIntegrationEnabled: true,
+        twitterIntegrationEnabled: true,
+      };
+
+      const socialCampaignsSettings = settings || defaultSettings;
+
+      const response = await this.httpClient.post(API_ENDPOINTS.socialCampaign.enableSettings, {
+        data: {
+          socialCampaignsSettings,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to enable social campaign settings. Status: ${response.status()}, Response: ${errorText.substring(0, 200)}`
+        );
+      }
+
+      return await response.json();
     });
   }
 }
