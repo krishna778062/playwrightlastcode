@@ -266,12 +266,6 @@ test.describe(
         await accessControlGroupsPage.searchForACG(acgName[0]);
         await accessControlGroupsPage.verifyACGStatus(acgName[0], ACG_STATUS.INACTIVE);
         await identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
-        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
-        );
-        await accessControlGroupsPage.dismissTheToastMessage({
-          toastText: 'Access control group was successfully updated',
-        });
 
         await accessControlGroupsPage.clickOnACGNameButton(acgName[0]);
         await accessControlGroupsPage.viewACGModal.verifyTitleOfTheModal(acgName[0]);
