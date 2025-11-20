@@ -285,9 +285,6 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
-
-        // Verify all site names are displayed (method handles the loop internally)
         await manageSiteAppManagerPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );

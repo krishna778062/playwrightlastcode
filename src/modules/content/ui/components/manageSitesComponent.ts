@@ -326,6 +326,9 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Searching site name in search bar', async () => {
       await this.clickOnElement(this.searchSiteNameInSearchBar);
       await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+    });
+  }
+
   getSiteFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
     return this.page.getByText(bulkActionOption).first();
   }

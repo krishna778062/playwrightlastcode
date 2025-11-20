@@ -702,42 +702,6 @@ export class SiteManagementHelper {
 
     return { siteId, name: siteName };
   }
-
-  async getSiteAuthorNameAndEventStartDate(): Promise<{
-    siteId: string;
-    authorName?: string;
-    startsAt?: string;
-    eventName?: string;
-    siteName?: string;
-  }> {
-    const siteListResponse = await this.getListOfSites();
-
-    for (const _site of siteListResponse.result.listOfItems) {
-      // Get individual site details to check for coverImage and hasEvents
-      const response = await this.contentManagementService.getContentList();
-      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
-      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
-      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
-      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
-
-      if (content) {
-        return {
-          siteId: siteId?.siteId || '',
-          authorName: content.authoredBy.name,
-          startsAt: startsAt?.startsAt,
-          eventName: content.title,
-          siteName: siteName?.site.name,
-        };
-      }
-    }
-
-    throw new Error('No site found with cover image and hasEvents: true');
-  }
-  /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
-   */
   /**
    * Ensures user is a member of the site with the specified role
    * First checks if user is already a member, if not adds them, then assigns the role
@@ -833,34 +797,42 @@ export class SiteManagementHelper {
     site: any;
     members: any;
   }> {
-    const maxAttempts = options?.maxAttempts || 10;
-    let attempts = 0;
-
-    const seenSiteIds = new Set<string>();
-
     return await test.step(
       expectedMemberCount ? `Getting site with ${expectedMemberCount} members` : `Getting site with its members`,
       async () => {
-        while (attempts < maxAttempts) {
-          // Get sites list
-          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase(), size: 1000 });
-          const sites = sitesResponse.result.listOfItems.filter(
-            (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
+        // Get all sites first (outside the loop)
+        const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase(), size: 1000 });
+        console.log(`Found ${sitesResponse.result.listOfItems.length} sites`);
+        // Filter only by isActive to check all active sites
+        const sites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        console.log(`Filtered to ${sites.length} active site(s) to check`);
+
+        if (sites.length === 0) {
+          throw new Error(
+            `No sites found matching criteria: accessType=${accessType}, isActive=true, isManager=false, isMember=false`
           );
+        }
 
-          // Filter out seen sites to try different ones
-          const unseenSites = sites.filter((site: any) => !seenSiteIds.has(site.siteId));
+        // If no expected count specified, return first site immediately
+        if (expectedMemberCount === undefined) {
+          const siteInfo = sites[0];
+          const siteDetails = await this.siteManagementService.getSiteDetails(siteInfo.siteId);
+          const membersResponse = await this.getSiteMembershipList(siteInfo.siteId, options);
+          return {
+            site: siteDetails.result,
+            members: membersResponse.result,
+          };
+        }
 
-          if (unseenSites.length === 0) {
-            // All sites seen, reset and start over
-            seenSiteIds.clear();
-            seenSiteIds.add(sites[0]?.siteId);
-          }
+        console.log(`Expected: ${expectedMemberCount} members`);
 
-          // Get first unseen site
-          const siteInfo = unseenSites.length > 0 ? unseenSites[0] : sites[0];
+        // Loop through all sites to find one with expected member count
+        for (let i = 0; i < sites.length; i++) {
+          const siteInfo = sites[i];
           const siteId = siteInfo.siteId;
-          seenSiteIds.add(siteId);
+
+          console.log(`Checking site ${i + 1}/${sites.length}: ${siteInfo.name} (${siteId})`);
 
           // Get site details
           const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
@@ -870,16 +842,6 @@ export class SiteManagementHelper {
           const memberCount = membersResponse.result?.listOfItems?.length || 0;
 
           console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
-
-          // If no expected count specified, return immediately
-          if (expectedMemberCount === undefined) {
-            return {
-              site: siteDetails.result,
-              members: membersResponse.result,
-            };
-          }
-
-          console.log(`Expected: ${expectedMemberCount} members`);
 
           // Check if this site has the expected number of members
           if (memberCount >= expectedMemberCount) {
@@ -902,7 +864,6 @@ export class SiteManagementHelper {
                   const memberName = member.name || member.displayName || '';
                   const memberEmail = member.email || '';
                   const memberPeopleId = member.peopleId || member.userId || '';
-
                   // Exclude if name, email, or userId matches
                   return (
                     memberName !== excludedUserName &&
@@ -919,6 +880,14 @@ export class SiteManagementHelper {
                 console.log(
                   `Filtered members: ${originalMembers.length} -> ${filteredMembersList.length} (excluded: ${excludedUserName})`
                 );
+
+                // Check if filtered members still meet the requirement
+                if (filteredMembersList.length < expectedMemberCount) {
+                  console.log(
+                    `After filtering, site has ${filteredMembersList.length} members (need ${expectedMemberCount}), continuing...`
+                  );
+                  continue;
+                }
               } catch (error) {
                 console.log(`Warning: Failed to get user info for exclusion: ${error}. Returning all members.`);
                 // If we can't get user info, return all members
@@ -931,21 +900,14 @@ export class SiteManagementHelper {
               members: filteredMembers,
             };
           }
-
-          attempts++;
-          console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
-
-          // Wait a bit before next attempt to avoid rapid API calls
-          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         throw new Error(
-          `Failed to find a site with at least ${expectedMemberCount} members after ${maxAttempts} attempts`
+          `Failed to find a site with at least ${expectedMemberCount} members after checking ${sites.length} site(s)`
         );
       }
     );
   }
-
   /**
    * Gets the membership list for a site
    * @param siteId - The site ID

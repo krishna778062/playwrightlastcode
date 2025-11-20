@@ -58,6 +58,7 @@ export interface ISiteDashboardAssertions {
   validatePostNotVisible: (postText: string) => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -350,5 +351,20 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   }
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  /**
+   * Verifies that multiple site names are displayed on the page
+   * @param siteNames - Array of site names to verify
+   */
+  async verifySitesNamesAreDisplayed(siteNames: string[]): Promise<void> {
+    await test.step(`Verify ${siteNames.length} site name(s) are displayed`, async () => {
+      for (const siteName of siteNames) {
+        await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+          assertionMessage: `Site link "${siteName}" should be visible`,
+          timeout: 15000,
+        });
+      }
+    });
   }
 }

@@ -212,6 +212,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     let index = 0;
     while (index < namesArray.length) {
       const siteName = namesArray[index];
+      await this.searchSiteNameInSearchBar(siteName);
       await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
         assertionMessage: 'Site name should be displayed on manage site page',
       });
