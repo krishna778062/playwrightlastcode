@@ -890,7 +890,7 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   async likeFeedPost(postText: string): Promise<void> {
     await test.step(`Like feed post: ${postText}`, async () => {
       // Ensure post is visible first
