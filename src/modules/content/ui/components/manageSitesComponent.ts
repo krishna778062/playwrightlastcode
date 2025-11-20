@@ -62,7 +62,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
-    this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').first();
+    this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
