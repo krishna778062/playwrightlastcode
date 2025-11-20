@@ -189,5 +189,45 @@ test.describe(
         await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
       }
     );
+    multiUserTileFixture(
+      'Verify Display recent paystubs workday apptile is visible to end users on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28965',
+          storyId: 'INT-20803',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday display recent paystubs apptile${faker.string.alphanumeric({ length: 6 })}`;
+        const endUserSiteDashboard = new SiteDashboard(endUserPage);
+        const siteDashboard = new SiteDashboard(adminPage, tileManagementHelper);
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add tile, verify by both users, then remove
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTile,
+          SiteManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await endUserSiteDashboard.navigateToSite(createdSite.siteId);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserSiteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );
