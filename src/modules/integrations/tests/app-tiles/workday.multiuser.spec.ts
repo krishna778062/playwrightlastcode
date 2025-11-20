@@ -229,5 +229,39 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    multiUserTileFixture(
+      'verify Display inbox app manager defined workday apptile is visible to end users after it has been added by the App Manager',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+      },
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28966',
+          storyId: 'INT-20803',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday display inbox apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTile,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await adminPage.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
+      }
+    );
   }
 );
