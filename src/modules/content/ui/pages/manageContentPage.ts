@@ -393,6 +393,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async clickOnValidationViewAllButton(): Promise<void> {
     await this.manageContentComponent.clickOnValidationViewAllButton();
+  }
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);
   }

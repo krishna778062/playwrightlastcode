@@ -190,7 +190,7 @@ export class ContentManagementService implements IContentManagementServices {
         );
       }
 
-      const updatePayload = {
+      const updatePayload: any = {
         authoredBy: authoredById,
         contentSubType: contentSubType,
         listOfFiles: contentItem.listOfFiles || [],
@@ -201,14 +201,11 @@ export class ContentManagementService implements IContentManagementServices {
         listOfInlineImages: contentItem.listOfInlineImages || [],
         listOfInlineVideos: contentItem.listOfInlineVideos || [],
         summary: contentItem.summary || null,
-        readTimeInMin: contentItem.readTimeInMin || 1,
-        publishTo: contentItem.publishTo || null,
         bodyHtml: contentItem.bodyHtml || '',
         imgLayout: contentItem.imgLayout || 'small',
         isMaximumWidth: contentItem.isMaximumWidth || false,
         isQuestionAnswerEnabled:
           contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
-        targetAudience: contentItem.targetAudience || [],
         title: contentItem.title || '',
         isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
         listOfTopics: contentItem.listOfTopics || [],
@@ -218,6 +215,10 @@ export class ContentManagementService implements IContentManagementServices {
         isRestricted: contentItem.isRestricted || false,
         language: contentItem.language || 'en-US',
       };
+
+      // Only include optional fields if they have values (avoid sending null/undefined/read-only fields)
+      // readTimeInMin, publishTo, and targetAudience are likely read-only or not allowed in updates
+      // so we exclude them to avoid "Additional properties" errors
 
       const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
         data: updatePayload,

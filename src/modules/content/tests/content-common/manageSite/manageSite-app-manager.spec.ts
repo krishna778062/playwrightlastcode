@@ -6,15 +6,14 @@ import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
+  BulkActionOptions,
   CONTENT_VALIDATION_PERIOD_TIME,
   ContentStatus,
-  BulkActionOptions,
   ManageContentOptions,
   ManageContentTags,
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -429,7 +428,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_CONTENT, '@CONT-20539'],
       },
-      async ({ appManagerFixture, standardUserApiFixture, standardUserFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'verify user able to apply validate action on selected content under Content tab in Manage Site',
           customTags: [ContentSuiteTags.MANAGE_CONTENT],
@@ -442,7 +441,7 @@ test.describe(
         await governanceScreenPage.actions.selectContentValidationPeriodTime(
           CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
         );
-        const siteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: siteId,
           contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
