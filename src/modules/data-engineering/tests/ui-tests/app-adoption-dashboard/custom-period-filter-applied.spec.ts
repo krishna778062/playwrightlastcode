@@ -49,7 +49,7 @@ test.describe(
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: '2024-01-01',
         customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
-        departments: ['Campaign', 'HR'],
+        departments: ['test', 'QA'],
         locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
         companyName: ['Simpplr'],
         groupBy: GroupByOnUserParameter.LOCATION,

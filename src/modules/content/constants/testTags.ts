@@ -28,6 +28,7 @@ export enum ContentFeatureTags {
   VALIDATION_REQUIRED_BAR_STATE = '@validation-required-bar-state',
   EDIT_TOPICS = '@edit-topics',
   SEARCH_TOPICS = '@search-topics',
+  MY_CONTENT_FILTER = '@my-content-filter',
   TOPIC_DETAILS_CONTENT = '@topic-details-content',
   TOPIC_DETAILS_FEED = '@topic-details-feed',
   MANAGE_TOPICS = '@manage-topics',

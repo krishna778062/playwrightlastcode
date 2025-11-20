@@ -1,3 +1,4 @@
+export * from './contactIconType';
 export * from './contentSortBy';
 export * from './contentStatus';
 export * from './contentType';
@@ -6,6 +7,7 @@ export * from './feedPostingPermission';
 export * from './feedSortBy';
 export * from './filesPreviewEnums';
 export * from './manageContentOptions';
+export * from './manageSiteOptions';
 export * from './onboardingOptions';
 export * from './pageContentType';
 export * from './sitePageEnums';
