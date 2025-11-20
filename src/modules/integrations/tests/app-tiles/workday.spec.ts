@@ -814,8 +814,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-22737',
+          storyId: 'INT-13791',
         });
 
         // Use homeDashboard from fixture
@@ -854,8 +854,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-22907',
+          storyId: 'INT-13791',
         });
 
         createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
@@ -897,8 +897,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-14010',
-          storyId: 'INT-13791',
+          zephyrTestId: 'INT-13998',
+          storyId: 'INT-12864',
         });
         createdTileTitle = `Workday Display Inbox apptile ${faker.string.alphanumeric({ length: 6 })}`;
         await homeDashboard.addTilewithDefinedSettings(
@@ -927,8 +927,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-14011',
-          storyId: 'INT-13791',
+          zephyrTestId: 'INT-14017',
+          storyId: 'INT-12864',
         });
         createdTileTitle = `Workday Display Inbox site manager defined ${faker.string.alphanumeric({ length: 6 })}`;
         // Create site and navigate
@@ -970,8 +970,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-26059',
+          storyId: 'INT-12864',
         });
 
         // Use homeDashboard from fixture
@@ -1001,20 +1001,14 @@ test.describe(
     test(
       'verify metadata for Workday Display Inbox app manager defined tile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
 
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-26028',
+          storyId: 'INT-12864',
         });
 
         //Generate a random tile title
@@ -1052,8 +1046,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-14019',
+          storyId: 'INT-12864',
         });
 
         //Generate a random tile title

@@ -164,8 +164,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28964',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-22911',
+          storyId: 'INT-21590',
         });
 
         //Generate a random tile title
@@ -196,8 +196,8 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28965',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-22912',
+          storyId: 'INT-21590',
         });
 
         //Generate a random tile title
