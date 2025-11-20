@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    updateCategory: '/v1/content/sites/attributes?attribute=category',
     listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,

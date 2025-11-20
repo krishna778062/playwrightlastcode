@@ -35,7 +35,13 @@ export class FeatureSiteComponent extends BaseComponent {
 
       // Wait for the site to appear in dropdown results
       const siteDropdownOption = this.getSiteFromDropdown(siteName);
-      await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      try {
+        await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      } catch (error) {
+        await this.searchSitesInput.clear();
+        await this.fillInElement(this.searchSitesInput, siteName);
+        await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      }
 
       // Click on the specific site from dropdown
       await this.clickOnElement(siteDropdownOption);
