@@ -66,6 +66,10 @@ export interface IFeedActions {
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
+  clickShareButtonForPost: (postText: string) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  clickShareButton: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   enterFeedPostText: (text: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
@@ -101,7 +105,6 @@ export interface IFeedActions {
   attemptImagePasteInShareModal: () => Promise<void>;
   clickShareOnComment: () => Promise<void>;
   clickShareOnPost: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   addUserNameMentionInShareDialog: (userName: string) => Promise<void>;
   addSiteMentionInShareDialog: (siteName: string) => Promise<void>;
   addTopicMentionInShareDialog: (topicName: string) => Promise<void>;
@@ -165,6 +168,7 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
   verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
@@ -550,6 +554,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.shareComponent.selectShareOptionAsSiteFeed();
   }
 
+  async clickShareButtonForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareButtonForPost(postText);
+  }
+
+  async verifyPostIsAtTop(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsAtTop(postText);
+  }
+
+  async clickShareButton(): Promise<void> {
+    await this.shareComponent.actions.clickShareButton();
+  }
+
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
   }
@@ -780,7 +796,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }): Promise<void> {
     await test.step(`Share feed post "${params.postText}" with message "${params.shareMessage}"`, async () => {
       // Click share icon on the post
-      await this.listFeedComponent.clickShareButtonOnPost(params.postText);
+      await this.listFeedComponent.clickShareIcon(params.postText);
 
       // Wait for share dialog to appear
       await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
@@ -825,7 +841,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async clickShareButtonOnPost(postText: string): Promise<void> {
-    await this.listFeedComponent.clickShareButtonOnPost(postText);
+    await this.listFeedComponent.clickShareIcon(postText);
   }
 
   async attemptImagePasteInShareModal(): Promise<void> {
