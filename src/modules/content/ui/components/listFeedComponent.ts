@@ -17,6 +17,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly siteImageLocator: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
+  readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
@@ -191,6 +192,7 @@ export class ListFeedComponent extends BaseComponent {
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
@@ -865,9 +867,40 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /* Likes a feed post by clicking the like button
-   * @param postText - The text of the post to like
-   */
+  async verifyCancelButtonVisible(postText: string): Promise<void> {
+    await test.step(`Verify Cancel button is visible for reply editor on post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyCancelButton.first(), {
+        assertionMessage: `Cancel button should be visible in reply editor for post "${postText}"`,
+      });
+    });
+  }
+
+  async clickCancelButton(postText: string): Promise<void> {
+    await test.step(`Click Cancel button in reply editor for post: ${postText}`, async () => {
+      await this.clickOnElement(this.replyCancelButton.first());
+    });
+  }
+
+  async verifyReplyEditorVisible(postText: string): Promise<void> {
+    await test.step(`Verify reply editor is visible for post: ${postText}`, async () => {
+      const replyInputContainer = this.replyInput;
+
+      await this.verifier.verifyTheElementIsVisible(replyInputContainer, {
+        assertionMessage: `Reply editor should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyReplyEditorClosed(postText: string): Promise<void> {
+    await test.step(`Verify reply editor is closed for post: ${postText}`, async () => {
+      const replyInputContainer = this.replyInput;
+
+      await this.verifier.verifyTheElementIsNotVisible(replyInputContainer, {
+        assertionMessage: `Reply editor should be closed (not visible) for post "${postText}"`,
+      });
+    });
+  }
+
   async likeFeedPost(postText: string): Promise<void> {
     await test.step(`Like feed post: ${postText}`, async () => {
       // Ensure post is visible first

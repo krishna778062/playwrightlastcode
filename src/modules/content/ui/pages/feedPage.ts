@@ -56,10 +56,15 @@ export interface IFeedActions {
   clickOnCloseButton: () => Promise<void>;
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
+  openReplyEditorForPost: (postText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
+  verifyCancelButtonVisible: (postText: string) => Promise<void>;
+  clickCancelButton: (postText: string) => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
+  verifyReplyEditorClosed: (postText: string) => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
   clickAskQuestionButton: () => Promise<string>;
@@ -440,6 +445,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.addReplyToPost(replyText, postId);
   }
 
+  async openReplyEditorForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
   async verifyReplyIsVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyIsVisible(replyText);
   }
@@ -466,6 +475,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
+  }
+
+  async verifyCancelButtonVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyCancelButtonVisible(postText);
+  }
+
+  async clickCancelButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickCancelButton(postText);
+  }
+
+  async verifyReplyEditorVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorVisible(postText);
+  }
+
+  async verifyReplyEditorClosed(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorClosed(postText);
   }
 
   async verifyPostsIFollow(): Promise<void> {
