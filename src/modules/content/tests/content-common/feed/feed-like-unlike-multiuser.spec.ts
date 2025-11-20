@@ -546,26 +546,23 @@ test.describe(
           storyId: 'CONT-31817',
         });
 
-        // Given: The "Add Reaction" icon is visible on a feed post
-        // When: User hovers on "React to this post" button and selects "like" emoji
+        // User hovers on "React to this post" button and selects "like" emoji
         await feedPage.actions.hoverOnReactionButton(createdPostText);
         await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
 
-        // Verify the selected emoji (like) replaces the "Add Reaction" icon and Remove the reaction to test another emoji
+        // Remove the reaction to test another emoji
         await feedPage.actions.unlikeFeedPost(createdPostText);
 
-        // When: User hovers on "React to this post" button and selects "love" emoji
+        // User hovers on "React to this post" button and selects "love" emoji
         await feedPage.actions.hoverOnReactionButton(createdPostText);
         await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LOVE);
 
-        // Then: Verify the selected emoji (love) replaces the "Add Reaction" icon
         await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.LOVE);
 
-        // When: User hovers on "React to this post" button and selects "Haha" emoji
+        // User hovers on "React to this post" button and selects "Haha" emoji
         await feedPage.actions.hoverOnReactionButton(createdPostText);
         await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        // Then: Verify the selected emoji (Haha) replaces the "Add Reaction" icon
         await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.INSIGHTFUL);
       }
     );
@@ -625,8 +622,6 @@ test.describe(
           standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
         ]);
 
-        // Given: A post has reactions from multiple users
-        // App Manager reacts with "like"
         await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
         await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
 
@@ -657,15 +652,13 @@ test.describe(
           standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
         ]);
 
-        // When: The user clicks on the reaction count or reactions text
+        // The user clicks on the reaction count or reactions text
         await feedPage.actions.clickReactionCountButton(createdPostText);
 
-        // Then: A modal should open
+        // A modal should open
         await feedPage.actions.verifyReactionModalIsVisible();
 
-        // And: The modal should display users grouped by each reaction emoji
-        // Verify tabs exist for each emoji type
-        // Click on "like" tab and verify user is displayed
+        // The modal should display users grouped by each reaction emoji
         await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
         await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
 
