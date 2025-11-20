@@ -219,7 +219,7 @@ for (const testData of feedTestData) {
           });
 
           // Add reply to the feed post
-          await appManagerFeedPage.actions.addReplyToPost(replyText);
+          await appManagerFeedPage.actions.addReplyToPost(replyText, createdPostId);
 
           // Verify reply is associated with the correct post
           await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
