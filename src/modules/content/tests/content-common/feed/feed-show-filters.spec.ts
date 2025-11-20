@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -26,11 +27,6 @@ test.describe(
     test.beforeEach(
       'Setup test environment and user relationships',
       async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
-        // Configure app governance settings
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
-
         // Initialize identity management helper
         const identityManagementHelper = new IdentityManagementHelper(
           appManagerFixture.apiContext,
@@ -45,7 +41,7 @@ test.describe(
 
         // Get or create a site where endUser is content manager
         // First, get a public site
-        const publicSite = await appManagerFixture.siteManagementHelper.createPublicSite({
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
           waitForSearchIndex: false,
         });
 
@@ -210,8 +206,8 @@ test.describe(
           storyId: 'CONT-26728',
         });
 
-        const postText = 'Created a Feed Post';
-        const shareMessage = "Shared Manager's Post";
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
 
         // Use Site Manager's page (already logged in via fixture, Admin should not be following Site Manager)
         await siteManagerFixture.navigationHelper.clickOnGlobalFeed();

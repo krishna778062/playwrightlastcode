@@ -823,7 +823,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyPostIsNotVisible(postText: string): Promise<void> {
     await this.listFeedComponent.validatePostNotVisible(postText);
   }
-  
+
   async clickShareButtonOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareButtonOnPost(postText);
   }
