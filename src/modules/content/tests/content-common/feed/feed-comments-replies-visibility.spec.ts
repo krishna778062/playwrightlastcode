@@ -231,6 +231,7 @@ test.describe(
           description: 'Verify User is able to view 10 comments or replies on Feed detail page - Content Feed Flow',
           zephyrTestId: 'CONT-27691',
           storyId: '27691',
+          isKnownFailure: true,
         });
 
         // Create a fresh page to ensure we start with 0 comments

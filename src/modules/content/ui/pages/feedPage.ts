@@ -176,7 +176,6 @@ export interface IFeedAssertions {
   getVisibleReplyCount: (postText: string) => Promise<number>;
   verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
   verifyPostIsAtTop: (postText: string) => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
   verifyShareModalIsOpen: () => Promise<void>;
@@ -433,9 +432,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickOnEditVersionButton(): Promise<void> {
     await this.filePreviewComponent.clickOnEditVersionButton();
-  }
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await this.listFeedComponent.verifyPostIsNotVisible(postText);
   }
 
   async addReplyToPost(replyText: string, postId: string): Promise<void> {

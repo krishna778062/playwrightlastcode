@@ -107,8 +107,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly getPostAttachmentsLocator = (postText: string): Locator =>
     this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
 
-  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
-
   /**
    * Gets a locator for the lightbox button on images
    * @param postText - The text of the post to find lightbox button for
@@ -583,7 +581,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.getPostTimestampLocator(postText));
     });
   }
-  
+
   private async getImageSrcAttribute(siteImageLocator: Locator): Promise<string> {
     const imageSrc = await siteImageLocator.getAttribute('src');
     if (!imageSrc) {
