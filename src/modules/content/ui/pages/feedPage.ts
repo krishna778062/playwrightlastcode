@@ -168,6 +168,7 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
   verifyPostIsAtTop: (postText: string) => Promise<void>;
   verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
@@ -781,13 +782,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Shares a feed post with mentions, message, and post location
-   * @param postText - The text of the post to share
-   * @param mentionUserName - The user name to mention (optional)
-   * @param shareMessage - The message to add when sharing
-   * @param postIn - The location to post in ('Home Feed' or 'Site Feed')
-   */
+  async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
+    await this.listFeedComponent.verifySiteImageInFeedCard(contentTitle, siteId, siteImageFileId);
+  }
+
   async shareFeedPost(params: {
     postText: string;
     mentionUserName?: string;

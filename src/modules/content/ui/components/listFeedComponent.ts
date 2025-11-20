@@ -14,6 +14,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
   readonly likeButtonForReply: Locator;
+  readonly siteImageLocator: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
   readonly replyInput: Locator;
@@ -181,6 +182,7 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.siteImageLocator = this.page.locator('.imageAnchor img');
   }
 
   /**
@@ -506,6 +508,49 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.shareSocialCampaignButton(description), {
         assertionMessage: 'Share button should be visible',
       });
+    });
+  }
+
+  private async getImageSrcAttribute(siteImageLocator: Locator): Promise<string> {
+    const imageSrc = await siteImageLocator.getAttribute('src');
+    if (!imageSrc) {
+      throw new Error(`Site image in feed card does not have a src attribute`);
+    }
+    return imageSrc;
+  }
+
+  private extractFileIdFromImageSrc(imageSrc: string): string {
+    return imageSrc.split('/').pop()?.split('?')[0] || imageSrc;
+  }
+
+  /**
+   * Verifies that the site image is displayed in the feed card for the given content
+   * and that it matches the site's iconImage
+   * @param contentTitle - The title of the content in the feed card
+   * @param siteId - The site ID to verify the image belongs to
+   * @param siteImageFileId - The fileId of the site's iconImage to verify it matches
+   */
+  async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
+    await test.step(`Verify site image is displayed in feed card for content "${contentTitle}" and matches site iconImage`, async () => {
+      const siteImageLocator = this.siteImageLocator;
+      await this.verifier.verifyTheElementIsVisible(siteImageLocator, {
+        assertionMessage: `Site image should be visible in feed card for content "${contentTitle}"`,
+      });
+
+      const imageSrc = await this.getImageSrcAttribute(siteImageLocator);
+
+      const feedImageFileId = this.extractFileIdFromImageSrc(imageSrc);
+      console.log(`Feed image src: ${imageSrc}`);
+      console.log(`Feed image fileId: ${feedImageFileId}`);
+      console.log(`Site image fileId: ${siteImageFileId}`);
+
+      if (feedImageFileId !== siteImageFileId) {
+        throw new Error(
+          `Site image in feed card does not match site iconImage. Expected fileId: ${siteImageFileId}, but feed image fileId was: ${feedImageFileId}`
+        );
+      }
+
+      console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
 
