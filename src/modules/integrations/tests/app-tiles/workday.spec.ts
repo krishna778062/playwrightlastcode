@@ -544,7 +544,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
+          zephyrTestId: 'INT-22904, INT-22738',
           storyId: 'INT-21590',
         });
 
@@ -583,7 +583,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
+          zephyrTestId: 'INT-22906',
           storyId: 'INT-21590',
         });
 
@@ -626,8 +626,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-22756, INT-22921',
+          storyId: 'INT-21588',
         });
 
         // Use homeDashboard from fixture
@@ -661,8 +661,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-22752, INT-22910',
+          storyId: 'INT-21588',
         });
 
         createdTileTitle = `Workday Display Recent Paystubs site ${faker.string.alphanumeric({ length: 6 })}`;
@@ -698,7 +698,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22732',
+          zephyrTestId: 'INT-22914',
           storyId: 'INT-21590',
         });
 
