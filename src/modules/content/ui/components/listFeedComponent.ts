@@ -37,7 +37,7 @@ export class ListFeedComponent extends BaseComponent {
    * @returns Locator for the post text
    */
   readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+    this.page.locator("div[class*='postContent']").getByText(text, { exact: true }).first();
 
   readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
 
@@ -144,7 +144,7 @@ export class ListFeedComponent extends BaseComponent {
       .first();
 
   /**
-   * Gets a locator for the Share button on a specific feed post
+   * Gets a locator for the Share button/icon for a specific post
    * @param postText - The text of the post to find Share button for
    * @returns Locator for the Share button
    */
@@ -532,13 +532,26 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks the share button on a specific feed post
-   * @param postText - The text of the post to share
-   */
-  async clickShareButtonOnPost(postText: string): Promise<void> {
-    await test.step(`Click share button on post: ${postText}`, async () => {
+  async clickShareButtonForPost(postText: string): Promise<void> {
+    await test.step(`Click Share button for post: ${postText}`, async () => {
       await this.clickOnElement(this.getShareButtonLocator(postText));
+    });
+  }
+
+  /**
+   * Verifies that a post appears at the top of the feed (first position)
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostIsAtTop(postText: string): Promise<void> {
+    await test.step(`Verify post "${postText}" is at the top of the feed`, async () => {
+      // Get all post containers
+      const allPosts = this.page.locator("div[class*='postContent']");
+      const firstPost = allPosts.first();
+
+      // Verify the first post contains the expected text
+      await this.verifier.verifyTheElementIsVisible(firstPost.filter({ hasText: postText }), {
+        assertionMessage: `Post "${postText}" should be at the top of the feed`,
+      });
     });
   }
 
