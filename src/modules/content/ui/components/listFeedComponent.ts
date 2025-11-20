@@ -553,7 +553,7 @@ export class ListFeedComponent extends BaseComponent {
       console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
-  
+
   async clickShareOnComment(): Promise<void> {
     await test.step(`Click share button`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {

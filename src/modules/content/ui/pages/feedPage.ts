@@ -785,7 +785,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
     await this.listFeedComponent.verifySiteImageInFeedCard(contentTitle, siteId, siteImageFileId);
   }
-  
+
   async shareFeedPost(params: {
     postText: string;
     mentionUserName?: string;
