@@ -368,7 +368,7 @@ export class ManageSitesComponent extends BaseComponent {
    * @param siteName - The exact name of the site
    * @returns Locator for the site row
    */
- getSiteRowByExactName(siteName: string): Locator {
+  getSiteRowByExactName(siteName: string): Locator {
     return this.page
       .locator('tr')
       .filter({ has: this.page.locator('h2', { hasText: siteName }) })
