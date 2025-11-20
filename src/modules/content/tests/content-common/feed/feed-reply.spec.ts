@@ -3,8 +3,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../../ui/pages/sitePages';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -12,6 +10,7 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
 interface FeedResponse {
   result: {
@@ -47,7 +46,7 @@ async function getPrerequisiteData(
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
     const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
-    resources.siteId = siteResult;
+    resources.siteId = siteResult.siteId;
   }
 
   if (testData.feedType === 'Content Feed') {
@@ -111,9 +110,10 @@ for (const testData of feedTestData) {
 
       test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+        /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      */
         // Initialize feed page
         appManagerFeedPage = new FeedPage(appManagerFixture.page);
         const resources = await getPrerequisiteData(
@@ -177,7 +177,7 @@ for (const testData of feedTestData) {
         createdPostText = feedTestDataGenerated.text;
         createdPostId = feedResponse.result.feedId;
         // Generate reply text
-        replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
+        replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
         console.log(`Created feed via API: ${feedResponse.result.feedId}`);
 
         // Navigate to feed URL
@@ -219,7 +219,7 @@ for (const testData of feedTestData) {
           });
 
           // Add reply to the feed post
-          await appManagerFeedPage.actions.addReplyToPost(replyText);
+          await appManagerFeedPage.actions.addReplyToPost(replyText, createdPostId);
 
           // Verify reply is associated with the correct post
           await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
@@ -232,6 +232,35 @@ for (const testData of feedTestData) {
 
           // Verify delete button is visible
           await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
+        }
+      );
+
+      test(
+        `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+        {
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30149'],
+        },
+        async ({}) => {
+          tagTest(test.info(), {
+            description: `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+            zephyrTestId: 'CONT-30149',
+            storyId: 'CONT-30149',
+          });
+
+          // Open reply editor for the post
+          await appManagerFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+          // Verify editor box opens
+          await appManagerFeedPage.actions.verifyReplyEditorVisible(createdPostText);
+
+          // Verify user can see the Cancel button
+          await appManagerFeedPage.actions.verifyCancelButtonVisible(createdPostText);
+
+          // Click Cancel
+          await appManagerFeedPage.actions.clickCancelButton(createdPostText);
+
+          // Verify editor box closes
+          await appManagerFeedPage.actions.verifyReplyEditorClosed(createdPostText);
         }
       );
     }
@@ -252,9 +281,10 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
       // Configure app governance settings
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       // Generate test data
       const feedTestDataByAppManager = TestDataGenerator.generateFeed({

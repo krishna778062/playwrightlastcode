@@ -1,4 +1,5 @@
 export * from './addContentModal';
+export * from './addCoverImageComponent';
 export * from './attachementUploader';
 export * from './contentDetailsComponent';
 export * from './contentEditor';
@@ -14,6 +15,7 @@ export * from './manageApplicationComponent';
 export * from './manageContentComponent';
 export * from './manageFeatureComponent';
 export * from './manageSitesComponent';
+export * from './mediaManagerComponent';
 export * from './notificationComponent';
 export * from './onboardingComponent';
 export * from './promotePageModal';
