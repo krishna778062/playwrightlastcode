@@ -2,8 +2,8 @@ name: Integrations Regression Tests
 
 on:
   schedule:
-    # Run only on Monday, Wednesday, Friday at 2 AM UTC
-    - cron: '0 2 * * 1,3,5'
+    # Run only on Monday, Wednesday, Friday at 1 AM UTC
+    - cron: '0 1 * * 1,3,5'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -68,7 +68,7 @@ jobs:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run integrations regression tests
-          npm run test:${{ matrix.module }} -- --workers=3
+          npm run test:${{ matrix.module }} -- --workers=5
 
       - name: Upload test report to github artifact backup
         if: always()
@@ -186,11 +186,11 @@ jobs:
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
               const knownFailed = data.suites.flatMap(s => 
-                s.suites.flatMap(ss => 
-                  ss.specs.flatMap(sp => 
-                    sp.tests.filter(t => 
+                (s.suites || []).flatMap(ss => 
+                  (ss.specs || []).flatMap(sp => 
+                    (sp.tests || []).filter(t => 
                       t.status === 'unexpected' && 
-                      t.annotations.some(a => a.type === 'known_failure')
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
                 )

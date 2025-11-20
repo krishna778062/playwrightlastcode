@@ -169,6 +169,12 @@ export class HomeDashboard extends BasePage {
   async verifyPersonalizeVisible(tileTitle: string): Promise<void> {
     return this.appTileComponent.verifyPersonalizeVisible(tileTitle);
   }
+  /**
+   * Click personalize and verify heading and field label are visible
+   */
+  async openPersonalizeAndVerify(tileTitle: string, fieldLabel: string): Promise<void> {
+    await this.appTileComponent.openPersonalizeAndVerify(tileTitle, fieldLabel);
+  }
 
   /**
    * Verify toast message appears
@@ -442,6 +448,22 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Verify FreshService Tickets Submitted by Me tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceTicketsSubmittedByMe(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceTicketsSubmittedByMe(tileTitle);
+  }
+
+  /**
+   * Verify FreshService Unassigned Tickets tile data
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyFreshserviceUnassignedTickets(tileTitle);
+  }
+
+  /**
    * Verify personalized Expensify report tile data with specific filters
    * @param tileTitle - The title of the tile to verify
    * @param expectedStatus - Expected status value (e.g., 'Processing')
@@ -517,6 +539,25 @@ export class HomeDashboard extends BasePage {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
       await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
       await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  /**
+   * Complete workflow to add an app tile with app manager defined and enable "Make user editable" before submitting
+   */
+  async addTilewithDefinedSettingsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    url: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile (enable toggle): ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterUrl(fieldName, appManagerDefined, url);
+      await this.tileOperationsComponent.enableToggleButton(tileTitle);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
@@ -843,13 +884,34 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Verify the "View all courses in Workday" link is visible on the tile
+   * Verify the "View all courses in Workday" link is visible
    */
   async verifyViewAllCoursesInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
     await this.tileOperationsComponent.verifyViewAllCoursesInWorkdayLink(tileTitle, expectedUrl);
   }
-  async setUpTile(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
-    await this.tileOperationsComponent.setUpTile(tileTitle, fieldName, fieldValue);
+  /**
+   * Verify the "View all payslips in Workday" link is visible
+   */
+  async verifyViewAllPayslipsInWorkdayLink(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.tileOperationsComponent.verifyViewAllPayslipsInWorkdayLink(tileTitle, expectedUrl);
+  }
+  /**
+   * Verify Workday Display Recent Paystubs metadata
+   */
+  async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
+  }
+  /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
+  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
+  }
+  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
   }
   /**
    * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
@@ -868,6 +930,34 @@ export class HomeDashboard extends BasePage {
       radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
       fields: [{ name: fieldName2, value: fieldValue2 }],
     });
+  }
+
+  /**
+   * Complete workflow to add a FreshService tile with App Manager Defined settings and toggle on
+   */
+  async addFreshServiceWithOptionsEnableToggle(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    fieldName: string,
+    fieldValue: string,
+    fieldName2?: string,
+    fieldValue2?: string
+  ): Promise<void> {
+    const config: {
+      radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      fields?: Array<{ name: string; value: string }>;
+    } = {
+      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
+    };
+
+    // Only add second field if fieldName2 is provided
+    if (fieldName2 && fieldName2.trim() !== '') {
+      config.fields = [{ name: fieldName2, value: fieldValue2 || '' }];
+    }
+
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, config);
   }
   /**
    * Complete workflow to add an app tile with flexible configuration

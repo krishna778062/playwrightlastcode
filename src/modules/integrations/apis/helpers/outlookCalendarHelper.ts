@@ -104,7 +104,19 @@ export class OutlookCalendarHelper {
       throw new Error(`Outlook Calendar API error: ${errorText}`);
     }
 
-    return response.json();
+    // Handle empty responses (e.g., from accept/decline endpoints)
+    const contentType = response.headers.get('content-type');
+    const text = await response.text();
+
+    if (!text || text.trim() === '') {
+      return {};
+    }
+
+    if (contentType?.includes('application/json')) {
+      return JSON.parse(text);
+    }
+
+    return text;
   }
 
   async findEvents(eventTitle: string, calendarId = 'primary'): Promise<OutlookCalendarEvent[]> {

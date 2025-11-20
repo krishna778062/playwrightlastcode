@@ -93,7 +93,7 @@ export const config = {
       frontendBaseUrl: 'https://frontline-automation.qa.simpplr.xyz',
       apiBaseUrl: 'https://frontline-automation-api.qa.simpplr.xyz',
       appManagerEmail: 'rakesh.yadav@simpplr.com',
-      appManagerPassword: 'Simp@123',
+      appManagerPassword: 'Test@123',
       endUserEmail: 'meenakshi.joshi+1@simpplr.com',
       endUserPassword: 'Simp@123',
       promotionManagerEmail: 'meenakshi.joshi@simpplr.com',

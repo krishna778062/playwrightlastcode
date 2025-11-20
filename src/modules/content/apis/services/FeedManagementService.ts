@@ -3,11 +3,10 @@ import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
+import { AttachedFile, CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
 import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
 
-import { HttpClient } from '../../../../core/api/clients/httpClient';
-
+import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IFeedManagementOperations } from '@/src/modules/content/apis/interfaces/IFeedManagementOperations';
 
 export function buildFeedTextJsonAndTextHtml(text: string) {
@@ -150,6 +149,365 @@ export function buildAttachmentObject(
   };
 }
 
+/**
+ * Builds a feed payload with all features: emoji, site mention, user mention, topic mentions,
+ * formatted bullet list (bold, italic, strikethrough, underline), nested list with link, and attachments
+ * @param params Configuration parameters for the feed
+ * @returns Complete CreateFeedPostPayload object with all features
+ *
+ * @example
+ * const feedPayload = buildFeedWithAllFeatures({
+ *   baseText: 'Add a Feed',
+ *   emoji: { name: 'monkey', emoji: '🐒' },
+ *   siteMention: { id: '34a91ba1-2982-48d1-9c0a-1f6f5b674f37', label: 'Public_subscription_site' },
+ *   userMention: { id: 'd18d9abc-88d8-486a-a034-d8451cf2e7f5', label: 'Application Manager1' },
+ *   topics: [
+ *     { id: 'new_topicCreat', label: 'topicCreat' },
+ *     { id: '2b92cfc0-21d9-4da4-a663-f09314b12741', label: 'best practices' }
+ *   ],
+ *   linkUrl: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+ *   listOfAttachedFiles: [{ fileId: '421a335e-9d97-47ad-b0d3-e88d8eabb878', provider: 'intranet', size: 187288, name: 'boitumelo-_8gR561QtEA-unsplash', type: 'JPEG' }],
+ *   scope: 'public',
+ *   siteId: null
+ * });
+ */
+export function buildFeedWithAllFeatures(params: {
+  baseText?: string;
+  emoji?: { name: string; emoji: string };
+  siteMention?: { id: string; label: string };
+  userMention?: { id: string; label: string };
+  topics?: { id: string; label: string }[];
+  linkUrl?: string;
+  listOfAttachedFiles?: AttachedFile[];
+  scope?: string;
+  siteId?: string | null;
+  contentId?: string | null;
+  ignoreToxic?: boolean;
+  type?: string;
+  variant?: string;
+}): CreateFeedPostPayload {
+  const {
+    baseText = 'Add a Feed',
+    emoji = { name: 'monkey', emoji: '🐒' },
+    siteMention,
+    userMention,
+    topics = [],
+    linkUrl = 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+    listOfAttachedFiles = [],
+    scope = 'public',
+    siteId = null,
+    contentId = null,
+    ignoreToxic = false,
+    type = 'post',
+    variant = 'standard',
+  } = params;
+
+  // Build the main paragraph content
+  const paragraphContent: any[] = [
+    {
+      type: 'text',
+      text: `${baseText} `,
+    },
+  ];
+
+  // Add emoji if provided
+  if (emoji) {
+    paragraphContent.push({
+      type: 'emoji',
+      attrs: {
+        name: emoji.name,
+        emoji: emoji.emoji,
+      },
+    });
+    paragraphContent.push({
+      type: 'text',
+      text: '. ',
+    });
+  }
+
+  // Add site mention if provided
+  if (siteMention) {
+    paragraphContent.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: siteMention.id,
+        label: siteMention.label,
+        type: 'site',
+      },
+    });
+    paragraphContent.push({
+      type: 'text',
+      text: '  ',
+    });
+  }
+
+  // Add user mention if provided
+  if (userMention) {
+    paragraphContent.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: userMention.id,
+        label: userMention.label,
+        type: 'user',
+      },
+    });
+    paragraphContent.push({
+      type: 'text',
+      text: ' ',
+    });
+  }
+
+  // Add topic mentions
+  topics.forEach((topic, index) => {
+    paragraphContent.push({
+      type: 'TopicMention',
+      attrs: {
+        id: topic.id,
+        label: topic.label,
+        type: 'topic',
+      },
+    });
+    if (index < topics.length - 1) {
+      paragraphContent.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
+
+  // Build bullet list with formatting
+  const bulletListContent = [
+    // Bold text item
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            class: null,
+            style: null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'bold' }],
+              text: 'Text with bold',
+            },
+          ],
+        },
+      ],
+    },
+    // Italic text item
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            class: null,
+            style: null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'italic' }],
+              text: 'Text with italic',
+            },
+          ],
+        },
+      ],
+    },
+    // Strikethrough text item
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            class: null,
+            style: null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'strike' }],
+              text: 'Text with strikethrough',
+            },
+          ],
+        },
+      ],
+    },
+    // Underline text item with nested bullet list containing link
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            class: null,
+            style: null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'underline' }],
+              text: 'text with underline',
+            },
+          ],
+        },
+        {
+          type: 'bulletList',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'listItem',
+              attrs: {
+                'data-sw-sid': null,
+              },
+              content: [
+                {
+                  type: 'paragraph',
+                  attrs: {
+                    class: null,
+                    style: null,
+                  },
+                  content: [
+                    {
+                      type: 'text',
+                      marks: [
+                        {
+                          type: 'link',
+                          attrs: {
+                            href: linkUrl,
+                            target: '_blank',
+                            rel: 'noopener noreferrer nofollow',
+                            class: null,
+                            alt: null,
+                            align: null,
+                            display: 'inline',
+                            isButton: null,
+                          },
+                        },
+                        { type: 'textStyle' },
+                      ],
+                      text: linkUrl,
+                    },
+                  ],
+                },
+                {
+                  type: 'paragraph',
+                  attrs: {
+                    class: null,
+                    style: null,
+                  },
+                  content: [
+                    {
+                      type: 'hardBreak',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  // Build the complete content structure
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        style: null,
+      },
+      content: paragraphContent,
+    },
+    {
+      type: 'bulletList',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: bulletListContent,
+    },
+  ];
+
+  // Build textJson
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  // Build textHtml
+  let textHtml = '<p>';
+
+  // Add base text
+  textHtml += `${baseText} `;
+
+  // Add emoji
+  if (emoji) {
+    textHtml += `<span data-name="${emoji.name}" class="tiptap-emoji" data-type="emoji">${emoji.emoji}</span>. `;
+  }
+
+  // Add site mention
+  if (siteMention) {
+    textHtml += `<span data-type="site" data-id="${siteMention.id}" data-label="${siteMention.label}"><a href="/site/${siteMention.id}" target="_blank">@${siteMention.label}</a></span>  `;
+  }
+
+  // Add user mention
+  if (userMention) {
+    textHtml += `<span data-type="user" data-id="${userMention.id}" data-label="${userMention.label}"><a href="/people/${userMention.id}" target="_blank">@${userMention.label}</a></span> `;
+  }
+
+  // Add topic mentions
+  topics.forEach(topic => {
+    textHtml += `<span data-type="topic" data-id="${topic.id}" data-label="${topic.label}"><a href="/topic/${topic.id}" target="_blank">#${topic.label}</a></span> `;
+  });
+
+  textHtml += '</p>';
+
+  // Add bullet list HTML
+  textHtml += '<ul>';
+  textHtml += '<li><p><strong>Text with bold</strong></p></li>';
+  textHtml += '<li><p><em>Text with italic</em></p></li>';
+  textHtml += '<li><p><s>Text with strikethrough</s></p></li>';
+  textHtml += '<li><p><u>text with underline</u>';
+  textHtml += '<ul>';
+  textHtml += `<li><p><a target="_blank" rel="noopener noreferrer nofollow" href="${linkUrl}"><span>${linkUrl}</span></a></p><p><br></p></li>`;
+  textHtml += '</ul>';
+  textHtml += '</li>';
+  textHtml += '</ul>';
+
+  return {
+    textJson,
+    textHtml,
+    scope,
+    siteId,
+    contentId,
+    listOfAttachedFiles,
+    ignoreToxic,
+    type,
+    variant,
+  };
+}
+
 const defaultFeedPayload: CreateFeedPostPayload = buildCreateFeedPayload(faker.lorem.sentence(), 'public');
 
 /**
@@ -194,6 +552,61 @@ export class FeedManagementService implements IFeedManagementOperations {
       console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * @description Creates a feed with all features: emoji, site mention, user mention, topic mentions,
+   * formatted bullet list (bold, italic, strikethrough, underline), nested list with link, and attachments
+   * @param params Configuration parameters for the feed with all features
+   * @returns {Promise<FeedPostResponse>}
+   * @memberof FeedManagementService
+   *
+   * @example
+   * const feedResponse = await feedService.createWithAllFeatures({
+   *   baseText: 'Add a Feed',
+   *   emoji: { name: 'monkey', emoji: '🐒' },
+   *   siteMention: { id: '34a91ba1-2982-48d1-9c0a-1f6f5b674f37', label: 'Public_subscription_site' },
+   *   userMention: { id: 'd18d9abc-88d8-486a-a034-d8451cf2e7f5', label: 'Application Manager1' },
+   *   topics: [
+   *     { id: 'new_topicCreat', label: 'topicCreat' },
+   *     { id: '2b92cfc0-21d9-4da4-a663-f09314b12741', label: 'best practices' }
+   *   ],
+   *   linkUrl: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+   *   listOfAttachedFiles: [{ fileId: '421a335e-9d97-47ad-b0d3-e88d8eabb878', provider: 'intranet', size: 187288, name: 'boitumelo-_8gR561QtEA-unsplash', type: 'JPEG' }],
+   *   scope: 'public',
+   *   siteId: null
+   * });
+   */
+  async createWithAllFeatures(params: {
+    baseText?: string;
+    emoji?: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl?: string;
+    listOfAttachedFiles?: AttachedFile[];
+    scope?: string;
+    siteId?: string | null;
+    contentId?: string | null;
+    ignoreToxic?: boolean;
+    type?: string;
+    variant?: string;
+  }): Promise<FeedPostResponse> {
+    return await test.step('Creating a feed with all features via API post request', async () => {
+      const payload = buildFeedWithAllFeatures(params);
+      console.log('feed payload JSON with all features: ', JSON.stringify(payload, null, 2));
+
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
+        data: payload,
+      });
+      const responseBody = await response.json();
+      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
       }
 
       return responseBody;

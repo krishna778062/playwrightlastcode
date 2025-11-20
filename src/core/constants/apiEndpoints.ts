@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    updateCategory: '/v1/content/sites/attributes?attribute=category',
     listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
@@ -80,6 +81,8 @@ export const API_ENDPOINTS = {
     createTopic: '/v1/content/topics',
     deleteTopics: '/v1/content/topics/bulk-delete',
     contentListInSite: '/v1/content/sites/content/list',
+    homeCarouselItems: '/v1/content/carousel/items/list',
+    deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
   },
 
@@ -111,6 +114,7 @@ export const API_ENDPOINTS = {
     shareToFeed: (campaignId: string, sharedWith: string) =>
       `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
+    enableSettings: '/v1/account/appConfig/app.integrations.social.campaigns',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',

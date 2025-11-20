@@ -7,16 +7,33 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
 import { getEnvConfig } from '../utils/getEnvConfig';
 
+// Optional import for content module config
+let contentConfigModule: any;
+try {
+  contentConfigModule = require('@/src/modules/content/config/contentConfig');
+} catch {
+  // Content module not available - this is expected for non-content modules
+  contentConfigModule = null;
+}
+
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
 export class UserTestDataBuilder {
   readonly userManagementService: UserManagementService;
 
   constructor(apiRequestContext: APIRequestContext, baseUrl?: string) {
-    this.userManagementService = new UserManagementService(
-      apiRequestContext,
-      baseUrl ? baseUrl : getEnvConfig().apiBaseUrl
-    );
+    // If baseUrl is provided, use it; otherwise check for content config, then fall back to env
+    let apiBaseUrl: string;
+    if (baseUrl) {
+      apiBaseUrl = baseUrl;
+    } else if (contentConfigModule?.isContentConfigInitialized?.()) {
+      const contentConfig = contentConfigModule.getContentTenantConfigFromCache();
+      apiBaseUrl = contentConfig.apiBaseUrl;
+    } else {
+      apiBaseUrl = getEnvConfig().apiBaseUrl;
+    }
+
+    this.userManagementService = new UserManagementService(apiRequestContext, apiBaseUrl);
   }
 
   /**

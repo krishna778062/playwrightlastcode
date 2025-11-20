@@ -21,6 +21,7 @@
     "test:global-search:smoke": "cross-env MODULE_NAME=global-search npx playwright test --config=src/modules/global-search/playwright.global-search.config.ts --grep=@smoke",
     "test:frontline": "cross-env MODULE_NAME=frontline npx playwright test --config=src/modules/frontline/playwright.frontline.config.ts",
     "test:content": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts",
+    "test:content-api": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-api.config.ts",
     "test:content-settings": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-settings.config.ts",
     "test:content-studio": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-studio.config.ts",
     "test:content:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep=@P0",
@@ -59,9 +60,12 @@
     "test:integrations-okta:test": "cross-env TEST_ENV=test MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-okta.config.ts",
     "test:integrations-azuresso": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
     "test:integrations-azuresso:test": "cross-env TEST_ENV=test MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
+    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts"
+    "test:recognition:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
+    "test:privateRecognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.private-recognition.config.ts",
+    "test:privateRecognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.private-recognition.config.ts"
   },
   "keywords": [],
   "author": "",
