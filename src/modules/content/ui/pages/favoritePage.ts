@@ -17,6 +17,11 @@ export interface IFavoritePageActions {
   commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
   unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
   likeFeedPost: (postContainer: Locator) => Promise<void>;
+export interface IFavoritePageActions {
+  clickOnPeopleTab: () => Promise<void>;
+  searchingFavoriteUser: (fullName: string) => Promise<void>;
+  hoverOnUserProfile: (fullName: string) => Promise<void>;
+  getFirstDisplayedUserName: () => Promise<string>;
 }
 export interface IFavoritePageAssertions {
   verifyTheUserIsVisible: (fullName: string) => Promise<void>;
@@ -78,6 +83,8 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
   readonly getContentLinkByName = (contentName: string): Locator =>
     this.getContentTabPanel().getByRole('link', { name: contentName }).first();
+  readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search favorite people…' });
+  readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"][type="submit"]');
 
   // User profile locators
   readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
@@ -224,6 +231,13 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     });
   }
 
+  async searchingFavoriteUser(fullName: string): Promise<void> {
+    await test.step('Searching favorite user', async () => {
+      await this.clickOnElement(this.searchBar);
+      await this.fillInElement(this.searchBar, fullName);
+      await this.clickOnElement(this.searchIcon);
+    });
+  }
   async verifyTheUserIsVisible(fullName: string): Promise<void> {
     await test.step('Verifying the user is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.getUserProfileLink(fullName), {
