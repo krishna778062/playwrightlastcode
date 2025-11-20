@@ -178,6 +178,62 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Creates a feed with all features: emoji, site mention, user mention, topic mentions,
+   * formatted bullet list (bold, italic, strikethrough, underline), nested list with link, and attachments
+   * @param params Configuration parameters for the feed with all features
+   * @returns Promise with the created feed response
+   *
+   * @example
+   * const feedResponse = await feedHelper.createWithAllFeatures({
+   *   baseText: 'Add a Feed',
+   *   emoji: { name: 'monkey', emoji: '🐒' },
+   *   siteMention: { id: '34a91ba1-2982-48d1-9c0a-1f6f5b674f37', label: 'Public_subscription_site' },
+   *   userMention: { id: 'd18d9abc-88d8-486a-a034-d8451cf2e7f5', label: 'Application Manager1' },
+   *   topics: [
+   *     { id: 'new_topicCreat', label: 'topicCreat' },
+   *     { id: '2b92cfc0-21d9-4da4-a663-f09314b12741', label: 'best practices' }
+   *   ],
+   *   linkUrl: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+   *   listOfAttachedFiles: [{ fileId: '421a335e-9d97-47ad-b0d3-e88d8eabb878', provider: 'intranet', size: 187288, name: 'boitumelo-_8gR561QtEA-unsplash', type: 'JPEG' }],
+   *   scope: 'public',
+   *   siteId: null
+   * });
+   */
+  async createWithAllFeatures(params: {
+    baseText?: string;
+    emoji?: { name: string; emoji: string };
+    siteMention?: { id: string; label: string };
+    userMention?: { id: string; label: string };
+    topics?: { id: string; label: string }[];
+    linkUrl?: string;
+    listOfAttachedFiles?: Array<{
+      fileId: string;
+      provider: string;
+      size: number;
+      name: string;
+      type: string;
+      thumbnail?: string;
+    }>;
+    scope?: string;
+    siteId?: string | null;
+    contentId?: string | null;
+    ignoreToxic?: boolean;
+    type?: string;
+    variant?: string;
+  }) {
+    return await test.step('Creating a feed with all features', async () => {
+      const response = await this.createFeedWithRetry(() => this.feedManagementService.createWithAllFeatures(params));
+
+      const feedId = response.result?.feedId;
+      if (feedId) {
+        this.feeds.push({ feedId });
+      }
+
+      return response;
+    });
+  }
+
+  /**
    * Cleans up all feeds created by this helper instance.
    */
   async cleanup() {
