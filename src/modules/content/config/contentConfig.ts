@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'contentSettings' | 'contentStudio' | 'contentAbac';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prod';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
 
 /**
  * Get caller function information for debugging
@@ -75,32 +75,62 @@ export const config = {
   primary: {
     qa: {
       tenantName: 'Content Primary',
-      frontendBaseUrl: 'https://content-ui-auto1.qa.simpplr.xyz',
-      apiBaseUrl: 'https://content-ui-auto1-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
+      frontendBaseUrl: 'https://ui-automation-content.qa.simpplr.xyz',
+      apiBaseUrl: 'https://ui-automation-content-api.qa.simpplr.xyz',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
-      siteManagerEmail: 'sonali.gupta+10@simpplr.com',
+      siteManagerEmail: 'sonali.gupta+2@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
-      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
     uat: {
       tenantName: 'Content Primary',
-      frontendBaseUrl: 'https://content-ui-auto1.qa.simpplr.xyz',
-      apiBaseUrl: 'https://content-ui-auto1-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
+      frontendBaseUrl: 'https://ui-automation-content.uat.simpplr.xyz',
+      apiBaseUrl: 'https://ui-automation-content-api.uat.simpplr.xyz',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
-      siteManagerEmail: 'sonali.gupta+10@simpplr.com',
+      siteManagerEmail: 'sonali.gupta+2@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
-      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    prodEU: {
+      tenantName: 'Content Primary',
+      frontendBaseUrl: 'https://content-ui.eu.simpplr.com',
+      apiBaseUrl: 'https://content-ui.eu.simpplr.com',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'avista.chowdhury@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+1@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'keerthana.ks@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    prodUS: {
+      tenantName: 'Content Primary',
+      frontendBaseUrl: 'https://cont-ui.app.simpplr.com',
+      apiBaseUrl: 'https://cont-ui.app.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'avista.chowdhury@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+3@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
   },
@@ -111,7 +141,7 @@ export const config = {
       apiBaseUrl: 'https://automation-ui-content-api.qa.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'kulwinder.singh+1@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+20@simpplr.com',
       siteManagerPassword: 'simpplr001',
@@ -122,17 +152,17 @@ export const config = {
     },
     uat: {
       tenantName: 'Content Settings',
-      frontendBaseUrl: ' https://automation-ui-content.qa.simpplr.xyz',
-      apiBaseUrl: 'https://automation-ui-content-api.qa.simpplr.xyz',
+      frontendBaseUrl: 'https://ui-settings.uat.simpplr.xyz',
+      apiBaseUrl: 'https://ui-settings-api.uat.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'kulwinder.singh+1@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+20@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
-      socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
   },
@@ -154,9 +184,9 @@ export const config = {
     },
     uat: {
       tenantName: 'Content ABAC',
-      frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
-      apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
-      appManagerEmail: 'diksha.gaur@simpplr.com',
+      frontendBaseUrl: 'https://abac.uat.simpplr.xyz',
+      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz/',
+      appManagerEmail: 'rakesh.shahabadi@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'diksha.gaur@simpplr.com',
       endUserPassword: 'simpplr001',
@@ -164,7 +194,7 @@ export const config = {
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
-      socialCampaignManagerEmail: 'diksha.gaur@simpplr.com',
+      socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
   },
@@ -222,14 +252,15 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'prod', 'test', 'prodEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: qa, uat, test, prod, prodEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
         `Example: TEST_ENV=prod npm run test\n` +
-        `Example: TEST_ENV=test npm run test\n`
+        `Example: TEST_ENV=test npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n`
     );
   }
 

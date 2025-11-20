@@ -45,7 +45,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25515',
+          zephyrTestId: 'INT-23118',
           storyId: 'INT-23049',
         });
 
@@ -77,7 +77,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28179',
+          zephyrTestId: 'INT-29132',
           storyId: 'INT-23049',
         });
 
@@ -117,7 +117,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-25514',
+          zephyrTestId: 'INT-23430',
           storyId: 'INT-23049',
         });
 
@@ -151,7 +151,7 @@ test.describe(
       },
       async ({ adminPage, endUserPage, siteManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28180',
+          zephyrTestId: 'INT-29133',
           storyId: 'INT-23049',
         });
 

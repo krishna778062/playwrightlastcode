@@ -7,6 +7,7 @@ import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
+import { PROJECT_ROOT } from '@core/constants/paths';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
@@ -70,6 +71,7 @@ test.describe(
           ContentFeatureTags.COVER_IMAGE,
           ContentSuiteTags.PAGE_CREATION,
           '@CONT-11635',
+          '@healthcheck',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -85,9 +87,10 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'images',
@@ -103,14 +106,14 @@ test.describe(
         siteIdToPublishPage = siteId;
         manualCleanupNeeded = true;
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        // Initialize preview page and handle the promotion
+        await contentPreviewPage.actions.handlePromotionPageStep();
 
         console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
@@ -146,10 +149,10 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
+          PROJECT_ROOT,
+          'src',
+          'modules',
+          'content',
           'test-data',
           'static-files',
           'images',
@@ -163,14 +166,14 @@ test.describe(
         // Store page ID for cleanup (siteIdToPublishPage is already set above)
         publishedPageId = pageId;
 
-        // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
-
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
+
+        // Initialize preview page and handle the promotion
+        await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );
   }

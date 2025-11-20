@@ -6,6 +6,7 @@ import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
+  BulkActionOptions,
   ContentStatus,
   ManageContentOptions,
   ManageContentTags,
@@ -312,7 +313,69 @@ test.describe(
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
-
+    test(
+      'to verify the bulk action activate in manage site user drop down',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'deactivated',
+        });
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnActivateButton();
+        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('siteNames', siteNames);
+        await manageSiteAppManagerPage.loadPage();
+      }
+    );
+    test(
+      'to verify the bulk action from app manager can activate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action from end user can activate the site',
+          zephyrTestId: 'CONT-26574',
+          storyId: 'CONT-26574',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageSitesComponent.clickOnUpdateCategoryButtonAction();
+        await manageContentPage.actions.clickOnApply();
+        const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
     test(
       'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
       {
@@ -328,6 +391,7 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();
@@ -386,7 +450,7 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await manageContentPage.actions.hoverOnFirstDropDownOption();

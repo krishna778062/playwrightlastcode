@@ -440,7 +440,7 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
         await manageContentPage.actions.clickOnContentEditButton();
         await manageContentPage.actions.UpdatedPageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
         await manageContentPage.actions.clickOnPublishChangesButton();

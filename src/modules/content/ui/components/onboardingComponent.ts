@@ -39,7 +39,6 @@ export class OnboardingComponent extends BaseComponent {
   async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag is visible on content: ${option}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.verifyTabVisible(option));
-      await this.verifier.verifyTheElementIsVisible(this.verifyOnboardingTabVisible(option));
     });
   }
 

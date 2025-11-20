@@ -27,6 +27,11 @@ export interface CSVValidationConfig {
   metricName: string;
   selectedPeriod: PeriodFilterOption;
   expectedHeaders: string[];
+  // Optional when selectedPeriod is CUSTOM
+  customStartDate?: string;
+  customEndDate?: string;
+  // For time-independent metrics (e.g., Profile Completeness), validates "Created On" format instead of date range
+  skipDateRangeValidation?: boolean;
   // Transformation-based configuration
   transformations: {
     // CSV header → DB field mapping
@@ -44,6 +49,10 @@ export interface CSVValidationConfig {
     tolerance?: {
       percentage?: number;
     };
+    // Optional: Fields to use for matching records (composite key)
+    // If not provided, uses the first field in headerMapping (backward compatible)
+    // Example: ['Name', 'Email'] for Profile Completeness where names can be duplicate
+    keyFields?: string[];
   };
 }
 
@@ -181,19 +190,39 @@ export class CSVValidationUtil {
     };
 
     try {
-      //step1: generate expected date range
-      const expectedDateRange = DateHelper.generateExpectedCSVDateRange(selectedPeriod as any);
-      console.log(`Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
+      //step1: validate metadata (title and date range)
+      const metadata = CSVUtils.getReportMetadataFromCSV(csvPath);
+      const titleMatch = metadata.title.includes(metricName) || metricName.includes(metadata.title.replace(/"/g, ''));
 
-      const metadataValidation = await CSVUtils.validateReportMetadata(metricName, expectedDateRange, csvPath);
+      let dateRangeMatch = false;
+      if (config.skipDateRangeValidation) {
+        // For time-independent metrics, validate that date range is in readable "Created On" format
+        // Format: "Created On: DD MMM YYYY at HH:MM (UTC)"
+        const createdOnPattern = /Created On:\s+\d{1,2}\s+\w{3}\s+\d{4}\s+at\s+\d{1,2}:\d{2}\s+\(UTC\)/i;
+        dateRangeMatch = createdOnPattern.test(metadata.dateRange);
+        if (!dateRangeMatch) {
+          console.log(
+            `Info: Date range format validation for time-independent metric. Expected "Created On: DD MMM YYYY at HH:MM (UTC)" format, got: "${metadata.dateRange}"`
+          );
+        }
+      } else {
+        // For time-dependent metrics, validate both title and date range
+        const expectedDateRange = DateHelper.generateExpectedCSVDateRange(
+          selectedPeriod as any,
+          config.customStartDate as any,
+          config.customEndDate as any
+        );
+        console.log(`Expected date range for ${selectedPeriod}: ${expectedDateRange}`);
+        dateRangeMatch = metadata.dateRange.includes(expectedDateRange);
+      }
 
-      result.validationDetails.metadata.isValid = metadataValidation.isValid;
-      result.validationDetails.metadata.titleMatch = metadataValidation.titleMatch;
-      result.validationDetails.metadata.dateRangeMatch = metadataValidation.dateRangeMatch;
+      result.validationDetails.metadata.titleMatch = titleMatch;
+      result.validationDetails.metadata.dateRangeMatch = dateRangeMatch;
+      result.validationDetails.metadata.isValid = titleMatch && dateRangeMatch;
 
       if (!result.validationDetails.metadata.isValid) {
         result.errors.push(
-          `Metadata validation failed. Title match: ${metadataValidation.titleMatch}, Date range match: ${metadataValidation.dateRangeMatch}`
+          `Metadata validation failed. Title match: ${titleMatch}, Date range match: ${dateRangeMatch}`
         );
       } else {
         console.log('Info: CSV metadata validation passed');
@@ -218,10 +247,21 @@ export class CSVValidationUtil {
       const reportData = await CSVUtils.parseReportCSV(csvPath);
       result.summary.csvRecordCount = reportData.data.length;
 
-      //step4.5: transform CSV data to DB format
+      //step4.5: transform CSV data to DB format and validate empty columns and date formats
       console.log('Info:Transforming CSV data to DB format...');
-      const transformedCSVData = this.transformCSVToDBFormat(reportData.data, transformations);
+      const transformResult = this.transformCSVToDBFormat(reportData.data, transformations, expectedDBData);
+      const transformedCSVData = transformResult.data;
       console.log(`Info: Transformed ${transformedCSVData.length} CSV records to DB format`);
+
+      // Add empty column and date format validation errors
+      if (transformResult.emptyColumnErrors.length > 0) {
+        result.errors.push(`Empty columns found in CSV: ${transformResult.emptyColumnErrors.join('; ')}`);
+        result.validationDetails.values.isValid = false;
+      }
+      if (transformResult.dateFormatErrors.length > 0) {
+        result.errors.push(`Date format errors in CSV: ${transformResult.dateFormatErrors.join('; ')}`);
+        result.validationDetails.values.isValid = false;
+      }
 
       if (reportData.data.length === 0) {
         if (expectedDBData.length > 0) {
@@ -324,7 +364,7 @@ export class CSVValidationUtil {
       // First check: Overall validation result - fail if ANY errors exist
       expect(
         result.isValid,
-        `CSV validation failed with ${result.errors.length} errors: ${result.errors.join('; ')}`
+        `CSV validation failed with ${result.errors.length} error: ${result.errors.join('; ')}`
       ).toBe(true);
 
       // Additional detailed assertions for better error messages
@@ -352,7 +392,7 @@ export class CSVValidationUtil {
       try {
         FileUtil.createDebugFileCopy(config.csvPath, `debug-assertion-failed-${Date.now()}.csv`);
       } catch (debugError) {
-        console.warn(`⚠️ Failed to create debug copy: ${debugError}`);
+        console.warn(`Failed to create debug copy: ${debugError}`);
       }
 
       // Re-throw the assertion error
@@ -434,21 +474,129 @@ export class CSVValidationUtil {
   }
 
   /**
+   * Converts epoch timestamp (seconds) to readable date (YYYY-MM-DD)
+   * @param epochSeconds - Epoch timestamp in seconds
+   * @returns Date string in YYYY-MM-DD format, or null if epoch is null/invalid
+   */
+  private static convertEpochToReadableDate(epochSeconds: number | null | undefined): string | null {
+    if (epochSeconds === null || epochSeconds === undefined) {
+      return null;
+    }
+
+    // Convert epoch seconds to Date object
+    const date = new Date(epochSeconds * 1000);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+
+    // Format as YYYY-MM-DD
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Validates that a date string is in readable format (YYYY-MM-DD), not epoch
+   * @param dateString - Date string to validate
+   * @returns True if date is in readable format, false if it's epoch or invalid
+   */
+  private static isReadableDate(dateString: string | null | undefined): boolean {
+    if (!dateString || dateString === '' || dateString === 'null') {
+      return false;
+    }
+
+    const trimmedValue = String(dateString).trim();
+
+    // Check if it's a number (epoch format) - should not be
+    // Epoch timestamps are typically 10 digits (seconds) or 13 digits (milliseconds)
+    if (!isNaN(Number(trimmedValue)) && trimmedValue !== '') {
+      // Check if it looks like an epoch timestamp (10 or 13 digits)
+      if (/^\d{10}$/.test(trimmedValue) || /^\d{13}$/.test(trimmedValue)) {
+        return false; // It's an epoch timestamp, not readable
+      }
+    }
+
+    // Check if it matches YYYY-MM-DD format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    return dateRegex.test(trimmedValue);
+  }
+
+  /**
+   * Validates that CSV record has no empty columns
+   * Note: "User activated on" (Day(User Active Datetime)) can be empty, so it's excluded from validation
+   * @param csvRecord - CSV record to validate
+   * @param csvHeaders - Array of CSV header names
+   * @param headerMapping - Mapping from CSV headers to DB field names
+   * @returns Array of empty column names (DB field names)
+   */
+  private static findEmptyColumns(
+    csvRecord: any,
+    csvHeaders: string[],
+    headerMapping: Record<string, string>
+  ): string[] {
+    const emptyColumns: string[] = [];
+    // Fields that are allowed to be empty
+    // - Day(User Active Datetime): Can be empty if user was never activated
+    // - Email: Can be empty for some users (e.g., in Profile Completeness CSV)
+    const allowedEmptyFields = new Set(['Day(User Active Datetime)', 'Email']);
+
+    for (const csvHeader of csvHeaders) {
+      const dbField = headerMapping[csvHeader];
+      // Skip validation for fields that are allowed to be empty
+      if (allowedEmptyFields.has(dbField)) {
+        continue;
+      }
+
+      const value = csvRecord[csvHeader];
+      if (value === undefined || value === null || value === '' || String(value).trim() === '') {
+        emptyColumns.push(dbField); // Return DB field name for consistency
+      }
+    }
+    return emptyColumns;
+  }
+
+  /**
    * Transforms CSV data to DB format using header and value mappings
+   * Also validates empty columns and date formats
    * @param csvData - Raw CSV data
    * @param transformations - Transformation configuration
-   * @returns Transformed data in DB format
+   * @param expectedDBData - Expected DB data (used for date conversion)
+   * @returns Object with transformed data and validation errors
    */
   private static transformCSVToDBFormat(
     csvData: any[],
-    transformations: CSVValidationConfig['transformations']
-  ): DBRecord[] {
-    return csvData.map(csvRecord => {
+    transformations: CSVValidationConfig['transformations'],
+    _expectedDBData?: DBRecord[]
+  ): { data: DBRecord[]; emptyColumnErrors: string[]; dateFormatErrors: string[] } {
+    const emptyColumnErrors: string[] = [];
+    const dateFormatErrors: string[] = [];
+
+    const transformedData = csvData.map((csvRecord, index) => {
       const transformedRecord: DBRecord = {};
+
+      // Validate that no columns are empty in CSV
+      const csvHeaders = Object.keys(transformations.headerMapping);
+      const emptyColumns = this.findEmptyColumns(csvRecord, csvHeaders, transformations.headerMapping);
+      if (emptyColumns.length > 0) {
+        const errorMsg = `Record ${index + 1} has empty columns: ${emptyColumns.join(', ')}`;
+        emptyColumnErrors.push(errorMsg);
+        console.warn(`    ⚠️  ${errorMsg}`);
+      }
 
       // Transform headers and values
       for (const [csvHeader, dbField] of Object.entries(transformations.headerMapping)) {
         let value = csvRecord[csvHeader];
+
+        // Validate date fields are in readable format (not epoch)
+        // Note: "User activated on" can be empty, so skip validation for empty values
+        if (dbField.includes('Datetime)') && value !== undefined && value !== null && value !== '') {
+          if (!this.isReadableDate(String(value))) {
+            const errorMsg = `Record ${index + 1}, field "${csvHeader}": Expected readable date (YYYY-MM-DD) but found "${value}" (epoch format not allowed)`;
+            dateFormatErrors.push(errorMsg);
+            console.warn(`    ⚠️  ${errorMsg}`);
+          }
+        }
 
         // Apply value transformations if configured
         if (transformations.valueMappings?.[dbField] && value !== undefined) {
@@ -465,16 +613,33 @@ export class CSVValidationUtil {
 
       return transformedRecord;
     });
+
+    return {
+      data: transformedData,
+      emptyColumnErrors,
+      dateFormatErrors,
+    };
   }
 
   /**
    * Gets the key value for a record (used for matching)
    * @param record - Database record
    * @param transformations - Transformation configuration
-   * @returns Key value for matching
+   * @returns Key value for matching (composite key joined by '|' if multiple fields specified)
    */
-  private static getKeyValue(record: DBRecord, _transformations: CSVValidationConfig['transformations']): string {
-    // Find the first field that's likely to be the key (usually the first field)
+  private static getKeyValue(record: DBRecord, transformations: CSVValidationConfig['transformations']): string {
+    // If keyFields are specified, use them to create a composite key
+    if (transformations.keyFields && transformations.keyFields.length > 0) {
+      const keyValues = transformations.keyFields
+        .map(field => {
+          const value = record[field];
+          return value !== undefined && value !== null ? String(value) : '';
+        })
+        .filter(val => val !== '');
+      return keyValues.length > 0 ? keyValues.join('|') : 'unknown';
+    }
+
+    // Fallback to first field (backward compatible behavior)
     const fields = Object.keys(record);
     return fields.length > 0 ? String(record[fields[0]]) : 'unknown';
   }
@@ -533,28 +698,52 @@ export class CSVValidationUtil {
   ): string[] {
     const errors: string[] = [];
 
-    // Compare all fields
+    // Get all fields that are mapped from CSV (i.e., fields that exist in headerMapping values)
+    const mappedFields = new Set(Object.values(transformations.headerMapping));
+
+    // Compare only fields that are mapped from CSV
     for (const [field, dbValue] of Object.entries(dbRecord)) {
+      // Skip fields that are not in the CSV (not in headerMapping)
+      if (!mappedFields.has(field)) {
+        continue;
+      }
+
       const csvValue = csvRecord[field];
 
       if (csvValue === undefined) {
         errors.push(`${field}: Field not found in transformed CSV`);
-      } else if (dbValue !== csvValue) {
-        // Check if this is a percentage field that should use tolerance
-        const isPercentageField = transformations.percentageField?.fieldName === field;
-        const tolerance = transformations.tolerance?.percentage || 0;
+      } else {
+        // Convert DB epoch timestamps to readable dates for comparison with CSV
+        let dbValueToCompare: string | number | null | undefined = dbValue;
+        const csvValueToCompare = csvValue;
 
-        if (isPercentageField) {
-          // Normalize both values for percentage comparison
-          const normalizedDBValue = this.normalizePercentageValue(dbValue);
-          const normalizedCSVValue = this.normalizePercentageValue(csvValue);
-
-          const difference = Math.abs(normalizedCSVValue - normalizedDBValue);
-          if (difference > tolerance) {
-            errors.push(`${field}: Expected=${dbValue} vs Actual=${csvValue} (tolerance: ${tolerance})`);
+        if (field.includes('Datetime)')) {
+          // DB has epoch timestamp, CSV has readable date - convert DB to readable for comparison
+          if (typeof dbValue === 'number') {
+            dbValueToCompare = this.convertEpochToReadableDate(dbValue);
           }
-        } else {
-          errors.push(`${field}: Expected=${dbValue} vs Actual=${csvValue}`);
+          // CSV should already be in readable format (validated earlier)
+        }
+
+        if (dbValueToCompare !== csvValueToCompare) {
+          // Check if this is a percentage field that should use tolerance
+          const isPercentageField = transformations.percentageField?.fieldName === field;
+          const tolerance = transformations.tolerance?.percentage || 0;
+
+          if (isPercentageField) {
+            // Normalize both values for percentage comparison
+            const normalizedDBValue = this.normalizePercentageValue(dbValueToCompare);
+            const normalizedCSVValue = this.normalizePercentageValue(csvValueToCompare);
+
+            const difference = Math.abs(normalizedCSVValue - normalizedDBValue);
+            if (difference > tolerance) {
+              errors.push(
+                `${field}: Expected=${dbValueToCompare} vs Actual=${csvValueToCompare} (tolerance: ${tolerance})`
+              );
+            }
+          } else {
+            errors.push(`${field}: Expected=${dbValueToCompare} vs Actual=${csvValueToCompare}`);
+          }
         }
       }
     }
