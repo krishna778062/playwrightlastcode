@@ -33,6 +33,7 @@ export enum IntegrationsSuiteTags {
   HYBRID = '@hybridAppTiles',
   SALESFORCE = '@salesforceAppTiles',
   HEALTH_CHECK = '@healthcheck',
+  TAG = '@tagComponent',
 }
 
 export enum IntegrationsFeatureTags {
