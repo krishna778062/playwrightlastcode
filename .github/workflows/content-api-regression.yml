@@ -47,7 +47,7 @@ on:
         type: string
   schedule:
     # Run daily at 3 AM UTC for API regression tests
-    - cron: '0 3 * * *'
+    - cron: '0 5 * * *'
 
 permissions:
   contents: read
@@ -121,7 +121,14 @@ jobs:
 
           GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
           echo "Running Content API tests with grep filter: $GREP_REGEX"
-          TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-api.config.ts --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+
+          # Set workers - ensure it's a valid number
+          WORKERS="${{ inputs.workers || '1' }}"
+          if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ]; then
+            WORKERS="1"
+          fi
+
+          TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-api.config.ts --grep="$GREP_REGEX" --workers="$WORKERS"
 
       - name: Upload test report to github artifact backup
         if: always()

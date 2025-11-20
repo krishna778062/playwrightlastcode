@@ -81,4 +81,61 @@ export class FeedApiHelper {
       expect(extractedText, 'textJson should contain the feed test data text').toContain(expectedText);
     });
   }
+
+  /**
+   * Validates that feed response contains topics with required fields
+   * @param feedResponse - The feed response to validate
+   */
+  async validateFeedResponseTopics(feedResponse: FeedPostResponse): Promise<void> {
+    await test.step('Validate feed response contains topics', async () => {
+      expect(feedResponse.result.listOfTopics, 'listOfTopics should be an array').toBeInstanceOf(Array);
+      if (feedResponse.result.listOfTopics.length > 0) {
+        expect(feedResponse.result.listOfTopics[0], 'Topic should have required fields').toHaveProperty('topicId');
+        expect(feedResponse.result.listOfTopics[0], 'Topic should have required fields').toHaveProperty('name');
+        expect(feedResponse.result.listOfTopics[0], 'Topic should have required fields').toHaveProperty('link');
+      }
+    });
+  }
+
+  /**
+   * Validates that feed response contains mentions with required fields
+   * @param feedResponse - The feed response to validate
+   */
+  async validateFeedResponseMentions(feedResponse: FeedPostResponse): Promise<void> {
+    await test.step('Validate feed response contains mentions', async () => {
+      expect(feedResponse.result.listOfMentions, 'listOfMentions should be an array').toBeInstanceOf(Array);
+      if (feedResponse.result.listOfMentions.length > 0) {
+        expect(feedResponse.result.listOfMentions[0], 'Mention should have required fields').toHaveProperty('id');
+        expect(feedResponse.result.listOfMentions[0], 'Mention should have required fields').toHaveProperty('name');
+        expect(feedResponse.result.listOfMentions[0], 'Mention should have required fields').toHaveProperty('type');
+      }
+    });
+  }
+
+  /**
+   * Validates that feed response contains files with required fields
+   * @param feedResponse - The feed response to validate
+   */
+  async validateFeedResponseFiles(feedResponse: FeedPostResponse): Promise<void> {
+    await test.step('Validate feed response contains files', async () => {
+      expect(feedResponse.result.listOfFiles, 'listOfFiles should be an array').toBeInstanceOf(Array);
+      if (feedResponse.result.listOfFiles.length > 0) {
+        expect(feedResponse.result.listOfFiles[0], 'File should have required fields').toHaveProperty('fileId');
+        expect(feedResponse.result.listOfFiles[0], 'File should have required fields').toHaveProperty('name');
+        expect(feedResponse.result.listOfFiles[0], 'File should have required fields').toHaveProperty('provider');
+      }
+    });
+  }
+
+  /**
+   * Validates that feed response contains links
+   * @param feedResponse - The feed response to validate
+   */
+  async validateFeedResponseLinks(feedResponse: FeedPostResponse): Promise<void> {
+    await test.step('Validate feed response contains links', async () => {
+      expect(feedResponse.result.listOfLinks, 'listOfLinks should be an array').toBeInstanceOf(Array);
+      expect(feedResponse.result.listOfLinks.length, 'Should contain at least one link').toBeGreaterThan(0);
+      expect(typeof feedResponse.result.listOfLinks[0], 'Link should be a string').toBe('string');
+    });
+  }
 }
