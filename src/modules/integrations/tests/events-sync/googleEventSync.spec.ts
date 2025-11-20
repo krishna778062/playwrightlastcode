@@ -31,6 +31,8 @@ import { ExternalAppProvider, ExternalAppsPage } from '../../ui/pages/externalAp
 import { CalendarIntegrationHelper } from '../../apis/helpers/integrationHelper';
 import { getTestSiteByName } from '../../apis/helpers/eventSyncTestHelpers';
 import { EventSyncDestination } from '@/src/core/types/contentManagement.types';
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 
 test.describe(
   'event Sync Integration Tests',
@@ -1280,6 +1282,116 @@ test.describe(
 
         assertEventSyncedToCalendar(authorEventSyncResult);
         assertEventSyncedToCalendar(endUserEventSyncResult);
+      }
+    );
+
+    test(
+      'change Event Author and Verify Author Change in Google Calendar',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          IntegrationsFeatureTags.EVENT_SYNC,
+          IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
+        ],
+      },
+      async ({ appManagerFixture, testSiteName }) => {
+        test.setTimeout(300000);
+        tagTest(test.info(), {
+          description:
+            'Test changing event author from end user to app manager and verify author change is reflected in Google Calendar',
+          zephyrTestId: ['INT-14361', 'INT-27142', 'INT-7967'],
+        });
+
+        const userManagementService = new UserManagementService(
+          appManagerFixture.apiContext,
+          getEnvConfig().apiBaseUrl
+        );
+        const testSite = await getTestSiteByName(appManagerFixture.siteManagementHelper, testSiteName);
+        const siteId = testSite.siteId;
+
+        const endUserEmail = process.env.QA_SYSTEM_END_USER_USERNAME || 'Srikant.g+enduser@simpplr.com';
+        const endUserPassword = process.env.QA_SYSTEM_END_USER_PASSWORD || 'Simpplr@12345';
+        const endUserId = await userManagementService.getUserId(endUserEmail);
+
+        // Step 2: Make End user the owner/manager of the test site
+        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId,
+          userId: endUserId,
+          role: SitePermission.OWNER,
+        });
+
+        // Step 3: Create API context for end user and create event as end user
+        const endUserApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+          email: endUserEmail,
+          password: endUserPassword,
+        });
+
+        const endUserContentManagementHelper = new ContentManagementHelper(
+          endUserApiContext,
+          getEnvConfig().apiBaseUrl
+        );
+
+        const eventTitle = `${EVENT_CONFIGS.MEMBER_FIRST_SYNC.titleSuffix} - ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const eventPayload = createEventPayload({
+          title: eventTitle,
+          description: EVENT_CONFIGS.MEMBER_FIRST_SYNC.description,
+          location: EVENT_CONFIGS.MEMBER_FIRST_SYNC.location,
+          organizerId: endUserId,
+        });
+
+        const eventCreationResult = await endUserContentManagementHelper.contentManagementService.addNewEventContent(
+          siteId,
+          eventPayload
+        );
+
+        assertCompleteEventConfiguration(eventCreationResult, EXPECTED_EVENT_SYNC_CONFIG);
+
+        // Verify event is synced to end user's Google Calendar with end user as author
+        const endUserCalendarHelper = createEndUserGoogleCalendarHelper();
+        const endUserInitialVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
+          maxAttempts: 15,
+          retryDelayMs: 13000,
+        });
+
+        assertEventSyncedToCalendar(endUserInitialVerificationResult);
+
+        // Verify initial author is end user
+        await endUserCalendarHelper.verifyEventDetailsWithRetry(
+          eventTitle,
+          { author: 'craig.gordon@simpplr.dev' },
+          { authorMatchBy: 'email', maxAttempts: 12 }
+        );
+
+        // Cleanup end user API context
+        await endUserApiContext.dispose();
+
+        // Step 4: App Manager changes author of the event
+        const eventDetailPage = new EventDetailPage(appManagerFixture.page, siteId, eventCreationResult.eventId);
+        await eventDetailPage.loadPage();
+        await eventDetailPage.assertions.verifyThePageIsLoaded();
+        await eventDetailPage.assertions.verifyEventTitle(eventTitle);
+
+        const appManagerName: string = 'Neha Manas';
+        console.log('App manager name:', appManagerName);
+
+        // Change author to app manager
+        await eventDetailPage.changeEventAuthor(appManagerName);
+
+        // Wait for author change to sync to Google Calendar
+        await appManagerFixture.page.waitForTimeout(5000);
+        console.log('Author change to app manager completed');
+
+        // Step 5: Verify author change in Google Calendar
+        // Note: After author change, the event organizer in Google Calendar should be the app manager
+        const appManagerCalendarHelper = createAppManagerGoogleCalendarHelper();
+
+        await appManagerCalendarHelper.verifyEventDetailsWithRetry(
+          eventTitle,
+          { author: 'howard.nelson@simpplr.dev' },
+          { authorMatchBy: 'email', maxAttempts: 15, retryDelayMs: 13000 }
+        );
       }
     );
   }

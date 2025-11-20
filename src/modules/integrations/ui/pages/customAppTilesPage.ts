@@ -1,9 +1,12 @@
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+import { TagComponent } from '@integrations-components/tagComponent';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { expect, Locator, Page, test } from '@playwright/test';
 import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+
+import { CUSTOM_APP_TILES_TEST_DATA } from '../../test-data/customAppTiles.test-data';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
@@ -36,6 +39,7 @@ export interface TileFilter {
 
 export class CustomAppTilesPage extends BasePage {
   readonly appTileComponent: BaseAppTileComponent;
+  readonly tagComponent: TagComponent;
 
   // Selector strings for reusable components
   readonly showMoreButtonSelector: string;
@@ -279,6 +283,9 @@ export class CustomAppTilesPage extends BasePage {
     this.accordionTriggerSelector = 'button[class*="AccordionTrigger"]:has(p:has-text("{accordionTitle}"))';
     this.fieldSelector = '[data-testid="field-{fieldName}"]';
     this.fieldRequiredError = ' is a required field';
+
+    // Initialize component instances
+    this.tagComponent = new TagComponent(page, this.fieldSelector);
 
     // Initialize selector strings
     this.showMoreButtonSelector = 'button[aria-label="Show more"]';
@@ -600,6 +607,30 @@ export class CustomAppTilesPage extends BasePage {
         const link = this.getLink(buttonName);
         await this.clickOnElement(link, { timeout });
       }
+    });
+  }
+
+  /**
+   * Click on a text element by its text content
+   * @param text - The text to click on
+   * @param exact - Whether to match exactly (default: false for partial matching)
+   * @param step - Optional custom step information for logging
+   * @param timeout - Optional timeout in milliseconds (default: 30_000)
+   * @param container - Optional container locator to scope the search (default: canvas container)
+   */
+  async clickText(
+    text: string,
+    exact: boolean = false,
+    step?: string,
+    timeout = 30_000,
+    container?: Locator
+  ): Promise<void> {
+    const stepName = step || `Click text: ${text}`;
+    await test.step(stepName, async () => {
+      // Use provided container or default to canvas container to avoid matching elements outside the canvas
+      const searchContainer = container || this.canvasContainer;
+      const textElement = searchContainer.getByText(text, { exact });
+      await this.clickOnElement(textElement, { timeout });
     });
   }
 
@@ -1105,17 +1136,15 @@ export class CustomAppTilesPage extends BasePage {
       .catch(() => {});
   }
 
-  // Generic drag by visible text into canvas (simple and reusable like Selenium)
   /**
    * Drag a block by its text into the canvas
    * @param blockText - The text of the block to drag
    */
   async dragToCanvas(blockText: string): Promise<void> {
     await test.step(`Drag block/template with text "${blockText}" into canvas`, async () => {
-      // Use constructor-assigned locator with filter for specific text
       const source = this.dynamicSourceLocator.filter({ hasText: blockText }).first();
 
-      // Target is the shared canvas container used across the page object
+      // Target is the shared canvas container
       const target = this.canvasContainer;
 
       // Ensure both are ready
@@ -1936,5 +1965,15 @@ export class CustomAppTilesPage extends BasePage {
     await test.step(`Verify ${fieldName} required field error is visible`, async () => {
       await expect(this.getRequiredFieldError(fieldName)).toBeVisible();
     });
+  }
+
+  async createcustom(tileName: string, tileDescription: string, tileType: string, app: string, apiAction: string) {
+    await this.clickCreateCustomAppTileButton();
+    await this.enterTileName(tileName);
+    await this.enterTileDescription(tileDescription);
+    await this.selectTileType(tileType);
+    await this.selectApp(app);
+    await this.selectApiAction(apiAction);
+    await this.clickButton(CUSTOM_APP_TILES_TEST_DATA.BUTTONS.NEXT);
   }
 }
