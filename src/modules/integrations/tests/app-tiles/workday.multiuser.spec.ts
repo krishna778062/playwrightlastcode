@@ -160,12 +160,12 @@ test.describe(
     multiUserTileFixture(
       'verify Display recent paystubs app manager defined workday apptile is visible to end users on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28964',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-22911',
+          storyId: 'INT-21590',
         });
 
         //Generate a random tile title
@@ -192,12 +192,12 @@ test.describe(
     multiUserTileFixture(
       'Verify Display recent paystubs workday apptile is visible to end users on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28965',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-22912',
+          storyId: 'INT-21590',
         });
 
         //Generate a random tile title
@@ -231,14 +231,14 @@ test.describe(
     );
 
     multiUserTileFixture(
-      'verify Display inbox app manager defined workday apptile is visible to end users after it has been added by the App Manager',
+      'verify Display inbox app manager defined workday apptile is visible to end users on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28966',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-26010',
+          storyId: 'INT-12864',
         });
 
         //Generate a random tile title
@@ -266,12 +266,12 @@ test.describe(
     multiUserTileFixture(
       'Verify Display inbox workday apptile is visible to end users on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workday-paystubs'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28967',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-26031',
+          storyId: 'INT-12864',
         });
 
         //Generate a random tile title
