@@ -49,6 +49,10 @@ export interface CSVValidationConfig {
     tolerance?: {
       percentage?: number;
     };
+    // Optional: Fields to use for matching records (composite key)
+    // If not provided, uses the first field in headerMapping (backward compatible)
+    // Example: ['Name', 'Email'] for Profile Completeness where names can be duplicate
+    keyFields?: string[];
   };
 }
 
@@ -533,7 +537,9 @@ export class CSVValidationUtil {
   ): string[] {
     const emptyColumns: string[] = [];
     // Fields that are allowed to be empty
-    const allowedEmptyFields = new Set(['Day(User Active Datetime)']);
+    // - Day(User Active Datetime): Can be empty if user was never activated
+    // - Email: Can be empty for some users (e.g., in Profile Completeness CSV)
+    const allowedEmptyFields = new Set(['Day(User Active Datetime)', 'Email']);
 
     for (const csvHeader of csvHeaders) {
       const dbField = headerMapping[csvHeader];
@@ -619,10 +625,21 @@ export class CSVValidationUtil {
    * Gets the key value for a record (used for matching)
    * @param record - Database record
    * @param transformations - Transformation configuration
-   * @returns Key value for matching
+   * @returns Key value for matching (composite key joined by '|' if multiple fields specified)
    */
-  private static getKeyValue(record: DBRecord, _transformations: CSVValidationConfig['transformations']): string {
-    // Find the first field that's likely to be the key (usually the first field)
+  private static getKeyValue(record: DBRecord, transformations: CSVValidationConfig['transformations']): string {
+    // If keyFields are specified, use them to create a composite key
+    if (transformations.keyFields && transformations.keyFields.length > 0) {
+      const keyValues = transformations.keyFields
+        .map(field => {
+          const value = record[field];
+          return value !== undefined && value !== null ? String(value) : '';
+        })
+        .filter(val => val !== '');
+      return keyValues.length > 0 ? keyValues.join('|') : 'unknown';
+    }
+
+    // Fallback to first field (backward compatible behavior)
     const fields = Object.keys(record);
     return fields.length > 0 ? String(record[fields[0]]) : 'unknown';
   }
