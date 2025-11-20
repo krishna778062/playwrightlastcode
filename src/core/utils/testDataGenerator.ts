@@ -291,8 +291,9 @@ export class TestDataGenerator {
 
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test'): string {
-    const randomString = faker.lorem.word();
-    return `${prefix} ${randomString}`;
+    const timestamp = Date.now();
+    const randomString = faker.string.alphanumeric(4);
+    return `${prefix}_${timestamp}_${randomString}`;
   }
 
   static generateCategoryNameAndDescription(): { name: string; description: string } {
