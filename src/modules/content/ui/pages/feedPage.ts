@@ -134,8 +134,6 @@ export interface IFeedActions {
     embedUrl?: string;
   }) => Promise<void>;
   clickShareIconOnPost: (postText: string) => Promise<void>;
-  clickViewPostLink: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
 }
 
@@ -1080,14 +1078,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async clickShareIconOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
-  }
-
-  /**
-   * Clicks the "View Post" link to navigate to feed detail page
-   * @param postText - The text of the post to view
-   */
-  async clickViewPostLink(postText: string): Promise<void> {
-    await this.listFeedComponent.clickViewPostLink(postText);
   }
 
   /**

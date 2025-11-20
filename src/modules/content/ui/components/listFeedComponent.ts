@@ -989,17 +989,6 @@ export class ListFeedComponent extends BaseComponent {
       .getByRole('button', { name: 'Share this post' });
 
   /**
-   * Gets a locator for the "View Post" link on a feed post
-   * @param postText - The text of the post to find view post link for
-   * @returns Locator for the view post link
-   */
-  readonly getViewPostLinkLocator = (postText: string): Locator =>
-    this.page
-      .locator('div[class*="postContent"]')
-      .filter({ hasText: postText })
-      .getByRole('link', { name: 'View post' });
-
-  /**
    * Gets a locator for the video element in a feed post
    * @param postText - The text of the post to find video element for
    * @returns Locator for the video element
@@ -1023,21 +1012,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `Share icon should be visible for post "${postText}"`,
       });
       await this.clickOnElement(shareIconLocator);
-    });
-  }
-
-  /**
-   * Clicks the "View Post" link to navigate to feed detail page
-   * @param postText - The text of the post to view
-   */
-  async clickViewPostLink(postText: string): Promise<void> {
-    await test.step(`Click View Post link for post: ${postText}`, async () => {
-      await this.waitForPostToBeVisible(postText);
-      const viewPostLinkLocator = this.getViewPostLinkLocator(postText).first();
-      await this.verifier.verifyTheElementIsVisible(viewPostLinkLocator, {
-        assertionMessage: `View Post link should be visible for post "${postText}"`,
-      });
-      await this.clickOnElement(viewPostLinkLocator);
     });
   }
 
