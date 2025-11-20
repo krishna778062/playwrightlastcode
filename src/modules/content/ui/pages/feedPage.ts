@@ -90,6 +90,8 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  clickShareButtonOnPost: (postText: string) => Promise<void>;
+  attemptImagePasteInShareModal: () => Promise<void>;
   clickShareOnComment: () => Promise<void>;
   clickShareOnPost: (postText: string) => Promise<void>;
   enterShareDescription: (description: string) => Promise<void>;
@@ -156,6 +158,9 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyNoAttachmentsInShareModal: () => Promise<void>;
+  verifyShareModalIsFunctional: () => Promise<void>;
+  verifyShareModalIsOpen: () => Promise<void>;
   verifyViewPostLinkInShareDialog: () => Promise<void>;
   verifyFeedDetailPageLoaded: () => Promise<void>;
   verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
@@ -752,25 +757,38 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Clicks share button on a comment
-   */
+  async clickShareButtonOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareButtonOnPost(postText);
+  }
+
+  async attemptImagePasteInShareModal(): Promise<void> {
+    await this.shareComponent.attemptImagePaste();
+  }
+
+  async verifyNoAttachmentsInShareModal(): Promise<void> {
+    await this.shareComponent.assertions.verifyNoAttachmentsInShareModal();
+  }
+
+  async verifyShareModalIsFunctional(): Promise<void> {
+    await this.shareComponent.assertions.verifyShareModalIsFunctional();
+  }
+
+  async verifyShareModalIsOpen(): Promise<void> {
+    await test.step('Verify share modal is open', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
+        assertionMessage: 'Share modal should be open',
+      });
+    });
+  }
+
   async clickShareOnComment(): Promise<void> {
     await this.listFeedComponent.clickShareOnComment();
   }
 
-  /**
-   * Clicks share button on a post
-   * @param postText - The text of the post to share
-   */
   async clickShareOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareOnPost(postText);
   }
 
-  /**
-   * Adds user mention in the share dialog
-   * @param userName - The user name to mention
-   */
   async addUserNameMentionInShareDialog(userName: string): Promise<void> {
     await test.step(`Adding user mention in share dialog: @${userName}`, async () => {
       const shareEditor = this.shareComponent.shareDescriptionInput;
@@ -785,10 +803,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Adds site mention in the share dialog
-   * @param siteName - The site name to mention
-   */
   async addSiteMentionInShareDialog(siteName: string): Promise<void> {
     await test.step(`Adding site mention in share dialog: @${siteName}`, async () => {
       const shareEditor = this.shareComponent.shareDescriptionInput;
@@ -882,39 +896,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Enters site name in the share dialog
-   * @param siteName - The site name to enter
-   */
   async enterSiteNameInShareDialog(siteName: string): Promise<void> {
     await this.shareComponent.enterSiteName(siteName);
   }
 
-  /**
-   * Clicks share button in the share dialog
-   */
   async clickShareButtonInShareDialog(): Promise<void> {
     await this.shareComponent.clickShareButton();
   }
 
-  /**
-   * Verifies View Post link in share dialog
-   */
   async verifyViewPostLinkInShareDialog(): Promise<void> {
     await this.shareComponent.verifyViewPostLinkInShareDialog();
   }
 
-  /**
-   * Verifies View Post link for a post
-   * @param postText - The text of the post to verify View Post link for
-   */
   async clickViewPostLink(): Promise<void> {
     await this.listFeedComponent.clickViewPostLink();
   }
 
-  /**
-   * Verifies feed detail page is loaded
-   */
   async verifyFeedDetailPageLoaded(): Promise<void> {
     await test.step('Verify feed detail page is loaded', async () => {
       // Wait for URL to contain /feed/
@@ -932,10 +929,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Verifies video link is unfurled
-   * @param embedUrl - The embedded URL to verify
-   */
   async verifyVideoLinkUnfurled(embedUrl: string): Promise<void> {
     await test.step(`Verify video link is unfurled: ${embedUrl}`, async () => {
       // Look for video embed or preview
@@ -953,42 +946,24 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  /**
-   * Verifies post text on detail page
-   * @param postText - The text of the post to verify
-   */
   async verifyPostTextOnDetailPage(postText: string): Promise<void> {
     await test.step(`Verify post text on detail page: ${postText}`, async () => {
       await this.listFeedComponent.validatePostText(postText);
     });
   }
 
-  /**
-   * Verifies share count for a post
-   * @param postText - The text of the post
-   * @param expectedCount - The expected share count
-   */
   async verifyShareCount(postText: string, expectedCount: number): Promise<void> {
     await this.listFeedComponent.verifyShareCount(postText, expectedCount);
   }
 
-  /**
-   * Verifies likes count for a post
-   * @param postText - The text of the post
-   * @param expectedCount - The expected likes count
-   */
   async verifyLikesCount(postText: string, expectedCount: number): Promise<void> {
     await this.listFeedComponent.verifyLikesCount(postText, expectedCount);
   }
 
-  /**
-   * Verifies replies count for a post
-   * @param postText - The text of the post
-   * @param expectedCount - The expected replies count
-   */
   async verifyRepliesCount(postText: string, expectedCount: number): Promise<void> {
     await this.listFeedComponent.verifyRepliesCount(postText, expectedCount);
   }
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }

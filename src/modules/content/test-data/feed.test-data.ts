@@ -4,6 +4,7 @@ import { FeedMode } from '@core/types/feedManagement.types';
 
 export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
+    IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
   },
   ATTACHMENTS: {
@@ -43,6 +44,9 @@ export const FEED_TEST_DATA = {
     fileName: 'image3.jpg',
     fileSize: 13116,
     mimeType: 'image/jpeg',
+  },
+  URLS: {
+    EMBED_YOUTUBE_URL: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
   },
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
