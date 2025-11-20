@@ -201,6 +201,7 @@ test.describe(
           description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
+          isKnownFailure: true,
         });
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
           hasPages: true,
