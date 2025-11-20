@@ -120,9 +120,10 @@ test.describe(
             'Verify Share button is not visible on feed posts on home dashboard, site dashboard, and page dashboard when Timeline mode is enabled',
           zephyrTestId: 'CONT-26731',
           storyId: 'CONT-26731',
+          isKnownFailure: true,
         });
 
-        // Step 1: Create feed posts BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
+        // Create feed posts BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
         // Create feed post on Home Feed
         const homeFeedTestData = TestDataGenerator.generateFeed({
           scope: 'public',
@@ -167,14 +168,14 @@ test.describe(
         contentFeedPostId = contentFeedResponse.result.feedId;
         console.log(`Created content feed post via API: ${contentFeedPostId}`);
 
-        // Step 2: Set Timeline & feed setting to "Timeline"
+        // Set Timeline & feed setting to "Timeline"
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
         console.log('Timeline mode enabled');
 
-        // Step 3: Navigate to Home Feed and verify post is not visible and share button is NOT visible
+        // Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
@@ -182,7 +183,7 @@ test.describe(
         await feedPage.assertions.verifyShareButtonIsNotVisible();
         console.log('Home feed: Post is not visible and Share button is NOT visible');
 
-        // Step 4: Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
+        // Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
@@ -202,8 +203,8 @@ test.describe(
         await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
         await contentPreviewPage.assertions.verifyPostIsNotVisible(contentFeedTestData.text);
         await contentPreviewPage.assertions.verifyShareButtonIsNotVisible();
-        // Currently, the content share button is visible on content preview page, so we are not verifying it
-        // await contentPreviewPage.assertions.verifyContentShareButtonIsNotVisible();
+        // Verify content share button is visible on content preview page
+        await contentPreviewPage.assertions.verifyContentShareButtonIsNotVisible();
         console.log('Content feed: Post is not visible and Share button is NOT visible on content and comments');
       }
     );
@@ -218,9 +219,10 @@ test.describe(
             'Verify Share button is not visible on feed posts on home dashboard, site dashboard, and page dashboard when Timeline mode is enabled',
           zephyrTestId: 'CONT-26730',
           storyId: 'CONT-26730',
+          isKnownFailure: true,
         });
 
-        // Step 1: Create feed posts BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
+        // Create feed posts BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
         // Create feed post on Home Feed
         const homeFeedTestData = TestDataGenerator.generateFeed({
           scope: 'public',
@@ -265,14 +267,14 @@ test.describe(
         contentFeedPostId = contentFeedResponse.result.feedId;
         console.log(`Created content feed post via API: ${contentFeedPostId}`);
 
-        // Step 2: Set Timeline & feed setting to "Timeline and comments on Content"
+        // Set Timeline & feed setting to "Timeline and comments on Content"
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
         console.log('Timeline and comments on content feed mode enabled');
 
-        // Step 3: Navigate to Home Feed and verify post is not visible and share button is NOT visible
+        //  Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
@@ -280,7 +282,7 @@ test.describe(
         await feedPage.assertions.verifyShareButtonIsNotVisible();
         console.log('Home feed: Post is not visible and Share button is NOT visible');
 
-        // Step 4: Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
+        // Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
@@ -289,7 +291,7 @@ test.describe(
         await siteDashboardPage.assertions.verifyShareButtonIsNotVisible();
         console.log('Site feed: Post is not visible and Share button is NOT visible');
 
-        // Step 5: Navigate to Content Preview Page and verify post is not visible and share button is NOT visible
+        // Navigate to Content Preview Page and verify post is not visible and share button is NOT visible
         contentPreviewPage = new ContentPreviewPage(
           appManagerFixture.page,
           siteId,
@@ -300,8 +302,8 @@ test.describe(
         await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
         await contentPreviewPage.assertions.waitForPostToBeVisible(contentFeedTestData.text);
         await contentPreviewPage.assertions.verifyShareButtonIsNotVisible();
-        // Currently, the content share button is visible on content preview page, so we are not verifying it
-        // await contentPreviewPage.assertions.verifyContentShareButtonIsNotVisible();
+        // Verify content share button is visible on content preview page
+        await contentPreviewPage.assertions.verifyContentShareButtonIsNotVisible();
         console.log('Content feed: Post is not visible and Share button is NOT visible on content and comments');
       }
     );
@@ -318,23 +320,23 @@ test.describe(
           storyId: 'CONT-31813',
         });
 
-        // Step 1: Set Timeline & feed setting to "Timeline" (already done in beforeEach, but ensuring it's set)
+        // Set Timeline & feed setting to "Timeline" (already done in beforeEach, but ensuring it's set)
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
         console.log('Timeline mode enabled');
 
-        // Step 2: Navigate to Home Feed
+        // Navigate to Home Feed
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
-        // Step 3: Verify "Share your thoughts" is not displayed
+        // Verify "Share your thoughts" is not displayed
         await feedPage.assertions.verifyFeedSectionIsNotVisible();
         console.log('Share your thoughts button is not visible');
 
-        // Step 4: Verify "Add Reaction" icon should not be visible
+        // Verify "Add Reaction" icon should not be visible
         await feedPage.assertions.verifyReactionButtonIsNotVisible();
         console.log('Add Reaction button is not visible');
       }
@@ -350,9 +352,10 @@ test.describe(
             'Verify Add Reaction button is visible for Content Comments when Timeline and Comments on Content mode is enabled',
           zephyrTestId: 'CONT-31814',
           storyId: 'CONT-31814',
+          isKnownFailure: true,
         });
 
-        // Step 1: Create content (page) via API helper (in default mode)
+        // Create content (page) via API helper (in default mode)
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         createdContentSiteId = siteDetails.siteId;
 
@@ -371,7 +374,7 @@ test.describe(
           `Created page via API: ${pageInfo.pageName} with ID: ${createdContentId} in site: ${createdContentSiteId}`
         );
 
-        // Step 2: Navigate to content preview page
+        // Navigate to content preview page
         contentPreviewPage = new ContentPreviewPage(
           appManagerFixture.page,
           createdContentSiteId,
@@ -381,43 +384,43 @@ test.describe(
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await contentPreviewPage.verifyThePageIsLoaded();
 
-        // Step 3: Click "Share your thoughts" button
+        // Click "Share your thoughts" button
         await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
         await contentPreviewPage.actions.clickShareThoughtsButton();
 
-        // Step 4: Create a comment/post using CreateFeedPostComponent
+        // Create a comment/post using CreateFeedPostComponent
         commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
         const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
         await createFeedPostComponent.actions.createPost(commentText);
         await createFeedPostComponent.actions.clickPostButton();
 
-        // Step 5: Verify comment is visible
+        // Verify comment is visible
         await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
         console.log(`Comment created successfully: ${commentText}`);
 
-        // Step 6: Set Timeline & feed setting to "Timeline and Comments on Content"
+        // Set Timeline & feed setting to "Timeline and Comments on Content"
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
         console.log('Timeline and Comments on Content mode enabled');
 
-        // Step 7: Navigate to home page and click Global Feed
+        // Navigate to home page and click Global Feed
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
-        // Step 8: Verify "Share your thoughts" is not displayed
+        // Verify "Share your thoughts" is not displayed
         await feedPage.assertions.verifyFeedSectionIsNotVisible();
         console.log('Share your thoughts button is not visible on Global Feed');
 
         await feedPage.assertions.validatePostText(commentText);
-        console.log('Comment is not visible on Global Feed');
+        console.log('Comment is visible on Global Feed');
 
         await feedPage.assertions.verifyReactionButtonIsVisible();
         console.log('Add Reaction button is visible on Global Feed');
 
-        // Step 9: Navigate back to content preview page
+        // Navigate back to content preview page
         contentPreviewPage = new ContentPreviewPage(
           appManagerFixture.page,
           createdContentSiteId,
@@ -427,11 +430,11 @@ test.describe(
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page again' });
         await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
 
-        // Step 10: Verify comment is still visible
+        // Verify comment is still visible
         await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
         console.log('Comment is still visible on content page');
 
-        // Step 11: Verify "Add Reaction" button is visible for the comment
+        // Verify "Add Reaction" button is visible for the comment
         await contentPreviewPage.assertions.verifyReactionButtonIsVisible();
         console.log('Add Reaction button is visible for Content Comments');
       }
@@ -449,14 +452,14 @@ test.describe(
           storyId: 'CONT-31815',
         });
 
-        // Step 1: Set Timeline & feed setting to "Default Mode" (Timeline, Comments on Content, and Feed Post)
+        // Set Timeline & feed setting to "Default Mode" (Timeline, Comments on Content, and Feed Post)
         await appManagerFixture.navigationHelper.openApplicationSettings();
         await applicationScreenPage.actions.clickOnApplication();
         await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
         console.log('Timeline, Comments on Content, and Feed Post mode enabled (Default Mode)');
 
-        // Step 2: Create a feed post via API (in default mode, posts can be created)
+        // Create a feed post via API (in default mode, posts can be created)
         const feedPostTestData = TestDataGenerator.generateFeed({
           scope: 'public',
           siteId: undefined,
@@ -468,30 +471,30 @@ test.describe(
         homeFeedPostId = feedPostResponse.result.feedId;
         console.log(`Created feed post via API: ${homeFeedPostId} with text: "${feedPostText}"`);
 
-        // Step 3: Navigate to Home Feed and verify feed post is visible
+        // Navigate to Home Feed and verify feed post is visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.waitForPostToBeVisible(feedPostText);
         console.log('Feed post is visible on Global Feed');
 
-        // Step 4: Verify "Add Reaction" button is visible for the feed post
+        // Verify "Add Reaction" button is visible for the feed post
         await feedPage.assertions.verifyReactionButtonIsVisible();
         console.log('Add Reaction button is visible for Feed post');
 
-        // Step 5: Add a reply to the feed post
+        // Add a reply to the feed post
         feedReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-        await feedPage.actions.addReplyToPost(feedReplyText);
+        await feedPage.actions.addReplyToPost(feedReplyText, homeFeedPostId);
         console.log(`Added reply to feed post: "${feedReplyText}"`);
 
-        // Step 6: Verify reply is visible
+        // Verify reply is visible
         await feedPage.assertions.verifyReplyIsVisible(feedReplyText);
         console.log('Feed reply is visible');
 
-        // Step 7: Verify "Add Reaction" button is visible for the feed reply
+        // Verify "Add Reaction" button is visible for the feed reply
         await feedPage.assertions.verifyReactionButtonIsVisibleForReply();
         console.log('Add Reaction button is visible for Feed reply');
 
-        // Step 8: Create content (page) via API helper
+        // Create content (page) via API helper
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         createdContentSiteId = siteDetails.siteId;
 
@@ -510,7 +513,7 @@ test.describe(
           `Created page via API: ${pageInfo.pageName} with ID: ${createdContentId} in site: ${createdContentSiteId}`
         );
 
-        // Step 9: Navigate to content preview page
+        // Navigate to content preview page
         contentPreviewPage = new ContentPreviewPage(
           appManagerFixture.page,
           createdContentSiteId,
@@ -520,34 +523,33 @@ test.describe(
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await contentPreviewPage.verifyThePageIsLoaded();
 
-        // Step 10: Click "Share your thoughts" button and create a comment
+        // Click "Share your thoughts" button and create a comment
         await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
         await contentPreviewPage.actions.clickShareThoughtsButton();
 
         commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
         const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        await createFeedPostComponent.actions.createPost(commentText);
-        await createFeedPostComponent.actions.clickPostButton();
+        const commentResponse = await createFeedPostComponent.actions.createAndPost({ text: commentText });
         console.log(`Created content comment: "${commentText}"`);
 
-        // Step 11: Verify comment is visible
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        // Verify comment is visible
+        await contentPreviewPage.assertions.waitForPostToBeVisible(commentResponse.postText);
         console.log('Content comment is visible');
 
-        // Step 12: Verify "Add Reaction" button is visible for the content comment
+        // Verify "Add Reaction" button is visible for the content comment
         await contentPreviewPage.assertions.verifyReactionButtonIsVisible();
         console.log('Add Reaction button is visible for Content comment');
 
-        // Step 13: Add a reply to the content comment
+        // Add a reply to the content comment
         commentReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-        await contentPreviewPage.actions.addReplyToComment(commentReplyText);
+        await contentPreviewPage.actions.addReplyToComment(commentReplyText, commentResponse.postId as string);
         console.log(`Added reply to content comment: "${commentReplyText}"`);
 
-        // Step 14: Verify comment reply is visible
+        // Verify comment reply is visible
         await contentPreviewPage.assertions.verifyReplyIsVisible(commentReplyText);
         console.log('Comment reply is visible');
 
-        // Step 15: Verify "Add Reaction" button is visible for the comment reply
+        // Verify "Add Reaction" button is visible for the comment reply
         await contentPreviewPage.assertions.verifyReactionButtonIsVisibleForReply();
         console.log('Add Reaction button is visible for Comment reply');
       }

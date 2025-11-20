@@ -255,7 +255,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.postTextLocator(expectedText).first();
+      const postLocator = this.postTextLocator(expectedText);
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -367,19 +367,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await test.step(`Verify post is not visible: "${postText}"`, async () => {
-      const postLocator = this.getFeedTextLocator(postText);
-      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
-        assertionMessage: `Post "${postText}" should not be visible`,
-      });
-    });
-  }
-  /**
-   * Adds a reply to a specific post
-   * @param postText - The text of the post to reply to
-   * @param replyText - The reply text to add
-   */
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
@@ -1056,28 +1043,28 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyReactionButtonIsVisible(): Promise<void> {
     await test.step('Verify reaction button is visible on feed post', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
         assertionMessage: 'Reaction button should be visible on feed post',
       });
-      await this.clickOnElement(this.likeButton);
-      await this.verifier.verifyTheElementIsVisible(this.unlikeButton, {
+      await this.clickOnElement(this.likeButton.first());
+      await this.verifier.verifyTheElementIsVisible(this.unlikeButton.first(), {
         assertionMessage: 'Remove your reaction button should be visible on feed post',
       });
     });
   }
-  
+
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await test.step('Verify reaction button is visible on feed reply', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply, {
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply.first(), {
         assertionMessage: 'Reaction button should be visible on feed reply',
       });
     });
-    await this.clickOnElement(this.likeButtonForReply);
-    await this.verifier.verifyTheElementIsVisible(this.unlikeButtonForReply, {
+    await this.clickOnElement(this.likeButtonForReply.first());
+    await this.verifier.verifyTheElementIsVisible(this.unlikeButtonForReply.first(), {
       assertionMessage: 'Remove your reaction button should be visible on feed reply',
     });
   }
-  
+
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
     await test.step('Verify the page is loaded with timeline mode', async () => {
@@ -1086,13 +1073,15 @@ export class ListFeedComponent extends BaseComponent {
       });
     });
   }
-  
+
   async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
     const sendFeedbackButton = this.page.getByRole('button', { name: 'Send feedback' });
     await test.step('Verify the page is loaded with timeline mode on content page', async () => {
       await this.verifier.verifyTheElementIsVisible(sendFeedbackButton, {
         assertionMessage: 'Show button should be visible on content page',
       });
+    });
+  }
 
   async verifyDeletedPostMessage(postText: string): Promise<void> {
     await test.step(`Verify deleted post message is visible for post: ${postText}`, async () => {

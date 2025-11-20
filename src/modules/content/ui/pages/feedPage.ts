@@ -889,10 +889,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await this.listFeedComponent.validatePostNotVisible(postText);
-  }
-
   async clickShareButtonOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
@@ -1139,11 +1135,11 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async enterShareDescription(description: string): Promise<void> {
     await this.shareComponent.actions.enterShareDescription(description);
   }
-  
+
   async enterSiteNameForShare(siteName: string): Promise<void> {
     await this.shareComponent.actions.enterSiteName(siteName);
   }
-  
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }

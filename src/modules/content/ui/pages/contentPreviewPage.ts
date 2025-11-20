@@ -422,11 +422,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.clickOnElement(allCommentsLink);
     });
   }
-  
+
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
-  
+
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
   }
