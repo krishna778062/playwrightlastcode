@@ -267,141 +267,89 @@ for (const testData of feedTestData) {
   );
 }
 
-// ==================== Feed Post Creation Cancel Button Tests ====================
-
-// Test data for post creation cancel button tests
-const postCreationCancelTestData = [
+// Test case for CONT-30148: Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post
+test.describe(
+  'post creation cancel button tests',
   {
-    feedType: 'Home Feed',
-    description: 'Verify user can see and click Cancel button while creating Home Feed post',
-    storyId: 'CONT-30148',
-    ...commonFeedConfig,
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
   },
-  {
-    feedType: 'Site Feed',
-    description: 'Verify user can see and click Cancel button while creating Site Feed post',
-    storyId: 'CONT-30148',
-    ...commonFeedConfig,
-  },
-  {
-    feedType: 'Content Feed',
-    description: 'Verify user can see and click Cancel button while creating Content Feed post',
-    storyId: 'CONT-30148',
-    ...commonFeedConfig,
-  },
-];
+  () => {
+    test(
+      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+          zephyrTestId: 'CONT-30148',
+          storyId: 'CONT-30148',
+        });
 
-// Data-driven test for post creation cancel button
-for (const testData of postCreationCancelTestData) {
-  test.describe(
-    `Post Creation Cancel Button - ${testData.feedType} Tests`,
-    {
-      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
-    },
-    () => {
-      let appManagerFeedPage: FeedPage;
-      let siteId: string;
-      let contentId: string;
-      let siteDashboardPage: SiteDashboardPage;
-      let contentPreviewPage: ContentPreviewPage;
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
 
-      test.beforeEach('Setup test environment and navigate to feed', async ({ appManagerFixture }) => {
-        // Initialize feed page
-        appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Verify Cancel button functionality', async () => {
+          // Navigate to Home Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
 
-        // Get prerequisite data based on feed type
-        const resources = await getPrerequisiteData(
-          {
-            siteManagementHelper: appManagerFixture.siteManagementHelper,
-            contentManagementHelper: appManagerFixture.contentManagementHelper,
-          },
-          testData
-        );
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
 
-        // Assign created resources
-        if (resources.siteId) {
-          siteId = resources.siteId;
-        }
-        if (resources.contentId) {
-          contentId = resources.contentId;
-        }
+          await appManagerFeedPage.actions.verifyPostCreationCancelButtonVisible();
 
-        // Navigate to appropriate page based on feed type
-        if (testData.feedType === 'Content Feed') {
-          contentPreviewPage = new ContentPreviewPage(
+          await appManagerFeedPage.actions.clickPostCreationCancelButton();
+
+          await appManagerFeedPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Verify Cancel button functionality', async () => {
+          // Get or create site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteId = siteInfo.siteId;
+
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+
+          await siteDashboardPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await siteDashboardPage.actions.clickPostCreationCancelButton();
+
+          await siteDashboardPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Verify Cancel button functionality', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
+
+          // Navigate to Content Preview Page
+          const contentPreviewPage = new ContentPreviewPage(
             appManagerFixture.page,
             siteId,
             contentId,
             ContentType.PAGE.toLowerCase()
           );
           await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-        } else if (testData.feedType === 'Site Feed') {
-          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
-          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
-          await appManagerFeedPage.verifyThePageIsLoaded();
-        } else if (testData.feedType === 'Home Feed') {
-          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          await appManagerFeedPage.verifyThePageIsLoaded();
-        }
-      });
 
-      test(
-        `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
-        {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
-        },
-        async ({}) => {
-          tagTest(test.info(), {
-            description: `Verify user can see and click Cancel button while creating ${testData.feedType} post`,
-            zephyrTestId: 'CONT-30148',
-            storyId: 'CONT-30148',
-          });
+          await contentPreviewPage.actions.clickShareThoughtsButton();
 
-          // Click "Share your thoughts" button to open post creation editor
-          if (testData.feedType === 'Content Feed') {
-            await contentPreviewPage.actions.clickShareThoughtsButton();
-          } else if (testData.feedType === 'Site Feed') {
-            await siteDashboardPage.actions.clickShareThoughtsButton();
-          } else {
-            await appManagerFeedPage.actions.clickShareThoughtsButton();
-          }
+          await contentPreviewPage.actions.verifyPostCreationCancelButtonVisible();
 
-          // Verify editor box opens
-          // Note: We verify editor is visible by checking if Cancel button is visible (which requires editor to be open)
-          // The editor visibility is implicitly verified when we check for Cancel button
+          await contentPreviewPage.actions.clickPostCreationCancelButton();
 
-          // Verify user can see the Cancel button
-          if (testData.feedType === 'Content Feed') {
-            await contentPreviewPage.actions.verifyPostCreationCancelButtonVisible();
-          } else if (testData.feedType === 'Site Feed') {
-            await siteDashboardPage.actions.verifyPostCreationCancelButtonVisible();
-          } else {
-            await appManagerFeedPage.actions.verifyPostCreationCancelButtonVisible();
-          }
-
-          // Click Cancel button
-          if (testData.feedType === 'Content Feed') {
-            await contentPreviewPage.actions.clickPostCreationCancelButton();
-          } else if (testData.feedType === 'Site Feed') {
-            await siteDashboardPage.actions.clickPostCreationCancelButton();
-          } else {
-            await appManagerFeedPage.actions.clickPostCreationCancelButton();
-          }
-
-          // Verify editor box closes
-          if (testData.feedType === 'Content Feed') {
-            await contentPreviewPage.actions.verifyPostCreationEditorClosed();
-          } else if (testData.feedType === 'Site Feed') {
-            await siteDashboardPage.actions.verifyPostCreationEditorClosed();
-          } else {
-            await appManagerFeedPage.actions.verifyPostCreationEditorClosed();
-          }
-        }
-      );
-    }
-  );
-}
+          await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+        });
+      }
+    );
+  }
+);
 
 // Test case for CONT-30407: Verify user gets notified for replies on comments
 test.describe(
