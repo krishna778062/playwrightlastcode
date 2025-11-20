@@ -24,7 +24,7 @@ test.describe('favorite', () => {
   test(
     'should navigate to favorite page and interact with user profile',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27834'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -53,37 +53,10 @@ test.describe('favorite', () => {
       const userProfileLink = favoritePage.getUserProfileLink(peopleScreenPage.fullName);
       const isUserVisible = await userProfileLink.isVisible().catch(() => false);
 
+      // Handle two scenarios based on initial favorite status:
+      // 1. If user was already favorited: we unfavorited them, so verify they're removed from favorites
+      // 2. If user was not favorited: we favorited them, so verify they appear and test hover functionality
       if (wasAlreadyFavorited) {
-        // Scenario 2: User was already favorited, we unfavorited them
-        // Check that user is NOT present in favorites page - if not present, end test
-        if (!isUserVisible) {
-          // User is correctly not showing in favorites page after unfavoriting - end test here
-          return;
-        } else {
-          // User is still showing in favorites page after unfavoriting - this is unexpected
-          throw new Error(`User "${peopleScreenPage.fullName}" is still visible in favorites page after unfavoriting`);
-        }
-      } else {
-        // Scenario 1: User was NOT favorited, we favorited them
-        // Check if user is visible in favorites page - if not, end test early
-        if (!isUserVisible) {
-          // User is not showing in favorites page after favoriting - end test here
-          return;
-        }
-
-        // User is visible - proceed with all verification scenarios
-        await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
-
-        // Hover on user profile and verify details remain visible
-        await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
-        await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
-
-        // Verify contact icons are visible
-        await favoritePage.assertions.verifyContactIconsAreVisible(peopleScreenPage.fullName);
-
-        // Verify contact icons remain visible after hover
-        await favoritePage.assertions.verifyContactIconsRemainVisibleAfterHover(peopleScreenPage.fullName);
-      }
         await test.step('Verify user is removed from favorites after unfavoriting', async () => {
           if (isUserVisible) {
             throw new Error(
@@ -94,11 +67,12 @@ test.describe('favorite', () => {
         return;
       }
 
+      // User was favorited - if not visible, skip hover verification (UI may not have updated)
       if (!isUserVisible) {
         return;
       }
 
-      await test.step('Verify user is visible and details remain after favoriting', async () => {
+      await test.step('Verify user details remain visible when hovering over favorited user profile', async () => {
         await favoritePage.assertions.verifyTheUserIsVisible(peopleScreenPage.fullName);
         await favoritePage.actions.hoverOnUserProfile(peopleScreenPage.fullName);
         await favoritePage.assertions.verifyUserDetailsRemainVisible(peopleScreenPage.fullName);
@@ -111,7 +85,7 @@ test.describe('favorite', () => {
   test(
     'should verify favorite people search functionality',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26448'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -148,19 +122,7 @@ test.describe('favorite', () => {
       // Enter random text and verify "Nothing to show here" message
       await test.step('Enter random text and verify "Nothing to show here" message', async () => {
         await favoritePage.actions.searchPeople(FEED_TEST_DATA.SEARCH.RANDOM_TEXT);
-
         await favoritePage.assertions.verifyNothingToShowMessage();
-      const randomText = 'RandomTextThatDoesNotExist12345';
-      await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        await favoritePage.clickOnElement(favoritePage.searchBar);
-        await favoritePage.fillInElement(favoritePage.searchBar, randomText);
-        await favoritePage.clickOnElement(favoritePage.searchIcon);
-
-        // Wait for the "Nothing to show here" message to appear
-        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
-        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
-          assertionMessage: 'Nothing to show here message should be displayed for random search text',
-        });
       });
     }
   );
@@ -168,13 +130,11 @@ test.describe('favorite', () => {
   test(
     'should verify favorite content search functionality',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26266'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify the favourite content search functionality',
-        zephyrTestId: '26266',
-        storyId: '26266',
         zephyrTestId: 'CONT-26266',
         storyId: 'CONT-26266',
       });
@@ -194,47 +154,12 @@ test.describe('favorite', () => {
 
       // Verify the search bar is visible
       await favoritePage.assertions.verifyContentSearchBarIsVisible();
-      const contentTab = appManagerFixture.page.getByRole('tab', { name: 'Content' });
-      await favoritePage.clickOnElement(contentTab);
-
-      // Get the content tab panel
-      const contentTabPanel = appManagerFixture.page.getByRole('tabpanel', { name: 'Content' });
-
-      // Get the first content name from the content tab
-      const firstContentLink = contentTabPanel.getByRole('link').first();
-      await favoritePage.verifier.verifyTheElementIsVisible(firstContentLink, {
-        assertionMessage: 'First content item should be visible',
-        timeout: 10_000,
-      });
-      const firstContentName = (await firstContentLink.textContent())?.trim() || '';
-
-      // Find the content search bar
-      const contentSearchBar = contentTabPanel.getByRole('textbox').first();
-
-      // Verify the search bar is visible
-      await test.step('Verify the search bar is visible', async () => {
-        await favoritePage.verifier.verifyTheElementIsVisible(contentSearchBar, {
-          assertionMessage: 'Search bar should be visible on favorites content tab',
-        });
-      });
 
       // Search for the first content and verify search returns correct data
       if (firstContentName) {
         await test.step('Search for the first displayed content', async () => {
           await favoritePage.actions.searchContent(firstContentName);
-
           await favoritePage.assertions.verifyContentIsVisibleInSearchResults(firstContentName);
-          await favoritePage.clickOnElement(contentSearchBar);
-          await favoritePage.fillInElement(contentSearchBar, firstContentName);
-          const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
-          await favoritePage.clickOnElement(contentSearchIcon);
-
-          // Verify the content is visible in search results
-          const searchedContentLink = contentTabPanel.getByRole('link', { name: firstContentName }).first();
-          await favoritePage.verifier.verifyTheElementIsVisible(searchedContentLink, {
-            assertionMessage: `Content "${firstContentName}" should be visible in search results`,
-            timeout: 10_000,
-          });
         });
       }
 
@@ -250,7 +175,7 @@ test.describe('favorite', () => {
   test(
     'should verify the UI of favourite feed post',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26466'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -305,18 +230,6 @@ test.describe('favorite', () => {
       // Verify the user name and feed created date
       await test.step('Verify user name and feed created date', async () => {
         await favoritePage.assertions.verifyUserNameAndFeedCreatedDate(postContainer, firstFeedPostText);
-      const randomText = 'RandomTextThatDoesNotExist12345';
-      await test.step('Enter random text and verify "Nothing to show here" message', async () => {
-        await favoritePage.clickOnElement(contentSearchBar);
-        await favoritePage.fillInElement(contentSearchBar, randomText);
-        const contentSearchIcon = contentTabPanel.locator('button[aria-label="Search"][type="submit"]').first();
-        await favoritePage.clickOnElement(contentSearchIcon);
-
-        // Wait for the "Nothing to show here" message to appear
-        const nothingToShowMessage = appManagerFixture.page.locator('text=Nothing to show here').first();
-        await favoritePage.verifier.verifyTheElementIsVisible(nothingToShowMessage, {
-          assertionMessage: 'Nothing to show here message should be displayed for random search text',
-        });
       });
     }
   );

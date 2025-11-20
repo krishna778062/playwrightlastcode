@@ -10,19 +10,15 @@ export interface IFavoritePageActions {
   clickOnContentTab: () => Promise<void>;
   clickOnFeedTab: () => Promise<void>;
   searchingFavoriteUser: (fullName: string) => Promise<void>;
-  searchPeople: (searchText: string) => Promise<void>;
   searchContent: (searchText: string) => Promise<void>;
   hoverOnUserProfile: (fullName: string) => Promise<void>;
   getFirstDisplayedUserName: () => Promise<string>;
   commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
   unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
   likeFeedPost: (postContainer: Locator) => Promise<void>;
-export interface IFavoritePageActions {
-  clickOnPeopleTab: () => Promise<void>;
-  searchingFavoriteUser: (fullName: string) => Promise<void>;
-  hoverOnUserProfile: (fullName: string) => Promise<void>;
-  getFirstDisplayedUserName: () => Promise<string>;
+  searchPeople: (searchText: string) => Promise<void>;
 }
+
 export interface IFavoritePageAssertions {
   verifyTheUserIsVisible: (fullName: string) => Promise<void>;
   verifyUserDetailsRemainVisible: (fullName: string) => Promise<void>;
@@ -83,8 +79,6 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
   readonly getContentLinkByName = (contentName: string): Locator =>
     this.getContentTabPanel().getByRole('link', { name: contentName }).first();
-  readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search favorite people…' });
-  readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"][type="submit"]');
 
   // User profile locators
   readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
@@ -166,9 +160,6 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     await test.step('Clicking on feed tab', async () => {
       await this.clickOnElement(this.feedTab);
     });
-  }
-  async searchingFavoriteUser(fullName: string): Promise<void> {
-    await this.searchPeople(fullName);
   }
 
   async searchPeople(searchText: string): Promise<void> {

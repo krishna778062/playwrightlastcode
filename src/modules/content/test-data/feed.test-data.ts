@@ -53,6 +53,7 @@ export const FEED_TEST_DATA = {
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
   SEARCH: {
     RANDOM_TEXT: 'RandomTextThatDoesNotExist12345',
+  },
   DELETED_POST_MESSAGE: 'THIS POST HAS BEEN DELETED',
   API_RESPONSE_MESSAGES: {
     FEED_POST_CREATED: 'Feed Post has been successfully created',
