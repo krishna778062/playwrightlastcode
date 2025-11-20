@@ -300,6 +300,9 @@ test.describe(
           await standardUserManageSitesComponent.clickOnTheMemberButtonInAboutTabAction();
           await standardUserManageSitesComponent.verifyIfFollowingButtonIsVisibleThenClickOnIt();
         }
+      }
+    );
+    test(
       'to verify the bulk action from end user can deactivate the site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],

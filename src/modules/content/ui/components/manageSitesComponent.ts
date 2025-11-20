@@ -628,6 +628,8 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.unfollowSiteButton, {
         assertionMessage: 'Follow button should be changed into unfollow',
       });
+    });
+  }
 
   /**
    * Gets the locator for a site row by exact site name
@@ -640,7 +642,6 @@ export class ManageSitesComponent extends BaseComponent {
       .filter({ has: this.page.locator('h2', { hasText: siteName }) })
       .first();
   }
-
   /**
    * Selects the checkbox for a site by its exact name
    * @param siteName - The exact name of the site
