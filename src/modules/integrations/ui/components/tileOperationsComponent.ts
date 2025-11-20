@@ -90,6 +90,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly freshserviceCreatedDatePattern: RegExp;
   readonly workdayPayStubsDate: RegExp;
   readonly dollarsAmountPattern: RegExp;
+  readonly workdayInboxDate: RegExp;
   readonly workdayGrossPayLabel: string;
   readonly workdayTaxesLabel: string;
   readonly workdayDeductionsLabel: string;
@@ -191,15 +192,16 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.lessonsPattern = /^\d+\s+Lessons?$/;
     this.registeredOnPattern =
       /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
+    this.workdayPayStubsDate =
+      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+-\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
+    this.dollarsAmountPattern = /^\$\d{1,3}(?:,\d{3})*(?:\.\d{2})$/;
+    this.workdayInboxDate = /^Received on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
 
     // FreshService: patterns for ticket verification
     this.freshserviceTicketIdPattern = /^#(Case|Incident)-\d+$/;
     this.freshserviceDueDatePattern = /^Due\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
     this.freshserviceCreatedDatePattern =
       /^Created\s+(on\s+)?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
-    this.workdayPayStubsDate =
-      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+-\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
-    this.dollarsAmountPattern = /^\$\d{1,3}(?:,\d{3})*(?:\.\d{2})$/;
   }
 
   /**
@@ -962,6 +964,32 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       expect(amountCount, 'At least four dollar amounts should be visible').toBeGreaterThanOrEqual(4);
     });
   }
+
+  /**
+   * Verify Workday Inbox tile metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify Workday Inbox metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Workday Inbox tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Ensure at least one item row exists
+      const rows = tile.locator(this.container);
+      await expect(rows.first()).toBeVisible();
+
+      // Validate the first visible row's date and title
+      const firstRow = rows.first();
+      await expect(firstRow.getByText(this.workdayInboxDate).first()).toBeVisible();
+
+      const headingEl = firstRow.getByRole('heading', { level: 3 }).first();
+      await expect(headingEl).toBeVisible();
+      const titleText = (await headingEl.textContent())?.trim() ?? '';
+      expect(titleText, 'Inbox item title should contain letters/numbers/punctuation/symbols').toMatch(
+        DEFAULT_EVENT_TITLE
+      );
+    });
+  }
+
   /**
    * Set Up tile with field selection
    */
@@ -972,6 +1000,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await this.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }
+
   /**
    * Set Up tile with textbox input
    */

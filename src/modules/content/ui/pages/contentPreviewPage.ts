@@ -30,6 +30,11 @@ export interface IContentPreviewPageActions {
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
+  openReplyEditorForPost: (postText: string) => Promise<void>;
+  verifyCancelButtonVisible: (postText: string) => Promise<void>;
+  clickCancelButton: (postText: string) => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
+  verifyReplyEditorClosed: (postText: string) => Promise<void>;
   clickAllCommentsLink: () => Promise<void>;
   clickShowMoreCommentsButton: () => Promise<void>;
   getVisibleCommentCount: () => Promise<number>;
@@ -407,6 +412,26 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   }
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
+  }
+
+  async openReplyEditorForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async verifyCancelButtonVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyCancelButtonVisible(postText);
+  }
+
+  async clickCancelButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickCancelButton(postText);
+  }
+
+  async verifyReplyEditorVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorVisible(postText);
+  }
+
+  async verifyReplyEditorClosed(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyEditorClosed(postText);
   }
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
