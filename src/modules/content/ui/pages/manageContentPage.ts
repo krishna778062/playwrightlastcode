@@ -57,6 +57,13 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   readonly validateOption: Locator = this.page.getByText('Validate');
   static actions: any;
 
+  // Expose locators for unified verification
+  readonly editButton: Locator;
+  readonly deleteButton: Locator;
+  readonly unpublishButton: Locator;
+  readonly publishButton: Locator;
+  readonly moveButton: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContentComponent = new ManageContentComponent(page);
@@ -358,10 +365,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
    */
   async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
-  }
-
-  async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
-    await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
   }
 
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {

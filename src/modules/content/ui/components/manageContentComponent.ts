@@ -921,24 +921,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
-    await test.step('Verifying all contents are deleted', async () => {
-      const contentNameLocator = this.getContentNameLocator(contentNames[0]);
-      await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
-        assertionMessage: `Content ${contentNames[0]} should not be visible`,
-      });
-    });
-  }
-
-  async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
-    await test.step(`Verifying content ${contentName} is visible in manage site`, async () => {
-      const contentLocator = this.getContentNameLocator(contentName);
-      await this.verifier.verifyTheElementIsVisible(contentLocator, {
-        assertionMessage: `Content ${contentName} should be visible`,
-      });
-    });
-  }
-
   async clickOnValidateApplyButton(): Promise<void> {
     await test.step(`Clicking on validate apply button`, async () => {
       await this.clickOnElement(this.applyButton);
