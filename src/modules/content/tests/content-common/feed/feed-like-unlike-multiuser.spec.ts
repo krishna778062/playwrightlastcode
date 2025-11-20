@@ -537,12 +537,12 @@ test.describe(
     test(
       'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817', '@CONT-31818'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817'],
       },
       async () => {
         tagTest(test.info(), {
           description: 'Verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
-          zephyrTestId: ['CONT-31817', 'CONT-31818'],
+          zephyrTestId: 'CONT-31817',
           storyId: 'CONT-31817',
         });
 
