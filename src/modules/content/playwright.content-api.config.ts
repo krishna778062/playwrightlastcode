@@ -1,12 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
-import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
-
-import { initializeContentConfig } from './config/contentConfig';
-
+import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import baseConfig from '@/src/modules/content/config/baseConfig';
+import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 
 // Initialize config for primary tenant at config load time
 initializeContentConfig('primary');
