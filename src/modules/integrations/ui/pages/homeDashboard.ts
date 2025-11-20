@@ -901,6 +901,12 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
   }
+  /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
   async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
   }

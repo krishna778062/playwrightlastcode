@@ -57,6 +57,7 @@ export interface IFeedActions {
   clickOnEditVersionButton: () => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
+  clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
   clickShareThoughtsButton: () => Promise<void>;
   enterQuestionTitle: (title: string) => Promise<void>;
@@ -66,6 +67,10 @@ export interface IFeedActions {
   clickOnShowOption: (optionValue: string) => Promise<void>;
   clickOnSortByOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
+  clickShareButtonForPost: (postText: string) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
+  enterShareDescription: (description: string) => Promise<void>;
+  clickShareButton: () => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   enterFeedPostText: (text: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
@@ -90,11 +95,18 @@ export interface IFeedActions {
   ) => Promise<void>;
   addLink: (linkText: string, linkUrl: string) => Promise<void>;
   selectEmoji: (emojiIndex?: number) => Promise<void>;
+  clickPostTimestamp: (postText: string) => Promise<void>;
+  shareFeedPost: (params: {
+    postText: string;
+    mentionUserName?: string;
+    shareMessage: string;
+    postIn: 'Home Feed' | 'Site Feed';
+  }) => Promise<void>;
+  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   clickShareButtonOnPost: (postText: string) => Promise<void>;
   attemptImagePasteInShareModal: () => Promise<void>;
   clickShareOnComment: () => Promise<void>;
   clickShareOnPost: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
   addUserNameMentionInShareDialog: (userName: string) => Promise<void>;
   addSiteMentionInShareDialog: (siteName: string) => Promise<void>;
   addTopicMentionInShareDialog: (topicName: string) => Promise<void>;
@@ -132,6 +144,7 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
+  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
@@ -158,6 +171,11 @@ export interface IFeedAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
+  verifyReplyCount: (postText: string, expectedCount: number, replyText?: string) => Promise<void>;
+  clickPostTimestamp: (postText: string) => Promise<void>;
+  getVisibleReplyCount: (postText: string) => Promise<number>;
+  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
   verifyShareModalIsOpen: () => Promise<void>;
@@ -428,6 +446,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.clickReplyShowMoreButton();
   }
 
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
+  }
+
+  async getVisibleReplyCount(postText: string): Promise<number> {
+    return await this.listFeedComponent.getVisibleReplyCount(postText);
+  }
+
+  async verifyReplyCount(postText: string, expectedCount: number): Promise<void> {
+    await this.listFeedComponent.verifyReplyCount(postText, expectedCount);
+  }
+
+  async clickPostTimestamp(postText: string): Promise<void> {
+    await this.listFeedComponent.clickPostTimestamp(postText);
+  }
+
   async verifyReplyIsNotVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyIsNotVisible(replyText);
   }
@@ -540,6 +574,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async selectShareOptionAsSiteFeed(): Promise<void> {
     await this.shareComponent.selectShareOptionAsSiteFeed();
+  }
+
+  async clickShareButtonForPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareButtonForPost(postText);
+  }
+
+  async verifyPostIsAtTop(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsAtTop(postText);
+  }
+
+  async clickShareButton(): Promise<void> {
+    await this.shareComponent.actions.clickShareButton();
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
@@ -757,8 +803,64 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
+  async verifySiteImageInFeedCard(contentTitle: string, siteId: string, siteImageFileId: string): Promise<void> {
+    await this.listFeedComponent.verifySiteImageInFeedCard(contentTitle, siteId, siteImageFileId);
+  }
+
+  async shareFeedPost(params: {
+    postText: string;
+    mentionUserName?: string;
+    shareMessage: string;
+    postIn: 'Home Feed' | 'Site Feed';
+  }): Promise<void> {
+    await test.step(`Share feed post "${params.postText}" with message "${params.shareMessage}"`, async () => {
+      // Click share icon on the post
+      await this.listFeedComponent.clickShareIcon(params.postText);
+
+      // Wait for share dialog to appear
+      await this.verifier.verifyTheElementIsVisible(this.shareComponent.shareDescriptionInput, {
+        assertionMessage: 'Share dialog should be visible',
+      });
+
+      // Enter share message first
+      console.log(`Entering share message: ${params.shareMessage}`);
+      await this.shareComponent.enterShareDescription(params.shareMessage);
+
+      // Add mention if provided (after message)
+      if (params.mentionUserName) {
+        console.log(`Adding mention: @${params.mentionUserName}`);
+        await this.createFeedPostComponent.addUserNameMention(params.mentionUserName);
+      }
+
+      // Select post location
+      console.log(`Selecting post in: ${params.postIn}`);
+      if (params.postIn === 'Home Feed') {
+        // Home Feed is typically the default, so we may not need to select it
+        // But if we need to, try selecting by value or label
+        try {
+          // Wait for dropdown to be ready
+          await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible' });
+          // Try to select 'public' value, if it fails, Home Feed is likely already selected
+          await this.shareComponent.shareOptionDropdown.selectOption({ value: 'public' });
+        } catch {
+          // If selection fails, Home Feed is likely already the default, continue
+          console.log('Home Feed appears to be already selected or is the default');
+        }
+      } else {
+        await this.shareComponent.selectShareOptionAsSiteFeed();
+      }
+
+      // Click Share button
+      await this.shareComponent.clickShareButton();
+    });
+  }
+
+  async verifyPostIsNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostNotVisible(postText);
+  }
+
   async clickShareButtonOnPost(postText: string): Promise<void> {
-    await this.listFeedComponent.clickShareButtonOnPost(postText);
+    await this.listFeedComponent.clickShareIcon(postText);
   }
 
   async attemptImagePasteInShareModal(): Promise<void> {

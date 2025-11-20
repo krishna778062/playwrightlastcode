@@ -664,6 +664,12 @@ export class SiteDashboard {
     await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
   }
   /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
+  /**
    * Verify Greenhouse tile content structure with task records
    * @param tileTitle - The title of the tile to verify
    */
