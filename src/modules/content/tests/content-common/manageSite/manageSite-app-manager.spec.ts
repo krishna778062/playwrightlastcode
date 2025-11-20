@@ -343,6 +343,9 @@ test.describe(
         await orgChartPage.actions.clickOnViewProfileButton();
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
+      }
+    );
+    test(
       'to verify the bulk action activate in manage site user drop down',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
