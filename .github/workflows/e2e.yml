@@ -17,6 +17,7 @@ on:
           - 'content'
           - 'content-settings'
           - 'content-studio'
+          - 'content-api'
           - 'de'
           - 'de-api'
           - 'content-abac'
