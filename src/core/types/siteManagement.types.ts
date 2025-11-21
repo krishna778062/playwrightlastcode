@@ -13,16 +13,16 @@ export enum SiteMembershipAction {
 
 export interface SiteCreationPayload {
   access: string;
-  hasPages: boolean;
-  hasEvents: boolean;
-  hasAlbums: boolean;
-  hasDashboard: boolean;
-  landingPage: string;
-  isContentFeedEnabled: boolean;
-  isContentSubmissionsEnabled: boolean;
-  isOwner: boolean;
-  isMembershipAutoApproved: boolean;
-  isBroadcast: boolean;
+  hasPages: boolean | true;
+  hasEvents: boolean | true;
+  hasAlbums: boolean | true;
+  hasDashboard: boolean | true;
+  landingPage: string | 'dashboard';
+  isContentFeedEnabled: boolean | true;
+  isContentSubmissionsEnabled: boolean | true;
+  isOwner: boolean | true;
+  isMembershipAutoApproved: boolean | false;
+  isBroadcast: boolean | false;
   name: string;
   category: {
     categoryId: string;

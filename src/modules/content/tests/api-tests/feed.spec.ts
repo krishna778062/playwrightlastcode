@@ -6,7 +6,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FeedApiHelper } from '@/src/modules/content/apis/helpers/feedApiHelper';
+import { FeedApiHelper } from '@/src/modules/content/apis/apiValidation/feedApiHelper';
 
 test.describe(
   '@FeedAPI',
