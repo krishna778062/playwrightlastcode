@@ -66,6 +66,17 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
+    return await test.step(`Accepting membership request for site: ${siteId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.acceptMembershipRequest(siteId), {
+        data: {
+          action: 'approve',
+          request_id: requestId,
+        },
+      });
+      return await response.json();
+    });
+  }
   /**
    * Adds a new site using the API
    * @param overrides - The overrides to use for the site creation
@@ -136,6 +147,59 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getFollowersAndFollowingList(userId: string, size: number = 100): Promise<any> {
+    return await test.step(`Getting followers and following list for user: ${userId}`, async () => {
+      const allResults: any[] = [];
+      let nextPageToken: number | undefined = undefined;
+      let hasMorePages = true;
+      let lastResponse: any = null;
+
+      while (hasMorePages) {
+        const response = await this.httpClient.get(
+          API_ENDPOINTS.identity.followersAndFollowingList(userId, size, nextPageToken)
+        );
+        if (!response.ok()) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(
+            `Failed to get followers and following list. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+          );
+        }
+        const json = await response.json();
+        lastResponse = json;
+        console.log('followersAndFollowingList response:', json);
+
+        // Merge results by type
+        if (json.result && Array.isArray(json.result)) {
+          for (const item of json.result) {
+            const existingItem = allResults.find(r => r.type === item.type);
+            if (existingItem) {
+              // Append to existing list
+              existingItem.listOfItems = [...existingItem.listOfItems, ...item.listOfItems];
+              existingItem.count = String(parseInt(existingItem.count) + item.listOfItems.length);
+              existingItem.nextPageToken = item.nextPageToken;
+            } else {
+              // Add new item
+              allResults.push({ ...item });
+            }
+          }
+
+          // Check if there's a nextPageToken for any type
+          const followingItem = json.result.find((item: any) => item.type === 'following');
+          nextPageToken = followingItem?.nextPageToken;
+          hasMorePages = nextPageToken !== undefined && nextPageToken !== null;
+        } else {
+          hasMorePages = false;
+        }
+      }
+
+      return {
+        status: lastResponse?.status || 'success',
+        responseTimeStamp: lastResponse?.responseTimeStamp,
+        message: lastResponse?.message || 'Retrieved list successfully',
+        result: allResults,
+      };
+    });
+  }
   /**
    * Deactivates a site using the API
    * @param siteId - The id of the site to deactivate
@@ -265,7 +329,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
-        sortBy: options.sortBy || 'createdNewest',
+        sortBy: options.sortBy || 'alphabetical',
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
@@ -340,6 +404,43 @@ export class SiteManagementService implements ISiteManagementOperations {
         data: approvalPayload,
       });
       return await response.json();
+    });
+  }
+
+  async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
+    return await test.step(`Rejecting content: ${contentId} for site: ${siteId}`, async () => {
+      const rejectPayload = {
+        rejectionComment: rejectionComment || 'This is not good',
+        action: 'reject',
+      };
+
+      // Use action as query parameter similar to approveContent endpoint pattern
+      const endpointWithAction = `${API_ENDPOINTS.content.manageContent(siteId, contentId)}`;
+
+      console.log(`Attempting to reject content with payload: ${JSON.stringify(rejectPayload)}`);
+      const response = await this.httpClient.post(endpointWithAction, {
+        data: rejectPayload,
+      });
+
+      const json = await response.json();
+      console.log(
+        `rejectContent response status: ${response.status()}, response body: ${JSON.stringify(json, null, 2)}`
+      );
+
+      if (!response.ok() || json.status !== 'success') {
+        // Extract error details from errors array if present
+        const errors = json.errors || [];
+        const errorMessages = errors.map((err: any) => `${err.error_code}: ${err.message}`).join(', ');
+        const errorMessage = json.message || json.error || errorMessages || 'Unknown error';
+        const errorCode = json.errors?.[0]?.error_code || json.errorCode || json.code || 'N/A';
+
+        throw new Error(
+          `Failed to reject content. HTTP Status: ${response.status()}, Error Code: ${errorCode}, Message: ${errorMessage}, Full Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      console.log(`Successfully rejected content: ${contentId}`);
+      return json;
     });
   }
 

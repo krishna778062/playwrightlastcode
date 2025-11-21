@@ -39,6 +39,13 @@ export const API_ENDPOINTS = {
     },
   },
   identity: {
+    followersAndFollowingList: (userId: string, size: number = 6, nextPageToken?: number) => {
+      let url = `/v1/identity/people/follow/${userId}?size=${size}&types=followers&types=following`;
+      if (nextPageToken !== undefined) {
+        url += `&nextPageToken=${nextPageToken}`;
+      }
+      return url;
+    },
     validate: '/v2/identity/users/validate',
     login: '/v2/identity/users/login',
     people: '/v2/identity/people',
@@ -65,6 +72,8 @@ export const API_ENDPOINTS = {
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
     carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    requestMembership: `membership/request`,
+    acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
     deleteCarouselItem: (siteId: string, carouselItemId: string) =>
       `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
@@ -74,6 +83,8 @@ export const API_ENDPOINTS = {
     publish: '/content?action=publish',
     approveContent: (siteId: string, contentId: string) =>
       `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
+    updateDetails: (siteId: string, contentId: string) =>
+      `/v1/content/sites/${siteId}/content/${contentId}?action=update`,
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
@@ -83,6 +94,7 @@ export const API_ENDPOINTS = {
     createTopic: '/v1/content/topics',
     deleteTopics: '/v1/content/topics/bulk-delete',
     contentListInSite: '/v1/content/sites/content/list',
+    manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
     homeCarouselItems: '/v1/content/carousel/items/list',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
@@ -109,6 +121,7 @@ export const API_ENDPOINTS = {
   socialCampaign: {
     create: '/v1/socialcampaigns',
     list: '/v1/socialcampaigns/list',
+    listGet: '/v1/campaign/list',
     get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
