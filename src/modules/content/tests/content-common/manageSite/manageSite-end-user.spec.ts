@@ -268,7 +268,7 @@ test.describe(
       },
       async ({ standardUserFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the site author name and event start date',
+          description: 'to verify the site edit option in manage site user drop down sites',
           zephyrTestId: 'CONT-26503',
           storyId: 'CONT-26503',
         });
@@ -281,6 +281,9 @@ test.describe(
         await editSitePage.actions.clickOnEditOption();
         await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
         await editSitePage.actions.clickOnUpdateButton();
+      }
+    );
+    test(
       'to verify the people follow in site about members and followers tab',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
@@ -329,7 +332,7 @@ test.describe(
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action activate in manage site user drop down',
+          description: 'to verify the bulk action from end user can deactivate the site',
           zephyrTestId: 'CONT-26576',
           storyId: 'CONT-26576',
         });
