@@ -11,6 +11,7 @@ export * from './manageContentOptions';
 export * from './manageSiteOptions';
 export * from './onboardingOptions';
 export * from './pageContentType';
+export * from './reactionsEmoji';
 export * from './sitePageEnums';
 export * from './siteTypes';
 export * from './sortOptionLabels';

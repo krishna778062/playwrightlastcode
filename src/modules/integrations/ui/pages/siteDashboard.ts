@@ -664,6 +664,12 @@ export class SiteDashboard {
     await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
   }
   /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
+  /**
    * Verify Greenhouse tile content structure with task records
    * @param tileTitle - The title of the tile to verify
    */
@@ -763,5 +769,23 @@ export class SiteDashboard {
       await this.tileOperationsComponent.enableToggleButton(tileTitle);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
+  }
+  /**
+   * Verify Salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
   }
 }

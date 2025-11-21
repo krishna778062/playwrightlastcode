@@ -90,10 +90,16 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly freshserviceCreatedDatePattern: RegExp;
   readonly workdayPayStubsDate: RegExp;
   readonly dollarsAmountPattern: RegExp;
+  readonly workdayInboxDate: RegExp;
   readonly workdayGrossPayLabel: string;
   readonly workdayTaxesLabel: string;
   readonly workdayDeductionsLabel: string;
   readonly workdayNetPayLabel: string;
+  readonly salesforceSiteNameText: Locator;
+  readonly salesforceSiteType: Locator;
+  readonly salesforceHasPages: Locator;
+  readonly salesforceHasEvents: Locator;
+  readonly salesforceViewCompleteReportLink: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -186,20 +192,26 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
     this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
     this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+    this.salesforceSiteNameText = page.getByText('Simpplr Site Name');
+    this.salesforceSiteType = page.getByText('Site Type');
+    this.salesforceHasPages = page.getByText('Has Pages');
+    this.salesforceHasEvents = page.getByText('Has Events');
+    this.salesforceViewCompleteReportLink = page.getByRole('link', { name: /View complete report/ });
 
     // Workday: patterns for lessons count and registered date line
     this.lessonsPattern = /^\d+\s+Lessons?$/;
     this.registeredOnPattern =
       /^Registered on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?:[1-9]|[12]\d|3[01]),\s+\d{4}$/;
+    this.workdayPayStubsDate =
+      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+-\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
+    this.dollarsAmountPattern = /^\$\d{1,3}(?:,\d{3})*(?:\.\d{2})$/;
+    this.workdayInboxDate = /^Received on\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
 
     // FreshService: patterns for ticket verification
     this.freshserviceTicketIdPattern = /^#(Case|Incident)-\d+$/;
     this.freshserviceDueDatePattern = /^Due\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
     this.freshserviceCreatedDatePattern =
       /^Created\s+(on\s+)?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
-    this.workdayPayStubsDate =
-      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+-\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}$/;
-    this.dollarsAmountPattern = /^\$\d{1,3}(?:,\d{3})*(?:\.\d{2})$/;
   }
 
   /**
@@ -962,6 +974,32 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       expect(amountCount, 'At least four dollar amounts should be visible').toBeGreaterThanOrEqual(4);
     });
   }
+
+  /**
+   * Verify Workday Inbox tile metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await test.step(`Verify Workday Inbox metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Workday Inbox tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+
+      // Ensure at least one item row exists
+      const rows = tile.locator(this.container);
+      await expect(rows.first()).toBeVisible();
+
+      // Validate the first visible row's date and title
+      const firstRow = rows.first();
+      await expect(firstRow.getByText(this.workdayInboxDate).first()).toBeVisible();
+
+      const headingEl = firstRow.getByRole('heading', { level: 3 }).first();
+      await expect(headingEl).toBeVisible();
+      const titleText = (await headingEl.textContent())?.trim() ?? '';
+      expect(titleText, 'Inbox item title should contain letters/numbers/punctuation/symbols').toMatch(
+        DEFAULT_EVENT_TITLE
+      );
+    });
+  }
+
   /**
    * Set Up tile with field selection
    */
@@ -972,6 +1010,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await this.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }
+
   /**
    * Set Up tile with textbox input
    */
@@ -1065,6 +1104,49 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
     await test.step(`Verify FreshService Unassigned Tickets tile data for '${tileTitle}'`, async () => {
       await this.verifyFreshserviceTicketData(tileTitle);
+    });
+  }
+  /**
+   * Verify salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Salesforce tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Salesforce tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify required elements
+      await expect(tile.getByText('Simpplr Site Name').first()).toBeVisible();
+      await expect(tile.getByText('Site Type').first()).toBeVisible();
+      await expect(tile.getByText('Has Pages').first()).toBeVisible();
+      await expect(tile.getByText('Has Events').first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await test.step(`Verify tile '${tileTitle}' redirects to '${expectedUrl}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const link = linkSelector ? tile.locator(linkSelector) : tile.locator(this.salesforceViewCompleteReportLink);
+      await this.clickOnElement(link.first());
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const popup = await this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
+      if (popup) {
+        await expect(popup).toHaveURL(urlRegex);
+        await popup.close();
+      } else {
+        await this.page.waitForURL(urlRegex);
+        await this.page.goBack();
+      }
     });
   }
 }
