@@ -41,38 +41,68 @@ export class ContentManagementHelper {
    * Gets content ID from content list response
    * If no content is found, gets a site from site service and creates a page
    * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
    * @returns Promise with siteId and contentId
    */
   async getContentId(options?: {
     size?: number;
     status?: string;
     sortBy?: string;
+    accessType?: SITE_TYPES;
   }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
-      const randomContent = response.result.listOfItems[randomIndex];
-      return {
-        siteId: randomContent.site.siteId,
-        contentId: randomContent.contentId || randomContent.id,
-        contentType: randomContent.type,
-      };
+      // Filter content by site access type
+      const filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (filteredContent.length > 0) {
+        const randomIndex = Math.floor(Math.random() * filteredContent.length);
+        const randomContent = filteredContent[randomIndex];
+        return {
+          siteId: randomContent.site.siteId,
+          contentId: randomContent.contentId || randomContent.id,
+          contentType: randomContent.type,
+        };
+      }
     }
 
     // No content found, get a site from site service and create a page
-    console.log('No content found, getting site from site service and creating a page...');
+    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
-    // Get a site from the site list using the site service directly
-    const sitesResponse = await this.siteManagementService.getListOfSites();
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
 
     if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
-      throw new Error('No sites found in site service');
+      throw new Error(`No ${accessType} sites found in site service`);
     }
 
-    // Get a random site
-    const randomSiteIndex = Math.floor(Math.random() * sitesResponse.result.listOfItems.length);
-    const randomSite = sitesResponse.result.listOfItems[randomSiteIndex];
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    // Get a random active site
+    const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+    const randomSite = activeSites[randomSiteIndex];
     const siteId = randomSite.siteId;
 
     // Create a page in the selected site
