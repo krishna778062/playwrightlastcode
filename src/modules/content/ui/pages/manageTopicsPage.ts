@@ -57,9 +57,6 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
   readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
   readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
   readonly clickingOnCrossSearchButton: Locator = this.page.locator('[aria-label="Clear"]');
-  // readonly clickingOnTopicHeading: Locator = this.page.getByRole('cell', { name: 'Topic' });
-  // readonly clickingOnTopicHeading: Locator = this.page.locator('.Table-cell').first();
-  // readonly clickingOnTopicHeading: this.page.locator('tr.Table-row a.Tag-text.type--500.type--b3.u-cursorPointer');
   readonly paginationControls: Locator = this.page
     .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
     .first();
