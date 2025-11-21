@@ -98,8 +98,6 @@ export const API_ENDPOINTS = {
     homeCarouselItems: '/v1/content/carousel/items/list',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
-    updateDetails: (siteId: string, contentId: string) =>
-      `/v1/content/sites/${siteId}/content/${contentId}?action=update`,
   },
 
   fileUpload: {
