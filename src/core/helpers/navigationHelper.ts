@@ -3,7 +3,7 @@ import { Page, test } from '@playwright/test';
 import { CreateComponent } from '@content/ui/components/createComponent';
 
 import { TestOptions } from '../types';
-import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
+import { ProfileDropdownComponent, SideNavBarComponent, TopNavBarComponent } from '../ui/components';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
@@ -341,11 +341,23 @@ export class NavigationHelper {
   }
 
   /**
+   * Gets the current logged-in user's name from the UI
+   * @param options - The options for the step
+   * @returns Promise with the user's name
+   */
+  async getUserNameFromUI(options?: TestOptions): Promise<string> {
+    return await test.step(options?.stepInfo || 'Getting user name from UI', async () => {
+      await this.topNavBarComponent.openProfileSettings();
+      const profileDropdownComponent = new ProfileDropdownComponent(this.page);
+      return await profileDropdownComponent.getUserNameFromUI(options);
+    });
+  }
+
+  /**
    * Navigates to the manage recognition page via the side nav bar
    * @param options - The options for the step
    * @returns The manage recognition page
    */
-
   async navigateToManageRecognitionViaSideNavBar(options?: { stepInfo?: string }): Promise<ManageRecognitionPage> {
     return await test.step(options?.stepInfo || 'Navigating to manage recognition via side nav bar', async () => {
       await this.sideNavBarComponent.clickRecognitionLinkInsideManageNavMenu();

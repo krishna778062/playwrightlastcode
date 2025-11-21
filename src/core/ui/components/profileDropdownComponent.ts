@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from './baseComponent';
 
@@ -64,6 +64,20 @@ export class ProfileDropdownComponent extends BaseComponent {
   async clickOnLogoutButton(options?: { stepInfo?: string }): Promise<void> {
     await this.clickOnElement(this.logoutButton, {
       stepInfo: options?.stepInfo || `profile dropdown: clicking on logout button`,
+    });
+  }
+
+  /**
+   * Gets the user name from the profile dropdown
+   * @param options - The options for the step
+   */
+  async getUserNameFromUI(options?: { stepInfo?: string }): Promise<string> {
+    return await test.step(options?.stepInfo || `profile dropdown: getting user name from UI`, async () => {
+      const text = await this.page.locator('.UserPanelWithPopoverMenu-module-username___SjAnN').textContent();
+      if (!text) {
+        throw new Error('User name not found in profile dropdown');
+      }
+      return text;
     });
   }
 }
