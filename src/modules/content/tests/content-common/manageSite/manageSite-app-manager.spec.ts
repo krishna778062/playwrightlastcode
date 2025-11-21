@@ -257,8 +257,9 @@ test.describe(
         });
         const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
-        await manageSitesComponent.clickOnTheManageSiteButtonAction();
-        await manageSitesComponent.clickOnInsideContentButtonAction();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
