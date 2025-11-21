@@ -465,7 +465,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async verifyCommentTimestampFormat(contentCommentText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(contentCommentText);
   }
-  
+
   async verifyPostCreationCancelButtonVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
   }

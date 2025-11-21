@@ -359,7 +359,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
   }
-  
+
   async verifyPostCreationCancelButtonVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
   }
