@@ -212,6 +212,7 @@ export interface IFeedAssertions {
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
   verifyShareModalIsVisible(): Promise<void>;
   verifyShareModalIsClosed: () => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -367,9 +368,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   /**
    * Gets the timestamp for a specific post
    * @param postText - The text of the post to find timestamp for
+   * @returns Promise<string> - The timestamp text content
    */
-  async getPostTimestamp(postText: string): Promise<void> {
-    await this.listFeedComponent.getPostTimestamp(postText);
+  async getPostTimestamp(postText: string): Promise<string> {
+    return await this.listFeedComponent.getPostTimestamp(postText);
   }
 
   //Favourite Post Methods
@@ -1209,5 +1211,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
   }
 }
