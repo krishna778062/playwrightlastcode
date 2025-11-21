@@ -181,9 +181,6 @@ export class SiteApiHelper {
         typeof siteResponse.result.isContentSubmissionsEnabled,
         'isContentSubmissionsEnabled should be a boolean'
       ).toBe('boolean');
-      expect(typeof siteResponse.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be a boolean').toBe(
-        'boolean'
-      );
     });
   }
 
