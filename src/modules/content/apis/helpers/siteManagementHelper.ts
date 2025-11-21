@@ -858,49 +858,6 @@ export class SiteManagementHelper {
       );
     });
   }
-  async getSiteAuthorNameAndEventStartDate(): Promise<{
-    siteId: string;
-    authorName?: string;
-    startsAt?: string;
-    eventName?: string;
-    siteName?: string;
-  }> {
-    const siteListResponse = await this.getListOfSites();
-
-    for (const _site of siteListResponse.result.listOfItems) {
-      // Get individual site details to check for coverImage and hasEvents
-      const response = await this.contentManagementService.getContentList();
-      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
-      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
-      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
-      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
-
-      if (content) {
-        return {
-          siteId: siteId?.siteId || '',
-          authorName: content.authoredBy.name,
-          startsAt: startsAt?.startsAt,
-          eventName: content.title,
-          siteName: siteName?.site.name,
-        };
-      }
-    }
-
-    throw new Error('No site found with cover image and hasEvents: true');
-  }
-  /**
-
-   */
-  /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
-   */
-  /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
-   */
   /**
    * Ensures user is a member of the site with the specified role
    * First checks if user is already a member, if not adds them, then assigns the role

@@ -260,19 +260,18 @@ test.describe(
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.verifyDraftTagVisibleInManageContent();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyEditOptionVisibleInManageContent();
-        await manageContentPage.actions.verifyDeleteOptionVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
       }
     );
 
     test(
-      'verify Scheduled stamp and its options menu under-manage site content tab',
       'verify Add to campaign option under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20537'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -351,7 +350,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          description: 'to verify the onboarding option in manage site content',
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
@@ -430,7 +429,7 @@ test.describe(
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action from end user can activate the site',
+          description: 'to verify the bulk action from app manager can activate the site',
           zephyrTestId: 'CONT-26574',
           storyId: 'CONT-26574',
         });
