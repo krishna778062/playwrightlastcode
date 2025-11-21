@@ -13,6 +13,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
