@@ -107,9 +107,7 @@ test.describe(
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
 
-      await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnApplication();
-      await manageApplicationPage.actions.clickOnGovernance();
+      await governanceScreenPage.loadPage();
       await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
 
       // Cleanup home feed post
@@ -152,6 +150,13 @@ test.describe(
         createdContentId = '';
         createdContentSiteId = '';
       }
+
+      siteId = '';
+      contentId = '';
+      commentText = '';
+      feedPostText = '';
+      feedReplyText = '';
+      commentReplyText = '';
     });
     test(
       'verify that feeds and comments are displayed when enabled and not displayed when disabled at the app level',
@@ -423,9 +428,7 @@ test.describe(
         console.log(`Created content feed post via API: ${contentFeedPostId}`);
 
         // Set Timeline & feed setting to "Timeline"
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
         console.log('Timeline mode enabled');
 
@@ -523,9 +526,7 @@ test.describe(
         console.log(`Created content feed post via API: ${contentFeedPostId}`);
 
         // Set Timeline & feed setting to "Timeline and comments on Content"
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
         console.log('Timeline and comments on content feed mode enabled');
 
@@ -577,9 +578,7 @@ test.describe(
         });
 
         // Set Timeline & feed setting to "Timeline" (already done in beforeEach, but ensuring it's set)
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
         console.log('Timeline mode enabled');
 
@@ -610,6 +609,7 @@ test.describe(
           zephyrTestId: 'CONT-31814',
           storyId: 'CONT-31814',
           isKnownFailure: true,
+          bugTicket: 'CONT-42038',
         });
 
         // Create content (page) via API helper (in default mode)
@@ -656,9 +656,7 @@ test.describe(
         console.log(`Comment created successfully: ${commentText}`);
 
         // Set Timeline & feed setting to "Timeline and Comments on Content"
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
         console.log('Timeline and Comments on Content mode enabled');
 
@@ -711,9 +709,7 @@ test.describe(
         });
 
         // Set Timeline & feed setting to "Default Mode" (Timeline, Comments on Content, and Feed Post)
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
         console.log('Timeline, Comments on Content, and Feed Post mode enabled (Default Mode)');
 

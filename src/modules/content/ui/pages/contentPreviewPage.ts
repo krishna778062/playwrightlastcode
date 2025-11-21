@@ -476,7 +476,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async verifyContentShareButtonIsNotVisible(): Promise<void> {
     await test.step('Verify share button is not visible for Content Page', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
-        assertionMessage: 'Share button should not be visible on comments',
+        assertionMessage: 'Share button should not be visible on Content Page when timeline mode is enabled',
+        timeout: 10000,
       });
     });
   }
