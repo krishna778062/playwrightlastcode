@@ -7,19 +7,37 @@ export interface IFeedManagementOperations {
   getFeeds?(options?: any): Promise<any>;
 }
 
+/**
+ * Attached file structure for feed creation request
+ */
+export interface AttachedFile {
+  fileId: string;
+  provider: string;
+  size: number;
+  name: string;
+  type: string;
+  thumbnail?: string;
+}
+
+/**
+ * Request payload for creating a feed post
+ */
 export interface CreateFeedPostPayload {
   textJson: string;
   textHtml: string;
   scope: string;
   siteId: string | null;
-  contentId: string | null;
-  listOfAttachedFiles: any[];
+  contentId?: string | null;
+  listOfAttachedFiles: AttachedFile[];
   ignoreToxic: boolean;
   type: string;
   variant: string;
   listOfTopics?: { id: string; name: string }[];
 }
 
+/**
+ * Feed author information
+ */
 export interface FeedAuthor {
   userId: string;
   name: string;
@@ -29,20 +47,76 @@ export interface FeedAuthor {
   signedImg: string;
 }
 
+/**
+ * Topic information in feed response
+ */
+export interface FeedTopic {
+  topicId: string;
+  name: string;
+  link: string;
+  canEdit: boolean;
+  canDelete: boolean;
+  canFollow: boolean;
+}
+
+/**
+ * Mention information in feed response
+ */
+export interface FeedMention {
+  id: string;
+  name: string;
+  type: 'site' | 'people' | 'user';
+}
+
+/**
+ * File information in feed response
+ */
+export interface FeedFile {
+  fileId: string;
+  provider: string;
+  size: number;
+  name: string;
+  type: string;
+  thumbnail: string;
+  providerFileId: string | null;
+  version: number;
+  publicURL: string | null;
+  previewURL: string | null;
+  previewStoragePath: string | null;
+  additionalAttr: any | null;
+  metadata: any | null;
+  altText: string | null;
+  isAccessible: boolean;
+  isDownloadableOniOS: boolean;
+  isImage: boolean;
+  mimeType: string;
+  path: string;
+  downloadURL: string;
+  fileExtension: string;
+  isVideo: boolean;
+  isAudio: boolean;
+  signedDownloadURL: string;
+  signedPath: string;
+  signedThumbnail: string;
+}
+
+/**
+ * Feed result structure from API response
+ */
 export interface FeedResult {
   type: string;
   variant: string;
   accessType: string;
-  listOfTopics: any[];
-  listOfMentions: any[];
-  listOfLinks: any[];
-  listOfFiles: any[];
+  listOfTopics: FeedTopic[];
+  listOfMentions: FeedMention[];
+  listOfLinks: string[];
+  listOfFiles: FeedFile[];
   recentComments: {
     listOfItems: any[];
     nextPageToken: string | null;
   };
   reactionCount: number;
-  reactionStats: any;
+  reactionStats: Record<string, any>;
   feedId: string;
   createdAt: string;
   modifiedAt: string | null;
@@ -80,4 +154,52 @@ export interface FeedPostResponse {
 export interface UpdateFeedPostPayload {
   text?: string;
   attachments?: string[];
+}
+
+/**
+ * Request payload for creating a question
+ */
+export interface CreateQuestionPayload {
+  title: string;
+  textJson: string;
+  textHtml: string;
+  scope: string;
+  siteId: string | null;
+  contentId?: string | null;
+  listOfAttachedFiles: AttachedFile[];
+  ignoreToxic: boolean;
+  type: 'question';
+  variant: string;
+  listOfTopics?: { id: string; name: string }[];
+}
+
+/**
+ * Request payload for updating a question
+ */
+export interface UpdateQuestionPayload {
+  title?: string;
+  textJson?: string;
+  textHtml?: string;
+  ignoreToxic?: boolean;
+  listOfAttachedFiles?: AttachedFile[];
+}
+
+/**
+ * Request payload for creating an answer (comment on question)
+ */
+export interface CreateAnswerPayload {
+  textJson: string;
+  textHtml: string;
+  listOfAttachedFiles?: AttachedFile[];
+  ignoreToxic?: boolean;
+}
+
+/**
+ * Response structure for question (extends FeedPostResponse)
+ */
+export interface QuestionResponse extends FeedPostResponse {
+  result: FeedResult & {
+    title: string;
+    type: 'question';
+  };
 }

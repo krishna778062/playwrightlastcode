@@ -884,7 +884,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
-        test.setTimeout(360000); // 6 minutes timeout for this comprehensive test
+        test.setTimeout(360000);
         tagTest(test.info(), {
           description:
             'Test that when a site is changed from public to private, all existing attendees of an event remain retained if they are members/followers of the site',
@@ -1061,6 +1061,12 @@ test.describe(
       async ({ appManagerFixture, testSiteName, browser }) => {
         test.setTimeout(360000);
         tagTest(test.info(), {
+          isKnownFailure: true,
+          bugTicket: 'INT-27330', // bug ticket from Jira
+          bugReportedDate: '2025-09-30', // Date when the bug was reported
+          knownFailurePriority: 'Medium', // Medium priority known failure (Eg: High, Medium, Low)
+          knownFailureNote:
+            'Test case for verifying non-member invitees lose event from Google Calendar when site changes from public to private', // description of the known failure
           zephyrTestId: 'INT-27253',
         });
 
