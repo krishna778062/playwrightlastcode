@@ -61,6 +61,7 @@ export interface ISiteDashboardAssertions {
   validatePostNotVisible: (postText: string) => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -353,6 +354,10 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   }
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
   }
 
   async verifyPostCreationCancelButtonVisible(): Promise<void> {
