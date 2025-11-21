@@ -1270,5 +1270,136 @@ test.describe(
         }
       }
     );
+
+    test(
+      'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28476'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User submits inappropriate content while Sharing a Content to Home Dashboard and Site Dashboard',
+          zephyrTestId: 'CONT-28476',
+          storyId: 'CONT-28476',
+        });
+
+        // Inappropriate text to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+
+        // Phase 1: Setup - Admin creates content
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteId = publicSite.siteId;
+        const publicSiteName = publicSite.name;
+
+        // Admin creates content
+        const pageContent = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: publicSiteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: { waitForSearchIndex: false },
+        });
+
+        // Helper function to test sharing content with inappropriate content warning (Cancel and Submit Anyway flows)
+        const testShareContentWithInappropriateContent = async (
+          userFixture: any,
+          siteId: string,
+          contentId: string,
+          inappropriateText: string,
+          postIn: 'Home Feed' | 'Site Feed',
+          siteName?: string
+        ) => {
+          const shareComponent = new ShareComponent(userFixture.page);
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+
+          // Navigate to site and content (matching scenario: Search site -> Click content tab -> Click content)
+          const siteDashboardPage = new SiteDashboardPage(userFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.navigateToTab(SitePageTab.ContentTab);
+
+          // Navigate to content page
+          const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Click Share icon on the Content
+          await contentPreviewPage.actions.clickShareContentButton();
+
+          // Wait for share modal to appear
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          // Step 1: Cancel Flow
+          // Enter inappropriate text
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Select post location
+          if (postIn === 'Site Feed') {
+            await shareComponent.selectShareOptionAsSiteFeed();
+            if (siteName) {
+              await shareComponent.actions.enterSiteName(siteName);
+            }
+          }
+
+          // Click Share button
+          await shareComponent.actions.clickShareButton();
+
+          // Verify warning popup appears
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.actions.clickCancel();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify share modal is still functional and user can edit content
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          // Step 2: Submit Anyway Flow
+          // Enter inappropriate text again
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Click Share button
+          await shareComponent.actions.clickShareButton();
+
+          // Verify warning popup appears
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Submit Anyway button (Continue button)
+          await warningPopup.actions.clickContinue();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+        };
+
+        // Phase 2: Test Execution (as End User)
+
+        // Test Home Feed scenario
+        await test.step('Test Home Feed: Inappropriate content warning when sharing content', async () => {
+          await testShareContentWithInappropriateContent(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText,
+            'Home Feed'
+          );
+        });
+
+        // Test Site Feed scenario
+        await test.step('Test Site Feed: Inappropriate content warning when sharing content', async () => {
+          await testShareContentWithInappropriateContent(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText,
+            'Site Feed',
+            publicSiteName
+          );
+        });
+      }
+    );
   }
 );
