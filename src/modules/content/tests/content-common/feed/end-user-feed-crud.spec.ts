@@ -764,5 +764,285 @@ test.describe(
         // Followers are typically members who follow a site, so we test as Member above
       }
     );
+
+    test(
+      'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28091'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment for all roles',
+          zephyrTestId: 'CONT-28091',
+          storyId: 'CONT-28091',
+        });
+
+        // Inappropriate and edited text to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const editedPostText = FEED_TEST_DATA.POST_TEXT.EDITED_POST_TEXT;
+
+        // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteId = publicSite.siteId;
+
+        const [endUserInfo, siteManagerInfo, pageContent] = await Promise.all([
+          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          }),
+        ]);
+
+        // Pre-assign Site Manager role (needed for Group 1-3 parallel tests)
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: siteManagerInfo.userId,
+          role: SitePermission.MANAGER,
+        });
+
+        // Helper function to test Home Dashboard cancel and edit inappropriate content
+        const testHomeDashboardCancelAndEdit = async (
+          userFixture: any,
+          inappropriateText: string,
+          editedText: string
+        ) => {
+          const homeFeedPage = new FeedPage(userFixture.page);
+          await userFixture.homePage.loadPage();
+          await userFixture.homePage.verifyThePageIsLoaded();
+          await userFixture.navigationHelper.clickOnGlobalFeed();
+          await homeFeedPage.verifyThePageIsLoaded();
+
+          // Click Share your thoughts button
+          await homeFeedPage.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          await homeFeedPage.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await homeFeedPage.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.actions.clickCancel();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify editor is still visible and editable
+          const createFeedPostComponent = homeFeedPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          // Edit the content - clear and enter appropriate text
+          await createFeedPostComponent.actions.updatePostText(editedText);
+
+          // Verify the edited text is in the editor
+          const editorContent = await createFeedPostComponent.feedEditor.textContent();
+          if (!editorContent?.includes(editedText)) {
+            throw new Error(`Editor should contain edited text "${editedText}", but found: ${editorContent}`);
+          }
+        };
+
+        // Helper function to test Site Dashboard cancel and edit inappropriate content
+        const testSiteDashboardCancelAndEdit = async (
+          userFixture: any,
+          siteId: string,
+          inappropriateText: string,
+          editedText: string
+        ) => {
+          const siteDashboard = new SiteDashboardPage(userFixture.page, siteId);
+          await siteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+          await siteDashboard.verifyThePageIsLoaded();
+
+          // Click Share your thoughts button
+          await siteDashboard.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
+          await createFeedPostComponent.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await createFeedPostComponent.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.actions.clickCancel();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify editor is still visible and editable
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          // Edit the content - clear and enter appropriate text
+          await createFeedPostComponent.actions.updatePostText(editedText);
+
+          // Verify the edited text is in the editor
+          const editorContent = await createFeedPostComponent.feedEditor.textContent();
+          if (!editorContent?.includes(editedText)) {
+            throw new Error(`Editor should contain edited text "${editedText}", but found: ${editorContent}`);
+          }
+        };
+
+        // Helper function to test Content Page cancel and edit inappropriate content
+        const testContentPageCancelAndEdit = async (
+          userFixture: any,
+          siteId: string,
+          contentId: string,
+          inappropriateText: string,
+          editedText: string
+        ) => {
+          const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Verify comment option is visible
+          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+          // Click Share your thoughts button
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
+          await createFeedPostComponent.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await createFeedPostComponent.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.actions.clickCancel();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify editor is still visible and editable
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          // Edit the content - clear and enter appropriate text
+          await createFeedPostComponent.actions.updatePostText(editedText);
+
+          // Verify the edited text is in the editor
+          const editorContent = await createFeedPostComponent.feedEditor.textContent();
+          if (!editorContent?.includes(editedText)) {
+            throw new Error(`Editor should contain edited text "${editedText}", but found: ${editorContent}`);
+          }
+        };
+
+        // Phase 2: Parallel Context Testing
+
+        // Group 1: Home Dashboard Tests - All users in parallel
+        await Promise.all([
+          testHomeDashboardCancelAndEdit(appManagerFixture, inappropriatePostText, editedPostText),
+          testHomeDashboardCancelAndEdit(standardUserFixture, inappropriatePostText, editedPostText),
+          testHomeDashboardCancelAndEdit(siteManagerFixture, inappropriatePostText, editedPostText),
+        ]);
+
+        // Group 2: Site Dashboard Tests - All users in parallel
+        await Promise.all([
+          testSiteDashboardCancelAndEdit(appManagerFixture, publicSiteId, inappropriatePostText, editedPostText),
+          testSiteDashboardCancelAndEdit(standardUserFixture, publicSiteId, inappropriatePostText, editedPostText),
+          testSiteDashboardCancelAndEdit(siteManagerFixture, publicSiteId, inappropriatePostText, editedPostText),
+        ]);
+
+        // Group 3: Content Page Tests - All users in parallel
+        await Promise.all([
+          testContentPageCancelAndEdit(
+            appManagerFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText,
+            editedPostText
+          ),
+          testContentPageCancelAndEdit(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText,
+            editedPostText
+          ),
+          testContentPageCancelAndEdit(
+            siteManagerFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText,
+            editedPostText
+          ),
+        ]);
+
+        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
+        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
+        // Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.CONTENT_MANAGER,
+        });
+
+        await testHomeDashboardCancelAndEdit(standardUserFixture, inappropriatePostText, editedPostText);
+        await testSiteDashboardCancelAndEdit(standardUserFixture, publicSiteId, inappropriatePostText, editedPostText);
+        await testContentPageCancelAndEdit(
+          standardUserFixture,
+          publicSiteId,
+          pageContent.contentId,
+          inappropriatePostText,
+          editedPostText
+        );
+
+        // Member
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.MEMBER,
+        });
+
+        await testHomeDashboardCancelAndEdit(standardUserFixture, inappropriatePostText, editedPostText);
+        await testSiteDashboardCancelAndEdit(standardUserFixture, publicSiteId, inappropriatePostText, editedPostText);
+        await testContentPageCancelAndEdit(
+          standardUserFixture,
+          publicSiteId,
+          pageContent.contentId,
+          inappropriatePostText,
+          editedPostText
+        );
+
+        // Site Owner
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.OWNER,
+        });
+
+        await testHomeDashboardCancelAndEdit(standardUserFixture, inappropriatePostText, editedPostText);
+        await testSiteDashboardCancelAndEdit(standardUserFixture, publicSiteId, inappropriatePostText, editedPostText);
+        await testContentPageCancelAndEdit(
+          standardUserFixture,
+          publicSiteId,
+          pageContent.contentId,
+          inappropriatePostText,
+          editedPostText
+        );
+
+        // Note: Follower role is not a separate permission in SitePermission enum
+        // Followers are typically members who follow a site, so we test as Member above
+      }
+    );
   }
 );

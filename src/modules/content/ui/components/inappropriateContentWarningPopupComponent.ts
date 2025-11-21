@@ -11,6 +11,7 @@ export interface IInappropriateContentWarningPopupActions {
 export interface IInappropriateContentWarningPopupAssertions {
   verifyWarningPopupVisible: () => Promise<void>;
   verifyWarningMessage: (expectedMessage?: string) => Promise<void>;
+  verifyWarningPopupClosed: () => Promise<void>;
 }
 
 export class InappropriateContentWarningPopupComponent
@@ -109,6 +110,17 @@ export class InappropriateContentWarningPopupComponent
   async clickClose(): Promise<void> {
     await test.step('Click Close button in inappropriate content warning popup', async () => {
       await this.clickOnElement(this.closeButton);
+    });
+  }
+
+  /**
+   * Verifies that the warning popup is closed (not visible)
+   */
+  async verifyWarningPopupClosed(): Promise<void> {
+    await test.step('Verify inappropriate content warning popup is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.popupContainer, {
+        assertionMessage: 'Inappropriate content warning popup should be closed',
+      });
     });
   }
 }
