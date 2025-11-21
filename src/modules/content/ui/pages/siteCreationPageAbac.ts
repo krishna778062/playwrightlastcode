@@ -2,7 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 
 import { SiteCreationPayload } from '@/src/core/types/siteManagement.types';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SiteCreationFormComponent } from '@/src/modules/content/ui/components/createSite/siteCreationFormComponent';
 
 export interface ISiteCreationPageAssertions {
@@ -17,7 +17,7 @@ export interface ISiteCreationPageActions {
   createSite: (options: {
     name: string;
     category: string;
-    type: SiteType;
+    type: SITE_TYPES;
     stepInfo?: string;
     apiPayload?: Partial<SiteCreationPayload>;
   }) => Promise<string>;
@@ -92,7 +92,7 @@ export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageA
   async createSite(options: {
     name: string;
     category: string;
-    type: SiteType;
+    type: SITE_TYPES;
     audienceName?: string; // if provided, select specific audience; else All organization
     stepInfo?: string;
     apiPayload?: Partial<SiteCreationPayload>;
@@ -102,7 +102,7 @@ export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageA
       await this.form.fillSiteDetails({
         name: options.name,
         category: options.category,
-        isPrivate: options.type === SiteType.PRIVATE,
+        isPrivate: options.type === SITE_TYPES.PRIVATE,
       });
 
       // Site visibility selection prior to submission
@@ -113,7 +113,7 @@ export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageA
       }
 
       // Membership approval (public: manual by default; private: manual path retains existing behavior)
-      await this.form.setMembershipApproval('manual', options.type === SiteType.PRIVATE);
+      await this.form.setMembershipApproval('manual', options.type === SITE_TYPES.PRIVATE);
 
       // Submit the form
       await this.form.clickOnElement(this.form.addSiteButton);
