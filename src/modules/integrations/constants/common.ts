@@ -54,6 +54,7 @@ export const FIELD_NAMES = {
   SORT_ORDER: 'Sort order',
   PAYSLIP_LIST_URL: 'Payslip list URL',
   INBOX_REPORT_URL: 'Inbox tasks report URL',
+  REPORT_ID: 'Report ID',
 } as const;
 
 export const DEFAULT_SITES = {

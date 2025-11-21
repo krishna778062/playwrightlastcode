@@ -32,6 +32,18 @@ export class ManageSitesComponent extends BaseComponent {
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
   readonly clickOnThePeopleTab: Locator;
+  readonly clickOnFollowButton: Locator;
+  readonly clickOnFollowSiteButton: Locator;
+  readonly followingButton: Locator;
+  readonly clickOnTheFollowersTabButtonInAboutTab: Locator;
+  readonly unfollowSiteButton: Locator;
+  readonly followSiteButton: Locator;
+  readonly requestMembershipButton: Locator;
+  readonly clickOnTheMembersAndFollowersTabButtonInAboutTab: Locator;
+  readonly memberButton: Locator;
+  readonly followButtonUnderAboutTab: Locator;
+  readonly followButtonUnderMemberTab: Locator;
+  readonly followingButtonUnderMemberTab: Locator;
   readonly clickOnUpdateCategoryButton: Locator;
   readonly contentFilterDropdown: Locator;
   readonly contentSearchBar: Locator;
@@ -46,6 +58,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.albumCoverImage = page.locator('[aria-label="Open album"]').first();
     this.authorName = page.locator('[class="ContentCard"]').first();
     this.clickOnTheManageSiteButton = page.getByRole('link', { name: 'Manage site' });
+    this.memberButton = page.getByRole('button', { name: 'Member' });
     this.clickOnPageCategory = page.getByRole('tab', { name: 'Page categories' });
     this.checkTheError = page.locator('p', { hasText: 'Duplicate page category name' });
     this.clickOnAboutTab = page.getByRole('tab', { name: 'About' });
@@ -63,6 +76,19 @@ export class ManageSitesComponent extends BaseComponent {
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
+    this.clickOnFollowButton = page.getByRole('button', { name: 'Follow', exact: true });
+    this.clickOnFollowSiteButton = page.getByRole('button', { name: 'Follow site' });
+    this.followingButton = page.getByRole('button', { name: 'Following', exact: true });
+    this.followButtonUnderMemberTab = page.getByLabel('About').getByRole('button', { name: 'Follow', exact: true });
+    this.followingButtonUnderMemberTab = page
+      .getByLabel('About')
+      .getByRole('button', { name: 'Following', exact: true });
+    this.clickOnTheFollowersTabButtonInAboutTab = page.locator('[role="tab"][id="follower"]');
+    this.unfollowSiteButton = page.getByRole('button', { name: 'Unfollow site', exact: true });
+    this.followSiteButton = page.getByRole('button', { name: 'Follow', exact: true });
+    this.requestMembershipButton = page.getByRole('button', { name: 'Request membership', exact: true });
+    this.clickOnTheMembersAndFollowersTabButtonInAboutTab = page.locator('[role="tab"][id="ownerandmanager"]');
+    this.followButtonUnderAboutTab = page.getByLabel('About').getByRole('button', { name: 'Follow', exact: true });
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
@@ -76,6 +102,9 @@ export class ManageSitesComponent extends BaseComponent {
     return this.page.locator(`[aria-label="${membersName}"]`);
   }
 
+  getNameByLabel(name: string): Locator {
+    return this.page.locator(`a:has-text("${name}")`);
+  }
   getMembersListInPeopleTab(membersName: string): Locator {
     return this.page.getByRole('link', { name: membersName });
   }
@@ -89,6 +118,13 @@ export class ManageSitesComponent extends BaseComponent {
       .getByRole('listitem')
       .filter({ hasText: membersName })
       .getByRole('button', { name: 'Favorite this user' });
+  }
+
+  getFollowButtonForUser(membersName: string): Locator {
+    return this.page
+      .getByRole('listitem')
+      .filter({ hasText: membersName })
+      .getByRole('button', { name: 'Follow', exact: true });
   }
 
   // Action methods
@@ -195,6 +231,28 @@ export class ManageSitesComponent extends BaseComponent {
       await this.clickOnElement(this.clickOnAboutTab);
     });
   }
+  async clickOnTheMembersAndFollowersTabButtonInAboutTabAction(): Promise<void> {
+    await test.step('Click on the members and followers tab button in about tab', async () => {
+      await this.clickOnElement(this.clickOnTheMembersAndFollowersTabButtonInAboutTab);
+    });
+  }
+  getFollowingNameByLabel(followingName: string): Locator {
+    return this.page.getByRole('button', { name: followingName, exact: true });
+  }
+  getFollowingButtonByLabel(followingName: string): Locator {
+    return this.getFollowingNameByLabel(followingName).getByRole('button', { name: 'Following', exact: true });
+  }
+  async hoverOnTheFollwingName(followingName: string): Promise<void> {
+    await test.step(`Hover on following name: ${followingName}`, async () => {
+      await this.hoverOverElementInJavaScript(this.getFollowingNameByLabel(followingName));
+    });
+  }
+
+  async clickOnFollowingButtonActionUnderSpecificName(followingName: string): Promise<void> {
+    await test.step(`Click on following button under specific name: ${followingName}`, async () => {
+      await this.clickOnElement(this.getFollowingButtonByLabel(followingName));
+    });
+  }
 
   async clickOnTheMembersTabAction(): Promise<void> {
     await test.step('Click on the members tab', async () => {
@@ -295,7 +353,23 @@ export class ManageSitesComponent extends BaseComponent {
       await this.clickOnElement(this.clickOnTheMemberButtonInAboutTab);
     });
   }
+  async verifyIfFollowingButtonIsVisibleThenClickOnIt(): Promise<void> {
+    await test.step('Verify if following button is visible then click on it', async () => {
+      if (await this.verifier.isTheElementVisible(this.followButtonUnderMemberTab)) {
+        await this.clickOnElement(this.followButtonUnderMemberTab);
+      } else {
+        await this.verifier.verifyTheElementIsVisible(this.followingButtonUnderMemberTab, {
+          assertionMessage: 'Following button should be visible under member tab and user has already followed',
+        });
+      }
+    });
+  }
 
+  async clickOnTheFollowersButtonInAboutTabAction(): Promise<void> {
+    await test.step('Click on the followers button in about tab', async () => {
+      await this.clickOnElement(this.clickOnTheFollowersTabButtonInAboutTab);
+    });
+  }
   async checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(membersName: string): Promise<void> {
     await test.step('Check marked as favorite in people list should not be visible', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.getMembersListInPeopleTab(membersName), {
@@ -307,6 +381,13 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOntheMemberButtonAction(): Promise<void> {
     await test.step('Click on the member button', async () => {
       await this.clickOnElement(this.clickOnTheMemberButton);
+    });
+  }
+  async verifyManageSiteButtonShouldBeVisible(): Promise<void> {
+    await test.step('Verify manage site button should be visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.clickOnTheManageSiteButton, {
+        assertionMessage: 'Manage site button should be visible',
+      });
     });
   }
 
@@ -356,11 +437,207 @@ export class ManageSitesComponent extends BaseComponent {
       });
     });
   }
+  async clickOnFollowButtonAction(): Promise<void> {
+    await test.step('Click on the follow button', async () => {
+      await this.clickOnElement(this.clickOnFollowButton);
+    });
+  }
+  async clickOnFollowingButtonAction(): Promise<void> {
+    await test.step('Click on the following button', async () => {
+      await this.clickOnElement(this.followingButton);
+    });
+  }
+  async clickOnFollowSiteButtonAction(): Promise<void> {
+    await test.step('Click on the follow site button', async () => {
+      await this.clickOnElement(this.clickOnFollowSiteButton);
+    });
+  }
+  async clickOnRequestMembershipButtonAction(): Promise<string> {
+    return await test.step('Click on the request membership button', async () => {
+      const requestMembershipResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.requestMembershipButton, { delay: 2_000 }),
+        response => {
+          const urlMatches = response.url().includes(API_ENDPOINTS.site.requestMembership);
+          const methodMatches = response.request().method() === 'POST';
+          const statusMatches = response.status() === 201 || response.status() === 200;
 
+          // Log for debugging
+          if (urlMatches && methodMatches) {
+            console.log(`Membership request response status: ${response.status()}, URL: ${response.url()}`);
+          }
+
+          return urlMatches && methodMatches && statusMatches;
+        },
+        {
+          timeout: 20_000,
+        }
+      );
+
+      const responseJson = await requestMembershipResponse.json();
+      console.log('requestMembershipResponse JSON:', JSON.stringify(responseJson, null, 2));
+      console.log('requestMembershipResponse status:', requestMembershipResponse.status());
+      console.log('requestMembershipResponse URL:', requestMembershipResponse.url());
+
+      // Extract request_id from response: result.request_id
+      const requestId = responseJson.result?.request_id || responseJson.request_id;
+      if (!requestId) {
+        throw new Error(`No request_id found in membership request response: ${JSON.stringify(responseJson)}`);
+      }
+
+      console.log('Extracted request_id:', requestId);
+      return requestId;
+    });
+  }
+  async clickOnUnfollowSiteButtonAction(): Promise<void> {
+    await test.step('Click on the unfollow site button', async () => {
+      await this.clickOnElement(this.unfollowSiteButton);
+    });
+  }
+  async verifyFollowButtonShouldBeChangedIntoFollowing(): Promise<void> {
+    await test.step('Verify follow button should be changed into following', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.followingButton, {
+        assertionMessage: 'Follow button should be changed into following',
+      });
+    });
+  }
+  async verifyUnfollowButtonShouldBeChangedIntoFollowButton(): Promise<void> {
+    await test.step('Verify unfollow button should be changed into follow button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.followSiteButton, {
+        assertionMessage: 'Unfollow button should be changed into follow button',
+      });
+    });
+  }
   async verifyPageTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify page tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageTabImage, {
         assertionMessage: 'Page tab image should be visible',
+      });
+    });
+  }
+  async clickOnTheFollowersTabButtonInAboutTabAction(): Promise<void> {
+    await test.step('Click on the followers tab button in about tab', async () => {
+      await this.clickOnElement(this.clickOnTheFollowersTabButtonInAboutTab);
+    });
+  }
+  async checkMembersNameShouldBeVisibleInFollowersTab(membersName: string): Promise<void> {
+    await test.step('Check members name should be visible in followers tab', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getMembersNameByLabel(membersName), {
+        assertionMessage: 'The members name should be visible in followers tab',
+      });
+    });
+  }
+  async checkMembersNameShouldNotBeVisibleInFollowersTab(membersName: string): Promise<void> {
+    await test.step('Check members name should not be visible in followers tab', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.getMembersNameByLabel(membersName), {
+        assertionMessage: 'The members name should not be visible in followers tab',
+      });
+    });
+  }
+  async verifyMemberButtonShouldBeVisible(): Promise<void> {
+    await test.step('Verify member button should be visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.memberButton, {
+        assertionMessage: 'Member button should be visible',
+      });
+    });
+  }
+  async followOwnersAndManager(
+    followersAndFollowingList: any,
+    getUpdatedListCallback?: () => Promise<any>
+  ): Promise<string[]> {
+    return await test.step('Follower owners and manager', async () => {
+      // Extract the following list from API response
+      const followingList = followersAndFollowingList.result?.find((item: any) => item.type === 'following');
+
+      // Get all names from API (empty array if no following list)
+      const allApiNames = followingList?.listOfItems
+        ? followingList.listOfItems
+            .map((item: any) => item.name || item.fullName || `${item.firstName} ${item.lastName}`)
+            .filter(Boolean)
+        : [];
+      console.log(`Total names in API following list: ${allApiNames.length}`);
+
+      // If following list is empty, user is not following anyone - click follow button
+      if (allApiNames.length === 0) {
+        console.log('No names in following list, clicking follow button to start following');
+      } else {
+        // Check which names are visible on screen
+        const visibleNames: string[] = [];
+        for (const userName of allApiNames) {
+          const nameLocator = this.getNameByLabel(userName);
+          const isVisible = await nameLocator.isVisible().catch(() => false);
+          if (isVisible) {
+            visibleNames.push(userName);
+            console.log(`✓ Found visible name: ${userName}`);
+          }
+        }
+
+        // If names are found and visible, return them
+        if (visibleNames.length > 0) {
+          console.log(`Found ${visibleNames.length} visible names:`, visibleNames);
+          return visibleNames;
+        }
+
+        // If names exist in API but not visible, they are not in following list - click follow button
+        console.log('Names exist in API but not visible in UI, clicking follow button');
+      }
+
+      // Click follow button when no names in following list or names not visible
+      console.log('Clicking follow button');
+      let followButtonClicked = false;
+      const followButtonCount = await this.followButtonUnderAboutTab.count();
+      if (followButtonCount > 0) {
+        const isFollowButtonVisible = await this.followButtonUnderAboutTab.isVisible().catch(() => false);
+        if (isFollowButtonVisible) {
+          await this.clickOnElement(this.followButtonUnderAboutTab);
+          // Wait for API to update after clicking follow button
+          followButtonClicked = true;
+          console.log('Follow button clicked successfully');
+        } else {
+          console.log('Follow button exists but not visible');
+        }
+      } else {
+        console.log('Follow button not found');
+      }
+
+      // Get updated list and return the names that were added
+      if (followButtonClicked && getUpdatedListCallback) {
+        console.log('Getting updated following list after clicking follow button');
+        // Retry getting updated list with a few attempts
+        let retries = 3;
+        while (retries > 0) {
+          const updatedList = await getUpdatedListCallback();
+          const updatedFollowingList = updatedList.result?.find((item: any) => item.type === 'following');
+
+          if (updatedFollowingList?.listOfItems && updatedFollowingList.listOfItems.length > 0) {
+            const updatedNames = updatedFollowingList.listOfItems
+              .map((item: any) => item.name || item.fullName || `${item.firstName} ${item.lastName}`)
+              .filter(Boolean);
+
+            // Find names that were added (in updated list but not in original)
+            const addedNames = updatedNames.filter((name: string) => !allApiNames.includes(name));
+            console.log(`Names added after clicking follow button (${addedNames.length}):`, addedNames);
+            return addedNames.length > 0 ? addedNames : updatedNames;
+          } else {
+            retries--;
+            if (retries > 0) {
+              console.log(`Updated following list is still empty, retrying... (${retries} attempts left)`);
+              await this.page.waitForTimeout(2000);
+            } else {
+              console.log('Updated following list is still empty after all retries');
+            }
+          }
+        }
+      } else if (followButtonClicked && !getUpdatedListCallback) {
+        console.log('Follow button clicked but no callback provided to get updated list');
+      }
+
+      return [];
+    });
+  }
+  async verifyFollowButtonShouldBeChangedIntoUnfollow(): Promise<void> {
+    await test.step('Verify follow button should be changed into unfollow', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.unfollowSiteButton, {
+        assertionMessage: 'Follow button should be changed into unfollow',
       });
     });
   }
@@ -386,7 +663,6 @@ export class ManageSitesComponent extends BaseComponent {
       .filter({ has: this.page.locator('h2', { hasText: siteName }) })
       .first();
   }
-
   /**
    * Selects the checkbox for a site by its exact name
    * @param siteName - The exact name of the site
