@@ -1,9 +1,9 @@
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
+import { ProfileDropdownComponent, SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
-import { ProfileDropdownComponent, SideNavBarComponent, TopNavBarComponent } from '../ui/components';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
