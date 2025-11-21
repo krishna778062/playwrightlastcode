@@ -3,7 +3,15 @@ import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
 import * as fs from 'fs';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-import { AttachedFile, CreateFeedPostPayload, FeedPostResponse, UpdateFeedPostPayload } from '@core/types/feed.type';
+import {
+  AttachedFile,
+  CreateFeedPostPayload,
+  CreateQuestionPayload,
+  FeedPostResponse,
+  QuestionResponse,
+  UpdateFeedPostPayload,
+  UpdateQuestionPayload,
+} from '@core/types/feed.type';
 import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
@@ -1014,6 +1022,134 @@ export class FeedManagementService implements IFeedManagementOperations {
       }
 
       return response;
+    });
+  }
+
+  /**
+   * Creates a question via API
+   * @param payload - The question payload
+   * @returns Promise with the question response
+   */
+  async createQuestion(payload: CreateQuestionPayload): Promise<QuestionResponse> {
+    return await test.step('Creating a question via API post request', async () => {
+      console.log('Question payload JSON: ', JSON.stringify(payload, null, 2));
+
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
+        data: payload,
+      });
+      const responseBody = await response.json();
+      console.log('Question response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create question. Status: ${response.status()}, Message: ${responseBody.message}`);
+      }
+
+      return responseBody as QuestionResponse;
+    });
+  }
+
+  /**
+   * Updates a question via API
+   * @param questionId - The question ID to update
+   * @param payload - The update payload
+   * @returns Promise with the updated question response
+   */
+  async updateQuestion(questionId: string, payload: UpdateQuestionPayload): Promise<QuestionResponse> {
+    return await test.step(`Updating question ${questionId}`, async () => {
+      console.log('Question update payload JSON: ', JSON.stringify(payload, null, 2));
+      const response = await this.httpClient.put(API_ENDPOINTS.feed.update(questionId), {
+        headers: { 'Content-Type': 'application/json' },
+        data: payload,
+      });
+      const responseBody = await response.json();
+      console.log('Question update response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to update question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
+        );
+      }
+      return responseBody as QuestionResponse;
+    });
+  }
+
+  /**
+   * Deletes a question via API
+   * @param questionId - The question ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteQuestion(questionId: string): Promise<any> {
+    return await test.step(`Deleting question ${questionId}`, async () => {
+      const response = await this.httpClient.delete(API_ENDPOINTS.feed.delete(questionId));
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to delete question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Upvotes a question via API
+   * @param questionId - The question ID to upvote
+   * @returns Promise with the reaction response
+   */
+  async upvoteQuestion(questionId: string): Promise<any> {
+    return await test.step(`Upvoting question ${questionId}`, async () => {
+      const response = await this.httpClient.post(`${API_ENDPOINTS.feed.create}/${questionId}/reactions`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { reactionType: 'emoji/2B06', action: 'add' },
+      });
+      const responseBody = await response.json();
+      console.log('Upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to upvote question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Removes upvote from a question via API
+   * @param questionId - The question ID to remove upvote from
+   * @returns Promise with the reaction response
+   */
+  async removeUpvoteFromQuestion(questionId: string): Promise<any> {
+    return await test.step(`Removing upvote from question ${questionId}`, async () => {
+      const response = await this.httpClient.post(`${API_ENDPOINTS.feed.create}/${questionId}/reactions`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { reactionType: 'emoji/2B06', action: 'remove' },
+      });
+      const responseBody = await response.json();
+      console.log('Remove upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to remove upvote from question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Creates an answer (comment) on a question via API
+   * @param questionId - The question ID to answer
+   * @param payload - The answer payload
+   * @returns Promise with the answer response
+   */
+  async createAnswer(
+    questionId: string,
+    payload: { textJson: string; textHtml: string; listOfAttachedFiles?: AttachedFile[]; ignoreToxic?: boolean }
+  ): Promise<any> {
+    return await test.step(`Creating answer on question ${questionId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.comment(questionId), {
+        data: payload,
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to create answer on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
     });
   }
 }
