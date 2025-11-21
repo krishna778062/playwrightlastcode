@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
+
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 
 import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
 import { SiteManagementService } from '../services/SiteManagementService';
@@ -39,38 +41,68 @@ export class ContentManagementHelper {
    * Gets content ID from content list response
    * If no content is found, gets a site from site service and creates a page
    * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
    * @returns Promise with siteId and contentId
    */
   async getContentId(options?: {
     size?: number;
     status?: string;
     sortBy?: string;
+    accessType?: SITE_TYPES;
   }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
-      const randomContent = response.result.listOfItems[randomIndex];
-      return {
-        siteId: randomContent.site.siteId,
-        contentId: randomContent.contentId || randomContent.id,
-        contentType: randomContent.type,
-      };
+      // Filter content by site access type
+      const filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (filteredContent.length > 0) {
+        const randomIndex = Math.floor(Math.random() * filteredContent.length);
+        const randomContent = filteredContent[randomIndex];
+        return {
+          siteId: randomContent.site.siteId,
+          contentId: randomContent.contentId || randomContent.id,
+          contentType: randomContent.type,
+        };
+      }
     }
 
     // No content found, get a site from site service and create a page
-    console.log('No content found, getting site from site service and creating a page...');
+    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
-    // Get a site from the site list using the site service directly
-    const sitesResponse = await this.siteManagementService.getListOfSites();
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
 
     if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
-      throw new Error('No sites found in site service');
+      throw new Error(`No ${accessType} sites found in site service`);
     }
 
-    // Get a random site
-    const randomSiteIndex = Math.floor(Math.random() * sitesResponse.result.listOfItems.length);
-    const randomSite = sitesResponse.result.listOfItems[randomSiteIndex];
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    // Get a random active site
+    const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+    const randomSite = activeSites[randomSiteIndex];
     const siteId = randomSite.siteId;
 
     // Create a page in the selected site
@@ -498,5 +530,248 @@ export class ContentManagementHelper {
     const contentType = firstContent.type.toLowerCase();
 
     return { siteId, contentId, contentType };
+  }
+
+  /**
+   * Creates a new page in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object
+   * @returns The full page creation response
+   */
+  async createPageWithCompleteResponse(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating page and getting complete response', async () => {
+      const { siteId, contentInfo, options = {} } = params;
+      const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+      const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+      const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      // Build payload matching the service method structure exactly
+      const payload = {
+        contentSubType: contentInfo.contentSubType,
+        listOfFiles: [],
+        publishAt: new Date().toISOString(),
+        body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"${contentText}"}]}]}`,
+        imgCaption: '',
+        publishingStatus: 'immediate',
+        bodyHtml: `<p indentation="0" textAlign="left" class="">${contentText}</p>`,
+        imgLayout: 'small',
+        title: finalPageName,
+        language: 'en-US',
+        isFeedEnabled: true,
+        listOfTopics: topicObjects,
+        category: {
+          id: pageCategory.categoryId,
+          name: pageCategory.name,
+        },
+        contentType: contentInfo.contentType,
+        isNewTiptap: false,
+      };
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            contentSubType: payload.contentSubType,
+            listOfFiles: payload.listOfFiles,
+            publishAt: payload.publishAt,
+            body: payload.body,
+            imgCaption: payload.imgCaption,
+            publishingStatus: payload.publishingStatus,
+            bodyHtml: payload.bodyHtml,
+            imgLayout: payload.imgLayout,
+            title: payload.title,
+            language: payload.language,
+            isFeedEnabled: payload.isFeedEnabled,
+            listOfTopics: payload.listOfTopics,
+            category: {
+              id: payload.category.id,
+              name: payload.category.name,
+            },
+            contentType: payload.contentType,
+            isNewTiptap: payload.isNewTiptap,
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
+  }
+
+  /**
+   * Creates a new event in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object
+   * @returns The full event creation response
+   */
+  async createEventWithCompleteResponse(params: {
+    siteId: string;
+    contentInfo: { contentType: string };
+    options?: {
+      eventName?: string;
+      contentDescription?: string;
+      location?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating event and getting complete response', async () => {
+      const { siteId, contentInfo, options = {} } = params;
+      const finalEventName = options.eventName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
+      const finalContentDescription = options.contentDescription || 'AutomateEventDescription';
+      const finalLocation = options.location || 'Gurgaon';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            listOfFiles: [],
+            publishAt: new Date().toISOString(),
+            body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"${contentText}"}]}]}`,
+            imgCaption: '',
+            startsAt: getTodayDateIsoString(),
+            isAllDay: false,
+            publishingStatus: 'immediate',
+            endsAt: getTomorrowDateIsoString(),
+            timezoneIso: 'Asia/Kolkata',
+            bodyHtml: `<p indentation="0" textAlign="left" class="">${contentText}</p>`,
+            imgLayout: 'small',
+            directions: [],
+            location: finalLocation,
+            title: finalEventName,
+            language: 'en-US',
+            isFeedEnabled: true,
+            listOfTopics: topicObjects,
+            contentType: contentInfo.contentType,
+            isNewTiptap: false,
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
+  }
+
+  /**
+   * Creates a new album in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param imageName - The name of the image file to upload
+   * @param options - Optional configuration object
+   * @returns The full album creation response
+   */
+  async createAlbumWithCompleteResponse(params: {
+    siteId: string;
+    imageName: string;
+    options?: {
+      albumName?: string;
+      contentDescription?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating album and getting complete response', async () => {
+      const { siteId, imageName, options = {} } = params;
+      const fileId = await this.imageUploaderService.uploadImageAndGetFileId(imageName);
+      const finalAlbumName = options.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
+      const finalContentDescription = options.contentDescription || 'AutomateAlbumDescription';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            listOfFiles: [],
+            publishAt: new Date().toISOString(),
+            body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"Paragraphclass":"","textAlign":"left","indent":null},"content":[{"type":"text","text":"${contentText}"}]}],"hasInlineImages":true}`,
+            imgCaption: '',
+            publishingStatus: 'immediate',
+            bodyHtml: `<p>${contentText}</p>`,
+            imgLayout: 'small',
+            title: finalAlbumName,
+            language: 'en-US',
+            isFeedEnabled: true,
+            listOfTopics: topicObjects,
+            contentType: 'album',
+            isNewTiptap: false,
+            coverImageMediaId: fileId,
+            listOfAlbumMedia: [{ id: fileId, description: '' }],
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Album creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
   }
 }

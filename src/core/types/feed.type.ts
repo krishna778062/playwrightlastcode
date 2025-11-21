@@ -155,3 +155,51 @@ export interface UpdateFeedPostPayload {
   text?: string;
   attachments?: string[];
 }
+
+/**
+ * Request payload for creating a question
+ */
+export interface CreateQuestionPayload {
+  title: string;
+  textJson: string;
+  textHtml: string;
+  scope: string;
+  siteId: string | null;
+  contentId?: string | null;
+  listOfAttachedFiles: AttachedFile[];
+  ignoreToxic: boolean;
+  type: 'question';
+  variant: string;
+  listOfTopics?: { id: string; name: string }[];
+}
+
+/**
+ * Request payload for updating a question
+ */
+export interface UpdateQuestionPayload {
+  title?: string;
+  textJson?: string;
+  textHtml?: string;
+  ignoreToxic?: boolean;
+  listOfAttachedFiles?: AttachedFile[];
+}
+
+/**
+ * Request payload for creating an answer (comment on question)
+ */
+export interface CreateAnswerPayload {
+  textJson: string;
+  textHtml: string;
+  listOfAttachedFiles?: AttachedFile[];
+  ignoreToxic?: boolean;
+}
+
+/**
+ * Response structure for question (extends FeedPostResponse)
+ */
+export interface QuestionResponse extends FeedPostResponse {
+  result: FeedResult & {
+    title: string;
+    type: 'question';
+  };
+}

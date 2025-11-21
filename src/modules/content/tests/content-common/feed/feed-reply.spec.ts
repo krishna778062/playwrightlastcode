@@ -267,6 +267,90 @@ for (const testData of feedTestData) {
   );
 }
 
+// Test case for CONT-30148: Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post
+test.describe(
+  'post creation cancel button tests',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    test(
+      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+          zephyrTestId: 'CONT-30148',
+          storyId: 'CONT-30148',
+        });
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Verify Cancel button functionality', async () => {
+          // Navigate to Home Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          await appManagerFeedPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await appManagerFeedPage.actions.clickPostCreationCancelButton();
+
+          await appManagerFeedPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Verify Cancel button functionality', async () => {
+          // Get or create site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteId = siteInfo.siteId;
+
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+
+          await siteDashboardPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await siteDashboardPage.actions.clickPostCreationCancelButton();
+
+          await siteDashboardPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Verify Cancel button functionality', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
+
+          // Navigate to Content Preview Page
+          const contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          await contentPreviewPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await contentPreviewPage.actions.clickPostCreationCancelButton();
+
+          await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+        });
+      }
+    );
+  }
+);
+
 // Test case for CONT-30407: Verify user gets notified for replies on comments
 test.describe(
   'feed Reply Notifications',

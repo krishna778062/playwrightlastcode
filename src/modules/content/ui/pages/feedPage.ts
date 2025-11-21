@@ -130,6 +130,17 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
+  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
+  verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void>;
+  clickReactionCountButton: (postText: string) => Promise<void>;
+  verifyReactionModalIsVisible: () => Promise<void>;
+  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
+  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
+  closeReactionModal: () => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -139,6 +150,8 @@ export interface IFeedActions {
   }) => Promise<void>;
   clickShareIconOnPost: (postText: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
+  clickViewPostLinkInShareModal(): Promise<void>;
+  clickViewPostLinkInPostDetailPage(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -192,10 +205,14 @@ export interface IFeedAssertions {
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyShareModalIsVisible(): Promise<void>;
+  verifyShareModalIsClosed: () => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -351,9 +368,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   /**
    * Gets the timestamp for a specific post
    * @param postText - The text of the post to find timestamp for
+   * @returns Promise<string> - The timestamp text content
    */
-  async getPostTimestamp(postText: string): Promise<void> {
-    await this.listFeedComponent.getPostTimestamp(postText);
+  async getPostTimestamp(postText: string): Promise<string> {
+    return await this.listFeedComponent.getPostTimestamp(postText);
   }
 
   //Favourite Post Methods
@@ -811,6 +829,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.unlikeFeedReply(replyText);
   }
 
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
   async verifyLikeCountOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.verifyLikeCountOnPost(postText);
   }
@@ -1095,6 +1125,42 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
 
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
+  }
+
+  async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.clickReactionEmoji(postText, reactionName);
+  }
+
+  async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonTextContent(postText, reactionName);
+  }
+
+  async clickReactionCountButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickReactionCountButton(postText);
+  }
+
+  async verifyReactionModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalIsVisible();
+  }
+
+  async verifyReactionModalTabExists(emojiName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalTabExists(emojiName);
+  }
+
+  async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {
+    await this.listFeedComponent.verifyUsersInReactionModalTab(emojiName, expectedUsers);
+  }
+
+  async closeReactionModal(): Promise<void> {
+    await this.listFeedComponent.closeReactionModal();
+  }
+
   /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for
@@ -1111,34 +1177,43 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
   }
 
-  /**
-   * Clicks the share icon on a feed post
-   * @param postText - The text of the post to share
-   */
   async clickShareIconOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
 
-  /**
-   * Enters share description in the share dialog
-   * @param description - The description text to enter
-   */
   async enterShareDescription(description: string): Promise<void> {
     await this.shareComponent.actions.enterShareDescription(description);
   }
 
-  /**
-   * Enters site name for sharing to site feed
-   * @param siteName - The site name to search and select
-   */
   async enterSiteNameForShare(siteName: string): Promise<void> {
     await this.shareComponent.actions.enterSiteName(siteName);
   }
+
+  async verifyShareModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsVisible();
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsClosed();
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInShareModal();
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInPostDetailPage();
+  }
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
   }
 }
