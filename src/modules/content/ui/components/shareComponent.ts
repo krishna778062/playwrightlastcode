@@ -1,5 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
 export interface IShareComponentActions {
@@ -7,6 +8,7 @@ export interface IShareComponentActions {
   enterShareDescription: (description: string) => Promise<void>;
   enterSiteName: (siteName: string) => Promise<void>;
   clickShareButton: () => Promise<void>;
+  clickShareButtonAndGetPostId: () => Promise<string>;
   attemptImagePaste: () => Promise<void>;
 }
 
@@ -51,7 +53,7 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
 
   async enterShareDescription(description: string): Promise<void> {
     await test.step(`Enter share description: ${description}`, async () => {
-      await this.fillInElement(this.shareDescriptionInput, description);
+      await this.fillInElement(this.shareDescriptionInput.first(), description);
     });
   }
 
@@ -66,6 +68,28 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
   async clickShareButton(): Promise<void> {
     await test.step('Click Share button', async () => {
       await this.clickOnElement(this.shareButton);
+    });
+  }
+
+  /**
+   * Clicks the Share button and intercepts the API response to get the shared post ID
+   * @returns Promise<string> - The shared post ID
+   */
+  async clickShareButtonAndGetPostId(): Promise<string> {
+    return await test.step('Click Share button and get shared post ID', async () => {
+      const shareResponsePromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201
+      );
+
+      await this.clickOnElement(this.shareButton);
+
+      const shareResponse = await shareResponsePromise;
+      const responseBody = await shareResponse.json();
+      const feedId = responseBody.result?.feedId || '';
+      return feedId;
     });
   }
 
