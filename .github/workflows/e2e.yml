@@ -20,12 +20,12 @@ on:
           - 'integrations-workday'
           - 'integrations-okta'
           - 'integrations-azuresso'
+          - 'integrations-primary'
           - 'content-api'
           - 'de'
           - 'de-api'
           - 'content-abac'
           - 'frontline'
-          - 'integrations-primary'
           - 'recognition'
           - 'privateRecognition'
           - 'alert-notification'
@@ -61,6 +61,7 @@ on:
           - 'dev'
           - 'prodUS'
           - 'prodEU'
+          - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
