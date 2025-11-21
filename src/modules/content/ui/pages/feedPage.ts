@@ -150,6 +150,8 @@ export interface IFeedActions {
   }) => Promise<void>;
   clickShareIconOnPost: (postText: string) => Promise<void>;
   enterSiteNameForShare: (siteName: string) => Promise<void>;
+  clickViewPostLinkInShareModal(): Promise<void>;
+  clickViewPostLinkInPostDetailPage(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -209,10 +211,14 @@ export interface IFeedAssertions {
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
+  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyShareModalIsVisible(): Promise<void>;
+  verifyShareModalIsClosed: () => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -371,9 +377,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   /**
    * Gets the timestamp for a specific post
    * @param postText - The text of the post to find timestamp for
+   * @returns Promise<string> - The timestamp text content
    */
-  async getPostTimestamp(postText: string): Promise<void> {
-    await this.listFeedComponent.getPostTimestamp(postText);
+  async getPostTimestamp(postText: string): Promise<string> {
+    return await this.listFeedComponent.getPostTimestamp(postText);
   }
 
   //Favourite Post Methods
@@ -1142,6 +1149,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
   }
+  
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
+  }
 
   async hoverOnReactionButton(postText: string): Promise<void> {
     await this.listFeedComponent.hoverOnReactionButton(postText);
@@ -1195,11 +1206,31 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.shareComponent.actions.enterSiteName(siteName);
   }
 
+  async verifyShareModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsVisible();
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await this.listFeedComponent.verifyShareModalIsClosed();
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInShareModal();
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await this.listFeedComponent.clickViewPostLinkInPostDetailPage();
+  }
+
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
   }
 }
