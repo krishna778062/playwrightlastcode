@@ -26,14 +26,10 @@ test.describe(
     let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
-    let manageSitesComponent: ManageSitesComponent;
-    let manageContentPage: ManageContentPage;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
-      manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
-      manageContentPage = new ManageContentPage(standardUserFixture.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -265,7 +261,6 @@ test.describe(
     );
     test(
       'to verify the bulk action activate in manage site user drop down',
-      'to verify the bulk action from end user can deactivate the site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
@@ -290,7 +285,7 @@ test.describe(
             'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
           );
         }
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageSitesComponent.selectSiteCheckboxByExactName(selectedSiteName);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
         await manageContentPage.actions.clickOnActivateApplyButton();
@@ -300,14 +295,25 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'active',
         });
-        const activeSiteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
-        console.log('activeSiteNames', activeSiteNames);
+        const activeSiteNamesList = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('Active site names from API:', activeSiteNamesList);
+        console.log('Activated site name:', selectedSiteName);
+
+        // Verify that the activated site is now in the active sites list
+        if (!activeSiteNamesList.includes(selectedSiteName)) {
+          throw new Error(
+            `Site "${selectedSiteName}" was activated but is not found in the active sites list. Active sites: ${activeSiteNamesList.join(', ')}`
+          );
+        }
+        console.log(`✓ Verified: Site "${selectedSiteName}" is now in the active sites list`);
+
         const manageDeactivatedSitePage = new ManageSitePage(standardUserFixture.page);
         await manageDeactivatedSitePage.loadPage();
-        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
-        console.log('siteNames', siteNames);
 
-        await manageSiteStandardUserPage.loadPage();
+        const firstActiveSiteId = getSiteListResponse.result.listOfItems[0]?.siteId;
+        if (!firstActiveSiteId) {
+          throw new Error('No active sites found in the response');
+        }
       }
     );
     test(
@@ -315,7 +321,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
-      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action from end user can activate the site',
           zephyrTestId: 'CONT-26574',

@@ -5,15 +5,14 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { BulkActionOptions, ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import {
   BulkActionOptions,
+  ContentStatus,
   ManageContentOptions,
   ManageContentTags,
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
@@ -349,8 +348,11 @@ test.describe(
         console.log('siteNames', siteNames);
         const manageDeactivatedSitePage = new ManageSitePage(appManagerFixture.page);
         await manageDeactivatedSitePage.loadPage();
-      }
-    );
+        const firstActiveSiteId = getSiteListResponse.result.listOfItems[0]?.siteId;
+        if (!firstActiveSiteId) {
+          throw new Error('No active sites found in the response');
+        }
+        manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstActiveSiteId);
         await manageSiteAppManagerPage.loadPage();
       }
     );
