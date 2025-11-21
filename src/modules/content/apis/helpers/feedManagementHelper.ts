@@ -381,55 +381,81 @@ export class FeedManagementHelper {
   /**
    * Enables Q&A feature by getting current app config and updating it with isQuestionAnswerEnabled: true
    * This preserves all other existing settings while ensuring Q&A is always enabled
+   * Retries up to 2 times if the feature is not enabled successfully
    * @returns Promise with the API response
    */
   async enableQuestionAnswer() {
     return await test.step('Enable Question & Answer feature', async () => {
-      // Get current app configuration
-      const currentConfig = await this.feedManagementService.getAppConfig();
+      const maxRetries = 2;
+      let lastError: Error | null = null;
 
-      console.log('Current Q&A status:', currentConfig.result.isQuestionAnswerEnabled);
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          // Get current app configuration
+          const currentConfig = await this.feedManagementService.getAppConfig();
 
-      // Prepare update payload with all current values except isQuestionAnswerEnabled
-      const updatePayload = {
-        appName: currentConfig.result.appName,
-        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
-        availableContentTypes: currentConfig.result.availableContentTypes,
-        addToCalendar: currentConfig.result.addToCalendar,
-        feedbackRecipients: currentConfig.result.feedbackRecipients,
-        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
-        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
-        shareFeedback: currentConfig.result.shareFeedback,
-        socialCampaignsPolicyUrl: currentConfig.result.socialCampaignsPolicyUrl,
-        selectedLanguages: currentConfig.result.selectedLanguages.ids,
-        orgChartEnabled: currentConfig.result.orgChartEnabled,
-        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
-        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
-        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
-        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
-        calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
-        calendarOffice365Url: currentConfig.result.calendarOffice365Url,
-        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
-        isQuestionAnswerEnabled: true, // Always set to true
-        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
-      };
+          if (attempt === 0) {
+            console.log('Current Q&A status:', currentConfig.result.isQuestionAnswerEnabled);
+          } else {
+            console.log(`Retry attempt ${attempt} to enable Q&A feature`);
+          }
 
-      // Update app configuration
-      const response = await this.feedManagementService.updateAppConfig(updatePayload);
+          // Prepare update payload with all current values except isQuestionAnswerEnabled
+          const updatePayload = {
+            appName: currentConfig.result.appName,
+            automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+            availableContentTypes: currentConfig.result.availableContentTypes,
+            addToCalendar: currentConfig.result.addToCalendar,
+            feedbackRecipients: currentConfig.result.feedbackRecipients,
+            enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+            enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+            shareFeedback: currentConfig.result.shareFeedback,
+            socialCampaignsPolicyUrl: currentConfig.result.socialCampaignsPolicyUrl,
+            selectedLanguages: currentConfig.result.selectedLanguages.ids,
+            orgChartEnabled: currentConfig.result.orgChartEnabled,
+            isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+            isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+            isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+            isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+            calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
+            calendarOffice365Url: currentConfig.result.calendarOffice365Url,
+            isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+            isQuestionAnswerEnabled: true, // Always set to true
+            isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+          };
 
-      const responseBody = await response.json();
-      console.log('Q&A enabled successfully. Response:', JSON.stringify(responseBody, null, 2));
+          // Update app configuration
+          const response = await this.feedManagementService.updateAppConfig(updatePayload);
 
-      // Wait a bit to ensure Q&A is properly enabled
-      await new Promise(resolve => setTimeout(resolve, 1000));
+          const responseBody = await response.json();
+          console.log('Q&A enabled successfully. Response:', JSON.stringify(responseBody, null, 2));
 
-      // Verify Q&A is enabled
-      const verifyConfig = await this.feedManagementService.getAppConfig();
-      if (!verifyConfig.result.isQuestionAnswerEnabled) {
-        throw new Error('Q&A feature was not enabled successfully');
+          // Wait a bit to ensure Q&A is properly enabled
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Verify Q&A is enabled
+          const verifyConfig = await this.feedManagementService.getAppConfig();
+          if (!verifyConfig.result.isQuestionAnswerEnabled) {
+            throw new Error('Q&A feature was not enabled successfully');
+          }
+
+          // Success - return the response
+          return responseBody;
+        } catch (error) {
+          lastError = error as Error;
+          console.log(`Attempt ${attempt + 1} failed:`, lastError.message);
+
+          // If this is not the last attempt, wait before retrying
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
       }
 
-      return responseBody;
+      // If we get here, all attempts failed
+      throw new Error(
+        `Q&A feature was not enabled successfully after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
     });
   }
 
@@ -455,5 +481,261 @@ export class FeedManagementHelper {
       const response = await this.feedManagementService.removeUpvoteFromQuestion(questionId);
       return response;
     });
+  }
+
+  /**
+   * Creates an answer on a question
+   * @param questionId - The question ID to answer
+   * @param answerText - The answer text
+   * @returns Promise with the answer response
+   */
+  async createAnswer(questionId: string, answerText: string): Promise<any> {
+    return await test.step(`Creating answer on question ${questionId} via helper`, async () => {
+      const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(answerText);
+      return await this.feedManagementService.createAnswer(questionId, {
+        textJson,
+        textHtml,
+        listOfAttachedFiles: [],
+        ignoreToxic: false,
+      });
+    });
+  }
+
+  /**
+   * Updates an answer on a question
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to update
+   * @param updatedAnswerText - The updated answer text
+   * @returns Promise with the updated answer response
+   */
+  async updateAnswer(questionId: string, answerId: string, updatedAnswerText: string): Promise<any> {
+    return await test.step(`Updating answer ${answerId} on question ${questionId} via helper`, async () => {
+      const { textJson, textHtml } = buildFeedTextJsonAndTextHtml(updatedAnswerText);
+      return await this.feedManagementService.updateAnswer(questionId, answerId, {
+        textJson,
+        textHtml,
+        listOfAttachedFiles: [],
+        ignoreToxic: false,
+      });
+    });
+  }
+
+  /**
+   * Deletes an answer on a question
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Deleting answer ${answerId} on question ${questionId} via helper`, async () => {
+      return await this.feedManagementService.deleteAnswer(questionId, answerId);
+    });
+  }
+
+  /**
+   * Upvotes an answer on a question
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to upvote
+   * @returns Promise with the upvote response
+   */
+  async upvoteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Upvoting answer ${answerId} on question ${questionId} via helper`, async () => {
+      return await this.feedManagementService.upvoteAnswer(questionId, answerId);
+    });
+  }
+
+  /**
+   * Removes upvote from an answer on a question
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to remove upvote from
+   * @returns Promise with the remove upvote response
+   */
+  async removeUpvoteFromAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Removing upvote from answer ${answerId} on question ${questionId} via helper`, async () => {
+      return await this.feedManagementService.removeUpvoteFromAnswer(questionId, answerId);
+    });
+  }
+
+  /**
+   * Fetches answers for a question
+   * @param questionId - The question ID
+   * @param options - Optional query parameters
+   * @returns Promise with the answers response
+   */
+  async fetchAnswers(
+    questionId: string,
+    options?: { size?: number; nextPageToken?: string; sortBy?: string }
+  ): Promise<any> {
+    return await test.step(`Fetching answers for question ${questionId} via helper`, async () => {
+      return await this.feedManagementService.fetchAnswers(questionId, options);
+    });
+  }
+
+  /**
+   * Builds a question payload with mandatory fields only
+   * @param title - The question title
+   * @param scope - The scope ('public' for home feed, 'site' for site feed)
+   * @param siteId - Optional site ID (required for site feed)
+   * @returns CreateQuestionPayload
+   */
+  buildQuestionPayloadWithMandatoryFields(
+    title: string,
+    scope: 'public' | 'site',
+    siteId?: string | null
+  ): import('@core/types/feed.type').CreateQuestionPayload {
+    return {
+      title,
+      textJson: JSON.stringify({ type: 'doc', content: [] }),
+      textHtml: '',
+      scope,
+      siteId: scope === 'site' ? siteId || null : null,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      type: 'question',
+      variant: 'standard',
+    };
+  }
+
+  /**
+   * Builds a question payload with all fields (mentions, links, topics, formatting)
+   * @param title - The question title
+   * @param scope - The scope ('public' for home feed, 'site' for site feed)
+   * @param siteId - Optional site ID (required for site feed)
+   * @param options - Optional fields for mentions, links, topics, and formatting
+   * @returns CreateQuestionPayload
+   */
+  buildQuestionPayloadWithAllFields(
+    title: string,
+    scope: 'public' | 'site',
+    siteId?: string | null,
+    options?: {
+      userInfo?: { userId: string; fullName: string };
+      topic?: { name: string; topicId?: string };
+      linkUrl?: string;
+      includeOrderedList?: boolean;
+    }
+  ): import('@core/types/feed.type').CreateQuestionPayload {
+    const {
+      userInfo,
+      topic,
+      linkUrl = 'https://www.pinterest.com/pin/21532904463411701/',
+      includeOrderedList = false,
+    } = options || {};
+
+    const textJsonContent: any[] = [];
+
+    // Add user mention with bold text
+    if (userInfo) {
+      textJsonContent.push({
+        type: 'paragraph',
+        attrs: { className: '', 'data-sw-sid': null },
+        content: [
+          { type: 'text', marks: [{ type: 'bold' }], text: 'When? ' },
+          {
+            type: 'UserAndSiteMention',
+            attrs: { id: userInfo.userId, label: userInfo.fullName, type: 'user' },
+          },
+          { type: 'text', marks: [{ type: 'textStyle', attrs: { className: '' } }], text: ' ' },
+        ],
+      });
+    }
+
+    // Add link
+    if (linkUrl) {
+      textJsonContent.push({
+        type: 'paragraph',
+        attrs: { className: '', 'data-sw-sid': null },
+        content: [
+          {
+            type: 'text',
+            marks: [
+              {
+                type: 'link',
+                attrs: {
+                  href: linkUrl,
+                  target: '_blank',
+                  rel: 'noopener noreferrer nofollow',
+                  class: null,
+                  alt: null,
+                  align: null,
+                  display: 'inline',
+                  isButton: null,
+                },
+              },
+            ],
+            text: 'LINK',
+          },
+        ],
+      });
+    }
+
+    // Add ordered list if requested
+    if (includeOrderedList) {
+      textJsonContent.push({
+        type: 'paragraph',
+        attrs: { className: '', 'data-sw-sid': null },
+        content: [{ type: 'text', text: 'List' }],
+      });
+
+      textJsonContent.push({
+        type: 'orderedList',
+        attrs: { start: 1, className: '', 'data-sw-sid': null },
+        content: [
+          {
+            type: 'listItem',
+            attrs: { 'data-sw-sid': null },
+            content: [
+              {
+                type: 'paragraph',
+                attrs: { className: '', 'data-sw-sid': null },
+                content: [{ type: 'text', text: 'Ordered List' }],
+              },
+            ],
+          },
+        ],
+      });
+    }
+
+    // Add topic mention
+    if (topic) {
+      textJsonContent.push({
+        type: 'paragraph',
+        attrs: { className: '', 'data-sw-sid': null },
+        content: [
+          {
+            type: 'TopicMention',
+            attrs: { id: `new_${topic.name}`, label: topic.name, type: 'topic' },
+          },
+          { type: 'text', text: ' ' },
+        ],
+      });
+    }
+
+    // Build textHtml
+    let textHtml = '';
+    if (userInfo) {
+      textHtml += `<p><strong>When? </strong><span data-type="user" data-id="${userInfo.userId}" data-label="${userInfo.fullName}"><a href="/people/${userInfo.userId}" target="_blank">@${userInfo.fullName}</a></span><span> </span></p>`;
+    }
+    if (linkUrl) {
+      textHtml += `<p><a target="_blank" rel="noopener noreferrer nofollow" href="${linkUrl}">LINK</a></p>`;
+    }
+    if (includeOrderedList) {
+      textHtml += '<p>List</p><ol><li><p>Ordered List</p></li></ol>';
+    }
+    if (topic) {
+      textHtml += `<p><span data-type="topic" data-id="new_${topic.name}" data-label="${topic.name}"><a href="/topic/new_${topic.name}" target="_blank">#${topic.name}</a></span> </p>`;
+    }
+
+    return {
+      title,
+      textJson: JSON.stringify({ type: 'doc', content: textJsonContent }),
+      textHtml: textHtml || '<p></p>',
+      scope,
+      siteId: scope === 'site' ? siteId || null : null,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+      type: 'question',
+      variant: 'standard',
+    };
   }
 }

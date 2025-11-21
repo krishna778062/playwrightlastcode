@@ -1152,4 +1152,119 @@ export class FeedManagementService implements IFeedManagementOperations {
       return responseBody;
     });
   }
+
+  /**
+   * Updates an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to update
+   * @param payload - The answer payload
+   * @returns Promise with the answer response
+   */
+  async updateAnswer(
+    questionId: string,
+    answerId: string,
+    payload: { textJson: string; textHtml: string; listOfAttachedFiles?: AttachedFile[]; ignoreToxic?: boolean }
+  ): Promise<any> {
+    return await test.step(`Updating answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.put(API_ENDPOINTS.feed.updateComment(questionId, answerId), {
+        data: payload,
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to update answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Deletes an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Deleting answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.delete(API_ENDPOINTS.feed.deleteComment(questionId, answerId));
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to delete answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Upvotes an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to upvote
+   * @returns Promise with the upvote response
+   */
+  async upvoteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Upvoting answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.commentReaction(questionId, answerId), {
+        data: {
+          reactionType: 'emoji/2B06',
+          action: 'add',
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to upvote answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Removes upvote from an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to remove upvote from
+   * @returns Promise with the remove upvote response
+   */
+  async removeUpvoteFromAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Removing upvote from answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.commentReaction(questionId, answerId), {
+        data: {
+          reactionType: 'emoji/2B06',
+          action: 'remove',
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to remove upvote from answer ${answerId} on question ${questionId}. Status: ${response.status()}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Fetches answers (comments) for a question via API
+   * @param questionId - The question ID
+   * @param options - Optional query parameters
+   * @returns Promise with the answers response
+   */
+  async fetchAnswers(
+    questionId: string,
+    options?: { size?: number; nextPageToken?: string; sortBy?: string }
+  ): Promise<any> {
+    return await test.step(`Fetching answers for question ${questionId}`, async () => {
+      const queryParams = new URLSearchParams();
+      if (options?.size) queryParams.append('size', options.size.toString());
+      if (options?.nextPageToken) queryParams.append('nextPageToken', options.nextPageToken);
+      if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
+
+      const url = `${API_ENDPOINTS.feed.fetchComments(questionId)}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await this.httpClient.get(url);
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to fetch answers for question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
 }
