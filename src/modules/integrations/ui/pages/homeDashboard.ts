@@ -987,4 +987,22 @@ export class HomeDashboard extends BasePage {
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
+  /**
+   * Verify Salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
+  }
 }

@@ -95,6 +95,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly workdayTaxesLabel: string;
   readonly workdayDeductionsLabel: string;
   readonly workdayNetPayLabel: string;
+  readonly salesforceSiteNameText: Locator;
+  readonly salesforceSiteType: Locator;
+  readonly salesforceHasPages: Locator;
+  readonly salesforceHasEvents: Locator;
+  readonly salesforceViewCompleteReportLink: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -187,6 +192,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.expensifyStatusTag = page.locator('[data-testid="tag"] p');
     this.expensifyApproverTag = page.locator('div:has-text("$")').locator('+ div').locator('+ div p');
     this.expensifyLastUpdatedText = page.locator('p:has-text("Last updated")');
+    this.salesforceSiteNameText = page.getByText('Simpplr Site Name');
+    this.salesforceSiteType = page.getByText('Site Type');
+    this.salesforceHasPages = page.getByText('Has Pages');
+    this.salesforceHasEvents = page.getByText('Has Events');
+    this.salesforceViewCompleteReportLink = page.getByRole('link', { name: /View complete report/ });
 
     // Workday: patterns for lessons count and registered date line
     this.lessonsPattern = /^\d+\s+Lessons?$/;
@@ -1094,6 +1104,49 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   async verifyFreshserviceUnassignedTickets(tileTitle: string): Promise<void> {
     await test.step(`Verify FreshService Unassigned Tickets tile data for '${tileTitle}'`, async () => {
       await this.verifyFreshserviceTicketData(tileTitle);
+    });
+  }
+  /**
+   * Verify salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Salesforce tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Salesforce tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Verify added Tile data
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      // Verify required elements
+      await expect(tile.getByText('Simpplr Site Name').first()).toBeVisible();
+      await expect(tile.getByText('Site Type').first()).toBeVisible();
+      await expect(tile.getByText('Has Pages').first()).toBeVisible();
+      await expect(tile.getByText('Has Events').first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await test.step(`Verify tile '${tileTitle}' redirects to '${expectedUrl}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      const link = linkSelector ? tile.locator(linkSelector) : tile.locator(this.salesforceViewCompleteReportLink);
+      await this.clickOnElement(link.first());
+      const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
+      const popup = await this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
+      if (popup) {
+        await expect(popup).toHaveURL(urlRegex);
+        await popup.close();
+      } else {
+        await this.page.waitForURL(urlRegex);
+        await this.page.goBack();
+      }
     });
   }
 }
