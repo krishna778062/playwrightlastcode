@@ -1044,5 +1044,231 @@ test.describe(
         // Followers are typically members who follow a site, so we test as Member above
       }
     );
+
+    test(
+      'verify inappropriate content warning when sharing feed posts/comments',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28474'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify inappropriate content warning when sharing feed posts/comments for End User',
+          zephyrTestId: 'CONT-28474',
+          storyId: 'CONT-28474',
+        });
+
+        // Inappropriate and edited text to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const editedPostText = FEED_TEST_DATA.POST_TEXT.EDITED_POST_TEXT;
+
+        // Variables for cleanup
+        const createdFeedIds: string[] = [];
+
+        // Phase 1: Setup - Admin creates posts/comments
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteId = publicSite.siteId;
+        const publicSiteName = publicSite.name;
+
+        const pageContent = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: publicSiteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: { waitForSearchIndex: false },
+        });
+
+        // Admin creates a post on Home Dashboard
+        const adminHomeFeedPage = new FeedPage(appManagerFixture.page);
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await adminHomeFeedPage.verifyThePageIsLoaded();
+        await adminHomeFeedPage.actions.clickShareThoughtsButton();
+        const homePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const homePostResult = await adminHomeFeedPage.actions.createAndPost({
+          text: homePostText,
+        });
+        if (homePostResult.postId) createdFeedIds.push(homePostResult.postId);
+        await adminHomeFeedPage.assertions.waitForPostToBeVisible(homePostText);
+
+        // Admin creates a post on Site Dashboard
+        const adminSiteDashboard = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        await adminSiteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
+        await adminSiteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await adminSiteDashboard.verifyThePageIsLoaded();
+        await adminSiteDashboard.actions.clickShareThoughtsButton();
+        const sitePostText = `Site Dashboard Post ${homePostText}`;
+        const sitePostResult = await adminSiteDashboard['createFeedPostComponent'].actions.createAndPost({
+          text: sitePostText,
+        });
+        if (sitePostResult.postId) createdFeedIds.push(sitePostResult.postId);
+        const adminSiteFeedPage = new FeedPage(appManagerFixture.page);
+        await adminSiteFeedPage.assertions.waitForPostToBeVisible(sitePostText);
+
+        // Admin creates a comment on Content page
+        const adminContentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          publicSiteId,
+          pageContent.contentId,
+          'page'
+        );
+        await adminContentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        await adminContentPreviewPage.verifyThePageIsLoaded();
+        await adminContentPreviewPage.actions.clickShareThoughtsButton();
+        const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+        const commentPostResult = await adminContentPreviewPage['createFeedPostComponent'].actions.createAndPost({
+          text: commentText,
+        });
+        if (commentPostResult.postId) createdFeedIds.push(commentPostResult.postId);
+        await adminContentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+
+        // Phase 2: Helper Functions for Share Flows
+
+        // Common helper to handle share with inappropriate content warning (Cancel and Submit Anyway flows)
+        const testShareWithInappropriateContent = async (
+          userFixture: any,
+          clickShareIcon: () => Promise<void>,
+          inappropriateText: string,
+          editedText: string,
+          selectPostLocation?: () => Promise<void>
+        ) => {
+          const shareComponent = new ShareComponent(userFixture.page);
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+
+          // Step 1: Cancel Flow
+          await clickShareIcon();
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Select post location if provided (for Site Feed)
+          if (selectPostLocation) {
+            await selectPostLocation();
+          }
+
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickCancel();
+          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          // Edit content (still inappropriate to test Submit Anyway)
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Step 2: Submit Anyway Flow
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickContinue();
+          await warningPopup.assertions.verifyWarningPopupClosed();
+        };
+
+        // Helper function to test Home Dashboard share flow
+        const testHomeDashboardShare = async (
+          userFixture: any,
+          postText: string,
+          inappropriateText: string,
+          editedText: string,
+          siteName: string
+        ) => {
+          const homeFeedPage = new FeedPage(userFixture.page);
+          await userFixture.homePage.loadPage();
+          await userFixture.homePage.verifyThePageIsLoaded();
+          await userFixture.navigationHelper.clickOnGlobalFeed();
+          await homeFeedPage.verifyThePageIsLoaded();
+
+          await testShareWithInappropriateContent(
+            userFixture,
+            () => homeFeedPage.actions.clickShareIconOnPost(postText),
+            inappropriateText,
+            editedText,
+            async () => {
+              const shareComponent = new ShareComponent(userFixture.page);
+              await shareComponent.selectShareOptionAsSiteFeed();
+              await shareComponent.actions.enterSiteName(siteName);
+            }
+          );
+        };
+
+        // Helper function to test Site Dashboard share flow
+        const testSiteDashboardShare = async (
+          userFixture: any,
+          siteId: string,
+          postText: string,
+          inappropriateText: string,
+          editedText: string
+        ) => {
+          const siteDashboard = new SiteDashboardPage(userFixture.page, siteId);
+          await siteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+          await siteDashboard.verifyThePageIsLoaded();
+
+          const siteFeedPage = new FeedPage(userFixture.page);
+          await testShareWithInappropriateContent(
+            userFixture,
+            () => siteFeedPage.actions.clickShareIconOnPost(postText),
+            inappropriateText,
+            editedText
+          );
+        };
+
+        // Helper function to test Content Comment share flow
+        const testContentCommentShare = async (
+          userFixture: any,
+          siteId: string,
+          contentId: string,
+          commentText: string,
+          inappropriateText: string,
+          editedText: string
+        ) => {
+          const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          const feedPage = new FeedPage(userFixture.page);
+          await testShareWithInappropriateContent(
+            userFixture,
+            () => feedPage.actions.clickShareIconOnPost(commentText),
+            inappropriateText,
+            editedText
+          );
+        };
+
+        // Phase 3: Test Execution (as End User)
+        await testHomeDashboardShare(
+          standardUserFixture,
+          homePostText,
+          inappropriatePostText,
+          editedPostText,
+          publicSiteName
+        );
+
+        await testSiteDashboardShare(
+          standardUserFixture,
+          publicSiteId,
+          sitePostText,
+          inappropriatePostText,
+          editedPostText
+        );
+
+        await testContentCommentShare(
+          standardUserFixture,
+          publicSiteId,
+          pageContent.contentId,
+          commentText,
+          inappropriatePostText,
+          editedPostText
+        );
+
+        // Cleanup: Delete created feeds
+        for (const feedId of createdFeedIds) {
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteFeed(feedId);
+          } catch (error) {
+            console.warn(`Failed to cleanup feed ${feedId}:`, error);
+          }
+        }
+      }
+    );
   }
 );
