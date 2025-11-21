@@ -525,17 +525,6 @@ export class ManageSitesComponent extends BaseComponent {
       });
     });
   }
-  async selectContentFilter(filter: ContentFilter): Promise<void> {
-    await test.step(`Select content filter: ${filter}`, async () => {
-      if (await this.verifier.isTheElementVisible(this.clickOnAlreadyStarIcon)) {
-        const contentFilterResponse = await this.performActionAndWaitForResponse(
-          () => this.contentFilterDropdown.selectOption(filter),
-          response =>
-            response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
-            response.request().method() === 'POST' &&
-            response.status() === 200,
-          {
-            timeout: 20_000,
   async clickOnTheFollowersTabButtonInAboutTabAction(): Promise<void> {
     await test.step('Click on the followers tab button in about tab', async () => {
       await this.clickOnElement(this.clickOnTheFollowersTabButtonInAboutTab);

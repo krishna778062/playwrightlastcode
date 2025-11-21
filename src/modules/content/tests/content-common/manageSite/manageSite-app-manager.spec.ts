@@ -393,20 +393,14 @@ test.describe(
         await orgChartPage.actions.clickOnViewProfileButton();
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
+      }
+    );
+    test(
       'to verify the bulk action activate in manage site user drop down',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
-        tagTest(test.info(), {
-          description: 'to verify the bulk action activate in manage site user drop down',
-          zephyrTestId: 'CONT-26576',
-          storyId: 'CONT-26576',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
-        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'deactivated',

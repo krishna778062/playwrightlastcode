@@ -102,7 +102,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
-  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
+  readonly favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
