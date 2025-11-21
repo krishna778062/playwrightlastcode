@@ -200,14 +200,23 @@ test.describe(
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          description: 'to verify the search content in manage site content ',
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
           isKnownFailure: true,
         });
-        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          hasPages: true,
+        const sitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          size: 1000,
+          filter: 'public',
+          sortBy: 'alphabetical',
         });
+        console.log('sitesResponse', sitesResponse.result.listOfItems);
+        const siteInfo = sitesResponse.result.listOfItems.find(
+          (site: any) => site.canManage === true && site.isManager === true
+        );
+        if (!siteInfo) {
+          throw new Error('No manage site found in the response');
+        }
         await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
