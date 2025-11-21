@@ -2,11 +2,15 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // ==================== HELPER FUNCTIONS ====================
@@ -281,6 +285,134 @@ test.describe(
         // Click "Delete" - deletePost will handle opening the menu internally
         await feedPage.actions.deletePost('Edited a Feed Post');
         createdPostId = ''; // Clear post ID as post is already deleted
+      }
+    );
+
+    test(
+      'verify timestamp format is displayed as "Month Date, Year at Time" for feed posts and comments',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27846'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify the Timestamp format is displayed as "Month Date, Year at Time" for feed posts on Home Dashboard, Site Dashboard, and comments on Content Page',
+          zephyrTestId: 'CONT-27846',
+          storyId: 'CONT-27846',
+          isKnownFailure: true,
+        });
+
+        let homeFeedPostId: string = '';
+        let siteFeedPostId: string = '';
+        let contentCommentPostId: string = '';
+        let contentId: string = '';
+        let siteId: string = '';
+
+        try {
+          // ==================== HOME DASHBOARD TIMESTAMP VERIFICATION ====================
+          await test.step('Home Dashboard - Verify timestamp format for feed posts', async () => {
+            // Navigate to Home tab
+            await standardUserFixture.homePage.loadPage();
+            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+            await feedPage.verifyThePageIsLoaded();
+
+            // Create a feed post via API for Home Dashboard
+            const homeFeedData = TestDataGenerator.generateFeed({
+              scope: 'public',
+              siteId: undefined,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
+
+            const homeFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(homeFeedData);
+            homeFeedPostId = homeFeedResponse.result.feedId;
+            const homeFeedPostText = homeFeedData.text;
+
+            // Wait for post to be visible and verify timestamp format
+            await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
+            await feedPage.assertions.verifyTimestampFormat(homeFeedPostText);
+            console.log('✓ Home Dashboard timestamp format verified');
+          });
+
+          // ==================== SITE DASHBOARD TIMESTAMP VERIFICATION ====================
+          await test.step('Site Dashboard - Verify timestamp format for feed posts', async () => {
+            // Get an existing site
+            const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+            siteId = siteDetails.siteId;
+
+            // Create a feed post via API for Site Dashboard
+            const siteFeedData = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
+
+            const siteFeedResponse = await appManagerFixture.feedManagementHelper.createFeed(siteFeedData);
+            siteFeedPostId = siteFeedResponse.result.feedId;
+            const siteFeedPostText = siteFeedData.text;
+
+            // Navigate to Site Dashboard and then to Feed tab
+            const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.verifyThePageIsLoaded();
+
+            // Click on Feed link to navigate to Site Feed
+            await siteDashboardPage.actions.clickOnFeedLink();
+            const siteFeedPage = new FeedPage(standardUserFixture.page);
+            await siteFeedPage.verifyThePageIsLoaded();
+
+            // Wait for post to be visible and verify timestamp format
+            await siteFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText);
+            await siteFeedPage.assertions.verifyTimestampFormat(siteFeedPostText);
+            console.log('✓ Site Dashboard timestamp format verified');
+          });
+
+          // ==================== CONTENT PAGE COMMENT TIMESTAMP VERIFICATION ====================
+          await test.step('Content Page - Verify timestamp format for comments', async () => {
+            // Get or create content
+            const contentInfo = await appManagerFixture.contentManagementHelper.getContentId({
+              status: 'published',
+            });
+            contentId = contentInfo.contentId;
+            siteId = contentInfo.siteId;
+            const contentType = contentInfo.contentType || ContentType.PAGE.toLowerCase();
+
+            // Create a comment/feed post on the content via API
+            const contentCommentData = TestDataGenerator.generateFeed({
+              scope: 'site',
+              siteId: siteId,
+              contentId: contentId,
+              withAttachment: false,
+              waitForSearchIndex: false,
+            });
+
+            const contentCommentResponse = await appManagerFixture.feedManagementHelper.createFeed(contentCommentData);
+            contentCommentPostId = contentCommentResponse.result.feedId;
+            const contentCommentText = contentCommentData.text;
+
+            // Navigate to Content Preview Page
+            const contentPreviewPage = new ContentPreviewPage(standardUserFixture.page, siteId, contentId, contentType);
+            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+            await contentPreviewPage.verifyThePageIsLoaded();
+
+            // Wait for comment to be visible and verify timestamp format
+            await contentPreviewPage.assertions.waitForPostToBeVisible(contentCommentText);
+            await contentPreviewPage.assertions.verifyCommentTimestampFormat(contentCommentText);
+            console.log('✓ Content Page comment timestamp format verified');
+          });
+        } finally {
+          // Cleanup: Delete all created posts
+          if (homeFeedPostId) {
+            await appManagerFixture.feedManagementHelper.deleteFeed(homeFeedPostId);
+          }
+          if (siteFeedPostId) {
+            await appManagerFixture.feedManagementHelper.deleteFeed(siteFeedPostId);
+          }
+          if (contentCommentPostId) {
+            await appManagerFixture.feedManagementHelper.deleteFeed(contentCommentPostId);
+          }
+        }
       }
     );
   }

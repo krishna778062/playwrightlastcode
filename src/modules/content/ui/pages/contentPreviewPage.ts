@@ -47,6 +47,7 @@ export interface IContentPreviewPageActions {
 }
 
 export interface IContentPreviewPageAssertions {
+  verifyCommentTimestampFormat(contentCommentText: string): unknown;
   verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
   verifyContentStatus: (status: string) => Promise<void>;
   verifyContentIsInPublishedStatus: () => Promise<void>;
@@ -459,6 +460,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyContentIsNotAMustRead(): Promise<void> {
     await this.mustReadModalComponent.verifyContentIsNotAMustRead();
+  }
+
+  async verifyCommentTimestampFormat(contentCommentText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(contentCommentText);
   }
 
   async verifyPostCreationCancelButtonVisible(): Promise<void> {
