@@ -400,7 +400,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'deactivated',
