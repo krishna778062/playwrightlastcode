@@ -20,6 +20,9 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyButton: Locator;
   readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
+  readonly shareButton: Locator;
+  readonly sharePostModalContainer: Locator;
+  readonly viewPostLink: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
   readonly reactionCountButton: Locator;
@@ -28,7 +31,6 @@ export class ListFeedComponent extends BaseComponent {
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly loadMoreRepliesButton: Locator;
-  readonly shareButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
@@ -184,12 +186,14 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
-    this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
+    this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
+    this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
     this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
@@ -1036,11 +1040,26 @@ export class ListFeedComponent extends BaseComponent {
   async clickShareIcon(postText: string): Promise<void> {
     await test.step(`Click share icon on post: ${postText}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const shareIconLocator = this.page.getByRole('button', { name: 'Share this post' }).first();
-      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
-        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
+        assertionMessage: `Share button should be visible for post "${postText}"`,
       });
-      await this.clickOnElement(shareIconLocator);
+      await this.clickOnElement(this.shareButton.first());
+    });
+  }
+
+  async verifyShareModalIsVisible(): Promise<void> {
+    await test.step('Verify share modal is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be visible',
+      });
+    });
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await test.step('Verify share modal is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be closed',
+      });
     });
   }
 
@@ -1053,9 +1072,37 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
-   * Hovers over the "React to this post" button to show emoji options
-   * @param postText - The text of the post
+   * Verifies that an embedded URL does NOT unfurl (no link preview is displayed)
+   * @param embedUrl - The URL that should not be unfurled
+   * @param postText - The text of the post containing the URL
    */
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
+      // First, verify the post is visible
+      await this.waitForPostToBeVisible(postText);
+
+      // Get the post container (using same pattern as verifyDeletedPostMessage)
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      const embedURLocator = postContainer.locator('iframe').first();
+      await this.verifier.verifyTheElementIsNotVisible(embedURLocator, {
+        assertionMessage: `Embedded URL should be visible for post "${postText}"`,
+      });
+
+      const embedPlayButton = postContainer
+        .locator('iframe')
+        .first()
+        .contentFrame()
+        .getByRole('button', { name: 'Play' });
+      await this.verifier.verifyTheElementIsNotVisible(embedPlayButton, {
+        assertionMessage: `Embedded URL should NOT be unfurled - no preview/embed elements should be visible`,
+      });
+    });
+  }
+
   async hoverOnReactionButton(postText: string): Promise<void> {
     await test.step(`Hover on reaction button for post: ${postText}`, async () => {
       await this.waitForPostToBeVisible(postText);
@@ -1241,6 +1288,25 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
         assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
       });
+    });
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await test.step('Click view post link in share modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.viewPostLink, {
+        assertionMessage: 'View post link should be visible in share modal',
+      });
+      await this.clickOnElement(this.viewPostLink);
+    });
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await test.step('Click view post link in post detail page', async () => {
+      const viewPostLink = this.page.getByRole('button', { name: 'View post' });
+      await this.verifier.verifyTheElementIsVisible(viewPostLink, {
+        assertionMessage: 'View post link should be visible in post detail page',
+      });
+      await this.clickOnElement(viewPostLink);
     });
   }
 
