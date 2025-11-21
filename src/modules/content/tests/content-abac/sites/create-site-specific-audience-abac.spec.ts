@@ -1,7 +1,7 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-site.test-data';
@@ -51,7 +51,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       siteId = await siteCreationPage.createSite({
         name: SITE_CREATION_TEST_DATA.PUBLIC_SITE.name,
         category: SITE_CREATION_TEST_DATA.PUBLIC_SITE.category,
-        type: SiteType.PUBLIC,
+        type: SITE_TYPES.PUBLIC,
         audienceName: audienceName,
       });
       console.log('INFO: The created siteId', siteId);
@@ -95,7 +95,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       siteId = await siteCreationPage.createSite({
         name: SITE_CREATION_TEST_DATA.PRIVATE_SITE.name,
         category: SITE_CREATION_TEST_DATA.PRIVATE_SITE.category,
-        type: SiteType.PRIVATE,
+        type: SITE_TYPES.PRIVATE,
         audienceName: audienceName,
       });
       console.log('INFO: The created siteId', siteId);
