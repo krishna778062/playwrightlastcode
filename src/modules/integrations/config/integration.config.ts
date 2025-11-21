@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'azuresso' | 'workday' | 'okta';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU';
 
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
@@ -123,7 +123,6 @@ export const config = {
       IGNORE_TLS: 1,
       TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
-
     prodEU: {
       tenantName: 'Primary Tenant',
       frontendBaseUrl: 'https://tangerinetestingeu.eu.simpplr.com',
@@ -169,7 +168,25 @@ export const config = {
       IGNORE_TLS: 1,
       TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
+    uatEU: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'shubham.garg@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'akanksha.kumari@simpplr.com',
+      endUserPassword: 'pass@1234',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
   },
+
   azuresso: {
     qa: {
       tenantName: 'Azure SSO Tenant',
@@ -232,14 +249,15 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=uat npm run test\n` +
         `  TEST_ENV=test npm run test\n` +
         `  TEST_ENV=prodUS npm run test\n` +
-        `  TEST_ENV=prodEU npm run test`
+        `  TEST_ENV=prodEU npm run test\n` +
+        `  TEST_ENV=uatEU npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prodUS, prodEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
         `Example: TEST_ENV=qa npm run test`
     );
   }
@@ -343,5 +361,5 @@ export function getIntegrationConfig() {
  * Helper function to get all available environments
  */
 export function getAvailableEnvironments(): EnvironmentKey[] {
-  return ['qa', 'uat', 'test', 'prodUS', 'prodEU'];
+  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'];
 }
