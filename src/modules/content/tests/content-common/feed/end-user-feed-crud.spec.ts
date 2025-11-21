@@ -1,11 +1,15 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { CreateFeedPostComponent } from '@content/ui/components/createFeedPostComponent';
+import { InappropriateContentWarningPopupComponent } from '@content/ui/components/inappropriateContentWarningPopupComponent';
 import { ShareComponent } from '@content/ui/components/shareComponent';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
@@ -33,7 +37,7 @@ test.describe(
     let simpplrTopic: any;
     let identityManagementHelper: IdentityManagementHelper;
 
-    test.beforeEach(async ({ standardUserFixture, appManagerFixture }) => {
+    test.beforeEach(async ({ standardUserFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
       /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
@@ -49,7 +53,7 @@ test.describe(
 
     test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
-      if (createdPostId && appManagerFixture.feedManagementHelper) {
+      if (createdPostId) {
         try {
           await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
@@ -571,6 +575,193 @@ test.describe(
 
         // Verify user cannot interact with the deleted post
         await endUserFeedPage.assertions.verifyPostCannotBeInteracted(postText);
+      }
+    );
+
+    test(
+      'verify warning popup appears when inappropriate content is submitted in Feed post or Comment',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify warning popup appears when inappropriate content is submitted in Feed post or Comment for all roles',
+          zephyrTestId: 'CONT-28090',
+          storyId: 'CONT-28090',
+        });
+
+        // Inappropriate words to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+
+        // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteId = publicSite.siteId;
+
+        const [endUserInfo, siteManagerInfo, pageContent] = await Promise.all([
+          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          }),
+        ]);
+
+        // Pre-assign Site Manager role (needed for Group 1-3 parallel tests)
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: siteManagerInfo.userId,
+          role: SitePermission.MANAGER,
+        });
+
+        // Helper function to test Home Dashboard inappropriate content warning
+        const testHomeDashboardWarning = async (userFixture: any, inappropriateText: string) => {
+          const homeFeedPage = new FeedPage(userFixture.page);
+          await userFixture.homePage.loadPage();
+          await userFixture.homePage.verifyThePageIsLoaded();
+          await userFixture.navigationHelper.clickOnGlobalFeed();
+          await homeFeedPage.verifyThePageIsLoaded();
+
+          // Click Share your thoughts button
+          await homeFeedPage.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          await homeFeedPage.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await homeFeedPage.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Close the popup
+          await warningPopup.actions.clickCancel();
+        };
+
+        // Helper function to test Site Dashboard inappropriate content warning
+        const testSiteDashboardWarning = async (userFixture: any, siteId: string, inappropriateText: string) => {
+          const siteDashboard = new SiteDashboardPage(userFixture.page, siteId);
+          await siteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+          await siteDashboard.verifyThePageIsLoaded();
+
+          // Click Share your thoughts button
+          await siteDashboard.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
+          await createFeedPostComponent.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await createFeedPostComponent.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Close the popup
+          await warningPopup.actions.clickCancel();
+        };
+
+        // Helper function to test Content Page inappropriate content warning
+        const testContentPageWarning = async (
+          userFixture: any,
+          siteId: string,
+          contentId: string,
+          inappropriateText: string
+        ) => {
+          const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Verify comment option is visible
+          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+          // Click Share your thoughts button
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          // Enter inappropriate text
+          const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
+          await createFeedPostComponent.actions.createPost(inappropriateText);
+
+          // Click Post button
+          await createFeedPostComponent.actions.clickPostButton();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Close the popup
+          await warningPopup.actions.clickCancel();
+        };
+
+        // Phase 2: Parallel Context Testing
+
+        // Group 1: Home Dashboard Tests - All users in parallel
+        await Promise.all([
+          testHomeDashboardWarning(appManagerFixture, inappropriatePostText),
+          testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
+          testHomeDashboardWarning(siteManagerFixture, inappropriatePostText),
+        ]);
+
+        // Group 2: Site Dashboard Tests - All users in parallel
+        await Promise.all([
+          testSiteDashboardWarning(appManagerFixture, publicSiteId, inappropriatePostText),
+          testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
+          testSiteDashboardWarning(siteManagerFixture, publicSiteId, inappropriatePostText),
+        ]);
+
+        // Group 3: Content Page Tests - All users in parallel
+        await Promise.all([
+          testContentPageWarning(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+          testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+          testContentPageWarning(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+        ]);
+
+        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
+        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
+        // Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.CONTENT_MANAGER,
+        });
+
+        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+
+        // Member
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.MEMBER,
+        });
+
+        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+
+        // Site Owner
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId: publicSiteId,
+          userId: endUserInfo.userId,
+          role: SitePermission.OWNER,
+        });
+
+        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+
+        // Note: Follower role is not a separate permission in SitePermission enum
+        // Followers are typically members who follow a site, so we test as Member above
       }
     );
   }

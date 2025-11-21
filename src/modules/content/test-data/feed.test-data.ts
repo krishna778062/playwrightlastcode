@@ -22,6 +22,7 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
