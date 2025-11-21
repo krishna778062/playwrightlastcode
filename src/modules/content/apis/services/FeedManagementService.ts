@@ -1255,7 +1255,9 @@ export class FeedManagementService implements IFeedManagementOperations {
     return await test.step(`Fetching answers for question ${questionId}`, async () => {
       const queryParams = new URLSearchParams();
       if (options?.size) queryParams.append('size', options.size.toString());
-      if (options?.nextPageToken) queryParams.append('nextPageToken', options.nextPageToken);
+      if (options?.nextPageToken && options.nextPageToken.trim() !== '') {
+        queryParams.append('nextPageToken', options.nextPageToken);
+      }
       if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
 
       const url = `${API_ENDPOINTS.feed.fetchComments(questionId)}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
