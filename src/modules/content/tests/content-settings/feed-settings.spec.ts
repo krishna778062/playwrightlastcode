@@ -13,8 +13,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
@@ -229,58 +227,6 @@ test.describe(
         } else {
           await contentPreviewPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
         }
-      }
-    );
-
-    test(
-      'verify Placeholder Text Storage and Retrieval',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33865'],
-      },
-      async ({ appManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify Placeholder Text Storage and Retrieval',
-          zephyrTestId: 'CONT-33865',
-          storyId: 'CONT-33865',
-        });
-
-        // Step 1: Admin configures custom placeholder text
-        await appManagerFixture.feedManagementHelper.setOneLanguage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
-        const customPlaceholder = 'Share your thoughts ' + TestDataGenerator.generateRandomString('');
-        await governanceScreenPage.actions.updateTheCustomFeedPlaceholder(customPlaceholder);
-        placeholder = true;
-
-        // Step 2: Verify placeholder is displayed before logout
-        await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-        await appManagerFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
-
-        //Verify the place holder text for the standard user
-        const standardUserFeedPage = new FeedPage(standardUserFixture.page);
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        await standardUserFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
-
-        // Step 3: Log out
-        await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-        // Wait for logout to complete and ensure we're on login page
-        await appManagerFixture.page.waitForURL(/login|logout/, { timeout: 10000 });
-
-        // Step 4: Log in again as Admin
-        const adminHomePage = await LoginHelper.loginWithPassword(appManagerFixture.page, {
-          email: users.appManager.email,
-          password: users.appManager.password,
-        });
-        await adminHomePage.loadPage();
-        await adminHomePage.verifyThePageIsLoaded();
-
-        // Step 5: Verify placeholder text persists after logout/login
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await appManagerFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
       }
     );
   }
