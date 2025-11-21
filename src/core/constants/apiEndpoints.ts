@@ -116,6 +116,10 @@ export const API_ENDPOINTS = {
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    updateComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
+    deleteComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
+    commentReaction: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}/reactions`,
+    fetchComments: (feedId: string) => `/v1/rfeed/feeds/${feedId}/comments`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
 
