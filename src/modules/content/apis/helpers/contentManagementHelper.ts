@@ -333,7 +333,7 @@ export class ContentManagementHelper {
       publishTo: pageResult.publishTo,
       isScheduled: pageResult.isScheduled,
     };
-    // this.content.push({ siteId, contentId: pageResult.pageId });
+    this.content.push({ siteId, contentId: pageResult.pageId });
     return { ...createdContent };
   }
 
