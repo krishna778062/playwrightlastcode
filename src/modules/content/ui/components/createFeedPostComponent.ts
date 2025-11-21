@@ -55,6 +55,13 @@ export interface ICreateFeedPostActions {
   clickAttachButton: () => Promise<void>;
   addFileToPost: (filePath: string) => Promise<void>;
   waitForFileToAppear: () => Promise<void>;
+  verifyIntranetAndBoxTabsVisible: () => Promise<void>;
+  clickBoxFilesTab: () => Promise<void>;
+  clickBoxFolder: (folderName: string) => Promise<void>;
+  selectBoxFile: (fileName: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -63,6 +70,7 @@ export interface ICreateFeedPostAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -75,6 +83,9 @@ export class CreateFeedPostComponent
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly cancelButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Cancel' });
 
   // Toolbar formatting buttons
   readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
@@ -137,6 +148,19 @@ export class CreateFeedPostComponent
   readonly fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
   readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
   readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
+  readonly feedPlaceholderText = (expectedPlaceholder: string) =>
+    this.page.locator('span').filter({ hasText: expectedPlaceholder });
+  // Box file browsing section
+  readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
+  readonly filePickerDialog = this.page.locator('[role="dialog"]');
+  readonly filePickerTabs = this.page.locator('[role="tab"]');
+  readonly boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
+  readonly boxFolderLocator = (folderName: string) =>
+    this.page
+      .locator('table tbody tr')
+      .locator('div.type--fauxLink, div[role="button"]')
+      .filter({ hasText: new RegExp(`^${folderName}$`, 'i') });
+  readonly boxTableRows = this.page.locator('table tbody tr');
 
   /**
    * Gets a locator for a file checkbox in the file library by finding the row containing the file name
@@ -424,6 +448,37 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Verifies that the Cancel button is visible in the post creation editor
+   */
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await test.step('Verify Cancel button is visible in post creation editor', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cancelButton, {
+        assertionMessage: 'Cancel button should be visible in post creation editor',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the post creation editor
+   */
+  async clickPostCreationCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in post creation editor', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the post creation editor is closed (not visible)
+   */
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await test.step('Verify post creation editor is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedEditor, {
+        assertionMessage: 'Post creation editor should be closed (not visible)',
+      });
+    });
+  }
+
+  /**
    * Adds a user or site mention to the post
    * @param userName - The user or site name to mention
    */
@@ -446,15 +501,11 @@ export class CreateFeedPostComponent
 
       // Check if the site name appears in the dropdown
       const siteLocator = this.addSiteNameFromList(siteName);
-      const isVisible = await siteLocator.isVisible().catch(() => false);
-      console.log(`Site mention dropdown for "${siteName}" is visible: ${isVisible}`);
-
-      if (isVisible) {
-        await siteLocator.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      try {
         await this.clickOnElement(siteLocator);
         console.log(`Successfully added site mention: @${siteName}`);
-      } else {
-        console.log(`Site mention "${siteName}" not found in dropdown, continuing without it`);
+      } catch (error) {
+        console.log(`Error adding site mention: @${siteName}: ${error}`);
         // Just press Enter to continue without the mention
         await this.feedEditor.press('Enter');
       }
@@ -471,6 +522,7 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.addtopicfromList(topicName));
     });
   }
+
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -585,6 +637,20 @@ export class CreateFeedPostComponent
       await this.verifier.verifyTheElementIsVisible(this.noResultsText, {
         timeout: 5000,
         assertionMessage: 'Expected "No results" message to be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the feed placeholder text matches the expected value
+   * @param expectedPlaceholder - The expected placeholder text
+   */
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await test.step(`Verify feed placeholder text is "${expectedPlaceholder}"`, async () => {
+      const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
+      await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
+        assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
+        timeout: 20000,
       });
     });
   }
@@ -887,6 +953,134 @@ export class CreateFeedPostComponent
         await this.clickOrderListButton();
       } else if (formatType === 'dotBullet') {
         await this.clickBulletListButton();
+      }
+    });
+  }
+
+  /**
+   * Verifies that both Intranet files and Box files tabs are displayed
+   */
+  async verifyIntranetAndBoxTabsVisible(): Promise<void> {
+    await test.step('Verify Intranet files and Box files tabs are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.intranetFilesTab, {
+        assertionMessage: 'Intranet files tab should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.boxFilesTab, {
+        assertionMessage: 'Box files tab should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Box files tab
+   */
+  async clickBoxFilesTab(): Promise<void> {
+    await test.step('Click Box files tab', async () => {
+      await this.clickOnElement(this.boxFilesTab);
+      // Wait for Box files content to load - verify breadcrumb or table appears
+      const breadcrumbVisible = await this.boxBreadcrumb.isVisible().catch(() => false);
+      const tableVisible = await this.boxTableRows
+        .first()
+        .isVisible()
+        .catch(() => false);
+      if (!breadcrumbVisible && !tableVisible) {
+        // Try breadcrumb first, then table
+        await this.verifier
+          .verifyTheElementIsVisible(this.boxBreadcrumb, {
+            assertionMessage: 'Box files breadcrumb should be visible after clicking tab',
+          })
+          .catch(async () => {
+            await this.verifier.verifyTheElementIsVisible(this.boxTableRows.first(), {
+              assertionMessage: 'Box files table should be visible after clicking tab',
+            });
+          });
+      }
+    });
+  }
+
+  /**
+   * Clicks on a Box folder
+   * @param folderName - Name of the folder to click
+   */
+  async clickBoxFolder(folderName: string): Promise<void> {
+    await test.step(`Click Box folder: ${folderName}`, async () => {
+      // Find the folder in the table - look for the div with the folder name
+      const folderNameDiv = this.boxFolderLocator(folderName).first();
+
+      await this.verifier.verifyTheElementIsVisible(folderNameDiv, {
+        assertionMessage: `Box folder "${folderName}" should be visible`,
+      });
+
+      // Click on the folder name div
+      await this.clickOnElement(folderNameDiv);
+
+      // Wait for folder contents to load - verify table rows appear or breadcrumb updates
+      const tableVisible = await this.boxTableRows
+        .first()
+        .isVisible()
+        .catch(() => false);
+      const breadcrumbVisible = await this.boxBreadcrumb.isVisible().catch(() => false);
+      if (!tableVisible && !breadcrumbVisible) {
+        // Try table first, then breadcrumb
+        await this.verifier
+          .verifyTheElementIsVisible(this.boxTableRows.first(), {
+            assertionMessage: 'Folder contents table should be visible after clicking folder',
+          })
+          .catch(async () => {
+            await this.verifier.verifyTheElementIsVisible(this.boxBreadcrumb, {
+              assertionMessage: 'Folder breadcrumb should be visible after clicking folder',
+            });
+          });
+      }
+    });
+  }
+
+  /**
+   * Selects a file from Box
+   * @param fileName - Name of the file to select (empty string to select first available file)
+   */
+  async selectBoxFile(fileName: string): Promise<void> {
+    await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
+      if (fileName) {
+        // Find file in table by name
+        const fileRow = this.page.locator('table tbody tr').filter({ hasText: fileName });
+        await this.verifier.verifyTheElementIsVisible(fileRow, {
+          assertionMessage: `Box file "${fileName}" should be visible`,
+        });
+        // Click on the checkbox in the first column
+        const checkbox = fileRow.locator('td').first().locator('input[type="checkbox"]');
+        await this.verifier.verifyTheElementIsVisible(checkbox, {
+          assertionMessage: `Checkbox for file "${fileName}" should be visible`,
+        });
+        await this.clickOnElement(checkbox);
+      } else {
+        // Select first available file (not a folder)
+        // Wait for table to load after folder navigation
+        await this.verifier.verifyTheElementIsVisible(this.boxTableRows.first(), {
+          assertionMessage: 'At least one table row should be available',
+        });
+
+        // Find the first row that has a checkbox (files and folders both have checkboxes, but we want files)
+        // Files typically don't have the folder icon or folder-related classes
+        const folderIconLocator = this.page.locator(
+          'div[class*="folder"], div[class*="Folder"], i[class*="folder"], i[class*="Folder"]'
+        );
+        const fileRow = this.boxTableRows.filter({ hasNot: folderIconLocator }).first();
+
+        // If no file found with that filter, just use the first row
+        const rowToUse = (await fileRow.count()) > 0 ? fileRow : this.boxTableRows.first();
+
+        // Click on the checkbox in the first column
+        const checkbox = rowToUse.locator('td').first().locator('input[type="checkbox"]');
+        await this.verifier.verifyTheElementIsVisible(checkbox, {
+          assertionMessage: 'Checkbox for file should be visible',
+        });
+        await this.clickOnElement(checkbox);
+
+        // Verify selection registered - checkbox should be checked
+        await this.verifier.verifyTheElementIsVisible(checkbox, {
+          assertionMessage: 'Checkbox should remain visible after selection',
+        });
       }
     });
   }

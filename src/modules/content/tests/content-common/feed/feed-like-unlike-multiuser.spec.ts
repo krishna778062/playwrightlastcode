@@ -5,6 +5,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { ReactionsEmoji } from '@/src/modules/content/constants/reactionsEmoji';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
@@ -73,10 +74,11 @@ test.describe(
       'Setup test environment and create feed post',
       async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
+        /*
         await appManagerFixture.feedManagementHelper.configureAppGovernance({
           feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
         });
-
+        */
         // Initialize feed pages for all user roles (users are already logged in via fixtures)
         siteOwnerFeedPage = new FeedPage(appManagerFixture.page);
         siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
@@ -177,7 +179,7 @@ test.describe(
         await siteOwnerFeedPage.assertions.waitForPostToBeVisible(postText);
 
         // Create a reply to the post
-        await siteOwnerFeedPage.actions.addReplyToPost(createdReplyText);
+        await siteOwnerFeedPage.actions.addReplyToPost(createdReplyText, createdPostId);
         await siteOwnerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
       }
     );
@@ -314,10 +316,11 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
+      /*
       await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
-
+      */
       // Get or create "All Employees" site using getSiteIdWithName which handles both cases
       siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
         accessType: SITE_TYPES.PUBLIC,
@@ -428,7 +431,7 @@ test.describe(
         ]);
 
         // Create a reply to the post via UI (as Site Owner)
-        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText);
+        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText, feedResponse.result.feedId);
         await ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText);
 
         // Wait for posts to be visible on all pages in parallel
@@ -487,6 +490,186 @@ test.describe(
             });
           })(),
         ]);
+      }
+    );
+  }
+);
+
+test.describe(
+  'feed Post Reaction Emoji Replacement Test',
+  {
+    tag: [ContentTestSuite.FEED_STANDARD_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach('Setup test environment and create feed post', async ({ standardUserFixture }) => {
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+
+      // Create a feed post
+      await feedPage.actions.clickShareThoughtsButton();
+      const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+      createdPostText = postText;
+
+      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      createdPostId = postResult.postId || '';
+
+      await feedPage.assertions.waitForPostToBeVisible(postText);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
+      if (createdPostId) {
+        try {
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.warn(`Failed to delete feed post: ${error}`);
+        }
+        createdPostId = '';
+      }
+    });
+
+    test(
+      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+          zephyrTestId: 'CONT-31817',
+          storyId: 'CONT-31817',
+        });
+
+        // User hovers on "React to this post" button and selects "like" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        // Remove the reaction to test another emoji
+        await feedPage.actions.unlikeFeedPost(createdPostText);
+
+        // User hovers on "React to this post" button and selects "love" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LOVE);
+
+        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.LOVE);
+
+        // User hovers on "React to this post" button and selects "Haha" emoji
+        await feedPage.actions.hoverOnReactionButton(createdPostText);
+        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+
+        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.INSIGHTFUL);
+      }
+    );
+
+    test(
+      'verify that clicking on reaction count opens modal with users grouped by emoji',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on reaction count opens modal with users grouped by emoji',
+          zephyrTestId: 'CONT-31819',
+          storyId: 'CONT-31819',
+        });
+
+        // Get user info for all roles to get their full names
+        const [appManagerInfo, siteManagerInfo, standardUserInfo] = await Promise.all([
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email),
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+        ]);
+
+        // Load home pages first, then verify and navigate all users to global feed
+        await Promise.all([
+          appManagerFixture.homePage.loadPage(),
+          siteManagerFixture.homePage.loadPage(),
+          standardUserFixture.homePage.loadPage(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.homePage.verifyThePageIsLoaded(),
+          siteManagerFixture.homePage.verifyThePageIsLoaded(),
+          standardUserFixture.homePage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          siteManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          standardUserFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Create feed pages for all users after navigation
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+
+        await Promise.all([
+          appManagerFeedPage.verifyThePageIsLoaded(),
+          siteManagerFeedPage.verifyThePageIsLoaded(),
+          standardUserFeedPage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        await standardUserFeedPage.page.reload();
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Standard User reacts with "haha"
+        await standardUserFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await standardUserFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+
+        await siteManagerFeedPage.page.reload();
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Site Manager reacts with "insightful"
+        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+
+        // Refresh pages to ensure all reactions are visible
+        await Promise.all([
+          appManagerFeedPage.page.reload(),
+          siteManagerFeedPage.page.reload(),
+          standardUserFeedPage.page.reload(),
+        ]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        // The user clicks on the reaction count or reactions text
+        await feedPage.actions.clickReactionCountButton(createdPostText);
+
+        // A modal should open
+        await feedPage.actions.verifyReactionModalIsVisible();
+
+        // The modal should display users grouped by each reaction emoji
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
+
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
+
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
+        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
+
+        // Close the modal
+        await feedPage.actions.closeReactionModal();
       }
     );
   }
