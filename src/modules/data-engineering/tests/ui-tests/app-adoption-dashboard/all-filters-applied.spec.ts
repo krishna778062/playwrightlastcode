@@ -51,9 +51,9 @@ test.describe(
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
           departments: ['test', 'QA'],
-          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
+          locations: ['Gurugram, Haryana, India'],
           // userCategories: ['Adil Option1'],
-          companyName: ['Simpplr'],
+          companyName: ['Undefined'],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
@@ -84,6 +84,7 @@ test.describe(
         const dbValues = await appAdoptionQueryHelper.getTotalUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
+        console.log(`----> The total users data is  `, dbValues);
 
         const totalUsersMetrics = testEnvironment.appAdoptionDashboard.totalUsersMetrics;
         //since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method

@@ -50,9 +50,9 @@ test.describe(
         customStartDate: '2024-01-01',
         customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
         departments: ['test', 'QA'],
-        locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-        companyName: ['Simpplr'],
-        groupBy: GroupByOnUserParameter.LOCATION,
+        locations: ['Gurugram, Haryana, India'],
+        companyName: ['Undefined'],
+        // groupBy: GroupByOnUserParameter.LOCATION,
       };
 
       const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;

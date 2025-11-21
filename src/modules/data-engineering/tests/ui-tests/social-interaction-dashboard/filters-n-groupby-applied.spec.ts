@@ -42,9 +42,9 @@ test.describe(
         testFiltersConfig = {
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
-          segments: ['Default'],
-          departments: ['DuckDB Check'],
-          locations: ['Gurugram Duck DB check, Haryana, India'],
+          segments: ['New segment DUCK DB'],
+          departments: ['New department DUCK DB'],
+          locations: ['New city DUCK DB, New state DUCK DB, New country DUCK DB'],
           groupBy: GroupByOnUserParameter.LOCATION,
         };
 
