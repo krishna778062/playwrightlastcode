@@ -883,30 +883,24 @@ export class SiteManagementHelper {
    * @param expectedRole - The expected role
    * @returns Promise<boolean> - True if role is correct, false otherwise
    */
-  private async verifyRoleAssignment(
-    siteId: string,
-    userId: string,
-    expectedRole: SitePermission
-  ): Promise<boolean> {
-    
+  private async verifyRoleAssignment(siteId: string, userId: string, expectedRole: SitePermission): Promise<boolean> {
+    const membershipList = await this.getSiteMembershipList(siteId);
+    const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
 
-      const membershipList = await this.getSiteMembershipList(siteId);
-      const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
-
-      if (!userMembership) {
-        console.log(`User ${userId} not found in membership list`);
-        return false;
-      }
-
-      const currentRole = this.getCurrentRoleFromMember(userMembership);
-      const hasCorrectRole = currentRole === expectedRole;
-
-      if (hasCorrectRole) {
-        console.log(`✓ Role verification successful: User ${userId} has role ${expectedRole}`);
-        return true;
-      }
-
+    if (!userMembership) {
+      console.log(`User ${userId} not found in membership list`);
       return false;
+    }
+
+    const currentRole = this.getCurrentRoleFromMember(userMembership);
+    const hasCorrectRole = currentRole === expectedRole;
+
+    if (hasCorrectRole) {
+      console.log(`✓ Role verification successful: User ${userId} has role ${expectedRole}`);
+      return true;
+    }
+
+    return false;
   }
 
   /**
