@@ -11,6 +11,7 @@ export enum ContentTestSuite {
   FEED_MULTI_USER = '@feed-multi-user',
   FEED_STANDARD_USER = '@feed-standard-user',
   SITE_APP_MANAGER = '@site-app-manager',
+  CONTENT_APP_MANAGER = '@content-app-manager',
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
   FEED_COMMENT_MENTION_NOTIFICATION = '@feed-comment-mention-notification',
