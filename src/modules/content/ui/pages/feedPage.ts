@@ -1149,7 +1149,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
   }
-  
+
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
   }

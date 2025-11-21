@@ -1126,10 +1126,10 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify the page is loaded with timeline mode on content page', async () => {
       await this.verifier.verifyTheElementIsVisible(sendFeedbackButton, {
         assertionMessage: 'Show button should be visible on content page',
-      }
+      });
     });
   }
-                    
+
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
       // First, verify the post is visible
