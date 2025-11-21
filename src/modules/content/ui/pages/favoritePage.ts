@@ -7,14 +7,17 @@ import { ContactIconType } from '@/src/modules/content/constants';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 export interface IFavoritePageActions {
   clickOnPeopleTab: () => Promise<void>;
+  clickOnContentTab: () => Promise<void>;
+  clickOnFeedTab: () => Promise<void>;
   searchingFavoriteUser: (fullName: string) => Promise<void>;
-  searchPeople: (searchText: string) => Promise<void>;
   searchContent: (searchText: string) => Promise<void>;
   hoverOnUserProfile: (fullName: string) => Promise<void>;
   getFirstDisplayedUserName: () => Promise<string>;
   commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
   unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
   clickUnfavoriteButtonForFileInFilesTab: (fileName: string) => Promise<void>;
+  likeFeedPost: (postContainer: Locator) => Promise<void>;
+  searchPeople: (searchText: string) => Promise<void>;
 }
 
 export interface IFavoritePageAssertions {
@@ -61,6 +64,21 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       .locator('p')
       .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
       .first();
+
+  // Reusable locators for feed post actions
+  readonly getLikeButton = (postContainer: Locator): Locator =>
+    postContainer.getByRole('button', { name: 'React to this post' }).first();
+  readonly getCommentButton = (postContainer: Locator): Locator =>
+    postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
+  readonly getCommentTextbox = (postContainer: Locator): Locator =>
+    postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
+  readonly getReplyButton = (postContainer: Locator): Locator =>
+    postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
+  readonly getUnfavoriteButton = (postContainer: Locator): Locator =>
+    postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
+  readonly getShareButton = (postContainer: Locator): Locator =>
+    postContainer.getByRole('button', { name: 'Share this post' }).first();
+
   readonly getContentSearchBar = (): Locator => this.getContentTabPanel().getByRole('textbox').first();
   readonly getContentSearchIcon = (): Locator =>
     this.getContentTabPanel().locator('button[aria-label="Search"][type="submit"]').first();
@@ -160,8 +178,17 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
       await this.clickOnElement(this.peopleTab);
     });
   }
-  async searchingFavoriteUser(fullName: string): Promise<void> {
-    await this.searchPeople(fullName);
+
+  async clickOnContentTab(): Promise<void> {
+    await test.step('Clicking on content tab', async () => {
+      await this.clickOnElement(this.contentTab);
+    });
+  }
+
+  async clickOnFeedTab(): Promise<void> {
+    await test.step('Clicking on feed tab', async () => {
+      await this.clickOnElement(this.feedTab);
+    });
   }
 
   async searchPeople(searchText: string): Promise<void> {
@@ -183,20 +210,20 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
 
   async commentOnFeedPost(postContainer: Locator, commentText: string): Promise<void> {
     await test.step(`Comment on feed post with text: ${commentText}`, async () => {
-      const commentButton = postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
+      const commentButton = this.getCommentButton(postContainer);
       await this.verifier.verifyTheElementIsVisible(commentButton, {
         assertionMessage: 'Comment button should be visible on feed post',
       });
       await this.clickOnElement(commentButton);
 
-      const commentTextbox = postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
+      const commentTextbox = this.getCommentTextbox(postContainer);
       await this.verifier.verifyTheElementIsVisible(commentTextbox, {
         assertionMessage: 'Comment textbox should be visible after clicking comment button',
       });
 
       await this.fillInElement(commentTextbox, commentText);
 
-      const replyButton = postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
+      const replyButton = this.getReplyButton(postContainer);
       await this.verifier.verifyTheElementIsVisible(replyButton, {
         assertionMessage: 'Reply button should be visible after typing comment',
       });
@@ -206,7 +233,7 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
 
   async unfavoriteFeedPost(postContainer: Locator): Promise<void> {
     await test.step('Unfavorite the feed post', async () => {
-      const unfavoriteButton = postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
+      const unfavoriteButton = this.getUnfavoriteButton(postContainer);
       await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
         assertionMessage: 'Unfavorite button should be visible on feed post',
       });
@@ -214,6 +241,23 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     });
   }
 
+  async likeFeedPost(postContainer: Locator): Promise<void> {
+    await test.step('Like the feed post', async () => {
+      const likeButton = this.getLikeButton(postContainer);
+      await this.verifier.verifyTheElementIsVisible(likeButton, {
+        assertionMessage: 'Like button should be visible on feed post',
+      });
+      await this.clickOnElement(likeButton);
+    });
+  }
+
+  async searchingFavoriteUser(fullName: string): Promise<void> {
+    await test.step('Searching favorite user', async () => {
+      await this.clickOnElement(this.searchBar);
+      await this.fillInElement(this.searchBar, fullName);
+      await this.clickOnElement(this.searchIcon);
+    });
+  }
   async verifyTheUserIsVisible(fullName: string): Promise<void> {
     await test.step('Verifying the user is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.getUserProfileLink(fullName), {
@@ -421,15 +465,22 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
     await test.step('Verify all favorite feed posts are listed', async () => {
       const feedPosts = this.getFeedPosts();
       const postCount = await feedPosts.count();
-      await this.verifier.verifyTheElementIsVisible(feedPosts.first(), {
-        assertionMessage: `At least one favorite feed post should be visible. Found ${postCount} posts`,
-      });
+
+      if (postCount === 0) {
+        throw new Error('No favorite feed posts found. Expected at least one post to be visible.');
+      }
+
+      for (let i = 0; i < postCount; i++) {
+        await this.verifier.verifyTheElementIsVisible(feedPosts.nth(i), {
+          assertionMessage: `Favorite feed post at index ${i} should be visible. Total posts found: ${postCount}`,
+        });
+      }
     });
   }
 
   async verifyShareButtonIsVisible(postContainer: Locator): Promise<void> {
     await test.step('Verify share button is visible on feed post', async () => {
-      const shareButton = postContainer.getByRole('button', { name: 'Share this post' }).first();
+      const shareButton = this.getShareButton(postContainer);
       await this.verifier.verifyTheElementIsVisible(shareButton, {
         assertionMessage: 'Share button should be visible on feed post',
       });
