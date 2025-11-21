@@ -43,7 +43,6 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
       // Use "Show more" button as it's reliably present on profile pages
       await this.verifier.verifyTheElementIsVisible(this.ellipsesButton, {
         assertionMessage: 'Profile screen page should be visible',
-        timeout: 10000,
       });
     });
   }
