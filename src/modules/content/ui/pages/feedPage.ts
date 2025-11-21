@@ -1126,7 +1126,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
   }
-  
+
   async hoverOnReactionButton(postText: string): Promise<void> {
     await this.listFeedComponent.hoverOnReactionButton(postText);
   }
