@@ -130,6 +130,14 @@ export interface IFeedActions {
   unlikeFeedPost: (postText: string) => Promise<void>;
   likeFeedReply: (replyText: string) => Promise<void>;
   unlikeFeedReply: (replyText: string) => Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
+  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
+  verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void>;
+  clickReactionCountButton: (postText: string) => Promise<void>;
+  verifyReactionModalIsVisible: () => Promise<void>;
+  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
+  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
+  closeReactionModal: () => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -1118,6 +1126,38 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
     await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
+  }
+
+  async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.clickReactionEmoji(postText, reactionName);
+  }
+
+  async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonTextContent(postText, reactionName);
+  }
+
+  async clickReactionCountButton(postText: string): Promise<void> {
+    await this.listFeedComponent.clickReactionCountButton(postText);
+  }
+
+  async verifyReactionModalIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalIsVisible();
+  }
+
+  async verifyReactionModalTabExists(emojiName: string): Promise<void> {
+    await this.listFeedComponent.verifyReactionModalTabExists(emojiName);
+  }
+
+  async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {
+    await this.listFeedComponent.verifyUsersInReactionModalTab(emojiName, expectedUsers);
+  }
+
+  async closeReactionModal(): Promise<void> {
+    await this.listFeedComponent.closeReactionModal();
   }
 
   async verifyDeletedPostMessage(postText: string): Promise<void> {
