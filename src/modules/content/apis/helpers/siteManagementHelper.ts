@@ -7,6 +7,7 @@ import {
   SitePermission,
 } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SiteDetailsResponse } from '@/src/modules/content/apis/apiValidation/siteApiHelper';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -218,6 +219,56 @@ export class SiteManagementHelper {
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
     }
+  }
+
+  /**
+   * Creates a site and returns the complete site details response.
+   * This method creates a site and then fetches the complete site details using getSiteDetails API.
+   * @param params - Site creation parameters
+   * @param params.siteName - Optional custom site name. If not provided, generates a random name.
+   * @param params.category - The site category object, containing name and categoryId.
+   * @param params.overrides - Optional overrides for site creation payload.
+   * @param params.accessType - The access type of the site (default: 'public').
+   * @param params.waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to false.
+   * @returns The complete SiteDetailsResponse containing all site details
+   *
+   * @example
+   * const siteResponse = await siteHelper.createSiteWithCompleteResponse({
+   *   siteName: 'My Test Site',
+   *   accessType: SITE_TYPES.PUBLIC,
+   *   category: { name: 'Technology', categoryId: 'tech-123' }
+   * });
+   * // siteResponse contains full site details including status, result with all fields
+   */
+  async createSiteWithCompleteResponse(params: {
+    siteName?: string;
+    category?: { name: string; categoryId: string };
+    overrides?: Partial<SiteCreationPayload>;
+    accessType?: SITE_TYPES;
+    waitForSearchIndex?: boolean;
+  }): Promise<SiteDetailsResponse> {
+    return await test.step('Creating site and getting complete response', async () => {
+      const { siteName, category, overrides, accessType = SITE_TYPES.PUBLIC, waitForSearchIndex } = params;
+
+      // Create the site using existing method
+      const createdSite = await this.createSite({
+        siteName,
+        category,
+        overrides,
+        accessType,
+        waitForSearchIndex,
+      });
+
+      // Get complete site details
+      const siteDetailsResponse = await this.siteManagementService.getSiteDetails(createdSite.siteId);
+
+      // Ensure the site is tracked for cleanup (already done in createSite, but ensuring here)
+      if (!this.sites.find(s => s.siteId === createdSite.siteId)) {
+        this.sites.push({ siteId: createdSite.siteId, siteName: createdSite.siteName });
+      }
+
+      return siteDetailsResponse as SiteDetailsResponse;
+    });
   }
 
   /**
@@ -906,6 +957,36 @@ export class SiteManagementHelper {
       return userMembership;
     }
   }
+  async getSiteAuthorNameAndEventStartDate(): Promise<{
+    siteId: string;
+    authorName?: string;
+    startsAt?: string;
+    eventName?: string;
+    siteName?: string;
+  }> {
+    const siteListResponse = await this.getListOfSites();
+
+    for (const _site of siteListResponse.result.listOfItems) {
+      // Get individual site details to check for coverImage and hasEvents
+      const response = await this.contentManagementService.getContentList();
+      const content = response.result.listOfItems.find((item: any) => item.authoredBy?.name !== undefined);
+      const siteName = response.result.listOfItems.find((item: any) => item.site?.name !== undefined);
+      const startsAt = response.result.listOfItems.find((item: any) => item.startsAt !== undefined);
+      const siteId = siteListResponse.result.listOfItems.find((item: any) => item.siteId !== undefined);
+
+      if (content) {
+        return {
+          siteId: siteId?.siteId || '',
+          authorName: content.authoredBy.name,
+          startsAt: startsAt?.startsAt,
+          eventName: content.title,
+          siteName: siteName?.site.name,
+        };
+      }
+    }
+
+    throw new Error('No site found with cover image and hasEvents: true');
+  }
 
   async getSiteWithMembers(
     accessType: string,
@@ -995,14 +1076,6 @@ export class SiteManagementHelper {
   async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
     return await this.siteManagementService.getSiteMembershipList(siteId, options);
   }
-
-  /**
-   * Gets a site with its members
-   * @param siteId - The site ID
-   * @param options - Optional parameters for the membership list request
-   * @returns Promise containing the site details and its members
-   */
-
   /**
    * Gets member names from the site membership list
    * @param siteId - The site ID

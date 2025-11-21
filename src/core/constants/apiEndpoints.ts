@@ -122,6 +122,7 @@ export const API_ENDPOINTS = {
   socialCampaign: {
     create: '/v1/socialcampaigns',
     list: '/v1/socialcampaigns/list',
+    listGet: '/v1/campaign/list',
     get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,

@@ -34,6 +34,45 @@ export interface IActions {
   verifyOnboardingOptionVisibleInManageContent: () => Promise<void>;
   verifyContentVisibleInManageSite: (contentName: string) => Promise<void>;
   clickOnOnboardingOption: () => Promise<void>;
+  hoverOnFirstDropDownOption: () => Promise<void>;
+  verifyOptionVisibleInManageContent: (option: ManageContentOptions) => Promise<void>;
+  clickOnOptionButton: (option: ManageContentOptions) => Promise<void>;
+  verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
+  selectTheStatusFilter: (status: string) => Promise<void>;
+  clickOnSelectAllButton: () => Promise<void>;
+  applyButtonShouldBeDisabled: () => Promise<void>;
+  selectEditedNewestOption: () => Promise<void>;
+  selectEditedOldestOption: () => Promise<void>;
+  clickShowMoreButton: () => Promise<void>;
+  selectPageOption: () => Promise<void>;
+  verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnMoveButton: () => Promise<void>;
+  selectMoveApplyButton: () => Promise<void>;
+  moveContentSearchBar: (siteName: string) => Promise<void>;
+  siteListSelecting: () => Promise<void>;
+  clickOnMoveConfirmButton: () => Promise<void>;
+  clickOnDeleteButton: () => Promise<void>;
+  selectDeleteApplyButton: () => Promise<void>;
+  clickOnValidateButton: () => Promise<void>;
+  clickOnValidateApplyButton: () => Promise<void>;
+  clickOnFirstDropDownOption: () => Promise<void>;
+  checkPublishOption: () => Promise<void>;
+  clickDeleteOption: () => Promise<void>;
+  clickOnDeleteOption: () => Promise<void>;
+  clickDeleteModalConfirmButton: () => Promise<void>;
+  clickSiteSearchBar: (siteName: string) => Promise<void>;
+  selectSiteSearchBarOption: () => Promise<void>;
+  selectCreateNewestPublishedOption: () => Promise<void>;
+  getAllContentNames: () => Promise<string[]>;
+  verifyAddToCampaignOptionShouldNotBeVisibleInManageContent: () => Promise<void>;
+  clickOnContentEditButton: () => Promise<void>;
+  UpdatedPageName: (pageName: string) => Promise<void>;
+  clickOnPublishChangesButton: () => Promise<void>;
+  verifyAllContentsAreSelected: (expectedCount?: number) => Promise<void>;
+  clickOnActivateButton: () => Promise<void>;
+  clickOnActivateApplyButton: () => Promise<void>;
+  clickOnApply: () => Promise<void>;
+  verifyAllContentsAreDeleted: (contentNames: string[]) => Promise<void>;
 }
 
 export interface IAssertions {
@@ -85,7 +124,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
     });
   }
 
-  get actions() {
+  get actions(): IActions {
     return this;
   }
 
@@ -357,12 +396,25 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectPageOption(): Promise<void> {
     await this.manageContentComponent.selectPageOption();
   }
+
+  async verifyAddToCampaignOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyAddToCampaignOptionVisibleInManageContent();
+  }
+
+  async verifyAddToCampaignOptionShouldNotBeVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+  }
+
   /**
    * Unified function to verify any option visibility in manage content
    * @param option - The enum value for the option to verify (e.g., ManageContentOptions.EDIT)
    */
   async verifyOptionVisibleInManageContent(option: ManageContentOptions): Promise<void> {
     await this.manageContentComponent.verifyOptionVisibleInManageContent(option);
+  }
+
+  async clickOnOptionButton(option: ManageContentOptions): Promise<void> {
+    await this.manageContentComponent.clickOnOptionButton(option);
   }
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await this.manageContentComponent.verifyOnboardingOptionVisibleInManageContent();
