@@ -46,6 +46,7 @@ export interface IActions {
   clickShowMoreButton: () => Promise<void>;
   selectPageOption: () => Promise<void>;
   verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnValidationViewAllButton: () => Promise<void>;
   clickOnMoveButton: () => Promise<void>;
   selectMoveApplyButton: () => Promise<void>;
   moveContentSearchBar: (siteName: string) => Promise<void>;

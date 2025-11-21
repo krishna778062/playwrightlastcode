@@ -507,7 +507,7 @@ test.describe(
           pageInfo.contentId,
           MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
         );
-        await manageContentPageForStandardUser.actions.verifyValidationRequiredIsVisible();
+        await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
         await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
           ManageContentTags.VALIDATION_REQUIRED
