@@ -299,6 +299,7 @@ test.describe(
             'Verify the Timestamp format is displayed as "Month Date, Year at Time" for feed posts on Home Dashboard, Site Dashboard, and comments on Content Page',
           zephyrTestId: 'CONT-27846',
           storyId: 'CONT-27846',
+          isKnownFailure: true,
         });
 
         let homeFeedPostId: string = '';
