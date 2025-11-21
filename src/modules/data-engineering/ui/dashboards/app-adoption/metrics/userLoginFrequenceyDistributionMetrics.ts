@@ -1,4 +1,4 @@
-import { FrameLocator, Page, test } from '@playwright/test';
+import { expect, FrameLocator, Page, test } from '@playwright/test';
 
 import { UserLoginFrequencyDistributionData } from '@/src/modules/data-engineering/helpers/appAdaptionQueryHelper';
 import { HorizontalBarChartComponent } from '@/src/modules/data-engineering/ui/components/horizontalBarChartComponent';
