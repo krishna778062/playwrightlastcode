@@ -420,7 +420,40 @@ export class FeedManagementHelper {
       const responseBody = await response.json();
       console.log('Q&A enabled successfully. Response:', JSON.stringify(responseBody, null, 2));
 
+      // Wait a bit to ensure Q&A is properly enabled
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify Q&A is enabled
+      const verifyConfig = await this.feedManagementService.getAppConfig();
+      if (!verifyConfig.result.isQuestionAnswerEnabled) {
+        throw new Error('Q&A feature was not enabled successfully');
+      }
+
       return responseBody;
+    });
+  }
+
+  /**
+   * Upvotes a question via API
+   * @param questionId - The question ID to upvote
+   * @returns Promise with the reaction response
+   */
+  async upvoteQuestion(questionId: string): Promise<any> {
+    return await test.step(`Upvoting question ${questionId}`, async () => {
+      const response = await this.feedManagementService.upvoteQuestion(questionId);
+      return response;
+    });
+  }
+
+  /**
+   * Removes upvote from a question via API
+   * @param questionId - The question ID to remove upvote from
+   * @returns Promise with the reaction response
+   */
+  async removeUpvoteFromQuestion(questionId: string): Promise<any> {
+    return await test.step(`Removing upvote from question ${questionId}`, async () => {
+      const response = await this.feedManagementService.removeUpvoteFromQuestion(questionId);
+      return response;
     });
   }
 }
