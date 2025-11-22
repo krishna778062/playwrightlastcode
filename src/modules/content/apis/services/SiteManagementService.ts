@@ -519,7 +519,6 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
-
   /**
    * Updates site access level (public/private/unlisted)
    * @param siteId - The ID of the site to update
