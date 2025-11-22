@@ -754,6 +754,10 @@ export class SurveyCreationPage extends BasePage {
       await this.clickOnElement(this.scheduleSurveyButton, {
         stepInfo: 'Click Schedule Survey button',
       });
+      await this.verifier.verifyTheElementIsVisible(this.surveyScheduledMessage, {
+        assertionMessage: 'Survey scheduled message should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -1621,5 +1625,26 @@ export class SurveyCreationPage extends BasePage {
     await this.clickAllPurposeSurvey();
     await this.clickCreateButton();
     await this.enterSurveyName(surveyName);
+  }
+
+  async selectCustomAnswerScale() {
+    // Select the 'Custom' answer scale radio button
+    const customAnswerScale = this.page.getByRole('radio', { name: /Custom/i });
+    await customAnswerScale.waitFor({ state: 'visible' });
+    await customAnswerScale.check();
+  }
+
+  async selectQualityAnswerScale() {
+    // Select the 'Quality' answer scale radio button
+    const qualityAnswerScale = this.page.getByRole('radio', { name: /Quality/i });
+    await qualityAnswerScale.waitFor({ state: 'visible' });
+    await qualityAnswerScale.check();
+  }
+
+  async validateQuestionsOnPreview(expectedQuestions: string[]) {
+    // Validate that all expected questions are visible in the preview dialog
+    for (const question of expectedQuestions) {
+      await this.page.getByText(question, { exact: false }).waitFor({ state: 'visible' });
+    }
   }
 }
