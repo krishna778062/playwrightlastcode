@@ -12,11 +12,9 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests', 'reward-settings'),
   testIgnore: '**/api-tests/**',
+  // keep workers consistent for CI/local as you previously had
   workers: process.env.CI ? 1 : 1,
   timeout: 120_000,
-  expect: {
-    timeout: 10_000,
-  },
   projects: [
     {
       name: 'Reward Setting Cases',
@@ -27,6 +25,7 @@ export default defineConfig({
         launchOptions: {
           args: [
             '--start-maximized',
+            '--window-size=1920,1080',
             '--disable-gpu',
             '--no-sandbox',
             '--disable-dev-shm-usage',
