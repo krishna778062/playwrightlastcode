@@ -1,0 +1,305 @@
+name: Content API Regression Tests
+
+on:
+  workflow_dispatch: # allows manual triggering of the workflow
+    inputs:
+      priority_filter:
+        description: 'Select test cases by priority'
+        required: true
+        default: '@P0'
+        type: choice
+        options:
+          - '@P0'
+          - '@P1'
+          - 'all'
+      test_type:
+        description: 'Select the type of tests to run'
+        required: true
+        default: '@api'
+        type: choice
+        options:
+          - '@smoke'
+          - '@regression'
+          - 'all'
+      environment:
+        description: 'Select the environment to run tests against'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - 'qa'
+          - 'uat'
+          - 'test'
+          - 'prodEU'
+          - 'prodUS'
+      workers:
+        description: 'Number of parallel workers to run tests'
+        required: true
+        default: '1'
+        type: choice
+        options:
+          - '1'
+          - '2'
+      feature_tags:
+        description: 'Comma-separated list of feature tags to include in tests (e.g., @CONT-41913)'
+        required: false
+        default: 'all'
+        type: string
+  schedule:
+    # Run daily at 3 AM UTC for API regression tests
+    - cron: '0 5 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  api-test-and-upload:
+    timeout-minutes: 60
+    runs-on: [kubernetes]
+    env:
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+      MODULE_NAME: content-api
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create Calendar Secrets JSON
+        run: |
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+          echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
+
+      - name: set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
+
+      - name: Run Content API tests
+        id: run-tests
+        env:
+          TEST_ENV: ${{ inputs.environment || 'qa' }}
+        run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
+          ALL_TAGS=()
+
+          # Always include @api tag for API tests
+          ALL_TAGS+=("@api")
+
+          # Add priority filter (skip if "all")
+          [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+
+          # Add test type filter (skip if "all" or "@api" since we already added it)
+          if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+          fi
+
+          # Add feature tags (skip if "all")
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+          fi
+
+          echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
+          echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
+
+          GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+          echo "Running Content API tests with grep filter: $GREP_REGEX"
+
+          # Set workers - ensure it's a valid number
+          WORKERS="${{ inputs.workers || '1' }}"
+          if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ]; then
+            WORKERS="1"
+          fi
+
+          TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-api.config.ts --grep="$GREP_REGEX" --workers="$WORKERS"
+
+      - name: Upload test report to github artifact backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-api-test-report
+          path: playwright-report
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+          echo "Timestamp set to: $TIMESTAMP"
+
+      - name: Generate HTML Report
+        if: always()
+        run: |
+          npm run generate-report:custom test-results/test-results.json
+
+      - name: Generate Tag Report
+        if: always()
+        run: |
+          npm run generate-tag-report
+
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          # Upload to timestamped folder
+          echo "Uploading report to S3..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+
+          # Update latest folder (overwrites existing files)
+          echo "Updating latest folder..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+
+          # Create index.html in module root to redirect to latest
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
+          echo ""
+          echo "📊 Test Report Links:"
+          echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
+          echo "🏷️ Latest Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html"
+          echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
+          echo "📅 Timestamped Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html"
+
+          # Store report links for Slack notification
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
+          echo "LATEST_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
+
+      - name: Parse Test Results
+        if: always()
+        run: |
+          # Parse test results from test-results directory
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+            PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
+
+            # Count known failures from annotations
+            KNOWN_FAILED=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
+              const knownFailed = data.suites.flatMap(s =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
+                      t.status === 'unexpected' &&
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
+                    )
+                  )
+                )
+              ).length;
+              console.log(knownFailed);
+            ")
+
+            # Calculate actual failures (excluding known failures)
+            ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
+          else
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            KNOWN_FAILED=0
+            ACTUAL_FAILED=0
+          fi
+
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
+          echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
+
+          echo "Test Results:"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
+
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          # Only send notification if tests actually ran (TOTAL_TESTS > 0)
+          if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            # Prepare Slack message with hyperlinks
+            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
+              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            else
+              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            fi
+
+            # Send to Slack using curl
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
+          else
+            echo "No tests ran, skipping success notification"
+          fi
+
+      - name: Send Smart Slack Notifications
+        if: always()
+        run: |
+          # Check if tests were executed
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+
+            if [ "$TOTAL_TESTS" -eq 0 ]; then
+              # No tests found
+              echo "No tests were found matching the criteria"
+              NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                $SLACK_WEBHOOK_URL
+            else
+              # Tests were found and executed (pass or fail)
+              echo "Tests were found: $TOTAL_TESTS"
+              # Success notification already sent in previous step, no additional notification needed
+            fi
+          else
+            # No test results file - this means pipeline failed before tests could run
+            echo "No test results file found - pipeline likely failed"
+            FAILURE_MESSAGE="🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
+          fi

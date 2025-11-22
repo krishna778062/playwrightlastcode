@@ -44,6 +44,7 @@ export class SideNavBarComponent extends BaseComponent {
   //social campaigns section
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly favoriteButton: Locator;
 
   //recognition section
   readonly recognitionLink: Locator;
@@ -53,7 +54,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.locator('span', { hasText: 'Create' });
+    this.createSection = page.getByRole('button', { name: 'Create', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
@@ -89,6 +90,8 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
     this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
     this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
 
     //recognition section
     this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
@@ -266,6 +269,11 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
+  async clickOnFavorite(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
+      await this.clickOnElement(this.favoriteButton);
+    });
+  }
   /**
    * Clicks on Recognition Link under home menu of side navigation bar
    * @param options - The options for the step
@@ -297,7 +305,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async verifyingCreateButtonIsVisible(): Promise<void> {
     await test.step('Verifying Create button is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
+      await this.verifier.verifyTheElementIsVisible(this.createSection);
     });
   }
 }

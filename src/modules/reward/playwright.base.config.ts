@@ -13,7 +13,9 @@ export default defineConfig({
     navigationTimeout: 30_000,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
-    headless: process.env.CI ? true : true,
+    // headless: true in CI, false locally
+    headless: !!process.env.CI,
+    // default viewport left undefined here — project-level configs will set explicit viewport
   },
   reporter: [
     ['html', { open: process.env.CI ? 'never' : 'on-failure' }],

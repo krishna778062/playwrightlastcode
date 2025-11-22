@@ -188,3 +188,15 @@ export function formatDateForDisplayUTC(date: Date): string {
 
   return `${month} ${day}, ${year}`;
 }
+
+export function validateTimestampFormat(timestamp: string): boolean {
+  if (!timestamp || typeof timestamp !== 'string') {
+    console.error(`Invalid timestamp: ${timestamp}`);
+    return false;
+  }
+  console.log(`Validating timestamp: ${timestamp}`);
+  const timestampPattern =
+    /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}\s+at\s+\d{1,2}:\d{2}\s*(am|pm)$/i;
+
+  return timestampPattern.test(timestamp.trim());
+}
