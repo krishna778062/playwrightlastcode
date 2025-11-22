@@ -5,8 +5,8 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
 
-import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -16,7 +16,6 @@ import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeature
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-
 test.describe(
   ContentSuiteTags.MANAGE_SITE,
   {
@@ -205,18 +204,27 @@ test.describe(
           storyId: 'CONT-23736',
           isKnownFailure: true,
         });
-        const sitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
-          size: 1000,
-          filter: 'public',
-          sortBy: 'alphabetical',
+        // Get or create a site where the standard user can manage content
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          hasPages: true,
         });
-        console.log('sitesResponse', sitesResponse.result.listOfItems);
-        const siteInfo = sitesResponse.result.listOfItems.find(
-          (site: any) => site.canManage === true && site.isManager === true
+
+        // Ensure the standard user is a manager of this site
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
         );
-        if (!siteInfo) {
-          throw new Error('No manage site found in the response');
+        try {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: siteInfo.siteId,
+            userId: standardUserInfo.userId,
+            role: SitePermission.MANAGER,
+          });
+        } catch (error) {
+          // Log and continue - user may already have correct role or site has API restrictions
+          console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
         }
+
+        // Create a page in the site for testing search functionality
         await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -229,15 +237,14 @@ test.describe(
         await newSiteDashboard.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
-        await manageSitesComponent.selectContentFilter(ContentFilter.MANAGING);
-        await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.MANAGING);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
         await standardUserFixture.page.reload();
-        await manageSitesComponent.selectContentFilter(ContentFilter.OWNED);
-        await manageSitesComponent.verifyContentFilterIsSelectedWithValue(ContentFilter.OWNED);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
       }

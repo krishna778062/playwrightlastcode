@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
@@ -281,19 +282,29 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-
-  async selectEditedNewestOption(): Promise<void> {
-    await this.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
-  }
-  async selectEditedOldestOption(): Promise<void> {
-    await this.selectSortOption(SortOptionLabels.MODIFIED_OLDEST);
-  }
   /**
    * Parameterized function to select any sort option by SortOptionLabels enum
    * @param sortBy - The sort option to select
    */
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
-    await this.manageContentComponent.selectSortOption(sortBy);
+    await this.performActionAndWaitForResponse(
+      () => this.manageContentComponent.selectSortOption(sortBy),
+      response =>
+        response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+        response.request().method() === 'POST' &&
+        response.status() === 200,
+      {
+        timeout: 20_000,
+      }
+    );
+  }
+
+  async selectEditedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedNewestOptionByText();
+  }
+
+  async selectEditedOldestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedOldestOptionByText();
   }
 
   async selectPageCategory(): Promise<void> {

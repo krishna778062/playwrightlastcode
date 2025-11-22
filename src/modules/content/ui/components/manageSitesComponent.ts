@@ -46,7 +46,6 @@ export class ManageSitesComponent extends BaseComponent {
   readonly clickOnUpdateCategoryButton: Locator;
   readonly contentFilterDropdown: Locator;
   readonly contentFilterSelectedValue: Locator;
-  readonly clickOnUpdateCategoryButton: Locator;
   readonly contentSearchBar: Locator;
 
   constructor(readonly page: Page) {
