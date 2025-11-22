@@ -18,7 +18,6 @@ export interface IManageTopicsPageActions {
   editTopicName: (topicName: string) => Promise<void>;
   clickOnUpdateButton: () => Promise<void>;
   searchingTopicInSearchBar: (topicName: string) => Promise<void>;
-  searchAndVerifyMultipleTopics: (topicNames: string[]) => Promise<void>;
   openingSearchedTopic: (topicName: string) => Promise<void>;
   clickOnDeleteTopic: () => Promise<void>;
   clickCancelButton: () => Promise<void>;
@@ -47,6 +46,7 @@ export interface IManageTopicsPageAssertions {
   verifyUnfollowOptionIsVisible: () => Promise<void>;
   verifyTopicListIsVisible: () => Promise<void>;
   verifyTopicAppearsAtTop: (topicName: string) => Promise<void>;
+  searchAndVerifyMultipleTopics: (topicNames: string[]) => Promise<void>;
 }
 export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
   private manageTopicsComponent: ManageTopicsComponent;

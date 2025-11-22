@@ -319,7 +319,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.searchAndVerifyMultipleTopics(topicNames);
+      await manageTopicsPage.assertions.searchAndVerifyMultipleTopics(topicNames);
     }
   );
 
