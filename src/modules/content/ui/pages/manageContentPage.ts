@@ -4,7 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
@@ -74,6 +74,9 @@ export interface IActions {
   clickOnActivateApplyButton: () => Promise<void>;
   clickOnApply: () => Promise<void>;
   verifyAllContentsAreDeleted: (contentNames: string[]) => Promise<void>;
+  selectOnboardingOption: (option: TagOption) => Promise<void>;
+  saveButtonShouldBeDisabled: () => Promise<void>;
+  clickOnOnboardingSaveButton: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -87,6 +90,10 @@ export interface IAssertions {
   scheduledTagVisibleInManageContent: () => Promise<void>;
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
+  verifyAlreadySelectedOnboardingOptionVisible: (option: TagOption) => Promise<void>;
+  verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
+  verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -455,5 +462,36 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
     await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
+  }
+
+  // Onboarding methods - Actions
+  async selectOnboardingOption(option: TagOption): Promise<void> {
+    await this.onboardingComponent.selectOnboardingOption(option);
+  }
+
+  async saveButtonShouldBeDisabled(): Promise<void> {
+    await this.onboardingComponent.saveButtonShouldBeDisabled();
+  }
+
+  async clickOnOnboardingSaveButton(): Promise<void> {
+    await this.onboardingComponent.clickOnSaveButton();
+  }
+
+  // Onboarding methods - Assertions
+  async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(option);
+  }
+
+  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagIsVisibleOnContent(option);
+  }
+
+  async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagShouldNotBeVisibleOnContent(option);
+  }
+
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    // Call the inherited method from BaseActionUtil (BasePage extends BaseActionUtil)
+    await super.verifyToastMessageIsVisibleWithText(message);
   }
 }
