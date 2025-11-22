@@ -30,7 +30,9 @@ export class UserProfilePage extends BasePage implements IUserProfilePageActions
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify ORG Chart page is loaded', async () => {
-      // TODO: Implement page load verification
+      await this.verifier.verifyTheElementIsVisible(this.contactInformation, {
+        assertionMessage: 'Contact information should be visible',
+      });
     });
   }
 

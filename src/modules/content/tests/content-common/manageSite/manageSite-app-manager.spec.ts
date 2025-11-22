@@ -332,7 +332,7 @@ test.describe(
         await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
         await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
-        await orgChartPage.actions.clickOnViewProfileButton();
+        await orgChartPage.actions.clickOnViewProfileButton(peopleNames[0]);
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
       }
