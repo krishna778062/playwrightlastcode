@@ -6,7 +6,7 @@ import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { RecognitionFormComponent } from '@content/ui/components/recognitionFormComponent';
 import { ShareComponent } from '@content/ui/components/shareComponent';
 import { FeedPage } from '@content/ui/pages/feedPage';
-import { SiteDashboardPage, SiteFeedPage } from '@content/ui/pages/sitePages';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -721,17 +721,103 @@ test.describe(
         // Wait for share dialog to close before reloading
         await recognitionForm.waitForShareDialogToClose();
 
-        // Navigate to Site Feed tab to verify the post
-        await siteDashboardPage.switchToTab(SitePageTab.FeedTab);
-        const siteFeedPage = new SiteFeedPage(appManagerFixture.page, siteDetails.siteId);
-        await siteFeedPage.verifyThePageIsLoaded();
-
         // Reload the page to ensure the recognition post appears
-        await siteFeedPage.reloadPage();
+        await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteFeedPage.listFeedComponent.waitForPostToBeVisible(recipientName);
-        await siteFeedPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recipientName);
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+
+        // Click on Avatar profile menu and navigate to Recognition
+        await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
+
+        // Create instance of RecognitionHubPage from reward module
+        const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
+        await recognitionHubPage.verifyThePageIsLoaded();
+
+        // Verify Recognition appears on the Recognition dashboard for the selected user
+        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
+      }
+    );
+
+    test(
+      'verify user can create and share recognition from home feed to site feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28583'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify User is able to Create and Share Recognition from Home Feed to a Site',
+          zephyrTestId: 'CONT-28583',
+          storyId: 'CONT-28583',
+        });
+
+        // Get a user to recognize (using standard user)
+        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const recipientName = recipientInfo.fullName;
+
+        // Get or create a site for testing
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteName = siteDetails.name;
+
+        // Navigate to Home tab
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+        const feedPage = new FeedPage(appManagerFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Click Share your thoughts or questions
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Click Recognition tab in the composer
+        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        await createFeedPostComponent.clickRecognitionTab();
+
+        const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
+
+        // Verify recognition form is loaded and ready
+        await recognitionForm.verifyRecognitionFormIsLoaded();
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(recipientName);
+
+        // Select recognition award under "Recognition for"
+        await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Enter a message
+        const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
+        await recognitionForm.enterRecognitionMessage(recognitionMessage);
+
+        // Click Recognize button
+        await recognitionForm.clickRecognizeButtonAndWaitForShareDialog();
+
+        // Select Post in Site feed in the share dialog
+        await recognitionForm.selectPostInSiteFeedInShareDialog();
+
+        // Select the site from dropdown
+        await recognitionForm.selectSiteInShareDialog(siteName);
+
+        // Click Share post button to share the recognition
+        await recognitionForm.clickSharePostButton();
+
+        // Wait for share dialog to close before navigating
+        await recognitionForm.waitForShareDialogToClose();
+
+        // Navigate to Site Dashboard to verify the post
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.verifyThePageIsLoaded();
+
+        // Reload the page to ensure the recognition post appears
+        await siteDashboardPage.reloadPage();
+
+        // Verify the Recognition feed post is created on Site feed
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recipientName);
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
