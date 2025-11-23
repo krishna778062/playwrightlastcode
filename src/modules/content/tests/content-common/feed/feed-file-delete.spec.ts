@@ -282,6 +282,9 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
           await appManagerFeedPage.actions.clickShowMoreButton();
           await appManagerFeedPage.actions.clickDeleteButton();
+          await appManagerFeedPage.assertions.verifyToastMessageIsVisibleWithText('Deleted file successfully');
+          //refresh the page
+          await appManagerFeedPage.page.reload();
           await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
         }
       );

@@ -9,6 +9,8 @@ export enum RecognitionFeatureTags {
   MANAGE_RECOGNITION = '@manage-recognition',
   RECOGNITION_HUB = '@recognition-hub',
   ONLY_P2P_RECOGNITION = '@only-p2p-recognition',
+  CUSTOM_RECURRING_AWARD = '@custom-recurring-award',
+  CUSTOM_NOMINATION = '@rc-custom-nomination',
 }
 
 export const RecognitionTestTags = [
