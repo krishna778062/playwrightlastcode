@@ -13,6 +13,7 @@ export const FEED_TEST_DATA = {
     FAVICON: 'favicon.png',
   },
   POST_TEXT: {
+    RECOGNITION_MESSAGE: `Automated Test Recognition Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARED: `Shared Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,

@@ -500,4 +500,31 @@ export class RecognitionHubPage extends BasePage {
     );
     await this.clickOnElement(this.allowanceRefreshingInfoIconTooltipText);
   }
+
+  /**
+   * Verify recognition post is visible on Recognition dashboard
+   * @param recipientName - Name of the recipient (optional, for more specific verification)
+   * @param message - Message text from the recognition (optional, for more specific verification)
+   */
+  async verifyRecognitionPostVisible(recipientName?: string, message?: string): Promise<void> {
+    await test.step(`Verify recognition post is visible${recipientName ? ` for ${recipientName}` : ''}${message ? ` with message "${message}"` : ''}`, async () => {
+      // Wait for recognition post to be visible
+      await this.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 15000 });
+      await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
+        assertionMessage: 'Recognition post should be visible on Recognition dashboard',
+      });
+
+      // If recipient name is provided, verify it's in the post
+      if (recipientName) {
+        const postText = await this.rewardRecognitionFirstPost.textContent();
+        expect(postText).toContain(recipientName);
+      }
+
+      // If message is provided, verify it's in the post
+      if (message) {
+        const postText = await this.rewardRecognitionFirstPost.textContent();
+        expect(postText).toContain(message);
+      }
+    });
+  }
 }

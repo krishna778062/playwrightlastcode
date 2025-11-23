@@ -1,6 +1,9 @@
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
+
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { RecognitionFormComponent } from '@content/ui/components/recognitionFormComponent';
 import { ShareComponent } from '@content/ui/components/shareComponent';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
@@ -571,6 +574,85 @@ test.describe(
 
         // Verify user cannot interact with the deleted post
         await endUserFeedPage.assertions.verifyPostCannotBeInteracted(postText);
+      }
+    );
+
+    test(
+      'verify user can create and share recognition from home feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28581'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify User is able to Create and Share Recognition from Home Feed',
+          zephyrTestId: 'CONT-28581',
+          storyId: 'CONT-28581',
+        });
+
+        // Get a user to recognize (using standard user)
+        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const recipientName = recipientInfo.fullName;
+
+        // Navigate to Home tab
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+        const feedPage = new FeedPage(appManagerFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Click Share your thoughts or questions
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Click Recognition tab in the composer
+        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        await createFeedPostComponent.clickRecognitionTab();
+
+        const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
+
+        // Verify recognition form is loaded and ready
+        await recognitionForm.verifyRecognitionFormIsLoaded();
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(recipientName);
+
+        // Select recognition award under "Recognition for"
+        await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Enter a message
+        const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
+        await recognitionForm.enterRecognitionMessage(recognitionMessage);
+
+        // Click Recognize button
+        await recognitionForm.clickRecognizeButtonAndWaitForShareDialog();
+
+        // Select Post in Home feed in the share dialog
+        await recognitionForm.selectPostInHomeFeedInShareDialog();
+
+        // Click Share post button to share the recognition
+        await recognitionForm.clickSharePostButton();
+
+        // Wait for share dialog to close before reloading
+        await recognitionForm.waitForShareDialogToClose();
+
+        // Reload the page to ensure the recognition post appears
+        await feedPage.reloadPage();
+
+        // Verify the Recognition feed post is created on Home feed
+        await feedPage.assertions.waitForPostToBeVisible(recipientName);
+        await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
+
+        // Click on Avatar profile menu and navigate to Recognition
+        await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
+
+        // Create instance of RecognitionHubPage from reward module
+        const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
+        await recognitionHubPage.verifyThePageIsLoaded();
+
+        // Verify Recognition appears on the Recognition dashboard for the selected user
+        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
       }
     );
   }

@@ -62,6 +62,7 @@ export interface ICreateFeedPostActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickRecognitionTab: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -79,6 +80,7 @@ export class CreateFeedPostComponent
 {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
+  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
@@ -577,6 +579,15 @@ export class CreateFeedPostComponent
   async clickQuestionButton(): Promise<void> {
     await test.step('Click question button', async () => {
       await this.clickOnElement(this.questionButton);
+    });
+  }
+
+  /**
+   * Clicks the Recognition tab in the composer to open recognition form
+   */
+  async clickRecognitionTab(): Promise<void> {
+    await test.step('Click Recognition tab', async () => {
+      await this.clickOnElement(this.recognitionTab);
     });
   }
 
