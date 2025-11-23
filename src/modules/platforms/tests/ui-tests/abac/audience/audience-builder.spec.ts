@@ -55,4 +55,51 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.verifyFiltersDialogClosed();
     }
   );
+
+  test(
+    'verify the presence and functionality of View results and Reset all buttons under filters tab',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33964', 'PS-33965', 'PS-33966', 'PS-33967', 'PS-33968', 'PS-33971', 'PS-33969'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+      await audienceBuilderPage.loadPage();
+      await audienceBuilderPage.clickFiltersButton();
+      //  Verify absence of Reset button when no filter value selected
+      await audienceBuilderPage.verifyButtonTextAbsence('Reset');
+      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterOption('City');
+      await audienceBuilderPage.verifyButtonTextPresence('View results');
+      await audienceBuilderPage.clickButtonText('View results');
+      await audienceBuilderPage.verifyFiltersDialogClosed();
+      await audienceBuilderPage.verifyAppliedFilterRailPresence('Attributes');
+      //  Reset all clears applied filters
+      await audienceBuilderPage.clickFiltersButton();
+      await audienceBuilderPage.verifyButtonTextPresence('Reset all');
+      await audienceBuilderPage.clickButtonText('Reset all');
+      await audienceBuilderPage.verifyFiltersDialogClosed();
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Attributes');
+      //  Verify reset functionality for Created date filter
+      await audienceBuilderPage.clickFiltersButton();
+      await audienceBuilderPage.clickFilterElement('Created date');
+      await audienceBuilderPage.clickFilterOption('Last 12 months');
+      await audienceBuilderPage.clickButtonText('View results');
+      await audienceBuilderPage.verifyAppliedFilterRailPresence('Created date');
+      await audienceBuilderPage.clickFiltersButton();
+      await audienceBuilderPage.clickButtonText('Reset');
+      await audienceBuilderPage.clickButtonText('View results');
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Created date');
+      //  Verify clear button on filter rail removes the applied filter
+      await audienceBuilderPage.clickFiltersButton();
+      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterOption('Business unit');
+      await audienceBuilderPage.clickButtonText('View results');
+      await audienceBuilderPage.verifyAppliedFilterRailPresence('Attributes');
+      await audienceBuilderPage.clickAppliedFilterRail('Attributes');
+      await audienceBuilderPage.clickButtonText('Clear');
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Attributes');
+    }
+  );
 });
