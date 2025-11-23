@@ -9,6 +9,8 @@ export interface IRecognitionFormActions {
   enterRecognitionMessage: (message: string) => Promise<void>;
   clickRecognizeButtonAndWaitForShareDialog: () => Promise<void>;
   selectPostInHomeFeedInShareDialog: () => Promise<void>;
+  selectPostInSiteFeedInShareDialog: () => Promise<void>;
+  selectSiteInShareDialog: (siteName: string) => Promise<void>;
   clickSharePostButton: () => Promise<void>;
   waitForShareDialogToClose: () => Promise<void>;
   clickRecognizeButton: () => Promise<void>;
@@ -28,6 +30,8 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
   readonly shareDialog: Locator;
   readonly shareDialogHeading: Locator;
   readonly homeFeedRadioButton: Locator;
+  readonly siteFeedRadioButton: Locator;
+  readonly siteFeedTextBox: Locator;
   readonly sharePostButton: Locator;
 
   constructor(page: Page) {
@@ -48,6 +52,8 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
     this.shareDialog = this.page.getByRole('dialog', { name: 'Share recognition' });
     this.shareDialogHeading = this.shareDialog.getByRole('heading', { name: 'Share recognition' });
     this.homeFeedRadioButton = this.shareDialog.getByText('Post in home feed');
+    this.siteFeedRadioButton = this.shareDialog.getByText('Post in site feed');
+    this.siteFeedTextBox = this.shareDialog.locator('input[aria-autocomplete="list"]');
     this.sharePostButton = this.shareDialog.getByRole('button', { name: 'Share' });
   }
 
@@ -152,6 +158,41 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
         assertionMessage: 'Home feed radio button should be visible',
       });
       await this.homeFeedRadioButton.check();
+    });
+  }
+
+  /**
+   * Select "Post in Site feed" option in the share dialog
+   */
+  async selectPostInSiteFeedInShareDialog(): Promise<void> {
+    await test.step('Select Post in Site feed in share dialog', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareDialogHeading, {
+        assertionMessage: 'Share dialog heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.siteFeedRadioButton, {
+        assertionMessage: 'Site feed radio button should be visible',
+      });
+      await this.siteFeedRadioButton.check();
+    });
+  }
+
+  /**
+   * Select a site from the dropdown in the share dialog
+   * @param siteName - The name of the site to select
+   */
+  async selectSiteInShareDialog(siteName: string): Promise<void> {
+    await test.step(`Select site "${siteName}" in share dialog`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteFeedTextBox, {
+        assertionMessage: 'Site feed text box should be visible',
+      });
+      await this.clickOnElement(this.siteFeedTextBox);
+      await this.siteFeedTextBox.fill(siteName);
+      // Wait for suggester to appear
+      await this.verifier.verifyTheElementIsVisible(this.suggesterContainer, {
+        assertionMessage: 'Site suggester dropdown should be visible',
+      });
+      // Click on the site option
+      await this.clickOnElement(this.suggesterContainer.getByText(siteName).first());
     });
   }
 
