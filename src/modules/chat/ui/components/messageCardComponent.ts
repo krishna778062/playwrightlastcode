@@ -21,7 +21,6 @@ export class MessageCardComponent extends MessageBaseComponent {
   readonly updateMessageButtonFromMessageActionsMenu: Locator;
   readonly cancelMessageButtonFromMessageEditBox: Locator;
   readonly pinMessageButtonFromMessageActionsMenu: Locator;
-  readonly copyLinkButtonFromMessageActionsMenu: Locator;
   readonly pinnedToastMessage: Locator;
   readonly unPinMessageButtonFromMessageActionsMenu: Locator;
   readonly unPinMessageConfirmationPrompt: Locator;
@@ -54,7 +53,6 @@ export class MessageCardComponent extends MessageBaseComponent {
     this.updateMessageButtonFromMessageActionsMenu = this.page.getByTestId('editUpdateButton');
     this.cancelMessageButtonFromMessageEditBox = this.page.getByTestId('editCancelButton');
     this.pinMessageButtonFromMessageActionsMenu = this.page.getByTestId('pinMessageButton');
-    this.copyLinkButtonFromMessageActionsMenu = this.page.getByTestId('copyLinkButton');
     this.pinnedToastMessage = this.page.locator("(//div[@role='alert']//p[text()='Message pinned'])[1]");
     this.unPinMessageButtonFromMessageActionsMenu = this.page.getByTestId('unpinMessageButton');
     this.unPinMessageConfirmationPrompt = this.page.getByTestId('unpin-message-button');
@@ -220,10 +218,6 @@ export class MessageCardComponent extends MessageBaseComponent {
     await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
       await this.focusedMessageContainer.hover();
       if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
-        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
-      }
-      if (!(await this.verifier.isTheElementVisible(this.copyLinkButtonFromMessageActionsMenu))) {
-        await this.focusedMessageContainer.hover();
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
       } else {
         await this.focusedMessageContainer.hover();
