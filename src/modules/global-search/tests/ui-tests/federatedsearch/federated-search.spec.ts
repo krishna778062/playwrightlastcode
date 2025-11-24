@@ -19,14 +19,13 @@ test.describe(
   },
   () => {
     test(
-      'verify Box file search functionality in federated search',
+      'to verify box file is displayed in global search page',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@test'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'TBD',
-          storyId: 'TBD',
+          zephyrTestId: 'SEN-14000',
         });
 
         const testData = FEDERATED_SEARCH_TEST_DATA.boxIntegration;

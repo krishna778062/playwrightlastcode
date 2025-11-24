@@ -37,7 +37,6 @@ for (const fileType of typeFilterTestData) {
       let fileId: string;
 
       test.beforeEach('Site and File Setup', async ({ appManagerFixture, publicSite }) => {
-        // Use API-based upload method (faster and more reliable)
         const intranetResult = await appManagerFixture.intranetFileHelper.uploadFileViaApi({
           siteId: publicSite.siteId,
           siteName: publicSite.siteName,
@@ -66,9 +65,8 @@ for (const fileType of typeFilterTestData) {
           });
 
           await globalSearchResultPage.dismissSurveyPopupIfPresent();
-          // TYPE_FILTER_TEST_DATA.filterName returns 'Type' string from filter-names.test-data.ts
-          const filterName = TYPE_FILTER_TEST_DATA.filterName; // This is 'Type'
-          const typeFilter = globalSearchResultPage.getTypeFilter(filterName); // Passes 'Type' to getTypeFilter
+          const filterName = TYPE_FILTER_TEST_DATA.filterName;
+          const typeFilter = globalSearchResultPage.getTypeFilter(filterName);
           await typeFilter.verifyTypeFilterButtonDisplayed({
             stepInfo: 'Verify Type filter button is displayed',
           });
