@@ -217,12 +217,12 @@ export class MessageCardComponent extends MessageBaseComponent {
   async openMessageActionsMenuFrom3Dots(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo ?? `Opening the message actions menu from 3 dots`, async () => {
       await this.focusedMessageContainer.hover();
-      // if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
-      // } else {
-      //   await this.focusedMessageContainer.hover();
-      //   await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
-      // }
+      if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
+      } else {
+        await this.focusedMessageContainer.hover();
+        await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
+      }
     });
   }
 
