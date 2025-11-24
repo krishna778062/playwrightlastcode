@@ -7,6 +7,7 @@ export interface ContentSearchTestCase {
   contentType?: string;
   description: string;
   accessType: SITE_TYPES;
+  typeFilter?: string;
 }
 
 export const PAGE_SEARCH_TEST_DATA: ContentSearchTestCase = {
@@ -16,12 +17,13 @@ export const PAGE_SEARCH_TEST_DATA: ContentSearchTestCase = {
   contentType: 'news',
   description: 'Test page content for global search verification and validation',
   accessType: SITE_TYPES.PUBLIC,
+  typeFilter: 'Pages',
 };
 
 export const EVENT_SEARCH_TEST_DATA: ContentSearchTestCase = {
-  label: 'Event',
   content: 'event',
   category: 'Uncategorized',
+  label: 'Event',
   description: 'Test event content for global search verification and validation',
   accessType: SITE_TYPES.PUBLIC,
 };
