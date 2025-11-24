@@ -141,6 +141,11 @@ export class HorizontalBarChartComponent extends BaseComponent {
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
+      //there will always be 1 tool container to be visibel at one point of time, so we we will wait for the count to be 1
+      await expect(
+        this.toolTipContainer,
+        `Tool tip container should be visible and there should be only 1 tool tip container`
+      ).toHaveCount(1, { timeout: 10_000 });
       await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
         timeout: 30_000,
         stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,

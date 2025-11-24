@@ -19,7 +19,7 @@ export class PieChartComponent extends BaseComponent {
     });
     super(page, container);
     this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
-    this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
+    this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-data-labels']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
