@@ -8,15 +8,15 @@ import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constan
 import { analyticsTestFixture as test } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
 
 test.describe(
-  'duckDB powered filters API tests',
+  'analytics API tests',
   {
-    tag: [DataEngineeringTestSuite.DUCKDB_POWERED_FILTERS, '@api-tests', '@duckdb-filters'],
+    tag: [DataEngineeringTestSuite.ANALYTICS, '@api-tests', '@analytics-api'],
   },
   () => {
     test(
       'validate segments API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@segments'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@segments', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -24,7 +24,7 @@ test.describe(
           zephyrTestId: 'DE-26533',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -39,7 +39,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveSegmentsFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveSegmentsFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -58,7 +58,7 @@ test.describe(
     test(
       'validate departments API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -66,7 +66,7 @@ test.describe(
           zephyrTestId: 'DE-26534',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -81,7 +81,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveDepartmentsFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveDepartmentsFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -103,7 +103,7 @@ test.describe(
     test(
       'validate locations API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -111,7 +111,7 @@ test.describe(
           zephyrTestId: 'DE-26535',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -126,7 +126,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveLocationsFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveLocationsFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -148,7 +148,7 @@ test.describe(
     test(
       'validate user categories API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-categories'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-categories', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -156,7 +156,7 @@ test.describe(
           zephyrTestId: 'DE-26536',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -171,7 +171,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveUserCategoriesFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveUserCategoriesFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -193,7 +193,7 @@ test.describe(
     test(
       'validate company names API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@company-names'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@company-names', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -201,7 +201,7 @@ test.describe(
           zephyrTestId: 'DE-26537',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -216,7 +216,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveCompanyNamesFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveCompanyNamesFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -238,7 +238,7 @@ test.describe(
     test(
       'validate divisions API response, performance, and snowflake data match',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@divisions'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@divisions', '@duckdb-powered-filters'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -246,7 +246,7 @@ test.describe(
           zephyrTestId: 'DE-26538',
         });
 
-        const { analyticsApiService, duckdbFiltersQueryHelper } = appManagerApiFixture;
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
         const tenantCode = process.env.ORG_ID;
 
         const startTime = Date.now();
@@ -261,7 +261,7 @@ test.describe(
           apiResponse.data.length
         );
 
-        const dbResults = await duckdbFiltersQueryHelper.getActiveDivisionsFromDB();
+        const dbResults = await analyticsQueryHelper.getActiveDivisionsFromDB();
 
         expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
@@ -277,6 +277,59 @@ test.describe(
         });
 
         console.log(`✅ Divisions: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+      }
+    );
+
+    test(
+      'validate batch run details API response, performance, and snowflake data match',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@batch-run-details'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate batch run details API response, performance, and snowflake data match',
+          zephyrTestId: 'DE-26539',
+        });
+
+        const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
+        const tenantCode = process.env.ORG_ID;
+
+        const startTime = Date.now();
+        const apiResponse = await analyticsApiService.getBatchRunDetails();
+        const responseTime = Date.now() - startTime;
+
+        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+        expect(apiResponse.success, 'API should return success=true').toBe(true);
+        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          apiResponse.data.length
+        );
+
+        const dbResults = await analyticsQueryHelper.getBatchRunDetailsFromDB();
+
+        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+
+        const dbMap = new Map(dbResults.map((b: any) => [b.BATCH_NAME, b.LAST_BATCH_END_TIME]));
+        apiResponse.data.forEach(batch => {
+          expect(dbMap.has(batch.batch_name), `Batch ${batch.batch_name} should exist in Snowflake UDL`).toBe(true);
+
+          // Normalize timestamps to 'YYYY-MM-DD HH:mm:ss.SSS' format
+          const apiTime = batch.latest_process_end_time.replace('T', ' ').replace('Z', '').trim();
+
+          const dbTimeRaw = dbMap.get(batch.batch_name);
+          // Convert Snowflake timestamp object to string using toJSON() method
+          const dbTime =
+            typeof dbTimeRaw === 'object' && dbTimeRaw.toJSON
+              ? dbTimeRaw.toJSON().replace('T', ' ').replace('Z', '').trim()
+              : String(dbTimeRaw).trim();
+
+          expect(
+            apiTime,
+            `Latest process end time for ${batch.batch_name} should match UDL (API: ${apiTime}, DB: ${dbTime})`
+          ).toBe(dbTime);
+        });
+
+        console.log(`✅ Batch Run Details: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
       }
     );
   }
