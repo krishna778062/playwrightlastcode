@@ -12,7 +12,8 @@ export class CarouselComponent extends BaseComponent implements ICarouselActions
   readonly selectSiteName: (text: string) => Locator;
   // Empty state
   readonly getSearchContentInput: Locator;
-  readonly doneButton: Locator;
+  readonly siteDashboardDoneButton: Locator;
+  readonly homeDashboardDoneButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -21,7 +22,8 @@ export class CarouselComponent extends BaseComponent implements ICarouselActions
     this.getSearchContentInput = page
       .locator(`div:has-text("Search content & social campaigns") + div >> input`)
       .first();
-    this.doneButton = page.getByLabel('Edit site dashboard').getByRole('button', { name: 'Done' });
+    this.siteDashboardDoneButton = page.getByLabel('Edit site dashboard').getByRole('button', { name: 'Done' });
+    this.homeDashboardDoneButton = page.getByLabel('Edit carousel').getByRole('button', { name: 'Done' });
     this.selectSiteName = (text: string) =>
       page.locator('//div[@class="Mention-name"]/div').filter({ hasText: text }).first();
   }
@@ -46,7 +48,11 @@ export class CarouselComponent extends BaseComponent implements ICarouselActions
   }
 
   async clickDoneButton(): Promise<void> {
-    await this.clickOnElement(this.doneButton);
+    await this.clickOnElement(this.siteDashboardDoneButton);
+  }
+
+  async clickHomeDashboardDoneButton(): Promise<void> {
+    await this.clickOnElement(this.homeDashboardDoneButton);
   }
 
   async verifyCarouselItem(text: string): Promise<void> {

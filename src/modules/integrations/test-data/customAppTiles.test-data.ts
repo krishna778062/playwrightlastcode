@@ -106,6 +106,9 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
 
   EXTERNAL_URLS: {
     GOOGLE: 'https://www.google.com/',
+    ICON_URL: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
+    ICON_URL_2: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg',
+    IMAGE_URL: 'newintegrations.qa.simpplr.xyz/content/o',
     CLICK_HERE: 'Click Here',
   },
 
