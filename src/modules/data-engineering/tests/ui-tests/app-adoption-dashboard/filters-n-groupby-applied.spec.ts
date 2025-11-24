@@ -50,8 +50,8 @@ test.describe(
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
           departments: ['test', 'QA'],
-          locations: ['Gurugram, Haryana, India'],
-          companyName: ['Undefined'],
+          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
+          companyName: ['Simpplr'],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 

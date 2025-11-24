@@ -51,9 +51,9 @@ test.describe(
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
           departments: ['test', 'QA'],
-          locations: ['Gurugram, Haryana, India'],
+          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
           // userCategories: ['Adil Option1'],
-          companyName: ['Undefined'],
+          companyName: ['Simpplr'],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
