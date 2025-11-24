@@ -28,4 +28,5 @@ export enum ContentTestSuite {
   FEED_POST_CREATION_WITH_EMBED_URL = '@feed-post-creation-with-embed-url',
   HOME_DASHBOARD = '@home-dashboard',
   API = '@api',
+  TILES = '@tiles',
 }
