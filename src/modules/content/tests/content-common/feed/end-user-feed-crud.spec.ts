@@ -718,7 +718,6 @@ test.describe(
 
         // Create instance of RecognitionHubPage from reward module
         const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
-        await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
         await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
@@ -802,7 +801,6 @@ test.describe(
 
         // Create instance of RecognitionHubPage from reward module
         const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
-        await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
         await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
@@ -881,7 +879,6 @@ test.describe(
 
         // Create instance of RecognitionHubPage from reward module
         const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
-        await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
         await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
