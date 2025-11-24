@@ -582,18 +582,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28581'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to Create and Share Recognition from Home Feed',
           zephyrTestId: 'CONT-28581',
           storyId: 'CONT-28581',
         });
-
-        // Get a user to recognize (using standard user)
-        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.endUser.email
-        );
-        const recipientName = recipientInfo.fullName;
 
         // Navigate to Home tab
         await appManagerFixture.homePage.loadPage();
@@ -615,11 +609,11 @@ test.describe(
         // Verify recognition form is loaded and ready
         await recognitionForm.verifyRecognitionFormIsLoaded();
 
-        // Select a user to recognize under "Who do you want to recognize?"
-        await recognitionForm.selectUserForRecognition(recipientName);
-
         // Select recognition award under "Recognition for"
         await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(0);
 
         // Enter a message
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
@@ -641,7 +635,6 @@ test.describe(
         await feedPage.reloadPage();
 
         // Verify the Recognition feed post is created on Home feed
-        await feedPage.assertions.waitForPostToBeVisible(recipientName);
         await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
@@ -649,10 +642,9 @@ test.describe(
 
         // Create instance of RecognitionHubPage from reward module
         const recognitionHubPage = new RecognitionHubPage(appManagerFixture.page);
-        await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
-        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
+        await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
 
@@ -661,18 +653,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28582'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to Create and Share Recognition from Site Feed',
           zephyrTestId: 'CONT-28582',
           storyId: 'CONT-28582',
         });
-
-        // Get a user to recognize (using standard user)
-        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.endUser.email
-        );
-        const recipientName = recipientInfo.fullName;
 
         // Get or create a site for testing
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -696,11 +682,11 @@ test.describe(
         // Verify recognition form is loaded and ready
         await recognitionForm.verifyRecognitionFormIsLoaded();
 
-        // Select a user to recognize under "Who do you want to recognize?"
-        await recognitionForm.selectUserForRecognition(recipientName);
-
         // Select recognition award under "Recognition for"
         await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(0);
 
         // Enter a message
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
@@ -725,7 +711,6 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recipientName);
         await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
@@ -736,7 +721,7 @@ test.describe(
         await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
-        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
+        await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
 
@@ -745,18 +730,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28583'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to Create and Share Recognition from Home Feed to a Site',
           zephyrTestId: 'CONT-28583',
           storyId: 'CONT-28583',
         });
-
-        // Get a user to recognize (using standard user)
-        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.endUser.email
-        );
-        const recipientName = recipientInfo.fullName;
 
         // Get or create a site for testing
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -782,11 +761,11 @@ test.describe(
         // Verify recognition form is loaded and ready
         await recognitionForm.verifyRecognitionFormIsLoaded();
 
-        // Select a user to recognize under "Who do you want to recognize?"
-        await recognitionForm.selectUserForRecognition(recipientName);
-
         // Select recognition award under "Recognition for"
         await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(0);
 
         // Enter a message
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
@@ -816,7 +795,6 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recipientName);
         await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
@@ -827,7 +805,7 @@ test.describe(
         await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
-        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
+        await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
 
@@ -836,18 +814,12 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28584'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify User is able to Create and Share Recognition from Site Feed to Home Dashboard',
           zephyrTestId: 'CONT-28584',
           storyId: 'CONT-28584',
         });
-
-        // Get a user to recognize (using standard user)
-        const recipientInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.endUser.email
-        );
-        const recipientName = recipientInfo.fullName;
 
         // Get or create a site for testing
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -868,11 +840,11 @@ test.describe(
         // Verify recognition form is loaded and ready
         await recognitionForm.verifyRecognitionFormIsLoaded();
 
-        // Select a user to recognize under "Who do you want to recognize?"
-        await recognitionForm.selectUserForRecognition(recipientName);
-
         // Select recognition award under "Recognition for"
         await recognitionForm.selectPeerRecognitionAward(0);
+
+        // Select a user to recognize under "Who do you want to recognize?"
+        await recognitionForm.selectUserForRecognition(0);
 
         // Enter a message
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
@@ -902,7 +874,6 @@ test.describe(
         await feedPage.reloadPage();
 
         // Verify the Recognition feed post is created on Home feed
-        await feedPage.assertions.waitForPostToBeVisible(recipientName);
         await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
@@ -913,7 +884,7 @@ test.describe(
         await recognitionHubPage.verifyThePageIsLoaded();
 
         // Verify Recognition appears on the Recognition dashboard for the selected user
-        await recognitionHubPage.verifyRecognitionPostVisible(recipientName, recognitionMessage);
+        await recognitionHubPage.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
   }

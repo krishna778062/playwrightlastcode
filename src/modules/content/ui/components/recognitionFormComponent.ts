@@ -38,8 +38,14 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
     super(page);
 
     // Recognition form fields - these are inline in the feed composer
-    this.recognitionRecipientsInput = this.page.locator('[aria-label="Who do you want to recognize?"]');
-    this.selectPeerRecognitionInput = this.page.locator('input[aria-label="Select an award for the recognition"]');
+    this.recognitionRecipientsInput = this.page
+      .locator('div')
+      .filter({ hasText: /^Select…$/ })
+      .nth(2);
+    this.selectPeerRecognitionInput = this.page
+      .locator('div')
+      .filter({ hasText: /^Select an award…$/ })
+      .nth(2);
     // Find the textarea that is within the recognition form - use contenteditable as it's a rich text editor
     // Scope it to the recognition form by finding it near the recognition recipients input
     this.descriptionTextArea = this.page.getByRole('paragraph').filter({ hasText: /^$/ }).first();
@@ -62,7 +68,7 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
    */
   async verifyRecognitionFormIsLoaded(): Promise<void> {
     await test.step('Verify recognition form is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.recognitionRecipientsInput, {
+      await this.verifier.verifyTheElementIsVisible(this.selectPeerRecognitionInput, {
         assertionMessage: 'Recognition recipients input should be visible',
       });
       // Wait for any loading indicators to disappear
