@@ -1,6 +1,8 @@
 import { MOBILE_DASHBOARD_METRICS } from '@data-engineering/constants/mobileDashboardMetrics';
 import { FrameLocator, Page } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
+
 import { BaseMobilePieChartMetric } from './baseMobilePieChartMetric';
 
 export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
@@ -17,7 +19,7 @@ export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
 
     // Wait for the element to be visible first (this chart needs explicit wait)
     await this.verifier.waitUntilElementIsVisible(chartLabel, {
-      timeout: 15_000,
+      timeout: TIMEOUTS.SHORT,
       stepInfo: `Wait for chart label "${label}" to be visible for hover`,
     });
 
