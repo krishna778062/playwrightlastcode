@@ -5,9 +5,17 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { ManageContentOptions, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
+import {
+  BulkActionOptions,
+  ManageContentOptions,
+  ManageContentTags,
+  SortOptionLabels,
+  TagOption,
+} from '@/src/modules/content/constants';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -32,6 +40,7 @@ test.describe(
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
     let onboardingComponent: OnboardingComponent;
+    let addToCampaignComponent: AddToCampaignComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
 
     // Helper function to get a unique site that hasn't been used before
@@ -74,6 +83,8 @@ test.describe(
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+      addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
+
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
@@ -149,6 +160,42 @@ test.describe(
     );
 
     test(
+      'verify Scheduled stamp and its options menu under-manage site content tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-23966',
+          storyId: 'CONT-23966',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          hasPages: true,
+        });
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: {
+            publishAt: getTomorrowDateIsoString(),
+          },
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.assertions.scheduledTagVisibleInManageContent();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.actions.clickOnPublishButton();
+      }
+    );
+
+    test(
       'to verify the favourite people from manage site people',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
@@ -192,40 +239,51 @@ test.describe(
     );
 
     test(
-      'verify Scheduled stamp and its options menu under-manage site content tab',
+      'verify Add to campaign option under Content tab in Manage Site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
-          zephyrTestId: 'CONT-23966',
-          storyId: 'CONT-23966',
+          description: 'verify Add to campaign option under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20537',
+          storyId: 'CONT-20537',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          hasPages: true,
+        const campaigns = await appManagerApiFixture.socialCampaignHelper.getCampaignList({
+          filter: 'active',
         });
-        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
-          siteId: siteInfo.siteId,
+        if (campaigns.result.listOfItems.length === 0) {
+          throw new Error('No active campaigns found. Please create at least one campaign before running this test.');
+        }
+        // Use title if available, otherwise fall back to message
+        const campaignName = campaigns.result.listOfItems[0].title || campaigns.result.listOfItems[0].message;
+        if (!campaignName) {
+          throw new Error('Campaign has neither title nor message');
+        }
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
-          options: {
-            publishAt: getTomorrowDateIsoString(),
-          },
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
+        await siteDashboardPage.loadPage();
+        const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo);
+        await manageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
+        await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.scheduledTagVisibleInManageContent();
-        await manageContentPage.actions.checkContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageContentPage.actions.clickOnOptionButton(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await addToCampaignComponent.clickOnAddToCampaignInput();
+        await addToCampaignComponent.typeInAddToCampaignInput(campaignName);
+        await addToCampaignComponent.clickOnSaveButton();
+        await manageContentPage.verifyToastMessageIsVisibleWithText('Added content to campaign');
       }
     );
+
     test(
       'to verify the site author name and event start date',
       {
@@ -281,7 +339,7 @@ test.describe(
         await manageSitesComponent.clickOnInsideContentButtonAction();
         await siteDetailsPage.actions.clickOnContentTab();
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
@@ -298,6 +356,108 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+    test(
+      'to verify the bulk action activate in manage site user drop down',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action activate in manage site user drop down',
+          zephyrTestId: 'CONT-26576',
+          storyId: 'CONT-26576',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'deactivated',
+        });
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnActivateButton();
+        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
+        await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
+        console.log('siteNames', siteNames);
+        await manageSiteAppManagerPage.loadPage();
+      }
+    );
+    test(
+      'to verify the bulk action from app manager can activate the site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the bulk action from end user can activate the site',
+          zephyrTestId: 'CONT-26574',
+          storyId: 'CONT-26574',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
+        if (!firstSiteId) {
+          throw new Error('No sites found in the response');
+        }
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageSitesComponent.clickOnUpdateCategoryButtonAction();
+        await manageContentPage.actions.clickOnApply();
+        const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
+        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
+    test(
+      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-20538',
+          storyId: 'CONT-20538',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await appManagerFixture.page.reload();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await appManagerFixture.page.reload();
+        const contentNames = await manageContentPage.actions.getAllContentNames();
+        console.log('contentNames', contentNames);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
       }
     );
 

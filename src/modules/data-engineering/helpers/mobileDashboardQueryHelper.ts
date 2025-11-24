@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 import { MobileSql } from '../sqlQueries/mobile';
 
 import { BaseAnalyticsQueryHelper, FilterOptions, SnowflakeHelper } from '.';
@@ -12,6 +14,39 @@ export interface MobileContentViewsByTypeData {
   contentType: string;
   count: number;
   percentage: number;
+}
+
+export interface MobileContentViewsData {
+  interactionDate: string;
+  totalViews: number;
+}
+
+/**
+ * Interface for Mobile Adoption Rate bar chart data
+ */
+export interface MobileAdoptionRateBarChartData {
+  loginDate: string;
+  mobileVisitor: number;
+  userPercentage: string;
+  dateFormat: string;
+  dateFormatDay: string;
+}
+
+/**
+ * Interface for Mobile Adoption Rate data (CSV format)
+ * Note: userCode is used in SQL GROUP BY but excluded from CSV comparison
+ */
+export interface MobileAdoptionRateData {
+  fullName: string;
+  email: string;
+  title: string;
+  companyName: string;
+  division: string;
+  department: string;
+  city: string;
+  state: string;
+  country: string;
+  dateOfLastLogin: string;
 }
 
 export class MobileDashboardQueryHelper extends BaseAnalyticsQueryHelper {
@@ -221,5 +256,117 @@ export class MobileDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformMobileContentViewsByTypeResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to typed MobileContentViewsData objects
+   * @param rawResults - Raw results from database query
+   * @returns MobileContentViewsData[] - Properly typed and transformed data
+   */
+  private transformMobileContentViewsResults(rawResults: any[]): MobileContentViewsData[] {
+    return rawResults.map(result => ({
+      interactionDate: result.INTERACTION_DATE,
+      totalViews: Number(result.TOTAL_VIEWS || 0),
+    }));
+  }
+
+  /**
+   * Gets mobile content views data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<MobileContentViewsData[]> - Mobile content views data
+   */
+  async getMobileContentViewsDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MobileContentViewsData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: MobileSql.MOBILE_CONTENT_VIEWS,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMobileContentViewsResults(rawResults);
+  }
+
+  /**
+   * Gets mobile adoption rate bar chart data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<MobileAdoptionRateBarChartData[]> - Mobile adoption rate bar chart data
+   */
+  async getMobileAdoptionRateBarChartDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MobileAdoptionRateBarChartData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: MobileSql.MOBILE_ADOPTION_RATE,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMobileAdoptionRateBarChartResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to typed MobileAdoptionRateBarChartData objects
+   * @param rawResults - Raw results from database query
+   * @returns MobileAdoptionRateBarChartData[] - Properly typed and transformed data
+   */
+  private transformMobileAdoptionRateBarChartResults(rawResults: any[]): MobileAdoptionRateBarChartData[] {
+    return rawResults.map(result => ({
+      loginDate: result.LOGIN_DATE,
+      mobileVisitor: Number(result.MOBILE_VISITOR || 0),
+      userPercentage: result.USER_PERCENTAGE || '0%',
+      dateFormat: result.DATE_FORMAT || '',
+      dateFormatDay: result.DATE_FORMAT_DAY || '',
+    }));
+  }
+
+  /**
+   * Gets mobile adoption rate CSV data from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<MobileAdoptionRateData[]> - Mobile adoption rate CSV data
+   */
+  async getMobileAdoptionRateDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MobileAdoptionRateData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: MobileSql.MOBILE_ADOPTION_RATE_CSV,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMobileAdoptionRateResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results for mobile adoption rate data
+   * Note: user_code is excluded as it's only used in SQL GROUP BY, not in CSV
+   * @param rawResults - Raw results from database query
+   * @returns Transformed data in expected format (without userCode)
+   */
+  private transformMobileAdoptionRateResults(rawResults: any[]): MobileAdoptionRateData[] {
+    return rawResults.map(result => {
+      // Format date to YYYY-MM-DD to match CSV format
+      const dateOfLastLogin = result.DATE_OF_LAST_LOGIN
+        ? format(new Date(result.DATE_OF_LAST_LOGIN), 'yyyy-MM-dd')
+        : '';
+
+      return {
+        fullName: result.FULL_NAME || '',
+        email: result.EMAIL || '',
+        title: result.TITLE || 'Undefined',
+        companyName: result.COMPANY_NAME || 'Undefined',
+        division: result.DIVISION || 'Undefined',
+        department: result.DEPARTMENT || 'Undefined',
+        city: result.CITY || 'Undefined',
+        state: result.STATE || 'Undefined',
+        country: result.COUNTRY || 'Undefined',
+        dateOfLastLogin,
+      };
+    });
   }
 }

@@ -8,7 +8,6 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -23,11 +22,12 @@ test.describe(
     let siteManagerInfo: { userId: string; fullName: string };
     let endUserInfo: { userId: string; fullName: string };
 
-    test.beforeEach('Setup test environment', async ({ appManagerApiContext, appManagerFixture }) => {
+    test.beforeEach('Setup test environment', async ({ appManagerApiContext }) => {
       // Configure app governance settings and enable timeline comment post(feed)
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       // Get user information for mentions (optimized single API calls)
       const identityManagementHelper = new IdentityManagementHelper(
@@ -171,10 +171,11 @@ test.describe(
         const contentPreviewPage = new ContentPreviewPage(standardUserFixture.page, siteId, contentId, contentType);
         await contentPreviewPage.loadPage({ stepInfo: 'User2: Load content preview page' });
         await contentPreviewPage.assertions.waitForPostToBeVisible(createdPostText);
-        const endUserReplyText = TestDataGenerator.generateRandomText('Reply Mention', 1, false);
+        const endUserReplyText = TestDataGenerator.generateRandomText('Reply', 1, false);
         const replyText = await contentPreviewPage.actions.addReplyToComment(
           endUserReplyText,
-          siteManagerInfo.fullName
+          siteManagerInfo.fullName,
+          createdPostId
         );
         await siteManagerFixture.homePage.loadPage();
         const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({

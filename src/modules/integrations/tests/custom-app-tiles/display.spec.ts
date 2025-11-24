@@ -40,7 +40,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         const { tileType, app, apiAction, previewButton, nextButton } = DEFAULT_CUSTOM_APP_TILE_CONFIG;
