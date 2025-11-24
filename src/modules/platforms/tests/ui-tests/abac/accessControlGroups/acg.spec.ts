@@ -241,7 +241,7 @@ test.describe(
     test(
       'verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         const { identityManagementHelper } = appManagerFixture;
@@ -409,7 +409,7 @@ test.describe(
     test(
       'verify that a warning popup is displayed before edit Access control group popup',
       {
-        tag: [TestPriority.P1, `@ABAC`],
+        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -431,7 +431,7 @@ test.describe(
     test(
       'verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -511,7 +511,7 @@ test.describe(
     test(
       'verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -634,7 +634,7 @@ test.describe(
     test(
       `verify the state of different edit buttons when Feature Owner is editing System RBAC ACG`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
