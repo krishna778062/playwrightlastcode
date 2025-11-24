@@ -41,7 +41,7 @@ on:
           - '1'
           - '2'
       feature_tags:
-        description: 'Comma-separated list of feature tags to include in tests (e.g., @CONT-41913)'
+        description: 'Comma-separated list of feature tags to include in tests (e.g., @social-campaign, @CONT-42059). Use "all" to run all tests. Note: Tag must match exactly (e.g., @social-campaign not @social-campaigns)'
         required: false
         default: 'all'
         type: string
@@ -100,26 +100,57 @@ jobs:
           # Always include @api tag for API tests
           ALL_TAGS+=("@api")
 
-          # Add priority filter (skip if "all")
-          [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
-
-          # Add test type filter (skip if "all" or "@api" since we already added it)
-          if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
-            ALL_TAGS+=("$TEST_TYPE")
-          fi
-
-          # Add feature tags (skip if "all")
-          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+          # If feature_tags is specified and not "all", prioritize it and make it required
+          # This ensures only tests with the specified feature tag run
+          elif [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
             IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
             for tag in "${FEATURES[@]}"; do
-              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+              # Trim whitespace from tag
+              tag=$(echo "$tag" | xargs)
+              if [ -n "$tag" ]; then
+                # Ensure tag starts with @
+                if [[ ! "$tag" =~ ^@ ]]; then
+                  tag="@$tag"
+                fi
+                ALL_TAGS+=("$tag")
+              fi
             done
+            # When feature tags are specified, also add priority and test type if not "all"
+            [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+            if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
+              ALL_TAGS+=("$TEST_TYPE")
+            fi
+          else
+            # No specific feature tags - use priority and test type filters
+            [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+            if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
+              ALL_TAGS+=("$TEST_TYPE")
+            fi
           fi
 
           echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
-          GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+          # Build grep filter
+          # Playwright's --grep uses OR logic with |, but we want AND logic
+          # Since all tags appear in the test string representation, we can use a pattern
+          # that requires all tags by using positive lookahead assertions
+          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
+            # Escape special regex characters and build pattern requiring all tags
+            GREP_PARTS=()
+            for tag in "${ALL_TAGS[@]}"; do
+              # Escape special regex characters (but keep @ and -)
+              escaped_tag=$(echo "$tag" | sed 's/[.*+?^${}()|[\]\\]/\\&/g')
+              # Use positive lookahead to require this tag (works in JavaScript regex)
+              GREP_PARTS+=("(?=.*$escaped_tag)")
+            done
+            # Combine all lookaheads - this requires ALL tags to be present
+            GREP_REGEX=$(IFS=''; echo "${GREP_PARTS[*]}.*")
+          else
+            # If no tags, match everything (shouldn't happen as @api is always added)
+            GREP_REGEX=".*"
+          fi
+
           echo "Running Content API tests with grep filter: $GREP_REGEX"
 
           # Set workers - ensure it's a valid number

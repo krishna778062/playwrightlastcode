@@ -70,8 +70,12 @@ export class CsvAudienceModule extends BaseComponent {
       stepInfo: `Type category name: ${categoryName}`,
     });
 
-    // Step 3: Click the category option using getByText with exact match
-    await this.page.getByText(categoryName, { exact: true }).click();
+    // Step 3: Wait for and click the category option using menuitem role (more reliable)
+    const categoryOption = this.csvUploadDialog.getByRole('menuitem', { name: categoryName });
+    await this.verifier.waitUntilElementIsVisible(categoryOption, {
+      timeout: 3000,
+    });
+    await categoryOption.click();
   }
 
   // Upload CSV file using framework's file upload method
