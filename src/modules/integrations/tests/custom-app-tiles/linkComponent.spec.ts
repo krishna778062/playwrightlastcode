@@ -14,7 +14,7 @@ import { CustomAppTilesPage } from '@/src/modules/integrations/ui/pages/customAp
 test.describe(
   'link Component Custom Styling Functionality',
   {
-    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.CUSTOM_APP_TILES, IntegrationsSuiteTags.ABSOLUTE, IntegrationsSuiteTags.LINK],
   },
   () => {
     const generateTileData = (testNamePrefix: string = 'Test') => {
