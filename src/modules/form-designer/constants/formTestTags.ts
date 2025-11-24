@@ -1,5 +1,6 @@
 export enum FormSuiteTags {
   FORM_CREATION = '@form-creation',
+  FORM_E2E = '@form-e2e',
 }
 
 export enum FormFeatureTags {

@@ -42,13 +42,20 @@ export class FormCreationPage extends BasePage {
   readonly deleteIcon: Locator;
   readonly settingsIcon: Locator;
   readonly dismissSurvey: Locator;
+  readonly shortTextResponse: Locator;
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
+  readonly getRoleLocator: (roleName: any, value: string) => Locator = (roleName: any, value: string) =>
+    this.page.getByRole(roleName as any, { name: value });
+  readonly threeDotsIcon: Locator;
+
+  readonly copyLink: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.createFormButton = this.page.getByRole('link', { name: 'Create form' });
-    this.dragAndDropArea = this.page.getByTestId('drag-placeholder-container');
+    //this.dragAndDropArea = this.page.getByTestId('drag-placeholder-container');
+    this.dragAndDropArea = this.page.locator('div[data-from-designer-canvas="true"]');
     this.titleAndDescriptionArea = this.page.getByRole('button', { name: 'Title & description' });
     this.shortText = this.page.getByRole('button', { name: 'Short text' });
     this.draftButton = this.page.getByRole('button', { name: 'Save draft' });
@@ -82,6 +89,10 @@ export class FormCreationPage extends BasePage {
     this.settingsIcon = this.page.getByRole('button', { name: 'Default Properties icon' });
     this.getDashboardLocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
     this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
+    this.getRoleLocator = (roleName: any, value: string) => this.page.getByRole(roleName, { name: value });
+    this.copyLink = this.page.getByText('Copy link');
+    this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
+    this.shortTextResponse = this.page.getByRole('textbox', { name: 'Short text' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -116,6 +127,32 @@ export class FormCreationPage extends BasePage {
       await this.verifier.verifyTheElementIsEnabled(tgtLocator);
 
       await dragAndDrop(this.page, srcLocator, tgtLocator);
+    });
+  }
+
+  async dragAndDropElementSecondary(
+    source: string | Locator,
+    target: string | Locator = this.dragAndDropArea
+  ): Promise<void> {
+    const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
+    const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
+    await test.step('Drag and drop element on Form creation page', async () => {
+      // Close survey popup if present
+      try {
+        if (await this.verifier.verifyTheElementIsVisible(this.dismissSurvey, { timeout: TIMEOUTS.VERY_SHORT })) {
+          await this.clickOnElement(this.dismissSurvey);
+        }
+      } catch {
+        // ignore if not present
+      }
+      const newTargetLocator = this.page.locator('#dragAndDropArea');
+      await srcLocator.scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(srcLocator);
+      await this.verifier.verifyTheElementIsEnabled(srcLocator);
+      await this.verifier.verifyTheElementIsVisible(newTargetLocator);
+      await this.verifier.verifyTheElementIsEnabled(newTargetLocator);
+
+      await dragAndDrop(this.page, srcLocator, newTargetLocator);
     });
   }
 
@@ -624,6 +661,79 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(componentNameLocator);
       await this.fillInElement(componentNameLocator, descriptionText);
       formCreationConstants.FORM_DESCRIPTION = descriptionText;
+    });
+  }
+  async clickOn(roleName: any, buttonName: string): Promise<void> {
+    await test.step(`Click on button: ${buttonName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.getRoleLocator(roleName, buttonName));
+    });
+  }
+  async verifyPublishedFormToastMessage(): Promise<void> {
+    await test.step('Verify published form toast message is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: 'Form published' }), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      test
+        .expect(
+          await this.toastMessages.filter({ hasText: 'Form published' }).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Form published toast message should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async clickOnThreeDotsIcon(): Promise<void> {
+    await test.step('Click on three dots icon', async () => {
+      //const locator = this.page.getByTestId(`table-cell-value-${formCreationConstants.FORM_NAME}`).getByRole('button', { name: 'Show more button' }).nth(1);
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.threeDotsIcon);
+    });
+  }
+  async clickOnCopyLink(): Promise<void> {
+    await test.step('Click on copy link', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.copyLink, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.copyLink);
+    });
+  }
+  async waitForFormToBePublished(): Promise<void> {
+    await test.step('Wait for form to be published', async () => {
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+    });
+  }
+
+  async openCopiedFormLink(): Promise<void> {
+    await test.step('Open copied form link from clipboard', async () => {
+      // Ensure clipboard read permission (Chromium supports 'clipboard-read' / 'clipboard-write')
+      try {
+        const origin = new URL(this.page.url()).origin;
+        await this.page.context().grantPermissions?.(['clipboard-read', 'clipboard-write'], { origin });
+      } catch {
+        // ignore if not supported; we'll still attempt to read
+      }
+      const url = await this.readClipboardText().catch(() => '');
+      if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+        throw new Error(`Copied content is not a valid URL: ${url ?? '<empty>'}`);
+      }
+      await this.goToUrl(url, { waitUntil: 'load', timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async fillResponseIntoShortTextField(response: string): Promise<void> {
+    await test.step('Fill response into short text field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shortTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.shortTextResponse, response);
+    });
+  }
+  async verifyFormSubmittedMessage(message: string): Promise<void> {
+    await test.step('Verify form submitted message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(message), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.page.getByText(message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Form submitted message should be visible'
+        )
+        .toBe(true);
     });
   }
 }
