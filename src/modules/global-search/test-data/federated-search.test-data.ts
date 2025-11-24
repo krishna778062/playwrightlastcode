@@ -4,7 +4,6 @@
 export interface FederatedSearchTestCase {
   searchTerm: string;
   integrationName: string;
-  integrationDisplayName: string;
   fileName: string;
   author: string;
   date: string;
@@ -18,7 +17,6 @@ export const FEDERATED_SEARCH_TEST_DATA: {
   boxIntegration: {
     searchTerm: 'boxLife Services EAP.pdf',
     integrationName: 'Box',
-    integrationDisplayName: 'Box',
     fileName: 'boxLife Services EAP.pdf',
     author: 'Joanna Smith',
     date: 'Nov 20, 2024',
