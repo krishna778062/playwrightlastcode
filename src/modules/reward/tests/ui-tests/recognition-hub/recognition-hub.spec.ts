@@ -8,9 +8,15 @@ import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-r
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
+import { SiteManagementHelper } from '@content/apis/helpers/siteManagementHelper';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages';
+import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { SideNavBarComponent } from '@core/ui/components/sideNavBarComponent';
+import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { log } from '@/src/core';
@@ -288,6 +294,142 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
       await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
       await recognitionHub.deleteTheFirstRecognitionPost();
+    }
+  );
+
+  test(
+    '[CONT-28585] Verify User is able to Create Recognition from HUB',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28585'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify User is able to Create Recognition from Recognition Hub',
+        zephyrTestId: 'CONT-28585',
+        storyId: 'CONT-28585',
+      });
+
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName;
+
+      const sideNavBarComponent = new SideNavBarComponent(appManagerFixture.page);
+      await sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
+      await recognitionHub.verifyThePageIsLoaded();
+
+      await recognitionHub.clickOnGiveRecognition();
+
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+
+      const recognitionMessage = 'Test Recognition Message ' + Math.floor(Math.random() * 10000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionMessage);
+
+      const imagePath = FileUtil.getFilePath(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'content',
+        'test-data',
+        'static-files',
+        'images',
+        FEED_TEST_DATA.ATTACHMENTS.IMAGE
+      );
+      await giveRecognitionModal.addAttachment(imagePath);
+
+      await expect(giveRecognitionModal.recognizeButton).toBeEnabled();
+
+      await giveRecognitionModal.recognizeButton.click({ force: true });
+
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      await expect(dialogBox.container).toBeVisible();
+
+      // Select "Post in Site Feed" in share dialog
+      await expect(dialogBox.skipButton).toBeVisible();
+      await dialogBox.skipButton.click();
+
+      await expect(dialogBox.container).not.toBeVisible();
+
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
+
+      await recognitionHub.verifyRecognitionPostVisible(recognizedUser || '', recognitionMessage);
+    }
+  );
+
+  test(
+    '[CONT-28587] Verify User is able to Share RECOGNITION from HUB',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28587'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify User is able to Share Recognition from Recognition Hub',
+        zephyrTestId: 'CONT-28587',
+        storyId: 'CONT-28587',
+      });
+
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const recognizedUser = getRewardTenantConfigFromCache().endUserName;
+
+      // Step 1: Login as Admin (handled by fixture)
+      // Step 2: Navigate to Recognition Hub via side nav
+      const sideNavBarComponent = new SideNavBarComponent(appManagerFixture.page);
+      await sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
+      await recognitionHub.verifyThePageIsLoaded();
+
+      // Get public site info first
+      const rewardConfig = getRewardTenantConfigFromCache();
+      const apiContext = await RequestContextFactory.createAuthenticatedContext(rewardConfig.apiBaseUrl, {
+        email: rewardConfig.appManagerEmail,
+        password: rewardConfig.appManagerPassword,
+      });
+      const siteManagementHelper = new SiteManagementHelper(apiContext, rewardConfig.apiBaseUrl);
+      const siteInfo = await siteManagementHelper.getSiteByAccessType('public');
+      const publicSiteName = siteInfo.name;
+      await apiContext.dispose();
+
+      // Create a recognition first (skip share dialog that appears)
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionMessage = 'Test Recognition for Share ' + Math.floor(Math.random() * 10000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionMessage);
+
+      await giveRecognitionModal.recognizeButton.click({ force: true });
+
+      // Handle share dialog that appears after recognition creation
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      await expect(dialogBox.container).toBeVisible();
+
+      // Select "Post in Site Feed" in share dialog
+      await expect(dialogBox.siteFeedRadioButton).toBeVisible();
+      await dialogBox.siteFeedRadioButton.check();
+
+      //  Search and select a Public Site
+      await expect(dialogBox.siteFeedTextBox).toBeVisible();
+      await dialogBox.siteFeedTextBox.click();
+      await dialogBox.siteFeedTextBox.fill(publicSiteName);
+
+      // Wait for suggester to appear and click on the site option
+      const suggesterContainer = appManagerFixture.page.getByRole('listbox');
+      await expect(suggesterContainer).toBeVisible();
+      await suggesterContainer.getByText(publicSiteName).first().click();
+
+      await dialogBox.shareButton.click();
+
+      // Navigate to site dashboard and verify shared recognition appears in site feed
+      const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+      await siteDashboardPage.loadPage({ stepInfo: 'Load public site dashboard page' });
+      await siteDashboardPage.verifyThePageIsLoaded();
+
+      await siteDashboardPage.reloadPage();
+      await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
     }
   );
 });
