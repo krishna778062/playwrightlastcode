@@ -13,6 +13,7 @@ export const ACTION_LABELS = {
   CONNECT_ACCOUNT: 'Connect account',
   DISCONNECT_ACCOUNT: 'Disconnect account',
   MY_SETTINGS: 'My settings',
+  APP_SETTINGS: 'App Settings',
   MARK_COMPLETE: 'Mark complete',
   COMPLETED: 'Completed',
 } as const;
@@ -51,6 +52,9 @@ export const FIELD_NAMES = {
   STATUS: 'Status',
   SORT_BY: 'Sort by',
   SORT_ORDER: 'Sort order',
+  PAYSLIP_LIST_URL: 'Payslip list URL',
+  INBOX_REPORT_URL: 'Inbox tasks report URL',
+  REPORT_ID: 'Report ID',
 } as const;
 
 export const DEFAULT_SITES = {

@@ -30,6 +30,30 @@ export const AD_GROUP = {
   SOURCE_NAME: 'Microsoft Entra ID',
 } as const;
 
+export const WORKDAY_SYNC = {
+  SOURCE_NAME: 'Workday',
+  NONE: 'None',
+  USERNAME_FIELD: 'Workday username',
+  PASSWORD_FIELD: 'Workday password',
+  WSDL_FIELD: 'WSDL URL',
+  TENANTID_FIELD: 'Tenant ID',
+  USERNAME: 'rtyagi',
+  PASSWORD: 'Pp@123456',
+  WSDL: 'https://impl-services1.wd12.myworkday.com/ccx/service',
+  TENANT_ID: 'simpplr_dpt1',
+  WRONG_WSDL: 'www.workday.com/ws',
+  URL_VALIDATION_ERROR: 'This is not a valid URL',
+  BLANK_ERROR_MESSAGE: 'Please fill out this field',
+  PASSWORD_VALIDATION_ERROR: 'Space is not allowed',
+  SETUP_TAB: 'Setup',
+  SCHEDULERS_TAB: 'Schedulers',
+  PEOPLE_TAB: 'People',
+  USER_SYNCING: 'User syncing',
+  USER_PROVISIONING: 'User provisioning',
+  LAST_RUN_STATUS: 'Success',
+  FAILURE_RUN_STATUS: 'Failed',
+} as const;
+
 export const PEOPLE_TAB = {
   OPTION_NONE: 'None',
   BAMBOO_HR_OPTION: 'BambooHR',
@@ -75,4 +99,29 @@ export const PEOPLE_TAB = {
     'Mobile phone',
     'Assistant',
   ],
+} as const;
+
+export const UKG_CREDS = {
+  USERNAME: 'SimpplrQA',
+  PASSWORD: '(@[+m]9uLu8ndu=',
+  BASE_URL: 'https://Servicet.ultipro.com',
+  KEY: 'YHLQJ',
+} as const;
+
+export const SYNCING = {
+  UKG_PRO: 'UKG Pro',
+  UKG_PRO_SYNCING: 'UkgPro',
+  USERNAME: 'username',
+  PASSWORD: 'password',
+  BASE_URL: 'baseUrl',
+  KEY: 'apiKey',
+  SYNC_DROPDOWN: 'syncSource',
+  TEST: 'test',
+  PAY_CURRENCY: 'Pay Currency',
+  FIRST_NAME: 'First name',
+  HIRE_DATE: 'Hire date',
+  SENIORITY_DATE: 'dateOfSeniority',
+  PREFERRED_NAME: 'preferredName',
+  NAME: 'First Name',
+  HIRE: 'Hire Date',
 } as const;

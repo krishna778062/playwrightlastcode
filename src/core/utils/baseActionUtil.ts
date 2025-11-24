@@ -36,11 +36,14 @@ export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
 export class BaseActionUtil {
   readonly toastMessages: Locator;
   readonly dismissToastMessage: Locator;
+  readonly dismissToastMessageByText: (toastText: string) => Locator;
 
   constructor(readonly page: Page) {
     this.page = page;
     this.toastMessages = page.locator('[class*="Toast-module"] p');
     this.dismissToastMessage = page.locator('[aria-label="Dismiss"]');
+    this.dismissToastMessageByText = (toastText: string) =>
+      page.locator('[class*="Toast-module"]').filter({ hasText: toastText }).locator('+ button');
   }
 
   /**
@@ -414,20 +417,25 @@ export class BaseActionUtil {
     options?: { stepInfo?: string; timeout?: number }
   ): Promise<void> {
     await test.step(options?.stepInfo ?? `Verifying ${toastMessage} toast message`, async () => {
-      await expect(
-        this.toastMessages.filter({ hasText: toastMessage }),
-        `expecting ${toastMessage} toast message`
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      const matchingToast = this.toastMessages.filter({ hasText: toastMessage }).first();
+      await expect(matchingToast, `expecting ${toastMessage} toast message`).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 
   /**
    * Dismisses the toast message.
    */
-  async dismissTheToastMessage(): Promise<void> {
-    await test.step(`Dismissing the toast message`, async () => {
-      await this.clickOnElement(this.dismissToastMessage);
-    });
+  async dismissTheToastMessage(options?: { toastText?: string }): Promise<void> {
+    await test.step(
+      options?.toastText
+        ? `Dismissing the toast message having text ${options?.toastText}`
+        : `Dismissing the toast message`,
+      async () => {
+        options?.toastText
+          ? await this.clickOnElement(this.dismissToastMessageByText(options?.toastText))
+          : await this.clickOnElement(this.dismissToastMessage);
+      }
+    );
   }
 
   /**

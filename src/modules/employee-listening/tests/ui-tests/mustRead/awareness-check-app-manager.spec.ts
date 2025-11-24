@@ -1,7 +1,6 @@
-import { AwarenessCheckComponent } from '../../../components/awarenessCheckComponent';
-import { MustReadComponent } from '../../../components/mustReadComponent';
 import { test } from '../../../fixtures/loginFixture';
-import { ContentPreviewPage } from '../../../pages/contentPreviewPage';
+import { AwarenessCheckPage } from '../../../pages/mustRead/awarenessCheckPage';
+import { ContentPreviewPage } from '../../../pages/mustRead/contentPreviewPage';
 import { EMPLOYEE_LISTENING_TEST_DATA } from '../../../test-data/awarenessCheck';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
@@ -13,29 +12,37 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   let createdSiteId: string;
   let contentTitle: string;
 
-  test.beforeEach('create test content for Awareness Check testing', async ({ appManagerApiFixture }) => {
-    const siteId = process.env.SITE_ID;
-    if (!siteId) {
-      throw new Error('SITE_ID environment variable is not defined');
+  test.beforeEach(
+    'create test content for Awareness Check testing',
+    async ({ appManagerApiFixture, appManagersPage }) => {
+      const siteId = process.env.SITE_ID;
+      if (!siteId) {
+        throw new Error('SITE_ID environment variable is not defined');
+      }
+
+      const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'news',
+        },
+        options: {
+          contentDescription: 'This content tests Must Read and Awareness Check functionality for admin and end users.',
+        },
+      });
+
+      createdContentId = pageDetails.contentId;
+      createdSiteId = siteId;
+      contentTitle = pageDetails.pageName;
+
+      console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
+
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
+      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
+      await contentPreviewPage.verifyThePageIsLoaded();
+      await contentPreviewPage.clickOnSkipThisStepButton();
     }
-
-    const pageDetails = await appManagerApiFixture.contentManagementHelper.createPage({
-      siteId,
-      contentInfo: {
-        contentType: 'page',
-        contentSubType: 'news',
-      },
-      options: {
-        contentDescription: 'This content tests Must Read and Awareness Check functionality for admin and end users.',
-      },
-    });
-
-    createdContentId = pageDetails.contentId;
-    createdSiteId = siteId;
-    contentTitle = pageDetails.pageName;
-
-    console.log(`Created test content: ${contentTitle} (ID: ${createdContentId})`);
-  });
+  );
 
   test.afterAll('Cleanup test content', async ({ appManagerApiFixture }) => {
     if (createdContentId && createdSiteId) {
@@ -50,7 +57,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can create awareness check with single question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -59,38 +66,32 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
         storyId: 'Awareness Check Creation',
       });
 
-      const contentPreviewPage = new ContentPreviewPage(appManagersPage, createdSiteId, createdContentId);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
 
-      const mustReadComponent = new MustReadComponent(appManagersPage);
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
 
-      await mustReadComponent.clickOnContentThreeDotsMenu();
+      await contentPreviewPage.selectMustReadFromMenuOptions();
 
-      await mustReadComponent.selectMustReadFromMenuOptions();
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
 
-      const awarenessCheckComponent = new AwarenessCheckComponent(appManagersPage);
+      await awarenessCheckPage.enableAwarenessCheck();
 
-      await awarenessCheckComponent.enableAwarenessCheck();
+      await awarenessCheckPage.selectAudience('India');
 
-      await awarenessCheckComponent.enterAwarenessQuestions([
-        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE,
-      ]);
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
 
-      await awarenessCheckComponent.clickOnMakeMustReadButton();
+      await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsCreated(
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-
-      console.log('✓ Admin configuration completed successfully');
     }
   );
 
   test(
     'verify admin can create awareness check with multiple questions',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -99,38 +100,32 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
         storyId: 'Awareness Check Creation',
       });
 
-      const contentPreviewPage = new ContentPreviewPage(appManagersPage, createdSiteId, createdContentId);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
 
-      const mustReadComponent = new MustReadComponent(appManagersPage);
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
 
-      await mustReadComponent.clickOnContentThreeDotsMenu();
+      await contentPreviewPage.selectMustReadFromMenuOptions();
 
-      await mustReadComponent.selectMustReadFromMenuOptions();
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
 
-      const awarenessCheckComponent = new AwarenessCheckComponent(appManagersPage);
+      await awarenessCheckPage.enableAwarenessCheck();
 
-      await awarenessCheckComponent.enableAwarenessCheck();
+      await awarenessCheckPage.selectAudience('India');
 
-      await awarenessCheckComponent.enterAwarenessQuestions(
-        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE
-      );
+      await awarenessCheckPage.enterAwarenessQuestions(EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE);
 
-      await awarenessCheckComponent.clickOnMakeMustReadButton();
+      await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsCreated(
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE[0].question
       );
-
-      console.log('✓ Admin configuration completed successfully');
     }
   );
 
   test(
     'verify admin can edit awareness check question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -139,44 +134,39 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
         storyId: 'Awareness Check Creation',
       });
 
-      const contentPreviewPage = new ContentPreviewPage(appManagersPage, createdSiteId, createdContentId);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
 
-      const mustReadComponent = new MustReadComponent(appManagersPage);
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
 
-      await mustReadComponent.clickOnContentThreeDotsMenu();
+      await contentPreviewPage.selectMustReadFromMenuOptions();
 
-      await mustReadComponent.selectMustReadFromMenuOptions();
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
 
-      const awarenessCheckComponent = new AwarenessCheckComponent(appManagersPage);
+      await awarenessCheckPage.enableAwarenessCheck();
 
-      await awarenessCheckComponent.enableAwarenessCheck();
+      await awarenessCheckPage.selectAudience('India');
 
-      await awarenessCheckComponent.enterAwarenessQuestions([
-        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE,
-      ]);
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
 
-      await awarenessCheckComponent.clickOnMakeMustReadButton();
+      await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsCreated(
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
-      console.log('✓ Admin configuration completed successfully');
 
-      await mustReadComponent.closeSurveyPrompt();
+      await contentPreviewPage.closeSurveyPrompt();
 
-      await awarenessCheckComponent.clickOnAwarenessThreeDots();
+      await awarenessCheckPage.clickOnAwarenessThreeDots();
 
-      await awarenessCheckComponent.clickOnEditAwarenessCheck();
+      await awarenessCheckPage.clickOnEditAwarenessCheck();
 
-      await awarenessCheckComponent.editAwarenessQuestions([
+      await awarenessCheckPage.editAwarenessQuestions([
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE,
       ]);
 
-      await awarenessCheckComponent.updateAwarenessCheckButton.click();
+      await awarenessCheckPage.updateAwarenessCheckButton.click();
 
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsCreated(
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE.question
       );
     }
@@ -185,7 +175,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
   test(
     'verify admin can remove awareness check question',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
     },
     async ({ appManagersPage }) => {
       tagTest(test.info(), {
@@ -194,44 +184,37 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
         storyId: 'Awareness Check Creation',
       });
 
-      const contentPreviewPage = new ContentPreviewPage(appManagersPage, createdSiteId, createdContentId);
-      await contentPreviewPage.navigateToContentDetail(createdContentId, createdSiteId);
-      await contentPreviewPage.verifyThePageIsLoaded();
+      const contentPreviewPage = new ContentPreviewPage(appManagersPage);
 
-      const mustReadComponent = new MustReadComponent(appManagersPage);
+      await contentPreviewPage.clickOnContentThreeDotsMenu();
 
-      await mustReadComponent.clickOnContentThreeDotsMenu();
+      await contentPreviewPage.selectMustReadFromMenuOptions();
 
-      await mustReadComponent.selectMustReadFromMenuOptions();
+      const awarenessCheckPage = new AwarenessCheckPage(appManagersPage);
 
-      const awarenessCheckComponent = new AwarenessCheckComponent(appManagersPage);
+      await awarenessCheckPage.enableAwarenessCheck();
 
-      await awarenessCheckComponent.enableAwarenessCheck();
+      await awarenessCheckPage.selectAudience('India');
 
-      await awarenessCheckComponent.enterAwarenessQuestions([
-        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE,
-      ]);
+      await awarenessCheckPage.enterAwarenessQuestions([EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE]);
 
-      await awarenessCheckComponent.clickOnMakeMustReadButton();
+      await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsCreated(
-        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
-      );
-      console.log('✓ Admin configuration completed successfully');
-
-      await mustReadComponent.closeSurveyPrompt();
-
-      await awarenessCheckComponent.clickOnAwarenessThreeDots();
-
-      await awarenessCheckComponent.clickOnRemoveAwarenessCheck();
-
-      await awarenessCheckComponent.removeAwarenessCheck();
-
-      await awarenessCheckComponent.verifyAwarenessCheckQuestionIsRemoved(
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
         EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
       );
 
-      console.log('✓ Admin configuration completed successfully');
+      await contentPreviewPage.closeSurveyPrompt();
+
+      await awarenessCheckPage.clickOnAwarenessThreeDots();
+
+      await awarenessCheckPage.clickOnRemoveAwarenessCheck();
+
+      await awarenessCheckPage.removeAwarenessCheck();
+
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsRemoved(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
     }
   );
 });

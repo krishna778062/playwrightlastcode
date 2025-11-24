@@ -62,6 +62,12 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
     LARGE: 'Large',
   },
 
+  TEXT_SIZES: {
+    DATA_SMALL: 'Small',
+    DATA_MEDIUM: 'Medium',
+    DATA_LARGE: 'Data large',
+  },
+
   FORM_BEHAVIOR: {
     DISPLAY_IN_TILE: 'Display in tile',
     DISPLAY_IN_OVERLAY: 'Display in overlay',
@@ -100,6 +106,9 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
 
   EXTERNAL_URLS: {
     GOOGLE: 'https://www.google.com/',
+    ICON_URL: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
+    ICON_URL_2: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg',
+    IMAGE_URL: 'newintegrations.qa.simpplr.xyz/content/o',
     CLICK_HERE: 'Click Here',
   },
 
@@ -142,25 +151,54 @@ export const DISPLAY_TILE_CONFIG = {
 /**
  * Canvas verification data
  */
-export const CANVAS_VERIFICATION_DATA = {
+export const IMAGE_ASPECT_RATIO_16_9 = {
   SMALL_IMAGE_SIZE: {
-    WIDTH: 160,
-    HEIGHT: 100,
+    WIDTH: '160',
+    HEIGHT: 56,
   },
   MEDIUM_IMAGE_SIZE: {
-    WIDTH: 245,
-    HEIGHT: 150,
+    WIDTH: '245',
+    HEIGHT: 90,
   },
   LARGE_IMAGE_SIZE: {
-    WIDTH: 500,
-    HEIGHT: 300,
+    WIDTH: '500',
+    HEIGHT: 138,
+  },
+} as const;
+
+export const TEXT_ASPECT_RATIO_16_9 = {
+  SMALL_TEXT_SIZE: {
+    WIDTH: '160',
+    HEIGHT: 56,
+  },
+  MEDIUM_TEXT_SIZE: {
+    WIDTH: '245',
+    HEIGHT: 90,
+  },
+  LARGE_TEXT_SIZE: {
+    WIDTH: '502',
+    HEIGHT: 49.5,
+  },
+} as const;
+
+export const IMAGE_ASPECT_RATIO_1_1 = {
+  SMALL_IMAGE_SIZE: {
+    WIDTH: '90',
+    HEIGHT: 56,
+  },
+  MEDIUM_IMAGE_SIZE: {
+    WIDTH: '160',
+    HEIGHT: 90,
+  },
+  LARGE_IMAGE_SIZE: {
+    WIDTH: '500',
+    HEIGHT: 138,
   },
   EXPECTED_TEXT_COMPONENTS: 3,
   EXPECTED_HEADING_COMPONENTS: 1,
   EXPECTED_BODY_COMPONENTS: 2,
   MIN_ROW_CONTAINER_CHILDREN: 2,
 } as const;
-
 /**
  * Test scenarios data
  */

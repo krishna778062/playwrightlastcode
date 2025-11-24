@@ -8,10 +8,7 @@ import { LoginHelper } from '@core/helpers/loginHelper';
 import { UserCredentials } from '@core/types/test.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { AppConnectorOptions } from '../../ui/components/customAppsListComponent';
-import { CustomAppsIntegrationPage } from '../../ui/pages/customAppsIntegrationPage';
-
-import { APP_LABELS, FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
+import { ACTION_LABELS, APP_LABELS, FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import {
   CONNECTOR_IDS,
@@ -21,6 +18,8 @@ import {
   STATUS_VALUES,
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsListComponent';
+import { CustomAppsIntegrationPage } from '@/src/modules/integrations/ui/pages/customAppsIntegrationPage';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
@@ -55,9 +54,34 @@ test.describe(
     });
 
     test(
+      'verify that App Manager is able to connect Expensify from Manage->Integrations',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25946',
+          storyId: 'INT-24423',
+        });
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Navigate to Manage->Integrations->Custom page
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Delete);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(AppName));
+        await customIntegrationsPage.addPrebuiltApp(AppName);
+        await customIntegrationsPage.clickSaveButton();
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(AppName));
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+        await customIntegrationsPage.openConnectorOptions(ACTION_LABELS.ENABLE);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
+      }
+    );
+
+    test(
       'create and edit Expensify tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -88,7 +112,7 @@ test.describe(
     test(
       'verify Expensify report tile data structure',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -263,7 +287,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29068',
           storyId: 'INT-24423',
         });
 
@@ -339,7 +363,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24666',
+          zephyrTestId: 'INT-29069',
           storyId: 'INT-24422',
         });
 
@@ -383,7 +407,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29070',
           storyId: 'INT-24423',
         });
 
@@ -435,7 +459,7 @@ test.describe(
         const { tileManagementHelper } = appManagerApiFixture;
         const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24662',
+          zephyrTestId: 'INT-29071',
           storyId: 'INT-24422',
         });
 
@@ -470,7 +494,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24782',
+          zephyrTestId: 'INT-29072',
           storyId: 'INT-24423',
         });
 
@@ -503,6 +527,151 @@ test.describe(
         await siteDashboard.verifyPersonalizedExpensifyReportData(createdTileTitle, PROCESSING, APPROVER, MAX_DAYS);
         await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'disconnect expensify and verify tile shows unavailable connection message',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28878',
+          storyId: 'INT-24423',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
+        // Add tile
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+        // Disconnect the app
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.disconnectApp(AppName);
+        await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
+        await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        // Verify Expensify setup checklist - Connect is incomplete, Enable is completed
+        await customIntegrationsPage.verifySetupChecklistSteps([
+          { text: 'Connect the app-level account', status: 'incomplete' },
+          { text: 'Enable the app', status: 'completed' },
+        ]);
+        // Verify tile shows unavailable connection message
+        await homeDashboard.loadPage();
+        await homeDashboard.verifyTileMessage(createdTileTitle, MESSAGES.getAppConnectionUnavailableMessage(AppName));
+        // Re-connect the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithName(AppName);
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+        await homeDashboard.loadPage();
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyExpensifyReportData(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify add tile modal for expensify apptile on home dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28879',
+          storyId: 'INT-13643',
+        });
+
+        //add, verify
+        await homeDashboard.openAddAppTileModal(AppName);
+        // Verify Expensify connection status with username
+        await homeDashboard.verifyConnectorConnectionStatus('expensify', EXPENSIFY_CREDS.USER_ID);
+        //Verify add to home button is disabled
+        await homeDashboard.verifyButtonStatus(UI_ACTIONS.DISABLED, UI_ACTIONS.ADD_TO_HOME);
+        // Click on app settings which opens in a new tab
+        const newPage = await homeDashboard.clickDialogLinkAndGetNewPage(ACTION_LABELS.APP_SETTINGS);
+
+        // Create a new instance of CustomAppsIntegrationPage with the new page context
+        const customAppsPageInNewTab = new CustomAppsIntegrationPage(newPage);
+
+        // Verify the Expensify app settings page in the new tab
+        await customAppsPageInNewTab.verifyExpensifySettingsPage(EXPENSIFY_CREDS.USER_ID);
+
+        // Close the new tab after verification
+        await newPage.close();
+      }
+    );
+
+    test(
+      'verify disabling Expensify connector removes tiles and moves app to available apps',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28880',
+          storyId: 'INT-24423',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Disable the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Disable);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisabledMessage(AppName));
+        // Verify fields are empty and Save button is disabled
+        await customIntegrationsPage.verifyFieldsEmptyAndSaveDisabled(AppName, [
+          { fieldName: 'username', fieldLabel: 'Partner user ID' },
+          { fieldName: 'password', fieldLabel: 'Partner user secret' },
+        ]);
+
+        // Verify Expensify setup checklist - Connect is incomplete, Enable is completed
+        await customIntegrationsPage.verifySetupChecklistSteps([
+          { text: 'Connect the app-level account', status: 'incomplete' },
+          { text: 'Enable the app', status: 'incomplete' },
+        ]);
+
+        await homeDashboard.loadPage();
+        await homeDashboard.openAddAppTile();
+
+        // Verify Expensify is not available in enabled apps
+        await homeDashboard.verifyAppNotInEnabledApps(AppName);
+
+        // Verify Expensify is available in available apps
+        await homeDashboard.verifyAppInAvailableApps(AppName);
+
+        // Click on Expensify in available apps to navigate to custom apps page in new tab
+        const newPage = await homeDashboard.clickAppInAvailableAppsAndGetNewPage(AppName);
+
+        // Create a new instance of CustomAppsIntegrationPage with the new page context
+        const customAppsPageInNewTab = new CustomAppsIntegrationPage(newPage);
+
+        // Verify the custom apps page is loaded with Expensify
+        await customAppsPageInNewTab.verifyAppSettingsPageLoaded(AppName);
+
+        // Enter credentials in the new tab
+        await customAppsPageInNewTab.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+
+        // Enable the connector in the new tab
+        await customAppsPageInNewTab.openConnectorOptions(APP_LABELS.ENABLE_LABEL);
+        await customAppsPageInNewTab.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
+
+        // Close the new tab after enabling
+        await newPage.close();
+
+        // Reload the home dashboard
+        await homeDashboard.loadPage();
       }
     );
   }

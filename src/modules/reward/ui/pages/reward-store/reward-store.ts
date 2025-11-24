@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import fs from 'fs';
@@ -86,7 +87,7 @@ export class RewardsStore extends BasePage {
     this.resetButton = page.getByRole('button', { name: 'Reset' });
     this.legalTermText = page.locator('div[class*="Typography-module__secondary"]');
     // Gift card
-    this.giftCardItems = page.locator('[class*="UI_listItem"][aria-label*="Redeem"]');
+    this.giftCardItems = page.locator('li button[class*="UI_listItem"]');
     this.giftCardNames = this.giftCardItems.locator('[class*="UI_brandName"]');
     this.giftCardImages = this.giftCardItems.locator('[class*="UI_image--"]');
     this.giftCardLabel = this.giftCardItems.locator('[class*="Distribute-module__apart"] p').nth(0);
@@ -152,8 +153,8 @@ export class RewardsStore extends BasePage {
     console.log('selected country:', selectedOption);
   }
 
-  verifyThePageIsLoaded(): Promise<void> {
-    return Promise.resolve(undefined);
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
   }
 
   async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
@@ -195,89 +196,34 @@ export class RewardsStore extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().includes('/recognition/v1/tenant/config') &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      this.visit(),
-      this.verifyThePageIsLoaded(), // action that triggers API
-    ]);
-    const body = await apiResponse.json();
-    const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingEnabled = body.rewardConfig?.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
-    );
-    await this.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingEnabled);
-    await this.visit();
-  }
-
-  /**
-   * Check and enable rewards and peer gifting based on current state
-   */
-  private async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingEnabled: boolean): Promise<void> {
-    const manageRewardsPage = new ManageRewardsOverviewPage(this.page);
-
-    if (!isRewardEnabled && !isPeerGiftingEnabled) {
-      // Both disabled: Enable peer gifting first, then rewards
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-
-      // Enable peer gifting
-      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
-      if (!isPeerGiftingToggleOff) {
-        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-          stepInfo: 'Enabling peer gifting toggle',
-        });
-      }
-      await manageRewardsPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking save button',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-
-      // Now enable rewards
-      await manageRewardsPage.loadPage();
-      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Enabling rewards',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (!isRewardEnabled && isPeerGiftingEnabled) {
-      // Only rewards disabled: Enable rewards directly
-      await manageRewardsPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await manageRewardsPage.clickOnElement(manageRewardsPage.enableRewardsButton, {
-        stepInfo: 'Enabling rewards',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      await expect(manageRewardsPage.rewardsTabHeading).toHaveText('Rewards overview');
-    } else if (isRewardEnabled && !isPeerGiftingEnabled) {
-      // Only peer gifting disabled: Enable peer gifting
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
-
-      const isPeerGiftingToggleOff = await manageRewardsPage.peerGifting.peerGiftingToggleSwitch.isChecked();
-      if (!isPeerGiftingToggleOff) {
-        await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.peerGiftingToggleSwitch, {
-          stepInfo: 'Enabling peer gifting toggle',
-        });
-      }
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.saveButton, {
-        stepInfo: 'Clicking save button',
-      });
-      await manageRewardsPage.peerGifting.selectThePeerGiftingEnableType('Immediately');
-      await manageRewardsPage.peerGifting.clickOnElement(manageRewardsPage.peerGifting.grantAllowancesConfirmButton, {
-        stepInfo: 'Confirming grant allowances',
-      });
-      await manageRewardsPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-    } else if (isRewardEnabled && isPeerGiftingEnabled) {
-      // Both are already enabled, do nothing
-      console.log('Reward and Peer Gifting are already enabled.');
-    }
+    const manageRewards = new ManageRewardsOverviewPage(this.page);
+    await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
+    const rewardStore = new RewardsStore(this.page);
+    // const [apiResponse] = await Promise.all([
+    //   this.page.waitForResponse(
+    //     res =>
+    //       res.url().endsWith('/recognition/v1/tenant/config') &&
+    //       res.request().resourceType() === 'xhr' &&
+    //       res.status() === 200 &&
+    //       res.request().method() === 'GET'
+    //   ),
+    //   rewardStore.loadPage(), // action that triggers API
+    //   rewardStore.verifyThePageIsLoaded(),
+    // ]);
+    // const body = await apiResponse.json();
+    // console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    // const isRewardEnabled = body.rewardConfig?.enabled;
+    // const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    // console.log(
+    //   `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    // );
+    // if (!isPeerGiftingDisabled || !isRewardEnabled) {
+    //   const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    //   await manageRecognitionPage.loadPage();
+    //   await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+    // }
+    await rewardStore.visit();
+    await rewardStore.verifyThePageIsLoaded();
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {
@@ -338,13 +284,13 @@ export class RewardsStore extends BasePage {
     await this.selectAndRedeemGiftCard(giftCard);
     await this.validateSuccessMessage(successMessage, additionalMessages);
     await this.visitTheOrderHistory();
-    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await this.verifier.waitUntilElementIsVisible(this.orderHistoryPanel.last());
+    await this.fillInElement(this.orderHistorySearchField, giftCard);
+    await this.verifier.waitUntilElementIsVisible(this.orderHistoryPanel.last());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first(), {
-      timeout: 10000,
       assertionMessage: ' Verify the order history panel is visible',
     });
     await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard, {
-      timeout: 10000,
       assertionMessage: ' Verify the reward name in the order history panel',
     });
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanelRewardImage.first());
@@ -380,6 +326,7 @@ export class RewardsStore extends BasePage {
    */
   async validateOrderHistoryForGiftCard(giftCard: string) {
     await this.visitTheOrderHistory();
+    await this.page.reload();
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first());
     await this.verifier.verifyTheElementIsVisible(this.orderHistoryPanel.first().locator(`img[alt^="${giftCard}"]`));
     await this.verifier.verifyElementContainsText(this.orderHistoryPanelRewardName.first(), giftCard);
@@ -456,8 +403,11 @@ export class RewardsStore extends BasePage {
   }
 
   async mockTheOrderAPIResponse() {
-    await this.page.route('**/recognition/redemption/orders*', async route => {
-      const fixture = await fs.promises.readFile(path.join(__dirname, '..', '..', 'fixtures', 'orders.json'), 'utf8');
+    await this.page.route('**/recognition/redemption/orders?size=10&q=&skip=0', async route => {
+      const fixture = await fs.promises.readFile(
+        path.join(__dirname, '..', '..', '..', 'test-data', 'orders.json'),
+        'utf8'
+      );
       const data = JSON.parse(fixture);
       data.results[0].createdAt = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString();
       data.results[0].canResend = false;
@@ -467,6 +417,7 @@ export class RewardsStore extends BasePage {
         body: JSON.stringify(data),
       });
     });
+    await this.page.reload();
   }
 
   /**
@@ -581,38 +532,14 @@ export class RewardsStore extends BasePage {
   }
 
   /**
-   * Login as app manager and navigate to rewards store
-   */
-  async loginAsAppManagerAndNavigateToRewardsStore(): Promise<void> {
-    await this.loadPage();
-    await this.verifier.verifyTheElementIsVisible(this.header);
-    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-  }
-
-  /**
-   * Login as recognition user and navigate to rewards store
-   */
-  async loginAsRecognitionUserAndNavigateToRewardsStore(): Promise<void> {
-    const { LoginHelper } = await import('@core/helpers/loginHelper');
-    await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
-    await LoginHelper.loginWithPassword(this.page, {
-      email: process.env.RECOGNITION_USER_USERNAME!,
-      password: process.env.RECOGNITION_USER_PASSWORD!,
-    });
-    await this.loadPage();
-    await this.verifier.verifyTheElementIsVisible(this.header);
-    await this.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
-  }
-
-  /**
    * Login as standard user and navigate to rewards store
    */
   async loginAsStandardUserAndNavigateToRewardsStore(): Promise<void> {
     const { LoginHelper } = await import('@core/helpers/loginHelper');
     await LoginHelper.logoutByNavigatingToLogoutPage(this.page);
     await LoginHelper.loginWithPassword(this.page, {
-      email: process.env.STANDARD_USER_USERNAME!,
-      password: process.env.STANDARD_USER_PASSWORD!,
+      email: getRewardTenantConfigFromCache().endUserEmail!,
+      password: getRewardTenantConfigFromCache().endUserPassword!,
     });
     await this.loadPage();
     await this.verifier.verifyTheElementIsVisible(this.header);
@@ -685,11 +612,11 @@ export class RewardsStore extends BasePage {
               refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             },
             redeemable: {
-              pendingIn: 0,
+              pendingIn: 100,
               available: 10000,
             },
             redeemed: {
-              pendingIn: 100,
+              pendingIn: 0,
               available: 0,
             },
           },
@@ -703,27 +630,33 @@ export class RewardsStore extends BasePage {
    * Get all API gift list
    */
   async getAllTheAPIGiftList(): Promise<string[]> {
-    const response = await this.page.waitForResponse(
-      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
-    );
+    // Wait for the API response and navigate to the page
+    const [response] = await Promise.all([
+      this.page.waitForResponse(
+        res => res.url().includes('/recognition/redemption/rewards/search') && res.status() === 200,
+        { timeout: 15000 }
+      ),
+      this.visit(), // navigation
+      this.verifyThePageIsLoaded(),
+    ]);
     const data = await response.json();
-    const apiGiftList = data?.results?.map((item: any) => item.name) || [];
-    return apiGiftList;
+    return data?.results?.map((item: any) => item?.brand?.brandName).filter((name: any) => name) || [];
   }
 
   /**
-   * Get filtered API gift list
+   * Get filtered API gift list - waits for search API response after search is performed
    */
   async getFilteredAPIGiftList(searchTerm: string): Promise<string[]> {
+    // Wait for the search API response that should be triggered by the search action
     const response = await this.page.waitForResponse(
-      res => res.url().includes('/recognition/rewards/catalog') && res.status() === 200
+      res =>
+        res.url().includes('/recognition/redemption/rewards/search') &&
+        res.url().includes(`q=${searchTerm}`) &&
+        res.status() === 200,
+      { timeout: 15000 }
     );
     const data = await response.json();
-    const apiGiftList =
-      data?.results
-        ?.filter((item: any) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        ?.map((item: any) => item.name) || [];
-    return apiGiftList;
+    return data?.results?.map((item: any) => item?.brand?.brandName).filter((name: any) => name) || [];
   }
 
   /**
@@ -741,7 +674,7 @@ export class RewardsStore extends BasePage {
       }
     }
     const trimmedUIGiftList = UIGiftList.map(name => name.trim());
-    const trimmedAPIGiftList = apiGiftList.map(name => name.trim());
+    const trimmedAPIGiftList = apiGiftList.filter(name => name).map(name => name.trim());
     expect(trimmedUIGiftList).toEqual(trimmedAPIGiftList);
   }
 

@@ -28,6 +28,9 @@
 # Platforms Module
 /src/modules/platforms/ @prateek-sqa @poojapathak188 @amanmmishra @LakshmiJoshi1527
 
+# Recognition Module
+/src/modules/recognition/ @prateek-sqa @sonuSimpplr @aishmagupta22
+
 # Reward Module
 /src/modules/reward/ @prateek-sqa @sonuSimpplr
 
@@ -37,6 +40,12 @@
 # Alert Notification Module
 /src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr
 
+
+# Employee Listening Module
+/src/modules/employee-listening/ @prateek-sqa @ravina-Simpplr @arvindsingh15992 @Srikant5g
+
+# Form Designer Module
+/src/modules/form-designer/ @prateek-sqa @KrishanKantSimpplr @arvindsingh15992
 # Configuration and build files
 playwright.base.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 *.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992

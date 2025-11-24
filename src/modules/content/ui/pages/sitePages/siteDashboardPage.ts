@@ -33,6 +33,9 @@ export interface ISiteDashboardActions {
   clickQuestionButton: () => Promise<void>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -41,6 +44,8 @@ export interface ISiteDashboardAssertions {
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyAddContentButtonIsNotVisible: () => Promise<void>;
+  verifyAddContentButtonIsVisible: () => Promise<void>;
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
@@ -54,6 +59,9 @@ export interface ISiteDashboardAssertions {
   verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   validatePostNotVisible: (postText: string) => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -67,6 +75,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
   readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
     this.page.getByRole('button', { name: socialCampaignName }).first();
+  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
   readonly shareThoughtsButton: Locator;
 
   // Components
@@ -89,7 +98,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
-    this.feedLink = this.page.locator('a:has-text("eed")');
+    this.feedLink = this.page.locator('a#dashboard:has-text("eed")');
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
@@ -167,6 +176,14 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
   }
 
+  async verifyAddContentButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify add content button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+
   async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
     await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
   }
@@ -238,6 +255,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
+  async verifyAddContentButtonIsVisible(): Promise<void> {
+    await test.step('Verify add content button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
   async verifySocialCampaignNameInTheDisplayed(socialCampaignName: string): Promise<void> {
     await test.step('Verifying social campaign name is displayed in the displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.socialCampaignNameInTileList(socialCampaignName), {
@@ -323,5 +347,28 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async validatePostNotVisible(postText: string): Promise<void> {
     await this.listFeedComponent.validatePostNotVisible(postText);
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
   }
 }

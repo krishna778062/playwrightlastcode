@@ -104,7 +104,19 @@ export class OutlookCalendarHelper {
       throw new Error(`Outlook Calendar API error: ${errorText}`);
     }
 
-    return response.json();
+    // Handle empty responses (e.g., from accept/decline endpoints)
+    const contentType = response.headers.get('content-type');
+    const text = await response.text();
+
+    if (!text || text.trim() === '') {
+      return {};
+    }
+
+    if (contentType?.includes('application/json')) {
+      return JSON.parse(text);
+    }
+
+    return text;
   }
 
   async findEvents(eventTitle: string, calendarId = 'primary'): Promise<OutlookCalendarEvent[]> {
@@ -173,7 +185,7 @@ export class OutlookCalendarHelper {
       expectFound?: boolean;
     } = {}
   ): Promise<{ found: boolean; event?: OutlookCalendarEvent; attempts: number }> {
-    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
+    const { maxAttempts = 12, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
 
     console.log(`[Outlook Calendar] Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`);
 

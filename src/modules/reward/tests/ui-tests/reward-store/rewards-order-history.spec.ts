@@ -36,28 +36,28 @@ test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }
       const usGiftCards = ['Amazon', 'Apple', 'Virtual Promotional Prepaid Mastercard', 'American Cancer Society'];
       await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'United States');
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.giftCardsTab,
         giftCard: usGiftCards[0],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.giftCardsTab,
         giftCard: usGiftCards[1],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.prepaidCardsTab,
         giftCard: usGiftCards[2],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.charityDonationsTab,
         giftCard: usGiftCards[3],
         successMessage: 'Your donation has been sent',
@@ -75,28 +75,28 @@ test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }
       });
       await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'Canada');
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.giftCardsTab,
         giftCard: canadaGiftCards[0],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.giftCardsTab,
         giftCard: canadaGiftCards[1],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.prepaidCardsTab,
         giftCard: canadaGiftCards[2],
         successMessage: 'Your reward has been sent',
         additionalMessages: ['Please check your email inbox for your reward details'],
       });
 
-      await rewardsStore.redeemAndValidate({
+      await rewardsStore.redeemAndValidateWithOrderHistory({
         tab: rewardsStore.charityDonationsTab,
         giftCard: canadaGiftCards[3],
         successMessage: 'Your donation has been sent',

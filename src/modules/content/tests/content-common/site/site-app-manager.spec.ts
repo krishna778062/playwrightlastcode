@@ -1,16 +1,23 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
+import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@content/ui/pages/manageSiteSetUpPage';
 import { SiteCreationPage as ContentSiteCreationPage, SiteCreationPage } from '@content/ui/pages/siteCreationPage';
+import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
+import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
+import { SitesPage } from '@content/ui/pages/sitesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
-
 /**
  * This test suite is used to test the site creation functionality with different access types.
  * We will test that App Manager is able to create sites with public, private, and unlisted access types.
@@ -50,13 +57,30 @@ test.describe(
     let createdSiteName: string;
     let manualCleanupNeeded = false;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSiteSetUpPage: ManageSiteSetUpPage;
     let manageSitePage: ManageSitePage;
+    let applicationscreen: ApplicationScreenPage;
+    let manageApplicationPage: ManageApplicationPage;
+    let governanceScreenPage: GovernanceScreenPage;
+    let sideNavBarComponent: SideNavBarComponent;
+    let standardUserSiteDashboardPage, siteDashboardPage: SiteDashboardPage;
+    let standardUserSitesPage: SitesPage;
+    let siteDetailsPage: SiteDetailsPage;
     test.beforeEach('Setting up the test environment for site creation', async ({ appManagerFixture }) => {
       // Create home page instance and verify it's loaded
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
-      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
+      manageSitePage = new ManageSitePage(appManagerFixture.page);
+      applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
+      manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
+      governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+      sideNavBarComponent = new SideNavBarComponent(appManagerFixture.page);
+      standardUserSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
+      standardUserSitesPage = new SitesPage(appManagerFixture.page, '');
+      siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, '');
 
       // Reset cleanup flag for each test
       manualCleanupNeeded = false;
@@ -81,7 +105,13 @@ test.describe(
       test(
         `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.SITE_CREATION,
+            '@healthcheck',
+          ],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -139,7 +169,7 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
 
         // Search for the deactivated site in the search bar
-        await manageSitePage.actions.searchForSite(siteName);
+        await manageSiteSetUpPage.actions.searchForSite(siteName);
         await manageSitePage.assertions.verifyNoSitesFound(siteName);
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
       }

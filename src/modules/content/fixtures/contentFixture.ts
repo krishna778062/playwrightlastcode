@@ -1,6 +1,7 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
+import { SiteAudienceHelper } from '../apis/helpers/siteAudienceHelper';
 import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
 import { TileManagementHelper } from '../apis/helpers/tileManagementHelper';
 
@@ -26,6 +27,7 @@ export interface ApiFixture {
   socialCampaignHelper: SocialCampaignHelper;
   tileManagementHelper: TileManagementHelper;
   audienceManagementHelper: AudienceManagementHelper;
+  siteAudienceHelper: SiteAudienceHelper;
   siteManagementService: SiteManagementService;
   feedManagerService: FeedManagementService;
 }
@@ -66,7 +68,11 @@ export const users = {
 async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
   // Create all helpers and services
   const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl,
+    getContentTenantConfigFromCache().frontendBaseUrl
+  );
   const contentManagementHelper = new ContentManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(
@@ -81,6 +87,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
 
   const siteManagementService = new SiteManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagerService = new FeedManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const siteAudienceHelper = new SiteAudienceHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
   return {
     apiContext,
@@ -90,6 +97,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     identityManagementHelper,
     socialCampaignHelper,
     audienceManagementHelper,
+    siteAudienceHelper,
     siteManagementService,
     tileManagementHelper,
     feedManagerService,
@@ -101,6 +109,12 @@ async function createUiFixture(browser: any, userType: UserType): Promise<UiFixt
   const user = users[userType];
   const context = await browser.newContext();
   const page = await context.newPage();
+
+  // Handle browser alerts by clicking OK
+  page.on('dialog', async (dialog: any) => {
+    console.log(`Dialog appeared: ${dialog.message()}`);
+    await dialog.accept();
+  });
 
   await LoginHelper.loginWithPassword(page, {
     email: user.email,
@@ -218,6 +232,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }
@@ -236,6 +251,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Standard user API fixture cleanup failed:', error);
       }
@@ -254,6 +270,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Site manager API fixture cleanup failed:', error);
       }
@@ -272,6 +289,7 @@ export const contentTestFixture = test.extend<
         await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Social campaign manager API fixture cleanup failed:', error);
       }

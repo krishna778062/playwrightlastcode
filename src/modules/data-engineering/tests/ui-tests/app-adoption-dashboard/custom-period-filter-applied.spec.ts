@@ -49,9 +49,8 @@ test.describe(
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: '2024-01-01',
         customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
-        departments: ['Campaign', 'HR'],
+        departments: ['test', 'QA'],
         locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-        userCategories: ['Adil Option1'],
         companyName: ['Simpplr'],
         groupBy: GroupByOnUserParameter.LOCATION,
       };
@@ -200,6 +199,54 @@ test.describe(
           adoptionLeadersDataFromSnowflake,
           testFiltersConfig.groupBy || GroupByOnUserParameter.DEPARTMENT
         );
+      }
+    );
+
+    test(
+      'verify impact of applied filter on user engagement breakdown metric',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-engagement-breakdown-metric'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify impact of applied filter on user engagement breakdown metric',
+          zephyrTestId: '',
+        });
+
+        const { appAdoptionDashboard, appAdoptionQueryHelper } = testEnvironment;
+
+        const dbResults = await appAdoptionQueryHelper.getUserEngagementBreakdownDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Filter out "No logins" as it's not displayed in the UI
+        const visibleSegments = dbResults.filter(data => data.behaviour !== 'No logins');
+
+        const userEngagementBreakdownMetric = appAdoptionDashboard.userEngagementBreakdownMetric;
+        await userEngagementBreakdownMetric.scrollToComponent();
+
+        // Verify number of segments matches DB results (excluding "No logins")
+        await userEngagementBreakdownMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+
+        // Verify each segment label data points
+        for (const data of visibleSegments) {
+          await userEngagementBreakdownMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.behaviour,
+            expectedText: `${data.behaviour} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        //verify tooltip is visible for each segment
+        for (const data of visibleSegments) {
+          await userEngagementBreakdownMetric.hoverOverSegmentLabelWithLabelAs(data.behaviour);
+          await userEngagementBreakdownMetric.waitForToolTipContainerToBeVisible();
+          await userEngagementBreakdownMetric.validateValuesShownInToolTipAreAsExpected({
+            labelsAndValues: [
+              { keyText: 'Total Count:', expectedValue: data.count.toString() },
+              { keyText: 'Adoption Behaviour', expectedValue: data.behaviour },
+            ],
+          });
+        }
       }
     );
   }

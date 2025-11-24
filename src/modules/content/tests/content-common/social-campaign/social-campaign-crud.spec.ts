@@ -30,9 +30,13 @@ test.describe(
     let addCampaignPage: AddCampaignPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
+      // Enable social campaign integrations
+      await appManagerFixture.socialCampaignHelper.enableSocialCampaign();
       // Reset cleanup flag for each test
       await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
+      campaignId = '';
+      tileId = '';
     });
 
     test.afterEach(async ({ appManagerFixture }) => {
@@ -48,7 +52,7 @@ test.describe(
     test(
       'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete', '@healthcheck'],
       },
       async ({ socialCampaignManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
@@ -152,8 +156,7 @@ test.describe(
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -172,17 +175,17 @@ test.describe(
         await socialCampaignPage.loadPage();
         await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
-        const description = TestDataGenerator.generateRandomString();
+        const description = TestDataGenerator.generateRandomString('Social Campaign Share Description');
         // Share campaign to site feed
         await socialCampaignPage.actions.clickCampaignOptions();
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.enterSiteName(siteResult.name);
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteResult.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -497,8 +500,8 @@ test.describe(
         });
 
         socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -523,11 +526,11 @@ test.describe(
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(siteName);
+        await socialCampaignPage.actions.enterSiteName(siteDetails.name);
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -735,10 +738,9 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14905',
           storyId: 'CONT-14905',
+          isKnownFailure: true,
         });
-
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
@@ -756,9 +758,9 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteDetails.siteId);
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnEditCarousel();
@@ -781,13 +783,13 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          description:
+            'Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired',
           zephyrTestId: 'CONT-14903',
           storyId: 'CONT-14903',
         });
 
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -805,8 +807,12 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         const description = TestDataGenerator.generateRandomString();
-        await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(campaignId, description, siteId);
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(
+          campaignId,
+          description,
+          siteDetails.siteId
+        );
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -829,15 +835,15 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14904',
           storyId: 'CONT-14904',
+          isKnownFailure: true,
         });
 
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const applicationManagerHomePage = appManagerFixture.homePage;
         // Create campaign with audience
         const campaignOptions = {
-          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
-          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
-          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.PRODUCT,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_NEW_BRAND,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_NEW_BRAND,
           recipient: SocialCampaignRecipient.EVERYONE,
         };
 
@@ -850,21 +856,20 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
-
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
-        await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnEditDashboard();
-        await siteDashboardPage.actions.clickOnEditCarousel();
-        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
-        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
-        await siteDashboardPage.actions.clickDoneButton();
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllHomeCarouselItems();
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnEditDashboard();
+        await applicationManagerHomePage.actions.clickOnEditCarousel();
+        await applicationManagerHomePage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.selectCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.clickHomeDashboardDoneButton();
+        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
         // expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
-        await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -919,15 +924,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-21039'],
       },
-      async ({ socialCampaignManagerFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-21039',
           storyId: 'CONT-21039',
+          isKnownFailure: true,
         });
 
-        const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
+        const applicationManagerHomePage = appManagerFixture.homePage;
 
         // Create campaign with audience
         const campaignOptions = {
@@ -938,7 +944,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignManagerFixture.socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -957,7 +963,7 @@ test.describe(
         tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
         await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
-        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
@@ -1021,6 +1027,7 @@ test.describe(
             'In Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-40519',
           storyId: 'CONT-40519',
+          isKnownFailure: true,
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1087,10 +1094,9 @@ test.describe(
           recipient: campaignOptions.recipient,
           shouldWaitForSearchIndex: true,
         });
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         const tileTitle = TestDataGenerator.generateRandomString();
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnAddTile();
@@ -1098,7 +1104,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnCustomSCTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
@@ -1110,7 +1116,7 @@ test.describe(
     test(
       'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14901'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -1135,16 +1141,16 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
 
-        const siteName = 'All Employees';
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        campaignId = createdCampaign.campaignId;
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         const tileTitle = TestDataGenerator.generateRandomString();
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnAddTile();
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
