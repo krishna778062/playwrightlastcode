@@ -111,21 +111,21 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     );
     this.outlookRsvpDisclaimerLocator = page.getByText("As the organizer, Outlook doesn't track your RSVP.");
     this.inviteOrRemoveAttendeesButtonLocator = page.getByRole('button', { name: 'Invite or remove attendees' });
-    this.locationLocator = page.getByText('Location');
+    this.locationLocator = page.getByText('Location', { exact: true });
     this.addToOtherCalendarsButtonLocator = page.getByText('Add to other calendars');
     this.rsvpToOutlookCalendarLabelLocator = page.getByText('RSVPing this event adds it to your Outlook Calendar');
     this.syncedFromOutlookCalendarLocator = page.getByText(/Synced from Outlook Calendar on/i);
-    this.removingSyncingWillDeleteEventFromOutlookCalendarsLocator = page.getByText(
-      /Removing syncing will delete this event from the Outlook Calendars of all site members and followers. They will no longer be able to RSVP from their Outlook Calendars./i
+    this.removingSyncingWillDeleteEventFromOutlookCalendarsLocator = page.locator(
+      "//h4[text()='Removing syncing will delete this event from all site members and followers’ Outlook Calendars. They can no longer RSVP from their Outlook Calendars.']"
     );
-    this.removingSyncingWillDeleteEventFromGoogleCalendarsLocator = page.getByText(
-      /Removing syncing will delete this event from the Google Calendars of all site members and followers. They will no longer be able to RSVP from their Google Calendars./i
+    this.removingSyncingWillDeleteEventFromGoogleCalendarsLocator = page.locator(
+      "//h4[text()='Removing syncing will delete this event from all site members and followers’ Google Calendars. They can no longer RSVP from their Google Calendars.']"
     );
-    this.outlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccountsLocator = page.getByText(
-      /Outlook Calendar sync requires users to connect their Microsoft accounts/i
+    this.outlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccountsLocator = page.locator(
+      "//h4[text()='Outlook Calendar sync requires users connect their Microsoft accounts']"
     );
-    this.googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator = page.getByText(
-      /Google Calendar sync requires users to connect their Google accounts/i
+    this.googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator = page.locator(
+      "//h4[text()='Google Calendar sync requires users to connect their Google accounts']"
     );
   }
 
@@ -264,10 +264,12 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
       const ariaChecked = await this.eventSyncToggleLocator.getAttribute('aria-checked');
       const isCurrentlyEnabled = toggleState === 'checked' || ariaChecked === 'true';
 
-      if (destination === EventSyncDestination.OUTLOOK_CALENDAR) {
-        await this.verifyOutlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccounts();
-      } else {
-        await this.verifyGoogleCalendarSyncRequiresUsersConnectTheirGoogleAccounts();
+      if (isCurrentlyEnabled) {
+        if (destination === EventSyncDestination.OUTLOOK_CALENDAR) {
+          await this.verifyOutlookCalendarSyncRequiresUsersConnectTheirMicrosoftAccounts();
+        } else {
+          await this.verifyGoogleCalendarSyncRequiresUsersConnectTheirGoogleAccounts();
+        }
       }
 
       if (isCurrentlyEnabled !== enable) {
@@ -285,7 +287,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
           }
         }
 
-        if (destination) {
+        if (destination && enable) {
           if (destination === EventSyncDestination.GOOGLE_CALENDAR) {
             await this.eventSyncGoogleCalendarLabelLocator.click({ force: true });
           } else {

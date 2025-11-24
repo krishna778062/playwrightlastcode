@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
@@ -19,12 +20,17 @@ export class ListFeedComponent extends BaseComponent {
   readonly replyButton: Locator;
   readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
+  readonly shareButton: Locator;
+  readonly sharePostModalContainer: Locator;
+  readonly viewPostLink: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
+  readonly reactionCountButton: Locator;
+  readonly reactionModal: Locator;
+  readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly loadMoreRepliesButton: Locator;
-  readonly shareButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
@@ -180,21 +186,47 @@ export class ListFeedComponent extends BaseComponent {
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
-    this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
+    this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
+    this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
+    this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
+    this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
+    this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
   }
 
   /**
    * Gets the timestamp text for a specific post
    * @param postText - The text of the post to find timestamp for
+   * @returns Promise<string> - The timestamp text content
    */
-  async getPostTimestamp(postText: string): Promise<void> {
-    (await this.getPostTimestampLocator(postText).textContent()) || '';
+  async getPostTimestamp(postText: string): Promise<string> {
+    return await test.step(`Get timestamp for post: ${postText}`, async () => {
+      const timestampLocator = this.getPostTimestampLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(timestampLocator, {
+        assertionMessage: `Timestamp should be visible for post: ${postText}`,
+      });
+      const timestampText = (await timestampLocator.textContent()) || '';
+      return timestampText.trim();
+    });
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await test.step(`Verify timestamp format for post: ${postText}`, async () => {
+      const timestampText = await this.getPostTimestamp(postText);
+      const isValidFormat = validateTimestampFormat(timestampText);
+      console.log(`Timestamp format validation result: ${isValidFormat}`);
+      if (!isValidFormat) {
+        throw new Error(
+          `Timestamp format validation failed. Expected format: "Month Date, Year at Time" (e.g., "January 15, 2025 at 03:45 PM"). Actual: "${timestampText}"`
+        );
+      }
+    });
   }
 
   /**
@@ -249,7 +281,8 @@ export class ListFeedComponent extends BaseComponent {
    */
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
-      const postLocator = this.postTextLocator(expectedText).first();
+      const postLocator = this.postTextLocator(expectedText);
+      await postLocator.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
@@ -1007,11 +1040,26 @@ export class ListFeedComponent extends BaseComponent {
   async clickShareIcon(postText: string): Promise<void> {
     await test.step(`Click share icon on post: ${postText}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const shareIconLocator = this.page.getByRole('button', { name: 'Share this post' }).first();
-      await this.verifier.verifyTheElementIsVisible(shareIconLocator, {
-        assertionMessage: `Share icon should be visible for post "${postText}"`,
+      await this.verifier.verifyTheElementIsVisible(this.shareButton.first(), {
+        assertionMessage: `Share button should be visible for post "${postText}"`,
       });
-      await this.clickOnElement(shareIconLocator);
+      await this.clickOnElement(this.shareButton.first());
+    });
+  }
+
+  async verifyShareModalIsVisible(): Promise<void> {
+    await test.step('Verify share modal is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be visible',
+      });
+    });
+  }
+
+  async verifyShareModalIsClosed(): Promise<void> {
+    await test.step('Verify share modal is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostModalContainer, {
+        assertionMessage: 'Share modal should be closed',
+      });
     });
   }
 
@@ -1019,6 +1067,183 @@ export class ListFeedComponent extends BaseComponent {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
         assertionMessage: 'Embedded URL should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that an embedded URL does NOT unfurl (no link preview is displayed)
+   * @param embedUrl - The URL that should not be unfurled
+   * @param postText - The text of the post containing the URL
+   */
+  async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
+    await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
+      // First, verify the post is visible
+      await this.waitForPostToBeVisible(postText);
+
+      // Get the post container (using same pattern as verifyDeletedPostMessage)
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      const embedURLocator = postContainer.locator('iframe').first();
+      await this.verifier.verifyTheElementIsNotVisible(embedURLocator, {
+        assertionMessage: `Embedded URL should be visible for post "${postText}"`,
+      });
+
+      const embedPlayButton = postContainer
+        .locator('iframe')
+        .first()
+        .contentFrame()
+        .getByRole('button', { name: 'Play' });
+      await this.verifier.verifyTheElementIsNotVisible(embedPlayButton, {
+        assertionMessage: `Embedded URL should NOT be unfurled - no preview/embed elements should be visible`,
+      });
+    });
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await test.step(`Hover on reaction button for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const postContainer = this.postTextLocator(postText);
+      await this.hoverOverElementInJavaScript(postContainer);
+      const reactionButton = this.likeButton.first();
+      await reactionButton.hover();
+    });
+  }
+
+  /**
+   * Clicks a specific reaction emoji (like, love, etc.)
+   * @param postText - The text of the post
+   * @param reactionName - The name of the reaction (e.g., 'like', 'love')
+   */
+  async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
+    await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
+      const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
+      await this.verifier.verifyTheElementIsVisible(reactionButton, {
+        assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
+      });
+      await this.clickOnElement(reactionButton);
+    });
+  }
+
+  /**
+   * Gets the text content of the reaction button to verify which emoji is selected
+   * @param postText - The text of the post
+   * @returns The text content of the reaction button
+   */
+  async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
+    const reactionButton = this.page.locator('button').filter({ hasText: reactionName }).first();
+    await this.verifier.verifyTheElementIsVisible(reactionButton, {
+      assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
+    });
+    await this.clickOnElement(reactionButton);
+    await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
+      assertionMessage: `Like button should be visible for post "${postText}"`,
+    });
+  }
+
+  /**
+   * Clicks the reaction count/text button to open the reaction modal
+   * @param postText - The text of the post
+   */
+  async clickReactionCountButton(postText: string): Promise<void> {
+    await test.step(`Click reaction count button for post: ${postText}`, async () => {
+      const reactionCountButton = this.reactionCountButton.first();
+      await this.verifier.verifyTheElementIsVisible(reactionCountButton, {
+        assertionMessage: `Reaction count button should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(reactionCountButton);
+    });
+  }
+
+  /**
+   * Verifies the reaction modal is visible
+   */
+  async verifyReactionModalIsVisible(): Promise<void> {
+    await test.step('Verify reaction modal is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.reactionModal, {
+        assertionMessage: 'Reaction modal should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies a tab exists for a specific emoji in the reaction modal
+   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
+   */
+  async verifyReactionModalTabExists(emojiName: string): Promise<void> {
+    await test.step(`Verify reaction modal tab exists for emoji: ${emojiName}`, async () => {
+      // Wait for modal to be fully loaded
+      await this.verifier.verifyTheElementIsVisible(this.reactionModal, {
+        assertionMessage: 'Reaction modal should be visible',
+      });
+      const tablist = this.reactionModal.locator('[role="tablist"]').first();
+
+      const tabs = await tablist.getByRole('tab').all();
+
+      // Map emoji names to their emoji characters for matching
+      const emojiCharMap: Record<string, string> = {
+        like: '👍',
+        love: '❤️',
+        haha: '😆',
+        insightful: '💡',
+        thankful: '🙏',
+        celebrate: '🎉',
+      };
+
+      const emojiChar = emojiCharMap[emojiName];
+
+      let tab: Locator | null = null;
+      for (const tabElement of tabs) {
+        const textContent = (await tabElement.textContent()) || '';
+
+        if (textContent.includes(emojiChar)) {
+          tab = tabElement;
+          break;
+        }
+      }
+
+      if (!tab) {
+        throw new Error(`Tab for emoji "${emojiName}" not found. Checked ${tabs.length} tabs in reaction modal.`);
+      }
+
+      await this.verifier.verifyTheElementIsVisible(tab, {
+        assertionMessage: `Tab for emoji "${emojiName}" should be visible in reaction modal`,
+      });
+      await this.clickOnElement(tab);
+    });
+  }
+
+  /**
+   * Verifies users are displayed in a specific emoji tab
+   * @param emojiName - The name of the emoji (e.g., 'like', 'love', 'haha')
+   * @param expectedUsers - Array of expected user names
+   */
+  async verifyUsersInReactionModalTab(emojiName: string, expectedUsers: string[]): Promise<void> {
+    await test.step(`Verify users in reaction modal tab for emoji: ${emojiName}`, async () => {
+      for (const expectedUser of expectedUsers) {
+        const userLocator = this.page.getByRole('link', { name: expectedUser }).first();
+        await this.verifier.verifyTheElementIsVisible(userLocator, {
+          assertionMessage: `User "${expectedUser}" should be visible in "${emojiName}" tab`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Closes the reaction modal
+   */
+  async closeReactionModal(): Promise<void> {
+    await test.step('Close reaction modal', async () => {
+      const closeButton = this.modelCloseButton;
+      await this.verifier.verifyTheElementIsVisible(closeButton, {
+        assertionMessage: 'Close button should be visible in reaction modal',
+      });
+      await this.clickOnElement(closeButton);
+      await this.verifier.verifyTheElementIsNotVisible(closeButton, {
+        assertionMessage: 'Close button should not be visible in reaction modal',
       });
     });
   }
@@ -1063,6 +1288,25 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsNotVisible(viewPostLink, {
         assertionMessage: `View Post link should not be visible for deleted post "${postText}"`,
       });
+    });
+  }
+
+  async clickViewPostLinkInShareModal(): Promise<void> {
+    await test.step('Click view post link in share modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.viewPostLink, {
+        assertionMessage: 'View post link should be visible in share modal',
+      });
+      await this.clickOnElement(this.viewPostLink);
+    });
+  }
+
+  async clickViewPostLinkInPostDetailPage(): Promise<void> {
+    await test.step('Click view post link in post detail page', async () => {
+      const viewPostLink = this.page.getByRole('button', { name: 'View post' });
+      await this.verifier.verifyTheElementIsVisible(viewPostLink, {
+        assertionMessage: 'View post link should be visible in post detail page',
+      });
+      await this.clickOnElement(viewPostLink);
     });
   }
 

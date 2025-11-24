@@ -5,6 +5,7 @@ import {
   SocialCampaign,
   SocialCampaignAction,
   SocialCampaignFilter,
+  SocialCampaignListResponse,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
   SocialCampaignSharedWith,
@@ -193,6 +194,19 @@ export class SocialCampaignHelper {
    */
   async getAllCampaignsFromAPI(): Promise<SocialCampaign[]> {
     return await this.getSocialCampaignService().getAllCampaigns();
+  }
+
+  /**
+   * Gets campaign list via GET API with query parameters
+   * @param params - Query parameters for filtering campaigns
+   * @returns Promise<SocialCampaignListResponse> - Campaign list response
+   */
+  async getCampaignList(params?: {
+    size?: number;
+    sortBy?: string;
+    filter?: string;
+  }): Promise<SocialCampaignListResponse> {
+    return await this.getSocialCampaignService().getCampaignList(params);
   }
 
   /**

@@ -261,6 +261,7 @@ export class AccessControlGroupsPage extends BasePage {
       try {
         await this.clickOnElement(this.editOption, {
           stepInfo: 'Click on Edit option for ACG',
+          timeout: 3_000,
         });
       } catch {
         await this.clickOnElementWithCoordinates(this.editOption, {
