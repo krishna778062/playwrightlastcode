@@ -901,6 +901,12 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
   }
+  /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
   async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
   }
@@ -980,5 +986,23 @@ export class HomeDashboard extends BasePage {
       await this.tileOperationsComponent.enableToggleButton(tileTitle);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
+  }
+  /**
+   * Verify Salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
   }
 }

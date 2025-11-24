@@ -15,7 +15,7 @@ export const FEED_TEST_DATA = {
   POST_TEXT: {
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
-    SHARED: `Shared App Manager's Post - ${faker.commerce.productName()}`,
+    SHARED: `Shared Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARED_WITH_MENTION: `Shared App Manager's Post - ${faker.commerce.productName()} - @${faker.person.fullName()}`,
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     COMMENT: `Automated Test Comment ${faker.company.name()} - ${faker.commerce.productName()}`,
@@ -53,6 +53,9 @@ export const FEED_TEST_DATA = {
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
+  SEARCH: {
+    RANDOM_TEXT: 'RandomTextThatDoesNotExist12345',
+  },
   DELETED_POST_MESSAGE: 'THIS POST HAS BEEN DELETED',
   API_RESPONSE_MESSAGES: {
     FEED_POST_CREATED: 'Feed Post has been successfully created',
