@@ -141,7 +141,7 @@ export const config = {
       apiBaseUrl: 'https://automation-ui-content-api.qa.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'kulwinder.singh+1@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+20@simpplr.com',
       siteManagerPassword: 'simpplr001',

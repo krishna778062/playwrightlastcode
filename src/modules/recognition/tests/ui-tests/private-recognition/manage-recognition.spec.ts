@@ -27,7 +27,6 @@ test.describe('manage recognition', () => {
         storyId: 'RC-6090',
       });
       const { page: appManagerPage, navigationHelper: appManagerUINavigationHelper } = appManagerFixture;
-
       await appManagerUINavigationHelper.navigateToRecognitionHubViaSideNavBar();
       await appManagerUINavigationHelper.navigateToManageRecognitionViaSideNavBar();
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
