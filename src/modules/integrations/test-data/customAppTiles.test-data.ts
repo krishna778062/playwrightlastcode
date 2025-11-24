@@ -15,11 +15,14 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
     JIRA_CUSTOM_APP_BASIC_AUTH: 'Jira Custom App Basic Auth',
     SERVICENOW_CUSTOM_APP: 'Servicenow Custom App',
     AIRTABLE: 'Airtable',
+    ZENDESK: 'Zendesk',
   },
 
   API_ACTIONS: {
     CREATE_TICKET: 'Create ticket',
     LIST_ALL_TICKETS: 'List all tickets',
+    GET_PRIORITIES: 'Get Priorities',
+    GET_TICKETS: 'Get Tickets',
   },
 
   BUTTONS: {

@@ -154,6 +154,30 @@ export class CustomAppTilesPage extends BasePage {
   readonly textContainerElements: Locator;
   readonly imageSelectDropdown: Locator;
   readonly detailsButton: Locator;
+  readonly getApiResponseButton: Locator;
+  readonly menuLocator: Locator;
+  readonly menuItemLocator: Locator;
+  readonly arrowTriggerLocator: Locator;
+  readonly transformValueDialog: Locator;
+  readonly transformValueDialogDescription: Locator;
+  readonly transformValueMoreIcon: Locator;
+  readonly transformValueOpenMenu: Locator;
+  readonly transformValueMenuItem: Locator;
+  readonly transformValueOption: Locator;
+  readonly transformValueCaseFormatPlaceholder: Locator;
+  readonly transformValueDateFormatPlaceholder: Locator;
+  readonly transformValueReactSelectControl: Locator;
+  readonly transformValueListbox: Locator;
+  readonly transformValueSaveButton: Locator;
+  readonly transformValueCancelButton: Locator;
+  readonly transformValueCloseButton: Locator;
+  readonly transformValueDateRadio: Locator;
+  readonly transformValueCaseRadio: Locator;
+  readonly transformValueMappingRadio: Locator;
+  readonly transformValueDefaultValueLabel: Locator;
+  readonly transformValueDefaultValueRequired: Locator;
+  readonly transformValueAddMappingRuleButton: Locator;
+  readonly transformValueLabelFor: Locator;
 
   /**
    * Get a button locator by its name/text
@@ -428,9 +452,166 @@ export class CustomAppTilesPage extends BasePage {
     // Inline locators moved to constructor
     this.imageSelectDropdown = this.page.locator('select:visible').first();
     this.detailsButton = this.page.locator('button').filter({ hasText: 'Details' }).first();
-
-    // Now reuse cancelLinkButton for cancelButtonForVerification to avoid duplication
+    this.getApiResponseButton = page.getByLabel('Data').getByRole('button', { name: 'Get API response' });
     this.cancelButtonForVerification = this.cancelLinkButton;
+    this.menuLocator = this.page.getByRole('menu');
+    this.menuItemLocator = this.page.getByRole('menuitem');
+    this.arrowTriggerLocator = this.page.getByTestId('i-arrowRight');
+
+    // Transform value dialog locators
+    this.transformValueDialog = this.page.getByRole('dialog', { name: 'Transform value' });
+    this.transformValueDialogDescription = this.transformValueDialog.getByText(
+      'Format or map a dynamic value to make it user-friendly when displayed in the tile'
+    );
+    this.transformValueMoreIcon = this.page.getByTestId('i-more');
+    this.transformValueOpenMenu = this.page.locator('[role="menu"][data-state="open"]');
+    this.transformValueMenuItem = this.page.getByRole('menuitem');
+    this.transformValueOption = this.transformValueMenuItem.filter({
+      has: this.page.getByText('Transform value', { exact: true }),
+    });
+    this.transformValueCaseFormatPlaceholder = this.transformValueDialog
+      .locator('[id*="react-select"][id*="placeholder"]')
+      .filter({ hasText: 'Select case…' });
+    this.transformValueDateFormatPlaceholder = this.transformValueDialog
+      .locator('[id*="react-select"][id*="placeholder"]')
+      .filter({ hasText: 'Select date…' });
+    this.transformValueReactSelectControl = this.transformValueDialog.locator('div[class*="css-1bbetpp-control"]');
+    this.transformValueListbox = this.page.locator('[id^="react-select"][id$="-listbox"], [role="listbox"]').first();
+    this.transformValueSaveButton = this.transformValueDialog.getByRole('button', { name: 'Save' });
+    this.transformValueCancelButton = this.transformValueDialog.getByRole('button', { name: 'Cancel' });
+    this.transformValueCloseButton = this.transformValueDialog.getByRole('button', { name: 'Close' });
+    this.transformValueDateRadio = this.transformValueDialog.getByRole('radio', { name: 'Date format' });
+    this.transformValueCaseRadio = this.transformValueDialog.getByRole('radio', { name: 'Case format' });
+    this.transformValueMappingRadio = this.transformValueDialog.getByRole('radio', { name: 'Value mapping' });
+    this.transformValueDefaultValueLabel = this.transformValueDialog.getByText(/Default value/i);
+    this.transformValueDefaultValueRequired = this.transformValueDefaultValueLabel.locator('span[class*="required"]');
+    this.transformValueAddMappingRuleButton = this.transformValueDialog
+      .getByRole('button')
+      .filter({ hasText: /Add mapping rule/i })
+      .first();
+    this.transformValueLabelFor = this.transformValueDialog.locator('label[for]').first();
+  }
+
+  private getTabByRole(tabName: string): Locator {
+    return this.page.getByRole('tab', { name: tabName });
+  }
+
+  private getButtonInTabLocator(tabName: string, buttonName: string): Locator {
+    return this.page.getByLabel(tabName).getByRole('button', { name: buttonName });
+  }
+
+  private getMenuItemByTypeAndField(type: string, fieldName: string, menu?: Locator): Locator {
+    const menuContainer = menu || this.menuLocator.first();
+    const escapedType = type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedFieldName = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = `${escapedType}\\s+${escapedFieldName}(?=\\s|$|[^\\w])`;
+    return menuContainer.getByRole('menuitem').filter({ hasText: new RegExp(pattern, 'i') });
+  }
+
+  private getMenuItemByText(fieldText: string, menu?: Locator): Locator {
+    const menuContainer = menu || this.menuLocator.first();
+    return menuContainer.getByRole('menuitem').getByText(fieldText, { exact: false });
+  }
+
+  private parseFieldText(fieldText: string): { type: string; fieldName: string } | null {
+    const match = fieldText.match(/^(\w+)\s+(.+)$/);
+    return match ? { type: match[1], fieldName: match[2] } : null;
+  }
+
+  private async findMenuItemInMenus(
+    allMenus: Locator,
+    type: string,
+    fieldName: string,
+    useTypeAndField: boolean
+  ): Promise<Locator | null> {
+    const menuCount = await allMenus.count();
+    for (let i = 0; i < menuCount; i++) {
+      const menu = allMenus.nth(i);
+      const item = useTypeAndField
+        ? this.getMenuItemByTypeAndField(type, fieldName, menu)
+        : this.getMenuItemByText(`${type} ${fieldName}`, menu);
+      if ((await item.count()) > 0) return item.first();
+    }
+    return null;
+  }
+
+  private async openNestedMenu(parentMenuItem: Locator): Promise<void> {
+    const arrowTrigger = parentMenuItem.first().locator(this.arrowTriggerLocator).first();
+    try {
+      await expect(arrowTrigger).toBeVisible({ timeout: 2000 });
+      await arrowTrigger.hover();
+    } catch {
+      await parentMenuItem.first().hover();
+    }
+    await this.page.waitForTimeout(300);
+  }
+
+  async selectDataBindingFieldByType(
+    type: string,
+    fieldName: string,
+    parentType?: string,
+    parentFieldName?: string
+  ): Promise<void> {
+    await test.step(`Select data binding field: ${type} ${fieldName}${parentType && parentFieldName ? ` under ${parentType} ${parentFieldName}` : ''}`, async () => {
+      const menu = this.menuLocator.first();
+      await expect(menu).toBeVisible({ timeout: 10000 });
+      await this.page.waitForTimeout(300);
+
+      if (parentType && parentFieldName) {
+        const parentMenuItem = this.getMenuItemByTypeAndField(parentType, parentFieldName, menu);
+        await expect(parentMenuItem).toBeVisible({ timeout: 10000 });
+        await parentMenuItem.hover();
+        await this.page.waitForTimeout(300);
+      }
+
+      const targetMenuItem = this.getMenuItemByTypeAndField(type, fieldName, menu);
+      await expect(targetMenuItem).toBeVisible({ timeout: 10000 });
+      await this.clickOnElement(targetMenuItem);
+    });
+  }
+
+  async selectDataBindingField(parentField: string, childField?: string): Promise<void> {
+    await test.step(`Select data binding field: ${parentField}${childField ? ` > ${childField}` : ''}`, async () => {
+      const allMenus = this.menuLocator;
+      await expect(allMenus.first()).toBeVisible({ timeout: 10000 });
+      await expect(allMenus.first().getByRole('menuitem').first()).toBeVisible({ timeout: 5000 });
+      await this.page.waitForTimeout(500);
+
+      const parentParsed = this.parseFieldText(parentField);
+      const parentMenuItem = await this.findMenuItemInMenus(
+        allMenus,
+        parentParsed?.type || parentField,
+        parentParsed?.fieldName || '',
+        !!parentParsed
+      );
+
+      if (!parentMenuItem) {
+        throw new Error(`Parent field "${parentField}" not found in any visible menu`);
+      }
+
+      await expect(parentMenuItem.first()).toBeVisible({ timeout: 10000 });
+
+      if (childField) {
+        const childParsed = this.parseFieldText(childField);
+        await this.openNestedMenu(parentMenuItem);
+
+        const childMenuItem = await this.findMenuItemInMenus(
+          this.menuLocator,
+          childParsed?.type || childField,
+          childParsed?.fieldName || '',
+          !!childParsed
+        );
+
+        if (!childMenuItem) {
+          throw new Error(`Child field "${childField}" not found in nested menu`);
+        }
+
+        await expect(childMenuItem).toBeVisible({ timeout: 5000 });
+        await this.clickOnElement(childMenuItem);
+      } else {
+        await this.clickOnElement(parentMenuItem.first());
+      }
+    });
   }
 
   /**
@@ -1470,7 +1651,7 @@ export class CustomAppTilesPage extends BasePage {
   async deleteAllTilesWithPrefix(prefix: string, pattern?: RegExp): Promise<void> {
     await test.step(`Delete all tiles with prefix: ${prefix}`, async () => {
       let deletedCount = 0;
-      const maxAttempts = 30;
+      const maxAttempts = 100;
 
       while (deletedCount < maxAttempts) {
         try {
@@ -1965,6 +2146,351 @@ export class CustomAppTilesPage extends BasePage {
     await test.step(`Verify ${fieldName} required field error is visible`, async () => {
       await expect(this.getRequiredFieldError(fieldName)).toBeVisible();
     });
+  }
+
+  async clickButtonInTab(tabName: string = 'Data', fieldNameOrButton?: string, buttonName?: string): Promise<void> {
+    const actualFieldName = buttonName ? fieldNameOrButton : undefined;
+    const actualButtonName = buttonName || fieldNameOrButton || 'Get API response';
+
+    await test.step(`Click ${actualButtonName} button in ${tabName} tab${actualFieldName ? ` (${actualFieldName} field)` : ''}`, async () => {
+      const tab = this.getTabByRole(tabName);
+      if (await tab.isVisible()) {
+        const isTabActive = await tab.getAttribute('aria-selected');
+        if (isTabActive !== 'true') {
+          await tab.click();
+        }
+      }
+
+      let button: Locator;
+      if (actualFieldName) {
+        const tabContent = this.page.getByLabel(tabName);
+        const fieldRegion = tabContent.getByRole('region', { name: actualFieldName });
+        await expect(fieldRegion).toBeVisible({ timeout: 5000 });
+        button = fieldRegion.getByRole('button', { name: actualButtonName });
+      } else {
+        button = this.getButtonInTabLocator(tabName, actualButtonName);
+      }
+
+      await expect(button).toBeVisible();
+      await this.clickOnElement(button);
+    });
+  }
+
+  /**
+   * Click transform value option for a dynamic value in a specific field
+   * @param tabName - The tab name (e.g., 'Data')
+   * @param fieldName - The field name (e.g., 'Text', 'URL')
+   */
+  async clickTransformValue(tabName: string = 'Data', fieldName: string): Promise<void> {
+    await test.step(`Click Transform value for ${fieldName} field in ${tabName} tab`, async () => {
+      const tab = this.getTabByRole(tabName);
+      if (await tab.isVisible()) {
+        const isTabActive = await tab.getAttribute('aria-selected');
+        if (isTabActive !== 'true') {
+          await tab.click();
+        }
+      }
+
+      const tabContent = this.page.getByLabel(tabName);
+      const fieldRegion = tabContent.getByRole('region', { name: fieldName });
+      await expect(fieldRegion).toBeVisible({ timeout: 5000 });
+
+      // Find the three dots button (more options) within the field region
+      const threeDotsButton = fieldRegion
+        .getByRole('button', { name: /menu/i })
+        .filter({ has: fieldRegion.getByTestId('i-more') })
+        .first();
+      await expect(threeDotsButton).toBeVisible({ timeout: 5000 });
+      await this.clickOnElement(threeDotsButton);
+
+      // Wait for the dropdown menu to appear - wait for menu with data-state="open"
+      const menu = this.transformValueOpenMenu.first();
+      await expect(menu).toBeVisible({ timeout: 5000 });
+
+      // Wait a bit for the menu to be fully rendered
+      await this.page.waitForTimeout(300);
+
+      // Click "Transform value" - find the menuitem wrapper that contains the text
+      const transformValueOption = this.transformValueOption.first();
+
+      await expect(transformValueOption).toBeVisible({ timeout: 5000 });
+      await this.clickOnElement(transformValueOption);
+    });
+  }
+
+  /**
+   * Get Transform value dialog locator
+   */
+  getTransformValueDialog(): Locator {
+    return this.transformValueDialog;
+  }
+
+  /**
+   * Get case format placeholder locator
+   */
+  getCaseFormatPlaceholder(): Locator {
+    return this.transformValueCaseFormatPlaceholder;
+  }
+
+  /**
+   * Get date format placeholder locator
+   */
+  getDateFormatPlaceholder(): Locator {
+    return this.transformValueDateFormatPlaceholder;
+  }
+
+  /**
+   * Verify Transform value dialog is visible
+   */
+  async verifyTransformValueDialogVisible(): Promise<void> {
+    await test.step('Verify Transform value dialog is visible', async () => {
+      const dialog = this.transformValueDialog;
+      await expect(dialog).toBeVisible({ timeout: 5000 });
+      await expect(this.transformValueDialogDescription).toBeVisible();
+    });
+  }
+
+  /**
+   * Select a transform type in the Transform value dialog
+   * @param transformType - The transform type: 'Date format', 'Case format', or 'Value mapping'
+   */
+  async selectTransformType(transformType: 'Date format' | 'Case format' | 'Value mapping'): Promise<void> {
+    await test.step(`Select ${transformType} in Transform value dialog`, async () => {
+      const dialog = this.transformValueDialog;
+      const radioButton = dialog.getByRole('radio', { name: transformType });
+      await expect(radioButton).toBeVisible({ timeout: 5000 });
+
+      // Check if the radio button is already selected
+      const isChecked = await radioButton.isChecked().catch(() => false);
+
+      if (!isChecked) {
+        // Try to find and click the label associated with the radio button
+        // This avoids interception by overlapping dropdown elements
+        const radioId = await radioButton.getAttribute('id').catch(() => null);
+
+        if (radioId) {
+          // Try clicking the label using the 'for' attribute
+          const label = dialog.locator(`label[for="${radioId}"]`).first();
+          const labelVisible = await label.isVisible({ timeout: 2000 }).catch(() => false);
+
+          if (labelVisible) {
+            await this.clickOnElement(label);
+          } else {
+            // Fallback: click the radio button with force to bypass interception
+            await radioButton.click({ force: true });
+          }
+        } else {
+          // Fallback: click the radio button with force
+          await radioButton.click({ force: true });
+        }
+
+        // Wait for the radio button to be checked
+        await expect(radioButton, `${transformType} radio button should be checked`).toBeChecked({ timeout: 5000 });
+      } else {
+        // Already selected, just wait a bit for UI to stabilize
+        await this.page.waitForTimeout(300);
+      }
+    });
+  }
+
+  /**
+   * Select a case format option in the Transform value dialog
+   * @param caseOption - The case option: 'Sentence case', 'Uppercase', or 'Lowercase'
+   */
+  async selectCaseFormat(caseOption: 'Sentence case' | 'Uppercase' | 'Lowercase'): Promise<void> {
+    await test.step(`Select ${caseOption} in Case format dropdown`, async () => {
+      // Wait a bit for the dropdown to render after selecting Case format
+      await this.page.waitForTimeout(500);
+
+      // Find the react-select control div - it may show "Select case…" or a selected value like "Uppercase"
+      // The control div has class "css-1bbetpp-control"
+      // Since "Case format" is already selected, there should only be one react-select control in the dialog
+      const clickableControl = this.transformValueReactSelectControl.first();
+
+      // Wait for the control to be visible (it might take a moment to render)
+      await expect(clickableControl, 'Case format control should be visible').toBeVisible({ timeout: 5000 });
+
+      // Click the control div to open dropdown
+      await this.clickOnElement(clickableControl);
+
+      // Wait for menu to appear
+      await this.page.waitForTimeout(300);
+
+      // Wait for options to appear and select the option
+      const menu = this.transformValueListbox;
+      await expect(menu).toBeVisible({ timeout: 5000 });
+
+      const option = menu.getByText(caseOption, { exact: true });
+      await expect(option).toBeVisible({ timeout: 5000 });
+      await this.clickOnElement(option);
+    });
+  }
+
+  /**
+   * Select a date format option in the Transform value dialog
+   * @param dateFormat - The date format option (e.g., 'MM/DD/YYYY', 'Month Day, Year')
+   */
+  async selectDateFormat(dateFormat: string): Promise<void> {
+    await test.step(`Select ${dateFormat} in Date format dropdown`, async () => {
+      // Wait a bit for the dropdown to render after selecting Date format
+      await this.page.waitForTimeout(500);
+
+      // Find the react-select control div - it may show "Select date…" or a selected value like "MM/DD/YYYY"
+      // The control div has class "css-1bbetpp-control"
+      // Since "Date format" is already selected, there should only be one react-select control in the dialog
+      const clickableControl = this.transformValueReactSelectControl.first();
+
+      // Wait for the control to be visible (it might take a moment to render)
+      await expect(clickableControl, 'Date format control should be visible').toBeVisible({ timeout: 5000 });
+
+      // Click the control div to open dropdown
+      await this.clickOnElement(clickableControl);
+
+      // Wait for menu to appear
+      await this.page.waitForTimeout(300);
+
+      // Wait for options to appear and select the option
+      const menu = this.transformValueListbox;
+      await expect(menu).toBeVisible({ timeout: 5000 });
+
+      const option = menu.getByText(dateFormat, { exact: true });
+      await expect(option).toBeVisible({ timeout: 5000 });
+      await this.clickOnElement(option);
+    });
+  }
+
+  /**
+   * Click Save button in Transform value dialog
+   */
+  async clickTransformValueSave(): Promise<void> {
+    await test.step('Click Save button in Transform value dialog', async () => {
+      const dialog = this.transformValueDialog;
+      await expect(this.transformValueSaveButton).toBeVisible({ timeout: 5000 });
+      await this.transformValueSaveButton.click();
+
+      // Wait for dialog to close
+      await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  /**
+   * Click Cancel button in Transform value dialog
+   */
+  async clickTransformValueCancel(): Promise<void> {
+    await test.step('Click Cancel button in Transform value dialog', async () => {
+      const dialog = this.transformValueDialog;
+      await expect(this.transformValueCancelButton).toBeVisible({ timeout: 5000 });
+      await this.transformValueCancelButton.click();
+
+      // Wait for dialog to close
+      await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  /**
+   * Verify all transform type radio buttons are visible
+   */
+  async verifyTransformTypeOptionsVisible(): Promise<void> {
+    await test.step('Verify all transform type options are visible', async () => {
+      await expect(this.transformValueDateRadio).toBeVisible();
+      await expect(this.transformValueCaseRadio).toBeVisible();
+      await expect(this.transformValueMappingRadio).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify case format placeholder is visible
+   */
+  async verifyCaseFormatPlaceholderVisible(): Promise<void> {
+    await test.step('Verify case format placeholder is visible', async () => {
+      await expect(this.getCaseFormatPlaceholder()).toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  /**
+   * Verify date format placeholder is visible
+   */
+  async verifyDateFormatPlaceholderVisible(): Promise<void> {
+    await test.step('Verify date format placeholder is visible', async () => {
+      await expect(this.getDateFormatPlaceholder()).toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  /**
+   * Verify Transform value dialog is closed
+   */
+  async verifyTransformValueDialogClosed(): Promise<void> {
+    await test.step('Verify Transform value dialog is closed', async () => {
+      await expect(this.getTransformValueDialog()).not.toBeVisible({ timeout: 3000 });
+    });
+  }
+
+  /**
+   * Verify Value mapping default value field is visible
+   */
+  async verifyValueMappingDefaultValueFieldVisible(): Promise<void> {
+    await test.step('Verify Value mapping default value field is visible', async () => {
+      const dialog = this.transformValueDialog;
+      await expect(dialog.getByLabel(/Default value/i)).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify default value field is required (has asterisk)
+   */
+  async verifyDefaultValueFieldRequired(): Promise<void> {
+    await test.step('Verify default value field is required', async () => {
+      await expect(this.transformValueDefaultValueLabel).toBeVisible();
+      await expect(this.transformValueDefaultValueRequired).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Add mapping rule button is visible
+   */
+  async verifyAddMappingRuleButtonVisible(): Promise<void> {
+    await test.step('Verify Add mapping rule button is visible', async () => {
+      await expect(this.transformValueAddMappingRuleButton).toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  /**
+   * Verify Value mapping radio button is visible
+   */
+  async verifyValueMappingRadioVisible(): Promise<void> {
+    await test.step('Verify Value mapping radio button is visible', async () => {
+      await expect(this.transformValueMappingRadio).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Transform value dialog close button is visible and click it
+   */
+  async verifyAndClickTransformValueDialogCloseButton(): Promise<void> {
+    await test.step('Verify and click Transform value dialog close button', async () => {
+      const dialog = this.transformValueDialog;
+      await expect(this.transformValueCloseButton).toBeVisible();
+      await this.transformValueCloseButton.click();
+      await expect(dialog).not.toBeVisible({ timeout: 3000 });
+    });
+  }
+
+  /**
+   * Get and verify API response with 200 OK status
+   * @param expectedBodyContent - Optional array of content to verify in response body
+   */
+  async getAndVerifySuccessfulAPIResponseInTab(expectedBodyContent?: Array<string | RegExp>): Promise<void> {
+    await this.clickButtonInTab('Data', 'Get API response');
+    await this.clickButton('Run');
+    await this.verifyAPIResponseStatus('200 OK');
+
+    if (expectedBodyContent) {
+      for (const content of expectedBodyContent) {
+        await this.verifyAPIResponseBodyContains(content);
+      }
+    }
+
+    await this.clickButton('Done');
   }
 
   async createcustom(tileName: string, tileDescription: string, tileType: string, app: string, apiAction: string) {
