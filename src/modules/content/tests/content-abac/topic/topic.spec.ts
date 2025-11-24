@@ -124,7 +124,8 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       });
 
       console.log(
-        `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in site: ${siteId}`
+        `Created page via API: Test Page Title with ID: 
+        ${pageInfo.contentId} and name ${pageInfo.pageName} in site: ${siteId}`
       );
 
       // Create event using API with the same topic
