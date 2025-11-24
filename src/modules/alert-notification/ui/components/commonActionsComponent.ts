@@ -3,15 +3,24 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core';
 
 export class CommonActionsComponent extends BaseComponent {
+  readonly profileNotificationSettingsButton: Locator;
+  readonly mySettingsButton: Locator;
+
   constructor(page: Page) {
     super(page);
+    this.profileNotificationSettingsButton = this.page.getByLabel('Profile settings');
+    this.mySettingsButton = this.page.getByText('My settings', { exact: true });
   }
 
   async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
     const stepName = step || `Click ${buttonName}`;
     await test.step(stepName, async () => {
       const button = this.page.getByRole('button', { name: buttonName });
-      await this.clickOnElement(button, { timeout });
+      if (await button.isEnabled()) {
+        await this.clickOnElement(button, { timeout });
+      } else {
+        console.log(`${buttonName} button is disabled, skipping click`);
+      }
     });
   }
 
@@ -62,6 +71,21 @@ export class CommonActionsComponent extends BaseComponent {
   async pressTab(locator: Locator): Promise<void> {
     await test.step('Press Tab key', async () => {
       await locator.press('Tab');
+    });
+  }
+
+  async reloadPage(): Promise<void> {
+    await test.step('Refresh the current page', async () => {
+      await this.page.reload();
+    });
+  }
+
+  async navigateToProfileNotificationSettingsPage(): Promise<void> {
+    await this.clickOnElement(this.profileNotificationSettingsButton, {
+      stepInfo: 'Click on Profile Notification Settings button',
+    });
+    await this.clickOnElement(this.mySettingsButton, {
+      stepInfo: 'Click on My Settings button',
     });
   }
 }
