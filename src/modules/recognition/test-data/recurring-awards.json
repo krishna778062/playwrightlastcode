@@ -1,0 +1,85 @@
+{
+  "total": 4,
+  "results": [
+    {
+      "awardId": "b8bb1579-346d-4fff-857c-81f488537752",
+      "awardIcon": "https://reco-automation.test.simpplr.xyz/fs/496a12b2-1f51-4a2d-955e-0fef165e1fb6/rec/p/38b0b9d4-0784-4f08-8810-55ffb6840d78/data",
+      "isDefaultIcon": false,
+      "awardName": "Sales superstar 537t1w",
+      "awardType": "NOMINATION",
+      "status": "ACTIVE",
+      "createdAt": "2025-11-17T10:49:42.280Z",
+      "overdue": false,
+      "delegateId": "f12a51ca-528c-4236-9f15-343901d489db",
+      "delegateIds": ["f12a51ca-528c-4236-9f15-343901d489db"],
+      "delegateName": "Aishma Gupta",
+      "delegateNames": ["Aishma Gupta"],
+      "isDelegateActive": true,
+      "areDelegatesActive": [true],
+      "frequency": "MONTHLY",
+      "startDate": "2025-11-17T00:00:00.000Z",
+      "activeInstance": {
+        "status": "OPEN",
+        "iteration": 1
+      }
+    },
+    {
+      "awardId": "756f0894-b596-45c3-9280-5b7ed14571bb",
+      "awardIcon": "https://reco-automation.test.simpplr.xyz/fs/496a12b2-1f51-4a2d-955e-0fef165e1fb6/rec/p/d88b5bca-d836-4749-a8e6-3850a49f2e18/data",
+      "isDefaultIcon": false,
+      "awardName": "Culture hero",
+      "awardType": "NOMINATION",
+      "status": "INACTIVE",
+      "createdAt": "2025-11-17T06:03:49.159Z",
+      "overdue": false,
+      "delegateId": "f12a51ca-528c-4236-9f15-343901d489db",
+      "delegateIds": ["f12a51ca-528c-4236-9f15-343901d489db"],
+      "delegateName": "Aishma Gupta",
+      "delegateNames": ["Aishma Gupta"],
+      "isDelegateActive": true,
+      "areDelegatesActive": [true],
+      "frequency": "MONTHLY",
+      "startDate": "2025-08-01T00:00:00.000Z",
+      "activeInstance": {
+        "status": "CANCELLED",
+        "iteration": 4
+      },
+      "lastInstance": {
+        "status": "CANCELLED"
+      }
+    },
+    {
+      "awardId": "1155c2c7-0812-4f78-99d2-3b9c2533ff2b",
+      "awardIcon": "https://reco-automation.test.simpplr.xyz/fs/496a12b2-1f51-4a2d-955e-0fef165e1fb6/rec/p/7e912b32-b89a-49a3-bb36-2a1ad48e5667/data",
+      "isDefaultIcon": false,
+      "awardName": "Sales superstar 8dh0gm",
+      "awardType": "NOMINATION",
+      "status": "DRAFT",
+      "createdAt": "2025-11-20T00:19:17.325Z",
+      "overdue": false
+    },
+    {
+      "awardId": "6da353b4-075f-46d8-b643-7da21dd259f3",
+      "awardIcon": "https://reco-automation.test.simpplr.xyz/fs/496a12b2-1f51-4a2d-955e-0fef165e1fb6/rec/p/38b0b9d4-0784-4f08-8810-55ffb6840d78/data",
+      "isDefaultIcon": false,
+      "awardName": "Sales superstar 389o2m",
+      "awardType": "NOMINATION",
+      "status": "SCHEDULED",
+      "createdAt": "2025-11-17T10:58:55.480Z",
+      "overdue": false,
+      "delegateId": "f12a51ca-528c-4236-9f15-343901d489db",
+      "delegateIds": ["f12a51ca-528c-4236-9f15-343901d489db"],
+      "delegateName": "Aishma Gupta",
+      "delegateNames": ["Aishma Gupta"],
+      "isDelegateActive": true,
+      "areDelegatesActive": [true],
+      "frequency": "MONTHLY",
+      "startDate": "2025-11-17T00:00:00.000Z",
+      "activeInstance": {
+        "status": "DRAFT",
+        "iteration": 1
+      }
+    }
+  ],
+  "skip": "16d03df2-5296-4526-8727-5f890fdc0fad"
+}

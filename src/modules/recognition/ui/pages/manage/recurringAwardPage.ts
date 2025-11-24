@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, test } from '@playwright/test';
 import { AwardCreationForm } from '@recognition/ui/components/common/award-creation-form';
+import fs from 'fs';
+import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -315,5 +317,39 @@ export class RecurringAwardPage extends BasePage {
     await this.page.unroute('**/recognition/admin/award/recurring/listing*');
     await this.page.reload();
     await this.verifyThePageIsLoaded();
+  }
+
+  async clickOnFilterButtonAndValidateRows(filter: string, rowCount: number): Promise<void> {
+    await this.mockTheRecurringAwardsInUI(filter.toUpperCase());
+    await this.verifyThePageIsLoaded();
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exactRegex = new RegExp(`^${escapeRegExp(filter)}$`);
+    const filterButton = this.recurringAwardsFilter.filter({ hasText: exactRegex });
+    await this.verifier.verifyTheElementIsVisible(filterButton);
+    await this.verifier.waitUntilElementIsVisible(this.recurringAwardTableRows.last());
+    await filterButton.click();
+    await this.verifier.waitUntilElementIsVisible(this.recurringAwardTableRows.last());
+    const actualRowCount = await this.recurringAwardTableRows.count();
+    expect(actualRowCount).toBe(rowCount);
+  }
+
+  async mockTheRecurringAwardsInUI(filter: string): Promise<void> {
+    console.log(`**/recognition/admin/award/recurring/listing?**&status=${filter}`);
+    await this.page.route(
+      `**/recognition/admin/award/recurring/listing?size=10&sortBy=awardName&order=asc&status=${filter}`,
+      async route => {
+        const fixture = await fs.promises.readFile(
+          path.join(__dirname, '..', '..', '..', 'test-data', 'recurring-awards.json'),
+          'utf8'
+        );
+        const data = JSON.parse(fixture);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(data),
+        });
+      }
+    );
+    await this.page.reload();
   }
 }

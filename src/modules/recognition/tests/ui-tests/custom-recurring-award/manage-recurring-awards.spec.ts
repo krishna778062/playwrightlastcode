@@ -61,4 +61,33 @@ test.describe('manage recurring awards', () => {
       await recurringAwardPage.validateTheRecurringAwardTable();
     }
   );
+
+  test(
+    'validate the filter in Recurring Award table',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecurringAwardsFeatureTags.RECURRING_AWARD,
+        TestPriority.P0,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6092',
+        storyId: 'RC-3426',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+      await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      // await recurringAwardPage.mockTheRecurringAwardsInUI();
+      // await recurringAwardPage.verifyThePageIsLoaded();
+      await recurringAwardPage.clickOnFilterButtonAndValidateRows('Active', 1);
+      await recurringAwardPage.clickOnFilterButtonAndValidateRows('Inactive', 1);
+      await recurringAwardPage.clickOnFilterButtonAndValidateRows('Draft', 1);
+      await recurringAwardPage.clickOnFilterButtonAndValidateRows('Scheduled', 1);
+    }
+  );
 });
