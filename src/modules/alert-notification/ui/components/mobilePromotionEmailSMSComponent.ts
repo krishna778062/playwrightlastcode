@@ -16,7 +16,7 @@ export class MobilePromotionEmailSMSComponent extends BaseComponent {
     super(page);
     this.sendMeLinkText = page.locator('p:has-text("Send me the download link for the app via")');
     this.SMSButton = page.getByText('SMS');
-    this.EmailButton = page.getByText('Email');
+    this.EmailButton = page.locator('#Email');
     this.countryCodeInput = page.locator('#countryCode');
     this.phoneNumberInput = page.locator('#mobileNumber');
     this.emailInput = page.getByPlaceholder('Email address…');
