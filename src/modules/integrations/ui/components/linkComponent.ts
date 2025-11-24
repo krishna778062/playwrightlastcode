@@ -757,6 +757,21 @@ export class LinkComponent extends BaseComponent {
     });
   }
 
+  async clickAlignmentButton(alignment: 'left' | 'center' | 'right'): Promise<void> {
+    await test.step(`Click alignment button "${alignment}"`, async () => {
+      await this.expandAlignmentAccordion();
+
+      const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
+      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
+
+      const buttonLabel = `Align ${alignment}`;
+      const alignmentButton = accordionContent.getByRole('button', { name: buttonLabel });
+
+      // Use force: true because radio input intercepts the button click
+      await alignmentButton.click({ force: true });
+    });
+  }
+
   async expandMaxLineCountAccordion(): Promise<void> {
     await test.step('Expand maximum line count accordion', async () => {
       await this.ensureAppearanceTabActive();

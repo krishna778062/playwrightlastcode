@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { CUSTOM_APP_TILES_TEST_DATA } from '@integrations/test-data/customAppTiles.test-data';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -38,7 +39,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-001',
+          zephyrTestId: 'INT-29332',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -72,7 +73,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-002',
+          zephyrTestId: 'INT-LINK-29333',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -93,12 +94,30 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         const textStyles = [
-          { name: 'Data large', expectedMinHeight: 18 },
-          { name: 'Data medium', expectedMinHeight: 14 },
-          { name: 'Data small', expectedMinHeight: 10 },
-          { name: 'Heading large', expectedMinHeight: 28 },
-          { name: 'Heading medium', expectedMinHeight: 22 },
-          { name: 'Heading small', expectedMinHeight: 19 },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.DATA_LARGE,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.DATA_LARGE,
+          },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.DATA_MEDIUM,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.DATA_MEDIUM,
+          },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.DATA_SMALL,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.DATA_SMALL,
+          },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_LARGE,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.HEADING_LARGE,
+          },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_MEDIUM,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.HEADING_MEDIUM,
+          },
+          {
+            name: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_SMALL,
+            expectedMinHeight: CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLE_HEIGHTS.HEADING_SMALL,
+          },
         ];
 
         for (const style of textStyles) {
@@ -110,55 +129,13 @@ test.describe(
     );
 
     test(
-      'verify link component color configuration with system colors',
-      {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-27943',
-        });
-
-        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
-        const linkComponent = new LinkComponent(appManagerFixture.page);
-
-        const { tileName, tileDescription } = generateTileData('Color Test');
-        await customAppTilesPage.createcustom(
-          tileName,
-          tileDescription,
-          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
-          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
-          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
-        );
-
-        await customAppTilesPage.dragToCanvas('Link');
-        await customAppTilesPage.clickText('Link…');
-
-        await customAppTilesPage.clickTab('Appearance', 'Link');
-
-        await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySystemColorOptions();
-        await linkComponent.selectAdvancedColor('System darkest');
-        await linkComponent.verifySelectedAdvancedColor('System darkest');
-        await linkComponent.saveAdvancedSettings();
-
-        await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor('System darkest');
-        await linkComponent.cancelAdvancedSettings();
-
-        const linkElement = linkComponent.getLinkElement('Link…', customAppTilesPage.canvasContainer);
-        await linkComponent.verifyLinkColorApplied(linkElement, 'Link…', 'rgb(0, 0, 0)');
-      }
-    );
-
-    test(
       'verify link component custom color configuration',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-004',
+          zephyrTestId: 'INT-27939',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -179,17 +156,231 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('Custom');
-        await linkComponent.verifySelectedAdvancedColor('Custom');
-        await linkComponent.enterCustomColorLightTheme('#FF0000');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
+        await linkComponent.enterCustomColorLightTheme(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.HEX.RED);
         await linkComponent.saveAdvancedSettings();
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor('Custom');
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
         await linkComponent.cancelAdvancedSettings();
 
-        const linkElement = linkComponent.getLinkElement('Link…', customAppTilesPage.canvasContainer);
-        await linkComponent.verifyLinkColorApplied(linkElement, 'Link…', 'rgb(255, 0, 0)');
+        const linkElement = linkComponent.getLinkElement(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.verifyLinkColorApplied(
+          linkElement,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.RGB.RED
+        );
+      }
+    );
+
+    test(
+      'verify link component color component in appearance section',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27936',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Color Component Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        await linkComponent.expandColorAccordion();
+        await expect(linkComponent.colorDropdown, 'Color dropdown should be visible').toBeVisible();
+        await linkComponent.colorDropdown.click();
+        const colorOptions = customAppTilesPage.page.getByRole('listbox');
+        await expect(colorOptions, 'Color options listbox should be visible').toBeVisible();
+        await expect(
+          colorOptions.getByText(/System darkest/i).first(),
+          'System darkest option should be visible'
+        ).toBeVisible();
+        await expect(colorOptions.getByText(/Advanced/i).first(), 'Advanced option should be visible').toBeVisible();
+        await customAppTilesPage.page.keyboard.press('Escape');
+      }
+    );
+
+    test(
+      'verify link component advanced option under color component',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27937',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Advanced Color Option Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        await linkComponent.openAdvancedColorSettings();
+        await expect(linkComponent.advancedDialog, 'Advanced settings dialog should be visible').toBeVisible();
+        await expect(
+          linkComponent.advancedDialogTitle,
+          'Advanced settings dialog should have correct title'
+        ).toHaveText('Advanced settings');
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARKEST
+        );
+        await expect(
+          linkComponent.advancedDialog.getByText(/System colors automatically adjust/i),
+          'System colors message should be visible'
+        ).toBeVisible();
+        await linkComponent.verifySystemColorOptions();
+        await linkComponent.cancelAdvancedSettings();
+      }
+    );
+
+    test(
+      'verify link component system darkest default for all other headings',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27942',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('System Darkest Default Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        const headingStyles = [
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_LARGE,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_MEDIUM,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_SMALL,
+        ];
+        for (const style of headingStyles) {
+          await linkComponent.selectTextStyle(style);
+          await linkComponent.openAdvancedColorSettings();
+          await linkComponent.verifySelectedAdvancedColor(
+            CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARKEST
+          );
+          await linkComponent.cancelAdvancedSettings();
+        }
+      }
+    );
+
+    test(
+      'verify link component system light default for secondary text style',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27941',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('System Light Default Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        await linkComponent.selectTextStyle(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.SECONDARY);
+        await linkComponent.openAdvancedColorSettings();
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_LIGHT
+        );
+        await linkComponent.cancelAdvancedSettings();
+      }
+    );
+
+    test(
+      'verify link component system dark default for body text style',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27943',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('System Dark Default Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        await linkComponent.selectTextStyle(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.BODY);
+        await linkComponent.openAdvancedColorSettings();
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARK
+        );
+        await linkComponent.cancelAdvancedSettings();
       }
     );
 
@@ -200,7 +391,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-005',
+          zephyrTestId: 'INT-29334',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -223,10 +414,20 @@ test.describe(
         await linkComponent.verifyAlignmentField();
         await linkComponent.verifyAlignmentButtonsCount(3);
 
-        const linkElement = linkComponent.getLinkElement('Link…', customAppTilesPage.canvasContainer);
-        await linkComponent.testAllAlignmentButtons(linkElement, 'Link…');
+        const linkElement = linkComponent.getLinkElement(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.testAllAlignmentButtons(
+          linkElement,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK
+        );
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyLinkAlignment(linkElement, 'Link…', 'right');
+        await linkComponent.verifyLinkAlignment(
+          linkElement,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.ALIGNMENT.RIGHT
+        );
       }
     );
 
@@ -237,7 +438,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-006',
+          zephyrTestId: 'INT-29335',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -258,21 +459,33 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.verifyMaxLineCountOptions();
-        await linkComponent.selectMaxLineCount('1');
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.ONE);
         await customAppTilesPage.clickTab('Data', 'Link');
         await linkComponent.enterLinkText(
-          'This is a very long link text that should wrap to multiple lines when None is selected',
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.LONG_TEXT_FULL,
           customAppTilesPage.canvasContainer
         );
-        await linkComponent.selectMaxLineCount('2');
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.TWO);
 
-        const linkTextPrefix = 'This is a very long link text';
+        const linkTextPrefix = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.LONG_TEXT_PREFIX;
         const linkElement = linkComponent.getLinkElement(linkTextPrefix, customAppTilesPage.canvasContainer);
-        await linkComponent.verifyMaxLineCountApplied(linkElement, linkTextPrefix, '2');
-        await linkComponent.selectMaxLineCount('3');
-        await linkComponent.verifyMaxLineCountApplied(linkElement, linkTextPrefix, '3');
-        await linkComponent.selectMaxLineCount('None');
-        await linkComponent.verifyMaxLineCountApplied(linkElement, linkTextPrefix, 'None');
+        await linkComponent.verifyMaxLineCountApplied(
+          linkElement,
+          linkTextPrefix,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.TWO
+        );
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.THREE);
+        await linkComponent.verifyMaxLineCountApplied(
+          linkElement,
+          linkTextPrefix,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.THREE
+        );
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.NONE);
+        await linkComponent.verifyMaxLineCountApplied(
+          linkElement,
+          linkTextPrefix,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.NONE
+        );
       }
     );
 
@@ -283,7 +496,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-007',
+          zephyrTestId: 'INT-29336',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -301,11 +514,14 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        await linkComponent.enterLinkText('Test Link', customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.google.com');
+        await linkComponent.enterLinkText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.TEST_LINK,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.GOOGLE);
 
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyRedirectUrl(tileName, 'https://www.google.com');
+        await linkComponent.verifyRedirectUrl(tileName, CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.GOOGLE);
 
         await customAppTilesPage.navigateBackToEditPage();
         await customAppTilesPage.clickButton('Save');
@@ -320,7 +536,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-008',
+          zephyrTestId: 'INT-29337',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -356,7 +572,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-009',
+          zephyrTestId: 'INT-29338',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -376,7 +592,7 @@ test.describe(
 
         await customAppTilesPage.clickTab('Data', 'Link');
 
-        const visibilityRule = "return apiData.status === 'active';";
+        const visibilityRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ACTIVE_STATUS;
 
         await linkComponent.openVisibilityRuleDialog();
         await linkComponent.verifyVisibilityRuleDialog();
@@ -393,7 +609,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-012',
+          zephyrTestId: 'INT-29339',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -414,7 +630,9 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('System dark');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARK
+        );
         await linkComponent.cancelAdvancedSettings();
       }
     );
@@ -426,7 +644,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-013',
+          zephyrTestId: 'INT-27938',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -447,25 +665,33 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('Custom');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
         await linkComponent.verifyNonSystemColorWarning();
-        await linkComponent.enterCustomColorLightTheme('#FF0000');
-        await linkComponent.enterCustomColorDarkTheme('#00FF00');
+        await linkComponent.enterCustomColorLightTheme(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.HEX.RED);
+        await linkComponent.enterCustomColorDarkTheme(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.HEX.GREEN);
         await linkComponent.saveAdvancedSettings();
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor('Custom');
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
         await linkComponent.cancelAdvancedSettings();
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('Brand');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.BRAND
+        );
         await linkComponent.verifyNonSystemColorWarning();
         await linkComponent.selectLightThemeBrand();
         await linkComponent.selectDarkThemeBrand();
         await linkComponent.saveAdvancedSettings();
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor('Brand');
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.BRAND
+        );
         await linkComponent.cancelAdvancedSettings();
       }
     );
@@ -477,7 +703,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-019',
+          zephyrTestId: 'INT-29340',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -498,7 +724,9 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('Brand');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.BRAND
+        );
         await linkComponent.verifyNonSystemColorWarning();
         await linkComponent.advancedSaveButton.click();
         await linkComponent.verifyThemeFieldsRequiredErrors();
@@ -518,7 +746,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-014',
+          zephyrTestId: 'INT-29341',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -538,7 +766,7 @@ test.describe(
 
         await customAppTilesPage.clickTab('Data', 'Link');
 
-        const visibilityRule = "return apiData.status === 'active';";
+        const visibilityRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ACTIVE_STATUS;
 
         await linkComponent.openVisibilityRuleDialog();
         await linkComponent.verifyVisibilityRuleDialog();
@@ -559,7 +787,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-015',
+          zephyrTestId: 'INT-29342',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -577,8 +805,11 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        await linkComponent.enterLinkText('Test Link', customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('invalid-url-format');
+        await linkComponent.enterLinkText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.TEST_LINK,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.INVALID_FORMAT);
 
         await customAppTilesPage.clickButton('Save');
         await customAppTilesPage.verifyToastMessageIsVisibleWithText(MESSAGES.INVALID_BLOCK_DETAILS);
@@ -592,7 +823,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-016',
+          zephyrTestId: 'INT-29343',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -610,9 +841,9 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        const specialText = 'Link with special chars: @#$%^&*()_+-=[]{}|;\':",./<>?';
+        const specialText = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.SPECIAL_CHARS;
         await linkComponent.enterLinkText(specialText, customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.example.com');
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE);
 
         const linkElement = linkComponent.getLinkElement(
           specialText.substring(0, 20),
@@ -635,7 +866,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-017',
+          zephyrTestId: 'INT-29344',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -657,7 +888,7 @@ test.describe(
 
         await linkComponent.verifyDataTextBindingField();
 
-        const bindingText = 'apiData.ticket.title';
+        const bindingText = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_TITLE;
         await linkComponent.enterDataTextBinding(bindingText);
         await linkComponent.verifyDataTextBindingField(bindingText);
 
@@ -673,7 +904,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-022',
+          zephyrTestId: 'INT-29354',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -691,9 +922,9 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        const longText = 'A'.repeat(250);
+        const longText = 'A'.repeat(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.LONG_TEXT_REPEAT_COUNT);
         await linkComponent.enterLinkText(longText, customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.example.com');
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE);
 
         const linkElement = linkComponent.getLinkElement(longText.substring(0, 50), customAppTilesPage.canvasContainer);
         await linkComponent.verifyLinkElementVisible(linkElement, 'Link element with long text should be visible');
@@ -710,7 +941,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-023',
+          zephyrTestId: 'INT-29355',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -733,7 +964,7 @@ test.describe(
         await linkComponent.enterLinkText('Test Link', customAppTilesPage.canvasContainer);
         await linkComponent.enterUrl('https://www.example.com');
 
-        const invalidRule = 'return apiData.status ===';
+        const invalidRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.INVALID_SYNTAX;
         await linkComponent.openVisibilityRuleDialog();
         await linkComponent.enterVisibilityRule(invalidRule);
         await linkComponent.saveVisibilityRule();
@@ -748,7 +979,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-024',
+          zephyrTestId: 'INT-29356',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -768,10 +999,13 @@ test.describe(
 
         await customAppTilesPage.clickTab('Data', 'Link');
 
-        await linkComponent.enterLinkText('Test Link', customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.example.com');
+        await linkComponent.enterLinkText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.TEST_LINK,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE);
 
-        const falseRule = 'return false;';
+        const falseRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ALWAYS_FALSE;
         await linkComponent.openVisibilityRuleDialog();
         await linkComponent.enterVisibilityRule(falseRule);
         await linkComponent.saveVisibilityRule();
@@ -789,7 +1023,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-025',
+          zephyrTestId: 'INT-29358',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -807,9 +1041,9 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        const unicodeText = 'Link with emoji 🚀 and unicode: 中文 العربية русский';
+        const unicodeText = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.UNICODE;
         await linkComponent.enterLinkText(unicodeText, customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.example.com');
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE);
 
         const linkElement = linkComponent.getLinkElement('Link with emoji', customAppTilesPage.canvasContainer);
         await linkComponent.verifyLinkElementVisible(linkElement, 'Link element with unicode should be visible');
@@ -826,7 +1060,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-026',
+          zephyrTestId: 'INT-29360',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -844,8 +1078,8 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
-        const linkText = 'Persistent Link';
-        const linkUrl = 'https://www.example.com';
+        const linkText = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PERSISTENT_LINK;
+        const linkUrl = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE;
         await linkComponent.enterLinkText(linkText, customAppTilesPage.canvasContainer);
         await linkComponent.enterUrl(linkUrl);
 
@@ -868,7 +1102,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-020',
+          zephyrTestId: 'INT-29345',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -893,13 +1127,19 @@ test.describe(
         await linkComponent.clearUrl();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickButtonInTab('Data', 'URL', 'Add dynamic value');
         await customAppTilesPage.selectDataBindingField('object ticket_field', 'string url');
 
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('Priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          customAppTilesPage.canvasContainer
+        );
       }
     );
 
@@ -910,7 +1150,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-029',
+          zephyrTestId: 'INT-29362',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -934,11 +1174,16 @@ test.describe(
         await linkComponent.clearDataTextBinding();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickTransformValue('Data', 'Text');
         await customAppTilesPage.verifyTransformValueDialogVisible();
-        await customAppTilesPage.selectTransformType('Value mapping');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.VALUE_MAPPING
+        );
         await customAppTilesPage.verifyValueMappingDefaultValueFieldVisible();
         await customAppTilesPage.verifyDefaultValueFieldRequired();
         await customAppTilesPage.verifyAddMappingRuleButtonVisible();
@@ -962,7 +1207,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-030',
+          zephyrTestId: 'INT-29364',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -987,14 +1232,25 @@ test.describe(
         await linkComponent.clearUrl();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Value mapping');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.VALUE_MAPPING
+        );
         await customAppTilesPage.clickButton('Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string created_at');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_CREATED_AT
+        );
         await customAppTilesPage.clickButton('Save');
-        await linkComponent.verifyTransformedTextInCanvas('2024-10-16T11:51:47Z', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_ISO,
+          customAppTilesPage.canvasContainer
+        );
       }
     );
 
@@ -1005,7 +1261,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-010',
+          zephyrTestId: 'INT-29346',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1029,32 +1285,60 @@ test.describe(
         await linkComponent.clearDataTextBinding();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Case format');
-        await customAppTilesPage.selectCaseFormat('Lowercase');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.CASE_FORMAT
+        );
+        await customAppTilesPage.selectCaseFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.CASE_FORMAT_OPTIONS.LOWERCASE
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_PRIORITY_LOWERCASE,
+          customAppTilesPage.canvasContainer
+        );
 
         await customAppTilesPage.navigateBackToEditPage();
-        await customAppTilesPage.clickText('priority');
+        await customAppTilesPage.clickText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_PRIORITY_LOWERCASE
+        );
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Case format');
-        await customAppTilesPage.selectCaseFormat('Uppercase');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.CASE_FORMAT
+        );
+        await customAppTilesPage.selectCaseFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.CASE_FORMAT_OPTIONS.UPPERCASE
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('PRIORITY', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_PRIORITY_UPPERCASE,
+          customAppTilesPage.canvasContainer
+        );
 
         await customAppTilesPage.navigateBackToEditPage();
-        await customAppTilesPage.clickText('PRIORITY');
+        await customAppTilesPage.clickText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_PRIORITY_UPPERCASE
+        );
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Case format');
-        await customAppTilesPage.selectCaseFormat('Sentence case');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.CASE_FORMAT
+        );
+        await customAppTilesPage.selectCaseFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.CASE_FORMAT_OPTIONS.SENTENCE_CASE
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('Priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          customAppTilesPage.canvasContainer
+        );
       }
     );
 
@@ -1065,7 +1349,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-011',
+          zephyrTestId: 'INT-29347',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1089,32 +1373,60 @@ test.describe(
         await linkComponent.clearDataTextBinding();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string created_at');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_CREATED_AT
+        );
 
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Date format');
-        await customAppTilesPage.selectDateFormat('MM/DD/YYYY');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.DATE_FORMAT
+        );
+        await customAppTilesPage.selectDateFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATE_FORMAT_OPTIONS.MM_DD_YYYY
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('10/16/2024', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_MM_DD_YYYY,
+          customAppTilesPage.canvasContainer
+        );
 
         await customAppTilesPage.navigateBackToEditPage();
-        await customAppTilesPage.clickText('10/16/2024');
+        await customAppTilesPage.clickText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_MM_DD_YYYY
+        );
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Date format');
-        await customAppTilesPage.selectDateFormat('MM/DD/YY');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.DATE_FORMAT
+        );
+        await customAppTilesPage.selectDateFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATE_FORMAT_OPTIONS.MM_DD_YY
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('10/16/24', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_MM_DD_YY,
+          customAppTilesPage.canvasContainer
+        );
 
         await customAppTilesPage.navigateBackToEditPage();
-        await customAppTilesPage.clickText('10/16/24');
+        await customAppTilesPage.clickText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_MM_DD_YY
+        );
         await customAppTilesPage.clickTransformValue('Data', 'Text');
-        await customAppTilesPage.selectTransformType('Date format');
-        await customAppTilesPage.selectDateFormat('Month Day, Year');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.DATE_FORMAT
+        );
+        await customAppTilesPage.selectDateFormat(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATE_FORMAT_OPTIONS.MONTH_DAY_YEAR
+        );
         await customAppTilesPage.clickTransformValueSave();
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('Oct 16, 2024', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_MONTH_DAY_YEAR,
+          customAppTilesPage.canvasContainer
+        );
       }
     );
 
@@ -1125,7 +1437,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-033',
+          zephyrTestId: 'INT-29348',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1149,21 +1461,32 @@ test.describe(
         await linkComponent.clearDataTextBinding();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickTransformValue('Data', 'Text');
         await customAppTilesPage.verifyTransformValueDialogVisible();
 
-        await customAppTilesPage.selectTransformType('Case format');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.CASE_FORMAT
+        );
         await customAppTilesPage.verifyCaseFormatPlaceholderVisible();
 
-        await customAppTilesPage.selectTransformType('Date format');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.DATE_FORMAT
+        );
         await customAppTilesPage.verifyDateFormatPlaceholderVisible();
 
-        await customAppTilesPage.selectTransformType('Value mapping');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.VALUE_MAPPING
+        );
         await customAppTilesPage.verifyValueMappingDefaultValueFieldVisible();
 
-        await customAppTilesPage.selectTransformType('Case format');
+        await customAppTilesPage.selectTransformType(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TRANSFORM_TYPES.CASE_FORMAT
+        );
         await customAppTilesPage.verifyCaseFormatPlaceholderVisible();
 
         await customAppTilesPage.clickTransformValueCancel();
@@ -1178,7 +1501,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-034',
+          zephyrTestId: 'INT-29365',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1198,15 +1521,22 @@ test.describe(
         await customAppTilesPage.clickText('Link…');
 
         await customAppTilesPage.clickTab('Appearance', 'Link');
-        await linkComponent.selectMaxLineCount('2');
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.TWO);
 
         await customAppTilesPage.clickTab('Data', 'Link');
 
-        await linkComponent.enterLinkText('   \n   \n   ', customAppTilesPage.canvasContainer);
-        await linkComponent.enterUrl('https://www.example.com');
+        await linkComponent.enterLinkText(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.WHITESPACE,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.enterUrl(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.URLS.EXAMPLE);
 
         const linkElement = linkComponent.getLinkElement('   ', customAppTilesPage.canvasContainer);
-        await linkComponent.verifyMaxLineCountApplied(linkElement, '   ', '2');
+        await linkComponent.verifyMaxLineCountApplied(
+          linkElement,
+          '   ',
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.TWO
+        );
 
         await customAppTilesPage.clickButton('Save');
       }
@@ -1219,7 +1549,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-035',
+          zephyrTestId: 'INT-29349',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1245,7 +1575,10 @@ test.describe(
         await linkComponent.clearUrl();
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
-        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE
+        );
 
         await customAppTilesPage.clickButtonInTab('Data', 'URL', 'Add dynamic value');
         await customAppTilesPage.selectDataBindingField('object ticket_field', 'string url');
@@ -1254,29 +1587,28 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         // Set text style
-        await linkComponent.selectTextStyle('Heading medium');
+        await linkComponent.selectTextStyle(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.HEADING_MEDIUM);
 
         // Configure advanced color settings with custom colors
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.selectAdvancedColor('Custom');
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
         await linkComponent.verifyNonSystemColorWarning();
-        await linkComponent.enterCustomColorLightTheme('#0066CC');
-        await linkComponent.enterCustomColorDarkTheme('#00CCFF');
+        await linkComponent.enterCustomColorLightTheme(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.HEX.BLUE);
+        await linkComponent.enterCustomColorDarkTheme(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.HEX.CYAN);
         await linkComponent.saveAdvancedSettings();
 
         // Set alignment
         await linkComponent.verifyAlignmentField();
-        await linkComponent.expandAlignmentAccordion();
-        // Use force: true because radio input intercepts the button click
-        const centerAlignButton = customAppTilesPage.page.getByRole('button', { name: 'Align center' });
-        await centerAlignButton.click({ force: true });
+        await linkComponent.clickAlignmentButton(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.ALIGNMENT.CENTER);
 
         // Set max line count
-        await linkComponent.selectMaxLineCount('2');
+        await linkComponent.selectMaxLineCount(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.MAX_LINE_COUNT.TWO);
 
         // Add visibility rule that always returns true to ensure element is visible
         await customAppTilesPage.clickTab('Data', 'Link');
-        const visibilityRule = 'return true;';
+        const visibilityRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ALWAYS_TRUE;
         await linkComponent.openVisibilityRuleDialog();
         await linkComponent.verifyVisibilityRuleDialog();
         await linkComponent.enterVisibilityRule(visibilityRule);
@@ -1285,29 +1617,48 @@ test.describe(
 
         // Verify in preview
         await customAppTilesPage.clickButton('Preview');
-        await linkComponent.verifyTransformedTextInCanvas('Priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyTransformedTextInCanvas(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          customAppTilesPage.canvasContainer
+        );
 
         // Verify color is applied
-        const previewLinkElement = linkComponent.getLinkElement('Priority', customAppTilesPage.canvasContainer);
-        await linkComponent.verifyLinkColorApplied(previewLinkElement, 'Priority', 'rgb(0, 102, 204)');
+        const previewLinkElement = linkComponent.getLinkElement(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          customAppTilesPage.canvasContainer
+        );
+        await linkComponent.verifyLinkColorApplied(
+          previewLinkElement,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.RGB.BLUE
+        );
 
         // Verify alignment
-        await linkComponent.verifyLinkAlignment(previewLinkElement, 'Priority', 'center');
+        await linkComponent.verifyLinkAlignment(
+          previewLinkElement,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.ALIGNMENT.CENTER
+        );
 
         // Save and verify persistence
         await customAppTilesPage.navigateBackToEditPage();
-        await customAppTilesPage.clickText('Priority');
+        await customAppTilesPage.clickText(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY);
         await customAppTilesPage.clickButton('Save');
         await customAppTilesPage.verifyToastMessageIsVisibleWithText(MESSAGES.TILE_SAVED_DRAFT);
 
         // Verify saved configuration persists
-        const savedLinkElement = linkComponent.getLinkElement('Priority', customAppTilesPage.canvasContainer);
+        const savedLinkElement = linkComponent.getLinkElement(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.PRIORITY,
+          customAppTilesPage.canvasContainer
+        );
         await linkComponent.verifyLinkElementVisible(savedLinkElement, 'Link element should be visible after save');
         await savedLinkElement.click();
 
         await customAppTilesPage.clickTab('Appearance', 'Link');
         await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor('Custom');
+        await linkComponent.verifySelectedAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.CUSTOM
+        );
         await linkComponent.cancelAdvancedSettings();
       }
     );

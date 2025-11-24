@@ -118,6 +118,114 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
   TEST_FILES: {
     JIRA_CUSTOM_APP_IMAGE: 'Jira_Custom_App.jpg',
   },
+
+  LINK_COMPONENT: {
+    TEXT_STYLES: {
+      DATA_LARGE: 'Data large',
+      DATA_MEDIUM: 'Data medium',
+      DATA_SMALL: 'Data small',
+      HEADING_LARGE: 'Heading large',
+      HEADING_MEDIUM: 'Heading medium',
+      HEADING_SMALL: 'Heading small',
+      SECONDARY: 'Secondary',
+      BODY: 'Body',
+    },
+    TEXT_STYLE_HEIGHTS: {
+      DATA_LARGE: 18,
+      DATA_MEDIUM: 14,
+      DATA_SMALL: 10,
+      HEADING_LARGE: 28,
+      HEADING_MEDIUM: 22,
+      HEADING_SMALL: 19,
+    },
+    ALIGNMENT: {
+      LEFT: 'left',
+      CENTER: 'center',
+      RIGHT: 'right',
+    },
+    MAX_LINE_COUNT: {
+      ONE: '1',
+      TWO: '2',
+      THREE: '3',
+      NONE: 'None',
+    },
+    COLORS: {
+      ADVANCED_COLOR_TYPES: {
+        CUSTOM: 'Custom',
+        BRAND: 'Brand',
+        SYSTEM_DARKEST: 'System darkest',
+        SYSTEM_LIGHT: 'System light',
+        SYSTEM_DARK: 'System dark',
+      },
+      HEX: {
+        RED: '#FF0000',
+        GREEN: '#00FF00',
+        BLUE: '#0066CC',
+        CYAN: '#00CCFF',
+      },
+      RGB: {
+        RED: 'rgb(255, 0, 0)',
+        BLUE: 'rgb(0, 102, 204)',
+      },
+    },
+    URLS: {
+      EXAMPLE: 'https://www.example.com',
+      GOOGLE: 'https://www.google.com',
+      INVALID_FORMAT: 'invalid-url-format',
+    },
+    VISIBILITY_RULES: {
+      ACTIVE_STATUS: "return apiData.status === 'active';",
+      ALWAYS_TRUE: 'return true;',
+      ALWAYS_FALSE: 'return false;',
+      INVALID_SYNTAX: 'return apiData.status ===',
+    },
+    TRANSFORM_TYPES: {
+      VALUE_MAPPING: 'Value mapping',
+      CASE_FORMAT: 'Case format',
+      DATE_FORMAT: 'Date format',
+    },
+    CASE_FORMAT_OPTIONS: {
+      LOWERCASE: 'Lowercase',
+      UPPERCASE: 'Uppercase',
+      SENTENCE_CASE: 'Sentence case',
+    },
+    DATE_FORMAT_OPTIONS: {
+      MM_DD_YYYY: 'MM/DD/YYYY',
+      MM_DD_YY: 'MM/DD/YY',
+      MONTH_DAY_YEAR: 'Month Day, Year',
+    },
+    TEST_TEXT: {
+      DEFAULT_LINK: 'Link…',
+      TEST_LINK: 'Test Link',
+      PERSISTENT_LINK: 'Persistent Link',
+      PRIORITY: 'Priority',
+      LONG_TEXT_PREFIX: 'This is a very long link text',
+      LONG_TEXT_FULL: 'This is a very long link text that should wrap to multiple lines when None is selected',
+      SPECIAL_CHARS: 'Link with special chars: @#$%^&*()_+-=[]{}|;\':",./<>?',
+      UNICODE: 'Link with emoji 🚀 and unicode: 中文 العربية русский',
+      WHITESPACE: '   \n   \n   ',
+      LONG_TEXT_REPEAT_COUNT: 250,
+    },
+    DATA_BINDING: {
+      TICKET_TITLE: 'apiData.ticket.title',
+      TICKET_FIELD_OBJECT: 'object ticket_field',
+      TICKET_FIELD_TITLE: 'string title',
+      TICKET_FIELD_URL: 'string url',
+      TICKET_FIELD_CREATED_AT: 'string created_at',
+    },
+    EXPECTED_VALUES: {
+      TRANSFORMED_PRIORITY_LOWERCASE: 'priority',
+      TRANSFORMED_PRIORITY_UPPERCASE: 'PRIORITY',
+      TRANSFORMED_PRIORITY_SENTENCE: 'Priority',
+      TRANSFORMED_DATE_ISO: '2024-10-16T11:51:47Z',
+      TRANSFORMED_DATE_MM_DD_YYYY: '10/16/2024',
+      TRANSFORMED_DATE_MM_DD_YY: '10/16/24',
+      TRANSFORMED_DATE_MONTH_DAY_YEAR: 'Oct 16, 2024',
+    },
+    DIALOG_TITLES: {
+      ADVANCED_SETTINGS: 'Advanced settings',
+    },
+  },
 } as const;
 
 /**
