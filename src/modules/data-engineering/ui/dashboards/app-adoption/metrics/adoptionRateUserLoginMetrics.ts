@@ -74,7 +74,7 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
           const firstLabelDate = addDays(startDate, 1); // Start from day 2 (which shows as Oct 3 for Oct 2 start date)
           let currentDate = firstLabelDate;
           while (currentDate <= endDate) {
-            xAxisLabels.push(format(currentDate, 'MMMdd'));
+            xAxisLabels.push(format(currentDate, 'MMM dd'));
             currentDate = addDays(currentDate, 2); // Alternate days
           }
         }
