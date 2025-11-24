@@ -298,7 +298,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[CONT-28585] Verify User is able to Create Recognition from HUB',
+    'verify User is able to Create Recognition from HUB',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28585'],
     },
@@ -357,12 +357,12 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.page.reload();
       await recognitionHub.verifyThePageIsLoaded();
 
-      await recognitionHub.verifyRecognitionPostVisible(recognizedUser || '', recognitionMessage);
+      await recognitionHub.verifyRecognitionPostVisible(recognitionMessage);
     }
   );
 
   test(
-    '[CONT-28587] Verify User is able to Share RECOGNITION from HUB',
+    'verify User is able to Share RECOGNITION from HUB',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28587'],
     },
