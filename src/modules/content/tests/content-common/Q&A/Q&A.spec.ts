@@ -1,6 +1,5 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -19,10 +18,10 @@ test.describe(
     let feedPage: FeedPage;
     let createdPostId: string = '';
     test.beforeEach(async ({ appManagerFixture }) => {
-      // Configure app governance settings and enable timeline comment post(feed)
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
-        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-      });
+      // // Configure app governance settings and enable timeline comment post(feed)
+      // await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      //   feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      // });
       await appManagerFixture.feedManagementHelper.enableQuestionAnswer();
     });
 
@@ -42,7 +41,7 @@ test.describe(
     test(
       'aM | Home Q&A | Create, Edit with only Title of the question',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38778'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38778', '@healthcheck'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

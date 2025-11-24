@@ -18,10 +18,11 @@ export class TileManagementHelper {
   readonly tileManagementService: TileManagementService;
   constructor(
     readonly appManagerApiContext: APIRequestContext,
-    readonly baseUrl: string
+    readonly baseUrl: string,
+    readonly frontendBaseUrl: string
   ) {
     this.httpClient = new HttpClient(appManagerApiContext, baseUrl);
-    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl);
+    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl, frontendBaseUrl);
   }
 
   /**
