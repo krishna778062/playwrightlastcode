@@ -409,7 +409,7 @@ test.describe(
     test(
       'verify that a warning popup is displayed before edit Access control group popup',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

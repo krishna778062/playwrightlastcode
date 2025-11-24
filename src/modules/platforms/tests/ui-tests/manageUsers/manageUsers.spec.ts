@@ -21,7 +21,7 @@ test.describe(
     test(
       'verify that selecting values from Primary roles attribute in filters of manage users page should update the user list accordingly',
       {
-        tag: [TestPriority.P0, `@manageUsers`, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@manageUsers`, `@ABAC`, `@acg`],
       },
       async () => {
         tagTest(test.info(), {
