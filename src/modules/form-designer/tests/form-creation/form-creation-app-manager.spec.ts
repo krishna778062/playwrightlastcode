@@ -32,8 +32,7 @@ test.describe(
 
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.dragAndDropElement('title & description');
-        await formCreationPage.dragAndDropElement('Short text');
+        await formCreationPage.dragAndDropElement('Title & description');
         await formCreationPage.clickOnSaveDraftButton();
         await formCreationPage.enterFormName('Automation Form ');
         await formCreationPage.clickOnSaveButton();

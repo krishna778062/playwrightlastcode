@@ -8,6 +8,7 @@ import {
   CreateFeedPostPayload,
   CreateQuestionPayload,
   FeedPostResponse,
+  GetQuestionDetailsResponse,
   QuestionResponse,
   UpdateFeedPostPayload,
   UpdateQuestionPayload,
@@ -1170,9 +1171,38 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: payload,
       });
       const responseBody = await response.json();
+
+      console.log('Update answer response JSON: ', JSON.stringify(responseBody, null, 2));
+      // Check for error status or error messages in response
       if (!response.ok() || responseBody.status !== 'success') {
-        throw new Error(`Failed to update answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+        const errorMessage = responseBody.message || `Failed to update answer ${answerId} on question ${questionId}`;
+        throw new Error(`${errorMessage}. Status: ${response.status()}`);
       }
+
+      // Also check if response indicates the comment was not found or deleted
+      if (
+        responseBody.message &&
+        (responseBody.message.includes('Not Found') || responseBody.message.includes('not found'))
+      ) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Comment not found. Status: ${response.status()}`
+        );
+      }
+
+      // Check if the response indicates the answer is deleted
+      if (responseBody.result?.isDeleted === true) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Answer is deleted. Status: ${response.status()}`
+        );
+      }
+
+      // Check HTTP status code - 404 indicates resource not found (deleted)
+      if (response.status() === 404) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Answer not found (likely deleted). Status: ${response.status()}`
+        );
+      }
+
       return responseBody;
     });
   }
@@ -1243,9 +1273,32 @@ export class FeedManagementService implements IFeedManagementOperations {
   }
 
   /**
+   * Gets question details including answers (comments) via API
+   * @param questionId - The question ID
+   * @returns Promise with the question details response including answers
+   */
+  async getQuestionDetails(questionId: string): Promise<GetQuestionDetailsResponse> {
+    return await test.step(`Getting question details for question ${questionId}`, async () => {
+      const response = await this.httpClient.get(API_ENDPOINTS.feed.fetchQuestionDetails(questionId), {
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+        },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        const errorDetails = JSON.stringify(responseBody, null, 2);
+        throw new Error(
+          `Failed to get question details for question ${questionId}. Status: ${response.status()}. Response: ${errorDetails}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
    * Fetches answers (comments) for a question via API
    * @param questionId - The question ID
-   * @param options - Optional query parameters
+   * @param options - Optional query parameters (kept for backward compatibility)
    * @returns Promise with the answers response
    */
   async fetchAnswers(
@@ -1253,18 +1306,23 @@ export class FeedManagementService implements IFeedManagementOperations {
     options?: { size?: number; nextPageToken?: string; sortBy?: string }
   ): Promise<any> {
     return await test.step(`Fetching answers for question ${questionId}`, async () => {
-      const queryParams = new URLSearchParams();
-      if (options?.size) queryParams.append('size', options.size.toString());
-      if (options?.nextPageToken) queryParams.append('nextPageToken', options.nextPageToken);
-      if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
+      // Get question details which includes answers/comments
+      const questionDetails = await this.getQuestionDetails(questionId);
 
-      const url = `${API_ENDPOINTS.feed.fetchComments(questionId)}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response = await this.httpClient.get(url);
-      const responseBody = await response.json();
-      if (!response.ok() || responseBody.status !== 'success') {
-        throw new Error(`Failed to fetch answers for question ${questionId}. Status: ${response.status()}`);
+      // Extract answers from the question details response
+      // The answers are typically in recentComments.listOfItems
+      if (questionDetails.result?.recentComments) {
+        return {
+          status: 'success',
+          result: {
+            listOfItems: questionDetails.result.recentComments.listOfItems || [],
+            nextPageToken: questionDetails.result.recentComments.nextPageToken || null,
+          },
+        };
       }
-      return responseBody;
+
+      // If structure is different, return the full response
+      return questionDetails;
     });
   }
 }
