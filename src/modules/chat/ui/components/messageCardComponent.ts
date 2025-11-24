@@ -219,6 +219,9 @@ export class MessageCardComponent extends MessageBaseComponent {
       await this.focusedMessageContainer.hover();
       if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 150 });
+        if (!(await this.verifier.isTheElementVisible(this.pinMessageButtonFromMessageActionsMenu))) {
+          await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 150 });
+        }
       } else {
         await this.focusedMessageContainer.hover();
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 150 });
