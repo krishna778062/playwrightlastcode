@@ -1040,4 +1040,8 @@ export class TestDataGenerator {
   static generateYouTubeEmbedUrl2(): string {
     return `https://www.youtube.com/watch?v=BMRaz6EmDqI&list=RDBMRaz6EmDqI&start_radio=1`;
   }
+
+  static minionVideoUrl(): string {
+    return `https://youtu.be/4vLyqzOr14g`;
+  }
 }
