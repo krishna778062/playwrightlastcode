@@ -30,50 +30,39 @@ export class TypeFilterComponent extends BaseComponent {
     super(page);
     this.filterName = filterName;
 
-    // Filter button with span containing filter name text (e.g., "Type", "Author")
     this.typeFilterButton = this.page.locator('[class*="FilterGroup-module"]').filter({
       has: this.page.locator('span').filter({ hasText: this.filterName }),
     });
 
-    // Arrow icon beside filter button
     this.typeFilterArrow = this.typeFilterButton.locator('[data-testid="i-arrowDown"]');
 
-    // Filter title (h3 with filter name text)
     this.typeFilterTitle = this.page.locator('h3[class*="Typography-module__heading"]').filter({
       hasText: this.filterName,
     });
 
-    // Type filter option by text (e.g., "Document File", "Presentation File", "Spreadsheet File")
     this.typeFilterOption = (optionText: string) =>
       this.page.locator('[class*="RadioListInput-module__title"]').filter({ hasText: optionText });
 
-    // Radio button for type filter option - located in the same container as the option text
     this.typeFilterRadioButton = (optionText: string) =>
       this.page
         .locator('[class*="RadioListInput-module"]')
         .filter({ has: this.typeFilterOption(optionText) })
         .locator('input[type="radio"]');
 
-    // Count displayed beside type filter option - located in the same container as the option text
     this.typeFilterCount = (optionText: string) =>
       this.page
         .locator('[class*="RadioListInput-module"]')
         .filter({ has: this.typeFilterOption(optionText) })
         .locator('[class*="Typography-module__secondary"]');
 
-    // Count displayed in type filter box once selected
     this.typeFilterGroupCount = this.typeFilterButton.locator('[class*="FilterGroup-module__count"]');
 
-    // Clear button in type filter - role="button", name="clear"
     this.typeFilterClearButton = this.page.locator('button[type="reset"]');
 
-    // Search result list container
     this.searchResultListContainer = this.page.locator("div[class*='ResultListWithSidebar_container']");
 
-    // First list item in search results
     this.searchResultFirstListItem = this.searchResultListContainer.locator('li').first();
 
-    // File result locator by filename
     this.fileResultLocator = (fileName: string) =>
       this.searchResultListContainer
         .locator('li')
@@ -82,7 +71,6 @@ export class TypeFilterComponent extends BaseComponent {
         })
         .first();
 
-    // People search input field (id="people-search")
     this.peopleSearchInput = this.page.locator('#people-search');
   }
 
