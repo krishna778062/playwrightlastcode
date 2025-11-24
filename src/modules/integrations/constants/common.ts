@@ -12,6 +12,10 @@ export const ACTION_LABELS = {
   ADD: 'Add',
   CONNECT_ACCOUNT: 'Connect account',
   DISCONNECT_ACCOUNT: 'Disconnect account',
+  MY_SETTINGS: 'My settings',
+  APP_SETTINGS: 'App Settings',
+  MARK_COMPLETE: 'Mark complete',
+  COMPLETED: 'Completed',
 } as const;
 
 export const UI_ACTIONS = {
@@ -24,6 +28,8 @@ export const UI_ACTIONS = {
   UPLOAD: 'Upload',
   ADD_TO_HOME: 'Add to home',
   ADD_TO_SITE: 'Add to site dashboard',
+  ENABLED: 'enabled',
+  DISABLED: 'disabled',
 } as const;
 
 export const DASHBOARD_BUTTONS = {
@@ -38,6 +44,7 @@ export const DASHBOARD_BUTTONS = {
 export const ORGANIZATION_SETTINGS = {
   USER_DEFINED: 'User defined',
   APP_MANAGER_DEFINED: 'App manager defined',
+  SITE_MANAGER_DEFINED: 'Site manager defined',
 } as const;
 
 export const FIELD_NAMES = {
@@ -45,6 +52,9 @@ export const FIELD_NAMES = {
   STATUS: 'Status',
   SORT_BY: 'Sort by',
   SORT_ORDER: 'Sort order',
+  PAYSLIP_LIST_URL: 'Payslip list URL',
+  INBOX_REPORT_URL: 'Inbox tasks report URL',
+  REPORT_ID: 'Report ID',
 } as const;
 
 export const DEFAULT_SITES = {

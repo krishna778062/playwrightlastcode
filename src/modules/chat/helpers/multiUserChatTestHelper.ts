@@ -1,11 +1,10 @@
 import { Browser, test } from '@playwright/test';
 
+import { ChatAppPage } from '@chat/ui/pages/chatPage/chatPage';
 import { MultiUserTestHelper } from '@core/helpers/multiUserTestHelper';
 import { ChatTestSetupResult } from '@modules/chat/types';
 
 import { defaultDualUsers } from '../fixtures/dualUserChatFixture';
-
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
 
 export class MultiUserChatTestHelper extends MultiUserTestHelper {
   public testData!: ChatTestSetupResult;
@@ -80,6 +79,26 @@ export class MultiUserChatTestHelper extends MultiUserTestHelper {
       const verifyPromises = chatPages.map((chatPage, index) => {
         const userNumber = options?.userIndices ? options.userIndices[index] + 1 : index + 1;
         return chatPage.assertions.verifyMessageIsVisible(message, {
+          stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
+          timeout: options?.timeout,
+        });
+      });
+      await Promise.all(verifyPromises);
+    });
+  }
+
+  async verifyEditedMessageAppearsForAllTheUsersInChatSection(
+    chatPages: ChatAppPage[],
+    message: string,
+    options?: {
+      timeout?: number;
+      userIndices?: number[];
+    }
+  ) {
+    await test.step(`Verifying message "${message}" for multiple users simultaneously`, async () => {
+      const verifyPromises = chatPages.map((chatPage, index) => {
+        const userNumber = options?.userIndices ? options.userIndices[index] + 1 : index + 1;
+        return chatPage.assertions.verifyEditedMessageIsVisible(message, {
           stepInfo: `Verifying message "${message}" is present for User ${userNumber}`,
           timeout: options?.timeout,
         });

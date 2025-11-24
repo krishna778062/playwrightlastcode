@@ -1,3 +1,5 @@
+import { AuthorInfo } from './autherInfo';
+
 export interface AlbumCreationResponse {
   status: string;
   result: AlbumCreationResult;
@@ -5,12 +7,12 @@ export interface AlbumCreationResponse {
 
 export interface AlbumCreationResult {
   versionId: number;
-  usefulContent: UsefulContent;
+  usefulContent: AlmbumUsefulContent;
   type: string;
   title: string;
   summary: string;
   status: string;
-  site: SiteInfo;
+  site: AlbumSiteInfo;
   recentViewCount: number;
   publishAt: string;
   postCount: number;
@@ -45,7 +47,7 @@ export interface AlbumCreationResult {
   modifiedAt: string;
   contentSubType: string;
   contentId: string;
-  category: CategoryInfo;
+  category: AlbumCategoryInfo;
   canSendUpdateNotification: boolean;
   canPublishUnpublish: boolean;
   canMove: boolean;
@@ -60,33 +62,33 @@ export interface AlbumCreationResult {
   albumAttachments?: AlbumAttachment[];
 }
 
-export interface UsefulContent {
+export interface AlmbumUsefulContent {
   id: string;
   title: string;
   summary: string;
   type: string;
 }
 
-export interface SiteInfo {
+export interface AlbumSiteInfo {
   siteId: string;
   siteName: string;
   siteUrl: string;
   siteType: string;
 }
 
-export interface CategoryInfo {
+export interface AlbumCategoryInfo {
   id: string;
   name: string;
   color: string;
 }
 
-export interface AuthorInfo {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profilePicture?: string;
-}
+// export interface AlbumAuthorInfo {
+//   id: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   profilePicture?: string;
+// }
 
 export interface AlbumImage {
   id: string;
@@ -103,21 +105,4 @@ export interface AlbumAttachment {
   url: string;
   fileSize: number;
   mimeType: string;
-}
-
-export interface AuthorInfo {
-  peopleId: string;
-  name: string;
-  mediumPhotoUrl: string | null;
-  location: string | null;
-  lastName: string;
-  isProtectedAuthor: boolean;
-  isFollowing: boolean;
-  isActive: boolean;
-  img: string | null;
-  id: string;
-  firstName: string;
-  email: string;
-  country: string | null;
-  canFollow: boolean;
 }

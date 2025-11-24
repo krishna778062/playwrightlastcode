@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export const CONTENT_TEST_DATA = {
@@ -10,6 +12,7 @@ export const CONTENT_TEST_DATA = {
   },
 
   DEFAULT_PAGE_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`,
     content: 'page',
     category: 'Uncategorized',
     label: 'Page',
@@ -33,6 +36,15 @@ export const CONTENT_TEST_DATA = {
       'https://youtu.be/-2RAq5o5pwc?si=JxHzuerkcqO8VTDf',
     ],
     attachments: ['image1.jpg', 'testData.txt'],
+  },
+
+  DEFAULT_EVENT_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Event`,
+    contentType: 'event',
+    description: 'Test event content for global search verification and validation',
+    location: 'Delhi, India',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   },
 
   TIMEOUTS: {

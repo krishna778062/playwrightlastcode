@@ -46,5 +46,32 @@ export const MESSAGES = {
   getAppAddedMessage: (appName: string) => `${appName} added`,
   getAppDeletedMessage: (appName: string) => `${appName} deleted`,
   getAppEnabledMessage: (appName: string) => `${appName} enabled`,
+  getAppDisabledMessage: (appName: string) => `${appName} disabled`,
   getAppConnectedMessage: (appName: string) => `Connected to ${appName} successfully`,
+  getAppDisconnectedMessage: (appName: string) => `${appName} disconnected`,
+  getAppDisconnectingConfirmationMessage: (appName: string) =>
+    `Are you sure you want to disconnect the ${appName} account?`,
+  getAppConnectionUnavailableMessage: (appName: string) =>
+    `${appName} connection is currently unavailable. Contact your app manager.`,
+
+  getAppDisconnectingConfirmationMessageHomeAndSiteDashboardTiles: `Home and site dashboard tiles using this connection will be removed`,
+  VALID_URL: 'This is not a valid URL',
+  MISSING_FIELD: 'Please fill out this field',
+  getAppPublishedMessage: (appName: string) => `${appName} published`,
+  NO_RESULTS_TEXT: 'No results Try adjusting search term or filters',
+  TILE_SAVED_DRAFT: 'Tile saved as draft',
+  TILE_PUBLISHED: 'Tile published',
+  API_ACTION_EXECUTED: 'API action executed',
+  ADD_TILE_SUCCESS: 'addTileSuccessMessage',
+  INCOMPLETE_SUCCESS_SETTINGS: 'Incomplete success settings',
+  INCOMPLETE_ERROR_SETTINGS: 'Incomplete error settings',
+  SAVE_TILE_FAILED: 'Save tile failed',
+  TILE_CANNOT_BE_EMPTY: 'Tile cannot be empty',
+  INVALID_BLOCK_DETAILS: 'One or more blocks have invalid details',
+  CHANGE_TILE_TYPE: 'Change tile type',
+  CHANGE_TILE_TYPE_MESSAGE:
+    'Changing the tile type will reset the current canvas configuration. Do you want to continue?',
+  UNSAVED_CHANGES_MESSAGE: 'You have unsaved changes. Do you want to leave?',
+  REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
+  REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
 } as const;

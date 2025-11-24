@@ -4,12 +4,13 @@ import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 
-import { MessageCardComponent } from '@/src/modules/chat/components/messageCardComponent';
+import { TestGroupType } from '@/src/core/constants/testType';
 import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
-import { ChatAppPage } from '@/src/modules/chat/pages/chatPage/chatPage';
+import { MessageCardComponent } from '@/src/modules/chat/ui/components/messageCardComponent';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
 
 test.describe(
-  'Test chat application with attachment',
+  'test chat application with attachment',
   {
     tag: [CHAT_SUITE_TAGS.CHAT_ATTACHMENT],
   },
@@ -25,9 +26,9 @@ test.describe(
     });
 
     test(
-      'Verify user is able to add and send pdf as  attachment in chat',
+      'verify user is able to add and send pdf as  attachment in chat',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //now open conversation with user 2
@@ -41,7 +42,7 @@ test.describe(
     );
 
     test(
-      'Verify sending unsupported files format',
+      'verify sending unsupported files format',
       {
         tag: [TestPriority.P0],
       },
@@ -65,7 +66,7 @@ test.describe(
     );
 
     test(
-      'Verify sending a file larger than 100 MB',
+      'verify sending a file larger than 100 MB',
       {
         tag: [TestPriority.P0],
       },
@@ -139,7 +140,7 @@ test.describe(
     );
 
     test(
-      'Verify viewing image attachment',
+      'verify viewing image attachment',
       {
         tag: [TestPriority.P0],
       },
@@ -175,7 +176,7 @@ test.describe(
     );
 
     test(
-      'Verify attachment deletion before sending',
+      'verify attachment deletion before sending',
       {
         tag: [TestPriority.P0],
       },
@@ -195,7 +196,7 @@ test.describe(
     );
 
     test(
-      'Verify sending video attachment',
+      'verify sending video attachment',
       {
         tag: [TestPriority.P0],
       },

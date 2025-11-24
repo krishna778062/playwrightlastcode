@@ -3,11 +3,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
-import { searchTestFixtures as test } from '@/src/modules/global-search/fixtures/searchTestFixture';
 import { generateUniqueTestData } from '@/src/modules/global-search/test-data/apps-search.test-data';
+import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 
 test.describe(
-  'Test Global Search - Apps Search functionality',
+  'test Global Search - Apps Search functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.APPS_SEARCH],
   },
@@ -16,7 +17,7 @@ test.describe(
     let uniqueTestData: any;
     let uniqueTestApp: any;
 
-    test.beforeEach('Setting up the test environment for apps search', async ({ appManagerApiClient }) => {
+    test.beforeEach('Setting up the test environment for apps search', async ({ appManagerFixture }) => {
       try {
         // Generate unique test data to avoid conflicts in parallel execution
         const { testData, testApp } = generateUniqueTestData();
@@ -26,18 +27,18 @@ test.describe(
         console.log(`Generated unique test data: ${uniqueTestData.appName}`);
 
         // Store original apps settings
-        const currentSettings = await appManagerApiClient.getAppsManagementService().getAppsSettings();
+        const currentSettings = await appManagerFixture.appManagementService.getAppsSettings();
         originalAppsSettings = currentSettings.result;
 
         // Add unique test app to the apps settings
-        await appManagerApiClient.getAppsManagementService().addApp(uniqueTestApp);
+        await appManagerFixture.appManagementService.addApp(uniqueTestApp);
         console.log(`Added unique app: ${uniqueTestApp.name}`);
 
         // Wait until the app appears in the launchpad apps list
-        await appManagerApiClient.getAppsManagementService().waitForAppToAppearInLaunchpadList(uniqueTestData.appName);
+        await appManagerFixture.appManagementService.waitForAppToAppearInLaunchpadList(uniqueTestData.appName);
 
-        await appManagerApiClient.getAppsManagementService().getAppsSettings();
-        await appManagerApiClient.getAppsManagementService().getLaunchpadAppsList();
+        await appManagerFixture.appManagementService.getAppsSettings();
+        await appManagerFixture.appManagementService.getLaunchpadAppsList();
         console.log('Successfully set up test environment for apps search');
       } catch (error) {
         console.error('Failed to set up test environment:', error);
@@ -45,11 +46,11 @@ test.describe(
       }
     });
 
-    test.afterEach('Tearing down the test environment for apps search', async ({ appManagerApiClient }) => {
+    test.afterEach('Tearing down the test environment for apps search', async ({ appManagerFixture }) => {
       try {
         // Remove the specific test app we added
         if (uniqueTestApp) {
-          await appManagerApiClient.getAppsManagementService().removeApp(uniqueTestApp.name);
+          await appManagerFixture.appManagementService.removeApp(uniqueTestApp.name);
           console.log(`Removed unique app: ${uniqueTestApp.name}`);
         }
       } catch (error) {
@@ -58,20 +59,23 @@ test.describe(
     });
 
     test(
-      'Verify Apps Search results for a new app',
+      'verify Apps Search results for a new app',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ appManagerHomePage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-10325',
           storyId: 'SEN-16500',
         });
 
         // Search for the unique app
-        const globalSearchResultPage = await appManagerHomePage.actions.searchForTerm(uniqueTestData.searchTerm, {
-          stepInfo: `Searching for unique app "${uniqueTestData.appName}"`,
-        });
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(
+          uniqueTestData.searchTerm,
+          {
+            stepInfo: `Searching for unique app "${uniqueTestData.appName}"`,
+          }
+        );
 
         // Get the app result item
         const appResultItem = await globalSearchResultPage.getAppResultItemExactlyMatchingTheSearchTerm(
@@ -87,6 +91,41 @@ test.describe(
 
         // Verify app link opens in new tab (URL doesn't need to be valid for our test case)
         await appResultItem.verifyAppLinkOpensInNewTab(uniqueTestData.appUrl);
+      }
+    );
+
+    test(
+      'verify app list in autocomplete suggestions dropdown',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-16499',
+        });
+
+        const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
+        await topNavBarComponent.typeInSearchBarInput(uniqueTestData.appName, {
+          stepInfo: `Typing "${uniqueTestData.appName}" in search input`,
+        });
+
+        const globalSearchResultPage = new GlobalSearchResultPage(appManagerFixture.page);
+        const appResult = await globalSearchResultPage.getAutocompleteAppItemByName(uniqueTestData.appName, {
+          stepInfo: `Getting app autocomplete item "${uniqueTestData.appName}"`,
+        });
+
+        // Verify app name is visible in autocomplete
+        await appResult.verifyAppNameIsVisibleInAutocomplete(uniqueTestData.appName, {
+          stepInfo: `Verifying app name "${uniqueTestData.appName}" is visible in autocomplete`,
+        });
+        await appResult.verifyIconIsDisplayedInAutocomplete(uniqueTestData.appIcon, {
+          stepInfo: `Verifying app icon is displayed in autocomplete with src "${uniqueTestData.appIcon}"`,
+        });
+
+        // Verify navigation in new tab
+        await appResult.verifyAppLinkOpensInNewTab(uniqueTestData.appUrl, {
+          stepInfo: `Verifying app link opens in new tab with URL "${uniqueTestData.appUrl}"`,
+        });
       }
     );
   }

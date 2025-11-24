@@ -6,8 +6,8 @@ import { ActionType } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
-import { AdGroupPage } from '@/src/modules/integrations/pages/adGroupPage';
 import { AD_GROUP } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { AdGroupPage } from '@/src/modules/integrations/ui/pages/adGroupPage';
 
 let adGroup: AdGroupPage;
 
@@ -17,17 +17,19 @@ test.describe(
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AD_GROUP],
   },
   () => {
-    test.beforeEach(async ({ appManagerPage }) => {
-      adGroup = new AdGroupPage(appManagerPage);
+    test.beforeEach(async ({ appManagerFixture }) => {
+      adGroup = new AdGroupPage(appManagerFixture.page);
       await adGroup.loadPage();
       await adGroup.verifyThePageIsLoaded();
+      await adGroup.removeIfGroupsAreSelected(AD_GROUP.AD_GROUP_OPTION, AD_GROUP.GROUP_BUTTON);
       await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
       await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
     });
+
     test(
       'verify that Select Active Directory groups option is visible in Zeus',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
@@ -44,7 +46,7 @@ test.describe(
     test(
       'verify that create and do not create audiences options is visible after connected with Active Directory groups.',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -73,9 +75,9 @@ test.describe(
     );
 
     test(
-      'verify that standard error message should be displayed when no group will be selected while selecting "use Active Directory groups"  through radio button',
+      'verify that standard error message should be displayed when no group will be selected while selecting "use Active Directory groups" through radio button',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -91,9 +93,9 @@ test.describe(
     test(
       'verify that Retain AD groups if user switches from "Do not use AD groups" to "Use AD groups"',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
-      async ({ appManagerPage }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'INT-5577',
           storyId: 'INT-5282',
@@ -105,7 +107,7 @@ test.describe(
         await adGroup.clickOnSubmitButton(ActionType.Save);
         await adGroup.clickOnDoNotUseADGroupsButton(AD_GROUP.DO_NOT_USE_AD_GROUPS);
         await adGroup.clickOnSubmitButton(ActionType.Save);
-        await appManagerPage.reload();
+        await appManagerFixture.page.reload();
         await adGroup.clickOnAdGroupsOption(AD_GROUP.AD_GROUP_OPTION);
         await adGroup.verifyMicrosoftEntraButtonCount(2);
         await adGroup.clickOnSelectADGroupButton(AD_GROUP.GROUP_BUTTON);
