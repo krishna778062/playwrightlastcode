@@ -116,7 +116,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-LINK-003',
+          zephyrTestId: 'INT-27943',
         });
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
@@ -1209,6 +1209,106 @@ test.describe(
         await linkComponent.verifyMaxLineCountApplied(linkElement, '   ', '2');
 
         await customAppTilesPage.clickButton('Save');
+      }
+    );
+
+    test(
+      'verify link component with comprehensive configuration - binding, color, text style, alignment and max line count',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-LINK-035',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const linkComponent = new LinkComponent(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Comprehensive Config Test');
+
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.ZENDESK,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.GET_PRIORITIES
+        );
+
+        await customAppTilesPage.dragToCanvas('Link');
+        await customAppTilesPage.clickText('Link…');
+
+        await customAppTilesPage.getAndVerifySuccessfulAPIResponseInTab([/zendesk/i, /priority/i]);
+
+        // Configure data binding for text and URL
+        await linkComponent.clearDataTextBinding();
+        await linkComponent.clearUrl();
+
+        await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
+        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string title');
+
+        await customAppTilesPage.clickButtonInTab('Data', 'URL', 'Add dynamic value');
+        await customAppTilesPage.selectDataBindingField('object ticket_field', 'string url');
+
+        // Configure appearance settings
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+
+        // Set text style
+        await linkComponent.selectTextStyle('Heading medium');
+
+        // Configure advanced color settings with custom colors
+        await linkComponent.openAdvancedColorSettings();
+        await linkComponent.selectAdvancedColor('Custom');
+        await linkComponent.verifyNonSystemColorWarning();
+        await linkComponent.enterCustomColorLightTheme('#0066CC');
+        await linkComponent.enterCustomColorDarkTheme('#00CCFF');
+        await linkComponent.saveAdvancedSettings();
+
+        // Set alignment
+        await linkComponent.verifyAlignmentField();
+        await linkComponent.expandAlignmentAccordion();
+        // Use force: true because radio input intercepts the button click
+        const centerAlignButton = customAppTilesPage.page.getByRole('button', { name: 'Align center' });
+        await centerAlignButton.click({ force: true });
+
+        // Set max line count
+        await linkComponent.selectMaxLineCount('2');
+
+        // Add visibility rule that always returns true to ensure element is visible
+        await customAppTilesPage.clickTab('Data', 'Link');
+        const visibilityRule = 'return true;';
+        await linkComponent.openVisibilityRuleDialog();
+        await linkComponent.verifyVisibilityRuleDialog();
+        await linkComponent.enterVisibilityRule(visibilityRule);
+        await linkComponent.saveVisibilityRule();
+        await linkComponent.verifyVisibilityRuleSaved(visibilityRule);
+
+        // Verify in preview
+        await customAppTilesPage.clickButton('Preview');
+        await linkComponent.verifyTransformedTextInCanvas('Priority', customAppTilesPage.canvasContainer);
+
+        // Verify color is applied
+        const previewLinkElement = linkComponent.getLinkElement('Priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyLinkColorApplied(previewLinkElement, 'Priority', 'rgb(0, 102, 204)');
+
+        // Verify alignment
+        await linkComponent.verifyLinkAlignment(previewLinkElement, 'Priority', 'center');
+
+        // Save and verify persistence
+        await customAppTilesPage.navigateBackToEditPage();
+        await customAppTilesPage.clickText('Priority');
+        await customAppTilesPage.clickButton('Save');
+        await customAppTilesPage.verifyToastMessageIsVisibleWithText(MESSAGES.TILE_SAVED_DRAFT);
+
+        // Verify saved configuration persists
+        const savedLinkElement = linkComponent.getLinkElement('Priority', customAppTilesPage.canvasContainer);
+        await linkComponent.verifyLinkElementVisible(savedLinkElement, 'Link element should be visible after save');
+        await savedLinkElement.click();
+
+        await customAppTilesPage.clickTab('Appearance', 'Link');
+        await linkComponent.openAdvancedColorSettings();
+        await linkComponent.verifySelectedAdvancedColor('Custom');
+        await linkComponent.cancelAdvancedSettings();
       }
     );
 

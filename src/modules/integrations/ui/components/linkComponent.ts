@@ -358,17 +358,21 @@ export class LinkComponent extends BaseComponent {
 
       const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
       const textStyleDropdown = accordionContentId
-        ? this.page.locator(`#${accordionContentId}`).getByRole('combobox').first()
+        ? this.page.locator(`[id="${accordionContentId}"]`).getByRole('combobox').first()
         : this.textStyleDropdown;
 
       await this.clickOnElement(textStyleDropdown);
       const styleOption = this.textStyleOption.filter({ hasText: style });
       await this.clickOnElement(styleOption);
 
-      const selectedValueDisplay = accordionContentId
-        ? this.textStyleSelectedValue.filter({ has: this.page.locator(`#${accordionContentId}`) })
-        : this.textStyleSelectedValue;
-      await expect(selectedValueDisplay, `Text style should be set to "${style}"`).toContainText(style);
+      // Wait for dropdown to close and verify selected value
+      if (accordionContentId) {
+        const accordionContent = this.page.locator(`[id="${accordionContentId}"]`);
+        const selectedValueDisplay = accordionContent.locator('.css-910r8z-singleValue').first();
+        await expect(selectedValueDisplay, `Text style should be set to "${style}"`).toContainText(style);
+      } else {
+        await expect(this.textStyleSelectedValue, `Text style should be set to "${style}"`).toContainText(style);
+      }
     });
   }
 
@@ -381,7 +385,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.textStyleAccordion);
         const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`#${accordionContentId}`).waitFor({ state: 'visible' });
+          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
         }
       }
     });
@@ -392,7 +396,7 @@ export class LinkComponent extends BaseComponent {
       await this.expandTextStyleAccordion();
       const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
       const textStyleField = accordionContentId
-        ? this.page.locator(`#${accordionContentId}`).getByTestId('field-undefined').first()
+        ? this.page.locator(`[id="${accordionContentId}"]`).getByTestId('field-undefined').first()
         : this.textStyleField;
       await expect(textStyleField, 'Text style field should be visible').toBeVisible();
     });
@@ -407,7 +411,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.colorAccordion);
         const accordionContentId = await this.colorAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`#${accordionContentId}`).waitFor({ state: 'visible' });
+          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
         }
       }
     });
@@ -419,7 +423,7 @@ export class LinkComponent extends BaseComponent {
 
       const accordionContentId = await this.colorAccordion.getAttribute('aria-controls');
       const advancedButton = accordionContentId
-        ? this.page.locator(`#${accordionContentId}`).getByRole('button', { name: 'Advanced' }).first()
+        ? this.page.locator(`[id="${accordionContentId}"]`).getByRole('button', { name: 'Advanced' }).first()
         : this.advancedButton;
 
       await this.clickOnElement(advancedButton);
@@ -544,7 +548,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.alignmentAccordion);
         const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`#${accordionContentId}`).waitFor({ state: 'visible' });
+          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
         }
       }
     });
@@ -557,7 +561,7 @@ export class LinkComponent extends BaseComponent {
       const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
       const alignmentField = accordionContentId
         ? this.page
-            .locator(`#${accordionContentId}`)
+            .locator(`[id="${accordionContentId}"]`)
             .getByTestId('field-undefined')
             .filter({ has: this.alignmentButtons })
             .first()
@@ -572,7 +576,7 @@ export class LinkComponent extends BaseComponent {
       await this.expandAlignmentAccordion();
 
       const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-      const accordionContent = accordionContentId ? this.page.locator(`#${accordionContentId}`) : this.page;
+      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
 
       const firstButton = accordionContent.getByRole('button', { name: 'Align left' });
       await expect(firstButton, 'First alignment button should be visible').toBeVisible();
@@ -587,7 +591,7 @@ export class LinkComponent extends BaseComponent {
       await this.expandAlignmentAccordion();
 
       const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-      const accordionContent = accordionContentId ? this.page.locator(`#${accordionContentId}`) : this.page;
+      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
 
       const firstButton = accordionContent.getByRole('button', { name: 'Align left' });
       await expect(firstButton, 'First alignment button should be visible').toBeVisible();
@@ -604,7 +608,7 @@ export class LinkComponent extends BaseComponent {
 
         const currentAccordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
         const currentAccordionContent = currentAccordionContentId
-          ? this.page.locator(`#${currentAccordionContentId}`)
+          ? this.page.locator(`[id="${currentAccordionContentId}"]`)
           : this.page;
 
         const button = currentAccordionContent.getByRole('button', { name: buttonLabel });
@@ -762,7 +766,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.maxLineCountAccordion);
         const accordionContentId = await this.maxLineCountAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`#${accordionContentId}`).waitFor({ state: 'visible' });
+          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
         }
       }
     });
@@ -963,31 +967,32 @@ export class LinkComponent extends BaseComponent {
             return styleAlign === 'start' ? 'left' : styleAlign === 'end' ? 'right' : styleAlign;
           }
 
-          const h3Element = el.querySelector('h3');
-          if (h3Element instanceof HTMLElement) {
+          // Check for h2 or h3 elements (different text styles use different heading levels)
+          const headingElement = el.querySelector('h2, h3');
+          if (headingElement instanceof HTMLElement) {
             if (
-              h3Element.classList.contains('Typography-module__centerAlign__OGpiQ') ||
-              h3Element.classList.contains('centerAlign')
+              headingElement.classList.contains('Typography-module__centerAlign__OGpiQ') ||
+              headingElement.classList.contains('centerAlign')
             ) {
               return 'center';
             }
             if (
-              h3Element.classList.contains('Typography-module__leftAlign__OGpiQ') ||
-              h3Element.classList.contains('leftAlign')
+              headingElement.classList.contains('Typography-module__leftAlign__OGpiQ') ||
+              headingElement.classList.contains('leftAlign')
             ) {
               return 'left';
             }
             if (
-              h3Element.classList.contains('Typography-module__rightAlign__OGpiQ') ||
-              h3Element.classList.contains('rightAlign')
+              headingElement.classList.contains('Typography-module__rightAlign__OGpiQ') ||
+              headingElement.classList.contains('rightAlign')
             ) {
               return 'right';
             }
 
-            const h3Style = window.getComputedStyle(h3Element);
-            const h3Align = h3Style.textAlign;
-            if (h3Align && h3Align !== 'start' && h3Align !== 'end' && h3Align !== '') {
-              return h3Align === 'start' ? 'left' : h3Align === 'end' ? 'right' : h3Align;
+            const headingStyle = window.getComputedStyle(headingElement);
+            const headingAlign = headingStyle.textAlign;
+            if (headingAlign && headingAlign !== 'start' && headingAlign !== 'end' && headingAlign !== '') {
+              return headingAlign === 'start' ? 'left' : headingAlign === 'end' ? 'right' : headingAlign;
             }
           }
         }
