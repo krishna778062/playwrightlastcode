@@ -154,12 +154,14 @@ export interface IFeedActions {
   enterSiteNameForShare: (siteName: string) => Promise<void>;
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
+  reloadPage(): Promise<void>;
 }
 
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotVisible(text: string): Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
@@ -207,6 +209,11 @@ export interface IFeedAssertions {
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
@@ -272,6 +279,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
         assertionMessage: 'Share thoughts button should be visible on feed page',
       });
+    });
+  }
+
+  async reloadPage(): Promise<void> {
+    await test.step('Reload page', async () => {
+      await this.page.reload();
+      await this.verifyThePageIsLoaded();
     });
   }
 
@@ -370,6 +384,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await this.listFeedComponent.waitForPostToBeVisible(expectedText);
+  }
+  async verifyPostIsNotVisible(text: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsNotVisible(text);
   }
 
   /**
@@ -917,10 +934,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await this.listFeedComponent.validatePostNotVisible(postText);
-  }
-
   async clickShareButtonOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
@@ -1132,6 +1145,26 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
   }
 
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyReactionButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsNotVisible();
+  }
+
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisible();
+  }
+
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+  }
+
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
   }
@@ -1168,34 +1201,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.closeReactionModal();
   }
 
-  /**
-   * Clicks the share icon on a feed post
-   * @param postText - The text of the post to share
-   */
   async clickShareIconOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
 
-  /**
-   * Verifies video controls are visible and functional
-   * @param postText - The text of the post containing the video
-   */
   async verifyVideoControls(postText: string): Promise<void> {
     await this.listFeedComponent.verifyVideoControls(postText);
   }
 
-  /**
-   * Verifies that a deleted post message is displayed for a specific post
-   * @param postText - The text of the post to verify deleted message for
-   */
   async verifyDeletedPostMessage(postText: string): Promise<void> {
     await this.listFeedComponent.verifyDeletedPostMessage(postText);
   }
 
-  /**
-   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
-   * @param postText - The text of the post to verify interaction restrictions for
-   */
   async verifyPostCannotBeInteracted(postText: string): Promise<void> {
     await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
   }

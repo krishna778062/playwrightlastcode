@@ -571,7 +571,6 @@ export class SiteManagementHelper {
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
     return await this.siteManagementService.getListOfPeople(options);
   }
-
   /**
    * Gets 2 sites that are not in the featured sites list
    * @param count - Number of non-featured sites to return (default: 2)

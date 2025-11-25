@@ -15,6 +15,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
   readonly likeButtonForReply: Locator;
+  readonly unlikeButton: Locator;
+  readonly unlikeButtonForReply: Locator;
   readonly siteImageLocator: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
@@ -38,6 +40,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+  readonly sharePostButton: Locator;
 
   readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
   readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
@@ -186,6 +189,7 @@ export class ListFeedComponent extends BaseComponent {
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.unlikeButton = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
@@ -197,6 +201,8 @@ export class ListFeedComponent extends BaseComponent {
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.unlikeButtonForReply = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
+    this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
@@ -299,6 +305,15 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyPostIsNotVisible(expectedText: string): Promise<void> {
+    await test.step(`Verify post is not visible: ${expectedText}`, async () => {
+      const postLocator = this.postTextLocator(expectedText);
+      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
+        assertionMessage: `Post with text "${expectedText}" should not be visible`,
+      });
+    });
+  }
+
   /**
    * Verifies that the inline image preview is visible
    */
@@ -394,19 +409,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await test.step(`Verify post is not visible: "${postText}"`, async () => {
-      const postLocator = this.getFeedTextLocator(postText);
-      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
-        assertionMessage: `Post "${postText}" should not be visible`,
-      });
-    });
-  }
-  /**
-   * Adds a reply to a specific post
-   * @param postText - The text of the post to reply to
-   * @param replyText - The reply text to add
-   */
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
@@ -1188,11 +1190,64 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies that an embedded URL does NOT unfurl (no link preview is displayed)
-   * @param embedUrl - The URL that should not be unfurled
-   * @param postText - The text of the post containing the URL
-   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton.first(), {
+        assertionMessage: 'Share button should not be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify reaction button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
+        assertionMessage: 'Reaction button should not be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
+        assertionMessage: 'Reaction button should be visible on feed post',
+      });
+      await this.clickOnElement(this.likeButton.first());
+      await this.verifier.verifyTheElementIsVisible(this.unlikeButton.first(), {
+        assertionMessage: 'Remove your reaction button should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed reply', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply.first(), {
+        assertionMessage: 'Reaction button should be visible on feed reply',
+      });
+    });
+    await this.clickOnElement(this.likeButtonForReply.first());
+    await this.verifier.verifyTheElementIsVisible(this.unlikeButtonForReply.first(), {
+      assertionMessage: 'Remove your reaction button should be visible on feed reply',
+    });
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
+    await test.step('Verify the page is loaded with timeline mode', async () => {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
+        assertionMessage: 'Show button should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    const sendFeedbackButton = this.page.getByRole('button', { name: 'Send feedback' });
+    await test.step('Verify the page is loaded with timeline mode on content page', async () => {
+      await this.verifier.verifyTheElementIsVisible(sendFeedbackButton, {
+        assertionMessage: 'Show button should be visible on content page',
+      });
+    });
+  }
+
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
       // First, verify the post is visible
@@ -1230,11 +1285,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks a specific reaction emoji (like, love, etc.)
-   * @param postText - The text of the post
-   * @param reactionName - The name of the reaction (e.g., 'like', 'love')
-   */
   async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
     await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
       const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
@@ -1245,11 +1295,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Gets the text content of the reaction button to verify which emoji is selected
-   * @param postText - The text of the post
-   * @returns The text content of the reaction button
-   */
   async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
     const reactionButton = this.page.locator('button').filter({ hasText: reactionName }).first();
     await this.verifier.verifyTheElementIsVisible(reactionButton, {
@@ -1261,10 +1306,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks the reaction count/text button to open the reaction modal
-   * @param postText - The text of the post
-   */
   async clickReactionCountButton(postText: string): Promise<void> {
     await test.step(`Click reaction count button for post: ${postText}`, async () => {
       const reactionCountButton = this.reactionCountButton.first();
