@@ -61,6 +61,7 @@ export class SocialCampaignSettingPage
       if (isChecked) {
         await this.socialCampaignCheckOutbox.uncheck();
         await this.clickOnElement(this.saveButton);
+        await this.clickOnConfirmButton();
         await this.verifier.verifyTheElementIsVisible(
           this.toastMessages.filter({ hasText: 'Saved changes successfully' })
         );
@@ -103,7 +104,7 @@ export class SocialCampaignSettingPage
   }
 
   async clickOnConfirmButton(): Promise<void> {
-    await test.step('Clicking on continue button', async () => {
+    await test.step('Clicking on confirm button', async () => {
       await this.clickOnElement(this.confirmButton);
     });
   }

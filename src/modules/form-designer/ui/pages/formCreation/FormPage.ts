@@ -41,6 +41,7 @@ export class FormCreationPage extends BasePage {
   readonly copyIcon: Locator;
   readonly deleteIcon: Locator;
   readonly settingsIcon: Locator;
+  readonly dismissSurvey: Locator;
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
 
@@ -80,6 +81,7 @@ export class FormCreationPage extends BasePage {
     this.deleteIcon = this.page.getByRole('button', { name: 'Delete icon' });
     this.settingsIcon = this.page.getByRole('button', { name: 'Default Properties icon' });
     this.getDashboardLocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
+    this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -99,56 +101,89 @@ export class FormCreationPage extends BasePage {
     const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
     const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
     await test.step('Drag and drop element on Form creation page', async () => {
+      // Close survey popup if present
+      try {
+        if (await this.verifier.verifyTheElementIsVisible(this.dismissSurvey, { timeout: TIMEOUTS.VERY_SHORT })) {
+          await this.clickOnElement(this.dismissSurvey);
+        }
+      } catch {
+        // ignore if not present
+      }
       await srcLocator.scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(srcLocator);
+      await this.verifier.verifyTheElementIsEnabled(srcLocator);
+      await this.verifier.verifyTheElementIsVisible(tgtLocator);
+      await this.verifier.verifyTheElementIsEnabled(tgtLocator);
+
       await dragAndDrop(this.page, srcLocator, tgtLocator);
     });
   }
 
   private resolveComponentLocator(componentName: string): Locator {
-    const key = componentName.trim().toLowerCase();
+    const key: any = componentName.trim().toLowerCase();
+    console.log(' key : ', componentName);
     switch (key) {
       case 'title&description':
-      case 'title & description':
+      case 'Title & description':
       case 'title and description':
+        console.log('title and description key:control coming here', key);
         return this.titleAndDescriptionArea;
       case 'heading':
+        console.log('heading key:control coming here', key);
         return this.heading;
       case 'paragraph':
+        console.log('paragraph key:control coming here', key);
         return this.paragraph;
       case 'short text':
+        console.log('short text key:control coming here', key);
         return this.shortText;
       case 'long text':
+        console.log('long text key:control coming here', key);
         return this.longText;
       case 'number':
+        console.log('number key:control coming here', key);
         return this.number;
       case 'email':
+        console.log('email key:control coming here', key);
         return this.email;
       case 'date and time':
+        console.log('date and time key:control coming here', key);
         return this.dateAndTime;
       case 'address':
+        console.log('address key:control coming here', key);
         return this.address;
       case 'legal':
+        console.log('legal key:control coming here', key);
         return this.legal;
       case 'multi select':
       case 'multiselect':
+        console.log('multi select key:control coming here', key);
         return this.multiSelect;
       case 'single select':
       case 'singleselect':
+        console.log('single select key:control coming here', key);
         return this.singleSelect;
       case 'drop down':
       case 'dropdown':
       case 'drop-down':
+        console.log('drop down key:control coming here', key);
         return this.dropDown;
+      case 'File upload':
       case 'file upload':
       case 'fileupload':
+        console.log('file upload key:control coming here', key);
         return this.fileUpload;
       case 'image':
+        console.log('image key:control coming here', key);
         return this.image;
       case 'rating':
+        console.log('rating key:control coming here', key);
         return this.rating;
       case 'opinion':
+        console.log('opinion key:control coming here', key);
         return this.opinion;
       default: {
+        console.log('default key', key);
         const escaped = componentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return this.page.getByRole('button', { name: new RegExp(escaped, 'i') });
       }
