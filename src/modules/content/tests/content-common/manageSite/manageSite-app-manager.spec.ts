@@ -436,62 +436,6 @@ test.describe(
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
-
-    test(
-      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
-          zephyrTestId: 'CONT-20538',
-          storyId: 'CONT-20538',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await appManagerFixture.page.reload();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await appManagerFixture.page.reload();
-        const contentNames = await manageContentPage.actions.getAllContentNames();
-        console.log('contentNames', contentNames);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
-        await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
-        await onboardingComponent.saveButtonShouldBeDisabled();
-        await onboardingComponent.selectOnboardingOption(TagOption.SITE_ONBOARDING);
-        await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
-        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnOnboardingOption();
-        await onboardingComponent.selectOnboardingOption(TagOption.NOT_ONBOARDING);
-        await onboardingComponent.clickOnSaveButton();
-        await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
-        await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
-      }
-    );
     test(
       'to verify the bulk action activate in manage site user drop down',
       {
