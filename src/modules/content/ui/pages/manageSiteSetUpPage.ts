@@ -290,6 +290,8 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   async verifyMemberButtonShouldBeVisible(): Promise<void> {
     await this.manageSitesComponent.verifyMemberButtonShouldBeVisible();
+  }
+
   async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
     await this.manageSitesComponent.verifyMemberNameAndSiteOwnerStatus(membersName);
   }
