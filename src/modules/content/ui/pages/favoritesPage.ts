@@ -22,6 +22,7 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   readonly contentButton: Locator;
   readonly getPeopleNamesLocators: (name: string) => Locator;
   readonly getContentNamesLocators: (name: string) => Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.peopleButton = page.getByRole('tab', { name: 'People' });
@@ -49,11 +50,13 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       await this.clickOnElement(this.peopleButton);
     });
   }
+
   async clickOnContentButton(): Promise<void> {
     await test.step('Clicking on content button', async () => {
       await this.clickOnElement(this.contentButton);
     });
   }
+
   async verifyContentNamesAreDisplayed(contentNames: string[]): Promise<void> {
     await test.step('Verify content names are displayed', async () => {
       for (let index = 0; index < contentNames.length; index++) {
