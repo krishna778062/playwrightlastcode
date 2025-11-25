@@ -5,6 +5,7 @@ export enum ManageContentOptions {
   PUBLISH = 'Publish',
   MOVE = 'Move',
   ADD_TO_CAMPAIGN = 'Add to campaign',
+  ONBOARDING_OPTION = 'Onboarding',
   NOT_ONBOARDING = 'Not onboarding',
   SITE_ONBOARDING = 'Site onboarding',
   ONBOARDING = 'Onboarding',

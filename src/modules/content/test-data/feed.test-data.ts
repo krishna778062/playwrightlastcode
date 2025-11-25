@@ -22,6 +22,8 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content`,
+    EDITED_POST_TEXT: `This is a test post with appropriate content`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -53,6 +55,9 @@ export const FEED_TEST_DATA = {
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
+  SEARCH: {
+    RANDOM_TEXT: 'RandomTextThatDoesNotExist12345',
+  },
   DELETED_POST_MESSAGE: 'THIS POST HAS BEEN DELETED',
   API_RESPONSE_MESSAGES: {
     FEED_POST_CREATED: 'Feed Post has been successfully created',
