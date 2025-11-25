@@ -56,6 +56,17 @@ test.describe(
         // groupBy: GroupByOnUserParameter.LOCATION,
       };
 
+      // testFiltersConfig = {
+      //   tenantCode: process.env.ORG_ID!,
+      //   timePeriod: PeriodFilterTimeRange.CUSTOM,
+      //   customStartDate: '2024-01-01',
+      //   customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
+      //   departments: ['Information Technology', 'New department DUCK DB', 'Payroll', 'Retail', 'Undefined'],
+      //   locations: ['Undefined', 'New city DUCK DB, New state DUCK DB, New country DUCK DB', 'India'],
+      //   companyName: ['Undefined'],
+      //   // groupBy: GroupByOnUserParameter.LOCATION,
+      // };
+
       const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
       await analyticsFiltersComponent.verifyFilterComponentIsVisible();
 
