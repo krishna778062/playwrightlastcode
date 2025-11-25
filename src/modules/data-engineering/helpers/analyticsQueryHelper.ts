@@ -1,5 +1,5 @@
 import { SnowflakeHelper } from '@data-engineering/helpers/snowflakeHelper';
-import { DuckDBFiltersSql } from '@data-engineering/sqlQueries/duckdb-filters';
+import { AnalyticsSql } from '@data-engineering/sqlQueries/analytics';
 
 export interface SegmentResult {
   SEGMENT_CODE: string;
@@ -27,50 +27,57 @@ export interface DivisionResult {
   DIVISION: string;
 }
 
+export interface BatchRunDetailResult {
+  BATCH_NAME: string;
+  LAST_BATCH_END_TIME: string;
+}
+
 /**
- * DuckDB Filters Query Helper
- * Handles all database queries for DuckDB-powered filter APIs
- * (Segments, Departments, etc.)
+ * Analytics Query Helper
+ * Handles all database queries for Analytics APIs
+ * (Filters, Batch Run Details, etc.)
  */
-export class DuckDBFiltersQueryHelper {
+export class AnalyticsQueryHelper {
   constructor(
     private readonly snowflakeHelper: SnowflakeHelper,
     private readonly tenantCode: string
   ) {}
 
   async getActiveSegmentsFromDB(): Promise<SegmentResult[]> {
-    return await this.snowflakeHelper.executeWithParams<SegmentResult>(DuckDBFiltersSql.Active_Segments, [
-      this.tenantCode,
-    ]);
+    return await this.snowflakeHelper.executeWithParams<SegmentResult>(AnalyticsSql.Active_Segments, [this.tenantCode]);
   }
 
   async getActiveDepartmentsFromDB(): Promise<DepartmentResult[]> {
-    return await this.snowflakeHelper.executeWithParams<DepartmentResult>(DuckDBFiltersSql.Active_Departments, [
+    return await this.snowflakeHelper.executeWithParams<DepartmentResult>(AnalyticsSql.Active_Departments, [
       this.tenantCode,
     ]);
   }
 
   async getActiveLocationsFromDB(): Promise<LocationResult[]> {
-    return await this.snowflakeHelper.executeWithParams<LocationResult>(DuckDBFiltersSql.Active_Locations, [
+    return await this.snowflakeHelper.executeWithParams<LocationResult>(AnalyticsSql.Active_Locations, [
       this.tenantCode,
     ]);
   }
 
   async getActiveUserCategoriesFromDB(): Promise<UserCategoryResult[]> {
-    return await this.snowflakeHelper.executeWithParams<UserCategoryResult>(DuckDBFiltersSql.Active_User_Categories, [
+    return await this.snowflakeHelper.executeWithParams<UserCategoryResult>(AnalyticsSql.Active_User_Categories, [
       this.tenantCode,
     ]);
   }
 
   async getActiveCompanyNamesFromDB(): Promise<CompanyNameResult[]> {
-    return await this.snowflakeHelper.executeWithParams<CompanyNameResult>(DuckDBFiltersSql.Active_Company_Names, [
+    return await this.snowflakeHelper.executeWithParams<CompanyNameResult>(AnalyticsSql.Active_Company_Names, [
       this.tenantCode,
     ]);
   }
 
   async getActiveDivisionsFromDB(): Promise<DivisionResult[]> {
-    return await this.snowflakeHelper.executeWithParams<DivisionResult>(DuckDBFiltersSql.Active_Divisions, [
+    return await this.snowflakeHelper.executeWithParams<DivisionResult>(AnalyticsSql.Active_Divisions, [
       this.tenantCode,
     ]);
+  }
+
+  async getBatchRunDetailsFromDB(): Promise<BatchRunDetailResult[]> {
+    return await this.snowflakeHelper.execute<BatchRunDetailResult>(AnalyticsSql.ANALYTICS_LAST_UPDATED_DATETIME);
   }
 }

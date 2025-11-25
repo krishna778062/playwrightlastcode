@@ -268,6 +268,7 @@ export class HomeDashboard extends BasePage {
     fields?: Array<{ name: string; value: string }>;
     radioOptions?: Array<{ fieldName: string; option: string }>;
     radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    dropdowns?: Array<{ fieldName: string; value: string }>;
   }): Promise<void> {
     if (config.fields) {
       for (const field of config.fields) {
@@ -290,6 +291,11 @@ export class HomeDashboard extends BasePage {
         );
       }
     }
+    if (config.dropdowns) {
+      for (const dropdown of config.dropdowns) {
+        await this.selectDropdownValue(dropdown.fieldName, dropdown.value);
+      }
+    }
   }
 
   /**
@@ -309,6 +315,7 @@ export class HomeDashboard extends BasePage {
       fields?: Array<{ name: string; value: string }>;
       radioOptions?: Array<{ fieldName: string; option: string }>;
       radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      dropdowns?: Array<{ fieldName: string; value: string }>;
     }
   ): Promise<void> {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
@@ -715,6 +722,12 @@ export class HomeDashboard extends BasePage {
     return this.tileOperationsComponent.selectRadioOptionandValue(fieldName, radioOption, dropdownValue);
   }
   /**
+   * Select a dropdown value directly by field name (without radio button)
+   */
+  async selectDropdownValue(fieldName: string, value: string): Promise<void> {
+    return this.tileOperationsComponent.selectDropdownValue(fieldName, value);
+  }
+  /**
    * Verify label is visible using tile operations component
    */
   async verifyLabel(labelText: string): Promise<void> {
@@ -753,7 +766,24 @@ export class HomeDashboard extends BasePage {
       ],
     });
   }
-
+  /**
+   * Complete workflow to add an app tile with dropdown and text field
+   */
+  async addTileWithDropdownAndField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    textFieldName: string,
+    textFieldValue: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      dropdowns: [{ fieldName: dropdownFieldName, value: dropdownValue }],
+      fields: [{ name: textFieldName, value: textFieldValue }],
+    });
+  }
   /**
    * Complete workflow to add an app tile with manager defined settings
    */
@@ -901,6 +931,12 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayPaystubsMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayPaystubsMetadata(tileTitle);
   }
+  /**
+   * Verify Workday Display Inbox metadata
+   */
+  async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
+  }
   async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
   }
@@ -980,5 +1016,23 @@ export class HomeDashboard extends BasePage {
       await this.tileOperationsComponent.enableToggleButton(tileTitle);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
+  }
+  /**
+   * Verify Salesforce tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceTileContentStructure(tileTitle);
+  }
+  /**
+   * Verify Salesforce View Complete Report link is visible
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifySalesforceViewCompleteReportLink(
+    tileTitle: string,
+    expectedUrl: string,
+    linkSelector?: string
+  ): Promise<void> {
+    await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
   }
 }
