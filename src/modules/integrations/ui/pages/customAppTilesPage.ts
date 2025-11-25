@@ -2190,29 +2190,16 @@ export class CustomAppTilesPage extends BasePage {
           await tab.click();
         }
       }
-
       const tabContent = this.page.getByLabel(tabName);
       const fieldRegion = tabContent.getByRole('region', { name: fieldName });
       await expect(fieldRegion).toBeVisible({ timeout: 5000 });
-
-      // Find the three dots button (more options) within the field region
-      const threeDotsButton = fieldRegion
-        .getByRole('button', { name: /menu/i })
-        .filter({ has: fieldRegion.getByTestId('i-more') })
-        .first();
+      const threeDotsButton = fieldRegion.locator('button:has([data-testid="i-more"])').first();
       await expect(threeDotsButton).toBeVisible({ timeout: 5000 });
       await this.clickOnElement(threeDotsButton);
-
-      // Wait for the dropdown menu to appear - wait for menu with data-state="open"
       const menu = this.transformValueOpenMenu.first();
       await expect(menu).toBeVisible({ timeout: 5000 });
-
-      // Wait a bit for the menu to be fully rendered
       await this.page.waitForTimeout(300);
-
-      // Click "Transform value" - find the menuitem wrapper that contains the text
       const transformValueOption = this.transformValueOption.first();
-
       await expect(transformValueOption).toBeVisible({ timeout: 5000 });
       await this.clickOnElement(transformValueOption);
     });
@@ -2259,35 +2246,25 @@ export class CustomAppTilesPage extends BasePage {
       const dialog = this.transformValueDialog;
       const radioButton = dialog.getByRole('radio', { name: transformType });
       await expect(radioButton).toBeVisible({ timeout: 5000 });
-
-      // Check if the radio button is already selected
       const isChecked = await radioButton.isChecked().catch(() => false);
 
       if (!isChecked) {
-        // Try to find and click the label associated with the radio button
-        // This avoids interception by overlapping dropdown elements
         const radioId = await radioButton.getAttribute('id').catch(() => null);
 
         if (radioId) {
-          // Try clicking the label using the 'for' attribute
           const label = dialog.locator(`label[for="${radioId}"]`).first();
           const labelVisible = await label.isVisible({ timeout: 2000 }).catch(() => false);
 
           if (labelVisible) {
             await this.clickOnElement(label);
           } else {
-            // Fallback: click the radio button with force to bypass interception
             await radioButton.click({ force: true });
           }
         } else {
-          // Fallback: click the radio button with force
           await radioButton.click({ force: true });
         }
-
-        // Wait for the radio button to be checked
         await expect(radioButton, `${transformType} radio button should be checked`).toBeChecked({ timeout: 5000 });
       } else {
-        // Already selected, just wait a bit for UI to stabilize
         await this.page.waitForTimeout(300);
       }
     });
@@ -2299,27 +2276,13 @@ export class CustomAppTilesPage extends BasePage {
    */
   async selectCaseFormat(caseOption: 'Sentence case' | 'Uppercase' | 'Lowercase'): Promise<void> {
     await test.step(`Select ${caseOption} in Case format dropdown`, async () => {
-      // Wait a bit for the dropdown to render after selecting Case format
       await this.page.waitForTimeout(500);
-
-      // Find the react-select control div - it may show "Select case…" or a selected value like "Uppercase"
-      // The control div has class "css-1bbetpp-control"
-      // Since "Case format" is already selected, there should only be one react-select control in the dialog
       const clickableControl = this.transformValueReactSelectControl.first();
-
-      // Wait for the control to be visible (it might take a moment to render)
       await expect(clickableControl, 'Case format control should be visible').toBeVisible({ timeout: 5000 });
-
-      // Click the control div to open dropdown
       await this.clickOnElement(clickableControl);
-
-      // Wait for menu to appear
       await this.page.waitForTimeout(300);
-
-      // Wait for options to appear and select the option
       const menu = this.transformValueListbox;
       await expect(menu).toBeVisible({ timeout: 5000 });
-
       const option = menu.getByText(caseOption, { exact: true });
       await expect(option).toBeVisible({ timeout: 5000 });
       await this.clickOnElement(option);
@@ -2332,27 +2295,13 @@ export class CustomAppTilesPage extends BasePage {
    */
   async selectDateFormat(dateFormat: string): Promise<void> {
     await test.step(`Select ${dateFormat} in Date format dropdown`, async () => {
-      // Wait a bit for the dropdown to render after selecting Date format
       await this.page.waitForTimeout(500);
-
-      // Find the react-select control div - it may show "Select date…" or a selected value like "MM/DD/YYYY"
-      // The control div has class "css-1bbetpp-control"
-      // Since "Date format" is already selected, there should only be one react-select control in the dialog
       const clickableControl = this.transformValueReactSelectControl.first();
-
-      // Wait for the control to be visible (it might take a moment to render)
       await expect(clickableControl, 'Date format control should be visible').toBeVisible({ timeout: 5000 });
-
-      // Click the control div to open dropdown
       await this.clickOnElement(clickableControl);
-
-      // Wait for menu to appear
       await this.page.waitForTimeout(300);
-
-      // Wait for options to appear and select the option
       const menu = this.transformValueListbox;
       await expect(menu).toBeVisible({ timeout: 5000 });
-
       const option = menu.getByText(dateFormat, { exact: true });
       await expect(option).toBeVisible({ timeout: 5000 });
       await this.clickOnElement(option);
@@ -2367,8 +2316,6 @@ export class CustomAppTilesPage extends BasePage {
       const dialog = this.transformValueDialog;
       await expect(this.transformValueSaveButton).toBeVisible({ timeout: 5000 });
       await this.transformValueSaveButton.click();
-
-      // Wait for dialog to close
       await expect(dialog).not.toBeVisible({ timeout: 5000 });
     });
   }
@@ -2381,8 +2328,6 @@ export class CustomAppTilesPage extends BasePage {
       const dialog = this.transformValueDialog;
       await expect(this.transformValueCancelButton).toBeVisible({ timeout: 5000 });
       await this.transformValueCancelButton.click();
-
-      // Wait for dialog to close
       await expect(dialog).not.toBeVisible({ timeout: 5000 });
     });
   }
@@ -2483,13 +2428,11 @@ export class CustomAppTilesPage extends BasePage {
     await this.clickButtonInTab('Data', 'Get API response');
     await this.clickButton('Run');
     await this.verifyAPIResponseStatus('200 OK');
-
     if (expectedBodyContent) {
       for (const content of expectedBodyContent) {
         await this.verifyAPIResponseBodyContains(content);
       }
     }
-
     await this.clickButton('Done');
   }
 
