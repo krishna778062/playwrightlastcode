@@ -1,8 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { BaseComponent } from '../../../../core/ui/components/baseComponent';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -45,7 +46,9 @@ export class ManageSitesComponent extends BaseComponent {
   readonly followingButtonUnderMemberTab: Locator;
   readonly clickOnUpdateCategoryButton: Locator;
   readonly contentFilterDropdown: Locator;
+  readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
+  readonly checkboxLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -89,7 +92,10 @@ export class ManageSitesComponent extends BaseComponent {
     this.followButtonUnderAboutTab = page.getByLabel('About').getByRole('button', { name: 'Follow', exact: true });
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
+    this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
+    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
+    this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
   }
 
   getAuthorNameByLabel(authorName: string): Locator {
@@ -639,8 +645,47 @@ export class ManageSitesComponent extends BaseComponent {
   getSiteRowByExactName(siteName: string): Locator {
     return this.page
       .locator('tr')
-      .filter({ has: this.page.locator('h2', { hasText: siteName }) })
+      .filter({ has: this.page.locator('td.cell-details').locator('h2', { hasText: siteName }) })
       .first();
+  }
+  /**
+   * Finds and selects the first site with an enabled checkbox from a list of site names
+   * @param siteNames - Array of site names to try
+   * @returns The name of the selected site, or null if none found
+   */
+  async selectFirstEnabledSiteCheckbox(siteNames: string[]): Promise<string | null> {
+    return await test.step('Finding and selecting first site with enabled checkbox', async () => {
+      for (const siteName of siteNames) {
+        try {
+          const siteRow = this.getSiteRowByExactName(siteName);
+          // Try specific checkbox locator first, fallback to getByLabel
+          let checkbox = siteRow.locator(this.checkboxLocator);
+          let isVisible = await checkbox.isVisible().catch(() => false);
+
+          if (!isVisible) {
+            // Fallback to getByLabel if specific locator doesn't find it
+            checkbox = siteRow.getByLabel('Select');
+            isVisible = await checkbox.isVisible().catch(() => false);
+          }
+
+          if (!isVisible) {
+            continue;
+          }
+
+          const isEnabled = await checkbox.isEnabled().catch(() => false);
+          const isDisabled = await checkbox.getAttribute('enabled').catch(() => null);
+
+          if (isEnabled && !isDisabled) {
+            await this.clickOnElement(checkbox);
+            return siteName;
+          }
+        } catch {
+          // Continue to next site if this one fails
+          continue;
+        }
+      }
+      return null;
+    });
   }
   /**
    * Selects the checkbox for a site by its exact name
@@ -649,7 +694,33 @@ export class ManageSitesComponent extends BaseComponent {
   async selectSiteCheckboxByExactName(siteName: string): Promise<void> {
     await test.step(`Selecting checkbox for site: ${siteName}`, async () => {
       const siteRow = this.getSiteRowByExactName(siteName);
-      const checkbox = siteRow.getByLabel('Select');
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('input[type="checkbox"][aria-label="Select"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Select');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Checkbox for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
       await this.clickOnElement(checkbox);
     });
   }
