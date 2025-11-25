@@ -11,6 +11,7 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -24,9 +25,9 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSiteSetUpPage;
-    let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitesComponent: ManageSitesComponent;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
@@ -279,6 +280,29 @@ test.describe(
       }
     );
     test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site edit option in manage site user drop down sites',
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+
+        manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
+        const editSitePage = new EditSitePage(standardUserFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
+        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+      }
+    );
+    test(
       'to verify the people follow in site about members and followers tab',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
@@ -327,7 +351,7 @@ test.describe(
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action activate in manage site user drop down',
+          description: 'to verify the bulk action from end user can deactivate the site',
           zephyrTestId: 'CONT-26576',
           storyId: 'CONT-26576',
         });

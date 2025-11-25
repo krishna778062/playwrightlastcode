@@ -20,6 +20,7 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -437,6 +438,27 @@ test.describe(
       }
     );
     test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const editSitePage = new EditSitePage(appManagerFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
+        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+      }
+    );
+    test(
       'to verify the bulk action activate in manage site user drop down',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
@@ -663,7 +685,7 @@ test.describe(
             userId: nonAppManagerMember.peopleId,
             role: SitePermission.OWNER,
           });
-        } catch (error) {
+        } catch {
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSite.siteId);
