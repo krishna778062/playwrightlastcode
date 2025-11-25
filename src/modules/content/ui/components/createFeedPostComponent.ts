@@ -249,6 +249,29 @@ export class CreateFeedPostComponent
     });
   }
 
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await test.step(`Creating and publishing feed post with text: ${text}`, async () => {
+      await this.createPost(text);
+      await this.addTopicMention(topic);
+
+      // Publish the post and get the response
+      const postResponse = await this.createFeedPost();
+
+      // Parse JSON body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      // Fetch the post id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: text,
+        attachmentCount: 0,
+        postId,
+      };
+    });
+  }
+
   /**
    * Edits an existing post with new text
    * @param currentText - Current text of the post to edit
