@@ -256,4 +256,146 @@ export class QAndAApiHelper {
       });
     }
   }
+
+  /**
+   * Validates answer creation with all fields (mentions, topics)
+   * @param answerResponse - The answer response to validate
+   */
+  async validateAnswerCreationWithAllFields(answerResponse: any): Promise<void> {
+    await test.step('Validate answer creation with all fields', async () => {
+      expect(answerResponse.status, 'Status should be success').toBe('success');
+      expect(answerResponse.result, 'Result should be present').toBeTruthy();
+      expect(answerResponse.result.commentId, 'Comment ID should be present').toBeTruthy();
+      expect(answerResponse.result.feedId, 'Feed ID should be present').toBeTruthy();
+      expect(Array.isArray(answerResponse.result.listOfMentions), 'listOfMentions should be an array').toBe(true);
+      expect(Array.isArray(answerResponse.result.listOfTopics), 'listOfTopics should be an array').toBe(true);
+    });
+  }
+
+  /**
+   * Validates error response for deleted answer operations
+   * @param errorResponse - The error response to validate
+   * @param expectedMessage - Expected error message
+   * @param expectedStatusCode - Expected HTTP status code
+   */
+  async validateAnswerErrorResponse(
+    errorResponse: any,
+    expectedMessage: string,
+    expectedStatusCode: number = 404
+  ): Promise<void> {
+    await test.step('Validate error response for deleted answer', async () => {
+      expect(errorResponse.status, 'Status should be error').toBe('error');
+      expect(errorResponse.message, 'Error message should match').toBe(expectedMessage);
+    });
+  }
+
+  /**
+   * Validates the updateAppConfig response for Q&A enable/disable
+   * @param response - The API response from updateAppConfig
+   */
+  async validateUpdateAppConfigResponse(response: any): Promise<void> {
+    await test.step('Validate updateAppConfig response', async () => {
+      expect(response.ok(), 'Update App Config should be successful').toBe(true);
+    });
+  }
+
+  /**
+   * Validates that Q&A is enabled in the app configuration
+   * @param configResponse - The app configuration response
+   */
+  async validateQAndAEnabled(configResponse: any): Promise<void> {
+    await test.step('Validate Q&A is enabled', async () => {
+      expect(configResponse.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be true').toBe(true);
+    });
+  }
+
+  /**
+   * Validates that Q&A is disabled in the app configuration
+   * @param configResponse - The app configuration response
+   */
+  async validateQAndADisabled(configResponse: any): Promise<void> {
+    await test.step('Validate Q&A is disabled', async () => {
+      expect(configResponse.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be false').toBe(false);
+    });
+  }
+
+  /**
+   * Validates that Q&A is disabled in the app configuration with retry logic
+   * @param getConfigFn - Function that returns the app configuration
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @param retryDelay - Delay between retries in milliseconds (default: 2000)
+   */
+  async validateQAndADisabledWithRetry(
+    getConfigFn: () => Promise<any>,
+    maxRetries: number = 2,
+    retryDelay: number = 2000
+  ): Promise<void> {
+    await test.step(`Validate Q&A is disabled with retry (max ${maxRetries} attempts)`, async () => {
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const configResponse = await getConfigFn();
+          expect(
+            configResponse.result.isQuestionAnswerEnabled,
+            `isQuestionAnswerEnabled should be false (attempt ${attempt + 1}/${maxRetries + 1})`
+          ).toBe(false);
+          return; // Success, exit the retry loop
+        } catch (error) {
+          lastError = error as Error;
+          if (attempt < maxRetries) {
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(
+        `Failed to validate Q&A is disabled after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
+    });
+  }
+
+  /**
+   * Validates error message for updating deleted answer
+   * @param error - The error object
+   */
+  async validateUpdateDeletedAnswerError(error: any): Promise<void> {
+    await test.step('Validate error message for updating deleted answer', async () => {
+      expect(error.message, 'Error should indicate failure to update deleted answer').toMatch(/404|Failed to update/i);
+    });
+  }
+
+  /**
+   * Validates that an error was caught when editing deleted answer
+   * @param errorCaught - Boolean indicating if error was caught
+   */
+  async validateErrorCaughtForEditDeletedAnswer(errorCaught: boolean): Promise<void> {
+    await test.step('Validate error was caught when editing deleted answer', async () => {
+      expect(errorCaught, 'Expected error when editing deleted answer').toBe(true);
+    });
+  }
+
+  /**
+   * Validates error message for deleting already deleted answer
+   * @param error - The error object
+   */
+  async validateDeleteAlreadyDeletedAnswerError(error: any): Promise<void> {
+    await test.step('Validate error message for deleting already deleted answer', async () => {
+      expect(error.message, 'Error should indicate failure to delete already deleted answer').toMatch(
+        /404|Failed to delete|Not Found/i
+      );
+    });
+  }
+
+  /**
+   * Validates that an error was caught when deleting already deleted answer
+   * @param errorCaught - Boolean indicating if error was caught
+   */
+  async validateErrorCaughtForDeleteAlreadyDeletedAnswer(errorCaught: boolean): Promise<void> {
+    await test.step('Validate error was caught when deleting already deleted answer', async () => {
+      expect(errorCaught, 'Expected error when deleting already deleted answer').toBe(true);
+    });
+  }
 }
