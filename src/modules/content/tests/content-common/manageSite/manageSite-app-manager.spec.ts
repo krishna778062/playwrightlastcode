@@ -14,7 +14,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -22,9 +21,6 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
-import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
@@ -718,13 +714,6 @@ test.describe(
           throw new Error('No non-app-manager members found');
         }
         const nonAppManagerMember = nonAppManagerMembers[0];
-        const updateUserSiteMembershipWithRole =
-          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-            siteId: firstSite.siteId,
-            userId: nonAppManagerMember.peopleId,
-            role: SitePermission.OWNER,
-          });
-        console.log('updateUserSiteMembershipWithRole', updateUserSiteMembershipWithRole);
         try {
           const updateUserSiteMembershipWithRole =
             await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
@@ -879,6 +868,9 @@ test.describe(
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
+      }
+    );
+    test(
       'verify rejected content functionality under Content tab in Manage Site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
@@ -918,7 +910,7 @@ test.describe(
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.REJECTED_TAG);
       }
     );
   }

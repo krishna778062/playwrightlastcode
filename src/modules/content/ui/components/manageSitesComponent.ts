@@ -527,17 +527,6 @@ export class ManageSitesComponent extends BaseComponent {
       });
     });
   }
-
-  async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
-    await test.step(`Verify member name and site owner status for ${membersName}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getMembersListInPeopleTab(membersName), {
-        assertionMessage: `Member name ${membersName} should be visible in people tab`,
-      });
-      await this.verifier.verifyTheElementIsVisible(this.getSiteOwnerStatusForMember(membersName), {
-        assertionMessage: `Site owner status should be visible for ${membersName}`,
-      });
-    });
-  }
   async clickOnTheFollowersTabButtonInAboutTabAction(): Promise<void> {
     await test.step('Click on the followers tab button in about tab', async () => {
       await this.clickOnElement(this.clickOnTheFollowersTabButtonInAboutTab);

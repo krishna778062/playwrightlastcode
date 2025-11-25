@@ -114,7 +114,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
-  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
