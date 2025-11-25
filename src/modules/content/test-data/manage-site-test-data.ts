@@ -36,4 +36,5 @@ export const MANAGE_SITE_TEST_DATA = {
       return words.substring(0, characterLimit).trim();
     },
   },
+  UPDATED_SITE_NAME: `Updated Test Site ${faker.person.firstName()}`,
 };
