@@ -8,6 +8,7 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
@@ -16,6 +17,7 @@ import { MustReadModalComponent } from '@/src/modules/content/ui/components/must
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
+  clickShareContentButton(): Promise<void>;
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
@@ -110,6 +112,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -331,6 +335,21 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async clickOnMustReadModalCancelButton(): Promise<void> {
     await this.mustReadModalComponent.clickOnMustReadModalCancelButton();
   }
+  async clickOnFavouriteContentButton(): Promise<void> {
+    await test.step('Click on favourite content button', async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.favouriteContentButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.favourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await publishResponse.finished();
+    });
+  }
 
   /**
    * Verifies that the Must Read modal is not visible
@@ -541,5 +560,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickShareContentButton(): Promise<void> {
+    await test.step('Click Share content button', async () => {
+      await this.clickOnElement(this.shareContentButton);
+    });
   }
 }

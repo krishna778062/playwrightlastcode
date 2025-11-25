@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
@@ -193,13 +191,13 @@ test.describe(
         const questionId = createResponse.result.feedId;
         createdQuestionIds.push(questionId);
 
-        // Step 1: Upvote the question
+        //  Upvote the question
         await test.step('Upvote the question and verify', async () => {
           const upvoteResponse = await appManagerApiFixture.feedManagementHelper.upvoteQuestion(questionId);
           await qAndAApiHelper.validateUpvoteResponse(upvoteResponse);
         });
 
-        // Step 2: Remove upvote from the question
+        // : Remove upvote from the question
         await test.step('Remove upvote from the question and verify', async () => {
           const removeUpvoteResponse =
             await appManagerApiFixture.feedManagementHelper.removeUpvoteFromQuestion(questionId);
@@ -257,7 +255,7 @@ test.describe(
         // Get current app configuration
         const currentConfig = await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
 
-        // Step 1: Enable Q&A
+        //  Enable Q&A
         await test.step('Enable Q&A and verify', async () => {
           const enablePayload = {
             appName: currentConfig.result.appName,
@@ -283,17 +281,15 @@ test.describe(
           const enableResponse =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.updateAppConfig(enablePayload);
 
-          expect(enableResponse.ok(), 'Enable Q&A should be successful').toBe(true);
+          await qAndAApiHelper.validateUpdateAppConfigResponse(enableResponse);
 
           // Verify Q&A is enabled
           const verifyEnabledConfig =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
-          expect(verifyEnabledConfig.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be true').toBe(
-            true
-          );
+          await qAndAApiHelper.validateQAndAEnabled(verifyEnabledConfig);
         });
 
-        // Step 2: Disable Q&A
+        // : Disable Q&A
         await test.step('Disable Q&A and verify', async () => {
           const disableConfig = await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
 
@@ -321,16 +317,16 @@ test.describe(
           const disableResponse =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.updateAppConfig(disablePayload);
 
-          expect(disableResponse.ok(), 'Disable Q&A should be successful').toBe(true);
+          await qAndAApiHelper.validateUpdateAppConfigResponse(disableResponse);
 
           // Wait for the configuration to be updated
           await new Promise(resolve => setTimeout(resolve, 2000));
 
-          // Verify Q&A is disabled
-          const verifyDisabledConfig =
-            await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
-          expect(verifyDisabledConfig.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be false').toBe(
-            false
+          // Verify Q&A is disabled with retry
+          await qAndAApiHelper.validateQAndADisabledWithRetry(
+            () => appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig(),
+            2,
+            2000
           );
         });
       }
@@ -597,15 +593,20 @@ test.describe(
     );
 
     test(
-      'edit Answer on a question',
+      'answer on a question edit and delete Answer',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33891', ContentTestSuite.Q_AND_A],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Edit Answer on a question',
+          description: 'Edit Answer on a question and edit deleted Answer',
           zephyrTestId: 'CONT-33891',
           storyId: 'CONT-33891',
+          isKnownFailure: true,
+          bugTicket: 'CONT-42117',
+          bugReportedDate: '2025-11-24',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'This test is known to fail due to a bug in the API. The test is expected to pass.',
         });
 
         // Create a question first
@@ -626,16 +627,49 @@ test.describe(
         const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
         const answerId = answerResponse.result.commentId;
 
-        // Edit the answer
-        const updatedAnswerText = `${answerText} @Edited`;
-        const updateResponse = await appManagerApiFixture.feedManagementHelper.updateAnswer(
-          questionId,
-          answerId,
-          updatedAnswerText
-        );
+        //  Edit the answer (positive scenario)
+        await test.step('Edit the answer', async () => {
+          const updatedAnswerText = `${answerText} @Edited`;
+          const updateResponse = await appManagerApiFixture.feedManagementHelper.updateAnswer(
+            questionId,
+            answerId,
+            updatedAnswerText
+          );
 
-        // Validate the updated answer
-        await qAndAApiHelper.validateAnswerUpdate(updateResponse);
+          // Validate the updated answer
+          await qAndAApiHelper.validateAnswerUpdate(updateResponse);
+        });
+
+        // Delete the answer and try to edit it (negative scenario)
+        await test.step('Delete the answer and try to edit deleted answer', async () => {
+          // Delete the answer
+          await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+
+          // Wait a bit for deletion to propagate
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // Try to edit the deleted answer - should fail
+          let errorCaught = false;
+          try {
+            const updatedAnswerText = `${answerText} @Edited`;
+            const updateResponse = await appManagerApiFixture.feedManagementHelper.updateAnswer(
+              questionId,
+              answerId,
+              updatedAnswerText
+            );
+
+            // If update succeeds, check if the response indicates the answer is deleted
+            // Some APIs allow updates but mark the item as deleted in the response
+            if (updateResponse?.result?.isDeleted === true) {
+              errorCaught = true;
+            }
+          } catch (error: any) {
+            errorCaught = true;
+            // Validate error - should contain 404 or indicate failure
+            await qAndAApiHelper.validateUpdateDeletedAnswerError(error);
+          }
+          await qAndAApiHelper.validateErrorCaughtForEditDeletedAnswer(errorCaught);
+        });
       }
     );
 
@@ -669,13 +703,13 @@ test.describe(
         const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
         const answerId = answerResponse.result.commentId;
 
-        // Step 1: Upvote the answer
+        // Upvote the answer
         await test.step('Upvote the answer and verify', async () => {
           const upvoteResponse = await appManagerApiFixture.feedManagementHelper.upvoteAnswer(questionId, answerId);
           await qAndAApiHelper.validateAnswerUpvoteResponse(upvoteResponse);
         });
 
-        // Step 2: Remove upvote from the answer
+        // Remove upvote from the answer
         await test.step('Remove upvote from the answer and verify', async () => {
           const removeUpvoteResponse = await appManagerApiFixture.feedManagementHelper.removeUpvoteFromAnswer(
             questionId,
@@ -687,13 +721,13 @@ test.describe(
     );
 
     test(
-      'delete an Answer',
+      'delete an Answer and delete an already Deleted Answer',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33849', ContentTestSuite.Q_AND_A],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Delete an answer on a question',
+          description: 'Delete an answer on a question and delete an already Deleted Answer',
           zephyrTestId: 'CONT-33849',
           storyId: 'CONT-33849',
         });
@@ -716,11 +750,125 @@ test.describe(
         const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
         const answerId = answerResponse.result.commentId;
 
-        // Delete the answer
-        const deleteResponse = await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+        //  Delete the answer (positive scenario)
+        await test.step('Delete the answer', async () => {
+          const deleteResponse = await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
 
-        // Validate the delete
-        await qAndAApiHelper.validateAnswerDelete(deleteResponse);
+          // Validate the delete
+          await qAndAApiHelper.validateAnswerDelete(deleteResponse);
+        });
+
+        // : Try to delete the already deleted answer (negative scenario)
+        await test.step('Try to delete the already deleted answer', async () => {
+          // Try to delete the already deleted answer - should fail
+          let errorCaught = false;
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+          } catch (error: any) {
+            errorCaught = true;
+            // Validate error - should contain 404 or indicate failure
+            await qAndAApiHelper.validateDeleteAlreadyDeletedAnswerError(error);
+          }
+          await qAndAApiHelper.validateErrorCaughtForDeleteAlreadyDeletedAnswer(errorCaught);
+        });
+      }
+    );
+
+    test(
+      'create Answer with all fields and files',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33889', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create Answer with all fields and files for question with all fields and files',
+          zephyrTestId: 'CONT-33889',
+          storyId: 'CONT-33889',
+        });
+
+        // Create a question first with all fields
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        const topic = availableTopics.length > 0 ? availableTopics[0] : null;
+
+        const questionTitle = TestDataGenerator.generateRandomText();
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithAllFields(
+          questionTitle,
+          'public',
+          null,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Get site info for site mention
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        // Create an answer with all fields (mentions, topics, site mentions)
+        const answerText = `This is a comprehensive answer ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswerWithAllFields(
+          questionId,
+          answerText,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            siteInfo: { siteId: siteInfo.siteId, siteName: siteInfo.name },
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        // Validate the answer response
+        await qAndAApiHelper.validateAnswerCreation(answerResponse);
+        await qAndAApiHelper.validateAnswerCreationWithAllFields(answerResponse);
+      }
+    );
+
+    test(
+      'fetch Answer - Question detail page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33893', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Fetch Answer - Question detail page',
+          zephyrTestId: 'CONT-33893',
+          storyId: 'CONT-33893',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer first
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+
+        // Wait a bit for the answer to be indexed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Fetch answers for the question
+        const fetchResponse = await appManagerApiFixture.feedManagementHelper.fetchAnswers(questionId, {
+          size: 10,
+          sortBy: 'createdAt',
+        });
+
+        // Validate the fetch response
+        await qAndAApiHelper.validateFetchAnswersResponse(fetchResponse);
       }
     );
   }
