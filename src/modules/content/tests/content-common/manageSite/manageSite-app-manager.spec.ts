@@ -1,5 +1,6 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -277,6 +278,8 @@ test.describe(
         await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.SCHEDULED);
+        await manageContentPage.assertions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.SCHEDULED);
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.clickSortByButton();
@@ -625,6 +628,48 @@ test.describe(
           await manageSitePage.assertions.verifyOptionIsVisibleInOptionsDropdown('Activate');
           await manageSitePage.assertions.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
         }
+      }
+    );
+    test(
+      'to verify the site ownership change in manage site people tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23662'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'To verify the site ownership change in manage site people tab',
+          zephyrTestId: 'CONT-23662',
+          storyId: 'CONT-23662',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({ size: 1000 });
+        const firstSite = getListOfSitesResponse.result.listOfItems.find((item: any) => item.memberCount === 2);
+        if (!firstSite) {
+          throw new Error('No site found with 2 members');
+        }
+        console.log('firstSite', firstSite);
+        const getMemberListResponse = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(
+          firstSite.siteId
+        );
+        const nonAppManagerMembers = getMemberListResponse.result.listOfItems.filter((item: any) => !item.isAppManager);
+        if (!nonAppManagerMembers || nonAppManagerMembers.length === 0) {
+          throw new Error('No non-app-manager members found');
+        }
+        const nonAppManagerMember = nonAppManagerMembers[0];
+        try {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: firstSite.siteId,
+            userId: nonAppManagerMember.peopleId,
+            role: SitePermission.OWNER,
+          });
+        } catch (error) {
+          console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
+        }
+        const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSite.siteId);
+        await manageSiteAppManagerPage.loadPage();
+        await manageSiteAppManagerPage.actions.clickOnThePeopleTab();
+        await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
       }
     );
   }
