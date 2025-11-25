@@ -154,6 +154,7 @@ export interface IFeedActions {
   enterSiteNameForShare: (siteName: string) => Promise<void>;
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
+  reloadPage(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -272,6 +273,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
         assertionMessage: 'Share thoughts button should be visible on feed page',
       });
+    });
+  }
+
+  async reloadPage(): Promise<void> {
+    await test.step('Reload page', async () => {
+      await this.page.reload();
+      await this.verifyThePageIsLoaded();
     });
   }
 
