@@ -1,24 +1,19 @@
+import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
-
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
-import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
-import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -332,6 +327,9 @@ test.describe(
         await editFileComponent.actions.clickOnUpdateButton();
         await manageSitePage.actions.clickOnEditOption();
         await editFileComponent.assertions.verifyInputBoxHasValueOf(250);
+      }
+    );
+    test(
       'to verify the people follow in site about members and followers tab',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
@@ -413,7 +411,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
-      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action from end user can activate the site',
           zephyrTestId: 'CONT-26574',

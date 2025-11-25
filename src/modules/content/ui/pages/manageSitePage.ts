@@ -1,11 +1,10 @@
 import { Page, test } from '@playwright/test';
 
-import { SitePageTab } from '../../constants/sitePageEnums';
-
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 
 export interface IManageSiteActions {

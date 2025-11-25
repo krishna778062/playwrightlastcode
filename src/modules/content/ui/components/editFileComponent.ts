@@ -11,17 +11,24 @@ export interface IEditFileActions {
 export interface IEditFileAssertions {
   verifyFileDescriptionIsFilledCount: (count: number) => Promise<void>;
   verifyInputBoxHasValueOf: (characterCount: number) => Promise<void>;
+  getFileDescriptionCounter: (count: number) => Locator;
 }
 
 export class EditFileComponent extends BaseComponent implements IEditFileActions, IEditFileAssertions {
   readonly fileDescriptionInput: Locator;
   readonly updateButton: Locator;
   readonly crossButton: Locator;
+  readonly getFileDescriptionCounter: (count: number) => Locator;
   constructor(page: Page) {
     super(page);
     this.fileDescriptionInput = page.getByRole('textbox', { name: 'File description' });
     this.updateButton = page.getByRole('button', { name: 'Update' });
     this.crossButton = page.locator('button.close').first();
+    this.getFileDescriptionCounter = (count: number) =>
+      this.page
+        .locator('div')
+        .filter({ hasText: `${count}/250` })
+        .first();
   }
 
   get actions(): IEditFileActions {
@@ -38,12 +45,6 @@ export class EditFileComponent extends BaseComponent implements IEditFileActions
     });
   }
 
-  getFileDescriptionCounter(count: number): Locator {
-    return this.page
-      .locator('div')
-      .filter({ hasText: `${count}/250` })
-      .first();
-  }
   async clickOnUpdateButton(): Promise<void> {
     await test.step('Clicking on update button', async () => {
       await this.clickOnElement(this.updateButton);
