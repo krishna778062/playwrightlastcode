@@ -24,11 +24,11 @@ import { FeatureOwnersPage } from '@platforms/ui/pages/abacPage/featureOwnersPag
 
 import { Roles } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
 test.describe(
   'access control groups testcases',
