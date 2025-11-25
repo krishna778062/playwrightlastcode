@@ -417,9 +417,16 @@ export class UserManagementService implements IUserManagementOperations {
       if (userInfoResponseJson.work_info?.work_info_id) {
         delete userInfoResponseJson.work_info.work_info_id;
       }
+      // Remove additional_role_id from the user info response json for abac tenant
       if (options?.abac == true) {
         delete userInfoResponseJson.additional_role_id;
       }
+      delete (userInfoResponseJson as any).source;
+      delete (userInfoResponseJson as any).external_id;
+      delete (userInfoResponseJson as any).deprov_source;
+      delete (userInfoResponseJson as any).sync_source;
+      delete (userInfoResponseJson as any).sync_identifier;
+      delete (userInfoResponseJson as any).reprov_source;
       userInfoResponseJson.role_id = newPrimaryRole;
       await expect(
         await this.httpClient.put(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId), {
