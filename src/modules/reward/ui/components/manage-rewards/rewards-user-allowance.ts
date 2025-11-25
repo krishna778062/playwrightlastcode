@@ -30,9 +30,9 @@ export class RewardsUserAllowance extends BasePage {
     this.userAllowanceHeading = this.userAllowance.getByRole('heading', { name: 'Users allowance' });
     this.userAllowanceDescription = this.userAllowance.getByText('Add a monthly allowance for');
     // Action buttons
-    this.addUserAllowance = this.userAllowance.getByRole('link', { name: 'Add users allowance' });
+    this.addUserAllowance = this.userAllowance.locator('button[aria-label="Add users allowance"]');
     this.removeUserAllowance = this.userAllowance.getByRole('button', { name: 'Remove users allowance' });
-    this.editUserAllowance = this.userAllowance.getByRole('link', { name: 'Edit users allowance' });
+    this.editUserAllowance = this.userAllowance.locator('button[aria-label="Edit users allowance"]');
 
     // User allowance page
     this.pageContainer = this.page.locator('div[data-testid="pageContainer-page"]');
@@ -48,7 +48,13 @@ export class RewardsUserAllowance extends BasePage {
     this.pointAmountLimitError = page.locator('div[class*="Field-module__error"] p');
   }
 
+  async visitToUserAllowanceSetupPage(): Promise<void> {
+    await this.page.goto('/manage/recognition/rewards/peer-gifting/allowances/user');
+    await this.verifier.waitUntilElementIsVisible(this.pointAmountInputBox);
+  }
+
   async increaseTheUserAmountBy(amount: number): Promise<void> {
+    await this.pointAmountInputBox.clear();
     for (let i = 0; i < amount; i++) {
       await this.clickOnElement(this.pointAmountPlusButton, {
         stepInfo: `Increasing amount by 1 (${i + 1}/${amount})`,

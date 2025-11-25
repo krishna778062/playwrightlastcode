@@ -5,6 +5,8 @@ import { SitePageTab } from '../../constants/sitePageEnums';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
@@ -48,6 +50,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
   readonly editOptionLocator = this.page.getByTestId('edit-button');
 
+  private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
@@ -62,6 +65,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
+    this.manageSitesComponent = new ManageSitesComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -131,6 +135,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async clickOnOptionsDropdown(siteName: string): Promise<void> {
     await this.clickOnElement(this.siteReferenceEllipses(siteName));
+  }
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await this.manageSitesComponent.selectSiteFilterByText(bulkActionOption);
   }
 
   async verifyOptionIsVisibleInOptionsDropdown(optionName: string): Promise<void> {
