@@ -500,24 +500,4 @@ export class RecognitionHubPage extends BasePage {
     );
     await this.clickOnElement(this.allowanceRefreshingInfoIconTooltipText);
   }
-
-  /**
-   * Verify recognition post is visible on Recognition dashboard
-   * @param recipientName - Name of the recipient (optional, for more specific verification)
-   * @param message - Message text from the recognition (optional, for more specific verification)
-   */
-  async verifyRecognitionPostVisible(message?: string): Promise<void> {
-    await test.step(`Verify recognition post is visible with message "${message}"`, async () => {
-      // Wait for recognition post to be visible
-      const recognitionPosts = this.page.locator('.Recognition_panelInner--TcQfa').first();
-
-      await this.verifier.verifyTheElementIsVisible(recognitionPosts, {
-        assertionMessage: 'Recognition post should be visible on Recognition dashboard',
-      });
-
-      if (message) {
-        await expect(recognitionPosts).toContainText(message);
-      }
-    });
-  }
 }
