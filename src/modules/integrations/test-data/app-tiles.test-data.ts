@@ -198,3 +198,7 @@ export const SERVICE_NOW_VALUES = {
   SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
   URL: 'https://dev275557.service-now.com',
 } as const;
+
+export const GREENHOUSE_CREDS = {
+  API_Token: 'Basic N2RlMTdmNzQ3ZjdiZjJhNzNiOTI1ODBiM2I5OTY2NmMtMzo=',
+} as const;
