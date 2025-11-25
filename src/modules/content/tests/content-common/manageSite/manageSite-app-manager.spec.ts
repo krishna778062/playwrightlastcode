@@ -86,13 +86,7 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
-      manageContentPage = new ManageContentPage(appManagerFixture.page);
-      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
-
-      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
-      onboardingComponent = new OnboardingComponent(appManagerFixture.page);
-      // Clear used site IDs at the start of each test for fresh tracking
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
     });
