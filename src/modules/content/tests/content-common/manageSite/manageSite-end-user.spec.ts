@@ -11,6 +11,7 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -24,9 +25,9 @@ test.describe(
   },
   () => {
     let manageSiteStandardUserPage: ManageSiteSetUpPage;
-    let manageSitesComponent: ManageSitesComponent;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSitesComponent: ManageSitesComponent;
     test.beforeEach(async ({ standardUserFixture }) => {
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
@@ -279,6 +280,29 @@ test.describe(
       }
     );
     test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site edit option in manage site user drop down sites',
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+
+        manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
+        const editSitePage = new EditSitePage(standardUserFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
+        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+      }
+    );
+    test(
       'to verify the people follow in site about members and followers tab',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
@@ -327,7 +351,7 @@ test.describe(
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action activate in manage site user drop down',
+          description: 'to verify the bulk action from end user can deactivate the site',
           zephyrTestId: 'CONT-26576',
           storyId: 'CONT-26576',
         });
@@ -404,6 +428,46 @@ test.describe(
         await manageContentPage.actions.clickOnApply();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
         await manageSiteStandardUserPage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
+    test(
+      'to verify follow site, followers tab, and membership request functionality',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24062'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'To verify follow site, followers tab, and membership request functionality',
+          zephyrTestId: 'CONT-24062',
+          storyId: 'CONT-24062',
+        });
+        const newsiteInfo = await appManagerApiFixture.siteManagementHelper.createSite({
+          siteName: MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName(),
+          accessType: SITE_TYPES.PUBLIC,
+        });
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, newsiteInfo.siteId);
+        await siteDashboardPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnFollowButton();
+        await manageSiteSetUpPage.actions.clickOnFollowSiteButton();
+        await manageSiteSetUpPage.assertions.verifyFollowButtonShouldBeChangedIntoFollowing();
+        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
+        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.actions.clickOnFollowingButton();
+        await manageSiteSetUpPage.actions.clickOnUnfollowSiteButton();
+        await manageSiteSetUpPage.assertions.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
+        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
+        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldNotBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.actions.clickOnFollowButton();
+        const requestId = await manageSiteSetUpPage.actions.clickOnRequestMembershipButton();
+        console.log('requestId from membership request:', requestId);
+        await appManagerApiFixture.siteManagementHelper.acceptMembershipRequest(newsiteInfo.siteId, requestId);
+        const siteDetailsPage = new SiteDetailsPage(standardUserFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        await manageSiteSetUpPage.assertions.verifyMemberButtonShouldBeVisible();
       }
     );
   }

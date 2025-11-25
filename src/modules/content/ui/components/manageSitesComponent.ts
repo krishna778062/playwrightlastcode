@@ -32,6 +32,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly firstSiteDropDownOption: Locator;
   readonly clickOnThePeopleTab: Locator;
   readonly clickOnFollowButton: Locator;
   readonly clickOnFollowSiteButton: Locator;
@@ -78,6 +79,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
     this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnFollowButton = page.getByRole('button', { name: 'Follow', exact: true });
     this.clickOnFollowSiteButton = page.getByRole('button', { name: 'Follow site' });
@@ -441,6 +443,11 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
         assertionMessage: 'Album tab image should be visible',
       });
+    });
+  }
+  async hoverOnFirstSiteNameAction(): Promise<void> {
+    await test.step('Hover on the first site name', async () => {
+      await this.hoverOverElementInJavaScript(this.firstSiteDropDownOption);
     });
   }
   async clickOnFollowButtonAction(): Promise<void> {
