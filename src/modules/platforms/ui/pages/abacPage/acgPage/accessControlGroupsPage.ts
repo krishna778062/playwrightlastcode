@@ -29,7 +29,9 @@ export class AccessControlGroupsPage extends BasePage {
   readonly acgCreateButtonSingle: Locator;
   readonly acgCreateButtonMultiple: Locator;
   readonly acgCreatePopupCloseButton: Locator;
-  readonly acgSearchField: Locator;
+  readonly acgAudiencesSearchField: Locator;
+  readonly acgUsersSearchField: Locator;
+  readonly acgUserSearchResult: (userName: string) => Locator;
   readonly acgCheckBoxes: Locator;
   readonly acgAudiencesName: Locator;
   readonly acgMenuOptions: Locator;
@@ -66,7 +68,9 @@ export class AccessControlGroupsPage extends BasePage {
     this.acgDropdownButton = page.getByRole('button', { name: 'Open menu' });
     this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create' }).nth(1);
     this.acgCreateButtonMultiple = page.getByRole('menuitem', { name: 'Bulk create control groups' });
-    this.acgSearchField = page.locator('#search');
+    this.acgAudiencesSearchField = page.locator('#search');
+    this.acgUsersSearchField = page.locator('[class*="Dialog-module__children"] [class*="placeholder"]');
+    this.acgUserSearchResult = (userName: string) => page.getByRole('menuitem', { name: userName });
     this.acgCheckBoxes = page.locator("[type='checkbox']");
     this.acgAudiencesName = page.locator('[class*="NameWithDescription"] p');
     this.acgRecords = page.locator('[data-testid*="dataGridRow"]');
@@ -104,7 +108,7 @@ export class AccessControlGroupsPage extends BasePage {
   // To verify that the ACG page is loaded
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step(`Verifying the access control groups page is loaded`, async () => {
-      await expect(this.acgCreateButtonSingle, `expecting create single ACG button to be visible`).toBeVisible({
+      await expect(this.acgRecords.first(), `expecting create single ACG button to be visible`).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
     });
@@ -155,14 +159,26 @@ export class AccessControlGroupsPage extends BasePage {
   }
 
   /**
-   * Searches values on audience picker popup.
-   * @param searchValue - The value that needs to be searched.
+   * Searches audiences on audience picker popup.
+   * @param searchValue - Name of the audience to be searched.
    */
-  async searchForValues(searchValue: string): Promise<void> {
+  async searchForAudiencesOnAudiencePickerPopup(searchValue: string): Promise<void> {
     await test.step(`Search for ${searchValue}`, async () => {
-      await this.fillInElement(this.acgSearchField, searchValue);
+      await this.fillInElement(this.acgAudiencesSearchField, searchValue);
       await this.clickOnButtonWithName('Search');
       await this.acgCheckBoxes.nth(0).waitFor({ timeout: TIMEOUTS.SHORT });
+    });
+  }
+
+  /**
+   * Searches users on user picker popup.
+   * @param searchValue - Name of the user to be searched.
+   */
+  async searchAndSelectForUsersOnUserPickerPopup(searchValue: string): Promise<void> {
+    await test.step(`Search for ${searchValue}`, async () => {
+      await this.typeInElement(this.acgUsersSearchField, searchValue);
+      await this.acgUserSearchResult(searchValue).waitFor({ timeout: TIMEOUTS.SHORT });
+      await this.page.keyboard.press('Enter');
     });
   }
 
@@ -444,7 +460,7 @@ export class AccessControlGroupsPage extends BasePage {
       await this.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
       await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-      await this.searchForValues(targetAudienceName);
+      await this.searchForAudiencesOnAudiencePickerPopup(targetAudienceName);
       await this.clickOnAudience(targetAudienceName);
       await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
       await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -710,7 +726,7 @@ export class AccessControlGroupsPage extends BasePage {
     await test.step(options?.stepInfo || `Adding Target audiences to the ACG`, async () => {
       await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
       for (const targetAudience of acgCreationParams.targetAudience) {
-        await this.searchForValues(targetAudience);
+        await this.searchForAudiencesOnAudiencePickerPopup(targetAudience);
         await this.clickOnAudience(targetAudience);
       }
       await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
@@ -724,19 +740,19 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async addManagers(acgCreationParams: ACGCreationParams, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Adding Managers to the ACG`, async () => {
-      if (acgCreationParams.managerUser.length > 0) {
-        for (const managerUser of acgCreationParams.managerUser) {
-          await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-          await this.searchForValues(managerUser);
-          await this.clickOnAudience(managerUser);
+      if (acgCreationParams.managerUser.length > 0 || acgCreationParams.managerAudience.length > 0) {
+        if (acgCreationParams.managerUser.length > 0) {
+          for (const managerUser of acgCreationParams.managerUser) {
+            await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+            await this.searchAndSelectForUsersOnUserPickerPopup(managerUser);
+          }
         }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-      }
-      if (acgCreationParams.managerAudience.length > 0) {
-        for (const managerAudience of acgCreationParams.managerAudience) {
-          await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
-          await this.searchForValues(managerAudience);
-          await this.clickOnAudience(managerAudience);
+        if (acgCreationParams.managerAudience.length > 0) {
+          for (const managerAudience of acgCreationParams.managerAudience) {
+            await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
+            await this.searchForAudiencesOnAudiencePickerPopup(managerAudience);
+            await this.clickOnAudience(managerAudience);
+          }
         }
         await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -752,18 +768,19 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async addAdmins(acgCreationParams: ACGCreationParams, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Adding Admins to the ACG`, async () => {
-      if (acgCreationParams.adminUser.length > 0) {
-        for (const adminUser of acgCreationParams.adminUser) {
-          await this.searchForValues(adminUser);
-          await this.clickOnAudience(adminUser);
+      if (acgCreationParams.adminUser.length > 0 || acgCreationParams.adminAudience.length > 0) {
+        if (acgCreationParams.adminUser.length > 0) {
+          for (const adminUser of acgCreationParams.adminUser) {
+            await this.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+            await this.searchAndSelectForUsersOnUserPickerPopup(adminUser);
+          }
         }
-        await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
-      }
-      if (acgCreationParams.adminAudience.length > 0) {
-        for (const adminAudience of acgCreationParams.adminAudience) {
-          await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
-          await this.searchForValues(adminAudience);
-          await this.clickOnAudience(adminAudience);
+        if (acgCreationParams.adminAudience.length > 0) {
+          for (const adminAudience of acgCreationParams.adminAudience) {
+            await this.createACGModal.clickOnButton(POPUP_BUTTONS.ADD_AUDIENCE);
+            await this.searchForAudiencesOnAudiencePickerPopup(adminAudience);
+            await this.clickOnAudience(adminAudience);
+          }
         }
         await this.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await this.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
