@@ -1,32 +1,24 @@
-import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
-import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
-import { SiteDetailsPage } from '../../../ui/pages/siteDetailsPage';
-
-import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
+import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
+import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
@@ -353,6 +345,9 @@ test.describe(
         await editFileComponent.actions.clickOnUpdateButton();
         await manageSitePage.actions.clickOnEditOption();
         await editFileComponent.assertions.verifyInputBoxHasValueOf(250);
+      }
+    );
+    test(
       'to verify the site edit option in manage site user drop down sites',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
