@@ -1,8 +1,8 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
@@ -20,6 +20,7 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -468,6 +469,7 @@ test.describe(
         await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
         await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.actions.clickOnViewProfileButton();
         await orgChartPage.actions.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
@@ -499,16 +501,12 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action activate in manage site user drop down',
           zephyrTestId: 'CONT-26576',
           storyId: 'CONT-26576',
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
-        await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'deactivated',
@@ -716,11 +714,13 @@ test.describe(
         }
         const nonAppManagerMember = nonAppManagerMembers[0];
         try {
-          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-            siteId: firstSite.siteId,
-            userId: nonAppManagerMember.peopleId,
-            role: SitePermission.OWNER,
-          });
+          const updateUserSiteMembershipWithRole =
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: firstSite.siteId,
+              userId: nonAppManagerMember.peopleId,
+              role: SitePermission.OWNER,
+            });
+          console.log('updateUserSiteMembershipWithRole', updateUserSiteMembershipWithRole);
         } catch {
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
@@ -730,7 +730,63 @@ test.describe(
         await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
       }
     );
-
+    test(
+      'to verify the favourite content filters',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26264'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the favourite content filters',
+          zephyrTestId: 'CONT-26264',
+          storyId: 'CONT-26264',
+        });
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+        });
+        const createEventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'event' },
+        });
+        const contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createPageInfo.contentId,
+          'page'
+        );
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.clickOnFavouriteContentButton();
+        const contentPreviewPageAlbum = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createAlbumInfo.contentId,
+          'album'
+        );
+        await contentPreviewPageAlbum.loadPage();
+        await contentPreviewPageAlbum.clickOnFavouriteContentButton();
+        const contentPreviewPageEvent = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createEventInfo.contentId,
+          'event'
+        );
+        await contentPreviewPageEvent.loadPage();
+        await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        await manageSitesComponent.clickOnTheFavouriteTabsAction();
+        await favoritesPage.actions.clickOnContentButton();
+        await favoritesPage.assertions.verifyContentNamesAreDisplayed([
+          createPageInfo.pageName,
+          createAlbumInfo.albumName,
+          createEventInfo.eventName,
+        ]);
+      }
+    );
     test(
       'verify rejected content functionality under Content tab in Manage Site',
       {
