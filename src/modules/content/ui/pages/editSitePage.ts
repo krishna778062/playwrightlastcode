@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -8,7 +8,9 @@ export interface IEditSitePageActions {
   clickOnUpdateButton: () => Promise<void>;
 }
 
-export interface IEditSitePageAssertions {}
+export interface IEditSitePageAssertions {
+  verifySiteNameIsUpdated: (siteName: string) => Promise<void>;
+}
 
 export class EditSitePage extends BasePage implements IEditSitePageActions, IEditSitePageAssertions {
   readonly editOption: Locator;
@@ -52,9 +54,21 @@ export class EditSitePage extends BasePage implements IEditSitePageActions, IEdi
       await this.fillInElement(this.editSiteNameInputLocator, siteName);
     });
   }
+  async getUpdatedSiteName(): Promise<string> {
+    return await test.step('Getting updated site name', async () => {
+      return (await this.editSiteNameInputLocator.textContent()) || '';
+    });
+  }
   async clickOnUpdateButton(): Promise<void> {
     await test.step('Clicking on update button', async () => {
       await this.clickOnElement(this.updateButton);
+    });
+  }
+
+  async verifySiteNameIsUpdated(siteName: string): Promise<void> {
+    await test.step(`Verify site name is updated to: ${siteName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editSiteNameInputLocator);
+      await expect(this.editSiteNameInputLocator).toHaveValue(siteName);
     });
   }
 }
