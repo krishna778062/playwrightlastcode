@@ -3,8 +3,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../../ui/pages/sitePages';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -12,6 +10,7 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
 interface FeedResponse {
   result: {
@@ -47,7 +46,7 @@ async function getPrerequisiteData(
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
     const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
-    resources.siteId = siteResult;
+    resources.siteId = siteResult.siteId;
   }
 
   if (testData.feedType === 'Content Feed') {
@@ -111,9 +110,10 @@ for (const testData of feedTestData) {
 
       test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
+        /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+      */
         // Initialize feed page
         appManagerFeedPage = new FeedPage(appManagerFixture.page);
         const resources = await getPrerequisiteData(
@@ -177,7 +177,7 @@ for (const testData of feedTestData) {
         createdPostText = feedTestDataGenerated.text;
         createdPostId = feedResponse.result.feedId;
         // Generate reply text
-        replyText = TestDataGenerator.generateRandomText('Reply to feed post', 3, true);
+        replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
         console.log(`Created feed via API: ${feedResponse.result.feedId}`);
 
         // Navigate to feed URL
@@ -219,7 +219,7 @@ for (const testData of feedTestData) {
           });
 
           // Add reply to the feed post
-          await appManagerFeedPage.actions.addReplyToPost(replyText);
+          await appManagerFeedPage.actions.addReplyToPost(replyText, createdPostId);
 
           // Verify reply is associated with the correct post
           await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
@@ -234,9 +234,122 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.assertions.verifyReplyIsNotVisible(replyText);
         }
       );
+
+      test(
+        `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+        {
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30149'],
+        },
+        async ({}) => {
+          tagTest(test.info(), {
+            description: `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+            zephyrTestId: 'CONT-30149',
+            storyId: 'CONT-30149',
+          });
+
+          // Open reply editor for the post
+          await appManagerFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+          // Verify editor box opens
+          await appManagerFeedPage.actions.verifyReplyEditorVisible(createdPostText);
+
+          // Verify user can see the Cancel button
+          await appManagerFeedPage.actions.verifyCancelButtonVisible(createdPostText);
+
+          // Click Cancel
+          await appManagerFeedPage.actions.clickCancelButton(createdPostText);
+
+          // Verify editor box closes
+          await appManagerFeedPage.actions.verifyReplyEditorClosed(createdPostText);
+        }
+      );
     }
   );
 }
+
+// Test case for CONT-30148: Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post
+test.describe(
+  'post creation cancel button tests',
+  {
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+  },
+  () => {
+    test(
+      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+          zephyrTestId: 'CONT-30148',
+          storyId: 'CONT-30148',
+        });
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Verify Cancel button functionality', async () => {
+          // Navigate to Home Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          await appManagerFeedPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await appManagerFeedPage.actions.clickPostCreationCancelButton();
+
+          await appManagerFeedPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Verify Cancel button functionality', async () => {
+          // Get or create site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteId = siteInfo.siteId;
+
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+
+          await siteDashboardPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await siteDashboardPage.actions.clickPostCreationCancelButton();
+
+          await siteDashboardPage.actions.verifyPostCreationEditorClosed();
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Verify Cancel button functionality', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
+
+          // Navigate to Content Preview Page
+          const contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          await contentPreviewPage.actions.verifyPostCreationCancelButtonVisible();
+
+          await contentPreviewPage.actions.clickPostCreationCancelButton();
+
+          await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+        });
+      }
+    );
+  }
+);
 
 // Test case for CONT-30407: Verify user gets notified for replies on comments
 test.describe(
@@ -252,9 +365,10 @@ test.describe(
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
       // Configure app governance settings
-      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+      /** await appManagerFixture.feedManagementHelper.configureAppGovernance({
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
+      */
 
       // Generate test data
       const feedTestDataByAppManager = TestDataGenerator.generateFeed({

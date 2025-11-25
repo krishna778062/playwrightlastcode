@@ -30,4 +30,5 @@ export const MANAGE_SITE_TEST_DATA = {
   DESCRIPTION: {
     DESCRIPTION: `Description ${faker.lorem.paragraph()}`,
   },
+  UPDATED_SITE_NAME: `Updated Test Site ${faker.person.firstName()}`,
 };

@@ -1,11 +1,10 @@
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
+import { SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
-import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
-import { getEnvConfig } from '../utils/getEnvConfig';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
 import { ChatNavigationComponent } from '@/src/modules/chat/ui/components/chatNavigationComponent';
@@ -23,6 +22,7 @@ import {
 } from '@/src/modules/content/ui';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content/ui/components/globalCreateContainerComponent';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
@@ -49,11 +49,9 @@ export interface ICommonHomePageAssertions {
 }
 
 export class NavigationHelper {
-  readonly isNewUx: boolean;
   readonly topNavBarComponent: TopNavBarComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
   constructor(private readonly page: Page) {
-    this.isNewUx = getEnvConfig().newUxEnabled;
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
   }
@@ -149,6 +147,18 @@ export class NavigationHelper {
   async clickOnFeedSideMenu(): Promise<void> {
     await test.step('Clicking on application', async () => {
       await this.sideNavBarComponent.clickOnFeedSideMenu.click();
+    });
+  }
+
+  async clickOnFavoritePeopleSection(): Promise<void> {
+    await test.step('Clicking on favourite people section', async () => {
+      await this.sideNavBarComponent.favoritePeopleSection.click();
+    });
+  }
+
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on org chart button', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
     });
   }
 
@@ -330,7 +340,12 @@ export class NavigationHelper {
       await analyticsLandingPage.openRecognitionAnalytics();
     });
   }
-
+  async navigateToORGChart(options?: TestOptions): Promise<ORGChartPage> {
+    return await test.step(options?.stepInfo || 'Navigating to ORG chart', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
+      return new ORGChartPage(this.page);
+    });
+  }
   /**
    * Navigates to the campaign analytics page
    * @param options - The options for the step
@@ -348,7 +363,6 @@ export class NavigationHelper {
    * @param options - The options for the step
    * @returns The manage recognition page
    */
-
   async navigateToManageRecognitionViaSideNavBar(options?: { stepInfo?: string }): Promise<ManageRecognitionPage> {
     return await test.step(options?.stepInfo || 'Navigating to manage recognition via side nav bar', async () => {
       await this.sideNavBarComponent.clickRecognitionLinkInsideManageNavMenu();

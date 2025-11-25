@@ -4,7 +4,7 @@ import { NewHomePage } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { SiteType } from '@/src/modules/content/constants/siteTypeABAC';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-site.test-data';
@@ -25,12 +25,12 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
     {
       name: SITE_CREATION_TEST_DATA.PUBLIC_SITE.name,
       category: SITE_CREATION_TEST_DATA.PUBLIC_SITE.category,
-      siteType: SiteType.PUBLIC,
+      siteType: SITE_TYPES.PUBLIC,
     },
     {
       name: SITE_CREATION_TEST_DATA.PRIVATE_SITE.name,
       category: SITE_CREATION_TEST_DATA.PRIVATE_SITE.category,
-      siteType: SiteType.PRIVATE,
+      siteType: SITE_TYPES.PRIVATE,
     },
   ] as const;
   let homePage: NewHomePage;
@@ -60,8 +60,8 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
       { tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.REGRESSION] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'ABAC: Verify Target Audience and Subscriptions and create site',
-          zephyrTestId: site.siteType === SiteType.PUBLIC ? 'CONT-38637' : 'CONT-37643',
+          description: 'ABAC: Verify Site visibility and Subscriptions and create site',
+          zephyrTestId: site.siteType === SITE_TYPES.PUBLIC ? 'CONT-38637' : 'CONT-37643',
           storyId: 'CONT-33515',
         });
 
@@ -90,19 +90,22 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
   }
 
   test(
-    'verify UI shows Add target audience section when All Org is removed',
+    'verify UI shows Add Site visibility section when All Org is removed',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_TARGET_AUDIENCE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Verify UI shows Add target audience section when All Org is removed',
+        description: 'Verify UI shows Add Site visibility section when All Org is removed',
         zephyrTestId: 'CONT-35709',
         storyId: 'CONT-35709',
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
       await manageFeaturePage.actions.clickOnSitesCard();
       await manageSiteSetUpPage.actions.selectSite();
+      await addSiteScreenPage.actions.clickOnRemoveAudienceButton();
+      await addSiteScreenPage.actions.clickOnIUnderstandCheckbox();
+      await addSiteScreenPage.actions.clickOnContinueButton();
       await addSiteScreenPage.actions.clickOnBrowseButton();
       await audienceModalPage.actions.verifyingAudienceModalHeading();
       await audienceModalPage.assertions.clickOnAllOrganizationOption();
