@@ -252,6 +252,168 @@ test.describe(
     );
 
     test(
+      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28219'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+          zephyrTestId: 'CONT-28219',
+          storyId: 'CONT-28219',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.actions.verifyThePageIsLoaded();
+
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
+        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+
+        // Add video attachment
+        await adminFeedPage.actions.clickBrowseFilesButton();
+        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
+        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
+        await adminFeedPage.actions.clickAttachButton();
+        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+
+        // Post the feed
+        const postResult = await adminFeedPage.actions.createAndPost({
+          text: videoPostText,
+        });
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        await standardUserFixture.page.reload();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.actions.verifyThePageIsLoaded();
+
+        await feedPage.actions.clickShareIconOnPost(videoPostText);
+
+        // Add a message while sharing
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+        await feedPage.actions.enterShareDescription(shareMessage);
+
+        // Select Post in "Site Feed" option
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        // Search for and select a site
+        const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public', {
+          waitForSearchIndex: false,
+        });
+        const siteName = siteResult.name;
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        // Click the "Share" button
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        await shareComponent.actions.clickShareButton();
+
+        // Wait for share to complete
+        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteResult.siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.assertions.validatePostText(shareMessage);
+
+        // Click "View Post" - need to use feedPage on site dashboard
+        const siteFeedPage = new FeedPage(standardUserFixture.page);
+        await siteFeedPage.actions.clickViewPostLink();
+
+        // Verify the user is navigated to the Feed Detail Page
+        // Wait for navigation to feed detail page
+        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`), { timeout: 10000 });
+        const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
+        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Verify video controls and functionalities
+        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+      }
+    );
+
+    test(
+      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28215'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+          zephyrTestId: 'CONT-28215',
+          storyId: 'CONT-28215',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.actions.verifyThePageIsLoaded();
+
+        // Create a Feed post with a native video attachment and a message
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
+        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+
+        // Add video attachment
+        await adminFeedPage.actions.clickBrowseFilesButton();
+        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
+        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
+        await adminFeedPage.actions.clickAttachButton();
+        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+
+        // Post the feed
+        const postResult = await adminFeedPage.actions.createAndPost({
+          text: videoPostText,
+        });
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        await standardUserFixture.page.reload();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.actions.verifyThePageIsLoaded();
+
+        // Click the "Share" icon on the Feed post created by Admin
+        await feedPage.actions.clickShareIconOnPost(videoPostText);
+
+        // Add a message while sharing
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+        await feedPage.actions.enterShareDescription(shareMessage);
+
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        await shareComponent.actions.clickShareButton();
+
+        // Wait for share to complete
+        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+
+        await feedPage.reloadPage();
+
+        await feedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Click "View Post"
+        await feedPage.actions.clickViewPostLink();
+
+        // Verify the user is navigated to the Feed Detail Page
+        // Wait for navigation to feed detail page
+        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`));
+        const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
+        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+
+        // Verify video controls and functionalities
+        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+      }
+    );
+
+    test(
       'sU : Verify site owner or manager can edit or delete comments from other users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
@@ -290,7 +452,7 @@ test.describe(
         await siteDashboardPage.actions.editPost(createdPostText, updatedPostText);
         await siteDashboardPage.assertions.validatePostText(updatedPostText);
 
-        // Step 4: Delete the post
+        // Delete the post
         await siteDashboardPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
         await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
