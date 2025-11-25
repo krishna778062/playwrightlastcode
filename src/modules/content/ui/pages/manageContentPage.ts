@@ -94,6 +94,7 @@ export interface IAssertions {
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -493,5 +494,8 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     // Call the inherited method from BaseActionUtil (BasePage extends BaseActionUtil)
     await super.verifyToastMessageIsVisibleWithText(message);
+  }
+  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagIsVisibleOnContent(option);
   }
 }

@@ -17,6 +17,8 @@ import {
 } from '@/src/modules/content/constants';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -88,11 +90,11 @@ test.describe(
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
-      addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
-
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
-      // Clear used site IDs at the start of each test for fresh tracking
+      siteManagementHelper = appManagerFixture.siteManagementHelper;
+      addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
     });
@@ -320,6 +322,7 @@ test.describe(
         await manageSiteAppManagerPage.assertions.verifySitesNamesAreDisplayed(siteNames);
       }
     );
+
     test(
       'to verify the onboarding option in manage site content',
       {
@@ -332,7 +335,6 @@ test.describe(
           storyId: 'CONT-23737',
         });
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
-        console.log('siteInfo', siteInfo);
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -417,6 +419,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
+        await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
         await manageContentPage.actions.clickOnOnboardingOption();
         await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
         await onboardingComponent.saveButtonShouldBeDisabled();
@@ -497,6 +500,86 @@ test.describe(
         await manageContentPage.actions.clickOnApply();
         const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
         await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+      }
+    );
+
+    test(
+      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20536'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20536',
+          storyId: 'CONT-20536',
+        });
+
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const pageInfo = await appManagerFixture.contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+          options: {
+            albumName: MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME,
+            contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
+          },
+        });
+        console.log('pageInfo', pageInfo);
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.albumName);
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.clickOnDeleteOption();
+        await manageContentPage.actions.clickDeleteModalConfirmButton();
+      }
+    );
+
+    test(
+      'verify published stamp and its options menu on approved content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20534'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify published stamp and its options menu on approved content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20534',
+          storyId: 'CONT-20534',
+        });
+
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        console.log('pageInfo', pageInfo);
+        const approveContentResponse = await appManagerApiFixture.siteManagementHelper.approveContent(
+          siteInfo.siteId,
+          pageInfo.contentId
+        );
+        console.log('approveContentResponse', approveContentResponse);
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSitesComponent.clickOnInsideContentButtonAction();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
       }
     );
 
