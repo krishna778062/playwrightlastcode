@@ -17,6 +17,7 @@ import { MustReadModalComponent } from '@/src/modules/content/ui/components/must
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
+  clickShareContentButton(): Promise<void>;
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
@@ -64,6 +65,13 @@ export interface IContentPreviewPageAssertions {
   verifyCommentCount: (expectedCount: number) => Promise<void>;
   verifyMustReadModalIsVisible: () => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotVisible(text: string): Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
+  verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
   verifyContentIsNotAMustRead: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
@@ -103,6 +111,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
   favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
+  readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
+  readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
+
   // Page components
   readonly promotePageModal: PromotePageModal;
   readonly mustReadModalComponent: MustReadModalComponent;
@@ -123,7 +136,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.contentDetailsComponent = new ContentDetailsComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
-    this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 
@@ -279,6 +291,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await this.listFeedComponent.waitForPostToBeVisible(expectedText);
   }
+  async verifyPostIsNotVisible(text: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsNotVisible(text);
+  }
 
   /**
    * Clicks the share thoughts button to open post editor
@@ -430,9 +445,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.clickOnElement(allCommentsLink);
     });
   }
+
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
+
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
   }
@@ -455,6 +472,54 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyReplyEditorClosed(postText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyEditorClosed(postText);
+  }
+
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+  }
+
+  /**
+   * Verifies that the share button is not visible on content detail page
+   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on Feed post on content page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton, {
+        assertionMessage: 'Share button should not be visible on content detail page',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the share button is not visible on comments
+   */
+  async verifyContentShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible for Content Page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
+        assertionMessage: 'Share button should not be visible on Content Page when timeline mode is enabled',
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed posts/comments
+   */
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisible();
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed replies/comment replies
+   */
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  /**
+   * Verifies that a reply is visible
+   */
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(replyText);
   }
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
@@ -495,5 +560,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickShareContentButton(): Promise<void> {
+    await test.step('Click Share content button', async () => {
+      await this.clickOnElement(this.shareContentButton);
+    });
   }
 }

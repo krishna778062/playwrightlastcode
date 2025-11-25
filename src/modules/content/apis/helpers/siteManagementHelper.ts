@@ -570,6 +570,13 @@ export class SiteManagementHelper {
       size: options?.size || 100,
       filter: options?.filter || 'favorites',
     });
+  /**
+   * Gets the list of people
+   * @param options - Optional parameters for filtering people
+   * @returns Promise containing the people list response
+   */
+  async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
+    return await this.siteManagementService.getListOfPeople(options);
   }
   /**
    * Gets 2 sites that are not in the featured sites list
@@ -809,44 +816,45 @@ export class SiteManagementHelper {
           );
 
           // Check if user is NOT a member, owner, or manager
-          // Default behavior (allowIsMemberAbsent = false): Only accepts explicit false values (preserves existing behavior)
-          // When allowIsMemberAbsent = true: Also accepts sites where these fields are absent from payload
-          const isMemberCondition = allowIsMemberAbsent
-            ? siteDetails.isMember === false || !('isMember' in siteDetails)
-            : siteDetails.isMember === false; // Default: same as original behavior
+          // Accept undefined or false values (undefined means field is not present, which indicates user is not a member/owner/manager)
+          // When allowIsMemberAbsent = false: Only accepts explicit false or undefined values
+          // When allowIsMemberAbsent = true: Also explicitly checks for absent fields
+          const isMemberCondition =
+            siteDetails.isMember === false ||
+            siteDetails.isMember === undefined ||
+            (allowIsMemberAbsent && !('isMember' in siteDetails));
 
-          const isOwnerCondition = allowIsMemberAbsent
-            ? siteDetails.isOwner === false || !('isOwner' in siteDetails)
-            : siteDetails.isOwner === false; // Default: same as original behavior
+          const isOwnerCondition =
+            siteDetails.isOwner === false ||
+            siteDetails.isOwner === undefined ||
+            (allowIsMemberAbsent && !('isOwner' in siteDetails));
 
-          const isManagerCondition = allowIsMemberAbsent
-            ? siteDetails.isManager === false || !('isManager' in siteDetails)
-            : siteDetails.isManager === false; // Default: same as original behavior
+          const isManagerCondition =
+            siteDetails.isManager === false ||
+            siteDetails.isManager === undefined ||
+            (allowIsMemberAbsent && !('isManager' in siteDetails));
 
-          const isFollowerCondition = allowIsMemberAbsent
-            ? siteDetails.isFollower === false || !('isFollower' in siteDetails)
-            : siteDetails.isFollower === false; // Default: same as original behavior
-
-          const isAccessRequestedCondition = allowIsMemberAbsent
-            ? siteDetails.isAccessRequested === false || !('isAccessRequested' in siteDetails)
-            : siteDetails.isAccessRequested === false; // Default: same as original behavior
-
+          // Log detailed condition evaluation
           console.log(
-            `  Conditions - isMember: ${isMemberCondition}, isOwner: ${isOwnerCondition}, isManager: ${isManagerCondition}, isFollower: ${isFollowerCondition}, isAccessRequested: ${isAccessRequestedCondition}`
+            `  Condition evaluation:
+    - isMember: ${siteDetails.isMember} => ${isMemberCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isOwner: ${siteDetails.isOwner} => ${isOwnerCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isManager: ${siteDetails.isManager} => ${isManagerCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isActive: ${siteDetails.isActive} => ${siteDetails.isActive === true ? 'PASS' : 'FAIL'} (needs: true)`
           );
 
+          // Check if user is NOT a member, owner, or manager (only check these three, not follower or accessRequested)
           if (
             siteDetails &&
             siteDetails.isActive === true &&
             isMemberCondition &&
             isOwnerCondition &&
-            isManagerCondition &&
-            isFollowerCondition &&
-            isAccessRequestedCondition
+            isManagerCondition
           ) {
-            const isMemberAbsent = allowIsMemberAbsent && !('isMember' in siteDetails);
+            const fieldsAbsent =
+              !('isMember' in siteDetails) || !('isOwner' in siteDetails) || !('isManager' in siteDetails);
             console.log(
-              `Found site where user is not a member/owner/manager${isMemberAbsent ? ' (fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
+              `✓ Found site where user is not a member/owner/manager${fieldsAbsent ? ' (some fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
             );
             return {
               siteId: siteDetails.siteId,

@@ -6,4 +6,6 @@ export enum TagOption {
   NOT_ONBOARDING_TAG = 'Not onboarding',
   ORG_ONBOARDING_TAG = 'Org onboarding',
   MUST_READ_TAG = 'Must read',
+  PUBLISHED_TAG = 'Published',
+  REJECTED_TAG = 'Rejected',
 }

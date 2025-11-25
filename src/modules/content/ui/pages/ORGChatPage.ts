@@ -7,6 +7,7 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 export interface IORGChartPageActions {
   typeInSearchBarInput: (name: string) => Promise<void>;
   clickOnViewProfileButton: () => Promise<void>;
+  clickOnViewProfileButtonInOGRChart: (name: string) => Promise<void>;
 }
 
 export interface IORGChartPageAssertions {}
@@ -17,11 +18,13 @@ export class ORGChartPage extends BasePage implements IORGChartPageActions, IORG
   //LOCATORS
   readonly searchBarInput: Locator;
   readonly viewProfileButton: Locator;
+  readonly viewProfileButtonForPerson: (name: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.searchBarInput = page.getByRole('combobox', { name: 'Search for a person…' });
     this.viewProfileButton = page.locator('.button-focus.Button');
+    this.viewProfileButtonForPerson = (name: string) => this.page.locator(`[aria-label="View profile of ${name}"]`);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -48,9 +51,16 @@ export class ORGChartPage extends BasePage implements IORGChartPageActions, IORG
       await this.clickOnElement(this.searchListOptions(name));
     });
   }
+
   async clickOnViewProfileButton(): Promise<void> {
     await test.step('Clicking on view profile button', async () => {
       await this.clickOnElement(this.viewProfileButton);
+    });
+  }
+
+  async clickOnViewProfileButtonInOGRChart(name: string): Promise<void> {
+    await test.step(`Clicking on view profile button for ${name}`, async () => {
+      await this.clickOnElement(this.viewProfileButtonForPerson(name));
     });
   }
 }
