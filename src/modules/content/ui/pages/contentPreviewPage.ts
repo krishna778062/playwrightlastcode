@@ -17,6 +17,7 @@ import { MustReadModalComponent } from '@/src/modules/content/ui/components/must
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
+  clickShareContentButton(): Promise<void>;
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
@@ -99,6 +100,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+  readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
   readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
@@ -496,5 +498,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickShareContentButton(): Promise<void> {
+    await test.step('Click Share content button', async () => {
+      await this.clickOnElement(this.shareContentButton);
+    });
   }
 }
