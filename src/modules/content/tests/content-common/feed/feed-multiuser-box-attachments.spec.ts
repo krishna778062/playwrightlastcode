@@ -84,10 +84,12 @@ test.describe(
         // ==================== ADD REPLY WITH BOX ATTACHMENT ====================
         // Open reply editor for the post
         await listFeedComponent.openReplyEditorForPost(basePostText);
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const userName = userInfo?.fullName || '';
 
         // Create reply text with mention and topic
         await createFeedPostComponent.createPost(roleReplyText);
-        await createFeedPostComponent.addUserNameMention('Standard User1');
+        await createFeedPostComponent.addUserNameMention(userName);
         await createFeedPostComponent.addTopicMention('Simpplr');
 
         // Click Browse files button
