@@ -94,7 +94,6 @@ export interface IAssertions {
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
-  verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -481,10 +480,6 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   // Onboarding methods - Assertions
   async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
     await this.onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(option);
-  }
-
-  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
-    await this.onboardingComponent.verifyTagIsVisibleOnContent(option);
   }
 
   async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
