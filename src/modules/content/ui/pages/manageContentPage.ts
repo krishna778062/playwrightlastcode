@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
@@ -86,6 +86,7 @@ export interface IAssertions {
   scheduledTagVisibleInManageContent: () => Promise<void>;
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
+  verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -444,5 +445,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
     await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
+  }
+
+  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagIsVisibleOnContent(option);
   }
 }
