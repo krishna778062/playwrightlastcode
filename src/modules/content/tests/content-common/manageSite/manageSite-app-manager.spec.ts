@@ -452,6 +452,13 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
+        const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
+        const selectedSiteName = await manageSitesComponent.selectFirstEnabledSiteCheckbox(deactivatedSiteNames);
+        if (!selectedSiteName) {
+          throw new Error(
+            'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
+          );
+        }
         await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
@@ -469,6 +476,14 @@ test.describe(
           manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteIdFromList);
           await manageSiteAppManagerPage.loadPage();
         }
+        const manageDeactivatedSitePage = new ManageSitePage(appManagerFixture.page);
+        await manageDeactivatedSitePage.loadPage();
+        const firstActiveSiteId = getSiteListResponse.result.listOfItems[0]?.siteId;
+        if (!firstActiveSiteId) {
+          throw new Error('No active sites found in the response');
+        }
+        manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstActiveSiteId);
+        await manageSiteAppManagerPage.loadPage();
       }
     );
     test(
@@ -600,7 +615,9 @@ test.describe(
         await manageSitePage.actions.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, { size: 1000 });
+          const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
+            size: 1000,
+          });
           const siteName = siteInfo.siteName;
           await manageSitePage.actions.searchSite(siteName);
           await manageSitePage.actions.clickOnSearchButton();
