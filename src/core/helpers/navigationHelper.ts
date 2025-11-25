@@ -1,9 +1,9 @@
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
+import { SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
-import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
@@ -364,7 +364,6 @@ export class NavigationHelper {
    * @param options - The options for the step
    * @returns The manage recognition page
    */
-
   async navigateToManageRecognitionViaSideNavBar(options?: { stepInfo?: string }): Promise<ManageRecognitionPage> {
     return await test.step(options?.stepInfo || 'Navigating to manage recognition via side nav bar', async () => {
       await this.sideNavBarComponent.clickRecognitionLinkInsideManageNavMenu();

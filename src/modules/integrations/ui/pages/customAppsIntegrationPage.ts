@@ -38,6 +38,7 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly incompleteStepStatusIndicator: Locator;
   readonly stepContainer: Locator;
   readonly tileUnavailableMessage: Locator;
+  readonly apiTokenInput: Locator;
 
   // New locators for app settings verification
   readonly customAppsLink: Locator;
@@ -70,6 +71,7 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.tileUnavailableMessage = page.locator(
       `p:has-text("${MESSAGES.getAppConnectionUnavailableMessage('Expensify')}")`
     );
+    this.apiTokenInput = page.locator('input[name="apiToken"]');
 
     // Initialize new locators using Playwright's recommended patterns
     this.customAppsLink = page.getByRole('link', { name: 'Custom apps' });
@@ -493,6 +495,37 @@ export class CustomAppsIntegrationPage extends BasePage {
 
       // Verify Save button is disabled
       await expect(this.saveButtonByRole).toBeDisabled();
+    });
+  }
+  /**
+   * Verify complete Expensify settings page
+   * @param expectedUserId - Expected Partner user ID value
+   */
+  async verifyGreenhouseSettingsPage(): Promise<void> {
+    const fields: ConnectionFieldConfig[] = [
+      {
+        fieldName: 'apiToken',
+        fieldLabel: 'API Token',
+        isDisabled: true,
+      },
+    ];
+
+    await this.verifyAppSettingsPage(
+      'Greenhouse',
+      fields,
+      'Enabled',
+      'Greenhouse requires that an admin account is connected'
+    );
+  }
+  /**
+   * Fill both Partner user ID and Partner user secret fields
+   */
+  async enterAPIToken(apiToken: string): Promise<void> {
+    await test.step(`Enter Token value: apiToken=${apiToken}`, async () => {
+      await this.apiTokenInput.waitFor({ state: 'visible' });
+      await this.apiTokenInput.fill(apiToken);
+      await this.apiTokenInput.blur();
+      await this.clickSaveButton();
     });
   }
 }

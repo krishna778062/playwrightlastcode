@@ -14,11 +14,13 @@ export const FEED_TEST_DATA = {
     FAVICON: 'favicon.png',
   },
   POST_TEXT: {
+    RECOGNITION_MESSAGE: `Automated Test Recognition Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARED: `Shared Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARED_WITH_MENTION: `Shared App Manager's Post - ${faker.commerce.productName()} - @${faker.person.fullName()}`,
     REPLY: `Automated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    VIDEO: `Automated Test Video Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     COMMENT: `Automated Test Comment ${faker.company.name()} - ${faker.commerce.productName()}`,
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
