@@ -389,14 +389,14 @@ test.describe(
         await manageSiteSetUpPage.assertions.verifyFollowButtonShouldBeChangedIntoFollowing();
         await manageSiteSetUpPage.actions.clickOnAboutTabAction();
         await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
-        const userName = await standardUserFixture.navigationHelper.getUserNameFromUI();
-        await manageSiteSetUpPage.assertions.checkMembersNameShouldBeVisibleInFollowersTab(userName);
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldBeVisibleInFollowersTab(userInfo.fullName);
         await manageSiteSetUpPage.actions.clickOnFollowingButton();
         await manageSiteSetUpPage.actions.clickOnUnfollowSiteButton();
         await manageSiteSetUpPage.assertions.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
         await manageSiteSetUpPage.actions.clickOnAboutTabAction();
         await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
-        await manageSiteSetUpPage.assertions.checkMembersNameShouldNotBeVisibleInFollowersTab(userName);
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldNotBeVisibleInFollowersTab(userInfo.fullName);
         await manageSiteSetUpPage.actions.clickOnFollowButton();
         const requestId = await manageSiteSetUpPage.actions.clickOnRequestMembershipButton();
         console.log('requestId from membership request:', requestId);

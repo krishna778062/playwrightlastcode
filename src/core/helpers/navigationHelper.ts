@@ -1,7 +1,7 @@
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
-import { ProfileDropdownComponent, SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
+import { SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
 import { ApplicationSettingsOption } from '../ui/types/navigation.types';
@@ -337,19 +337,6 @@ export class NavigationHelper {
     return await test.step(options?.stepInfo || 'Navigating to campaign analytics', async () => {
       const analyticsLandingPage = await this.navigateToAnalyticsLandingPage(options);
       await analyticsLandingPage.openCampaignAnalytics();
-    });
-  }
-
-  /**
-   * Gets the current logged-in user's name from the UI
-   * @param options - The options for the step
-   * @returns Promise with the user's name
-   */
-  async getUserNameFromUI(options?: TestOptions): Promise<string> {
-    return await test.step(options?.stepInfo || 'Getting user name from UI', async () => {
-      await this.topNavBarComponent.openProfileSettings();
-      const profileDropdownComponent = new ProfileDropdownComponent(this.page);
-      return await profileDropdownComponent.getUserNameFromUI(options);
     });
   }
 
