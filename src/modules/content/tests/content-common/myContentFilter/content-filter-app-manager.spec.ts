@@ -89,7 +89,7 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter('Unpublished');
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnPublishButton();
@@ -110,7 +110,7 @@ test.describe(
         await manageContentPage.actions.clickOnMoveButton();
         await manageContentPage.actions.selectMoveApplyButton();
         const site = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
-        await manageContentPage.actions.moveContentSearchBar(site.name || '');
+        await manageContentPage.actions.moveContentSearchBar(site.name);
         await manageContentPage.actions.siteListSelecting();
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
@@ -262,9 +262,9 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          zephyrTestId: 'CONT-25063',
-          storyId: 'CONT-25063',
+            'Verify app manager should be able to filter the content for the content status as Published and Unpublished',
+          zephyrTestId: 'CONT-25058',
+          storyId: 'CONT-25058',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
