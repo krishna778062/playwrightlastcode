@@ -5,4 +5,5 @@ export enum OnboardingOption {
   SITE_ONBOARDING_TAG = 'Site onboarding',
   NOT_ONBOARDING_TAG = 'Not onboarding',
   ORG_ONBOARDING_TAG = 'Org onboarding',
+  PUBLISHED_TAG = 'Published',
 }

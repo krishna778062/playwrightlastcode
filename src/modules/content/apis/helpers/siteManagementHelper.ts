@@ -564,6 +564,14 @@ export class SiteManagementHelper {
     };
     return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
+  /**
+   * Gets the list of people
+   * @param options - Optional parameters for filtering people
+   * @returns Promise containing the people list response
+   */
+  async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
+    return await this.siteManagementService.getListOfPeople(options);
+  }
 
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<PeopleListResponse> {
     return await this.siteManagementService.getListOfPeople({
@@ -809,44 +817,45 @@ export class SiteManagementHelper {
           );
 
           // Check if user is NOT a member, owner, or manager
-          // Default behavior (allowIsMemberAbsent = false): Only accepts explicit false values (preserves existing behavior)
-          // When allowIsMemberAbsent = true: Also accepts sites where these fields are absent from payload
-          const isMemberCondition = allowIsMemberAbsent
-            ? siteDetails.isMember === false || !('isMember' in siteDetails)
-            : siteDetails.isMember === false; // Default: same as original behavior
+          // Accept undefined or false values (undefined means field is not present, which indicates user is not a member/owner/manager)
+          // When allowIsMemberAbsent = false: Only accepts explicit false or undefined values
+          // When allowIsMemberAbsent = true: Also explicitly checks for absent fields
+          const isMemberCondition =
+            siteDetails.isMember === false ||
+            siteDetails.isMember === undefined ||
+            (allowIsMemberAbsent && !('isMember' in siteDetails));
 
-          const isOwnerCondition = allowIsMemberAbsent
-            ? siteDetails.isOwner === false || !('isOwner' in siteDetails)
-            : siteDetails.isOwner === false; // Default: same as original behavior
+          const isOwnerCondition =
+            siteDetails.isOwner === false ||
+            siteDetails.isOwner === undefined ||
+            (allowIsMemberAbsent && !('isOwner' in siteDetails));
 
-          const isManagerCondition = allowIsMemberAbsent
-            ? siteDetails.isManager === false || !('isManager' in siteDetails)
-            : siteDetails.isManager === false; // Default: same as original behavior
+          const isManagerCondition =
+            siteDetails.isManager === false ||
+            siteDetails.isManager === undefined ||
+            (allowIsMemberAbsent && !('isManager' in siteDetails));
 
-          const isFollowerCondition = allowIsMemberAbsent
-            ? siteDetails.isFollower === false || !('isFollower' in siteDetails)
-            : siteDetails.isFollower === false; // Default: same as original behavior
-
-          const isAccessRequestedCondition = allowIsMemberAbsent
-            ? siteDetails.isAccessRequested === false || !('isAccessRequested' in siteDetails)
-            : siteDetails.isAccessRequested === false; // Default: same as original behavior
-
+          // Log detailed condition evaluation
           console.log(
-            `  Conditions - isMember: ${isMemberCondition}, isOwner: ${isOwnerCondition}, isManager: ${isManagerCondition}, isFollower: ${isFollowerCondition}, isAccessRequested: ${isAccessRequestedCondition}`
+            `  Condition evaluation:
+    - isMember: ${siteDetails.isMember} => ${isMemberCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isOwner: ${siteDetails.isOwner} => ${isOwnerCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isManager: ${siteDetails.isManager} => ${isManagerCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
+    - isActive: ${siteDetails.isActive} => ${siteDetails.isActive === true ? 'PASS' : 'FAIL'} (needs: true)`
           );
 
+          // Check if user is NOT a member, owner, or manager (only check these three, not follower or accessRequested)
           if (
             siteDetails &&
             siteDetails.isActive === true &&
             isMemberCondition &&
             isOwnerCondition &&
-            isManagerCondition &&
-            isFollowerCondition &&
-            isAccessRequestedCondition
+            isManagerCondition
           ) {
-            const isMemberAbsent = allowIsMemberAbsent && !('isMember' in siteDetails);
+            const fieldsAbsent =
+              !('isMember' in siteDetails) || !('isOwner' in siteDetails) || !('isManager' in siteDetails);
             console.log(
-              `Found site where user is not a member/owner/manager${isMemberAbsent ? ' (fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
+              `✓ Found site where user is not a member/owner/manager${fieldsAbsent ? ' (some fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
             );
             return {
               siteId: siteDetails.siteId,
@@ -866,13 +875,206 @@ export class SiteManagementHelper {
     });
   }
   /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
+   * Helper method to determine the current role from SiteMember boolean flags
+   * @param member - The SiteMember object with boolean flags
+   * @returns The current SitePermission role, or null if not a member
    */
+  private getCurrentRoleFromMember(member: any): SitePermission | null {
+    if (!member) return null;
+
+    // Check role hierarchy: OWNER > MANAGER > CONTENT_MANAGER > MEMBER
+    // Note: A user can have multiple flags true, but we return the highest role
+    if (member.isOwner === true) return SitePermission.OWNER;
+    if (member.isManager === true) return SitePermission.MANAGER;
+    if (member.isContentManager === true) return SitePermission.CONTENT_MANAGER;
+    if (member.isMember === true) return SitePermission.MEMBER;
+
+    return null;
+  }
+
+  /**
+   * Verifies that the user has the correct role after assignment
+   * @param siteId - The site ID
+   * @param userId - The user ID
+   * @param expectedRole - The expected role
+   * @returns Promise<boolean> - True if role is correct, false otherwise
+   */
+  private async verifyRoleAssignment(siteId: string, userId: string, expectedRole: SitePermission): Promise<boolean> {
+    const membershipList = await this.getSiteMembershipList(siteId);
+    const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
+
+    if (!userMembership) {
+      console.log(`User ${userId} not found in membership list`);
+      return false;
+    }
+
+    const currentRole = this.getCurrentRoleFromMember(userMembership);
+    const hasCorrectRole = currentRole === expectedRole;
+
+    if (hasCorrectRole) {
+      console.log(`✓ Role verification successful: User ${userId} has role ${expectedRole}`);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Finds another user in the site membership to use as temporary owner
+   * When demoting an owner, we need to assign another user as owner first
+   * Note: There is only ONE owner per site, so we just need to find any other member
+   * @param siteId - The site ID
+   * @param excludeUserId - The user ID to exclude (the one we're trying to demote)
+   * @returns Promise<string | null> - The user ID of another member, or null if none found
+   */
+  private async findAnotherMemberForTemporaryOwner(siteId: string, excludeUserId: string): Promise<string | null> {
+    const membershipList = await this.getSiteMembershipList(siteId);
+    const members = membershipList.result?.listOfItems || [];
+
+    // Find any other member (manager, content manager, or regular member)
+    const anotherManager = members.find(
+      (member: any) => member.peopleId !== excludeUserId && member.isManager === true
+    );
+    if (anotherManager) {
+      console.log(`Found another manager (${anotherManager.peopleId}) to use as temporary owner`);
+      return anotherManager.peopleId;
+    }
+
+    const anotherContentManager = members.find(
+      (member: any) => member.peopleId !== excludeUserId && member.isContentManager === true
+    );
+    if (anotherContentManager) {
+      console.log(`Found another content manager (${anotherContentManager.peopleId}) to use as temporary owner`);
+      return anotherContentManager.peopleId;
+    }
+
+    const anyOtherMember = members.find((member: any) => member.peopleId !== excludeUserId && member.isMember === true);
+    if (anyOtherMember) {
+      console.log(`Found another member (${anyOtherMember.peopleId}) to use as temporary owner`);
+      return anyOtherMember.peopleId;
+    }
+
+    console.warn(`No other members found in site ${siteId} to use as temporary owner`);
+    return null;
+  }
+
+  /**
+   * Handles the special case where user is currently an OWNER and needs role change
+   * When a user is an owner, we cannot directly change their role.
+   * Solution: Assign another user as owner (which automatically demotes current owner to MANAGER), then assign desired role
+   * @param siteId - The site ID
+   * @param userId - The user ID to change role for
+   * @param desiredRole - The desired role to assign
+   * @returns Promise<SiteMembershipResponse> - The membership response
+   */
+  private async handleOwnerRoleChange(
+    siteId: string,
+    userId: string,
+    desiredRole: SitePermission
+  ): Promise<SiteMembershipResponse> {
+    console.log(
+      `User ${userId} is currently an OWNER. Assigning another user as owner will automatically demote current owner to MANAGER.`
+    );
+
+    // Step 1: Find another member to use as temporary owner
+    const temporaryOwnerUserId = await this.findAnotherMemberForTemporaryOwner(siteId, userId);
+
+    if (!temporaryOwnerUserId) {
+      throw new Error(
+        `Cannot change role for user ${userId} who is currently an OWNER. No other members found in site ${siteId} to use as temporary owner. Please ensure there is at least one other member in the site.`
+      );
+    }
+
+    // Step 2: Get the original role of the temporary owner (to restore later if needed)
+    const membershipList = await this.getSiteMembershipList(siteId);
+    const temporaryOwnerMember = membershipList.result?.listOfItems?.find(
+      (member: any) => member.peopleId === temporaryOwnerUserId
+    );
+    const temporaryOwnerOriginalRole = this.getCurrentRoleFromMember(temporaryOwnerMember);
+
+    console.log(`Temporary owner ${temporaryOwnerUserId} current role: ${temporaryOwnerOriginalRole || 'MEMBER'}`);
+
+    try {
+      // Step 3: Assign temporary owner as OWNER (this automatically demotes current owner to MANAGER)
+      console.log(
+        `Assigning user ${temporaryOwnerUserId} as OWNER (this will automatically demote current owner ${userId} to MANAGER)`
+      );
+      await this.makeUserSiteMembership(
+        siteId,
+        temporaryOwnerUserId,
+        SitePermission.OWNER,
+        SiteMembershipAction.SET_PERMISSION
+      );
+
+      // Wait for the role change to propagate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Step 4: Verify the original owner was automatically demoted to MANAGER
+      const verifyDemoted = await this.verifyRoleAssignment(siteId, userId, SitePermission.MANAGER);
+      if (!verifyDemoted) {
+        console.warn(
+          `Warning: Original owner ${userId} may not have been automatically demoted to MANAGER as expected. Proceeding anyway.`
+        );
+      }
+
+      // Step 5: Now assign the desired role to the original user (who is now a MANAGER)
+      console.log(
+        `Assigning desired role ${desiredRole} to user ${userId} (currently MANAGER after automatic demotion)`
+      );
+      const response = await this.makeUserSiteMembership(
+        siteId,
+        userId,
+        desiredRole,
+        SiteMembershipAction.SET_PERMISSION
+      );
+
+      // Step 6: Verify the desired role was assigned
+      const verified = await this.verifyRoleAssignment(siteId, userId, desiredRole);
+      if (!verified) {
+        console.warn(
+          `Warning: Desired role ${desiredRole} may not have been assigned to user ${userId}. Response: ${JSON.stringify(response)}`
+        );
+      }
+
+      // Step 7: Restore temporary owner to their original role (unless desired role is OWNER - then keep them as owner)
+      if (desiredRole !== SitePermission.OWNER) {
+        console.log(
+          `Restoring temporary owner ${temporaryOwnerUserId} to original role: ${temporaryOwnerOriginalRole || SitePermission.MANAGER}`
+        );
+        try {
+          const restoreRole = temporaryOwnerOriginalRole || SitePermission.MANAGER;
+          await this.makeUserSiteMembership(
+            siteId,
+            temporaryOwnerUserId,
+            restoreRole,
+            SiteMembershipAction.SET_PERMISSION
+          );
+          await this.verifyRoleAssignment(siteId, temporaryOwnerUserId, restoreRole);
+          console.log(`✓ Temporary owner ${temporaryOwnerUserId} restored to ${restoreRole}`);
+        } catch (restoreError) {
+          // Log but don't fail - the main operation succeeded
+          console.warn(
+            `Warning: Failed to restore temporary owner ${temporaryOwnerUserId} to original role. This is non-critical. Error: ${restoreError}`
+          );
+        }
+      } else {
+        console.log(
+          `Keeping temporary owner ${temporaryOwnerUserId} as OWNER since desired role for ${userId} is OWNER`
+        );
+      }
+
+      return response;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Error during owner role change: ${errorMessage}`);
+      throw new Error(`Failed to change role for owner ${userId} to ${desiredRole}. Error: ${errorMessage}`);
+    }
+  }
+
   /**
    * Ensures user is a member of the site with the specified role
    * First checks if user is already a member, if not adds them, then assigns the role
+   * Verifies the role assignment was successful
    * @param params - Object containing siteId, userId, and role
    * @returns Promise<SiteMembershipResponse> - The membership response
    */
@@ -882,13 +1084,32 @@ export class SiteManagementHelper {
     role: SitePermission;
   }): Promise<SiteMembershipResponse> {
     const { siteId, userId, role } = params;
-    // First, check if user is already a member of the site
+    // Step 1: Check current membership status
     const membershipList = await this.getSiteMembershipList(siteId);
     const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
     const isUserMember = !!userMembership;
-    const hasCorrectRole = userMembership?.permission === role;
 
-    // If user is not a member, add them as member first, then set the desired role
+    console.log('User Membership Status:', JSON.stringify(userMembership, null, 2));
+
+    // Step 2: Determine current role from boolean flags (not from permission field)
+    const currentRole = this.getCurrentRoleFromMember(userMembership);
+    const hasCorrectRole = currentRole === role;
+
+    console.log(
+      `User ${userId} - Current Role: ${currentRole || 'Not a member'}, Desired Role: ${role}, Match: ${hasCorrectRole}`
+    );
+
+    // Step 3: If user already has the correct role, return success
+    if (hasCorrectRole) {
+      console.log(`User ${userId} already has the correct role ${role} in site ${siteId}`);
+      return {
+        status: 'success',
+        message: `User already has role ${role}`,
+        result: { userId, siteId, permission: role, action: SiteMembershipAction.SET_PERMISSION },
+      };
+    }
+
+    // Step 4: If user is not a member, add them first
     if (!isUserMember) {
       console.log(`User ${userId} is not a member of site ${siteId}, adding as member first`);
       await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
@@ -896,36 +1117,108 @@ export class SiteManagementHelper {
       // If the desired role is not member, set it separately
       if (role !== SitePermission.MEMBER) {
         console.log(`Setting user ${userId} role to ${role}`);
-        return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+        const response = await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+
+        // Verify the role was set correctly
+        const verified = await this.verifyRoleAssignment(siteId, userId, role);
+        if (!verified) {
+          console.warn(
+            `Warning: Role assignment may have failed. Expected ${role}, but verification did not confirm. Response: ${JSON.stringify(response)}`
+          );
+        }
+
+        return response;
       }
+
+      // Verify member role was set
+      const verified = await this.verifyRoleAssignment(siteId, userId, SitePermission.MEMBER);
+      if (!verified) {
+        console.warn(`Warning: Member role assignment may have failed for user ${userId}`);
+      }
+
       return {
         status: 'success',
         message: 'User added successfully',
         result: { userId, siteId, permission: role, action: SiteMembershipAction.ADD },
       };
-    } else if (!hasCorrectRole) {
-      console.log(`User ${userId} is a member but has wrong role, updating to ${role}`);
-      // Try SET_PERMISSION first, if it fails, fall back to remove and re-add
+    }
+
+    // Step 5: User is a member but has wrong role - update it
+    console.log(`User ${userId} is a member but has wrong role (${currentRole}), updating to ${role}`);
+
+    // Special handling: If user is currently an OWNER, we need special logic
+    if (currentRole === SitePermission.OWNER && role !== SitePermission.OWNER) {
+      console.log(`User ${userId} is currently an OWNER. Using special owner demotion flow to assign role ${role}`);
+      return await this.handleOwnerRoleChange(siteId, userId, role);
+    }
+
+    try {
+      const response = await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+
+      // Verify the role was set correctly
+      const verified = await this.verifyRoleAssignment(siteId, userId, role);
+      if (!verified) {
+        console.warn(
+          `Warning: Role update may have failed. Expected ${role}, but verification did not confirm. Response: ${JSON.stringify(response)}`
+        );
+        // Don't throw error, but log warning - API might have succeeded but verification timing issue
+      }
+
+      return response;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to update role using SET_PERMISSION: ${errorMessage}`);
+
+      // If SET_PERMISSION fails, try a more aggressive approach:
+      // Remove user and re-add with correct role
+      console.log(`Attempting fallback: Remove and re-add user with correct role`);
       try {
-        return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
-      } catch {
-        console.log(`SET_PERMISSION failed, falling back to remove and re-add approach`);
+        // Remove user
         await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
+
+        // Re-add as member first
         await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+
+        // If desired role is not member, set it
         if (role !== SitePermission.MEMBER) {
-          return await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const response = await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
+
+          // Verify the role was set correctly
+          const verified = await this.verifyRoleAssignment(siteId, userId, role);
+          if (!verified) {
+            console.error(
+              `Error: Fallback role assignment failed. User ${userId} does not have role ${role} after remove/re-add`
+            );
+            throw new Error(
+              `Failed to assign role ${role} to user ${userId} even after remove/re-add. Verification failed.`
+            );
+          }
+
+          return response;
         }
+
+        // Verify member role
+        const verified = await this.verifyRoleAssignment(siteId, userId, SitePermission.MEMBER);
+        if (!verified) {
+          throw new Error(`Failed to re-add user ${userId} as member. Verification failed.`);
+        }
+
         return {
           status: 'success',
-          message: 'User added successfully',
+          message: 'User re-added successfully',
           result: { userId, siteId, permission: role, action: SiteMembershipAction.ADD },
         };
+      } catch (fallbackError) {
+        const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error(`Fallback approach also failed: ${fallbackErrorMessage}`);
+        throw new Error(
+          `Failed to update user ${userId} role to ${role} in site ${siteId}. SET_PERMISSION failed: ${errorMessage}. Fallback failed: ${fallbackErrorMessage}`
+        );
       }
-    } else {
-      console.log(`User ${userId} already has the correct role ${role} in site ${siteId}`);
-      return userMembership;
     }
   }
+
   async getSiteAuthorNameAndEventStartDate(): Promise<{
     siteId: string;
     authorName?: string;

@@ -66,6 +66,7 @@ export const API_ENDPOINTS = {
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    updateStatus: '/v1/content/sites/attributes?attribute=status',
     updateCategory: '/v1/content/sites/attributes?attribute=category',
     listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
@@ -120,7 +121,7 @@ export const API_ENDPOINTS = {
     updateComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
     deleteComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
     commentReaction: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}/reactions`,
-    fetchComments: (feedId: string) => `/v1/rfeed/feeds/${feedId}/comments`,
+    fetchQuestionDetails: (feedId: string) => `/v1/rfeed/feeds/${feedId}`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
 

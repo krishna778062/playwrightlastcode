@@ -20,10 +20,15 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   //LOCATORS
   readonly peopleButton: Locator;
   readonly contentButton: Locator;
+  readonly getPeopleNamesLocators: (name: string) => Locator;
+  readonly getContentNamesLocators: (name: string) => Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.peopleButton = page.getByRole('tab', { name: 'People' });
     this.contentButton = page.getByRole('tab', { name: 'Content' });
+    this.getPeopleNamesLocators = (name: string) => page.getByText(name, { exact: false });
+    this.getContentNamesLocators = (name: string) => page.getByRole('link', { name: name, exact: true });
   }
 
   get actions(): IFavoritesPageActions {
@@ -45,6 +50,7 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       await this.clickOnElement(this.peopleButton);
     });
   }
+
   async clickOnContentButton(): Promise<void> {
     await test.step('Clicking on content button', async () => {
       await this.clickOnElement(this.contentButton);
@@ -56,11 +62,13 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   getContentNamesLocators(contentNames: string[]): Locator[] {
     return contentNames.map(name => this.page.getByRole('link', { name: name, exact: true }));
   }
+
   async verifyContentNamesAreDisplayed(contentNames: string[]): Promise<void> {
     await test.step('Verify content names are displayed', async () => {
       for (let index = 0; index < contentNames.length; index++) {
         const name = contentNames[index];
         await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(contentNames)[index], {
+        await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(name), {
           assertionMessage: `Content name ${name} should be displayed`,
         });
       }
@@ -72,6 +80,7 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       for (let index = 0; index < peopleNames.length; index++) {
         const name = peopleNames[index];
         await this.verifier.verifyTheElementIsVisible(this.getPeopleNamesLocators(peopleNames)[index], {
+        await this.verifier.verifyTheElementIsVisible(this.getPeopleNamesLocators(name), {
           assertionMessage: `People name ${name} should be displayed`,
         });
       }
