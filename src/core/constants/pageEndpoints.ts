@@ -6,7 +6,7 @@ export const PAGE_ENDPOINTS = {
   FEATURED_SITES_PAGE: '/sites/featured',
   MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
-  SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  SITE_PAGE: (siteId: string) => `/site/${siteId}/dashboard`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
   MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
