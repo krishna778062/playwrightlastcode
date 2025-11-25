@@ -486,19 +486,8 @@ export class SurveyCreationPage extends BasePage {
 
   async enterSurveyName(surveyName: string): Promise<void> {
     await test.step(`Enter survey name: ${surveyName}`, async () => {
-      const timestamp = new Date()
-        .toISOString()
-        .split('-')
-        .join('')
-        .split(':')
-        .join('')
-        .split('.')
-        .join('')
-        .split('T')
-        .join('')
-        .split('Z')
-        .join('');
-      const uniqueSurveyName = `${surveyName} ${timestamp}`;
+      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      const uniqueSurveyName = `UI automation| ${surveyName}| ${timestamp}`;
       await this.fillInElement(this.surveyNameInput, uniqueSurveyName, {
         stepInfo: `Enter survey name: ${uniqueSurveyName}`,
       });
