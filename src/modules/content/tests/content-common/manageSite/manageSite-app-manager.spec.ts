@@ -536,7 +536,7 @@ test.describe(
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
       }
     );
 
