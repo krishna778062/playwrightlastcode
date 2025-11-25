@@ -3,6 +3,9 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
@@ -12,6 +15,9 @@ export interface IManageSiteActions {
   searchSite: (siteName: string) => Promise<void>;
   selectFilterOption: (optionName: string) => Promise<void>;
   clickOnFilterOptionsDropdownButton: () => Promise<void>;
+  clickOnSiteTab: (tabName: SitePageTab) => Promise<void>;
+  clickOnFileOption: (fileName: string) => Promise<void>;
+  clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
 }
 
@@ -22,6 +28,7 @@ export interface IManageSiteAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
+  verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
@@ -39,7 +46,10 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+  readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
+  readonly editOptionLocator = this.page.getByTestId('edit-button');
 
+  private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
@@ -54,6 +64,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
+    this.manageSitesComponent = new ManageSitesComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -124,6 +135,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   async clickOnOptionsDropdown(siteName: string): Promise<void> {
     await this.clickOnElement(this.siteReferenceEllipses(siteName));
   }
+  async selectSiteFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
+    await this.manageSitesComponent.selectSiteFilterByText(bulkActionOption);
+  }
 
   async verifyOptionIsVisibleInOptionsDropdown(optionName: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.optionsDropdown(optionName), {
@@ -136,9 +150,25 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       assertionMessage: `${optionName} option should not be visible in options dropdown`,
     });
   }
+  fileOptionLocator = (fileName: string) => this.page.getByRole('link', { name: fileName }).first();
+  async verifyFileIsPresentInTheSiteFilesList(fileName: string): Promise<void> {
+    await this.verifier.isTheElementVisible(this.fileOptionLocator(fileName), {
+      assertionMessage: `Verifying that the file: ${fileName} is present in the site files list`,
+    });
+  }
+  async clickOnFileOption(fileName: string): Promise<void> {
+    await this.clickOnElement(this.fileOptionLocator(fileName));
+  }
 
+  async clickOnEditOption(): Promise<void> {
+    await this.clickOnElement(this.editOptionLocator);
+  }
   async selectFilterOption(optionName: string): Promise<void> {
     await this.clickOnElement(this.filterOptionsDropdown(optionName));
+  }
+
+  async clickOnSiteTab(tabName: SitePageTab): Promise<void> {
+    await this.clickOnElement(this.siteTab(tabName));
   }
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {

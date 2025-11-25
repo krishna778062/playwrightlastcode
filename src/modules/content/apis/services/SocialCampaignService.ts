@@ -57,6 +57,18 @@ export class SocialCampaignService {
   }
 
   /**
+   * Gets campaign list via GET request with query parameters
+   * @param params - Query parameters for filtering campaigns
+   * @returns Promise<SocialCampaignListResponse>
+   */
+  async getCampaignList(params?: { size?: number; sortBy?: string }): Promise<SocialCampaignListResponse> {
+    return await test.step(`Getting campaign list with params: ${JSON.stringify(params)}`, async () => {
+      const response = await this.httpClient.get(`${API_ENDPOINTS.socialCampaign.listGet}`);
+      return (await response.json()) as SocialCampaignListResponse;
+    });
+  }
+
+  /**
    * Gets a specific social campaign by ID
    * @param campaignId - The campaign ID
    * @returns Promise<SocialCampaign>

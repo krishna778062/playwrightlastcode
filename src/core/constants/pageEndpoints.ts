@@ -6,9 +6,10 @@ export const PAGE_ENDPOINTS = {
   FEATURED_SITES_PAGE: '/sites/featured',
   MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
-  SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  SITE_PAGE: (siteId: string) => `/site/${siteId}/dashboard`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
+  MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
 
   // Rewards pages
   MANAGE_REWARDS_PAGE: '/manage/recognition/rewards/overview',
@@ -28,6 +29,7 @@ export const PAGE_ENDPOINTS = {
     `/manage/users?searchTerm=${firstName}+${lastName}`,
   PEOPLE_DIRECTORY_PAGE: '/people',
   ACTIVITY_NOTIFICATION_PAGE: '/notifications/activity',
+  FAVORITE_PAGE: '/favorites/sites',
   LOGOUT: '/logout',
   CONTENT_SITES: '/v1/content/sites',
   CONTENT_SITES_CONTENT_LIST: '/v1/content/sites/content/list',
@@ -97,6 +99,9 @@ export const PAGE_ENDPOINTS = {
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
+  APPLICATION_GENERAL_SETTINGS_PAGE: '/manage/app/setup/general',
+  MOBILE_APP_SETTINGS_PAGE: '/manage/app/setup/mobile-app',
+
   //analytics pages
   ANALYTICS_LANDING_PAGE: '/analytics-landing',
   APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
