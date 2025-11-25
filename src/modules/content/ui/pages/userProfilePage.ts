@@ -33,6 +33,7 @@ export class UserProfilePage extends BasePage implements IUserProfilePageActions
       await this.verifier.verifyTheElementIsVisible(this.contactInformation, {
         assertionMessage: 'Contact information should be visible',
       });
+      // TODO: Implement page load verification
     });
   }
 
