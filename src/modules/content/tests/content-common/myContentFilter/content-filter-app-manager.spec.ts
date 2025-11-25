@@ -262,9 +262,9 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'Verify application manager should be able to apply bulk options on selecting the Select All option',
-          zephyrTestId: 'CONT-25063',
-          storyId: 'CONT-25063',
+            'Verify app manager should be able to filter the content for the content status as Published and Unpublished',
+          zephyrTestId: 'CONT-25058',
+          storyId: 'CONT-25058',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();

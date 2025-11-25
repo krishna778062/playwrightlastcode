@@ -46,6 +46,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly followingButtonUnderMemberTab: Locator;
   readonly clickOnUpdateCategoryButton: Locator;
   readonly contentFilterDropdown: Locator;
+  readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
 
@@ -91,6 +92,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.followButtonUnderAboutTab = page.getByLabel('About').getByRole('button', { name: 'Follow', exact: true });
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
+    this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
+    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
   }

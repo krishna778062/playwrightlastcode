@@ -86,6 +86,12 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+      manageContentPage = new ManageContentPage(appManagerFixture.page);
+      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+      onboardingComponent = new OnboardingComponent(appManagerFixture.page);
+      siteManagementHelper = appManagerFixture.siteManagementHelper;
       addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
       usedSiteIds = [];
       console.log('Cleared used site IDs for new test');
@@ -271,6 +277,8 @@ test.describe(
         await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.SCHEDULED);
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
@@ -341,6 +349,74 @@ test.describe(
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING_OPTION);
+        await manageContentPage.actions.clickOnOnboardingOption();
+        await manageContentPage.assertions.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
+        await manageContentPage.actions.saveButtonShouldBeDisabled();
+        await manageContentPage.actions.selectOnboardingOption(TagOption.SITE_ONBOARDING);
+        await manageContentPage.actions.clickOnOnboardingSaveButton();
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+        await manageContentPage.assertions.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS
+        );
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.clickOnOnboardingOption();
+        await manageContentPage.actions.selectOnboardingOption(TagOption.NOT_ONBOARDING);
+        await manageContentPage.actions.clickOnOnboardingSaveButton();
+        await manageContentPage.assertions.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS
+        );
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.clickOnOnboardingOption();
+        await manageContentPage.actions.selectOnboardingOption(TagOption.NOT_ONBOARDING);
+        await manageContentPage.actions.clickOnOnboardingSaveButton();
+        await manageContentPage.assertions.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS
+        );
+        await manageContentPage.assertions.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+
+    test(
+      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          zephyrTestId: 'CONT-20538',
+          storyId: 'CONT-20538',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await appManagerFixture.page.reload();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnPublishButton();
+        await manageContentPage.actions.clickOnApplyButton();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await appManagerFixture.page.reload();
+        const contentNames = await manageContentPage.actions.getAllContentNames();
+        console.log('contentNames', contentNames);
+        await manageContentPage.actions.clickOnFirstContentButton();
+        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.actions.clickOnDeleteButton();
+        await manageContentPage.actions.selectDeleteApplyButton();
+        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.hoverOnFirstDropDownOption();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING);
         await manageContentPage.actions.verifyOnboardingOptionVisibleInManageContent();
         await manageContentPage.actions.clickOnOnboardingOption();
         await onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
@@ -395,6 +471,11 @@ test.describe(
         });
         const siteNames = getSiteListResponse.result.listOfItems.map((item: any) => item.name);
         console.log('siteNames', siteNames);
+        const firstSiteIdFromList = getSiteListResponse.result.listOfItems[0]?.siteId;
+        if (firstSiteIdFromList) {
+          manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteIdFromList);
+          await manageSiteAppManagerPage.loadPage();
+        }
         const manageDeactivatedSitePage = new ManageSitePage(appManagerFixture.page);
         await manageDeactivatedSitePage.loadPage();
         const firstActiveSiteId = getSiteListResponse.result.listOfItems[0]?.siteId;
@@ -432,45 +513,6 @@ test.describe(
         await manageContentPage.actions.clickOnApply();
         const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
         await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
-      }
-    );
-    test(
-      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
-          zephyrTestId: 'CONT-20538',
-          storyId: 'CONT-20538',
-        });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await appManagerFixture.page.reload();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await appManagerFixture.page.reload();
-        const contentNames = await manageContentPage.actions.getAllContentNames();
-        console.log('contentNames', contentNames);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
       }
     );
 

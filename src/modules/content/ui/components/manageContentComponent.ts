@@ -965,6 +965,11 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
   async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
     await test.step('Verifying all contents are deleted', async () => {
       const contentNameLocator = this.getContentNameLocator(contentNames[0]);
@@ -973,19 +978,11 @@ export class ManageContentComponent extends BaseComponent {
       });
     });
   }
-
   async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
-    await test.step(`Verifying content ${contentName} is visible in manage site`, async () => {
-      const contentLocator = this.getContentNameLocator(contentName);
-      await this.verifier.verifyTheElementIsVisible(contentLocator, {
-        assertionMessage: `Content ${contentName} should be visible`,
+    await test.step('Verifying the content is visible in manage site', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentNameLocator(contentName), {
+        assertionMessage: 'Content should be visible',
       });
-    });
-  }
-
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
     });
   }
 }
