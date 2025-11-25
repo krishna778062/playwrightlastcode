@@ -56,18 +56,11 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       await this.clickOnElement(this.contentButton);
     });
   }
-  getPeopleNamesLocators(peopleNames: string[]): Locator[] {
-    return peopleNames.map(name => this.page.getByText(name, { exact: false }));
-  }
-  getContentNamesLocators(contentNames: string[]): Locator[] {
-    return contentNames.map(name => this.page.getByRole('link', { name: name, exact: true }));
-  }
 
   async verifyContentNamesAreDisplayed(contentNames: string[]): Promise<void> {
     await test.step('Verify content names are displayed', async () => {
       for (let index = 0; index < contentNames.length; index++) {
         const name = contentNames[index];
-        await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(contentNames)[index], {
         await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(name), {
           assertionMessage: `Content name ${name} should be displayed`,
         });
@@ -79,7 +72,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     await test.step('Verify people names are displayed', async () => {
       for (let index = 0; index < peopleNames.length; index++) {
         const name = peopleNames[index];
-        await this.verifier.verifyTheElementIsVisible(this.getPeopleNamesLocators(peopleNames)[index], {
         await this.verifier.verifyTheElementIsVisible(this.getPeopleNamesLocators(name), {
           assertionMessage: `People name ${name} should be displayed`,
         });

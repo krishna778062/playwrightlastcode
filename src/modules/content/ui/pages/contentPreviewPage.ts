@@ -100,10 +100,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
-  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
-  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
-  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
-  readonly favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
   readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
@@ -130,7 +126,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.contentDetailsComponent = new ContentDetailsComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
-    this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 

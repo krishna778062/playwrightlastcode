@@ -1,6 +1,5 @@
 import { APIRequestContext, test } from '@playwright/test';
 
-import { PeopleListResponse } from '@/src/core/types/people.type';
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -571,13 +570,6 @@ export class SiteManagementHelper {
    */
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
     return await this.siteManagementService.getListOfPeople(options);
-  }
-
-  async getListOfPeople(options?: { size?: number; filter?: string }): Promise<PeopleListResponse> {
-    return await this.siteManagementService.getListOfPeople({
-      size: options?.size || 100,
-      filter: options?.filter || 'favorites',
-    });
   }
   /**
    * Gets 2 sites that are not in the featured sites list

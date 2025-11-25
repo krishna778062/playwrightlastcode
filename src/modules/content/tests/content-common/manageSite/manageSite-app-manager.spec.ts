@@ -1,6 +1,5 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
@@ -21,8 +20,6 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
@@ -504,7 +501,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
-      async ({ appManagerApiFixture }) => {
+      async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action activate in manage site user drop down',
           zephyrTestId: 'CONT-26576',
@@ -716,14 +713,14 @@ test.describe(
           throw new Error('No non-app-manager members found');
         }
         const nonAppManagerMember = nonAppManagerMembers[0];
-        const updateUserSiteMembershipWithRole =
         try {
-          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-            siteId: firstSite.siteId,
-            userId: nonAppManagerMember.peopleId,
-            role: SitePermission.OWNER,
-          });
-        console.log('updateUserSiteMembershipWithRole', updateUserSiteMembershipWithRole);
+          const updateUserSiteMembershipWithRole =
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: firstSite.siteId,
+              userId: nonAppManagerMember.peopleId,
+              role: SitePermission.OWNER,
+            });
+          console.log('updateUserSiteMembershipWithRole', updateUserSiteMembershipWithRole);
         } catch {
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
@@ -788,7 +785,8 @@ test.describe(
           createAlbumInfo.albumName,
           createEventInfo.eventName,
         ]);
-
+      }
+    );
     test(
       'verify rejected content functionality under Content tab in Manage Site',
       {
