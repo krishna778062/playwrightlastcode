@@ -23,6 +23,7 @@ import { ShareComponent } from '@/src/modules/content/ui/components/shareCompone
 export { FeedPostOptions, FeedPostResult };
 
 export interface IFeedActions {
+  verifyThePageIsLoaded(): Promise<void>;
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
@@ -207,6 +208,7 @@ export interface IFeedAssertions {
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
@@ -1175,6 +1177,22 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   /**
+   * Clicks the share icon on a feed post
+   * @param postText - The text of the post to share
+   */
+  async clickShareIconOnPost(postText: string): Promise<void> {
+    await this.listFeedComponent.clickShareIcon(postText);
+  }
+
+  /**
+   * Verifies video controls are visible and functional
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoControls(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyVideoControls(postText);
+  }
+
+  /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for
    */
@@ -1188,10 +1206,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async verifyPostCannotBeInteracted(postText: string): Promise<void> {
     await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
-  }
-
-  async clickShareIconOnPost(postText: string): Promise<void> {
-    await this.listFeedComponent.clickShareIcon(postText);
   }
 
   async enterShareDescription(description: string): Promise<void> {

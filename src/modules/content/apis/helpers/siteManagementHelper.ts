@@ -563,7 +563,6 @@ export class SiteManagementHelper {
     };
     return await this.siteManagementService.getSiteMembershipList(options?.siteId || '', defaultOptions);
   }
-
   /**
    * Gets the list of people
    * @param options - Optional parameters for filtering people

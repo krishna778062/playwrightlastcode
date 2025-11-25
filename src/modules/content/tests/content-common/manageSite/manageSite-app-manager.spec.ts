@@ -21,13 +21,16 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -42,6 +45,9 @@ test.describe(
     let manageContentPage: ManageContentPage;
     let manageSiteAppManagerPage: ManageSiteSetUpPage;
     let manageSitesComponent: ManageSitesComponent;
+    let userProfilePage: UserProfilePage;
+    let orgChartPage: ORGChartPage;
+    let favoritesPage: FavoritesPage;
     let onboardingComponent: OnboardingComponent;
     let addToCampaignComponent: AddToCampaignComponent;
     let usedSiteIds: string[] = []; // Track used site IDs across tests
@@ -93,6 +99,11 @@ test.describe(
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
+      userProfilePage = new UserProfilePage(appManagerFixture.page);
+      orgChartPage = new ORGChartPage(appManagerFixture.page);
+      favoritesPage = new FavoritesPage(appManagerFixture.page);
+      // Clear used site IDs at the start of each test for fresh tracking
+
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
       usedSiteIds = [];
@@ -435,6 +446,31 @@ test.describe(
         await onboardingComponent.clickOnSaveButton();
         await onboardingComponent.verifyToastMessageIsVisibleWithText('Updated onboarding status');
         await onboardingComponent.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+      }
+    );
+    test(
+      'to verify the UI of favorite people section',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26450'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the people follow in site about members and followers tab',
+          zephyrTestId: 'CONT-26450',
+          storyId: 'CONT-26450',
+        });
+        await appManagerFixture.navigationHelper.clickOnFavoritePeopleSection();
+        await favoritesPage.actions.clickOnPeopleButton();
+        const getPeopleList = await appManagerApiFixture.siteManagementHelper.getListOfPeople();
+        const peopleNames = getPeopleList.result.listOfItems.map((item: any) =>
+          `${item.firstName || ''} ${item.lastName || ''}`.trim()
+        );
+        await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
+        await appManagerFixture.navigationHelper.clickOnOrgChartButton();
+        await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.actions.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
+        await userProfilePage.actions.clickOnFollowersTab();
+        await userProfilePage.assertions.verifyContactInformation();
       }
     );
     test(
