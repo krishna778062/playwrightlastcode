@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { DialogBox } from '@rewards-components/common/dialog-box';
 
 export class GiveRecognitionDialogBox extends DialogBox {
@@ -43,7 +43,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly clearButton: Locator;
   readonly awardDisabledWarning: Locator;
   readonly shareIcon: Locator;
-  readonly attachmentInput: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -92,7 +91,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.clearButton = this.container.getByRole('button', { name: 'Clear' });
     this.awardDisabledWarning = this.container.locator('[class*="SpotAwardGuidanceAndWarningPanel"]');
     this.shareIcon = page.locator('i[data-testid="i-share"]');
-    this.attachmentInput = this.container.locator('input[type="file"]');
   }
 
   /**
@@ -219,15 +217,5 @@ export class GiveRecognitionDialogBox extends DialogBox {
   async enterTheRecognitionMessage(message: string): Promise<string | void> {
     await this.descriptionTextArea.fill(message);
     return message;
-  }
-
-  /**
-   * Add an attachment to the recognition
-   * @param filePath - Path to the file to attach
-   */
-  async addAttachment(filePath: string): Promise<void> {
-    // Wait for attachment input to be available and set the file
-    await expect(this.attachmentInput).toBeAttached();
-    await this.attachmentInput.setInputFiles(filePath);
   }
 }
