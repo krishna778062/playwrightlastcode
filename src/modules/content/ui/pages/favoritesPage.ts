@@ -16,7 +16,7 @@ export interface IFavoritesPageAssertions {
   markAsFavoriteAndCheckRGBColor: () => Promise<void>;
   verifyAlbumTabImageIsDisplayed: () => Promise<void>;
   verifyEventsTabImageIsDisplayed: () => Promise<void>;
-  verifyEventsTabMatchesApiDate: (endsAt: string) => Promise<void>;
+  verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
 }
 
 export class FavoritesPage extends BasePage implements IFavoritesPageActions, IFavoritesPageAssertions {
@@ -77,21 +77,21 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       });
     });
   }
-  async verifyEventsTabMatchesApiDate(endsAt: string): Promise<void> {
-    await test.step('Verify events tab matches API endsAt date', async () => {
+  async verifyEventsTabMatchesApiDate(startsAt: string): Promise<void> {
+    await test.step('Verify events tab matches API startsAt date', async () => {
       await this.verifier.verifyTheElementIsVisible(this.eventsTabLink, {
         assertionMessage: 'Events tab link should be visible',
       });
 
       const eventsTabText = await this.eventsTabLink.textContent();
       console.log('Events tab text:', eventsTabText);
-      console.log('Ends at date:', endsAt);
-      const { month, day } = this.parseStartsAtDate(endsAt);
+      console.log('Starts at date:', startsAt);
+      const { month, day } = this.parseStartsAtDate(startsAt);
 
       if (!eventsTabText || !this.doesTextMatchDate(eventsTabText, month, day)) {
         throw new Error(
           `Events tab text does not match API date.\n` +
-            `API endsAt: ${endsAt} (${month} ${day})\n` +
+            `API startsAt: ${startsAt} (${month} ${day})\n` +
             `Events tab text: "${eventsTabText || ''}"`
         );
       }
