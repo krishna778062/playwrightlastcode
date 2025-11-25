@@ -1196,7 +1196,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async clickShareIconOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
-  
+
   async verifyVideoControls(postText: string): Promise<void> {
     await this.listFeedComponent.verifyVideoControls(postText);
   }
