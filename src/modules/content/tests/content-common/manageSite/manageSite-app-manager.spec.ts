@@ -20,6 +20,7 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
+import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -437,6 +438,27 @@ test.describe(
       }
     );
     test(
+      'to verify the site edit option in manage site user drop down sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the site author name and event start date',
+          zephyrTestId: 'CONT-26503',
+          storyId: 'CONT-26503',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const editSitePage = new EditSitePage(appManagerFixture.page);
+        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        await editSitePage.actions.clickOnEditOption();
+        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.actions.clickOnUpdateButton();
+        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+      }
+    );
+    test(
       'to verify the bulk action activate in manage site user drop down',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
@@ -663,13 +685,57 @@ test.describe(
             userId: nonAppManagerMember.peopleId,
             role: SitePermission.OWNER,
           });
-        } catch (error) {
+        } catch {
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSite.siteId);
         await manageSiteAppManagerPage.loadPage();
         await manageSiteAppManagerPage.actions.clickOnThePeopleTab();
         await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
+      }
+    );
+
+    test(
+      'verify rejected content functionality under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify rejected content functionality under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20533',
+          storyId: 'CONT-20533',
+        });
+
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
+        if (!siteListResponse || siteListResponse.length === 0) {
+          throw new Error('No sites found in siteListResponse');
+        }
+        // Loop through sites to find one where standard user is NOT a member, owner, or manager
+        const newsiteInfo =
+          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        console.log('pageInfo', pageInfo);
+        await appManagerApiFixture.siteManagementHelper.rejectContent(
+          newsiteInfo.siteId, // Use the same site where the content was created
+          pageInfo.contentId,
+          'This is not good'
+        );
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
       }
     );
   }
