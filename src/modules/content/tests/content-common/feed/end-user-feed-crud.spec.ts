@@ -3,9 +3,9 @@ import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-h
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
-import { RecognitionFormComponent } from '@content/ui/components/recognitionFormComponent';
 import { CreateFeedPostComponent } from '@content/ui/components/createFeedPostComponent';
 import { InappropriateContentWarningPopupComponent } from '@content/ui/components/inappropriateContentWarningPopupComponent';
+import { RecognitionFormComponent } from '@content/ui/components/recognitionFormComponent';
 import { ShareComponent } from '@content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
@@ -652,7 +652,7 @@ test.describe(
       }
     );
 
-    test(    
+    test(
       'verify warning popup appears when inappropriate content is submitted in Feed post or Comment',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
@@ -915,7 +915,7 @@ test.describe(
       }
     );
 
-    test(        
+    test(
       'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28091'],
@@ -1278,7 +1278,7 @@ test.describe(
       }
     );
 
-    test(        
+    test(
       'verify inappropriate content warning when sharing feed posts/comments',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28474'],
@@ -1582,7 +1582,7 @@ test.describe(
       }
     );
 
-    test(        
+    test(
       'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28476'],
