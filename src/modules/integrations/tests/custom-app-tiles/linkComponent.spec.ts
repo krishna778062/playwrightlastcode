@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker';
 import { CUSTOM_APP_TILES_TEST_DATA } from '@integrations/test-data/customAppTiles.test-data';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -216,7 +215,7 @@ test.describe(
     );
 
     test(
-      'verify link component advanced option under color component',
+      'verify Advanced option under color component in Appearance section for Link',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -242,21 +241,23 @@ test.describe(
 
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
-        await linkComponent.openAdvancedColorSettings();
-        await expect(linkComponent.advancedDialog, 'Advanced settings dialog should be visible').toBeVisible();
-        await expect(
-          linkComponent.advancedDialogTitle,
-          'Advanced settings dialog should have correct title'
-        ).toHaveText('Advanced settings');
-        await linkComponent.verifySelectedAdvancedColor(
+        await linkComponent.verifyMainColorSelected(
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARKEST
         );
-        await expect(
-          linkComponent.advancedDialog.getByText(/System colors automatically adjust/i),
-          'System colors message should be visible'
-        ).toBeVisible();
+        await linkComponent.openAdvancedColorSettings();
         await linkComponent.verifySystemColorOptions();
-        await linkComponent.cancelAdvancedSettings();
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARKEST
+        );
+        await linkComponent.verifySystemColorsMessage();
+        await linkComponent.selectAdvancedColor(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_LIGHT
+        );
+        await linkComponent.saveAdvancedSettings();
+        await linkComponent.verifyLinkTransformed(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEST_TEXT.DEFAULT_LINK,
+          customAppTilesPage.canvasContainer
+        );
       }
     );
 
@@ -294,11 +295,9 @@ test.describe(
         ];
         for (const style of headingStyles) {
           await linkComponent.selectTextStyle(style);
-          await linkComponent.openAdvancedColorSettings();
-          await linkComponent.verifySelectedAdvancedColor(
+          await linkComponent.verifyMainColorSelected(
             CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARKEST
           );
-          await linkComponent.cancelAdvancedSettings();
         }
       }
     );
@@ -331,11 +330,9 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.selectTextStyle(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.SECONDARY);
-        await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor(
+        await linkComponent.verifyMainColorSelected(
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_LIGHT
         );
-        await linkComponent.cancelAdvancedSettings();
       }
     );
 
@@ -367,11 +364,9 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.selectTextStyle(CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.TEXT_STYLES.BODY);
-        await linkComponent.openAdvancedColorSettings();
-        await linkComponent.verifySelectedAdvancedColor(
+        await linkComponent.verifyMainColorSelected(
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.COLORS.ADVANCED_COLOR_TYPES.SYSTEM_DARK
         );
-        await linkComponent.cancelAdvancedSettings();
       }
     );
 
@@ -545,6 +540,7 @@ test.describe(
         await customAppTilesPage.dragToCanvas('Link');
         await customAppTilesPage.clickText('Link…');
 
+        await customAppTilesPage.clickTab('Data', 'Link');
         await linkComponent.clearLinkText(customAppTilesPage.canvasContainer);
         await linkComponent.clearUrl();
 
@@ -1194,7 +1190,7 @@ test.describe(
     test(
       'verify link component transform value dialog - multiple transform types and preview',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -1234,10 +1230,17 @@ test.describe(
         );
         await customAppTilesPage.clickButton('Add dynamic value');
         await customAppTilesPage.selectDataBindingField(
-          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_CREATED_AT
         );
         await customAppTilesPage.clickButton('Save');
+
+        await customAppTilesPage.clickButtonInTab('Data', 'URL', 'Add dynamic value');
+        await customAppTilesPage.selectDataBindingField(
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_URL
+        );
+
         await linkComponent.verifyTransformedTextInCanvas(
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.EXPECTED_VALUES.TRANSFORMED_DATE_ISO,
           customAppTilesPage.canvasContainer
@@ -1365,7 +1368,7 @@ test.describe(
 
         await customAppTilesPage.clickButtonInTab('Data', 'Text', 'Add dynamic value');
         await customAppTilesPage.selectDataBindingField(
-          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_TITLE,
+          CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_OBJECT,
           CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.DATA_BINDING.TICKET_FIELD_CREATED_AT
         );
 

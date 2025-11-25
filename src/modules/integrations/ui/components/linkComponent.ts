@@ -50,6 +50,14 @@ export class LinkComponent extends BaseComponent {
   readonly lightThemeColorButton: Locator;
   readonly darkThemeColorButton: Locator;
   readonly alignmentButtons: Locator;
+  readonly alignmentButton: (accordionContent: Locator, buttonLabel: string) => Locator;
+  readonly alignmentButtonsAll: (accordionContent: Locator) => Locator;
+  readonly getAlignmentRadioInput: (button: Locator, alignmentValue: string) => Locator;
+  readonly getAccordionContent: (accordionContentId: string | null) => Locator;
+  readonly getAccordionCombobox: (accordionContent: Locator) => Locator;
+  readonly getAccordionField: (accordionContent: Locator) => Locator;
+  readonly getAccordionButton: (accordionContent: Locator, buttonName: string) => Locator;
+  readonly getAccordionSelectedValue: (accordionContent: Locator) => Locator;
   readonly textFieldError: Locator;
   readonly urlFieldError: Locator;
   readonly canvasContainer: Locator;
@@ -61,9 +69,6 @@ export class LinkComponent extends BaseComponent {
   readonly advancedColorListboxFirstItem: Locator;
   readonly textStyleOption: Locator;
   readonly textStyleSelectedValue: Locator;
-  readonly accordionContent: Locator;
-  readonly alignmentFirstButton: Locator;
-  readonly alignmentRadioInput: Locator;
   readonly linkTextElement: Locator;
   readonly tile: Locator;
   readonly tileLink: Locator;
@@ -84,32 +89,26 @@ export class LinkComponent extends BaseComponent {
     this.page = page;
 
     this.canvasContainer = page.getByTestId('canvasContainer').or(page.locator('#canvasContainer'));
-
     this.linkTextField = this.canvasContainer
       .getByRole('textbox')
       .or(this.canvasContainer.locator('[contenteditable="true"]').first());
     this.linkTextHelperText = page.getByText('Longer text will be cut off to fit one line');
     this.urlHelperText = page.getByText('Add a URL');
-
     this.dataTab = page.getByRole('tab', { name: 'Data' });
     this.appearanceTab = page.getByRole('tab', { name: 'Appearance' });
-
     this.urlAccordion = page
       .getByRole('button', { name: /^URL$/ })
       .or(page.locator('button[class*="AccordionTrigger"]').filter({ has: page.getByText('URL', { exact: true }) }));
     this.textAccordion = page
       .getByRole('button', { name: /^Text$/ })
       .or(page.locator('button[class*="AccordionTrigger"]').filter({ has: page.getByText('Text', { exact: true }) }));
-
     this.urlField = page.getByRole('textbox', { name: /url/i }).or(page.locator('textarea[name*="dataBindUrlArr"]'));
     this.dataTextBindingField = page.locator('textarea[name*="dataBindTextArr"]');
-
     this.textStyleAccordion = page
       .locator('button[class*="AccordionTrigger"]')
       .filter({ has: page.getByText('Text style', { exact: true }) });
     this.textStyleField = page.getByTestId('field-undefined').first();
     this.textStyleDropdown = this.textStyleField.getByRole('combobox');
-
     this.colorAccordion = page
       .locator('button[class*="AccordionTrigger"]')
       .filter({ has: page.getByText('Color', { exact: true }) });
@@ -127,7 +126,6 @@ export class LinkComponent extends BaseComponent {
       .locator('[role="region"]')
       .getByRole('button', { name: 'Advanced' })
       .first();
-
     this.alignmentAccordion = page
       .locator('button[class*="AccordionTrigger"]')
       .filter({ has: page.getByText('Alignment', { exact: true }) });
@@ -136,7 +134,22 @@ export class LinkComponent extends BaseComponent {
       .filter({ has: page.getByRole('button', { name: /^Align (left|center|right)$/ }) })
       .first();
     this.alignmentButtons = page.getByRole('button', { name: /^Align (left|center|right)$/ });
-
+    this.alignmentButton = (accordionContent: Locator, buttonLabel: string) =>
+      accordionContent.getByRole('button', { name: buttonLabel });
+    this.alignmentButtonsAll = (accordionContent: Locator) =>
+      accordionContent.getByRole('button', { name: /^Align (left|center|right)$/ });
+    this.getAlignmentRadioInput = (button: Locator, alignmentValue: string) => {
+      const labelElement = button.locator('xpath=ancestor::label[1]');
+      return labelElement.locator(`input[type="radio"][value="${alignmentValue}"]`).first();
+    };
+    this.getAccordionContent = (accordionContentId: string | null) =>
+      accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page.locator('body');
+    this.getAccordionCombobox = (accordionContent: Locator) => accordionContent.getByRole('combobox').first();
+    this.getAccordionField = (accordionContent: Locator) => accordionContent.getByTestId('field-undefined').first();
+    this.getAccordionButton = (accordionContent: Locator, buttonName: string) =>
+      accordionContent.getByRole('button', { name: buttonName }).first();
+    this.getAccordionSelectedValue = (accordionContent: Locator) =>
+      accordionContent.locator('.css-910r8z-singleValue').first();
     this.maxLineCountAccordion = page
       .locator('button[class*="AccordionTrigger"]')
       .filter({ has: page.getByText('Maximum line count', { exact: true }) });
@@ -145,7 +158,6 @@ export class LinkComponent extends BaseComponent {
       .filter({ has: page.getByTestId('SelectInput') })
       .first();
     this.maxLineCountDropdown = this.maxLineCountField.getByTestId('SelectInput');
-
     this.advancedDialog = page.getByRole('dialog', { name: 'Advanced settings' });
     this.advancedDialogTitle = this.advancedDialog.getByRole('heading', { name: 'Advanced settings' });
     this.advancedColorField = this.advancedDialog.getByTestId('field-Color');
@@ -153,21 +165,17 @@ export class LinkComponent extends BaseComponent {
     this.advancedColorListbox = this.advancedDialog.getByRole('listbox');
     this.advancedSaveButton = this.advancedDialog.getByRole('button', { name: 'Save' });
     this.advancedCancelButton = this.advancedDialog.getByRole('button', { name: 'Cancel' });
-
     this.colorPickerDialog = page.getByRole('dialog', { name: 'Hex color picker' });
     this.colorPickerHexInput = this.colorPickerDialog
       .getByTestId('hex-color-picker')
       .locator('input[id^="rc-editable-input-"]')
       .first();
     this.colorPickerOkButton = this.colorPickerDialog.getByRole('button', { name: 'OK' });
-
     this.lightThemeField = this.advancedDialog.getByTestId('field-Light theme');
     this.darkThemeField = this.advancedDialog.getByTestId('field-Dark theme (mobile app only)');
     this.lightThemeColorButton = this.lightThemeField.getByRole('button').first();
     this.darkThemeColorButton = this.darkThemeField.getByRole('button').first();
-
     this.warningMessage = this.advancedDialog.getByText(/Non-system colors.*may reduce visual consistency/i);
-
     this.visibilityDialog = page.getByRole('dialog', { name: 'Set visibility rule' });
     this.visibilityDialogTitle = this.visibilityDialog.getByRole('heading', { name: 'Set visibility rule' });
     this.visibilityCodeEditor = this.visibilityDialog
@@ -176,30 +184,25 @@ export class LinkComponent extends BaseComponent {
     this.visibilityFunctionInput = this.visibilityDialog.getByRole('textbox').first();
     this.visibilityDoneButton = this.visibilityDialog.getByRole('button', { name: 'Done' });
     this.visibilityCancelButton = this.visibilityDialog.getByRole('button', { name: 'Cancel' });
-
     this.advancedSettingsAccordion = page.getByRole('button', { name: 'Advanced Settings' });
     this.setVisibilityRuleButton = page.getByRole('button', { name: 'Set visibility rule' });
     this.addDynamicValueButton = page.getByRole('button', { name: 'Add dynamic value' });
-
     this.textFieldError = page
       .getByText(/required/i)
       .filter({ has: page.locator('textarea[name*="dataBindTextArr"]') });
     this.urlFieldError = page.getByText(/required/i).filter({ has: page.locator('textarea[name*="dataBindUrlArr"]') });
-
     this.textErrorLocator = page
       .getByTestId('field-undefined')
       .filter({ has: page.locator('textarea[name*="dataBindTextArr"]') })
       .locator('.Field-module__error__SJr6u')
       .filter({ hasText: /required/i })
       .first();
-
     this.urlErrorLocator = page
       .getByTestId('field-undefined')
       .filter({ has: page.locator('textarea[name*="dataBindUrlArr"]') })
       .locator('.Field-module__error__SJr6u')
       .filter({ hasText: /required/i })
       .first();
-
     this.reactSelectContainer = this.advancedColorField.locator('div[class*="css-"][class*="container"]').first();
     this.advancedColorSelectedValue = this.advancedColorField.locator('.css-910r8z-singleValue').first();
     this.advancedColorListboxFirstItem = this.advancedColorListbox
@@ -207,9 +210,6 @@ export class LinkComponent extends BaseComponent {
       .first();
     this.textStyleOption = page.getByRole('option');
     this.textStyleSelectedValue = page.locator('.css-910r8z-singleValue').first();
-    this.accordionContent = page.locator('[id]');
-    this.alignmentFirstButton = page.getByRole('button', { name: 'Align left' });
-    this.alignmentRadioInput = page.locator('input[type="radio"]');
     this.linkTextElement = page.locator('span[contenteditable="true"], h3').first();
     this.tile = page.getByTestId('tile').or(page.locator('.tile, [class*="tile"]'));
     this.tileLink = page.getByRole('link').first();
@@ -267,16 +267,27 @@ export class LinkComponent extends BaseComponent {
 
   async clearLinkText(canvasContainer?: Locator): Promise<void> {
     await test.step('Clear link text field', async () => {
-      if (canvasContainer) {
-        const linkElement = canvasContainer.getByRole('textbox').first();
-        await linkElement.click({ timeout: 10000 });
-        await linkElement.press('Control+A');
-        await linkElement.press('Backspace');
-      } else {
-        await this.linkTextField.click({ timeout: 10000 });
-        await this.linkTextField.press('Control+A');
-        await this.linkTextField.press('Backspace');
+      try {
+        await this.dataTextBindingField.waitFor({ state: 'visible', timeout: 2000 });
+        await this.expandTextAccordion();
+        await this.dataTextBindingField.clear();
+        return;
+      } catch {
+        // Do nothing
       }
+      let linkElement: Locator;
+
+      if (canvasContainer) {
+        const textboxLocator = canvasContainer.getByRole('textbox').first();
+        const contentEditableLocator = canvasContainer.locator('[contenteditable="true"]').first();
+        linkElement = textboxLocator.or(contentEditableLocator);
+      } else {
+        linkElement = this.linkTextField;
+      }
+      await linkElement.waitFor({ state: 'visible', timeout: 10000 });
+      await linkElement.click({ timeout: 10000 });
+      await linkElement.press('Control+A');
+      await linkElement.press('Backspace');
     });
   }
 
@@ -371,8 +382,9 @@ export class LinkComponent extends BaseComponent {
       await this.expandTextStyleAccordion();
 
       const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
+      const accordionContent = this.getAccordionContent(accordionContentId);
       const textStyleDropdown = accordionContentId
-        ? this.page.locator(`[id="${accordionContentId}"]`).getByRole('combobox').first()
+        ? this.getAccordionCombobox(accordionContent)
         : this.textStyleDropdown;
 
       await this.clickOnElement(textStyleDropdown);
@@ -381,8 +393,7 @@ export class LinkComponent extends BaseComponent {
 
       // Wait for dropdown to close and verify selected value
       if (accordionContentId) {
-        const accordionContent = this.page.locator(`[id="${accordionContentId}"]`);
-        const selectedValueDisplay = accordionContent.locator('.css-910r8z-singleValue').first();
+        const selectedValueDisplay = this.getAccordionSelectedValue(accordionContent);
         await expect(selectedValueDisplay, `Text style should be set to "${style}"`).toContainText(style);
       } else {
         await expect(this.textStyleSelectedValue, `Text style should be set to "${style}"`).toContainText(style);
@@ -399,7 +410,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.textStyleAccordion);
         const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
+          await this.getAccordionContent(accordionContentId).waitFor({ state: 'visible' });
         }
       }
     });
@@ -409,9 +420,8 @@ export class LinkComponent extends BaseComponent {
     await test.step('Verify text style field is visible', async () => {
       await this.expandTextStyleAccordion();
       const accordionContentId = await this.textStyleAccordion.getAttribute('aria-controls');
-      const textStyleField = accordionContentId
-        ? this.page.locator(`[id="${accordionContentId}"]`).getByTestId('field-undefined').first()
-        : this.textStyleField;
+      const accordionContent = this.getAccordionContent(accordionContentId);
+      const textStyleField = accordionContentId ? this.getAccordionField(accordionContent) : this.textStyleField;
       await expect(textStyleField, 'Text style field should be visible').toBeVisible();
     });
   }
@@ -425,7 +435,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.colorAccordion);
         const accordionContentId = await this.colorAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
+          await this.getAccordionContent(accordionContentId).waitFor({ state: 'visible' });
         }
       }
     });
@@ -449,8 +459,9 @@ export class LinkComponent extends BaseComponent {
       await this.expandColorAccordion();
 
       const accordionContentId = await this.colorAccordion.getAttribute('aria-controls');
+      const accordionContent = this.getAccordionContent(accordionContentId);
       const advancedButton = accordionContentId
-        ? this.page.locator(`[id="${accordionContentId}"]`).getByRole('button', { name: 'Advanced' }).first()
+        ? this.getAccordionButton(accordionContent, 'Advanced')
         : this.advancedButton;
 
       await this.clickOnElement(advancedButton);
@@ -536,6 +547,34 @@ export class LinkComponent extends BaseComponent {
     });
   }
 
+  async verifyMainColorSelected(expectedColor: string): Promise<void> {
+    await test.step(`Verify main color dropdown shows "${expectedColor}"`, async () => {
+      await this.expandColorAccordion();
+      const accordionContentId = await this.colorAccordion.getAttribute('aria-controls');
+      const accordionContent = this.getAccordionContent(accordionContentId);
+      const colorSelectedValue = this.getAccordionSelectedValue(accordionContent);
+      await expect(colorSelectedValue, `Main color dropdown should show "${expectedColor}"`).toContainText(
+        new RegExp(expectedColor, 'i')
+      );
+    });
+  }
+
+  async verifySystemColorsMessage(): Promise<void> {
+    await test.step('Verify system colors message is visible', async () => {
+      await expect(
+        this.advancedDialog.getByText(/System colors automatically adjust/i),
+        'System colors message should be visible'
+      ).toBeVisible();
+    });
+  }
+
+  async verifyLinkTransformed(linkText: string, canvasContainer: Locator): Promise<void> {
+    await test.step(`Verify link "${linkText}" is visible and transformed with the selected color`, async () => {
+      const linkElement = this.getLinkElement(linkText, canvasContainer);
+      await expect(linkElement, 'Link should be visible and transformed with the selected color').toBeVisible();
+    });
+  }
+
   private formatHexColor(hexColor: string): string {
     return hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
   }
@@ -589,7 +628,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.alignmentAccordion);
         const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
+          await this.getAccordionContent(accordionContentId).waitFor({ state: 'visible' });
         }
       }
     });
@@ -600,12 +639,9 @@ export class LinkComponent extends BaseComponent {
       await this.expandAlignmentAccordion();
 
       const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
+      const accordionContent = this.getAccordionContent(accordionContentId);
       const alignmentField = accordionContentId
-        ? this.page
-            .locator(`[id="${accordionContentId}"]`)
-            .getByTestId('field-undefined')
-            .filter({ has: this.alignmentButtons })
-            .first()
+        ? accordionContent.getByTestId('field-undefined').filter({ has: this.alignmentButtons }).first()
         : this.alignmentField;
 
       await expect(alignmentField, 'Alignment field should be visible').toBeVisible();
@@ -616,184 +652,228 @@ export class LinkComponent extends BaseComponent {
     await test.step(`Verify there are ${expectedCount} alignment buttons`, async () => {
       await this.expandAlignmentAccordion();
 
-      const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
-
-      const firstButton = accordionContent.getByRole('button', { name: 'Align left' });
+      const accordionContent = await this.getAlignmentAccordionContent();
+      const firstButton = this.alignmentButton(accordionContent, 'Align left');
       await expect(firstButton, 'First alignment button should be visible').toBeVisible();
 
-      const alignmentButtons = accordionContent.getByRole('button', { name: /^Align (left|center|right)$/ });
+      const alignmentButtons = this.alignmentButtonsAll(accordionContent);
       await expect(alignmentButtons, `There should be ${expectedCount} alignment buttons`).toHaveCount(expectedCount);
     });
+  }
+
+  /**
+   * Get the accordion content locator for alignment section
+   */
+  private async getAlignmentAccordionContent(): Promise<Locator> {
+    const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
+    return this.getAccordionContent(accordionContentId);
+  }
+
+  /**
+   * Wait for alignment to be applied in the canvas element
+   */
+  private async waitForAlignmentApplied(linkElement: Locator, expectedAlign: string): Promise<void> {
+    await linkElement.evaluate((el, expectedAlign) => {
+      return new Promise<void>(resolve => {
+        const checkAlignment = () => {
+          let align: string = '';
+
+          if (el instanceof HTMLElement) {
+            if (
+              el.classList.contains('Typography-module__centerAlign__OGpiQ') ||
+              el.classList.contains('centerAlign')
+            ) {
+              align = 'center';
+            } else if (
+              el.classList.contains('Typography-module__leftAlign__OGpiQ') ||
+              el.classList.contains('leftAlign')
+            ) {
+              align = 'left';
+            } else if (
+              el.classList.contains('Typography-module__rightAlign__OGpiQ') ||
+              el.classList.contains('rightAlign')
+            ) {
+              align = 'right';
+            } else {
+              const style = window.getComputedStyle(el);
+              const styleAlign = style.textAlign;
+              if (styleAlign && styleAlign !== 'start' && styleAlign !== 'end' && styleAlign !== '') {
+                align = styleAlign;
+              }
+            }
+
+            if (!align) {
+              const h3Element = el.querySelector('h3');
+              if (h3Element instanceof HTMLElement) {
+                if (
+                  h3Element.classList.contains('Typography-module__centerAlign__OGpiQ') ||
+                  h3Element.classList.contains('centerAlign')
+                ) {
+                  align = 'center';
+                } else if (
+                  h3Element.classList.contains('Typography-module__leftAlign__OGpiQ') ||
+                  h3Element.classList.contains('leftAlign')
+                ) {
+                  align = 'left';
+                } else if (
+                  h3Element.classList.contains('Typography-module__rightAlign__OGpiQ') ||
+                  h3Element.classList.contains('rightAlign')
+                ) {
+                  align = 'right';
+                } else {
+                  const h3Style = window.getComputedStyle(h3Element);
+                  const h3Align = h3Style.textAlign;
+                  if (h3Align && h3Align !== 'start' && h3Align !== 'end' && h3Align !== '') {
+                    align = h3Align;
+                  }
+                }
+              }
+            }
+          }
+
+          if (!align) {
+            let current: Element | null = el.parentElement;
+            for (let i = 0; i < 5 && current; i++) {
+              if (!(current instanceof HTMLElement)) {
+                current = current.parentElement;
+                continue;
+              }
+
+              if (
+                current.classList.contains('Typography-module__centerAlign__OGpiQ') ||
+                current.classList.contains('centerAlign')
+              ) {
+                align = 'center';
+                break;
+              }
+              if (
+                current.classList.contains('Typography-module__leftAlign__OGpiQ') ||
+                current.classList.contains('leftAlign')
+              ) {
+                align = 'left';
+                break;
+              }
+              if (
+                current.classList.contains('Typography-module__rightAlign__OGpiQ') ||
+                current.classList.contains('rightAlign')
+              ) {
+                align = 'right';
+                break;
+              }
+
+              const style = window.getComputedStyle(current);
+              const styleAlign = style.textAlign;
+              if (styleAlign && styleAlign !== 'start' && styleAlign !== 'end' && styleAlign !== '') {
+                align = styleAlign;
+                break;
+              }
+
+              current = current.parentElement;
+            }
+          }
+
+          if (align === 'start') align = 'left';
+          if (align === 'end') align = 'right';
+          if (!align) align = 'left';
+
+          if (align === expectedAlign) {
+            resolve();
+          } else {
+            setTimeout(checkAlignment, 100);
+          }
+        };
+        checkAlignment();
+        setTimeout(() => resolve(), 5000);
+      });
+    }, expectedAlign);
+  }
+
+  /**
+   * Verify all alignment radio buttons state
+   */
+  private async verifyAllAlignmentRadios(
+    accordionContent: Locator,
+    buttonLabels: string[],
+    expectedAlignments: string[],
+    selectedIndex: number
+  ): Promise<void> {
+    for (let j = 0; j < buttonLabels.length; j++) {
+      const otherButton = this.alignmentButton(accordionContent, buttonLabels[j]);
+      const otherExpectedAlignment = expectedAlignments[j];
+      const otherRadio = this.getAlignmentRadioInput(otherButton, otherExpectedAlignment);
+
+      if (j === selectedIndex) {
+        await expect(otherRadio, `Radio for "${buttonLabels[j]}" should be checked`).toBeChecked();
+      } else {
+        await expect(otherRadio, `Radio for "${buttonLabels[j]}" should be unchecked`).not.toBeChecked();
+      }
+    }
+  }
+
+  /**
+   * Test a single alignment button
+   */
+  private async testAlignmentButton(
+    accordionContent: Locator,
+    buttonLabel: string,
+    expectedAlignment: string,
+    linkElement: Locator,
+    linkText: string,
+    isLastButton: boolean
+  ): Promise<void> {
+    const button = this.alignmentButton(accordionContent, buttonLabel);
+    const radioInput = this.getAlignmentRadioInput(button, expectedAlignment);
+
+    await expect(button, `Alignment button "${buttonLabel}" should be visible`).toBeVisible();
+    await expect(button, `Alignment button "${buttonLabel}" should be enabled`).toBeEnabled();
+
+    await button.click({ force: true });
+    await this.page.waitForTimeout(200);
+
+    await expect(radioInput, `Alignment button "${buttonLabel}" should be checked`).toBeChecked({
+      timeout: 2000,
+    });
+
+    await this.waitForAlignmentApplied(linkElement, expectedAlignment);
+    await this.verifyLinkAlignment(linkElement, linkText, expectedAlignment);
+
+    if (!isLastButton) {
+      const isExpanded = await this.alignmentAccordion.getAttribute('aria-expanded');
+      if (isExpanded !== 'true') {
+        await this.expandAlignmentAccordion();
+      }
+      await expect(button, `Alignment button "${buttonLabel}" should remain visible after click`).toBeVisible();
+    }
   }
 
   async testAllAlignmentButtons(linkElement: Locator, linkText: string): Promise<void> {
     await test.step('Test all alignment buttons and verify alignment changes in canvas', async () => {
       await this.expandAlignmentAccordion();
 
-      const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
-
-      const firstButton = accordionContent.getByRole('button', { name: 'Align left' });
+      const accordionContent = await this.getAlignmentAccordionContent();
+      const firstButton = this.alignmentButton(accordionContent, 'Align left');
       await expect(firstButton, 'First alignment button should be visible').toBeVisible();
 
-      const alignmentButtons = accordionContent.getByRole('button', { name: /^Align (left|center|right)$/ });
+      const alignmentButtons = this.alignmentButtonsAll(accordionContent);
       const buttonCount = await alignmentButtons.count();
 
       const buttonLabels = ['Align left', 'Align center', 'Align right'];
       const expectedAlignments = ['left', 'center', 'right'];
 
       for (let i = 0; i < buttonCount && i < buttonLabels.length; i++) {
-        const buttonLabel = buttonLabels[i];
-        const expectedAlignment = expectedAlignments[i];
+        const currentAccordionContent = await this.getAlignmentAccordionContent();
+        const isLastButton = i === buttonCount - 1;
 
-        const currentAccordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-        const currentAccordionContent = currentAccordionContentId
-          ? this.page.locator(`[id="${currentAccordionContentId}"]`)
-          : this.page;
+        await this.testAlignmentButton(
+          currentAccordionContent,
+          buttonLabels[i],
+          expectedAlignments[i],
+          linkElement,
+          linkText,
+          isLastButton
+        );
 
-        const button = currentAccordionContent.getByRole('button', { name: buttonLabel });
-
-        await expect(button, `Alignment button "${buttonLabel}" should be visible`).toBeVisible();
-        await expect(button, `Alignment button "${buttonLabel}" should be enabled`).toBeEnabled();
-
-        const radioInput = currentAccordionContent.getByRole('radio', { name: buttonLabel });
-
-        await button.click({ force: true });
-        await expect(radioInput, `Alignment button "${buttonLabel}" should be checked`).toBeChecked();
-
-        await linkElement.evaluate((el, expectedAlign) => {
-          return new Promise<void>(resolve => {
-            const checkAlignment = () => {
-              let align: string = '';
-
-              if (el instanceof HTMLElement) {
-                if (
-                  el.classList.contains('Typography-module__centerAlign__OGpiQ') ||
-                  el.classList.contains('centerAlign')
-                ) {
-                  align = 'center';
-                } else if (
-                  el.classList.contains('Typography-module__leftAlign__OGpiQ') ||
-                  el.classList.contains('leftAlign')
-                ) {
-                  align = 'left';
-                } else if (
-                  el.classList.contains('Typography-module__rightAlign__OGpiQ') ||
-                  el.classList.contains('rightAlign')
-                ) {
-                  align = 'right';
-                } else {
-                  const style = window.getComputedStyle(el);
-                  const styleAlign = style.textAlign;
-                  if (styleAlign && styleAlign !== 'start' && styleAlign !== 'end' && styleAlign !== '') {
-                    align = styleAlign;
-                  }
-                }
-
-                if (!align) {
-                  const h3Element = el.querySelector('h3');
-                  if (h3Element instanceof HTMLElement) {
-                    if (
-                      h3Element.classList.contains('Typography-module__centerAlign__OGpiQ') ||
-                      h3Element.classList.contains('centerAlign')
-                    ) {
-                      align = 'center';
-                    } else if (
-                      h3Element.classList.contains('Typography-module__leftAlign__OGpiQ') ||
-                      h3Element.classList.contains('leftAlign')
-                    ) {
-                      align = 'left';
-                    } else if (
-                      h3Element.classList.contains('Typography-module__rightAlign__OGpiQ') ||
-                      h3Element.classList.contains('rightAlign')
-                    ) {
-                      align = 'right';
-                    } else {
-                      const h3Style = window.getComputedStyle(h3Element);
-                      const h3Align = h3Style.textAlign;
-                      if (h3Align && h3Align !== 'start' && h3Align !== 'end' && h3Align !== '') {
-                        align = h3Align;
-                      }
-                    }
-                  }
-                }
-              }
-
-              if (!align) {
-                let current: Element | null = el.parentElement;
-                for (let i = 0; i < 5 && current; i++) {
-                  if (!(current instanceof HTMLElement)) {
-                    current = current.parentElement;
-                    continue;
-                  }
-
-                  if (
-                    current.classList.contains('Typography-module__centerAlign__OGpiQ') ||
-                    current.classList.contains('centerAlign')
-                  ) {
-                    align = 'center';
-                    break;
-                  }
-                  if (
-                    current.classList.contains('Typography-module__leftAlign__OGpiQ') ||
-                    current.classList.contains('leftAlign')
-                  ) {
-                    align = 'left';
-                    break;
-                  }
-                  if (
-                    current.classList.contains('Typography-module__rightAlign__OGpiQ') ||
-                    current.classList.contains('rightAlign')
-                  ) {
-                    align = 'right';
-                    break;
-                  }
-
-                  const style = window.getComputedStyle(current);
-                  const styleAlign = style.textAlign;
-                  if (styleAlign && styleAlign !== 'start' && styleAlign !== 'end' && styleAlign !== '') {
-                    align = styleAlign;
-                    break;
-                  }
-
-                  current = current.parentElement;
-                }
-              }
-
-              if (align === 'start') align = 'left';
-              if (align === 'end') align = 'right';
-              if (!align) align = 'left';
-
-              if (align === expectedAlign) {
-                resolve();
-              } else {
-                setTimeout(checkAlignment, 100);
-              }
-            };
-            checkAlignment();
-            setTimeout(() => resolve(), 5000);
-          });
-        }, expectedAlignment);
-
-        for (let j = 0; j < buttonLabels.length; j++) {
-          const otherRadio = currentAccordionContent.getByRole('radio', { name: buttonLabels[j] });
-          if (j === i) {
-            await expect(otherRadio, `Radio for "${buttonLabels[j]}" should be checked`).toBeChecked();
-          } else {
-            await expect(otherRadio, `Radio for "${buttonLabels[j]}" should be unchecked`).not.toBeChecked();
-          }
-        }
-
-        await this.verifyLinkAlignment(linkElement, linkText, expectedAlignment);
-
-        if (i < buttonCount - 1) {
-          const isExpanded = await this.alignmentAccordion.getAttribute('aria-expanded');
-          if (isExpanded !== 'true') {
-            await this.expandAlignmentAccordion();
-          }
-          await expect(button, `Alignment button "${buttonLabel}" should remain visible after click`).toBeVisible();
-        }
+        await this.verifyAllAlignmentRadios(currentAccordionContent, buttonLabels, expectedAlignments, i);
       }
     });
   }
@@ -803,7 +883,7 @@ export class LinkComponent extends BaseComponent {
       await this.expandAlignmentAccordion();
 
       const accordionContentId = await this.alignmentAccordion.getAttribute('aria-controls');
-      const accordionContent = accordionContentId ? this.page.locator(`[id="${accordionContentId}"]`) : this.page;
+      const accordionContent = this.getAccordionContent(accordionContentId);
 
       const buttonLabel = `Align ${alignment}`;
       const alignmentButton = accordionContent.getByRole('button', { name: buttonLabel });
@@ -822,7 +902,7 @@ export class LinkComponent extends BaseComponent {
         await this.clickOnElement(this.maxLineCountAccordion);
         const accordionContentId = await this.maxLineCountAccordion.getAttribute('aria-controls');
         if (accordionContentId) {
-          await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
+          await this.getAccordionContent(accordionContentId).waitFor({ state: 'visible' });
         }
       }
     });
@@ -1227,7 +1307,7 @@ export class LinkComponent extends BaseComponent {
       await this.clickOnElement(accordion);
       const accordionContentId = await accordion.getAttribute('aria-controls');
       if (accordionContentId) {
-        await this.page.locator(`[id="${accordionContentId}"]`).waitFor({ state: 'visible' });
+        await this.getAccordionContent(accordionContentId).waitFor({ state: 'visible' });
       }
       if (contentLocator) {
         await contentLocator.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
