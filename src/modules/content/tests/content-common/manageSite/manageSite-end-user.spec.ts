@@ -430,5 +430,45 @@ test.describe(
         await manageSiteStandardUserPage.actions.updatingCategoryToUncategorized('Uncategorized');
       }
     );
+    test(
+      'to verify follow site, followers tab, and membership request functionality',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24062'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'To verify follow site, followers tab, and membership request functionality',
+          zephyrTestId: 'CONT-24062',
+          storyId: 'CONT-24062',
+        });
+        const newsiteInfo = await appManagerApiFixture.siteManagementHelper.createSite({
+          siteName: MANAGE_SITE_TEST_DATA.SITE_NAME.generateUniqueName(),
+          accessType: SITE_TYPES.PUBLIC,
+        });
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, newsiteInfo.siteId);
+        await siteDashboardPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnFollowButton();
+        await manageSiteSetUpPage.actions.clickOnFollowSiteButton();
+        await manageSiteSetUpPage.assertions.verifyFollowButtonShouldBeChangedIntoFollowing();
+        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
+        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.actions.clickOnFollowingButton();
+        await manageSiteSetUpPage.actions.clickOnUnfollowSiteButton();
+        await manageSiteSetUpPage.assertions.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
+        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
+        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
+        await manageSiteSetUpPage.assertions.checkMembersNameShouldNotBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.actions.clickOnFollowButton();
+        const requestId = await manageSiteSetUpPage.actions.clickOnRequestMembershipButton();
+        console.log('requestId from membership request:', requestId);
+        await appManagerApiFixture.siteManagementHelper.acceptMembershipRequest(newsiteInfo.siteId, requestId);
+        const siteDetailsPage = new SiteDetailsPage(standardUserFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        await manageSiteSetUpPage.assertions.verifyMemberButtonShouldBeVisible();
+      }
+    );
   }
 );
