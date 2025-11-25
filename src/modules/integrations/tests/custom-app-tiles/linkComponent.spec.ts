@@ -211,16 +211,7 @@ test.describe(
         await customAppTilesPage.clickTab('Appearance', 'Link');
 
         await linkComponent.expandColorAccordion();
-        await expect(linkComponent.colorDropdown, 'Color dropdown should be visible').toBeVisible();
-        await linkComponent.colorDropdown.click();
-        const colorOptions = customAppTilesPage.page.getByRole('listbox');
-        await expect(colorOptions, 'Color options listbox should be visible').toBeVisible();
-        await expect(
-          colorOptions.getByText(/System darkest/i).first(),
-          'System darkest option should be visible'
-        ).toBeVisible();
-        await expect(colorOptions.getByText(/Advanced/i).first(), 'Advanced option should be visible').toBeVisible();
-        await customAppTilesPage.page.keyboard.press('Escape');
+        await linkComponent.verifyColorDropdownAndAdvancedButton();
       }
     );
 
