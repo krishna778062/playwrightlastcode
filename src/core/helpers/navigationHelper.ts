@@ -13,6 +13,7 @@ import { ContentType } from '@/src/modules/content/constants';
 import {
   AddContentModalComponent,
   AlbumCreationPage,
+  ContentModerationQueuePage,
   EventCreationPage,
   FeaturedSitePage,
   ManageApplicationPage,
@@ -385,5 +386,30 @@ export class NavigationHelper {
       await recognitionHubPage.verifyThePageIsLoaded();
       return recognitionHubPage;
     });
+  }
+
+  /**
+   * Navigates to the content moderation queue page via Avatar → Manage → Content Moderation
+   * @param options - The options for the step
+   * @returns The ContentModerationQueuePage instance
+   */
+  async navigateToContentModerationQueue(options?: { stepInfo?: string }) {
+    return await test.step(
+      options?.stepInfo || 'Navigating to content moderation queue via Avatar → Manage → Content Moderation',
+      async () => {
+        // Open profile settings (Avatar)
+        const manageFeatureComponent = this.sideNavBarComponent.clickOnManageFeature;
+
+        await manageFeatureComponent.click();
+        await test.step('Clicking on content moderation', async () => {
+          await this.sideNavBarComponent.clickOnContentModeration.click();
+        });
+
+        // Return ContentModerationQueuePage
+        const moderationQueuePage = new ContentModerationQueuePage(this.page);
+        await moderationQueuePage.verifyThePageIsLoaded();
+        return moderationQueuePage;
+      }
+    );
   }
 }
