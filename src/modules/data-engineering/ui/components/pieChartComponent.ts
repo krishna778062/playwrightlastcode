@@ -18,7 +18,9 @@ export class PieChartComponent extends BaseComponent {
       has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
     super(page, container);
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-data-labels']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
@@ -61,15 +63,11 @@ export class PieChartComponent extends BaseComponent {
   }
 
   /**
-   * Verifies the tool tip container is visible
+   * Verifies the tool tip container has opacity 1
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await expect(
-      this.toolTipContainer,
-      `Tool tip container should be visible and there should be only 1 tool tip container`
-    ).toHaveCount(1, { timeout: 10_000 });
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: 10_000,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
