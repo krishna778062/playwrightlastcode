@@ -3,4 +3,5 @@ export enum ContentStatus {
   UNPUBLISHED = 'Unpublished',
   DRAFT = 'Draft',
   PENDING = 'Pending',
+  REJECTED = 'Rejected',
 }
