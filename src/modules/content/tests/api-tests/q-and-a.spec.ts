@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
@@ -7,8 +5,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { CreateQuestionPayload } from '@/src/core/types/feed.type';
 import { QAndAApiHelper } from '@/src/modules/content/apis/apiValidation/qAndAApiHelper';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 test.describe(
   '@Q&A API',
@@ -51,17 +49,12 @@ test.describe(
 
         const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
 
-        const questionPayload: CreateQuestionPayload = {
-          title: questionTitle,
-          textJson: JSON.stringify({ type: 'doc', content: [] }),
-          textHtml: '',
-          scope: 'public',
-          siteId: null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'question',
-          variant: 'standard',
-        };
+        // Build question payload with mandatory fields using helper
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
 
         const questionResponse =
           await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
@@ -94,120 +87,18 @@ test.describe(
         const topic = availableTopics.length > 0 ? availableTopics[0] : null;
 
         const questionTitle = TestDataGenerator.generateRandomText();
-        const linkUrl = 'https://www.pinterest.com/pin/21532904463411701/';
 
-        // Build textJson with mentions, links, and formatting
-        const textJsonContent: any[] = [];
-
-        if (userInfo) {
-          textJsonContent.push({
-            type: 'paragraph',
-            attrs: { className: '', 'data-sw-sid': null },
-            content: [
-              { type: 'text', marks: [{ type: 'bold' }], text: 'When? ' },
-              {
-                type: 'UserAndSiteMention',
-                attrs: { id: userInfo.userId, label: userInfo.fullName, type: 'user' },
-              },
-              { type: 'text', marks: [{ type: 'textStyle', attrs: { className: '' } }], text: ' ' },
-            ],
-          });
-        }
-
-        textJsonContent.push({
-          type: 'paragraph',
-          attrs: { className: '', 'data-sw-sid': null },
-          content: [
-            {
-              type: 'text',
-              marks: [
-                {
-                  type: 'link',
-                  attrs: {
-                    href: linkUrl,
-                    target: '_blank',
-                    rel: 'noopener noreferrer nofollow',
-                    class: null,
-                    alt: null,
-                    align: null,
-                    display: 'inline',
-                    isButton: null,
-                  },
-                },
-              ],
-              text: 'LINK',
-            },
-          ],
-        });
-
-        textJsonContent.push({
-          type: 'paragraph',
-          attrs: { className: '', 'data-sw-sid': null },
-          content: [{ type: 'text', text: 'List' }],
-        });
-
-        textJsonContent.push({
-          type: 'orderedList',
-          attrs: { start: 1, className: '', 'data-sw-sid': null },
-          content: [
-            {
-              type: 'listItem',
-              attrs: { 'data-sw-sid': null },
-              content: [
-                {
-                  type: 'paragraph',
-                  attrs: { className: '', 'data-sw-sid': null },
-                  content: [{ type: 'text', text: 'Ordered List' }],
-                },
-              ],
-            },
-          ],
-        });
-
-        if (topic) {
-          textJsonContent.push({
-            type: 'paragraph',
-            attrs: { className: '', 'data-sw-sid': null },
-            content: [
-              {
-                type: 'TopicMention',
-                attrs: { id: `new_${topic.name}`, label: topic.name, type: 'topic' },
-              },
-              { type: 'text', text: ' ' },
-            ],
-          });
-        }
-
-        const questionPayload: CreateQuestionPayload = {
-          title: questionTitle,
-          textJson: JSON.stringify({ type: 'doc', content: textJsonContent }),
-          textHtml:
-            '<p><strong>When? </strong><span data-type="user" data-id="' +
-            userInfo.userId +
-            '" data-label="' +
-            userInfo.fullName +
-            '"><a href="/people/' +
-            userInfo.userId +
-            '" target="_blank">@' +
-            userInfo.fullName +
-            '</a></span><span> </span></p><p><a target="_blank" rel="noopener noreferrer nofollow" href="' +
-            linkUrl +
-            '">LINK</a></p><p>List</p><ol><li><p>Ordered List</p></li></ol><p><span data-type="topic" data-id="new_' +
-            (topic?.name || '') +
-            '" data-label="' +
-            (topic?.name || '') +
-            '"><a href="/topic/new_' +
-            (topic?.name || '') +
-            '" target="_blank">#' +
-            (topic?.name || '') +
-            '</a></span> </p>',
-          scope: 'public',
-          siteId: null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'question',
-          variant: 'standard',
-        };
+        // Build question payload with all fields using helper
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithAllFields(
+          questionTitle,
+          'public',
+          null,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+            includeOrderedList: true,
+          }
+        );
 
         const questionResponse =
           await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
@@ -235,17 +126,11 @@ test.describe(
 
         // Create a question first
         const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
-        const questionPayload: CreateQuestionPayload = {
-          title: questionTitle,
-          textJson: JSON.stringify({ type: 'doc', content: [] }),
-          textHtml: '',
-          scope: 'public',
-          siteId: null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'question',
-          variant: 'standard',
-        };
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
 
         const createResponse =
           await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
@@ -295,30 +180,24 @@ test.describe(
 
         // Create a question first
         const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
-        const questionPayload: CreateQuestionPayload = {
-          title: questionTitle,
-          textJson: JSON.stringify({ type: 'doc', content: [] }),
-          textHtml: '',
-          scope: 'public',
-          siteId: null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'question',
-          variant: 'standard',
-        };
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
 
         const createResponse =
           await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
         const questionId = createResponse.result.feedId;
         createdQuestionIds.push(questionId);
 
-        // Step 1: Upvote the question
+        //  Upvote the question
         await test.step('Upvote the question and verify', async () => {
           const upvoteResponse = await appManagerApiFixture.feedManagementHelper.upvoteQuestion(questionId);
           await qAndAApiHelper.validateUpvoteResponse(upvoteResponse);
         });
 
-        // Step 2: Remove upvote from the question
+        // : Remove upvote from the question
         await test.step('Remove upvote from the question and verify', async () => {
           const removeUpvoteResponse =
             await appManagerApiFixture.feedManagementHelper.removeUpvoteFromQuestion(questionId);
@@ -341,17 +220,11 @@ test.describe(
 
         // Create a question first
         const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
-        const questionPayload: CreateQuestionPayload = {
-          title: questionTitle,
-          textJson: JSON.stringify({ type: 'doc', content: [] }),
-          textHtml: '',
-          scope: 'public',
-          siteId: null,
-          listOfAttachedFiles: [],
-          ignoreToxic: false,
-          type: 'question',
-          variant: 'standard',
-        };
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
 
         const createResponse =
           await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
@@ -382,7 +255,7 @@ test.describe(
         // Get current app configuration
         const currentConfig = await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
 
-        // Step 1: Enable Q&A
+        //  Enable Q&A
         await test.step('Enable Q&A and verify', async () => {
           const enablePayload = {
             appName: currentConfig.result.appName,
@@ -408,17 +281,15 @@ test.describe(
           const enableResponse =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.updateAppConfig(enablePayload);
 
-          expect(enableResponse.ok(), 'Enable Q&A should be successful').toBe(true);
+          await qAndAApiHelper.validateUpdateAppConfigResponse(enableResponse);
 
           // Verify Q&A is enabled
           const verifyEnabledConfig =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
-          expect(verifyEnabledConfig.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be true').toBe(
-            true
-          );
+          await qAndAApiHelper.validateQAndAEnabled(verifyEnabledConfig);
         });
 
-        // Step 2: Disable Q&A
+        // : Disable Q&A
         await test.step('Disable Q&A and verify', async () => {
           const disableConfig = await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
 
@@ -446,15 +317,558 @@ test.describe(
           const disableResponse =
             await appManagerApiFixture.feedManagementHelper.feedManagementService.updateAppConfig(disablePayload);
 
-          expect(disableResponse.ok(), 'Disable Q&A should be successful').toBe(true);
+          await qAndAApiHelper.validateUpdateAppConfigResponse(disableResponse);
 
-          // Verify Q&A is disabled
-          const verifyDisabledConfig =
-            await appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig();
-          expect(verifyDisabledConfig.result.isQuestionAnswerEnabled, 'isQuestionAnswerEnabled should be false').toBe(
-            false
+          // Wait for the configuration to be updated
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Verify Q&A is disabled with retry
+          await qAndAApiHelper.validateQAndADisabledWithRetry(
+            () => appManagerApiFixture.feedManagementHelper.feedManagementService.getAppConfig(),
+            2,
+            2000
           );
         });
+      }
+    );
+
+    test(
+      'create question with all fields with unique file types',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33596', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create question with all fields with unique file types on home feed',
+          zephyrTestId: 'CONT-33596',
+          storyId: 'CONT-33596',
+        });
+
+        // Get user info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Get topic list for topic mentions
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        const topic = availableTopics.length > 0 ? availableTopics[0] : null;
+
+        const questionTitle = TestDataGenerator.generateRandomText();
+
+        // Build question payload with all fields using helper
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithAllFields(
+          questionTitle,
+          'public',
+          null,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        const questionResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+
+        createdQuestionIds.push(questionResponse.result.feedId);
+
+        // Validate the question response
+        await qAndAApiHelper.validateQuestionResponseBasic(questionResponse);
+        await qAndAApiHelper.validateQuestionIdentification(questionResponse);
+        await qAndAApiHelper.validateQuestionWithAllFields(questionResponse);
+      }
+    );
+
+    test(
+      'create Question with Mandatory Field on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33642', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create Question with Mandatory Field on site feed',
+          zephyrTestId: 'CONT-33642',
+          storyId: 'CONT-33642',
+        });
+
+        // Get or create a public site
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        const questionTitle = `Question on Site Feed ${TestDataGenerator.generateRandomString()}`;
+
+        // Build question payload with mandatory fields using helper
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'site',
+          siteInfo.siteId
+        );
+
+        const questionResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+
+        createdQuestionIds.push(questionResponse.result.feedId);
+
+        // Validate the question response
+        await qAndAApiHelper.validateQuestionCreationOnSiteFeed(
+          questionResponse,
+          'Question on Site Feed',
+          siteInfo.siteId
+        );
+      }
+    );
+
+    test(
+      'create question with all fields without files on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33643', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create question with all fields without files on site feed',
+          zephyrTestId: 'CONT-33643',
+          storyId: 'CONT-33643',
+        });
+
+        // Get or create a public site
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        // Get user info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Get topic list for topic mentions
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        const topic = availableTopics.length > 0 ? availableTopics[0] : null;
+
+        const questionTitle = TestDataGenerator.generateRandomText();
+
+        // Build question payload with all fields using helper
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithAllFields(
+          questionTitle,
+          'site',
+          siteInfo.siteId,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        const questionResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+
+        createdQuestionIds.push(questionResponse.result.feedId);
+
+        // Validate the question response
+        await qAndAApiHelper.validateQuestionResponseBasic(questionResponse);
+        await qAndAApiHelper.validateQuestionIdentification(questionResponse);
+        await qAndAApiHelper.validateQuestionWithAllFields(questionResponse);
+        await qAndAApiHelper.validateQuestionCreationOnSiteFeed(questionResponse, undefined, siteInfo.siteId);
+      }
+    );
+
+    test(
+      'edit feed question on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33644', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Edit feed question on site feed',
+          zephyrTestId: 'CONT-33644',
+          storyId: 'CONT-33644',
+        });
+
+        // Get or create a public site
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        // Create a question first
+        const questionTitle = `Question on Site Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'site',
+          siteInfo.siteId
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Edit the question
+        const updatedTitle = `Updated Question ${TestDataGenerator.generateRandomString()}`;
+        const updatedTextJson = JSON.stringify({
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              attrs: { className: '', 'data-sw-sid': null },
+              content: [{ type: 'text', text: 'Updated question body' }],
+            },
+          ],
+        });
+
+        const updateResponse = await appManagerApiFixture.feedManagementHelper.feedManagementService.updateQuestion(
+          questionId,
+          {
+            title: updatedTitle,
+            textJson: updatedTextJson,
+            textHtml: '<p>Updated question body</p>',
+            ignoreToxic: false,
+            listOfAttachedFiles: [],
+          }
+        );
+
+        // Validate the updated question
+        await qAndAApiHelper.validateQuestionUpdate(updateResponse, 'Updated Question');
+      }
+    );
+
+    test(
+      'delete a Question on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33645', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Delete a question on site feed',
+          zephyrTestId: 'CONT-33645',
+          storyId: 'CONT-33645',
+        });
+
+        // Get or create a public site
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        // Create a question first
+        const questionTitle = `Question on Site Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'site',
+          siteInfo.siteId
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+
+        // Delete the question
+        const deleteResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.deleteQuestion(questionId);
+
+        // Validate the delete
+        await qAndAApiHelper.validateQuestionDelete(deleteResponse);
+        // Don't add to cleanup list since it's already deleted
+      }
+    );
+
+    test(
+      'create Answer on a question',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33884', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create Answer on a question',
+          zephyrTestId: 'CONT-33884',
+          storyId: 'CONT-33884',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+
+        // Validate the answer response
+        await qAndAApiHelper.validateAnswerCreation(answerResponse);
+      }
+    );
+
+    test(
+      'answer on a question edit and delete Answer',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33891', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Edit Answer on a question and edit deleted Answer',
+          zephyrTestId: 'CONT-33891',
+          storyId: 'CONT-33891',
+          isKnownFailure: true,
+          bugTicket: 'CONT-42117',
+          bugReportedDate: '2025-11-24',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'This test is known to fail due to a bug in the API. The test is expected to pass.',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer first
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+        const answerId = answerResponse.result.commentId;
+
+        //  Edit the answer (positive scenario)
+        await test.step('Edit the answer', async () => {
+          const updatedAnswerText = `${answerText} @Edited`;
+          const updateResponse = await appManagerApiFixture.feedManagementHelper.updateAnswer(
+            questionId,
+            answerId,
+            updatedAnswerText
+          );
+
+          // Validate the updated answer
+          await qAndAApiHelper.validateAnswerUpdate(updateResponse);
+        });
+
+        // Delete the answer and try to edit it (negative scenario)
+        await test.step('Delete the answer and try to edit deleted answer', async () => {
+          // Delete the answer
+          await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+
+          // Wait a bit for deletion to propagate
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // Try to edit the deleted answer - should fail
+          let errorCaught = false;
+          try {
+            const updatedAnswerText = `${answerText} @Edited`;
+            const updateResponse = await appManagerApiFixture.feedManagementHelper.updateAnswer(
+              questionId,
+              answerId,
+              updatedAnswerText
+            );
+
+            // If update succeeds, check if the response indicates the answer is deleted
+            // Some APIs allow updates but mark the item as deleted in the response
+            if (updateResponse?.result?.isDeleted === true) {
+              errorCaught = true;
+            }
+          } catch (error: any) {
+            errorCaught = true;
+            // Validate error - should contain 404 or indicate failure
+            await qAndAApiHelper.validateUpdateDeletedAnswerError(error);
+          }
+          await qAndAApiHelper.validateErrorCaughtForEditDeletedAnswer(errorCaught);
+        });
+      }
+    );
+
+    test(
+      'upvote and Remove upvote from an answer',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33892', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Upvote an answer and remove upvote from an answer',
+          zephyrTestId: 'CONT-33892',
+          storyId: 'CONT-33892',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer first
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+        const answerId = answerResponse.result.commentId;
+
+        // Upvote the answer
+        await test.step('Upvote the answer and verify', async () => {
+          const upvoteResponse = await appManagerApiFixture.feedManagementHelper.upvoteAnswer(questionId, answerId);
+          await qAndAApiHelper.validateAnswerUpvoteResponse(upvoteResponse);
+        });
+
+        // Remove upvote from the answer
+        await test.step('Remove upvote from the answer and verify', async () => {
+          const removeUpvoteResponse = await appManagerApiFixture.feedManagementHelper.removeUpvoteFromAnswer(
+            questionId,
+            answerId
+          );
+          await qAndAApiHelper.validateAnswerRemoveUpvoteResponse(removeUpvoteResponse);
+        });
+      }
+    );
+
+    test(
+      'delete an Answer and delete an already Deleted Answer',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33849', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Delete an answer on a question and delete an already Deleted Answer',
+          zephyrTestId: 'CONT-33849',
+          storyId: 'CONT-33849',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer first
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+        const answerId = answerResponse.result.commentId;
+
+        //  Delete the answer (positive scenario)
+        await test.step('Delete the answer', async () => {
+          const deleteResponse = await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+
+          // Validate the delete
+          await qAndAApiHelper.validateAnswerDelete(deleteResponse);
+        });
+
+        // : Try to delete the already deleted answer (negative scenario)
+        await test.step('Try to delete the already deleted answer', async () => {
+          // Try to delete the already deleted answer - should fail
+          let errorCaught = false;
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteAnswer(questionId, answerId);
+          } catch (error: any) {
+            errorCaught = true;
+            // Validate error - should contain 404 or indicate failure
+            await qAndAApiHelper.validateDeleteAlreadyDeletedAnswerError(error);
+          }
+          await qAndAApiHelper.validateErrorCaughtForDeleteAlreadyDeletedAnswer(errorCaught);
+        });
+      }
+    );
+
+    test(
+      'create Answer with all fields and files',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33889', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Create Answer with all fields and files for question with all fields and files',
+          zephyrTestId: 'CONT-33889',
+          storyId: 'CONT-33889',
+        });
+
+        // Create a question first with all fields
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        const topic = availableTopics.length > 0 ? availableTopics[0] : null;
+
+        const questionTitle = TestDataGenerator.generateRandomText();
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithAllFields(
+          questionTitle,
+          'public',
+          null,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Get site info for site mention
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+        // Create an answer with all fields (mentions, topics, site mentions)
+        const answerText = `This is a comprehensive answer ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswerWithAllFields(
+          questionId,
+          answerText,
+          {
+            userInfo: userInfo ? { userId: userInfo.userId, fullName: userInfo.fullName } : undefined,
+            siteInfo: { siteId: siteInfo.siteId, siteName: siteInfo.name },
+            topic: topic ? { name: topic.name, topicId: topic.topic_id } : undefined,
+          }
+        );
+
+        // Validate the answer response
+        await qAndAApiHelper.validateAnswerCreation(answerResponse);
+        await qAndAApiHelper.validateAnswerCreationWithAllFields(answerResponse);
+      }
+    );
+
+    test(
+      'fetch Answer - Question detail page',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33893', ContentTestSuite.Q_AND_A],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Fetch Answer - Question detail page',
+          zephyrTestId: 'CONT-33893',
+          storyId: 'CONT-33893',
+        });
+
+        // Create a question first
+        const questionTitle = `Question on Home Feed ${TestDataGenerator.generateRandomString()}`;
+        const questionPayload = appManagerApiFixture.feedManagementHelper.buildQuestionPayloadWithMandatoryFields(
+          questionTitle,
+          'public',
+          null
+        );
+
+        const createResponse =
+          await appManagerApiFixture.feedManagementHelper.feedManagementService.createQuestion(questionPayload);
+        const questionId = createResponse.result.feedId;
+        createdQuestionIds.push(questionId);
+
+        // Create an answer first
+        const answerText = `This is an answer to the question ${TestDataGenerator.generateRandomString()}`;
+        const answerResponse = await appManagerApiFixture.feedManagementHelper.createAnswer(questionId, answerText);
+
+        // Wait a bit for the answer to be indexed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Fetch answers for the question
+        const fetchResponse = await appManagerApiFixture.feedManagementHelper.fetchAnswers(questionId, {
+          size: 10,
+          sortBy: 'createdAt',
+        });
+
+        // Validate the fetch response
+        await qAndAApiHelper.validateFetchAnswersResponse(fetchResponse);
       }
     );
   }

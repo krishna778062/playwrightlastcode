@@ -16,6 +16,7 @@ export interface IManageSiteSetUpActions {
   clickOnTheMemberButtonInAboutTab: () => Promise<void>;
   clickOnTheAboutTab: () => Promise<void>;
   clickOnTheManageSiteButton: () => Promise<void>;
+  clickOnThePeopleTab: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
@@ -45,6 +46,7 @@ export interface IManageSiteSetUpAssertions {
   verifyPageTabImageIsDisplayed: () => Promise<void>;
   verifyThePageIsLoaded: () => Promise<void>;
   verifySitesNamesAreDisplayed: (siteNames: string | string[]) => Promise<void>;
+  verifyMemberNameAndSiteOwnerStatus: (membersName: string) => Promise<void>;
 }
 
 export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
@@ -96,6 +98,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.checkAuthorNameIsDisplayed(authorName);
   }
 
+  async clickOnThePeopleTab(): Promise<void> {
+    await this.manageSitesComponent.clickOnThePeopleTabAction();
+  }
   async clickOnTheManageSiteButton(): Promise<void> {
     await this.manageSitesComponent.clickOnTheManageSiteButtonAction();
   }
@@ -221,5 +226,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
       await this.page.keyboard.press('Tab');
       await this.page.keyboard.press('Enter');
     });
+  }
+
+  async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
+    await this.manageSitesComponent.verifyMemberNameAndSiteOwnerStatus(membersName);
   }
 }

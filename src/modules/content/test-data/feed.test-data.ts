@@ -22,6 +22,8 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content`,
+    EDITED_POST_TEXT: `This is a test post with appropriate content`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -57,6 +59,9 @@ export const FEED_TEST_DATA = {
   TOPIC_NAME_ALBUM: faker.lorem.words(2),
   TOPIC_NAME_EVENT: faker.lorem.words(2),
   RESTRICTION_MESSAGE: 'Feed posts are only available for site managers on this site',
+  SEARCH: {
+    RANDOM_TEXT: 'RandomTextThatDoesNotExist12345',
+  },
   DELETED_POST_MESSAGE: 'THIS POST HAS BEEN DELETED',
   API_RESPONSE_MESSAGES: {
     FEED_POST_CREATED: 'Feed Post has been successfully created',
