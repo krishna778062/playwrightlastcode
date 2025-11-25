@@ -64,6 +64,10 @@ export class PieChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
+    await expect(
+      this.toolTipContainer,
+      `Tool tip container should be visible and there should be only 1 tool tip container`
+    ).toHaveCount(1, { timeout: 10_000 });
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
       timeout: TIMEOUTS.MEDIUM,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,

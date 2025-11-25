@@ -176,6 +176,10 @@ export class VerticalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
+    await expect(
+      this.toolTipContainer,
+      `Tool tip container should be visible and there should be only 1 tool tip container`
+    ).toHaveCount(1, { timeout: 10_000 });
     await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
       await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
         timeout: 30_000,
