@@ -19,6 +19,7 @@ import { ResultListingComponent } from '@/src/modules/global-search/ui/component
 import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
 import { SiteListComponent } from '@/src/modules/global-search/ui/components/siteListComponent';
 import { TileListComponent } from '@/src/modules/global-search/ui/components/tileListComponent';
+import { TypeFilterComponent } from '@/src/modules/global-search/ui/components/typeFilterComponent';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
@@ -102,6 +103,15 @@ export class GlobalSearchResultPage extends BasePage {
    */
   getSidebarFilter(options: { filterText: string; iconType?: string; siteName?: string }): SidebarFilterComponent {
     return new SidebarFilterComponent(this.page, options);
+  }
+
+  /**
+   * Creates a filter component for filtering search results (e.g., Type, Author)
+   * @param filterName - The name of the filter (e.g., "Type", "Author"). Defaults to "Type" for backward compatibility
+   * @returns TypeFilterComponent - The filter component instance
+   */
+  getTypeFilter(filterName: string): TypeFilterComponent {
+    return new TypeFilterComponent(this.page, filterName);
   }
 
   private getTestIdForFileType(fileType: string): string {

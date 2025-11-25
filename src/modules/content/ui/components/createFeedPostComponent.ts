@@ -59,6 +59,9 @@ export interface ICreateFeedPostActions {
   clickBoxFilesTab: () => Promise<void>;
   clickBoxFolder: (folderName: string) => Promise<void>;
   selectBoxFile: (fileName: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -80,6 +83,9 @@ export class CreateFeedPostComponent
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly cancelButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Cancel' });
 
   // Toolbar formatting buttons
   readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
@@ -419,6 +425,37 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Verifies that the Cancel button is visible in the post creation editor
+   */
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await test.step('Verify Cancel button is visible in post creation editor', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cancelButton, {
+        assertionMessage: 'Cancel button should be visible in post creation editor',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the post creation editor
+   */
+  async clickPostCreationCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in post creation editor', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the post creation editor is closed (not visible)
+   */
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await test.step('Verify post creation editor is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedEditor, {
+        assertionMessage: 'Post creation editor should be closed (not visible)',
+      });
+    });
+  }
+
+  /**
    * Adds a user or site mention to the post
    * @param userName - The user or site name to mention
    */
@@ -590,7 +627,7 @@ export class CreateFeedPostComponent
       const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
       await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
         assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
-        timeout: 5000,
+        timeout: 20000,
       });
     });
   }

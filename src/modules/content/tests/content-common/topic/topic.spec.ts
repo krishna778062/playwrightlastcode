@@ -190,7 +190,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         text: feedText,
         listOfTopics: [topicName], // Pass topic name for proper mention formatting
         options: {
-          waitForSearchIndex: true,
+          waitForSearchIndex: false,
         },
       });
 
@@ -430,7 +430,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       const albumCreationOptions = TestDataGenerator.generateAlbum({
         fileName: imagePath,
-        videoUrl: 'https://youtu.be/4vLyqzOr14g',
+        videoUrl: TestDataGenerator.minionVideoUrl(),
         openAlbum: true,
         overrides: { topics: [topicNameWithSpecialChars] },
       });
