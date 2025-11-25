@@ -20,8 +20,6 @@ import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
-import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
@@ -469,7 +467,7 @@ test.describe(
         await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
         await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
-        await orgChartPage.actions.clickOnViewProfileButton(peopleNames[0]);
+        await orgChartPage.actions.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
         await userProfilePage.actions.clickOnFollowersTab();
         await userProfilePage.assertions.verifyContactInformation();
       }
