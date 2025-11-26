@@ -96,6 +96,21 @@ export const ServiceDeskTestData = {
     closed: 'Closed',
     cancelled: 'Cancelled',
   },
+
+  // Settings Page
+  settingsPage: {
+    featureName: 'Service desk',
+    enableCheckboxLabel: 'Enable Service desk',
+    settingsPath: '/manage/app/setup/service-desk',
+    radioOptions: {
+      supportTeamsOnly: 'support-teams' as const,
+      everyone: 'everyone' as const,
+    },
+    headings: {
+      manageApplication: 'Manage application',
+      enableDisableServiceDesk: 'Enable/Disable Service desk',
+    },
+  },
 };
 
 export default ServiceDeskTestData;
