@@ -18,10 +18,31 @@ export class LoginHelper {
    * @param options - Optional parameters for the login step.
    * @returns An instance of the HomePage.
    */
-  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<NewHomePage> {
+  public static async loginWithPassword(page: Page, user: UserCredentials, tenantConfig?: any): Promise<NewHomePage> {
     const loginPage = new LoginPage(page);
     await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
-    const homePage = await loginPage.actions.performLogin(user.email, user.password!);
+
+    // Detect login identifier type and get appropriate credential
+    const identifierType = await loginPage.getLoginIdentifierType();
+    let loginIdentifier: string;
+
+    if (identifierType === 'email') {
+      loginIdentifier = user.email || tenantConfig?.appManagerEmail || '';
+    } else if (identifierType === 'employee') {
+      loginIdentifier = tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '';
+    } else if (identifierType === 'mobile') {
+      loginIdentifier = tenantConfig?.QA_MOBILE || tenantConfig?.UAT_MOBILE || '';
+    } else {
+      // phone or default
+      loginIdentifier =
+        tenantConfig?.QA_ALTERNATE_PHONE ||
+        tenantConfig?.UAT_ALTERNATE_PHONE ||
+        user.email ||
+        tenantConfig?.appManagerEmail ||
+        '';
+    }
+
+    const homePage = await loginPage.actions.performLogin(loginIdentifier, user.password!);
     return homePage;
   }
 

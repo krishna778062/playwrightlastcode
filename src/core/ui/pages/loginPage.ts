@@ -32,6 +32,7 @@ export class LoginPage extends BasePage implements ILoginPageActions {
   readonly secondAnswer: Locator;
   readonly thirdQuestion: Locator;
   readonly thirdAnswer: Locator;
+  readonly loginIdentifierLabel: Locator;
 
   get actions(): ILoginPageActions {
     return this;
@@ -52,6 +53,31 @@ export class LoginPage extends BasePage implements ILoginPageActions {
     this.secondAnswer = this.page.locator('#secondAnswer');
     this.thirdQuestion = this.page.locator('#thirdQuestion');
     this.thirdAnswer = this.page.locator('#thirdAnswer');
+    this.loginIdentifierLabel = this.page.locator("label[for='inputOption']");
+  }
+
+  /**
+   * Detects the login identifier type from the label
+   * @returns The login identifier type: 'email', 'employee', 'mobile', or 'phone'
+   */
+  async getLoginIdentifierType(): Promise<'email' | 'employee' | 'mobile' | 'phone'> {
+    return await test.step('Detecting login identifier type', async () => {
+      const labelText = await this.loginIdentifierLabel.textContent();
+      const normalizedLabel = labelText?.toLowerCase().trim() || '';
+
+      // Check in the same order as Java code
+      if (normalizedLabel.includes('email')) {
+        return 'email';
+      } else if (normalizedLabel.includes('mobile')) {
+        return 'mobile';
+      } else if (normalizedLabel.includes('employee number')) {
+        return 'employee';
+      } else if (normalizedLabel.includes('phone')) {
+        return 'phone';
+      }
+      // Default to email if unable to detect
+      return 'email';
+    });
   }
 
   /**
@@ -107,7 +133,7 @@ export class LoginPage extends BasePage implements ILoginPageActions {
   async performFirstTimeLoginBySettingPassword(
     username: string,
     password: string,
-    options?: {
+    _options?: {
       timeout?: number;
     }
   ) {
