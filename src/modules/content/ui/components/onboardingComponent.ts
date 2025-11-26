@@ -53,7 +53,6 @@ export class OnboardingComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsDisabled(this.saveButton);
     });
   }
- 
 
   async clickOnSaveButton(): Promise<void> {
     await test.step('Click on save button', async () => {
