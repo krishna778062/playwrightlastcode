@@ -179,7 +179,7 @@ export const config = {
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
-      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
       QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
