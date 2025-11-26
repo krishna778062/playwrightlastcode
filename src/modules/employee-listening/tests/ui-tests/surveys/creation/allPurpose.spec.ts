@@ -34,13 +34,9 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-001',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
+      await surveyCreationPage.createBasicSurveySetup('All pp');
       await surveyCreationPage.selectAudiences(['India']);
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
       await surveyCreationPage.clickConfigureSurveyNextButton();
@@ -69,10 +65,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-002',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
+      await surveyCreationPage.createBasicSurveySetup('All pp');
       await surveyCreationPage.selectCustomIntroMessage();
       await surveyCreationPage.selectCustomThanksMessage();
       await surveyCreationPage.selectDefaultFormAddress();
@@ -104,11 +97,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-003',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
-      await surveyCreationPage.selectDefaultIntroMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectCustomThanksMessage();
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectAudiences(['India']);
@@ -139,12 +129,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-004',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -179,12 +165,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-005',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -234,12 +216,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         storyId: 'EL-Survey Creation',
       });
       const surveyName = `All pp ${Date.now()}`;
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName(surveyName);
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup(surveyName);
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -285,12 +263,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         storyId: 'EL-Survey Creation',
       });
       const surveyName = `All pp ${Date.now()}`;
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName(surveyName);
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup(surveyName);
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.validateDraftPopupOnNext();
@@ -324,12 +298,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-008',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -360,12 +330,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-009',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp Survey to Complete');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp Survey to Complete');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -406,12 +372,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-010',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName('All pp Survey to Complete');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup('All pp Survey to Complete');
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
@@ -448,12 +410,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         storyId: 'EL-Survey Creation',
       });
       const surveyName = `All pp ${Date.now()}`;
-      await surveyCreationPage.clickCreateSurveyButton();
-      await surveyCreationPage.clickAllPurposeSurvey();
-      await surveyCreationPage.clickCreateButton();
-      await surveyCreationPage.enterSurveyName(surveyName);
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.createBasicSurveySetup(surveyName);
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.verifySendDateOptions();

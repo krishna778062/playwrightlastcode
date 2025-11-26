@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import test, { Locator, Page } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -486,8 +487,8 @@ export class SurveyCreationPage extends BasePage {
 
   async enterSurveyName(surveyName: string): Promise<void> {
     await test.step(`Enter survey name: ${surveyName}`, async () => {
-      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      const uniqueSurveyName = `UI automation| ${surveyName}| ${timestamp}`;
+      // Generate a random survey name using faker
+      const uniqueSurveyName = `UI automation| ${surveyName}| ${faker.string.alphanumeric({ length: 6 })}`;
       await this.fillInElement(this.surveyNameInput, uniqueSurveyName, {
         stepInfo: `Enter survey name: ${uniqueSurveyName}`,
       });
@@ -1505,6 +1506,11 @@ export class SurveyCreationPage extends BasePage {
     await this.defaultThanksMessageOption.check();
   }
 
+  async selectDefaultIntroAndThanks() {
+    await this.selectDefaultIntroMessage();
+    await this.selectDefaultThanksMessage();
+  }
+
   async selectCustomIntroMessage(message: string = 'This is a custom intro message'): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.customIntroOption, {
       assertionMessage: 'Custom intro option should be visible',
@@ -1608,5 +1614,12 @@ export class SurveyCreationPage extends BasePage {
       theme || questionData.theme
     );
     await this.validateQuestionAddedPopup();
+  }
+
+  async createBasicSurveySetup(surveyName: string = 'All pp') {
+    await this.clickCreateSurveyButton();
+    await this.clickAllPurposeSurvey();
+    await this.clickCreateButton();
+    await this.enterSurveyName(surveyName);
   }
 }
