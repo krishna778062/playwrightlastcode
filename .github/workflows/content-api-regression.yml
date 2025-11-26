@@ -263,9 +263,9 @@ jobs:
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL> @qa-cont 🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL> @qa-cont 🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
 
             # Send to Slack using curl
@@ -281,29 +281,34 @@ jobs:
       - name: Send Smart Slack Notifications
         if: always()
         run: |
-          # Check if tests were executed
-          if [ -f "test-results/test-results.json" ]; then
-            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+           # Check if tests were executed
+           if [ -f "test-results/test-results.json" ]; then
+             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
 
-            if [ "$TOTAL_TESTS" -eq 0 ]; then
-              # No tests found
-              echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+             if [ "$TOTAL_TESTS" -eq 0 ]; then
+               # No tests found
+               echo "No tests were found matching the criteria"
+               NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-              curl -X POST -H 'Content-type: application/json' \
-                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
-                $SLACK_WEBHOOK_URL
-            else
-              # Tests were found and executed (pass or fail)
-              echo "Tests were found: $TOTAL_TESTS"
-              # Success notification already sent in previous step, no additional notification needed
-            fi
-          else
-            # No test results file - this means pipeline failed before tests could run
-            echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              # Send to Slack using curl
+              for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                 $WEBHOOK
+             else
+               # Tests were found and executed (pass or fail)
+               echo "Tests were found: $TOTAL_TESTS"
+               # Success notification already sent in previous step, no additional notification needed
+             fi
+           else
+             # No test results file - this means pipeline failed before tests could run
+             echo "No test results file found - pipeline likely failed"
+             FAILURE_MESSAGE="<!subteam^S087M3C16GL> @qa-cont 🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
-              $SLACK_WEBHOOK_URL
-          fi
+             # Send to Slack using curl
+             for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+                 $WEBHOOK
+           fi
