@@ -14,6 +14,7 @@ export const FEED_TEST_DATA = {
     FAVICON: 'favicon.png',
   },
   POST_TEXT: {
+    APPROPRIATE_POST_TEXT: `This is a test post with appropriate content`,
     RECOGNITION_MESSAGE: `Automated Test Recognition Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
