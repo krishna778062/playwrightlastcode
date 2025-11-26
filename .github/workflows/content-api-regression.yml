@@ -257,6 +257,7 @@ jobs:
       - name: Send Slack Notification
         if: always()
         run: |
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
@@ -269,7 +270,7 @@ jobs:
             # Send to Slack using curl
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
-              $SLACK_WEBHOOK_URL
+              $WEBHOOK
           else
             echo "No tests ran, skipping success notification"
           fi
