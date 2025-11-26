@@ -3,7 +3,7 @@ name: Integrations Regression Tests
 on:
   schedule:
     # Run only on Monday, Wednesday, Friday at 1 AM UTC
-    - cron: "0 1 * * 1,3,5"
+    - cron: '0 1 * * 1,3,5'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [integrations-workday]
+        module: [integrations-primary, integrations-workday]
         environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
@@ -91,8 +91,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
-          role-to-assume: "arn:aws:iam::693891728731:role/non-prod-deployer"
-          aws-region: "us-west-2"
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
           role-skip-session-tagging: true
           role-duration-seconds: 1200
 
@@ -289,7 +289,7 @@ jobs:
           REMAINING_MINUTES=$((DURATION_MINUTES % 60))
 
           # Threshold in minutes (120 minutes = 2 hours)
-          THRESHOLD_MINUTES=1
+          THRESHOLD_MINUTES=120
 
           echo "Job Duration: ${DURATION_HOURS}h ${REMAINING_MINUTES}m (${DURATION_MINUTES} minutes total)"
           echo "Threshold: ${THRESHOLD_MINUTES} minutes"
@@ -302,7 +302,7 @@ jobs:
           if [ "$DURATION_MINUTES" -gt "$THRESHOLD_MINUTES" ]; then
             EXCEEDED_BY=$((DURATION_MINUTES - THRESHOLD_MINUTES))
             
-            DURATION_ALERT="⏱️ *Integrations Regression Duration Alert* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` exceeded the 2-hour threshold!\n\n📊 *Execution Summary:*\n• Total Duration: *${DURATION_HOURS}h ${REMAINING_MINUTES}m* (${DURATION_MINUTES} min)\n• Threshold: 120 min (2 hours)\n• Exceeded By: *${EXCEEDED_BY} minutes*\n\n📈 *Test Results:*\n• Total: ${{ env.TOTAL_TESTS }} | ✅ Passed: ${{ env.PASSED_TESTS }} | ❌ Failed: ${{ env.FAILED_TESTS }} | ⏭️ Skipped: ${{ env.SKIPPED_TESTS }}\n\n⚠️ *Action Required:* Review failing tests causing delays. Consider identifying slow/flaky tests, parallelizing test execution, or optimizing test setup/teardown.\n\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            DURATION_ALERT="⏱️ *Integrations Regression Duration Alert* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` exceeded the 2-hour threshold!\n\n📊 *Execution Summary:*\n• Total Duration: *${DURATION_HOURS}h ${REMAINING_MINUTES}m* (${DURATION_MINUTES} min)\n• Threshold: 120 min (2 hours)\n• Exceeded By: *${EXCEEDED_BY} minutes*\n\n📈 *Test Results:*\n• Total: ${{ env.TOTAL_TESTS }} | ✅ Passed: ${{ env.PASSED_TESTS }} | ❌ Failed: ${{ env.FAILED_TESTS }} | ⏭️ Skipped: ${{ env.SKIPPED_TESTS }}\n\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
             echo "DURATION_ALERT: $DURATION_ALERT"
             
