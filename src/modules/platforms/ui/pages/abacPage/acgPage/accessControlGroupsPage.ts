@@ -713,7 +713,7 @@ export class AccessControlGroupsPage extends BasePage {
       await this.changeACGStatus(currACGStatus);
       await this.clickOnButtonWithName(saveButtonName);
       await this.verifyToastMessageIsVisibleWithText('Creating access control groups and audience relationships…');
-      await this.dismissTheToastMessage();
+      await this.dismissTheToastMessage({ toastText: 'Creating access control groups and audience relationships…' });
       return acgName;
     });
   }
