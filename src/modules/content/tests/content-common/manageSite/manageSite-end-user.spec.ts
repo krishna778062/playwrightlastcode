@@ -142,27 +142,62 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
-      async ({ appManagerApiFixture, standardUserFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'To verify the user is Site Content Manager of Private site',
           zephyrTestId: 'CONT-29063',
           storyId: 'CONT-29063',
         });
 
-        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE);
+        // Find a private site where standard user is NOT a member
+        let privateSiteId: string | null = null;
+        const privateSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'private',
+        });
+        const privateSites = privateSiteListResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        console.log(`Found ${privateSites.length} active private sites to check`);
+
+        for (const site of privateSites) {
+          const privateSiteDetails =
+            await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(site.siteId);
+          console.log(`Checking site ${site.siteId} (${site.name}) - isMember: ${privateSiteDetails.result?.isMember}`);
+          if (privateSiteDetails.result?.isMember === false || privateSiteDetails.result?.isMember === undefined) {
+            privateSiteId = site.siteId;
+            console.log(`✓ Found site where user is not a member: ${site.siteId} (${site.name})`);
+            break;
+          }
+        }
+
+        // If no site found where user is not a member, create a new one
+        if (!privateSiteId) {
+          console.log('No existing private site found where user is not a member, creating a new site...');
+          const newPrivateSite = await appManagerApiFixture.siteManagementHelper.createSite({
+            accessType: SITE_TYPES.PRIVATE,
+          });
+          privateSiteId = newPrivateSite.siteId;
+          console.log(`✓ Created new private site: ${privateSiteId}`);
+        }
+
+        // Final check to ensure privateSiteId is not null (TypeScript safety)
+        if (!privateSiteId) {
+          throw new Error('Failed to get or create a private site');
+        }
+
         const endUserInfoPrivate = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
           users.endUser.email
         );
         const makeUserSiteMembershipResponse = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-          privateSite.siteId,
+          privateSiteId,
           endUserInfoPrivate.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
         console.log('makeUserSiteMembershipResponse', makeUserSiteMembershipResponse);
-        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSite.siteId);
+        const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
         await newSiteDashboard.loadPage();
-        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSite.siteId);
+        manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSiteId);
         await manageSiteStandardUserPage.actions.clickOntheMemberButton();
         await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
       }
@@ -458,13 +493,20 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        console.log('getListOfSitesResponse', getListOfSitesResponse);
+
+        const sitesWithEditAndOwner = getListOfSitesResponse.result.listOfItems.filter(
+          (item: any) => item.canEdit === true && item.isOwner === true
+        );
+        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
+        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
+        if (sitesWithEditAndOwner.length === 0) {
+          throw new Error('No sites found with canEdit=true and isOwner=true');
+        }
 
         // Limit to first 20 sites to avoid pagination issues
-        const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems
-          .slice(0, 20)
-          .map((item: any) => item.name);
+        const deactivatedSiteNames = sitesWithEditAndOwner.slice(0, 20).map((item: any) => item.name);
 
+        console.log('deactivatedSiteNames', deactivatedSiteNames);
         if (deactivatedSiteNames.length === 0) {
           throw new Error('No deactivated sites found in the response');
         }
