@@ -18,7 +18,7 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
     this.notificationByText = (notificationText: string) =>
-      this.page.locator('a').filter({ hasText: notificationText }).first();
+      this.page.locator('a div').filter({ hasText: notificationText });
   }
 
   get assertions(): IActivityNotificationAssertions {
@@ -37,7 +37,7 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
    */
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).first(), {
+      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).nth(1), {
         assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
     });

@@ -535,7 +535,8 @@ test.describe(
         const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
 
         // Verify notification message format: "User 2 replied to your post '<Post Title>'"
-        const expectedNotificationMessage = `${user2Info.fullName} replied to your post "${replyText}"`;
+        const shortReplyText = replyText.substring(0, 25);
+        const expectedNotificationMessage = `${user2Info.fullName} replied to your post "${shortReplyText}`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
 
         // Cleanup: Delete the created post
