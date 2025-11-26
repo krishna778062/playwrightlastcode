@@ -32,6 +32,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly searchSiteNameInSearchBar: Locator;
+  readonly clickOnSearchBar: Locator;
   readonly firstSiteDropDownOption: Locator;
   readonly clickOnThePeopleTab: Locator;
   readonly clickOnFollowButton: Locator;
@@ -79,6 +81,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
+    this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
     this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
     this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnFollowButton = page.getByRole('button', { name: 'Follow', exact: true });
@@ -101,7 +105,6 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
   }
-
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
   }
@@ -416,6 +419,14 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.eventsTabImage, {
         assertionMessage: 'Events tab image should be visible',
       });
+    });
+  }
+
+  async searchSiteNameInSearchBarAction(siteName: string): Promise<void> {
+    await test.step('Searching site name in search bar', async () => {
+      await this.clickOnElement(this.searchSiteNameInSearchBar);
+      await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+      await this.clickOnElement(this.clickOnSearchBar);
     });
   }
 
@@ -750,6 +761,39 @@ export class ManageSitesComponent extends BaseComponent {
       }
 
       await this.clickOnElement(checkbox);
+    });
+  }
+  async hoverOnSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Hovering on site drop by exact name: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('[aria-label="Category option"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Category option');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Dropdown for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
+      await this.hoverOverElementInJavaScript(checkbox);
     });
   }
 
