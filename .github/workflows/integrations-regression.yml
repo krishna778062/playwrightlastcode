@@ -289,7 +289,7 @@ jobs:
           REMAINING_MINUTES=$((DURATION_MINUTES % 60))
 
           # Threshold in minutes (120 minutes = 2 hours)
-          THRESHOLD_MINUTES= 1 
+          THRESHOLD_MINUTES=1
 
           echo "Job Duration: ${DURATION_HOURS}h ${REMAINING_MINUTES}m (${DURATION_MINUTES} minutes total)"
           echo "Threshold: ${THRESHOLD_MINUTES} minutes"
