@@ -269,9 +269,11 @@ jobs:
             fi
 
             # Send to Slack using curl
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"$MESSAGE\"}" \
-              $WEBHOOK
+            for WEBHOOK in "${WEBHOOKS[@]}"; do
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$MESSAGE\"}" \
+                $WEBHOOK
+            done
           else
             echo "No tests ran, skipping success notification"
           fi
