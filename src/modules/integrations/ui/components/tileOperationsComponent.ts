@@ -90,6 +90,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly freshserviceCreatedDatePattern: RegExp;
   readonly workdayPayStubsDate: RegExp;
   readonly dollarsAmountPattern: RegExp;
+  readonly fieldDropdown: (fieldName: string) => Locator;
   readonly workdayInboxDate: RegExp;
   readonly workdayGrossPayLabel: string;
   readonly workdayTaxesLabel: string;
@@ -154,8 +155,8 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.courseId = /^[A-Z]-/;
     this.jobId = /Job ID:\s*\d+/;
     this.Published = /Published.*ago/;
-
-    // Schedule tile locators
+    this.fieldDropdown = (fieldName: string) =>
+      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
     this.scheduleContainer = page
       .locator('[data-testid="container"]')
       .filter({ has: page.locator('[data-testid="date-emblem-container"]') });
@@ -740,7 +741,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const radio = field.getByLabel(radioOption);
       await this.clickOnElement(radio);
       // Click on the dropdown to open
-      const dropdown = this.fieldDropdownLocator(fieldName);
+      const dropdown = this.fieldDropdown(fieldName);
       await this.clickOnElement(dropdown);
       // Select the value from dropdown
       const menuItem = this.menuitem(dropdownValue);
