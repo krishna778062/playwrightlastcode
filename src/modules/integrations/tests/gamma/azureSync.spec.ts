@@ -227,5 +227,69 @@ test.describe(
         await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
+
+    test(
+      'verify Active Directory Sync when Employee Number is selected as unique Identifier',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
+      },
+
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-5087',
+          storyId: 'INT-3002',
+        });
+        await azureSyncing.page.goto(PAGE_ENDPOINTS.SIMPPLR_IDP_PAGE);
+        await azureSyncing.setLoginIdentifierState(SYNCING.EMAIL, false);
+        await azureSyncing.setLoginIdentifierState(SYNCING.MOBILE, false);
+        await azureSyncing.setLoginIdentifierState(SYNCING.ALTERNATE, true);
+        await azureSyncing.selectQuestionValue(SYNCING.VALIDATION_QUESTION_VALUE);
+        await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
+        await azureSyncing.page.goto(PAGE_ENDPOINTS.MANAGE_USERS_PAGE);
+        await azureSyncing.searchForUser(AZURE_SYNCING.USER_EMPLOYEE_NUMBER);
+        await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_FIRSTNAME_EMPLOYEE_NUMBER);
+        await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
+        await azureSyncing.enterRandomTextInMultipleUserInformationFields([
+          SYNCING.ZIP_CODE,
+          SYNCING.JOB_TITLE,
+          SYNCING.ADDRESS_1,
+          SYNCING.DIVISION,
+          SYNCING.CITY,
+          SYNCING.STATE,
+          SYNCING.COUNTRY_NAME,
+          SYNCING.DIVISION,
+          SYNCING.DEPARTMENT,
+        ]);
+        await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
+        await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
+        await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
+        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.checkSyncCheckboxesForMultipleFields([
+          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
+          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
+          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
+          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
+          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
+          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
+          AZURE_SYNCING.FIELD_LABELS.CITY,
+          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
+          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
+          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
+        ]);
+        await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
+        await azureSyncing.verifyErrorMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await azureSyncing.clickOnTab(WORKDAY_SYNC.SETUP_TAB);
+        await azureSyncing.clickOnTab(WORKDAY_SYNC.SCHEDULERS_TAB);
+        await azureSyncing.clickUserSyncingRunNow(WORKDAY_SYNC.USER_SYNCING);
+        await azureSyncing.verifyErrorMessage(MESSAGES.SUCCESS_SCHEDULER_MESSAGE);
+        await azureSyncing.waitForUserSyncingSuccess(WORKDAY_SYNC.USER_SYNCING);
+        await azureSyncing.page.goto(PAGE_ENDPOINTS.MANAGE_USERS_PAGE);
+        await azureSyncing.searchForUser(AZURE_SYNCING.USER_EMPLOYEE_NUMBER);
+        await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_FIRSTNAME_EMPLOYEE_NUMBER);
+        await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
+        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+      }
+    );
   }
 );

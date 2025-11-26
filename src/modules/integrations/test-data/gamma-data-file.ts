@@ -146,9 +146,11 @@ export const AZURE_SYNCING = {
   USER_EMAIL: 'usersyncWithEmail@smplrdev.onmicrosoft.com',
   USER_MOBILE: 'usersyncWithMobile@smplrdev.onmicrosoft.com',
   USER_PHONE: 'usersyncwithphone@smplrdev.onmicrosoft.com',
+  USER_EMPLOYEE_NUMBER: 'usersyncwithemployee@smplrdev.onmicrosoft.com',
   USER_PHONE_FIRSTNAME: 'AzurePhoneSync',
   USER_FIRSTNAME: 'AzureEmailSync',
-  USER_FIRSTNAME_MOBILE: 'usersyncWithMob',
+  USER_FIRSTNAME_MOBILE: 'AzurMobileSync',
+  USER_FIRSTNAME_EMPLOYEE_NUMBER: 'AzureEmployeeSync',
   MICROSOFT_ENTRA_ID_OPTION: 'Microsoft Entra ID',
   SELECT_ALL_FIELDS_CHECKBOX_ID: 'selectAllFields_azure_are_all_synced',
   FIELD_LABELS: {
@@ -164,6 +166,7 @@ export const AZURE_SYNCING = {
     STATE_PROVINCE: 'State/Province',
     ZIP_CODE: 'Zip code',
     COUNTRY: 'Country',
+    EMPLOYEE_NUMBER: 'Employee number',
   },
   EXPECTED_SYNCED_VALUES: {
     zipCode: '90001',
