@@ -173,7 +173,7 @@ export const config = {
       frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
       apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'srikant.g@simpplr.com',
-      appManagerPassword: 'Simpplr@12345',
+      appManagerPassword: 'Simpplr@123',
       endUserEmail: 'srikant.g+enduser@simpplr.com',
       endUserPassword: 'Simpplr@12345',
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
