@@ -61,7 +61,8 @@ jobs:
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: content-api
-      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      SLACK_WEBHOOK_URL_1: https://hooks.slack.com/services/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
+      SLACK_WEBHOOK_URL_2: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
