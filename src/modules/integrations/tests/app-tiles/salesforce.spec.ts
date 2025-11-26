@@ -181,7 +181,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28578',
+          zephyrTestId: 'INT-28577',
           storyId: 'INT-13330',
         });
         createdTileTitle = `Salesforce Tabular Report ${faker.string.alphanumeric({ length: 6 })}`;

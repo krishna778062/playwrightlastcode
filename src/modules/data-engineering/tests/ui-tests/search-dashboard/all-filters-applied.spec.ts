@@ -1,3 +1,4 @@
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -72,7 +73,7 @@ test.describe(
     test(
       'verify Total search volume metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-search-volume'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-search-volume'],
       },
       async () => {
         tagTest(test.info(), {
@@ -97,7 +98,7 @@ test.describe(
     test(
       'verify Search click through rate metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@search-click-through-rate'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@search-click-through-rate'],
       },
       async () => {
         tagTest(test.info(), {
@@ -122,7 +123,7 @@ test.describe(
     test(
       'verify No results search metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@no-results-search'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@no-results-search'],
       },
       async () => {
         tagTest(test.info(), {
@@ -147,7 +148,7 @@ test.describe(
     test(
       'verify Top search queries metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@top-search-queries'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-search-queries'],
       },
       async () => {
         tagTest(test.info(), {
@@ -175,7 +176,12 @@ test.describe(
     test(
       'verify Top search queries with no clickthrough metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@top-search-queries-with-no-clickthrough'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.TABULAR_METRIC,
+          '@top-search-queries-with-no-clickthrough',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -205,7 +211,7 @@ test.describe(
     test(
       'verify Top clickthrough types metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@top-clickthrough-types'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
       },
       async () => {
         tagTest(test.info(), {
@@ -233,7 +239,7 @@ test.describe(
     test(
       'verify No result search queries metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@no-result-search-queries'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
       },
       async () => {
         tagTest(test.info(), {
@@ -261,7 +267,12 @@ test.describe(
     test(
       'verify Most searches performed by Department metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-searches-performed-by-department'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.TABULAR_METRIC,
+          '@most-searches-performed-by-department',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -291,7 +302,12 @@ test.describe(
     test(
       'verify Search usage volume and click through rate metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@search-usage-volume-and-click-through-rate'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.LINE_CHART,
+          '@search-usage-volume-and-click-through-rate',
+        ],
       },
       async () => {
         tagTest(test.info(), {

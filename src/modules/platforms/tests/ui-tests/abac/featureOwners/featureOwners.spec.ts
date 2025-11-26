@@ -152,7 +152,7 @@ test.describe(
       test(
         `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, `@this-one`],
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {

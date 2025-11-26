@@ -172,10 +172,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.statusTag = page.getByTestId('tag');
     this.MondayLastUpdatedPattern = /Last updated on/;
     this.comboboxLocator = page.locator('[role="combobox"]');
-    this.fieldDropdownLocator = (fieldName: string) =>
-      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
-    this.fieldDropdownLocator = (fieldName: string) =>
-      page.locator(`//fieldset[@aria-label="${fieldName}"]//following-sibling::div//input[@role="combobox"]`);
+    this.fieldDropdownLocator = (fieldName: string) => page.getByTestId(`field-${fieldName}`).getByRole('combobox');
     this.completedStatusLocator = page.locator('p', { hasText: 'Completed' });
     this.labelLocator = (labelText: string) => page.getByText(labelText);
     this.taskContainers = page.locator('[data-testid="container"]');
@@ -744,6 +741,21 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await this.clickOnElement(dropdown);
       // Select the value from dropdown
       const menuItem = this.menuitem(dropdownValue);
+      await this.clickOnElement(menuItem);
+    });
+  }
+  /**
+   * Select a dropdown value directly by field name (without radio button)
+   * @param fieldName - The name of the field containing the dropdown
+   * @param value - The value to select from the dropdown
+   */
+  async selectDropdownValue(fieldName: string, value: string): Promise<void> {
+    await test.step(`Select ${value} from ${fieldName} dropdown`, async () => {
+      // Click on the dropdown to open
+      const dropdown = this.fieldDropdownLocator(fieldName);
+      await this.clickOnElement(dropdown);
+      // Select the value from dropdown
+      const menuItem = this.menuitem(value);
       await this.clickOnElement(menuItem);
     });
   }
