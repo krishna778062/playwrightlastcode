@@ -19,6 +19,7 @@ export interface IManageSiteActions {
   clickOnFileOption: (fileName: string) => Promise<void>;
   clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
+  clickOnShowMoreButtonAction: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -35,6 +36,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly searchButton = this.page.locator('button[name="submitbutton"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
   readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
     // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
@@ -173,6 +175,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
+  }
+  async clickOnShowMoreButtonAction(): Promise<void> {
+    await this.clickOnElement(this.showMoreButton);
   }
 
   /**

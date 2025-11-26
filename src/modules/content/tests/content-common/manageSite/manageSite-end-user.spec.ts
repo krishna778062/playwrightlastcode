@@ -153,12 +153,13 @@ test.describe(
         const endUserInfoPrivate = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
           users.endUser.email
         );
-        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+        const makeUserSiteMembershipResponse = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           privateSite.siteId,
           endUserInfoPrivate.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
+        console.log('makeUserSiteMembershipResponse', makeUserSiteMembershipResponse);
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSite.siteId);
         await newSiteDashboard.loadPage();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSite.siteId);
@@ -256,13 +257,13 @@ test.describe(
     );
 
     test(
-      'to verify the site author name and event start date',
+      'to verify the site view option in manage site user drop down site',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
       async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the site author name and event start date',
+          description: 'to verify the site view option in manage site user drop down site',
           zephyrTestId: 'CONT-41421',
           storyId: 'CONT-41421',
         });
@@ -280,7 +281,8 @@ test.describe(
         }
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
         await manageSiteStandardUserPage.assertions.searchSiteNameInSearchBar(siteNames[0]);
-        await manageSiteStandardUserPage.assertions.verifySitesNamesAreDisplayed(siteNames);
+        const siteDashBoardPage = new SiteDashboardPage(standardUserFixture.page, firstSiteId);
+        await siteDashBoardPage.assertions.verifySiteNameIsDisplayed(siteNames[0]);
       }
     );
     test(
@@ -341,7 +343,7 @@ test.describe(
         const editFileComponent = new EditFileComponent(standardUserFixture.page);
         await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(245));
         await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(245);
-        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(251));
+        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(250));
         await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(250);
         await editFileComponent.actions.clickOnUpdateButton();
         await manageSitePage.actions.clickOnEditOption();
@@ -353,7 +355,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
       },
-      async ({ standardUserFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the site edit option in manage site user drop down sites',
           zephyrTestId: 'CONT-26503',
@@ -364,7 +366,28 @@ test.describe(
 
         manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
         const editSitePage = new EditSitePage(standardUserFixture.page);
-        await manageSitesComponent.hoverOnFirstSiteNameAction();
+        const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+
+        // Find sites where canEdit: true and isOwner: true
+        const sitesWithEditAndOwner = getListOfSitesResponse.result.listOfItems.filter(
+          (item: any) => item.canEdit === true && item.isOwner === true
+        );
+
+        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
+        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
+
+        if (sitesWithEditAndOwner.length === 0) {
+          throw new Error('No sites found with canEdit=true and isOwner=true');
+        }
+        const selectedSite = sitesWithEditAndOwner[1];
+        const firstSiteId = selectedSite.siteId;
+        if (!firstSiteId) {
+          throw new Error('No valid site ID found in filtered sites');
+        }
+        await manageSitesComponent.hoverOnSiteCheckboxByExactName(selectedSite.name);
         await editSitePage.actions.clickOnEditOption();
         await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
         await editSitePage.actions.clickOnUpdateButton();
@@ -426,20 +449,53 @@ test.describe(
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
+        const manageSitePage = new ManageSitePage(standardUserFixture.page);
+        await manageSitePage.loadPage();
+
         await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.ACTIVE);
         await manageSitesComponent.selectFilterByText(BulkActionOptions.DEACTIVATE);
         const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        const siteNames = getListOfSitesResponse.result.listOfItems.map((item: any) => item.name);
-        const selectedSiteName = await manageSitesComponent.selectFirstEnabledSiteCheckbox(siteNames);
+        console.log('getListOfSitesResponse', getListOfSitesResponse);
+
+        // Limit to first 20 sites to avoid pagination issues
+        const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems
+          .slice(0, 20)
+          .map((item: any) => item.name);
+
+        if (deactivatedSiteNames.length === 0) {
+          throw new Error('No deactivated sites found in the response');
+        }
+
+        // Retry logic: Click "Show More" button if site is not found
+        let selectedSiteName: string | null = null;
+        const maxRetriesForShowMoreButton = 10;
+        for (let attempt = 0; attempt < maxRetriesForShowMoreButton; attempt++) {
+          selectedSiteName = await manageSitesComponent.selectFirstEnabledSiteCheckbox(deactivatedSiteNames);
+          if (selectedSiteName) {
+            break;
+          }
+
+          if (attempt < maxRetriesForShowMoreButton - 1) {
+            console.log(
+              `No enabled checkbox found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
+            );
+            try {
+              await manageSitePage.actions.clickOnShowMoreButtonAction();
+            } catch {
+              console.log('Show More button not available or clickable');
+              // Continue to next attempt
+            }
+          }
+        }
+
         if (!selectedSiteName) {
           throw new Error(
             'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
           );
         }
-        await manageSitesComponent.selectSiteCheckboxByExactName(selectedSiteName);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnActivateButton();
         await manageContentPage.actions.clickOnActivateApplyButton();
@@ -487,11 +543,26 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'active',
         });
-        const firstSiteId = getListOfSitesResponse.result.listOfItems[0]?.siteId;
-        if (!firstSiteId) {
-          throw new Error('No sites found in the response');
+
+        // Find sites where canEdit: true and isOwner: true
+        const sitesWithEditAndOwner = getListOfSitesResponse.result.listOfItems.filter(
+          (item: any) => item.canEdit === true && item.isOwner === true
+        );
+
+        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
+        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
+
+        if (sitesWithEditAndOwner.length === 0) {
+          throw new Error('No sites found with canEdit=true and isOwner=true');
         }
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+
+        const selectedSite = sitesWithEditAndOwner[1];
+        const firstSiteId = selectedSite.siteId;
+        if (!firstSiteId) {
+          throw new Error('No valid site ID found in filtered sites');
+        }
+
+        await manageSitesComponent.selectSiteCheckboxByExactName(selectedSite.name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();

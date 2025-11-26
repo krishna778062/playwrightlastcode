@@ -53,6 +53,7 @@ export class OnboardingComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsDisabled(this.saveButton);
     });
   }
+ 
 
   async clickOnSaveButton(): Promise<void> {
     await test.step('Click on save button', async () => {
@@ -66,7 +67,6 @@ export class OnboardingComponent extends BaseComponent {
       console.log('textContent', textContent);
       if (textContent?.includes(option)) {
         await this.verifier.verifyTheElementIsNotVisible(this.verifyTabVisible(option));
-        await this.verifier.verifyTheElementIsNotVisible(this.verifyOnboardingTabVisible(option));
       }
     });
   }

@@ -253,6 +253,12 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
+      assertionMessage: 'Site name should be displayed on manage site page',
+    });
+  }
+
   async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
     // Handle both single site name and array of site names
     const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];

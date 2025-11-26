@@ -426,6 +426,7 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Searching site name in search bar', async () => {
       await this.clickOnElement(this.searchSiteNameInSearchBar);
       await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+      await this.clickOnElement(this.clickOnSearchBar);
     });
   }
 
@@ -760,6 +761,39 @@ export class ManageSitesComponent extends BaseComponent {
       }
 
       await this.clickOnElement(checkbox);
+    });
+  }
+  async hoverOnSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Hovering on site drop by exact name: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('[aria-label="Category option"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Category option');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Dropdown for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
+      await this.hoverOverElementInJavaScript(checkbox);
     });
   }
 
