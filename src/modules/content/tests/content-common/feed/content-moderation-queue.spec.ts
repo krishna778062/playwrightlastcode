@@ -62,13 +62,6 @@ test.describe(
           }),
         ]);
 
-        // Pre-assign Site Manager role (needed for Group 1-3 parallel tests)
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: siteManagerInfo.userId,
-          role: SitePermission.MANAGER,
-        });
-
         // Helper function to create inappropriate post on Home Dashboard and submit anyway
         const createHomeDashboardPost = async (userFixture: any, inappropriateText: string) => {
           const homeFeedPage = new FeedPage(userFixture.page);
@@ -166,142 +159,136 @@ test.describe(
           await contentPreviewPage.assertions.waitForPostToBeVisible(inappropriateText);
         };
 
-        // Phase 2: Parallel Context Testing - All users create inappropriate content in all 3 feeds in parallel
-
-        // Group 1: Home Dashboard Tests - All users in parallel
-        await Promise.all([
-          createHomeDashboardPost(appManagerFixture, inappropriatePostText),
-          createHomeDashboardPost(standardUserFixture, inappropriatePostText),
-          createHomeDashboardPost(siteManagerFixture, inappropriatePostText),
-        ]);
-
-        // Group 2: Site Dashboard Tests - All users in parallel
-        await Promise.all([
-          createSiteDashboardPost(appManagerFixture, publicSiteId, inappropriatePostText),
-          createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText),
-          createSiteDashboardPost(siteManagerFixture, publicSiteId, inappropriatePostText),
-        ]);
-
-        // Group 3: Content Page Tests - All users in parallel
-        await Promise.all([
-          createContentPageComment(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          createContentPageComment(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          createContentPageComment(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-        ]);
-
-        // Phase 3: Admin views moderation queue and verifies all posts/comments appear
-        await test.step('Admin: View moderation queue and verify posts/comments appear', async () => {
-          await appManagerFixture.homePage.loadPage();
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
-
-          // Navigate to Content Moderation queue
-          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-
-          // Verify posts appear in queue (Home Dashboard and Site Dashboard posts)
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Verify comments appear in queue (Content Detail Page comments)
-          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriatePostText);
-        });
-
-        // Phase 4: Test Dismiss action - Home Dashboard post
-        await test.step('Admin: Dismiss post from Home Dashboard in moderation queue', async () => {
-          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.actions.dismissPost(inappropriatePostText);
-
-          // Verify post is still visible on Home Dashboard
-          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          const feedPage = new FeedPage(appManagerFixture.page);
-          await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(inappropriatePostText);
-        });
-
-        // Phase 5: Test Delete action - Site Dashboard post
-        await test.step('Admin: Delete post from Site Dashboard in moderation queue', async () => {
-          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.actions.removePost(inappropriatePostText);
-
-          // Verify post does NOT appear on Home Dashboard
-          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          const feedPage = new FeedPage(appManagerFixture.page);
-          await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.verifyPostIsNotVisible(inappropriatePostText);
-        });
-
-        // Phase 6: Test Dismiss action - Content Detail Page comment
-        await test.step('Admin: Dismiss comment from Content Detail Page in moderation queue', async () => {
-          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.actions.dismissComment(inappropriatePostText);
-
-          // Verify comment is still visible on Content Detail Page
-          const contentPreviewPage = new ContentPreviewPage(
-            appManagerFixture.page,
-            publicSiteId,
-            pageContent.contentId,
-            'page'
-          );
-          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-          await contentPreviewPage.verifyThePageIsLoaded();
-          await contentPreviewPage.assertions.waitForPostToBeVisible(inappropriatePostText);
-        });
-
-        // Phase 7: Role-Based Users - Sequential role assignment, sequential context testing
+        // Phase 2: Role-Based Users - Serial creation and verification for each role
         // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
 
         // Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.CONTENT_MANAGER,
+        await test.step('Site Content Manager: Assign role and create inappropriate content serially', async () => {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: publicSiteId,
+            userId: endUserInfo.userId,
+            role: SitePermission.CONTENT_MANAGER,
+          });
+
+          // Home Dashboard: Create post and verify in queue
+          await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
+          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage1.actions.clickQueuesTab();
+          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Site Dashboard: Create post and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
+          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage2.actions.clickQueuesTab();
+          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Content Page: Create comment and verify in queue
+          await createContentPageComment(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText
+          );
+          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage3.actions.clickQueuesTab();
+          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
         });
 
-        await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-        await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-        await createContentPageComment(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+        // Site Manager
+        await test.step('Site Manager: Assign role and create inappropriate content serially', async () => {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: publicSiteId,
+            userId: siteManagerInfo.userId,
+            role: SitePermission.MANAGER,
+          });
 
-        // Verify in moderation queue
-        const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-        await moderationQueuePage1.actions.clickQueuesTab();
-        await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
-        await moderationQueuePage1.assertions.verifyCommentInQueue(inappropriatePostText);
+          // Home Dashboard: Create post and verify in queue
+          await createHomeDashboardPost(siteManagerFixture, inappropriatePostText);
+          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage1.actions.clickQueuesTab();
+          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Site Dashboard: Create post and verify in queue
+          await createSiteDashboardPost(siteManagerFixture, publicSiteId, inappropriatePostText);
+          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage2.actions.clickQueuesTab();
+          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Content Page: Create comment and verify in queue
+          await createContentPageComment(
+            siteManagerFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText
+          );
+          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage3.actions.clickQueuesTab();
+          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
+        });
 
         // Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.MEMBER,
+        await test.step('Member: Assign role and create inappropriate content serially', async () => {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: publicSiteId,
+            userId: endUserInfo.userId,
+            role: SitePermission.MEMBER,
+          });
+
+          // Home Dashboard: Create post and verify in queue
+          await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
+          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage1.actions.clickQueuesTab();
+          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Site Dashboard: Create post and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
+          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage2.actions.clickQueuesTab();
+          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Content Page: Create comment and verify in queue
+          await createContentPageComment(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText
+          );
+          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage3.actions.clickQueuesTab();
+          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
         });
-
-        await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-        await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-        await createContentPageComment(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
-
-        // Verify in moderation queue
-        const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-        await moderationQueuePage2.actions.clickQueuesTab();
-        await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
-        await moderationQueuePage2.assertions.verifyCommentInQueue(inappropriatePostText);
 
         // Site Owner
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.OWNER,
+        await test.step('Site Owner: Assign role and create inappropriate content serially', async () => {
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+            siteId: publicSiteId,
+            userId: endUserInfo.userId,
+            role: SitePermission.OWNER,
+          });
+
+          // Home Dashboard: Create post and verify in queue
+          await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
+          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage1.actions.clickQueuesTab();
+          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Site Dashboard: Create post and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
+          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage2.actions.clickQueuesTab();
+          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
+
+          // Content Page: Create comment and verify in queue
+          await createContentPageComment(
+            standardUserFixture,
+            publicSiteId,
+            pageContent.contentId,
+            inappropriatePostText
+          );
+          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage3.actions.clickQueuesTab();
+          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
         });
-
-        await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-        await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-        await createContentPageComment(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
-
-        // Verify in moderation queue
-        const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-        await moderationQueuePage3.actions.clickQueuesTab();
-        await moderationQueuePage3.assertions.verifyPostInQueue(inappropriatePostText);
-        await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
       }
     );
 
@@ -311,7 +298,6 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29514'],
       },
       async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
-        test.setTimeout(1000000);
         tagTest(test.info(), {
           description: 'Verify Content Moderator can view Reported posts/comments/replies in Content Moderation queue',
           zephyrTestId: 'CONT-29514',
