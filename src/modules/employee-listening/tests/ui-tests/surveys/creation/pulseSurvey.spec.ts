@@ -41,8 +41,7 @@ test.describe('pulse Survey Creation Tests', () => {
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
       await surveyCreationPage.enterSurveyName('Pulse');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
       await pulseSurveyPage.selectFrequency('Every three months');
@@ -58,8 +57,6 @@ test.describe('pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      // Add a short wait after clicking Next to allow page transition
-      await surveyCreationPage.page.waitForTimeout(2000);
       await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.clickScheduleSurveyButton();
@@ -89,8 +86,7 @@ test.describe('pulse Survey Creation Tests', () => {
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
       await surveyCreationPage.enterSurveyName('Pulse');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['India']);
       await surveyCreationPage.selectDefaultFormAddress();
       await pulseSurveyPage.selectFrequency('Monthly');
@@ -105,8 +101,6 @@ test.describe('pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      // Add a short wait after clicking Next to allow page transition
-      await surveyCreationPage.page.waitForTimeout(2000);
       await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.clickScheduleSurveyButton();
@@ -136,8 +130,7 @@ test.describe('pulse Survey Creation Tests', () => {
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
       await surveyCreationPage.enterSurveyName('Pulse');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await pulseSurveyPage.selectSite('EL-site');
       await surveyCreationPage.selectDefaultFormAddress();
       await pulseSurveyPage.selectFrequency('Every two weeks');
@@ -152,8 +145,6 @@ test.describe('pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      // Add a short wait after clicking Next to allow page transition
-      await surveyCreationPage.page.waitForTimeout(2000);
       await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.clickScheduleSurveyButton();
@@ -182,8 +173,7 @@ test.describe('pulse Survey Creation Tests', () => {
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
       await surveyCreationPage.enterSurveyName('Pulse');
-      await surveyCreationPage.selectDefaultIntroMessage();
-      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectDefaultIntroAndThanks();
       await pulseSurveyPage.selectSite('EL-site');
       await surveyCreationPage.selectDefaultFormAddress();
       await pulseSurveyPage.selectCurrentRecurrenceDay();
@@ -198,8 +188,6 @@ test.describe('pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      // Add a short wait after clicking Next to allow page transition
-      await surveyCreationPage.page.waitForTimeout(2000);
       await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.clickScheduleSurveyButton();
@@ -244,28 +232,22 @@ test.describe('pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      // Add a short wait after clicking Next to allow page transition
-      await surveyCreationPage.page.waitForTimeout(2000);
       await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.clickScheduleSurveyButton();
       await surveyCreationPage.verifySurveyScheduledMessage();
-      // Navigate to manage page and delete
       await surveyCreationPage.navigateToSurveysViaMenu();
       await surveyCreationPage.searchSurveyByName(surveyName);
       await surveyCreationPage.clickFirstSurveyManageButton();
       await surveyCreationPage.clickDeleteButton();
       await surveyCreationPage.clickConfirmDeleteButton();
-      await surveyCreationPage.page
-        .getByText('Survey deleted successfully')
-        .waitFor({ state: 'visible', timeout: 5000 });
+      await pulseSurveyPage.verifySurveyDeletedMessage();
       await surveyCreationPage.searchSurveyByName(surveyName);
       await pulseSurveyPage.verifyNoResultsMessage();
     }
   );
 
   test('verify duplicate Pulse survey preserves custom configuration and questions for audience recipient', async () => {
-    // Create and schedule the original survey
     await surveyCreationPage.clickCreateSurveyButton();
     await pulseSurveyPage.clickPulseSurvey();
     await surveyCreationPage.clickCreateButton();
@@ -299,7 +281,6 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.clickAddQuestionNextButton();
     await surveyCreationPage.clickScheduleSurveyButton();
     await surveyCreationPage.verifySurveyScheduledMessage();
-    // Duplicate the survey and validate questions
     await surveyCreationPage.navigateToSurveysViaMenu();
     await surveyCreationPage.searchSurveyByName(surveyName);
     await surveyCreationPage.clickFirstSurveyManageButton();
@@ -307,19 +288,17 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.clickConfigureSurveyNextButton();
     await surveyCreationPage.validateQuestionsOnPreview(['Test Scale type question-1', 'Test Scale type question-2']);
     await surveyCreationPage.clickAddQuestionNextButton();
-    await surveyCreationPage.page.getByText('Survey draft was saved').waitFor({ state: 'visible', timeout: 5000 });
-    await surveyCreationPage.page.getByRole('button', { name: 'Save' }).click();
+    await pulseSurveyPage.verifySurveyDraftSavedMessage();
+    await pulseSurveyPage.clickSaveButton();
   });
 
   test('verify scheduling a draft pulse survey after modifying to site recipient type', async () => {
-    // Create and schedule a draft survey
     await surveyCreationPage.clickCreateSurveyButton();
     await pulseSurveyPage.clickPulseSurvey();
     await surveyCreationPage.clickCreateButton();
     const surveyName = `Pulse ${Date.now()}`;
     await surveyCreationPage.enterSurveyName(surveyName);
-    await surveyCreationPage.selectDefaultIntroMessage();
-    await surveyCreationPage.selectDefaultThanksMessage();
+    await surveyCreationPage.selectDefaultIntroAndThanks();
     await surveyCreationPage.selectAudiences(['All Employees']);
     await surveyCreationPage.selectDefaultFormAddress();
     await pulseSurveyPage.selectFrequency('Pulse');
@@ -342,7 +321,6 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.clickAddButton();
     await surveyCreationPage.validateQuestionAddedPopup();
     await surveyCreationPage.clickAddQuestionNextButton();
-    // Configure as site recipient and schedule
     await surveyCreationPage.navigateToSurveysViaMenu();
     await surveyCreationPage.searchSurveyByName(surveyName);
     await surveyCreationPage.clickFirstSurveyManageButton();
@@ -353,7 +331,6 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.selectTheme('Business agility');
     await surveyCreationPage.clickAddButton();
     await surveyCreationPage.clickAddQuestionNextButton();
-
     await surveyCreationPage.clickScheduleSurveyButton();
     await surveyCreationPage.verifySurveyScheduledMessage();
   });
@@ -362,7 +339,7 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.navigateToHome();
     await surveyCreationPage.clickManageFeaturesMenuItem();
     await surveyCreationPage.clickSurveysButton();
-    await surveyCreationPage.page.waitForTimeout(5000);
+    await pulseSurveyPage.waitForSurveysPageLoad(5000);
     await surveyCreationPage.applyTypeFilter('Pulse');
     await surveyCreationPage.applyStatusFilter('Active');
     await pulseSurveyPage.clickFirstSurveyManageButton();
@@ -371,7 +348,7 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.clickResetButton();
     await surveyCreationPage.applyTypeFilter('Pulse');
     await surveyCreationPage.applyStatusFilter('Paused');
-    await pulseSurveyPage.page.keyboard.press('Escape');
+    await pulseSurveyPage.pressEscape();
     await pulseSurveyPage.clickFirstSurveyManageButton();
     await surveyCreationPage.clickDuplicateOption();
     await pulseSurveyPage.selectFrequency('Every three months');
@@ -399,19 +376,17 @@ test.describe('pulse Survey Creation Tests', () => {
     await surveyCreationPage.applyStatusFilter('Active');
     await pulseSurveyPage.applySortFilter('Last sent');
     await pulseSurveyPage.clickFirstSurveyManageButton();
-    await pulseSurveyPage.copySurveyLink();
-    await pulseSurveyPage.verifyLinkCopiedPopup();
-    await pulseSurveyPage.openNewTabAndPasteLink();
+    await pulseSurveyPage.copySurveyLinkAndOpenTabAndVerify();
   });
 
   test('verify “Not yet” and “Schedule date and time” option will not be available if user try to edit active pulse surveys', async () => {
     await surveyCreationPage.navigateToSurveysViaMenu();
-    await pulseSurveyPage.applyTypeFilter('Pulse');
-    await pulseSurveyPage.applyStatusFilter('Active');
+    await surveyCreationPage.applyTypeFilter('Pulse');
+    await surveyCreationPage.applyStatusFilter('Active');
     await pulseSurveyPage.applySortFilter('Last sent');
     await pulseSurveyPage.clickFirstSurveyManageButton();
-    await pulseSurveyPage.editSurvey();
-    await pulseSurveyPage.configureSurvey();
+    await surveyCreationPage.editSurveymethod();
+    await surveyCreationPage.clickConfigureSurveyNextButton();
     await pulseSurveyPage.verifyNotYetAndScheduleDateTimeNotVisible();
   });
 });

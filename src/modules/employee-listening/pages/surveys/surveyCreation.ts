@@ -81,6 +81,8 @@ export class SurveyCreationPage extends BasePage {
   readonly deleteFourthAnswerButton: Locator;
   readonly previewDialog: Locator;
   readonly duplicateOption: Locator;
+  readonly copyLink: Locator;
+  readonly editSurvey: Locator;
   readonly completeOption: Locator;
   readonly completeButton: Locator;
   readonly resetButton: Locator;
@@ -329,6 +331,8 @@ export class SurveyCreationPage extends BasePage {
     this.deleteFourthAnswerButton = this.page.getByRole('button', { name: 'delete First question Fourth' });
     this.previewDialog = this.page.getByRole('dialog');
     this.duplicateOption = this.page.getByRole('menuitem', { name: 'Duplicate' });
+    this.copyLink = this.page.getByText('Copy link to survey');
+    this.editSurvey = this.page.getByRole('menuitem', { name: 'Edit' });
     this.completeOption = this.page.getByRole('menuitem', { name: 'Complete' });
     this.completeButton = this.page.getByRole('button', { name: 'Complete' });
     this.resetButton = this.page.getByRole('button', { name: 'Reset' });
@@ -808,6 +812,22 @@ export class SurveyCreationPage extends BasePage {
     await test.step('Click Duplicate option', async () => {
       await this.clickOnElement(this.duplicateOption, {
         stepInfo: 'Click Duplicate option',
+      });
+    });
+  }
+
+  async copySurveyLink(): Promise<void> {
+    await test.step('Click Copy Survey Link option', async () => {
+      await this.clickOnElement(this.copyLink, {
+        stepInfo: 'Copy Survey Link option',
+      });
+    });
+  }
+
+  async editSurveymethod(): Promise<void> {
+    await test.step('Click Edit Survey option', async () => {
+      await this.clickOnElement(this.editSurvey, {
+        stepInfo: 'Copy Edit  option',
       });
     });
   }
@@ -1628,21 +1648,18 @@ export class SurveyCreationPage extends BasePage {
   }
 
   async selectCustomAnswerScale() {
-    // Select the 'Custom' answer scale radio button
     const customAnswerScale = this.page.getByRole('radio', { name: /Custom/i });
     await customAnswerScale.waitFor({ state: 'visible' });
     await customAnswerScale.check();
   }
 
   async selectQualityAnswerScale() {
-    // Select the 'Quality' answer scale radio button
     const qualityAnswerScale = this.page.getByRole('radio', { name: /Quality/i });
     await qualityAnswerScale.waitFor({ state: 'visible' });
     await qualityAnswerScale.check();
   }
 
   async validateQuestionsOnPreview(expectedQuestions: string[]) {
-    // Validate that all expected questions are visible in the preview dialog
     for (const question of expectedQuestions) {
       await this.page.getByText(question, { exact: false }).waitFor({ state: 'visible' });
     }
