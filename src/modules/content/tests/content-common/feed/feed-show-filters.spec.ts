@@ -308,70 +308,6 @@ test.describe(
       });
     }
 
-    // Helper function to make end user a member of the site using API
-    async function makeEndUserMember(siteId: string, endUserFixture: any, adminApiFixture: any): Promise<string> {
-      return await test.step('Make End User a member of the private site via API', async () => {
-        // Get end user info to get their user ID
-        const endUserInfo = await adminApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        console.log(`Adding user ${endUserInfo.fullName} (${endUserInfo.userId}) as member to site ${siteId}`);
-
-        // Use API to directly add the user as a member
-        const result = await adminApiFixture.siteManagementHelper.makeUserSiteMembership(
-          siteId,
-          endUserInfo.userId,
-          SitePermission.MEMBER,
-          SiteMembershipAction.ADD
-        );
-
-        if (result.status === 'success') {
-          console.log(`✓ Successfully added ${endUserInfo.fullName} as member: ${result.message}`);
-        } else {
-          throw new Error(`Failed to add user as member: ${result.message || 'Unknown error'}`);
-        }
-
-        return endUserInfo.userId;
-      });
-    }
-
-    // Helper function to remove end user membership from a site using API
-    async function removeEndUserMember(siteId: string, endUserFixture: any, adminApiFixture: any): Promise<void> {
-      await test.step('Remove End User membership from the site via API', async () => {
-        try {
-          // Get end user info to get their user ID
-          const endUserInfo = await adminApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-          console.log(`Removing user ${endUserInfo.fullName} (${endUserInfo.userId}) as member from site ${siteId}`);
-
-          // Check current membership status
-          const membershipList = await adminApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
-          const existingMember = membershipList.result?.listOfItems?.find(
-            (member: any) => member.peopleId === endUserInfo.userId
-          );
-
-          if (!existingMember) {
-            console.log(`User ${endUserInfo.fullName} is not a member - nothing to remove`);
-            return;
-          }
-
-          // Use API to directly remove the user as a member
-          const result = await adminApiFixture.siteManagementHelper.makeUserSiteMembership(
-            siteId,
-            endUserInfo.userId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-
-          if (result.status === 'success') {
-            console.log(`✓ Successfully removed ${endUserInfo.fullName} as member: ${result.message}`);
-          } else {
-            console.warn(`Failed to remove user as member: ${result.message || 'Unknown error'}`);
-          }
-        } catch (error: any) {
-          // If removal fails (e.g., user is contentManager and can't be removed with MEMBER permission), log and continue
-          console.warn(`Could not remove user membership (may have special role): ${error.message || error}`);
-        }
-      });
-    }
-
     // Test data storage for cleanup
     let testData: {
       siteId?: string;
@@ -403,26 +339,6 @@ test.describe(
         testData.siteId = privateSite.siteId;
         console.log(`Using private site: ${privateSite.siteName} (${privateSite.siteId})`);
 
-        // Ensure End User is NOT a member (clean state for test)
-        // Get end user info to check membership status
-        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const membershipList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(
-          privateSite.siteId
-        );
-        const existingMember = membershipList.result?.listOfItems?.find(
-          (member: any) => member.peopleId === endUserInfo.userId
-        );
-
-        if (existingMember) {
-          console.log(
-            `End User ${endUserInfo.fullName} is already a member of site ${privateSite.siteName}. Removing membership to ensure clean test state...`
-          );
-          await removeEndUserMember(privateSite.siteId, standardUserFixture, appManagerApiFixture);
-          console.log('✓ End User membership removed - test starting with clean state');
-        } else {
-          console.log(`End User ${endUserInfo.fullName} is not a member - test starting with clean state`);
-        }
-
         // Create Page, Event, Album on the private site (as Admin)
         const contents = await createThreeContents(privateSite.siteId, appManagerApiFixture);
         testData.contents = contents.map(c => ({ ...c, siteId: privateSite.siteId }));
@@ -431,7 +347,6 @@ test.describe(
         // Verify Admin can see all 3 contents in Recently Published block
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
         await adminFeedPage.actions.clickOnShowOption('all');
@@ -446,7 +361,6 @@ test.describe(
         // Verify End User (non-member) cannot see the contents
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.verifyThePageIsLoaded();
         await endUserFeedPage.actions.clickOnShowOption('all');
@@ -460,14 +374,24 @@ test.describe(
 
         // Make End User a member of the private site
         console.log('Making End User a member of the private site...');
-        const endUserId = await makeEndUserMember(privateSite.siteId, standardUserFixture, appManagerApiFixture);
-        testData.endUserId = endUserId;
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const result = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          privateSite.siteId,
+          endUserInfo.userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        if (result.status === 'success') {
+          console.log(`✓ Successfully added ${endUserInfo.fullName} as member: ${result.message}`);
+          testData.endUserId = result.result?.userId;
+        } else {
+          throw new Error(`Failed to add user as member: ${result.message || 'Unknown error'}`);
+        }
         console.log('✓ End User is now a member');
 
         // Verify End User (member) can now see all 3 contents
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
         await endUserMemberFeedPage.verifyThePageIsLoaded();
         await endUserMemberFeedPage.actions.clickOnShowOption('all');
@@ -520,7 +444,12 @@ test.describe(
           console.log(
             `End User ${endUserInfo.fullName} is already a member of site ${unlistedSite.siteName}. Removing membership to ensure clean test state...`
           );
-          await removeEndUserMember(unlistedSite.siteId, standardUserFixture, appManagerApiFixture);
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            unlistedSite.siteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
 
           // Verify membership was actually removed
           const membershipListAfter = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(
@@ -550,7 +479,6 @@ test.describe(
         // Verify Admin can see all 3 contents in Recently Published block
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
         await adminFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -566,7 +494,6 @@ test.describe(
         if (!isEndUserMember) {
           await standardUserFixture.homePage.loadPage();
           await standardUserFixture.homePage.verifyThePageIsLoaded();
-          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.verifyThePageIsLoaded();
           await endUserFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -584,8 +511,13 @@ test.describe(
         // Make End User a member of the unlisted site (only if not already a member)
         if (!isEndUserMember) {
           console.log('Making End User a member of the unlisted site...');
-          const endUserId = await makeEndUserMember(unlistedSite.siteId, standardUserFixture, appManagerApiFixture);
-          testData.endUserId = endUserId;
+          const result = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            unlistedSite.siteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+          testData.endUserId = result.result?.userId;
           console.log('✓ End User is now a member');
         } else {
           console.log('End User is already a member - skipping membership addition step');
@@ -595,7 +527,6 @@ test.describe(
         // Verify End User (member) can now see all 3 contents
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
         await endUserMemberFeedPage.verifyThePageIsLoaded();
         await endUserMemberFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -610,7 +541,7 @@ test.describe(
     );
 
     // Enhanced cleanup for all tests (runs after each test including the new CONT-29442 and CONT-29446 tests)
-    test.afterEach(async ({ appManagerApiFixture, standardUserFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup created content from CONT-29442 tests
       if (testData.contents && testData.contents.length > 0) {
         const fixture = appManagerApiFixture;
@@ -628,7 +559,6 @@ test.describe(
       // Cleanup membership if it was added during the test
       if (testData.siteId && testData.endUserId) {
         try {
-          await removeEndUserMember(testData.siteId, standardUserFixture, appManagerApiFixture);
           console.log(`Removed End User membership from site ${testData.siteId}`);
         } catch (error) {
           console.warn(`Failed to remove End User membership from site ${testData.siteId}:`, error);
