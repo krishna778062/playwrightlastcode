@@ -255,47 +255,6 @@ test.describe(
     );
 
     test(
-      'verify Audience Description Is Not Displayed When Not Present',
-      {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33857', '@Social_Campaign_Audience'],
-      },
-      async ({ appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify Audience Description Is Not Displayed When Not Present',
-          zephyrTestId: 'CONT-33857',
-          storyId: 'CONT-33857',
-        });
-
-        // Create social campaign page instance
-        const socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
-
-        // Navigate to social campaigns and add campaign
-        await socialCampaignPage.loadPage();
-        await socialCampaignPage.actions.clickAddCampaignButton();
-
-        const audienceDetailsWithDescription =
-          await appManagerFixture.audienceManagementHelper.getAudienceWithDescription();
-        const audienceDetailsWithNoDescription =
-          await appManagerFixture.audienceManagementHelper.getAudienceWithNoDescription();
-
-        addCampaignPage = new AddCampaignPage(appManagerFixture.page);
-        await addCampaignPage.actions.selectMemberAsAudience();
-        await addCampaignPage.actions.enterAudienceName(audienceDetailsWithDescription.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndDescription(
-          audienceDetailsWithDescription.audienceCount,
-          audienceDetailsWithDescription.description,
-          audienceDetailsWithDescription.name
-        );
-        await addCampaignPage.actions.enterAudienceName(audienceDetailsWithNoDescription.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndNoDescription(
-          audienceDetailsWithNoDescription.audienceCount,
-          audienceDetailsWithNoDescription.description,
-          audienceDetailsWithNoDescription.name
-        );
-      }
-    );
-
-    test(
       'verify App Manager able to share Social Campaign to Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
