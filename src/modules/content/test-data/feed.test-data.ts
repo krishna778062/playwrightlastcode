@@ -26,6 +26,7 @@ export const FEED_TEST_DATA = {
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content`,
     EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,

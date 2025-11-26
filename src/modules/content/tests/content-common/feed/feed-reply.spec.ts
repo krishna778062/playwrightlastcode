@@ -465,6 +465,83 @@ test.describe(
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage2);
       }
     );
+
+    test(
+      'verify User 1 receives a notification when User 2 replies to a feed post containing an attachment',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36598'],
+      },
+      async ({ appManagerFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify User 1 receives a notification when User 2 replies to a feed post containing an attachment',
+          zephyrTestId: 'CONT-36598',
+          storyId: 'CONT-36598',
+        });
+
+        // Get user information
+        const user2Data = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
+        const user2Info = { userId: user2Data.userId, fullName: user2Data.fullName };
+
+        // Step 1: Login as User 1 and create a feed post with attachment via UI
+        const user1FeedPage = new FeedPage(appManagerFixture.page);
+        await user1FeedPage.verifyThePageIsLoaded();
+
+        // Click "Share your thoughts" button
+        await user1FeedPage.actions.clickShareThoughtsButton();
+
+        // Generate post text
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL_WITH_ATTACHMENT;
+        await user1FeedPage.actions.enterFeedPostText(postText);
+
+        // Click "Browse files" button to open file library
+        await user1FeedPage.actions.clickBrowseFilesButton();
+
+        // Search for image file in intranet library (using file extension or name)
+        const imageFileName = FEED_TEST_DATA.ATTACHMENTS.IMAGE;
+        await user1FeedPage.actions.searchForFileInLibrary(imageFileName);
+
+        // Select the image file from library
+        await user1FeedPage.actions.selectFileFromLibrary(imageFileName);
+
+        // Click "Attach" button
+        await user1FeedPage.actions.clickAttachButton();
+
+        // Create and post the feed with attachment
+        const postResult = await user1FeedPage.actions.createAndPost({ text: postText });
+        const postId = postResult.postId || '';
+
+        // Verify post is visible
+        await user1FeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Step 2: Login as User 2 and reply to User 1's post
+        const user2FeedPage = new FeedPage(siteManagerFixture.page);
+        await user2FeedPage.verifyThePageIsLoaded();
+        await user2FeedPage.reloadPage();
+        await user2FeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Add text-only reply to the post
+        const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+        await user2FeedPage.actions.addReplyToPost(replyText, postId);
+        await user2FeedPage.assertions.verifyReplyIsVisible(replyText);
+
+        // Step 3: Login as User 1 and verify notification
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+        const notificationComponent = await appManagerFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'User 1 clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+        // Verify notification message format: "User 2 replied to your post '<Post Title>'"
+        const expectedNotificationMessage = `${user2Info.fullName} replied to your post "${replyText}"`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+
+        // Cleanup: Delete the created post
+        await appManagerFixture.feedManagementHelper.deleteFeed(postId);
+      }
+    );
   }
 );
 
