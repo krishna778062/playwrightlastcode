@@ -63,7 +63,9 @@ export interface ISiteDashboardAssertions {
   verifyShareButtonIsNotVisible: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -365,6 +367,32 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  /**
+   * Verifies that multiple site names are displayed on the page
+   * @param siteNames - Array of site names to verify
+   */
+  async verifySitesNamesAreDisplayed(siteNames: string[]): Promise<void> {
+    await test.step(`Verify ${siteNames.length} site name(s) are displayed`, async () => {
+      for (const siteName of siteNames) {
+        await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+          assertionMessage: `Site link "${siteName}" should be visible`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies that a single site name is displayed on the page
+   * @param siteName - The site name to verify
+   */
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
   }
 
   async verifyTimestampFormat(postText: string): Promise<void> {

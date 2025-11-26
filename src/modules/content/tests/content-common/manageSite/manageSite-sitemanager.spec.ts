@@ -38,6 +38,7 @@ test.describe(
         for (const siteType of siteTypes) {
           const siteInfo = await siteManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
             size: 1000,
+            sortBy: 'alphabetical',
           });
           const siteName = siteInfo.siteName;
 
