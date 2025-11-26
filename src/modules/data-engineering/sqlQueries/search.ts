@@ -98,7 +98,7 @@ WHERE s.tenant_code = '{tenantCode}'
   {departmentFilter}
 GROUP BY s.search_term
 ORDER BY COUNT(s.search_term) DESC, s.search_term ASC
-LIMIT 10;
+LIMIT 20;
 `,
   Top_Search_Queries_With_No_Clickthrough: `
 SELECT

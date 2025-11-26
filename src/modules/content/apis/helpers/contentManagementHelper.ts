@@ -13,6 +13,7 @@ import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageU
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy, DateField } from '@/src/modules/content/constants';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -121,6 +122,20 @@ export class ContentManagementHelper {
       contentId: pageResult.contentId,
       contentType: 'page',
     };
+  }
+
+  async makeContentMustRead(
+    contentId: string,
+    options: {
+      audienceType?: MustReadAudienceType | string;
+      duration?: MustReadDuration | string;
+    } = {
+      audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+      duration: MustReadDuration.NINETY_DAYS,
+    }
+  ): Promise<any> {
+    const mustReadResponse = await this.contentManagementService.makeContentMustRead(contentId, options);
+    return mustReadResponse;
   }
 
   async getContentCreatedAtDetails(
@@ -406,6 +421,8 @@ export class ContentManagementHelper {
       contentId: eventResult.eventId,
       eventName: finalEventName,
       authorName: eventResult.authorName,
+      startsAt: eventResult.startsAt,
+      endsAt: eventResult.endsAt,
       contentDescription: finalContentDescription,
       ...(eventResult.eventSyncDetails && { eventSyncDetails: eventResult.eventSyncDetails }),
       ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
