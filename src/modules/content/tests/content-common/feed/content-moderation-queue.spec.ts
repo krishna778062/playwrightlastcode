@@ -13,8 +13,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 
 test.describe(
   '@ContentModerationQueue',
@@ -22,20 +25,117 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
+    // Shared helper functions for both test parts
+    const createHomeDashboardPost = async (userFixture: any, inappropriateText: string) => {
+      const homeFeedPage = new FeedPage(userFixture.page);
+      await userFixture.homePage.loadPage();
+      await userFixture.homePage.verifyThePageIsLoaded();
+      await userFixture.navigationHelper.clickOnGlobalFeed();
+      await homeFeedPage.verifyThePageIsLoaded();
+
+      // Click Share your thoughts button
+      await homeFeedPage.actions.clickShareThoughtsButton();
+
+      // Enter inappropriate text
+      await homeFeedPage.actions.createPost(inappropriateText);
+
+      // Click Post button
+      await homeFeedPage.actions.clickPostButton();
+
+      // Verify warning popup appears
+      const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+      await warningPopup.assertions.verifyWarningPopupVisible();
+      await warningPopup.assertions.verifyWarningMessage();
+
+      // Click Submit Anyway
+      await warningPopup.actions.clickContinue();
+      await warningPopup.assertions.verifyWarningPopupClosed();
+
+      // Wait for post to be submitted
+      await homeFeedPage.assertions.waitForPostToBeVisible(inappropriateText);
+    };
+
+    const createSiteDashboardPost = async (userFixture: any, siteId: string, inappropriateText: string) => {
+      const siteDashboard = new SiteDashboardPage(userFixture.page, siteId);
+      await siteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
+      await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+      await siteDashboard.verifyThePageIsLoaded();
+
+      // Click Share your thoughts button
+      await siteDashboard.actions.clickShareThoughtsButton();
+
+      // Enter inappropriate text
+      const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
+      await createFeedPostComponent.actions.createPost(inappropriateText);
+
+      // Click Post button
+      await createFeedPostComponent.actions.clickPostButton();
+
+      // Verify warning popup appears
+      const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+      await warningPopup.assertions.verifyWarningPopupVisible();
+      await warningPopup.assertions.verifyWarningMessage();
+
+      // Click Submit Anyway
+      await warningPopup.actions.clickContinue();
+      await warningPopup.assertions.verifyWarningPopupClosed();
+
+      // Wait for post to be submitted
+      await siteDashboard.assertions.validatePostText(inappropriateText);
+    };
+
+    const createContentPageComment = async (
+      userFixture: any,
+      siteId: string,
+      contentId: string,
+      inappropriateText: string
+    ) => {
+      const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
+      await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+      await contentPreviewPage.verifyThePageIsLoaded();
+
+      // Verify comment option is visible
+      await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+      // Click Share your thoughts button
+      await contentPreviewPage.actions.clickShareThoughtsButton();
+
+      // Enter inappropriate text
+      const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
+      await createFeedPostComponent.actions.createPost(inappropriateText);
+
+      // Click Post button
+      await createFeedPostComponent.actions.clickPostButton();
+
+      // Verify warning popup appears
+      const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+      await warningPopup.assertions.verifyWarningPopupVisible();
+      await warningPopup.assertions.verifyWarningMessage();
+
+      // Click Submit Anyway
+      await warningPopup.actions.clickContinue();
+      await warningPopup.assertions.verifyWarningPopupClosed();
+
+      // Wait for comment to be submitted
+      await contentPreviewPage.assertions.waitForPostToBeVisible(inappropriateText);
+    };
+
     test(
-      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue',
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 1 (Content Manager and Manager)',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
       async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for all roles',
+            'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for Content Manager and Manager roles',
           zephyrTestId: 'CONT-29513',
           storyId: 'CONT-29513',
         });
 
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const inappropriateSitePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const inappropriateCommentText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
 
         // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
         const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
@@ -53,231 +153,164 @@ test.describe(
           }),
         ]);
 
-        // Helper function to create inappropriate post on Home Dashboard and submit anyway
-        const createHomeDashboardPost = async (userFixture: any, inappropriateText: string) => {
-          const homeFeedPage = new FeedPage(userFixture.page);
-          await userFixture.homePage.loadPage();
-          await userFixture.homePage.verifyThePageIsLoaded();
-          await homeFeedPage.verifyThePageIsLoaded();
-
-          // Click Share your thoughts button
-          await homeFeedPage.actions.clickShareThoughtsButton();
-
-          // Enter inappropriate text
-          await homeFeedPage.actions.createPost(inappropriateText);
-
-          // Click Post button
-          await homeFeedPage.actions.clickPostButton();
-
-          // Verify warning popup appears
-          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-
-          // Click Submit Anyway
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
-
-          // Wait for post to be submitted
-          await homeFeedPage.assertions.waitForPostToBeVisible(inappropriateText);
-        };
-
-        // Helper function to create inappropriate post on Site Dashboard and submit anyway
-        const createSiteDashboardPost = async (userFixture: any, siteId: string, inappropriateText: string) => {
-          const siteDashboard = new SiteDashboardPage(userFixture.page, siteId);
-          await siteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
-          await siteDashboard.verifyThePageIsLoaded();
-
-          // Click Share your thoughts button
-          await siteDashboard.actions.clickShareThoughtsButton();
-
-          // Enter inappropriate text
-          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
-          await createFeedPostComponent.actions.createPost(inappropriateText);
-
-          // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
-
-          // Verify warning popup appears
-          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-
-          // Click Submit Anyway
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
-
-          // Wait for post to be submitted
-          await siteDashboard.assertions.validatePostText(inappropriateText);
-        };
-
-        // Helper function to create inappropriate comment on Content Detail Page and submit anyway
-        const createContentPageComment = async (
-          userFixture: any,
-          siteId: string,
-          contentId: string,
-          inappropriateText: string
-        ) => {
-          const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
-          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-          await contentPreviewPage.verifyThePageIsLoaded();
-
-          // Verify comment option is visible
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
-
-          // Click Share your thoughts button
-          await contentPreviewPage.actions.clickShareThoughtsButton();
-
-          // Enter inappropriate text
-          const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
-          await createFeedPostComponent.actions.createPost(inappropriateText);
-
-          // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
-
-          // Verify warning popup appears
-          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-
-          // Click Submit Anyway
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
-
-          // Wait for comment to be submitted
-          await contentPreviewPage.assertions.waitForPostToBeVisible(inappropriateText);
-        };
-
         // Phase 2: Role-Based Users - Serial creation and verification for each role
         // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
 
         // Site Content Manager
-        await test.step('Site Content Manager: Assign role and create inappropriate content serially', async () => {
+        await test.step('Site Content Manager: Assign role, create all content, then verify in queue', async () => {
           await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
             siteId: publicSiteId,
             userId: endUserInfo.userId,
             role: SitePermission.CONTENT_MANAGER,
           });
 
-          // Home Dashboard: Create post and verify in queue
+          // Create all 3 content types first (batched)
           await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage1.actions.clickQueuesTab();
-          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Site Dashboard: Create post and verify in queue
-          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage2.actions.clickQueuesTab();
-          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Content Page: Create comment and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriateSitePostText);
           await createContentPageComment(
             standardUserFixture,
             publicSiteId,
             pageContent.contentId,
-            inappropriatePostText
+            inappropriateCommentText
           );
-          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage3.actions.clickQueuesTab();
-          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
+
+          // Navigate to queue once and verify all 3 items
+          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage.actions.clickQueuesTab();
+
+          // Verify all items are in queue (2 posts + 1 comment)
+          // Note: Since all items use the same text, we verify posts and comments separately
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriatePostText);
         });
 
         // Site Manager
-        await test.step('Site Manager: Assign role and create inappropriate content serially', async () => {
+        await test.step('Site Manager: Assign role, create all content, then verify in queue', async () => {
           await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
             siteId: publicSiteId,
             userId: siteManagerInfo.userId,
             role: SitePermission.MANAGER,
           });
 
-          // Home Dashboard: Create post and verify in queue
+          // Create all 3 content types first (batched)
           await createHomeDashboardPost(siteManagerFixture, inappropriatePostText);
-          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage1.actions.clickQueuesTab();
-          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Site Dashboard: Create post and verify in queue
           await createSiteDashboardPost(siteManagerFixture, publicSiteId, inappropriatePostText);
-          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage2.actions.clickQueuesTab();
-          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Content Page: Create comment and verify in queue
           await createContentPageComment(
             siteManagerFixture,
             publicSiteId,
             pageContent.contentId,
             inappropriatePostText
           );
-          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage3.actions.clickQueuesTab();
-          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
+
+          // Navigate to queue once and verify all 3 items
+          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage.actions.clickQueuesTab();
+
+          // Verify all items are in queue (2 posts + 1 comment)
+          // Note: Since all items use the same text, we verify posts and comments separately
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
+        });
+      }
+    );
+
+    test(
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 2 (Member and Owner)',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for Member and Owner roles',
+          zephyrTestId: 'CONT-29513',
+          storyId: 'CONT-29513',
         });
 
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const inappropriateSitePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const inappropriateCommentText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+
+        // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteId = publicSite.siteId;
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+        await manageSitePage.clickDashboardAndFeedTab();
+        await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+
+        const [endUserInfo, pageContent] = await Promise.all([
+          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          }),
+        ]);
+
+        // Phase 2: Role-Based Users - Serial creation and verification for each role
+        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
+
         // Member
-        await test.step('Member: Assign role and create inappropriate content serially', async () => {
+        await test.step('Member: Assign role, create all content, then verify in queue', async () => {
           await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
             siteId: publicSiteId,
             userId: endUserInfo.userId,
             role: SitePermission.MEMBER,
           });
 
-          // Home Dashboard: Create post and verify in queue
+          // Create all 3 content types first (batched)
           await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage1.actions.clickQueuesTab();
-          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Site Dashboard: Create post and verify in queue
-          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage2.actions.clickQueuesTab();
-          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Content Page: Create comment and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriateSitePostText);
           await createContentPageComment(
             standardUserFixture,
             publicSiteId,
             pageContent.contentId,
-            inappropriatePostText
+            inappropriateCommentText
           );
-          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage3.actions.clickQueuesTab();
-          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
+
+          // Navigate to queue once and verify all 3 items
+          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage.actions.clickQueuesTab();
+
+          // Verify all items are in queue (2 posts + 1 comment)
+          // Note: Since all items use the same text, we verify posts and comments separately
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
         });
 
         // Site Owner
-        await test.step('Site Owner: Assign role and create inappropriate content serially', async () => {
+        await test.step('Site Owner: Assign role, create all content, then verify in queue', async () => {
           await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
             siteId: publicSiteId,
             userId: endUserInfo.userId,
             role: SitePermission.OWNER,
           });
 
-          // Home Dashboard: Create post and verify in queue
+          // Create all 3 content types first (batched)
           await createHomeDashboardPost(standardUserFixture, inappropriatePostText);
-          const moderationQueuePage1 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage1.actions.clickQueuesTab();
-          await moderationQueuePage1.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Site Dashboard: Create post and verify in queue
-          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriatePostText);
-          const moderationQueuePage2 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage2.actions.clickQueuesTab();
-          await moderationQueuePage2.assertions.verifyPostInQueue(inappropriatePostText);
-
-          // Content Page: Create comment and verify in queue
+          await createSiteDashboardPost(standardUserFixture, publicSiteId, inappropriateSitePostText);
           await createContentPageComment(
             standardUserFixture,
             publicSiteId,
             pageContent.contentId,
-            inappropriatePostText
+            inappropriateCommentText
           );
-          const moderationQueuePage3 = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage3.actions.clickQueuesTab();
-          await moderationQueuePage3.assertions.verifyCommentInQueue(inappropriatePostText);
+
+          // Navigate to queue once and verify all 3 items
+          const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
+          await moderationQueuePage.actions.clickQueuesTab();
+
+          // Verify all items are in queue (2 posts + 1 comment)
+          // Note: Since all items use the same text, we verify posts and comments separately
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
         });
       }
     );
@@ -303,6 +336,10 @@ test.describe(
           waitForSearchIndex: false,
         });
         const publicSiteId = publicSite.siteId;
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+        await manageSitePage.clickDashboardAndFeedTab();
+        await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
 
         const pageContent = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: publicSiteId,
@@ -396,6 +433,7 @@ test.describe(
           const homeFeedPage = new FeedPage(standardUserFixture.page);
           await standardUserFixture.homePage.loadPage();
           await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await homeFeedPage.verifyThePageIsLoaded();
 
           await homeFeedPage.actions.clickShareThoughtsButton();

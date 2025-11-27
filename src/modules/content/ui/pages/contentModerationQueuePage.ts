@@ -65,7 +65,6 @@ export class ContentModerationQueuePage
       // Wait for either the queue container or empty message to be visible
       await this.verifier.verifyTheElementIsVisible(this.queueContainer('').or(this.emptyQueueMessage), {
         assertionMessage: 'Content moderation queue page should be loaded',
-        timeout: 10000,
       });
     });
   }
@@ -114,7 +113,6 @@ export class ContentModerationQueuePage
       const confirmDialog = this.page.getByRole('dialog', { name: 'Remove post?' });
       await this.verifier.verifyTheElementIsVisible(confirmDialog, {
         assertionMessage: 'Remove post confirmation dialog should be visible',
-        timeout: 5000,
       });
 
       // Click Remove button in the dialog
@@ -160,7 +158,7 @@ export class ContentModerationQueuePage
       // Handle confirmation dialog - can be "Remove post?" or "Remove reply?" depending on content type
       // Try "Remove reply?" first (for replies), then fall back to "Remove post?" (for comments)
       let confirmDialog = this.page.getByRole('dialog', { name: 'Remove reply?' });
-      const isReplyDialogVisible = await confirmDialog.isVisible({ timeout: 2000 }).catch(() => false);
+      const isReplyDialogVisible = await confirmDialog.isVisible().catch(() => false);
 
       if (!isReplyDialogVisible) {
         // If "Remove reply?" dialog is not visible, try "Remove post?" dialog
@@ -185,7 +183,6 @@ export class ContentModerationQueuePage
     await test.step(`Verify post is in moderation queue: ${postText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.queueContainer(postText), {
         assertionMessage: `Post "${postText}" should be visible in moderation queue`,
-        timeout: 10000,
       });
     });
   }
@@ -198,7 +195,6 @@ export class ContentModerationQueuePage
     await test.step(`Verify comment is in moderation queue: ${commentText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.queueContainer(commentText), {
         assertionMessage: `Comment "${commentText}" should be visible in moderation queue`,
-        timeout: 10000,
       });
     });
   }
