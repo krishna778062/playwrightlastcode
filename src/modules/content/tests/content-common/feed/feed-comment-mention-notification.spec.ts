@@ -3,12 +3,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
+import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -183,6 +185,90 @@ test.describe(
         });
         const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+      }
+    );
+
+    test(
+      'verify that users can add mentions and topics in Site Feed replies with inline image and notification validation',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19554'],
+      },
+      async ({ standardUserFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that users can add mentions in Site Feed replies and notification appears',
+          zephyrTestId: 'CONT-19554',
+          storyId: 'CONT-19554',
+        });
+
+        let replyText: string = '';
+
+        // Phase 1: EndUser Creates Global Feed Post
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Click "Share your thoughts or questions" button to open editor
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Create global feed post
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'public',
+          siteId: undefined,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        createdPostText = feedTestData.text;
+
+        const postResult = await feedPage.actions.createAndPost({
+          text: createdPostText,
+        });
+        createdPostId = postResult.postId || '';
+
+        // Verify post creation
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Phase 2: EndUser Creates Reply with Mention
+        // Open reply editor
+        await feedPage.actions.openReplyEditorForPost(createdPostText);
+
+        // Generate reply text
+        const baseReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+        replyText = baseReplyText;
+
+        // Access CreateFeedPostComponent for reply operations
+        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        const listFeedComponent = feedPage['listFeedComponent'];
+
+        // Create reply text with mention using CreateFeedPostComponent methods
+        await createFeedPostComponent.createPost(baseReplyText);
+        await createFeedPostComponent.addUserNameMention(siteManagerInfo.fullName);
+
+        // Submit reply using ListFeedComponent method (handles API response internally)
+        await listFeedComponent.submitReplyAndGetResponse();
+
+        // Update replyText to include mention for verification
+        replyText = `${baseReplyText} @${siteManagerInfo.fullName}`;
+
+        // Verify reply is visible
+        await feedPage.assertions.verifyReplyIsVisible(replyText);
+
+        // Phase 3: Site Manager Validates Notification
+        await siteManagerFixture.homePage.loadPage();
+        await siteManagerFixture.homePage.verifyThePageIsLoaded();
+
+        // Open notifications
+        const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'Site Manager clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+        // Verify mention notification exists
+        const shortReplyText = replyText.length > 25 ? replyText.substring(0, 25) : replyText;
+        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
       }
     );
