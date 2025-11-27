@@ -26,7 +26,7 @@ test.describe(
     test(
       'verify the New workday UI fields: username, password, WSDL and TenantID, verify Required field validations for workday fields, verify when enter wrong WSDL/Tenant ID at the time of integration',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
