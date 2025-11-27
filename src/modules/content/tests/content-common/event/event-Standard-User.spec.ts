@@ -3,15 +3,20 @@ import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
+import { FeedPage } from '@content/ui/pages/feedPage';
+import { SiteFeedPage } from '@content/ui/pages/sitePages/siteFeedPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { getPastDate, getUpcomingDate } from '@/src/modules/content/utils/dateHelper';
 
 test.describe(
   `event Creation by Standard user  and Approval/Rejection by Application Manager`,
@@ -186,5 +191,108 @@ test.describe(
         }
       );
     }
+
+    test(
+      'verify past events do not appear and upcoming events appear in Upcoming Events Smart Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19572'],
+      },
+      async ({ standardUserFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify, past events should not appear in the Upcoming Events Smart Feed block on Home and Site Feed, while present (upcoming) events should appear',
+          zephyrTestId: 'CONT-19572',
+          storyId: 'CONT-19572',
+        });
+
+        // Step 2: Search existing site "All Employees"
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(
+          FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME
+        );
+
+        // Step 3: Add a new event with location GGN and past date
+        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.EVENT,
+          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
+        )) as EventCreationPage;
+
+        const pastEventTitle = `Past Event ${Date.now()}`;
+        const pastEventOptions = TestDataGenerator.generateEvent(undefined, getPastDate(7), getPastDate(6), {
+          title: pastEventTitle,
+          description: 'Test past event description',
+          location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
+        });
+
+        // Step 4: Publish → Do Nothing (just publish, no additional actions)
+        const { eventId: pastEventId, siteId: pastEventSiteId } =
+          await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
+
+        // Store for cleanup
+        publishedEventId = pastEventId;
+        siteIdToPublishEvent = pastEventSiteId;
+        manualCleanupNeeded = true;
+
+        // Step 5: Check Home - Global Feed: past event should not appear in Upcoming Events
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const homeFeedPage = new FeedPage(standardUserFixture.page);
+        await homeFeedPage.verifyThePageIsLoaded();
+        await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
+        // Step 6: Check Site Feed: past event should not appear in Upcoming Events
+        const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
+        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
+        await siteFeedPage.verifyThePageIsLoaded();
+        const siteFeedPageForValidation = new FeedPage(standardUserFixture.page);
+        await siteFeedPageForValidation.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        // Step 7: Create another event with a present date (valid upcoming event)
+        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.EVENT,
+          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
+        )) as EventCreationPage;
+
+        const upcomingEventTitle = `Upcoming Event ${Date.now()}`;
+        const upcomingEventOptions = TestDataGenerator.generateEvent(
+          undefined,
+          getUpcomingDate(1),
+          getUpcomingDate(2),
+          {
+            title: upcomingEventTitle,
+            description: 'Test upcoming event description',
+            location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
+          }
+        );
+
+        // Step 8: Publish → Do Nothing
+        const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
+          await eventCreationPage.actions.createAndPublishEvent(upcomingEventOptions);
+
+        // Update cleanup to handle both events (cleanup the last one)
+        publishedEventId = upcomingEventId;
+        siteIdToPublishEvent = upcomingEventSiteId;
+
+        // Step 9: Check Home - Global Feed: upcoming event should appear
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.reloadPage();
+        await homeFeedPage.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+
+        // Step 10: Check Site Feed: upcoming event should appear
+        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
+        await siteFeedPage.verifyThePageIsLoaded();
+        await siteFeedPageForValidation.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+
+        // Cleanup: Delete both events
+        if (pastEventId && pastEventSiteId) {
+          try {
+            await appManagerFixture.contentManagementHelper.deleteContent(pastEventSiteId, pastEventId);
+            console.log(`Deleted past event: ${pastEventId}`);
+          } catch (error) {
+            console.warn(`Failed to delete past event ${pastEventId}:`, error);
+          }
+        }
+      }
+    );
   }
 );

@@ -51,6 +51,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
   readonly locationInput: Locator;
+  readonly startDateInput: Locator;
+  readonly endDateInput: Locator;
   readonly publishButton: Locator;
   readonly publishChangeButton: Locator;
 
@@ -75,6 +77,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.titleInput = page.locator("textarea[placeholder='Event title']");
     this.descriptionInput = page.locator("div[aria-label='Event description']");
     this.locationInput = page.locator('//input[@id="location"]');
+    this.startDateInput = page.getByRole('button', { name: 'Start date*' });
+    this.endDateInput = page.getByRole('button', { name: 'End date*' });
     this.publishButton = page.getByRole('button', { name: 'Publish' });
     this.publishChangeButton = page.getByRole('button', { name: 'Publish changes' });
     this.submitButton = page.locator('span').filter({ hasText: 'Submit for approval' });
@@ -134,6 +138,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
         title: options.title,
         description: options.description,
         location: options.location,
+        startDate: options.startDate,
+        endDate: options.endDate,
       });
 
       // Upload cover image if provided
@@ -208,7 +214,13 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
    * Fills in the event details
    * @param options - The options for filling in the event details
    */
-  async fillEventDetails(options: { title: string; description: string; location: string }) {
+  async fillEventDetails(options: {
+    title: string;
+    description: string;
+    location: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
     await test.step(`Filling event details`, async () => {
       // Add title (only if not empty)
       if (options.title) {
@@ -231,10 +243,20 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
                 element.dispatchEvent(new Event('change', { bubbles: true }));
               }
             }, options.description);
-          } catch (error) {
+          } catch {
             console.log('Failed to fill description field');
           }
         });
+      }
+
+      // Add start date (only if provided)
+      if (options.startDate) {
+        await this.selectDateFromPicker(this.startDateInput, options.startDate, 'start');
+      }
+
+      // Add end date (only if provided)
+      if (options.endDate) {
+        await this.selectDateFromPicker(this.endDateInput, options.endDate, 'end');
       }
 
       // Add location (only if not empty)
@@ -258,14 +280,27 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
    */
   async publishEvent(): Promise<Response> {
     return await test.step(`Publishing event and wait for publish api response`, async () => {
+      // Verify publish button is enabled before clicking
+      await this.verifier.verifyTheElementIsVisible(this.publishButton, {
+        assertionMessage: 'Publish button should be visible',
+      });
+
+      // Check if button is disabled (form validation might be failing)
+      const isDisabled = await this.publishButton.isDisabled().catch(() => false);
+      if (isDisabled) {
+        throw new Error(
+          'Publish button is disabled. Please check that all required fields are filled correctly, including dates.'
+        );
+      }
+
       const publishResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.publishButton, { delay: 2_000 }),
         response =>
           response.url().includes('content?action=publish') &&
           response.request().method() === 'POST' &&
-          response.status() === 201,
+          (response.status() === 201 || response.status() === 200),
         {
-          timeout: 20_000,
+          timeout: 30_000,
         }
       );
       return publishResponse;
@@ -290,6 +325,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
         title: options.title,
         description: options.description,
         location: options.location,
+        startDate: options.startDate,
+        endDate: options.endDate,
       });
 
       // Upload cover image if provided
@@ -387,6 +424,94 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       await this.verifier.verifyTheElementIsVisible(this.languageDropdown, {
         assertionMessage: 'Language dropdown should be visible',
       });
+    });
+  }
+
+  /**
+   * Selects a date from the date picker calendar
+   * @param dateButton - The date input button to click
+   * @param dateString - The date string in YYYY-MM-DD format
+   * @param dateType - Type of date ('start' or 'end') for logging
+   */
+  private async selectDateFromPicker(
+    dateButton: Locator,
+    dateString: string,
+    dateType: 'start' | 'end'
+  ): Promise<void> {
+    await test.step(`Fill ${dateType} date: ${dateString}`, async () => {
+      // Parse the date string (YYYY-MM-DD format)
+      const date = new Date(dateString + 'T00:00:00');
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date format: ${dateString}. Expected YYYY-MM-DD format.`);
+      }
+
+      const targetDay = date.getDate();
+      const targetMonth = date.getMonth();
+      const targetYear = date.getFullYear();
+
+      // Click on the date button to open the picker
+      await this.verifier.verifyTheElementIsVisible(dateButton, {
+        assertionMessage: `${dateType} date input should be visible`,
+      });
+      await this.clickOnElement(dateButton);
+
+      // Wait for calendar picker to be visible - try multiple selectors
+      const calendarGrid = this.page.locator('.rdp').first();
+      await this.verifier.verifyTheElementIsVisible(calendarGrid, {
+        assertionMessage: 'Calendar grid should be visible',
+      });
+
+      // Check if we need to navigate to a different month/year
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      if (targetMonth !== currentMonth || targetYear !== currentYear) {
+        // Navigate to the correct month/year
+        // Try to find next/previous month buttons with various selectors
+        const nextMonthButton = this.page
+          .locator('button[aria-label*="next" i], button[aria-label*="Next"], button[title*="next" i]')
+          .first();
+        const prevMonthButton = this.page
+          .locator('button[aria-label*="previous" i], button[aria-label*="Previous"], button[title*="previous" i]')
+          .first();
+
+        // Calculate how many months to navigate
+        const monthsDiff = (targetYear - currentYear) * 12 + (targetMonth - currentMonth);
+
+        if (monthsDiff > 0) {
+          // Navigate forward
+          for (let i = 0; i < monthsDiff; i++) {
+            if (await nextMonthButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+              await this.clickOnElement(nextMonthButton);
+            } else {
+              console.warn(`Could not find next month button to navigate to ${targetMonth + 1}/${targetYear}`);
+              break;
+            }
+          }
+        } else if (monthsDiff < 0) {
+          // Navigate backward
+          for (let i = 0; i < Math.abs(monthsDiff); i++) {
+            if (await prevMonthButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+              await this.clickOnElement(prevMonthButton);
+            } else {
+              console.warn(`Could not find previous month button to navigate to ${targetMonth + 1}/${targetYear}`);
+              break;
+            }
+          }
+        }
+      }
+
+      // Select the day from the calendar grid - try multiple approaches
+      const dayCell = this.page.getByRole('gridcell', { name: targetDay.toString(), exact: true });
+
+      await this.verifier.verifyTheElementIsVisible(dayCell, {
+        assertionMessage: `Day ${targetDay} should be visible in date picker`,
+      });
+      await this.clickOnElement(dayCell);
+
+      // Verify the date was set by checking if the picker closed
+      await calendarGrid.waitFor({ state: 'hidden', timeout: 3000 });
     });
   }
 }

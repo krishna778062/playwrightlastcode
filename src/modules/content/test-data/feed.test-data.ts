@@ -72,4 +72,9 @@ export const FEED_TEST_DATA = {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
   },
+  EVENT_SMART_FEED: {
+    SITE_NAME: 'All Employees',
+    EVENT_LOCATION: 'GGN',
+    TIMEZONE_ID_ASIA_KOLKATA: 328,
+  },
 } as const;
