@@ -1,3 +1,4 @@
+import { SitePageTab } from '@content/constants/sitePageEnums';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -11,6 +12,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -194,7 +196,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19554'],
       },
-      async ({ standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify that users can add mentions in Site Feed replies and notification appears',
           zephyrTestId: 'CONT-19554',
@@ -203,21 +205,30 @@ test.describe(
 
         let replyText: string = '';
 
-        // Phase 1: EndUser Creates Global Feed Post
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        // Get "All Employees" site ID
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
+        // Phase 1: EndUser Creates Site Feed Post on "All Employees" site
+        // Navigate to site dashboard
+        const siteDashboard = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteDashboard.verifyThePageIsLoaded();
+
+        // Click on Feed link to navigate to site feed
+        await siteDashboard.actions.clickOnFeedLink();
+
+        // Create FeedPage instance for site feed operations
         const feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
 
         // Click "Share your thoughts or questions" button to open editor
         await feedPage.actions.clickShareThoughtsButton();
 
-        // Create global feed post
+        // Create site feed post
         const feedTestData = TestDataGenerator.generateFeed({
-          scope: 'public',
-          siteId: undefined,
+          scope: 'site',
+          siteId: siteId,
           withAttachment: false,
           waitForSearchIndex: false,
         });
@@ -257,8 +268,10 @@ test.describe(
         await feedPage.assertions.verifyReplyIsVisible(replyText);
 
         // Phase 3: Site Manager Validates Notification
-        await siteManagerFixture.homePage.loadPage();
-        await siteManagerFixture.homePage.verifyThePageIsLoaded();
+        // Navigate to site dashboard as Site Manager
+        const siteManagerDashboard = new SiteDashboardPage(siteManagerFixture.page, siteId);
+        await siteManagerDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteManagerDashboard.verifyThePageIsLoaded();
 
         // Open notifications
         const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
