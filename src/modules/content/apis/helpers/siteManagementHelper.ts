@@ -13,6 +13,7 @@ import { SiteManagementService } from '@/src/modules/content/apis/services/SiteM
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
+import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 interface Site {
   siteId: string;
@@ -465,12 +466,6 @@ export class SiteManagementHelper {
       canManage: true,
       sortBy: 'alphabetical',
     });
-
-    for (const site of sitesResponse.result.listOfItems) {
-      console.log(
-        `Site name: ${site.name} isActive: ${site.isActive} accessType: ${site.access} siteId: ${site.siteId}`
-      );
-    }
 
     // Search for the site by name
     const existingSite = sitesResponse.result.listOfItems.find(
@@ -1245,39 +1240,47 @@ export class SiteManagementHelper {
   async getSiteWithMembers(
     accessType: string,
     expectedMemberCount?: number,
-    options?: { size?: number; type?: string; maxAttempts?: number }
+    options?: { size?: number; type?: string; maxAttempts?: number; excludeUserEmail?: string }
   ): Promise<{
     site: any;
     members: any;
   }> {
-    const maxAttempts = options?.maxAttempts || 10;
-    let attempts = 0;
-
-    const seenSiteIds = new Set<string>();
-
     return await test.step(
       expectedMemberCount ? `Getting site with ${expectedMemberCount} members` : `Getting site with its members`,
       async () => {
-        while (attempts < maxAttempts) {
-          // Get sites list
-          const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-          const sites = sitesResponse.result.listOfItems.filter(
-            (site: any) => site.isActive === true && site.isManager === false && site.isMember === false
+        // Get all sites first (outside the loop)
+        const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase(), size: 1000 });
+        console.log(`Found ${sitesResponse.result.listOfItems.length} sites`);
+        // Filter only by isActive to check all active sites
+        const sites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        console.log(`Filtered to ${sites.length} active site(s) to check`);
+
+        if (sites.length === 0) {
+          throw new Error(
+            `No sites found matching criteria: accessType=${accessType}, isActive=true, isManager=false, isMember=false`
           );
+        }
 
-          // Filter out seen sites to try different ones
-          const unseenSites = sites.filter((site: any) => !seenSiteIds.has(site.siteId));
+        // If no expected count specified, return first site immediately
+        if (expectedMemberCount === undefined) {
+          const siteInfo = sites[0];
+          const siteDetails = await this.siteManagementService.getSiteDetails(siteInfo.siteId);
+          const membersResponse = await this.getSiteMembershipList(siteInfo.siteId, options);
+          return {
+            site: siteDetails.result,
+            members: membersResponse.result,
+          };
+        }
 
-          if (unseenSites.length === 0) {
-            // All sites seen, reset and start over
-            seenSiteIds.clear();
-            seenSiteIds.add(sites[0]?.siteId);
-          }
+        console.log(`Expected: ${expectedMemberCount} members`);
 
-          // Get first unseen site
-          const siteInfo = unseenSites.length > 0 ? unseenSites[0] : sites[0];
+        // Loop through all sites to find one with expected member count
+        for (let i = 0; i < sites.length; i++) {
+          const siteInfo = sites[i];
           const siteId = siteInfo.siteId;
-          seenSiteIds.add(siteId);
+
+          console.log(`Checking site ${i + 1}/${sites.length}: ${siteInfo.name} (${siteId})`);
 
           // Get site details
           const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
@@ -1288,39 +1291,71 @@ export class SiteManagementHelper {
 
           console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
 
-          // If no expected count specified, return immediately
-          if (expectedMemberCount === undefined) {
-            return {
-              site: siteDetails.result,
-              members: membersResponse.result,
-            };
-          }
-
-          console.log(`Expected: ${expectedMemberCount} members`);
-
           // Check if this site has the expected number of members
           if (memberCount >= expectedMemberCount) {
             console.log(`✓ Found site with ${memberCount} members`);
+
+            // Filter out excluded user if provided
+            let filteredMembers = membersResponse.result;
+            if (options?.excludeUserEmail) {
+              try {
+                const identityHelper = new IdentityManagementHelper(this.apiRequestContext, this.baseUrl);
+                const userInfo = await identityHelper.getUserInfoByEmail(options.excludeUserEmail);
+                const excludedUserName = userInfo.fullName;
+                const excludedUserId = userInfo.userId;
+
+                console.log(`Excluding user: ${excludedUserName} (${options.excludeUserEmail}) from members list`);
+
+                // Filter out the excluded user from members list
+                const originalMembers = membersResponse.result?.listOfItems || [];
+                const filteredMembersList = originalMembers.filter((member: any) => {
+                  const memberName = member.name || member.displayName || '';
+                  const memberEmail = member.email || '';
+                  const memberPeopleId = member.peopleId || member.userId || '';
+                  // Exclude if name, email, or userId matches
+                  return (
+                    memberName !== excludedUserName &&
+                    memberEmail !== options.excludeUserEmail &&
+                    memberPeopleId !== excludedUserId
+                  );
+                });
+
+                filteredMembers = {
+                  ...membersResponse.result,
+                  listOfItems: filteredMembersList,
+                };
+
+                console.log(
+                  `Filtered members: ${originalMembers.length} -> ${filteredMembersList.length} (excluded: ${excludedUserName})`
+                );
+
+                // Check if filtered members still meet the requirement
+                if (filteredMembersList.length < expectedMemberCount) {
+                  console.log(
+                    `After filtering, site has ${filteredMembersList.length} members (need ${expectedMemberCount}), continuing...`
+                  );
+                  continue;
+                }
+              } catch (error) {
+                console.log(`Warning: Failed to get user info for exclusion: ${error}. Returning all members.`);
+                // If we can't get user info, return all members
+                filteredMembers = membersResponse.result;
+              }
+            }
+
             return {
               site: siteDetails.result,
-              members: membersResponse.result,
+              members: filteredMembers,
             };
           }
-
-          attempts++;
-          console.log(`Attempt ${attempts}/${maxAttempts}: Site has ${memberCount} members, trying another site...`);
-
-          // Wait a bit before next attempt to avoid rapid API calls
-          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         throw new Error(
-          `Failed to find a site with at least ${expectedMemberCount} members after ${maxAttempts} attempts`
+          `Failed to find a site with at least ${expectedMemberCount} members after checking ${sites.length} site(s)`
         );
       }
     );
   }
-
   /**
    * Gets the membership list for a site
    * @param siteId - The site ID
@@ -1630,10 +1665,14 @@ export class SiteManagementHelper {
 
   public async getDeactivatedSite(
     accessType: SITE_TYPES,
-    options?: { size?: number }
+    options?: { size?: number; sortBy?: string }
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting deactivated site for access type ${accessType}`, async () => {
-      const siteListResponse = await this.getListOfSites({ filter: 'deactivated', size: options?.size });
+      const siteListResponse = await this.getListOfSites({
+        filter: 'deactivated',
+        size: options?.size,
+        sortBy: options?.sortBy,
+      });
       console.log('Deactivated site list response', siteListResponse);
       const site = siteListResponse.result.listOfItems.find(
         (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
