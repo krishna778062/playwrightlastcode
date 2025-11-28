@@ -172,6 +172,19 @@ export const AZURE_SYNCING = {
     COUNTRY: 'Country',
     EMPLOYEE_NUMBER: 'Employee number',
   },
+
+  COMMON_SYNC_FIELDS: [
+    'First name',
+    'Last name',
+    'Job title',
+    'Department',
+    'Company name',
+    'Address 1',
+    'City',
+    'State/Province',
+    'Zip code',
+    'Country',
+  ] as string[],
   EXPECTED_SYNCED_VALUES: {
     zipCode: '90001',
     address1: '1650 Castro Street',

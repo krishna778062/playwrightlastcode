@@ -24,23 +24,21 @@ export class LoginHelper {
 
     // Detect login identifier type and get appropriate credential
     const identifierType = await loginPage.getLoginIdentifierType();
-    let loginIdentifier: string;
 
-    if (identifierType === 'email') {
-      loginIdentifier = user.email || tenantConfig?.appManagerEmail || '';
-    } else if (identifierType === 'employee') {
-      loginIdentifier = tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '';
-    } else if (identifierType === 'mobile') {
-      loginIdentifier = tenantConfig?.QA_MOBILE || tenantConfig?.UAT_MOBILE || '';
-    } else {
-      // phone or default
-      loginIdentifier =
+    const identifierLookup: Record<string, () => string> = {
+      email: () => user.email || tenantConfig?.appManagerEmail || '',
+      employee: () => tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '',
+      mobile: () => tenantConfig?.QA_MOBILE || tenantConfig?.UAT_MOBILE || '',
+      phone: () =>
         tenantConfig?.QA_ALTERNATE_PHONE ||
         tenantConfig?.UAT_ALTERNATE_PHONE ||
         user.email ||
         tenantConfig?.appManagerEmail ||
-        '';
-    }
+        '',
+    };
+
+    const getLoginIdentifier = identifierLookup[identifierType] ?? identifierLookup.phone;
+    const loginIdentifier = getLoginIdentifier();
 
     const homePage = await loginPage.actions.performLogin(loginIdentifier, user.password!);
     return homePage;

@@ -10,14 +10,14 @@ import { integrationsFixture as test } from '@/src/modules/integrations/fixtures
 import { AZURE_SYNCING, SYNCING, WORKDAY_SYNC } from '@/src/modules/integrations/test-data/gamma-data-file';
 import { AzureSyncingPage } from '@/src/modules/integrations/ui/pages/azureSyncPage';
 
-let azureSyncing: AzureSyncingPage;
-
 test.describe(
-  'ad group integrati\on',
+  'azure syncing',
   {
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AZURE_SYNC],
   },
   () => {
+    let azureSyncing: AzureSyncingPage;
+
     test.beforeEach(async ({ appManagerPage }) => {
       azureSyncing = new AzureSyncingPage(appManagerPage);
       await azureSyncing.loadPage();
@@ -73,18 +73,7 @@ test.describe(
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
-        await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
-        ]);
+        await azureSyncing.checkSyncCheckboxesForMultipleFields(AZURE_SYNCING.COMMON_SYNC_FIELDS);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
         await azureSyncing.verifyErrorMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
         await azureSyncing.clickOnTab(WORKDAY_SYNC.SETUP_TAB);
@@ -136,16 +125,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -201,16 +181,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -265,16 +236,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -329,16 +291,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -394,16 +347,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -457,16 +401,7 @@ test.describe(
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
         await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          AZURE_SYNCING.FIELD_LABELS.FIRST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.LAST_NAME,
-          AZURE_SYNCING.FIELD_LABELS.JOB_TITLE,
-          AZURE_SYNCING.FIELD_LABELS.DEPARTMENT,
-          AZURE_SYNCING.FIELD_LABELS.COMPANY_NAME,
-          AZURE_SYNCING.FIELD_LABELS.ADDRESS_1,
-          AZURE_SYNCING.FIELD_LABELS.CITY,
-          AZURE_SYNCING.FIELD_LABELS.STATE_PROVINCE,
-          AZURE_SYNCING.FIELD_LABELS.ZIP_CODE,
-          AZURE_SYNCING.FIELD_LABELS.COUNTRY,
+          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);

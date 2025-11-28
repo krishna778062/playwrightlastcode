@@ -100,16 +100,7 @@ export class AzureSyncingComponent extends BaseComponent {
       await expect(phoneOption, 'Phone option should be visible').toBeVisible({ timeout: 5000 });
       await phoneOption.click();
 
-      try {
-        const isDialogVisible = await this.dialog.isVisible({ timeout: 2000 });
-        if (isDialogVisible) {
-          await expect(this.dialogOkButton, 'OK button should be visible in dialog').toBeVisible();
-          await this.dialogOkButton.click();
-          await expect(this.dialog, 'Dialog should be closed').not.toBeVisible({ timeout: 5000 });
-        }
-      } catch {
-        console.log('Dialog not visible, continuing');
-      }
+      await this.handleDisableLoginIdentifierDialog();
     });
   }
 
@@ -130,7 +121,7 @@ export class AzureSyncingComponent extends BaseComponent {
       const isChecked = await checkbox.isChecked();
 
       if (isChecked === shouldBeChecked) {
-        console.log(`${checkboxId} checkbox is already ${shouldBeChecked ? 'checked' : 'unchecked'}, skipping`);
+        await test.step(`${checkboxId} checkbox is already ${shouldBeChecked ? 'checked' : 'unchecked'}, skipping`, async () => {});
         return;
       }
 
