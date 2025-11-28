@@ -76,7 +76,7 @@ jobs:
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ inputs.module_name || 'content-api' }}
+      MODULE_NAME: ${{ inputs.module_name || 'content' }}
       SLACK_WEBHOOK_URL_1: https://hooks.slack.com/services/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
       SLACK_WEBHOOK_URL_2: https://hooks.slack.com/services/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
     steps:
@@ -112,7 +112,7 @@ jobs:
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
-          MODULE="${{ inputs.module_name || 'content-api' }}"
+          MODULE="${{ inputs.module_name || 'content' }}"
           ALL_TAGS=()
 
           # For content-api, always include @api tag
