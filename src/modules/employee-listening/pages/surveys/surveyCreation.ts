@@ -4,6 +4,7 @@ import test, { Locator, Page } from '@playwright/test';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
 import { getAlternativeAudienceCheckbox, getExactAudienceCheckbox } from '@/src/modules/employee-listening/utils/polls';
 
@@ -1664,4 +1665,69 @@ export class SurveyCreationPage extends BasePage {
       await this.page.getByText(question, { exact: false }).waitFor({ state: 'visible' });
     }
   }
+
+  /**
+   * Waits for the survey to be scheduled and returns the created survey ID (UUID).
+   */
+  async captureSurveyIdAfterSchedule(): Promise<string | undefined> {
+    const [scheduleRequest] = await Promise.all([
+      this.page.waitForRequest(
+        (request: any) => request.url().includes('/sentiment-ai/v1/surveys/') && request.method() === 'PUT'
+      ),
+      this.clickScheduleSurveyButton(),
+    ]);
+    const match = /\/sentiment-ai\/v1\/surveys\/([a-f0-9-]+)/.exec(scheduleRequest.url());
+    return match ? match[1] : undefined;
+  }
+
+  /**
+   * Cleans up (deletes) a survey by its ID using the provided ContentManagementService.
+   */
+  async cleanupSurveyById(surveyId: string, contentManagementService: any): Promise<void> {
+    if (!surveyId) return;
+    try {
+      await contentManagementService.deleteSurvey(surveyId);
+      console.log(`Cleaned up survey: ${surveyId}`);
+    } catch (error) {
+      console.warn(`Failed to cleanup survey:`, error);
+    }
+  }
+
+  /**
+   * Example wrapper: creates, schedules, and returns surveyId. Customize as needed for your flows.
+   */
+  async createAndScheduleSurvey(
+    surveyName: string,
+    audienceNames: string[],
+    contentManagementService: any
+  ): Promise<string | undefined> {
+    await this.createBasicSurveySetup(surveyName);
+    await this.selectAudiences(audienceNames);
+    await this.selectDefaultIntroAndThanks();
+    await this.selectDefaultFormAddress();
+    await this.selectSendDate();
+    await this.clickConfigureSurveyNextButton();
+    await this.clickAddQuestionNextButton();
+    const surveyId = await this.captureSurveyIdAfterSchedule();
+    await this.verifySurveyScheduledMessage();
+    return surveyId;
+  }
+}
+
+/**
+ * Utility function to encapsulate SurveyCreationPage and ContentManagementService setup for tests.
+ */
+export async function setupSurveyTestContext(appManagersPage: any) {
+  const surveyCreationPage = new SurveyCreationPage(appManagersPage);
+  const cookies: Array<{ name: string; value: string }> = await appManagersPage.context().cookies();
+  const cookieHeader = cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
+  const csrfToken = cookies.find((c: { name: string }) => c.name === 'csrfid')?.value;
+  const contentManagementService = new ContentManagementService(
+    appManagersPage.request,
+    getEnvConfig().apiBaseUrl,
+    appManagersPage.authToken,
+    cookieHeader,
+    csrfToken
+  );
+  return { surveyCreationPage, contentManagementService };
 }

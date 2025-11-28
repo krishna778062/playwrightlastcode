@@ -1,20 +1,35 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
   EmployeeListeningFeatureTags,
   EmployeeListeningSuiteTags,
 } from '@/src/modules/employee-listening/constants/testTags';
 import { test } from '@/src/modules/employee-listening/fixtures/loginFixture';
-import { SurveyCreationPage } from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
+import {
+  setupSurveyTestContext,
+  SurveyCreationPage,
+} from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
 
 test.describe('all Purpose Survey Creation Tests', () => {
   let surveyCreationPage: SurveyCreationPage;
+  let createdSurveyId: string | undefined;
+  let contentManagementService: ContentManagementService;
 
   test.beforeEach(async ({ appManagersPage }) => {
-    surveyCreationPage = new SurveyCreationPage(appManagersPage);
+    const { surveyCreationPage: scp, contentManagementService: cms } = await setupSurveyTestContext(appManagersPage);
+    surveyCreationPage = scp;
+    contentManagementService = cms;
     await surveyCreationPage.navigateToSurveysViaMenu();
+  });
+
+  test.afterEach(async () => {
+    if (createdSurveyId) {
+      await surveyCreationPage.cleanupSurveyById(createdSurveyId, contentManagementService);
+      createdSurveyId = undefined;
+    }
   });
 
   test(
@@ -43,7 +58,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addScaleQuestionFromData(0, 'Sentiment');
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -75,7 +90,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.clickConfigureSurveyNextButton();
       await surveyCreationPage.addMultipleChoiceQuestionFromData(2);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -108,7 +123,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addScaleQuestionFromData(0, 'Emoji');
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -139,7 +154,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addScaleQuestionFromData(0, 'Emoji');
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
       await surveyCreationPage.clickBackToSurveysLink();
       await surveyCreationPage.clickFirstSurveyManageButton();
@@ -165,7 +180,8 @@ test.describe('all Purpose Survey Creation Tests', () => {
         zephyrTestId: 'LS-SURVEY-005',
         storyId: 'EL-Survey Creation',
       });
-      await surveyCreationPage.createBasicSurveySetup('All pp');
+      const surveyName = `All pp ${Date.now()}`;
+      await surveyCreationPage.createBasicSurveySetup(surveyName);
       await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultFormAddress();
@@ -194,7 +210,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       ]);
       await surveyCreationPage.closePreviewDialog();
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -225,7 +241,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addScaleQuestionFromData(0, 'Sentiment');
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
       await surveyCreationPage.clickBackToSurveysLink();
       await surveyCreationPage.searchSurveyByName(surveyName);
@@ -241,7 +257,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
         SURVEY_QUESTION_BANK.FREE_TEXT[0].question,
       ]);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -277,7 +293,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addMultipleChoiceQuestionFromData(2);
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -309,7 +325,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.addScaleQuestionFromData(1, 'Awareness');
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -338,7 +354,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.clickConfigureSurveyNextButton();
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
       await surveyCreationPage.clickBackToSurveysLink();
       await surveyCreationPage.clickCompleteOption();
@@ -351,7 +367,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.clickConfigureSurveyNextButton();
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
@@ -380,7 +396,7 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.clickConfigureSurveyNextButton();
       await surveyCreationPage.addFreeTextQuestionFromData(0);
       await surveyCreationPage.clickAddQuestionNextButton();
-      await surveyCreationPage.clickScheduleSurveyButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
       await surveyCreationPage.clickBackToSurveysLink();
       await surveyCreationPage.clickCompleteOption();

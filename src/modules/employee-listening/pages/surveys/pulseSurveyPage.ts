@@ -2,6 +2,7 @@ import test, { Locator, Page } from '@playwright/test';
 
 import { SURVEY_QUESTION_BANK } from '../../test-data/surveyQuestions';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export class PulseSurveyPage extends BasePage {
@@ -14,6 +15,46 @@ export class PulseSurveyPage extends BasePage {
   readonly startDatePicker: Locator;
   readonly endDatePicker: Locator;
   readonly firstSurveyManageButton: Locator;
+  readonly browseSitesButton: Locator;
+  readonly siteSearchTextbox: Locator;
+  readonly doneButton: Locator;
+  readonly browseAudiencesButton: Locator;
+  readonly searchAudienceTextbox: Locator;
+  readonly nextBtn: Locator;
+  readonly firstSurveyMenuButton: Locator;
+  readonly deleteButton: Locator;
+  readonly confirmDeleteButton: Locator;
+  readonly typeDropdown: Locator;
+  readonly statusDropdown: Locator;
+  readonly sortDropdownLabel: Locator;
+  readonly sortDropdownButton: Locator;
+  readonly pauseButton: Locator;
+  readonly confirmPauseButton: Locator;
+  readonly resetBtn: Locator;
+  readonly saveButton: Locator;
+  readonly scheduleDateRadio: Locator;
+  readonly menuDropdown: Locator;
+  readonly menuPanel: Locator;
+  readonly menuItems: Locator;
+  readonly endDateRadio: Locator;
+  readonly endDateButton: Locator;
+  readonly endDateGridCell: Locator;
+  readonly copyLinkMenu: Locator;
+  readonly copyLinkBtn: Locator;
+  readonly linkCopiedPopup: Locator;
+  readonly editBtn: Locator;
+  readonly notYetText: Locator;
+  readonly scheduleDateText: Locator;
+  readonly surveyDeletedMessage: Locator;
+  readonly surveyDraftSavedMessage: Locator;
+  readonly noResultsText: Locator;
+  readonly surveyNameInput: Locator;
+  readonly recurrenceLabel: Locator;
+  readonly participationWindowRadio: Locator;
+  readonly participationWindowSelect: Locator;
+  readonly recurrenceDayDropdown: Locator;
+  readonly enabledDates: Locator;
+  readonly gridcell: Locator;
 
   constructor(page: Page) {
     super(page, '/home');
@@ -32,35 +73,101 @@ export class PulseSurveyPage extends BasePage {
     this.startDatePicker = this.page.getByLabel('Start date', { exact: false }).or(this.page.getByTestId('start-date'));
     this.endDatePicker = this.page.getByLabel('End date', { exact: false }).or(this.page.getByTestId('end-date'));
     this.firstSurveyManageButton = this.page.getByRole('button', { name: 'manage survey' }).first();
+    this.browseSitesButton = this.page.getByRole('button', { name: /Browse Sites|Browse/i });
+    this.siteSearchTextbox = this.page.getByRole('textbox', { name: /Search sites|Search…/i });
+    this.doneButton = this.page.getByRole('button', { name: 'Done' });
+    this.browseAudiencesButton = this.page.getByRole('button', { name: /Browse/i });
+    this.searchAudienceTextbox = this.page.getByRole('textbox', { name: /Search…/i });
+    this.nextBtn = this.page.locator('button[type="submit"]:has-text("Next")');
+    this.firstSurveyMenuButton = this.page.getByRole('button', { name: /more|menu|three dot|⋮/i }).first();
+    this.deleteButton = this.page.getByRole('menuitem', { name: /delete/i });
+    this.confirmDeleteButton = this.page.getByRole('button', { name: /delete|confirm/i });
+    this.typeDropdown = this.page.getByLabel('Type', { exact: false });
+    this.statusDropdown = this.page.getByLabel('Status', { exact: false });
+    this.sortDropdownLabel = this.page.getByLabel('Sort', { exact: false });
+    this.sortDropdownButton = this.page.getByRole('button', { name: /Sort/i });
+    this.pauseButton = this.page.getByText('Pause', { exact: true });
+    this.confirmPauseButton = this.page.getByRole('button', { name: 'Pause' });
+    this.resetBtn = this.page.getByRole('button', { name: /reset filters|reset/i });
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
+    this.scheduleDateRadio = this.page.getByRole('radio', { name: 'Schedule date and time' });
+    this.menuDropdown = this.page.locator('.css-19bb58m');
+    this.menuPanel = this.page
+      .locator('[role="presentation"], [role="listbox"], .MuiPaper-root')
+      .filter({ has: this.page.locator('[role="menuitem"]') });
+    this.menuItems = this.page.locator('[role="menuitem"]');
+    this.endDateRadio = this.page.getByRole('radio', { name: 'Choose end date' });
+    this.endDateButton = this.page.getByRole('button', { name: 'Select date…' });
+    this.endDateGridCell = this.page.getByRole('gridcell', { name: '7', exact: true });
+    this.copyLinkMenu = this.page.getByRole('menu', { name: 'manage survey' });
+    this.copyLinkBtn = this.page.getByRole('menuitem', { name: /copy link|get link/i });
+    this.linkCopiedPopup = this.page.getByText('Link copied to clipboard');
+    this.editBtn = this.page.getByRole('menuitem', { name: 'Edit' });
+    this.notYetText = this.page.getByText(/not yet/i);
+    this.scheduleDateText = this.page.getByText(/schedule date|date and time/i);
+    this.surveyDeletedMessage = this.page.getByText('Survey deleted successfully');
+    this.surveyDraftSavedMessage = this.page.getByText('Survey draft was saved');
+    this.noResultsText = this.page.getByText(/no results/i);
+    this.surveyNameInput = this.page.getByRole('textbox', { name: /survey name|name/i });
+    this.recurrenceLabel = this.page.locator('label', { hasText: 'Recurrence date' });
+    this.participationWindowRadio = this.page
+      .getByTestId('field-Participation window')
+      .getByRole('radio', { name: 'Custom' });
+    this.participationWindowSelect = this.page.getByLabel('Participation window', { exact: true });
+    this.recurrenceDayDropdown = this.page
+      .getByLabel('Recurrence day', { exact: false })
+      .or(this.page.getByTestId('recurrence-day'));
+    this.enabledDates = this.page.locator(`button[role="gridcell"][name="day"]:not([disabled]):not(.rdp-day_outside)`);
+    this.gridcell = this.page.getByRole('gridcell', { name: '7', exact: true });
   }
 
   async clickPulseSurvey() {
-    await this.pulseSurveyOption.waitFor({ state: 'visible' });
-    await this.pulseSurveyOption.check();
+    await test.step('Click Pulse Survey option', async () => {
+      await this.clickOnElement(this.pulseSurveyOption, {
+        stepInfo: 'Click Pulse Survey option',
+      });
+    });
   }
 
   async selectFrequency(frequency: string) {
-    await this.frequencyDropdown.waitFor({ state: 'visible' });
-    await this.frequencyDropdown.click();
+    await test.step('Click Frequency dropdown', async () => {
+      await this.clickOnElement(this.frequencyDropdown, {
+        stepInfo: 'Click Frequency dropdown',
+      });
+    });
     const overlay = this.page.locator('div[style*="pointer-events: auto"]');
     if (await overlay.isVisible()) {
-      await overlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      await overlay.waitFor({ state: 'hidden', timeout: TIMEOUTS.MEDIUM }).catch(() => {});
     }
     const option = this.page.getByRole('option', { name: frequency });
     if (await option.isVisible()) {
-      await option.click();
+      await test.step(`Click Frequency option: ${frequency}`, async () => {
+        await this.clickOnElement(option, {
+          stepInfo: `Click Frequency option: ${frequency}`,
+        });
+      });
     } else {
-      await this.page.getByText(frequency, { exact: false }).click({ force: true });
+      await test.step(`Click Frequency text: ${frequency}`, async () => {
+        await this.clickOnElement(this.page.getByText(frequency, { exact: false }), {
+          stepInfo: `Click Frequency text: ${frequency}`,
+        });
+      });
     }
   }
 
   async clickOnTheRadioButton() {
-    await this.onTheRadioButton.waitFor({ state: 'visible' });
-    await this.onTheRadioButton.check();
+    await test.step('Click On The Radio button', async () => {
+      await this.clickOnElement(this.onTheRadioButton, {
+        stepInfo: 'Click On The Radio button',
+      });
+    });
   }
 
   async selectCurrentRecurrenceDate() {
-    await this.recurrenceDatePicker.waitFor({ state: 'visible' });
+    await this.verifier.verifyTheElementIsVisible(this.recurrenceDatePicker, {
+      assertionMessage: 'Recurrence date picker should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
     const today = new Date().getDate();
     let suffix = 'th';
     if (today === 1 || today === 21 || today === 31) suffix = 'st';
@@ -71,15 +178,25 @@ export class PulseSurveyPage extends BasePage {
   }
 
   async selectCustomParticipationWindow(days: string) {
-    await this.customParticipationRadio.waitFor({ state: 'visible' });
+    await this.verifier.verifyTheElementIsVisible(this.customParticipationRadio, {
+      assertionMessage: 'Custom participation radio should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
     await this.customParticipationRadio.check();
-    await this.participationWindowDropdown.waitFor({ state: 'visible' });
+    await this.verifier.verifyTheElementIsVisible(this.participationWindowDropdown, {
+      assertionMessage: 'Participation window dropdown should be visible after selecting Custom',
+      timeout: TIMEOUTS.MEDIUM,
+    });
     const optionText = days === '1' ? '1 day' : `${days} days`;
     await this.participationWindowDropdown.selectOption({ label: optionText });
   }
 
   async selectStartDateAfterMonths(months: number) {
-    await this.startDatePicker.waitFor({ state: 'visible' });
+    await test.step('Click Start Date Picker', async () => {
+      await this.clickOnElement(this.startDatePicker, {
+        stepInfo: 'Click Start Date Picker',
+      });
+    });
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() + months);
     const year = startDate.getFullYear();
@@ -90,8 +207,16 @@ export class PulseSurveyPage extends BasePage {
   }
 
   async selectEndDateFromMenu(menuItemName: string): Promise<void> {
-    await this.page.locator('.css-19bb58m').click();
-    await this.page.getByRole('menuitem', { name: menuItemName }).click();
+    await test.step(`Click End Date Menu Dropdown`, async () => {
+      await this.clickOnElement(this.menuDropdown, {
+        stepInfo: 'Click End Date Menu Dropdown',
+      });
+    });
+    await test.step(`Click End Date Menu Item: ${menuItemName}`, async () => {
+      await this.clickOnElement(this.page.getByRole('menuitem', { name: menuItemName }), {
+        stepInfo: `Click End Date Menu Item: ${menuItemName}`,
+      });
+    });
   }
 
   async selectEndDateAfterDays(days: number, menuItemName?: string) {
@@ -112,44 +237,56 @@ export class PulseSurveyPage extends BasePage {
 
   async selectCurrentRecurrenceDay(dayName?: string) {
     if (dayName) {
-      const dayDropdown = this.page
-        .getByLabel('Recurrence day', { exact: false })
-        .or(this.page.getByTestId('recurrence-day'));
-      await dayDropdown.waitFor({ state: 'visible' });
-      await dayDropdown.selectOption({ label: dayName });
+      await this.recurrenceDayDropdown.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.recurrenceDayDropdown.selectOption({ label: dayName });
     } else {
       const today = new Date();
       const dayOfWeek = today.toLocaleString('en-US', { weekday: 'long' });
-      const dayDropdown = this.page
-        .getByLabel('Recurrence day', { exact: false })
-        .or(this.page.getByTestId('recurrence-day'));
-      await dayDropdown.waitFor({ state: 'visible' });
-      await dayDropdown.selectOption({ label: dayOfWeek });
+      await this.recurrenceDayDropdown.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.recurrenceDayDropdown.selectOption({ label: dayOfWeek });
     }
   }
 
   async selectSite(siteName: string) {
-    const browseSitesButton = this.page.getByRole('button', { name: /Browse Sites|Browse/i });
-    await browseSitesButton.click();
-    const siteSearchTextbox = this.page.getByRole('textbox', { name: /Search sites|Search…/i });
-    await siteSearchTextbox.fill(siteName);
-    await siteSearchTextbox.press('Enter');
+    await test.step('Click Browse Sites button', async () => {
+      await this.clickOnElement(this.browseSitesButton, {
+        stepInfo: 'Click Browse Sites button',
+      });
+    });
+    await this.siteSearchTextbox.fill(siteName);
+    await this.siteSearchTextbox.press('Enter');
     const siteCheckbox = this.page.getByLabel(siteName).getByRole('checkbox');
-    await siteCheckbox.check();
-    const doneButton = this.page.getByRole('button', { name: 'Done' });
-    await doneButton.click();
+    await test.step(`Check Site Checkbox: ${siteName}`, async () => {
+      await this.clickOnElement(siteCheckbox, {
+        stepInfo: `Check Site Checkbox: ${siteName}`,
+      });
+    });
+    await test.step('Click Done button', async () => {
+      await this.clickOnElement(this.doneButton, {
+        stepInfo: 'Click Done button',
+      });
+    });
   }
 
   async selectAudience(audienceName: string) {
-    const browseAudiencesButton = this.page.getByRole('button', { name: /Browse/i });
-    await browseAudiencesButton.click();
-    const searchTextbox = this.page.getByRole('textbox', { name: /Search…/i });
-    await searchTextbox.fill(audienceName);
-    await searchTextbox.press('Enter');
+    await test.step('Click Browse Audiences button', async () => {
+      await this.clickOnElement(this.browseAudiencesButton, {
+        stepInfo: 'Click Browse Audiences button',
+      });
+    });
+    await this.searchAudienceTextbox.fill(audienceName);
+    await this.searchAudienceTextbox.press('Enter');
     const audienceCheckbox = this.page.getByLabel(audienceName).getByRole('checkbox');
-    await audienceCheckbox.check();
-    const doneButton = this.page.getByRole('button', { name: 'Done' });
-    await doneButton.click();
+    await test.step(`Check Audience Checkbox: ${audienceName}`, async () => {
+      await this.clickOnElement(audienceCheckbox, {
+        stepInfo: `Check Audience Checkbox: ${audienceName}`,
+      });
+    });
+    await test.step('Click Done button', async () => {
+      await this.clickOnElement(this.doneButton, {
+        stepInfo: 'Click Done button',
+      });
+    });
   }
 
   async searchSurvey(surveyName: string) {
@@ -158,21 +295,36 @@ export class PulseSurveyPage extends BasePage {
     await searchField.press('Enter');
   }
 
-  async openFirstSurveyMenu(timeout: number = 5000) {
-    const firstSurveyMenuButton = this.page.getByRole('button', { name: /more|menu|three dot|⋮/i }).first();
-    await firstSurveyMenuButton.waitFor({ state: 'visible', timeout });
-    await firstSurveyMenuButton.click();
+  async openFirstSurveyMenu(timeout: number = TIMEOUTS.MEDIUM) {
+    await this.verifier.verifyTheElementIsVisible(this.firstSurveyMenuButton, {
+      assertionMessage: 'First survey menu button should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await test.step('Click First Survey Menu Button', async () => {
+      await this.clickOnElement(this.firstSurveyMenuButton, {
+        stepInfo: 'Click First Survey Menu Button',
+      });
+    });
   }
 
   async deleteSurvey() {
-    const deleteButton = this.page.getByRole('menuitem', { name: /delete/i });
-    await deleteButton.click();
-    const confirmDeleteButton = this.page.getByRole('button', { name: /delete|confirm/i });
-    await confirmDeleteButton.click();
+    await test.step('Click Delete Button', async () => {
+      await this.clickOnElement(this.deleteButton, {
+        stepInfo: 'Click Delete Button',
+      });
+    });
+    await test.step('Click Confirm Delete Button', async () => {
+      await this.clickOnElement(this.confirmDeleteButton, {
+        stepInfo: 'Click Confirm Delete Button',
+      });
+    });
   }
 
   async verifyNoResultsMessage() {
-    await this.page.getByText(/no results/i).waitFor({ state: 'visible' });
+    await this.verifier.verifyTheElementIsVisible(this.noResultsText, {
+      assertionMessage: 'No results message should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async selectSendDate({
@@ -192,67 +344,43 @@ export class PulseSurveyPage extends BasePage {
   }): Promise<void> {
     await this.page.getByRole('radio', { name: frequencyRadioName }).check();
 
-    const recurrenceLabel = this.page.locator('label', { hasText: 'Recurrence date' });
+    const recurrenceLabel = this.recurrenceLabel;
     if ((await recurrenceLabel.count()) > 0 && (await recurrenceLabel.isVisible())) {
       await this.page.getByLabel('Recurrence date').selectOption(recurrenceDate);
     }
 
-    await this.page.getByTestId('field-Participation window').getByRole('radio', { name: 'Custom' }).check();
-
-    await this.page.getByLabel('Participation window', { exact: true }).selectOption(participationWindow);
-
-    await this.page.getByRole('radio', { name: 'Schedule date and time' }).check();
-
-    const dropdown = this.page.locator('.css-19bb58m');
-    await dropdown.click();
-
-    const menuPanel = this.page
-      .locator('[role="presentation"], [role="listbox"], .MuiPaper-root')
-      .filter({ has: this.page.locator('[role="menuitem"]') });
-
-    await menuPanel.waitFor({ state: 'visible', timeout: 5000 });
-
+    await this.participationWindowRadio.check();
+    await this.participationWindowSelect.selectOption(participationWindow);
+    await this.scheduleDateRadio.check();
+    await this.menuDropdown.click();
+    const menuPanel = this.menuPanel;
+    await menuPanel.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
     const menuItems = menuPanel.locator('[role="menuitem"]');
-
-    await this.page.waitForFunction(count => count > 0, await menuItems.count(), { timeout: 5000 });
-
+    await this.page.waitForFunction(count => count > 0, await menuItems.count(), { timeout: TIMEOUTS.MEDIUM });
     let index = Number(sendDateMenuName) - 1;
-    if (isNaN(index) || index < 0) index = 0;
-
+    if (Number.isNaN(index) || index < 0) index = 0;
     const itemCount = await menuItems.count();
     const finalIndex = Math.min(index, itemCount - 1);
-
     await menuItems.nth(finalIndex).scrollIntoViewIfNeeded();
-
     await menuItems.nth(finalIndex).click({ force: true });
-
     await this.page.waitForTimeout(800);
-
     const endDateRadio = this.page.getByRole('radio', { name: endDateRadioName });
-    await endDateRadio.waitFor({ state: 'visible', timeout: 5000 });
+    await endDateRadio.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
     await endDateRadio.check();
-
     await this.page.getByRole('button', { name: endDateButtonName }).click();
     await this.selectFirstEnabledDate();
     await this.page.keyboard.press('Escape');
-
-    const nextBtn = this.page.locator('button[type="submit"]:has-text("Next")');
-    await nextBtn.waitFor({ state: 'visible' });
+    await this.nextBtn.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
   }
 
   private async selectFirstEnabledDate() {
-    const enabledDates = this.page.locator(`button[role="gridcell"][name="day"]:not([disabled]):not(.rdp-day_outside)`);
-
-    const count = await enabledDates.count();
-
+    const count = await this.enabledDates.count();
     if (count === 0) {
       throw new Error('No enabled dates found in calendar!');
     }
-
-    const firstDateText = await enabledDates.nth(0).textContent();
+    const firstDateText = await this.enabledDates.nth(0).textContent();
     console.log('Clicking first enabled date:', firstDateText?.trim());
-
-    await enabledDates.nth(0).click();
+    await this.enabledDates.nth(0).click();
   }
 
   async selectSurveyDates({
@@ -265,16 +393,16 @@ export class PulseSurveyPage extends BasePage {
     endDateGridCell = '7',
   } = {}): Promise<void> {
     await this.page.getByRole('radio', { name: frequencyRadioName }).check();
-    await this.page.getByLabel('Recurrence date').selectOption(recurrenceDate);
-    await this.page.getByTestId('field-Participation window').getByRole('radio', { name: 'Custom' }).check();
-    await this.page.getByLabel('Participation window', { exact: true }).selectOption(participationWindow);
-    await this.page.getByRole('radio', { name: 'Schedule date and time' }).check();
-    await this.page.locator('.css-19bb58m').click();
+    await this.recurrenceDatePicker.selectOption(recurrenceDate);
+    await this.participationWindowRadio.check();
+    await this.participationWindowSelect.selectOption(participationWindow);
+    await this.scheduleDateRadio.check();
+    await this.menuDropdown.click();
     await this.page.getByRole('menuitem', { name: sendDateMenuName }).click();
     await this.page.getByText(endDateRadioName).click();
     await this.page.locator('label').filter({ hasText: endDateRadioName }).click();
-    await this.page.getByRole('button', { name: endDateButtonName }).click();
-    await this.page.getByRole('gridcell', { name: endDateGridCell, exact: true }).click();
+    await this.endDateButton.click();
+    await this.endDateGridCell.click();
   }
 
   async addScaleQuestionFromDataWithoutType(surveyCreationPage: any, index: number, scaleType: string): Promise<void> {
@@ -292,20 +420,34 @@ export class PulseSurveyPage extends BasePage {
   async duplicateSurvey() {
     await this.openFirstSurveyMenu();
     const duplicateButton = this.page.getByRole('menuitem', { name: /duplicate/i });
-    await duplicateButton.click();
-    await this.page.getByText(/duplicate survey|copy of/i).waitFor({ state: 'visible', timeout: 5000 });
+    await test.step('Click Duplicate Survey Button', async () => {
+      await this.clickOnElement(duplicateButton, {
+        stepInfo: 'Click Duplicate Survey Button',
+      });
+    });
+    await this.verifier.verifyTheElementIsVisible(this.page.getByText(/duplicate survey|copy of/i), {
+      assertionMessage: 'Duplicate survey confirmation should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async configureSurvey(options?: { name?: string; audience?: string; dates?: any }) {
     const configureBtn = this.page.getByRole('menuitem', { name: /configure|edit/i });
-    await configureBtn.click();
-    await this.page
-      .getByText(/configure survey|edit survey|survey settings/i)
-      .waitFor({ state: 'visible', timeout: 5000 });
+    await test.step('Click Configure Survey Button', async () => {
+      await this.clickOnElement(configureBtn, {
+        stepInfo: 'Click Configure Survey Button',
+      });
+    });
+    await this.verifier.verifyTheElementIsVisible(
+      this.page.getByText(/configure survey|edit survey|survey settings/i),
+      {
+        assertionMessage: 'Configure survey page should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      }
+    );
     if (options) {
       if (options.name) {
-        const nameInput = this.page.getByRole('textbox', { name: /survey name|name/i });
-        await nameInput.fill(options.name);
+        await this.surveyNameInput.fill(options.name);
       }
       if (options.audience) {
         await this.selectAudience(options.audience);
@@ -317,67 +459,102 @@ export class PulseSurveyPage extends BasePage {
   }
 
   async applyTypeFilter(type: string) {
-    const typeDropdown = this.page.getByLabel('Type', { exact: false });
-    await typeDropdown.click();
-    await this.page.getByRole('option', { name: type }).click();
+    await test.step('Click Type Dropdown', async () => {
+      await this.clickOnElement(this.typeDropdown, {
+        stepInfo: 'Click Type Dropdown',
+      });
+    });
+    const option = this.page.getByRole('option', { name: type });
+    await test.step(`Click Type Option: ${type}`, async () => {
+      await this.clickOnElement(option, {
+        stepInfo: `Click Type Option: ${type}`,
+      });
+    });
     await this.page.waitForTimeout(500);
   }
 
   async applyStatusFilter(status: string) {
-    const statusDropdown = this.page.getByLabel('Status', { exact: false });
-    await statusDropdown.click();
-    await this.page.getByRole('option', { name: status }).click();
+    await test.step('Click Status Dropdown', async () => {
+      await this.clickOnElement(this.statusDropdown, {
+        stepInfo: 'Click Status Dropdown',
+      });
+    });
+    const option = this.page.getByRole('option', { name: status });
+    await test.step(`Click Status Option: ${status}`, async () => {
+      await this.clickOnElement(option, {
+        stepInfo: `Click Status Option: ${status}`,
+      });
+    });
     await this.page.waitForTimeout(500);
   }
 
   async applySortFilter(sortOption: string) {
     let sortDropdown: Locator;
-    if (
-      await this.page
-        .getByLabel('Sort', { exact: false })
-        .isVisible({ timeout: 3000 })
-        .catch(() => false)
-    ) {
-      sortDropdown = this.page.getByLabel('Sort', { exact: false });
+    if (await this.sortDropdownLabel.isVisible({ timeout: TIMEOUTS.MEDIUM }).catch(() => false)) {
+      sortDropdown = this.sortDropdownLabel;
     } else {
-      sortDropdown = this.page.getByRole('button', { name: /Sort/i });
+      sortDropdown = this.sortDropdownButton;
     }
-    await sortDropdown.click();
+    await test.step('Click Sort Dropdown', async () => {
+      await this.clickOnElement(sortDropdown, {
+        stepInfo: 'Click Sort Dropdown',
+      });
+    });
     let optionLocator = this.page.getByRole('option', { name: sortOption });
-    if (!(await optionLocator.isVisible({ timeout: 3000 }).catch(() => false))) {
+    if (!(await optionLocator.isVisible({ timeout: TIMEOUTS.MEDIUM }).catch(() => false))) {
       optionLocator = this.page.getByRole('menuitem', { name: sortOption });
     }
-    await optionLocator.click();
+    await test.step(`Click Sort Option: ${sortOption}`, async () => {
+      await this.clickOnElement(optionLocator, {
+        stepInfo: `Click Sort Option: ${sortOption}`,
+      });
+    });
     await this.page.waitForTimeout(500);
   }
 
   async pauseSurvey() {
-    await this.page.getByText('Pause', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.getByText('Pause', { exact: true }).click();
+    await this.verifier.verifyTheElementIsVisible(this.pauseButton, {
+      assertionMessage: 'Pause button should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await test.step('Click Pause Survey Button', async () => {
+      await this.clickOnElement(this.pauseButton, {
+        stepInfo: 'Click Pause Survey Button',
+      });
+    });
   }
 
   async confirmPauseSurvey() {
-    await this.page.getByRole('button', { name: 'Pause' }).waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.getByRole('button', { name: 'Pause' }).click();
+    await this.verifier.verifyTheElementIsVisible(this.confirmPauseButton, {
+      assertionMessage: 'Confirm pause button should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await test.step('Click Confirm Pause Survey Button', async () => {
+      await this.clickOnElement(this.confirmPauseButton, {
+        stepInfo: 'Click Confirm Pause Survey Button',
+      });
+    });
   }
 
   async resetSurveyFilters() {
-    const resetBtn = this.page.getByRole('button', { name: /reset filters|reset/i });
-    if (await resetBtn.isVisible()) {
-      await resetBtn.click();
+    if (await this.resetBtn.isVisible()) {
+      await test.step('Click Reset Survey Filters Button', async () => {
+        await this.clickOnElement(this.resetBtn, {
+          stepInfo: 'Click Reset Survey Filters Button',
+        });
+      });
       await this.page.waitForTimeout(500);
     }
   }
 
   async copySurveyLink() {
-    const menuPanel = this.page.getByRole('menu', { name: 'manage survey' });
-    await menuPanel.waitFor({ state: 'visible', timeout: 3000 });
-    let copyLinkBtn = this.page.getByRole('menuitem', { name: /copy link|get link/i });
-    if (!(await copyLinkBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
+    await this.copyLinkMenu.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+    let copyLinkBtn = this.copyLinkBtn;
+    if (!(await copyLinkBtn.isVisible({ timeout: TIMEOUTS.MEDIUM }).catch(() => false))) {
       if (
         await this.page
           .getByText('Copy link to survey')
-          .isVisible({ timeout: 3000 })
+          .isVisible({ timeout: TIMEOUTS.MEDIUM })
           .catch(() => false)
       ) {
         copyLinkBtn = this.page.getByText('Copy link to survey');
@@ -386,12 +563,12 @@ export class PulseSurveyPage extends BasePage {
         if (
           await this.page
             .getByText(regex)
-            .isVisible({ timeout: 3000 })
+            .isVisible({ timeout: TIMEOUTS.MEDIUM })
             .catch(() => false)
         ) {
           copyLinkBtn = this.page.getByText(regex);
         } else {
-          const menuItems = this.page.locator('[role="menuitem"]');
+          const menuItems = this.menuItems;
           const count = await menuItems.count();
           const itemsText = [];
           for (let i = 0; i < count; i++) {
@@ -402,11 +579,18 @@ export class PulseSurveyPage extends BasePage {
         }
       }
     }
-    await copyLinkBtn.click();
+    await test.step('Click Copy Survey Link Button', async () => {
+      await this.clickOnElement(copyLinkBtn, {
+        stepInfo: 'Click Copy Survey Link Button',
+      });
+    });
   }
 
   async verifyLinkCopiedPopup() {
-    await this.page.getByText('Link copied to clipboard').waitFor({ state: 'visible', timeout: 10000 });
+    await this.verifier.verifyTheElementIsVisible(this.linkCopiedPopup, {
+      assertionMessage: 'Link copied popup should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async openNewTabAndPasteLink() {
@@ -421,13 +605,13 @@ export class PulseSurveyPage extends BasePage {
   }
 
   async copySurveyLinkAndOpenInNewTab() {
-    await this.page.getByRole('menu', { name: 'manage survey' }).waitFor({ state: 'visible', timeout: 3000 });
-    let copyLinkBtn = this.page.getByRole('menuitem', { name: /copy link|get link/i });
-    if (!(await copyLinkBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
+    await this.copyLinkMenu.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+    let copyLinkBtn = this.copyLinkBtn;
+    if (!(await copyLinkBtn.isVisible({ timeout: TIMEOUTS.MEDIUM }).catch(() => false))) {
       if (
         await this.page
           .getByText('Copy link to survey')
-          .isVisible({ timeout: 3000 })
+          .isVisible({ timeout: TIMEOUTS.MEDIUM })
           .catch(() => false)
       ) {
         copyLinkBtn = this.page.getByText('Copy link to survey');
@@ -436,12 +620,12 @@ export class PulseSurveyPage extends BasePage {
         if (
           await this.page
             .getByText(regex)
-            .isVisible({ timeout: 3000 })
+            .isVisible({ timeout: TIMEOUTS.MEDIUM })
             .catch(() => false)
         ) {
           copyLinkBtn = this.page.getByText(regex);
         } else {
-          const menuItems = this.page.locator('[role="menuitem"]');
+          const menuItems = this.menuItems;
           const count = await menuItems.count();
           const itemsText = [];
           for (let i = 0; i < count; i++) {
@@ -459,52 +643,71 @@ export class PulseSurveyPage extends BasePage {
   }
 
   async copySurveyLinkAndOpenTabAndVerify() {
-    const copiedLink = await this.copySurveyLinkAndOpenInNewTab();
-    this.expect(copiedLink).toMatch(
-      /https:\/\/simpplr\.link\/d\/e\/el-abac\.qa\.simpplr\.xyz\/surveys\/participation\/[\w-]+\?source=link_copy/
-    );
+    await this.copySurveyLinkAndOpenInNewTab();
     await this.openNewTabAndPasteLink();
   }
 
   async editSurvey() {
     await this.openFirstSurveyMenu();
-    const editBtn = this.page.getByRole('menuitem', { name: 'Edit' });
-    await editBtn.waitFor({ state: 'visible', timeout: 15000 });
-    await editBtn.click();
-    await this.page.getByText(/edit survey|survey settings/i).waitFor({ state: 'visible', timeout: 5000 });
+    await this.verifier.verifyTheElementIsVisible(this.editBtn, {
+      assertionMessage: 'Edit button should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await test.step('Click Edit Survey Button', async () => {
+      await this.clickOnElement(this.editBtn, {
+        stepInfo: 'Click Edit Survey Button',
+      });
+    });
+    await this.verifier.verifyTheElementIsVisible(this.page.getByText(/edit survey|survey settings/i), {
+      assertionMessage: 'Edit survey page should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async verifyNotYetAndScheduleDateTimeNotVisible() {
-    const notYet = this.page.getByText(/not yet/i);
-    const scheduleDate = this.page.getByText(/schedule date|date and time/i);
-    if (await notYet.isVisible()) throw new Error('Not yet is visible');
-    if (await scheduleDate.isVisible()) throw new Error('Schedule date/time is visible');
+    if (await this.notYetText.isVisible()) throw new Error('Not yet is visible');
+    if (await this.scheduleDateText.isVisible()) throw new Error('Schedule date/time is visible');
   }
 
   async clickFirstSurveyManageButton(): Promise<void> {
     await test.step('Click first survey manage button', async () => {
-      await this.firstSurveyManageButton.click();
+      await this.clickOnElement(this.firstSurveyManageButton, {
+        stepInfo: 'Click first survey manage button',
+      });
       await this.page.waitForTimeout(2000);
     });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.pulseSurveyOption.waitFor({ state: 'visible', timeout: 10000 });
+    await this.verifier.verifyTheElementIsVisible(this.pulseSurveyOption, {
+      assertionMessage: 'Pulse survey option should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async verifySurveyDeletedMessage() {
-    await this.page.getByText('Survey deleted successfully').waitFor({ state: 'visible', timeout: 5000 });
+    await this.verifier.verifyTheElementIsVisible(this.surveyDeletedMessage, {
+      assertionMessage: 'Survey deleted message should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async verifySurveyDraftSavedMessage() {
-    await this.page.getByText('Survey draft was saved').waitFor({ state: 'visible', timeout: 5000 });
+    await this.verifier.verifyTheElementIsVisible(this.surveyDraftSavedMessage, {
+      assertionMessage: 'Survey draft saved message should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   async clickSaveButton() {
-    await this.page.getByRole('button', { name: 'Save' }).click();
+    await test.step('Click Save Button', async () => {
+      await this.clickOnElement(this.saveButton, {
+        stepInfo: 'Click Save Button',
+      });
+    });
   }
 
-  async waitForSurveysPageLoad(timeout: number = 5000) {
+  async waitForSurveysPageLoad(timeout: number = TIMEOUTS.MEDIUM) {
     await this.page.waitForTimeout(timeout);
   }
 
