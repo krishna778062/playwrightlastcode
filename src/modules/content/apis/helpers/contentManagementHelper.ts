@@ -3,9 +3,6 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
-import { SiteManagementService } from '../services/SiteManagementService';
-
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import {
@@ -13,8 +10,10 @@ import {
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy, DateField } from '@/src/modules/content/constants';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
