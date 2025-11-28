@@ -34,6 +34,7 @@ export enum IntegrationsSuiteTags {
   SALESFORCE = '@salesforceAppTiles',
   HEALTH_CHECK = '@healthcheck',
   TAG = '@tagComponent',
+  LINK = '@linkComponent',
 }
 
 export enum IntegrationsFeatureTags {
