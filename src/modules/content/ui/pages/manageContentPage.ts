@@ -15,6 +15,7 @@ export interface IActions {
   clickOnFirstContentButton: () => Promise<void>;
   clickOnSelectActionDropdown: () => Promise<void>;
   clickOnUnpublishButton: () => Promise<void>;
+  selectUnpublishButtonFromBulkActions: () => Promise<void>;
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
   clickFilterButton: () => Promise<void>;
@@ -41,6 +42,7 @@ export interface IActions {
   verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
   selectTheStatusFilter: (status: string) => Promise<void>;
   clickOnSelectAllButton: () => Promise<void>;
+  selectContentByNumberOfItems: (numberOfItems: number) => Promise<void>;
   applyButtonShouldBeDisabled: () => Promise<void>;
   selectEditedNewestOption: () => Promise<void>;
   selectEditedOldestOption: () => Promise<void>;
@@ -63,7 +65,6 @@ export interface IActions {
   clickDeleteModalConfirmButton: () => Promise<void>;
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   selectSiteSearchBarOption: () => Promise<void>;
-  selectCreateNewestPublishedOption: () => Promise<void>;
   getAllContentNames: () => Promise<string[]>;
   verifyAddToCampaignOptionShouldNotBeVisibleInManageContent: () => Promise<void>;
   clickOnContentEditButton: () => Promise<void>;
@@ -169,6 +170,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnSelectActionDropdown(): Promise<void> {
     await this.manageContentComponent.selectActionDropdown();
   }
+  async selectUnpublishButtonFromBulkActions(): Promise<void> {
+    await this.manageContentComponent.selectUnpublishButtonFromBulkActions();
+  }
 
   async clickOnUnpublishButton(): Promise<void> {
     await this.manageContentComponent.selectUnpublishButton();
@@ -211,6 +215,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnSelectAllButton(): Promise<void> {
     await this.manageContentComponent.selectSelectAllButton();
+  }
+  async selectContentByNumberOfItems(numberOfItems: number): Promise<void> {
+    await this.manageContentComponent.selectContentByNumberOfItems(numberOfItems);
   }
   async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
     await this.manageContentComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(option);
@@ -256,9 +263,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectCreatedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOption();
   }
-  async selectCreateNewestPublishedOption(): Promise<void> {
-    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
-  }
+
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }

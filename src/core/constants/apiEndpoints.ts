@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
     deleteTopics: '/v1/content/topics/bulk-delete',
     favourites: '/v1/content/sites/content/favorite',
     contentListInSite: '/v1/content/sites/content/list',
+    manage: '/manage',
     manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
     homeCarouselItems: '/v1/content/carousel/items/list',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
