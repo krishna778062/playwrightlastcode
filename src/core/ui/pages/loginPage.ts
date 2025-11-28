@@ -62,21 +62,15 @@ export class LoginPage extends BasePage implements ILoginPageActions {
    */
   async getLoginIdentifierType(): Promise<'email' | 'employee' | 'mobile' | 'phone'> {
     return await test.step('Detecting login identifier type', async () => {
-      const labelText = await this.loginIdentifierLabel.textContent();
-      const normalizedLabel = labelText?.toLowerCase().trim() || '';
-
-      // Check in the same order as Java code
-      if (normalizedLabel.includes('email')) {
-        return 'email';
-      } else if (normalizedLabel.includes('mobile')) {
-        return 'mobile';
-      } else if (normalizedLabel.includes('employee number')) {
-        return 'employee';
-      } else if (normalizedLabel.includes('phone')) {
-        return 'phone';
-      }
-      // Default to email if unable to detect
-      return 'email';
+      const labelText = (await this.loginIdentifierLabel.textContent())?.toLowerCase().trim() || '';
+      const identifierMap: Record<string, 'email' | 'employee' | 'mobile' | 'phone'> = {
+        email: 'email',
+        mobile: 'mobile',
+        'employee number': 'employee',
+        phone: 'phone',
+      };
+      const detectedType = Object.entries(identifierMap).find(([keyword]) => labelText.includes(keyword))?.[1];
+      return detectedType ?? 'email';
     });
   }
 
