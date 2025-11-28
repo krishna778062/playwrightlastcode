@@ -169,7 +169,11 @@ export class AudienceManagementHelper {
 
     console.log('response', JSON.stringify(response.result.listOfItems));
     const audience = response.result.listOfItems.find(
-      audience => audience.description !== null && audience.description !== ''
+      audience =>
+        audience.description !== null &&
+        audience.description !== '' &&
+        audience.audienceCount &&
+        audience.audienceCount > 0
     );
 
     console.log('audience', JSON.stringify(audience));
