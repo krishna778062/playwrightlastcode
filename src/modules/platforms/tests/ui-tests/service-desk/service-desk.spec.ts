@@ -3,6 +3,7 @@ import { expect, Page } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
+import { multiUserServiceDeskFixture } from '@platforms/fixtures/multiUserServiceDeskFixture';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 
 import { ServiceDeskHomePage } from '../../../pages/service-desk/serviceDeskHomePage';
@@ -23,101 +24,188 @@ test.describe('service desk - Application Settings', () => {
       const serviceDeskSettingsPage = new ServiceDeskSettingsPage(serviceDeskPage);
       const manageFeaturesPage = new ServiceDeskManageFeaturesPage(serviceDeskPage);
 
+      // Navigate to Service Desk settings page
       await serviceDeskSettingsPage.navigateToServiceDeskSettings();
+
+      // Save original state for cleanup
+      const originalState = await serviceDeskSettingsPage.getServiceDeskState();
+      console.log(`Original Service Desk state: ${JSON.stringify(originalState)}`);
+
+      // Verify all elements on Service Desk settings page are visible
       await serviceDeskSettingsPage.verifyServiceDeskSettingsPageElements();
+
+      // Enable Service Desk checkbox
       await serviceDeskSettingsPage.checkEnableServiceDesk();
+
+      // Verify radio button options are displayed when Service Desk is enabled
       await serviceDeskSettingsPage.verifyRadioButtonOptions();
+
+      // Select "support teams only" radio option
       await serviceDeskSettingsPage.selectRadioOption(ServiceDeskTestData.settingsPage.radioOptions.supportTeamsOnly);
+
+      // Save changes and verify success toast
       await serviceDeskSettingsPage.saveAndVerify();
+      console.log('Service Desk enabled successfully with support teams only option');
+
+      // Navigate to Manage Features page
       await manageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is visible in Manage Features
       await manageFeaturesPage.verifyServiceDeskIsVisible();
+      console.log('Service Desk option verified in Manage Features');
+
+      // Cleanup: Restore original Service Desk state
+      await serviceDeskSettingsPage.navigateToServiceDeskSettings();
+      await serviceDeskSettingsPage.restoreServiceDeskState(originalState);
+      console.log('Restored original Service Desk state');
     }
   );
 
-  test(
+  multiUserServiceDeskFixture(
     'verify Enable ServiceDesk with Support (for everyone) behavior',
     { tag: [TestPriority.P0, '@service-desk', '@settings'] },
-    async ({ serviceDeskPage }: { serviceDeskPage: Page }) => {
+    async ({ adminServiceDeskPage, supportTeamPage, endUserPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['SHSD-212'],
       });
 
-      const serviceDeskSettingsPage = new ServiceDeskSettingsPage(serviceDeskPage);
-      const manageFeaturesPage = new ServiceDeskManageFeaturesPage(serviceDeskPage);
-      const homePage = new ServiceDeskHomePage(serviceDeskPage);
+      // Admin user page objects
+      const adminSettingsPage = new ServiceDeskSettingsPage(adminServiceDeskPage);
+      const adminManageFeaturesPage = new ServiceDeskManageFeaturesPage(adminServiceDeskPage);
+      const adminHomePage = new ServiceDeskHomePage(adminServiceDeskPage);
 
-      // Admin user (lakshmi): Enable Service Desk with "everyone"
-      await serviceDeskSettingsPage.navigateToServiceDeskSettings();
-      await serviceDeskSettingsPage.checkEnableServiceDesk();
-      await serviceDeskSettingsPage.selectRadioOption(ServiceDeskTestData.settingsPage.radioOptions.everyone);
-      await serviceDeskSettingsPage.saveAndVerify();
-      await manageFeaturesPage.navigateToManageFeatures();
-      await manageFeaturesPage.verifyServiceDeskIsVisible();
-      await homePage.navigateToHome();
-      await homePage.verifySupportOptionIsVisible();
+      // Support team member page objects
+      const supportManageFeaturesPage = new ServiceDeskManageFeaturesPage(supportTeamPage);
+      const supportHomePage = new ServiceDeskHomePage(supportTeamPage);
 
-      // Logout admin
-      await serviceDeskSettingsPage.logout();
+      // End user page objects
+      const endUserHomePage = new ServiceDeskHomePage(endUserPage);
 
-      // Login as support team member
-      const supportTeamMemberEmail = process.env.SUPPORT_TEAM_MEMBER!;
-      const password = process.env.SERVICE_DESK_PASSWORD!;
-      await serviceDeskSettingsPage.loginAs(supportTeamMemberEmail, password);
+      // Navigate to Service Desk settings page (as admin)
+      await adminSettingsPage.navigateToServiceDeskSettings();
 
-      // Support team member: Verify Service Desk visible, Support IS visible
-      await manageFeaturesPage.navigateToManageFeatures();
-      await manageFeaturesPage.verifyServiceDeskIsVisible();
-      await homePage.navigateToHome();
-      await homePage.verifySupportOptionIsVisible();
+      // Save original state for cleanup
+      const originalState = await adminSettingsPage.getServiceDeskState();
+      console.log(`Original Service Desk state: ${JSON.stringify(originalState)}`);
 
-      // Logout support team member
-      await serviceDeskSettingsPage.logout();
+      // Enable Service Desk checkbox (as admin)
+      await adminSettingsPage.checkEnableServiceDesk();
 
-      // Login as end user
-      const endUserEmail = process.env.END_USER!;
-      await serviceDeskSettingsPage.loginAs(endUserEmail, password);
+      // Select "everyone" radio option (as admin)
+      await adminSettingsPage.selectRadioOption(ServiceDeskTestData.settingsPage.radioOptions.everyone);
 
-      // End user: Verify Support IS visible
-      await homePage.navigateToHome();
-      await homePage.verifySupportOptionIsVisible();
+      // Save changes and verify success toast (as admin)
+      await adminSettingsPage.saveAndVerify();
+      console.log('Service Desk enabled with everyone option');
+
+      // Navigate to Manage Features page (as admin)
+      await adminManageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is visible in Manage Features (as admin)
+      await adminManageFeaturesPage.verifyServiceDeskIsVisible();
+      console.log('Admin: Service Desk option verified in Manage Features');
+
+      // Navigate to Home page (as admin)
+      await adminHomePage.navigateToHome();
+
+      // Verify Support option IS visible on Home page for admin
+      await adminHomePage.verifySupportOptionIsVisible();
+      console.log('Admin: Support option verified as visible on Home page');
+
+      // Navigate to Manage Features page (as support team member)
+      await supportManageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is visible in Manage Features (as support team member)
+      await supportManageFeaturesPage.verifyServiceDeskIsVisible();
+      console.log('Support Team: Service Desk option verified in Manage Features');
+
+      // Navigate to Home page (as support team member)
+      await supportHomePage.navigateToHome();
+
+      // Verify Support option IS visible on Home page for support team member
+      await supportHomePage.verifySupportOptionIsVisible();
+      console.log('Support Team: Support option verified as visible on Home page');
+
+      // Navigate to Home page (as end user)
+      await endUserHomePage.navigateToHome();
+
+      // Verify Support option IS visible on Home page for end user
+      await endUserHomePage.verifySupportOptionIsVisible();
+      console.log('End User: Support option verified as visible on Home page');
+
+      // Cleanup: Restore original Service Desk state (as admin)
+      await adminSettingsPage.navigateToServiceDeskSettings();
+      await adminSettingsPage.restoreServiceDeskState(originalState);
+      console.log('Restored original Service Desk state');
     }
   );
 
-  test(
+  multiUserServiceDeskFixture(
     'verify Enable ServiceDesk (for support teams only) behavior',
     { tag: [TestPriority.P0, '@service-desk', '@settings'] },
-    async ({ serviceDeskPage }: { serviceDeskPage: Page }) => {
+    async ({ adminServiceDeskPage, supportTeamPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['SHSD-211'],
       });
 
-      const serviceDeskSettingsPage = new ServiceDeskSettingsPage(serviceDeskPage);
-      const manageFeaturesPage = new ServiceDeskManageFeaturesPage(serviceDeskPage);
-      const homePage = new ServiceDeskHomePage(serviceDeskPage);
+      // Admin user page objects
+      const adminSettingsPage = new ServiceDeskSettingsPage(adminServiceDeskPage);
+      const adminManageFeaturesPage = new ServiceDeskManageFeaturesPage(adminServiceDeskPage);
+      const adminHomePage = new ServiceDeskHomePage(adminServiceDeskPage);
 
-      // Admin user (lakshmi): Enable Service Desk with "support teams only"
-      await serviceDeskSettingsPage.navigateToServiceDeskSettings();
-      await serviceDeskSettingsPage.checkEnableServiceDesk();
-      await serviceDeskSettingsPage.selectRadioOption(ServiceDeskTestData.settingsPage.radioOptions.supportTeamsOnly);
-      await serviceDeskSettingsPage.saveAndVerify();
-      await manageFeaturesPage.navigateToManageFeatures();
-      await manageFeaturesPage.verifyServiceDeskIsVisible();
-      await homePage.navigateToHome();
-      await homePage.verifySupportOptionNotVisible();
+      // Support team member page objects
+      const supportManageFeaturesPage = new ServiceDeskManageFeaturesPage(supportTeamPage);
+      const supportHomePage = new ServiceDeskHomePage(supportTeamPage);
 
-      // Logout admin
-      await serviceDeskSettingsPage.logout();
+      // Navigate to Service Desk settings page (as admin)
+      await adminSettingsPage.navigateToServiceDeskSettings();
 
-      // Login as support team member
-      const supportTeamMemberEmail = process.env.SUPPORT_TEAM_MEMBER!;
-      const password = process.env.SERVICE_DESK_PASSWORD!;
-      await serviceDeskSettingsPage.loginAs(supportTeamMemberEmail, password);
+      // Save original state for cleanup
+      const originalState = await adminSettingsPage.getServiceDeskState();
+      console.log(`Original Service Desk state: ${JSON.stringify(originalState)}`);
 
-      // Support team member: Verify Service Desk visible, Support NOT visible
-      await manageFeaturesPage.navigateToManageFeatures();
-      await manageFeaturesPage.verifyServiceDeskIsVisible();
-      await homePage.navigateToHome();
-      await homePage.verifySupportOptionNotVisible();
+      // Enable Service Desk checkbox (as admin)
+      await adminSettingsPage.checkEnableServiceDesk();
+
+      // Select "support teams only" radio option (as admin)
+      await adminSettingsPage.selectRadioOption(ServiceDeskTestData.settingsPage.radioOptions.supportTeamsOnly);
+
+      // Save changes and verify success toast (as admin)
+      await adminSettingsPage.saveAndVerify();
+      console.log('Service Desk enabled with support teams only option');
+
+      // Navigate to Manage Features page (as admin)
+      await adminManageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is visible in Manage Features (as admin)
+      await adminManageFeaturesPage.verifyServiceDeskIsVisible();
+      console.log('Admin: Service Desk option verified in Manage Features');
+
+      // Navigate to Home page (as admin)
+      await adminHomePage.navigateToHome();
+
+      // Verify Support option is NOT visible on Home page for admin
+      await adminHomePage.verifySupportOptionNotVisible();
+      console.log('Admin: Support option verified as not visible on Home page');
+
+      // Navigate to Manage Features page (as support team member)
+      await supportManageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is visible in Manage Features (as support team member)
+      await supportManageFeaturesPage.verifyServiceDeskIsVisible();
+      console.log('Support Team: Service Desk option verified in Manage Features');
+
+      // Navigate to Home page (as support team member)
+      await supportHomePage.navigateToHome();
+
+      // Verify Support option is NOT visible on Home page for support team member
+      await supportHomePage.verifySupportOptionNotVisible();
+      console.log('Support Team: Support option verified as not visible on Home page');
+
+      // Cleanup: Restore original Service Desk state (as admin)
+      await adminSettingsPage.navigateToServiceDeskSettings();
+      await adminSettingsPage.restoreServiceDeskState(originalState);
+      console.log('Restored original Service Desk state');
     }
   );
 
@@ -131,15 +219,32 @@ test.describe('service desk - Application Settings', () => {
 
       const serviceDeskSettingsPage = new ServiceDeskSettingsPage(serviceDeskPage);
 
+      // Navigate to Service Desk settings page
       await serviceDeskSettingsPage.navigateToServiceDeskSettings();
 
-      // When disabled → verify absence of radio options
-      await serviceDeskSettingsPage.uncheckDisableServiceDesk();
-      await serviceDeskSettingsPage.verifyRadioButtonOptionsNotVisible();
+      // Save original state for cleanup
+      const originalState = await serviceDeskSettingsPage.getServiceDeskState();
+      console.log(`Original Service Desk state: ${JSON.stringify(originalState)}`);
 
-      // When enabled → verify presence of radio options
+      // Disable Service Desk checkbox
+      await serviceDeskSettingsPage.uncheckDisableServiceDesk();
+      console.log('Service Desk checkbox disabled');
+
+      // Verify radio button options are NOT visible when Service Desk is disabled
+      await serviceDeskSettingsPage.verifyRadioButtonOptionsNotVisible();
+      console.log('Radio button options verified as not visible when disabled');
+
+      // Enable Service Desk checkbox
       await serviceDeskSettingsPage.checkEnableServiceDesk();
+      console.log('Service Desk checkbox enabled');
+
+      // Verify radio button options ARE visible when Service Desk is enabled
       await serviceDeskSettingsPage.verifyRadioButtonOptions();
+      console.log('Radio button options verified as visible when enabled');
+
+      // Cleanup: Restore original Service Desk state
+      await serviceDeskSettingsPage.restoreServiceDeskState(originalState);
+      console.log('Restored original Service Desk state');
     }
   );
 
@@ -154,10 +259,28 @@ test.describe('service desk - Application Settings', () => {
       const serviceDeskSettingsPage = new ServiceDeskSettingsPage(serviceDeskPage);
       const manageFeaturesPage = new ServiceDeskManageFeaturesPage(serviceDeskPage);
 
+      // Navigate to Service Desk settings page
       await serviceDeskSettingsPage.navigateToServiceDeskSettings();
+
+      // Save original state for cleanup
+      const originalState = await serviceDeskSettingsPage.getServiceDeskState();
+      console.log(`Original Service Desk state: ${JSON.stringify(originalState)}`);
+
+      // Disable Service Desk if it's currently enabled
       await serviceDeskSettingsPage.disableServiceDeskIfEnabled();
+      console.log('Service Desk disabled successfully');
+
+      // Navigate to Manage Features page
       await manageFeaturesPage.navigateToManageFeatures();
+
+      // Verify Service Desk option is NOT visible in Manage Features
       await manageFeaturesPage.verifyServiceDeskNotVisible();
+      console.log('Service Desk option verified as not visible in Manage Features');
+
+      // Cleanup: Restore original Service Desk state
+      await serviceDeskSettingsPage.navigateToServiceDeskSettings();
+      await serviceDeskSettingsPage.restoreServiceDeskState(originalState);
+      console.log('Restored original Service Desk state');
     }
   );
 });

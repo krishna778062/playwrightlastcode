@@ -9,11 +9,21 @@ import { BasePage } from '@core/pages/basePage';
  */
 export class ServiceDeskManageFeaturesPage extends BasePage {
   private readonly serviceDeskOption: Locator;
+  private readonly externalApplicationsSection: Locator;
 
   constructor(page: Page) {
     super(page, '/manage-features');
     // More specific locator for Service desk in External applications section
     this.serviceDeskOption = page.getByRole('button', { name: 'Service desk' });
+    this.externalApplicationsSection = page.locator('div').filter({ hasText: 'External applications' });
+  }
+
+  private getServiceDeskUrl(): string {
+    const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+    if (!serviceDeskUrl) {
+      throw new Error('SERVICE_DESK_URL not configured in environment variables');
+    }
+    return serviceDeskUrl;
   }
 
   /**
@@ -21,15 +31,9 @@ export class ServiceDeskManageFeaturesPage extends BasePage {
    */
   async navigateToManageFeatures(): Promise<void> {
     await test.step('Navigate to Manage Features', async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-      await this.page.goto(`${serviceDeskUrl}/manage-features`, { waitUntil: 'domcontentloaded' });
-      // Wait for page content to render
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {
-        // Fallback if networkidle times out - page might still be loading but content is visible
-      });
+      await this.goToUrl(`${this.getServiceDeskUrl()}/manage-features`, { waitUntil: 'domcontentloaded' });
+      // Wait for External applications section to be visible as it contains the Service Desk option
+      await expect(this.externalApplicationsSection).toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
 

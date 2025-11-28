@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
-import { LoginPage } from '@core/ui/pages/loginPage';
 
 /**
  * Service Desk Settings Page Object Model
@@ -52,6 +51,14 @@ export class ServiceDeskSettingsPage extends BasePage {
     this.successToast = page.getByText('Saved changes successfully');
   }
 
+  private getServiceDeskUrl(): string {
+    const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+    if (!serviceDeskUrl) {
+      throw new Error('SERVICE_DESK_URL not configured in environment variables');
+    }
+    return serviceDeskUrl;
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Service Desk Settings page is loaded', async () => {
       await expect(this.manageApplicationHeading).toBeVisible({ timeout: TIMEOUTS.SHORT });
@@ -61,57 +68,10 @@ export class ServiceDeskSettingsPage extends BasePage {
 
   async navigateToServiceDeskSettings(): Promise<void> {
     await test.step('Navigate to Service Desk Settings', async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-      await this.page.goto(`${serviceDeskUrl}/manage/app/setup/service-desk`, {
+      await this.goToUrl(`${this.getServiceDeskUrl()}/manage/app/setup/service-desk`, {
         waitUntil: 'domcontentloaded',
       });
       await this.verifyThePageIsLoaded();
-    });
-  }
-
-  /**
-   * Logout from Service Desk and clear session
-   */
-  async logout(): Promise<void> {
-    await test.step('Logout from Service Desk', async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-      await this.page.goto(`${serviceDeskUrl}/logout`, { waitUntil: 'domcontentloaded' });
-      // Clear all cookies and storage to ensure clean logout
-      await this.page.context().clearCookies();
-      await this.page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-      });
-    });
-  }
-
-  /**
-   * Login to Service Desk with specified user
-   * @param email - User email
-   * @param password - User password
-   */
-  async loginAs(email: string, password: string): Promise<void> {
-    await test.step(`Login as ${email}`, async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-
-      await this.page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
-
-      const loginPage = new LoginPage(this.page);
-      await loginPage.usernameInput.fill(email);
-      await loginPage.continueButton.click();
-      await this.page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
-      await loginPage.passwordInput.fill(password);
-      await loginPage.signInButton.click();
-      await this.page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -218,7 +178,10 @@ export class ServiceDeskSettingsPage extends BasePage {
       if (isEnabled) {
         await this.saveButton.click();
         await expect(this.successToast).toBeVisible({ timeout: TIMEOUTS.SHORT });
-        await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+        // Wait for page to be ready - fallback to waiting for save button to be disabled if networkidle times out
+        await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(async () => {
+          await expect(this.saveButton).toBeDisabled({ timeout: TIMEOUTS.VERY_SHORT });
+        });
       }
     });
   }
@@ -246,6 +209,57 @@ export class ServiceDeskSettingsPage extends BasePage {
       if (isChecked) {
         await this.enableServiceDeskCheckbox.uncheck();
       }
+    });
+  }
+
+  /**
+   * Get current Service Desk state (enabled/disabled and selected option)
+   * @returns Object with enabled status and selected option (if enabled)
+   */
+  async getServiceDeskState(): Promise<{ enabled: boolean; option?: 'support-teams' | 'everyone' }> {
+    await test.step('Get current Service Desk state', async () => {
+      await expect(this.enableServiceDeskCheckbox).toBeVisible();
+    });
+
+    const enabled = await this.enableServiceDeskCheckbox.isChecked();
+    let option: 'support-teams' | 'everyone' | undefined;
+
+    if (enabled) {
+      // Check which radio option is selected
+      const supportTeamsOnlyChecked = await this.supportTeamsOnlyRadio.isChecked();
+      const supportForEveryoneChecked = await this.supportForEveryoneRadio.isChecked();
+
+      if (supportTeamsOnlyChecked) {
+        option = 'support-teams';
+      } else if (supportForEveryoneChecked) {
+        option = 'everyone';
+      }
+    }
+
+    return { enabled, option };
+  }
+
+  async restoreServiceDeskState(state: { enabled: boolean; option?: 'support-teams' | 'everyone' }): Promise<void> {
+    await test.step(`Restore Service Desk state: ${state.enabled ? 'enabled' : 'disabled'}`, async () => {
+      const currentState = await this.getServiceDeskState();
+
+      if (currentState.enabled === state.enabled && currentState.option === state.option) {
+        console.log('Service Desk already in desired state, skipping restore');
+        return;
+      }
+
+      if (state.enabled) {
+        await this.checkEnableServiceDesk();
+        if (state.option) {
+          await this.selectRadioOption(state.option);
+        }
+      } else {
+        await this.uncheckDisableServiceDesk();
+      }
+
+      // Save changes
+      await this.saveAndVerify();
+      console.log(`Restored Service Desk state: ${state.enabled ? 'enabled' : 'disabled'}`);
     });
   }
 }

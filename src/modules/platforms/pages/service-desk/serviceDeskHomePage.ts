@@ -16,6 +16,14 @@ export class ServiceDeskHomePage extends BasePage {
     this.supportOption = page.getByText('Support', { exact: false });
   }
 
+  private getServiceDeskUrl(): string {
+    const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+    if (!serviceDeskUrl) {
+      throw new Error('SERVICE_DESK_URL not configured in environment variables');
+    }
+    return serviceDeskUrl;
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Home page is loaded', async () => {
       await expect(this.page.locator('h1')).toContainText('Home', { timeout: TIMEOUTS.SHORT });
@@ -24,11 +32,7 @@ export class ServiceDeskHomePage extends BasePage {
 
   async navigateToHome(): Promise<void> {
     await test.step('Navigate to Home page', async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-      await this.page.goto(`${serviceDeskUrl}/home`, { waitUntil: 'domcontentloaded' });
+      await this.goToUrl(`${this.getServiceDeskUrl()}/home`, { waitUntil: 'domcontentloaded' });
       await this.verifyThePageIsLoaded();
     });
   }
