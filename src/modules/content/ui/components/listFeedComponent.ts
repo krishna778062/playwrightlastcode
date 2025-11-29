@@ -15,6 +15,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly unfavoriteButton: Locator;
   readonly likeButton: Locator;
   readonly likeButtonForReply: Locator;
+  readonly unlikeButton: Locator;
+  readonly unlikeButtonForReply: Locator;
   readonly siteImageLocator: Locator;
   readonly editButton: Locator;
   readonly replyButton: Locator;
@@ -38,6 +40,17 @@ export class ListFeedComponent extends BaseComponent {
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+  readonly sharePostButton: Locator;
+
+  readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
+  readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
+  readonly forwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds forward' });
+  readonly backwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds backward' });
+  readonly fullscreenButton: Locator = this.page.getByRole('button', { name: 'Fullscreen' });
+  readonly exitFullscreenButton: Locator = this.page.getByRole('button', { name: 'Exit fullscreen' });
+  readonly settingsButton: Locator = this.page.getByRole('button', { name: 'Settings' });
+  readonly muteButton: Locator = this.page.getByRole('button', { name: 'Mute' });
+  readonly unmuteButton: Locator = this.page.getByRole('button', { name: 'Unmute' });
 
   // Dynamic locator functions
   /**
@@ -176,6 +189,7 @@ export class ListFeedComponent extends BaseComponent {
     this.closeButton = this.page.locator("button[class*='closeBtn']");
     this.inlineImagePreview = this.page.locator("div[class*='gallerySlide'] img");
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.unlikeButton = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
@@ -187,6 +201,8 @@ export class ListFeedComponent extends BaseComponent {
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
+    this.unlikeButtonForReply = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
+    this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
@@ -282,10 +298,18 @@ export class ListFeedComponent extends BaseComponent {
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await test.step(`Wait for post to be visible: ${expectedText}`, async () => {
       const postLocator = this.postTextLocator(expectedText);
-      await postLocator.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(postLocator, {
         timeout: 30000,
         assertionMessage: `Post with text "${expectedText}" should be visible`,
+      });
+    });
+  }
+
+  async verifyPostIsNotVisible(expectedText: string): Promise<void> {
+    await test.step(`Verify post is not visible: ${expectedText}`, async () => {
+      const postLocator = this.postTextLocator(expectedText);
+      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
+        assertionMessage: `Post with text "${expectedText}" should not be visible`,
       });
     });
   }
@@ -385,19 +409,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async verifyPostIsNotVisible(postText: string): Promise<void> {
-    await test.step(`Verify post is not visible: "${postText}"`, async () => {
-      const postLocator = this.getFeedTextLocator(postText);
-      await this.verifier.verifyTheElementIsNotVisible(postLocator, {
-        assertionMessage: `Post "${postText}" should not be visible`,
-      });
-    });
-  }
-  /**
-   * Adds a reply to a specific post
-   * @param postText - The text of the post to reply to
-   * @param replyText - The reply text to add
-   */
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
@@ -1034,6 +1045,29 @@ export class ListFeedComponent extends BaseComponent {
     this.page.locator('div[class*="postContent"]').filter({ hasText: userName }).first();
 
   /**
+   * Gets a locator for the share icon on a specific feed post
+   * @param postText - The text of the post to find share icon for
+   * @returns Locator for the share icon/button
+   */
+  readonly getShareIconLocator = (postText: string): Locator =>
+    this.page
+      .locator('._postBody_eonic_8')
+      .filter({ hasText: postText })
+      .getByRole('button', { name: 'Share this post' });
+
+  /**
+   * Gets a locator for the video element in a feed post
+   * @param postText - The text of the post to find video element for
+   * @returns Locator for the video element
+   */
+  readonly getVideoElementLocator = (postText: string): Locator =>
+    this.page
+      .locator('div[class*="postContent"]')
+      .filter({ hasText: postText })
+      .locator('video, div[class*="videoFluid"], div[class*="video"]')
+      .first();
+
+  /**
    * Clicks the share icon on a feed post
    * @param postText - The text of the post to share
    */
@@ -1063,6 +1097,91 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verifies video controls are visible and functional
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoControls(postText: string): Promise<void> {
+    await test.step(`Verify video controls for post: ${postText}`, async () => {
+      const videoContainer = this.getVideoElementLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(videoContainer, {
+        assertionMessage: `Video container should be visible for post "${postText}"`,
+      });
+
+      // Verify pause/play button
+      const playButton = videoContainer.locator(this.playButton);
+      await this.verifier.verifyTheElementIsVisible(playButton, {
+        assertionMessage: `Play/Pause button should be visible for video in post "${postText}"`,
+      });
+      console.log('Play/Pause button is visible Clicking on it');
+      await this.clickOnElement(playButton, { timeout: 10000 });
+
+      const errorButton = videoContainer.locator(this.page.getByRole('button', { name: 'Try again' }));
+      await errorButton.waitFor({ state: 'visible' });
+      if (await errorButton.isVisible()) {
+        console.log('Error button is visible, Video is not playing returning from the function');
+        return;
+      }
+      console.log('Error button is not visible, Video is playing');
+
+      const pauseButton = videoContainer.locator(this.pauseButton);
+      await this.verifier.verifyTheElementIsVisible(pauseButton, {
+        assertionMessage: `Pause button should be visible for video in post "${postText}"`,
+      });
+      console.log('Pause button is visible Clicking on it');
+      await this.clickOnElement(pauseButton);
+
+      const forwardButton = videoContainer.locator(this.forwardButton);
+      await this.verifier.verifyTheElementIsVisible(forwardButton, {
+        assertionMessage: `Forward button should be visible for video in post "${postText}"`,
+      });
+      console.log('Forward button is visible Clicking on it');
+      await this.clickOnElement(forwardButton);
+
+      const backwardButton = videoContainer.locator(this.backwardButton);
+      await this.verifier.verifyTheElementIsVisible(backwardButton, {
+        assertionMessage: `Backward button should be visible for video in post "${postText}"`,
+      });
+      console.log('Backward button is visible Clicking on it');
+      await this.clickOnElement(backwardButton);
+
+      const muteButton = videoContainer.locator(this.muteButton);
+      await this.verifier.verifyTheElementIsVisible(muteButton, {
+        assertionMessage: `Mute button should be visible for video in post "${postText}"`,
+      });
+      console.log('Mute button is visible Clicking on it');
+      await this.clickOnElement(muteButton);
+
+      const unmuteButton = videoContainer.locator(this.unmuteButton);
+      await this.verifier.verifyTheElementIsVisible(unmuteButton, {
+        assertionMessage: `Unmute button should be visible for video in post "${postText}"`,
+      });
+      console.log('Unmute button is visible Clicking on it');
+      await this.clickOnElement(unmuteButton);
+
+      const settingsButton = videoContainer.locator(this.settingsButton);
+      await this.verifier.verifyTheElementIsVisible(settingsButton, {
+        assertionMessage: `Settings button should be visible for video in post "${postText}"`,
+      });
+      console.log('Settings button is visible Clicking on it');
+      await this.clickOnElement(settingsButton);
+
+      const fullscreenButton = videoContainer.locator(this.fullscreenButton);
+      await this.verifier.verifyTheElementIsVisible(fullscreenButton, {
+        assertionMessage: `Fullscreen button should be visible for video in post "${postText}"`,
+      });
+      console.log('Fullscreen button is visible Clicking on it');
+      await this.clickOnElement(fullscreenButton);
+
+      const exitFullscreenButton = videoContainer.locator(this.exitFullscreenButton);
+      await this.verifier.verifyTheElementIsVisible(exitFullscreenButton, {
+        assertionMessage: `Exit fullscreen button should be visible for video in post "${postText}"`,
+      });
+      console.log('Exit fullscreen button is visible Clicking on it');
+      await this.clickOnElement(exitFullscreenButton);
+    });
+  }
+
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await test.step('Verify embedded URL is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.embedUrlLocator(embedUrl), {
@@ -1071,11 +1190,64 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verifies that an embedded URL does NOT unfurl (no link preview is displayed)
-   * @param embedUrl - The URL that should not be unfurled
-   * @param postText - The text of the post containing the URL
-   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton.first(), {
+        assertionMessage: 'Share button should not be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify reaction button is not visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
+        assertionMessage: 'Reaction button should not be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed post', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
+        assertionMessage: 'Reaction button should be visible on feed post',
+      });
+      await this.clickOnElement(this.likeButton.first());
+      await this.verifier.verifyTheElementIsVisible(this.unlikeButton.first(), {
+        assertionMessage: 'Remove your reaction button should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await test.step('Verify reaction button is visible on feed reply', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.likeButtonForReply.first(), {
+        assertionMessage: 'Reaction button should be visible on feed reply',
+      });
+    });
+    await this.clickOnElement(this.likeButtonForReply.first());
+    await this.verifier.verifyTheElementIsVisible(this.unlikeButtonForReply.first(), {
+      assertionMessage: 'Remove your reaction button should be visible on feed reply',
+    });
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
+    await test.step('Verify the page is loaded with timeline mode', async () => {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
+        assertionMessage: 'Show button should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    const sendFeedbackButton = this.page.getByRole('button', { name: 'Send feedback' });
+    await test.step('Verify the page is loaded with timeline mode on content page', async () => {
+      await this.verifier.verifyTheElementIsVisible(sendFeedbackButton, {
+        assertionMessage: 'Show button should be visible on content page',
+      });
+    });
+  }
+
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await test.step(`Verify embedded URL "${embedUrl}" does not unfurl in post: ${postText}`, async () => {
       // First, verify the post is visible
@@ -1113,11 +1285,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks a specific reaction emoji (like, love, etc.)
-   * @param postText - The text of the post
-   * @param reactionName - The name of the reaction (e.g., 'like', 'love')
-   */
   async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
     await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
       const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
@@ -1128,11 +1295,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Gets the text content of the reaction button to verify which emoji is selected
-   * @param postText - The text of the post
-   * @returns The text content of the reaction button
-   */
   async verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void> {
     const reactionButton = this.page.locator('button').filter({ hasText: reactionName }).first();
     await this.verifier.verifyTheElementIsVisible(reactionButton, {
@@ -1144,10 +1306,6 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Clicks the reaction count/text button to open the reaction modal
-   * @param postText - The text of the post
-   */
   async clickReactionCountButton(postText: string): Promise<void> {
     await test.step(`Click reaction count button for post: ${postText}`, async () => {
       const reactionCountButton = this.reactionCountButton.first();

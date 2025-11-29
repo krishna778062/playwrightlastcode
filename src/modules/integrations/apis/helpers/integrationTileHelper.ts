@@ -12,6 +12,7 @@ import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { TileManagementService } from '@/src/modules/integrations/apis/services/TileManagementService';
+import { getTenantConfig } from '@/src/modules/integrations/config/integration.config';
 
 export class IntegrationTileHelper {
   readonly httpClient: HttpClient;
@@ -75,12 +76,12 @@ export class IntegrationTileHelper {
     const integrationTiles = await this.getIntegrationTilesList();
     const target = tileTitle.toLowerCase().trim();
     const matchedTile = integrationTiles.find((tile: any) =>
-      [tile?.tileInstanceName, tile?.title, tile?.name].some(
-        (n: any) =>
-          String(n ?? '')
-            .toLowerCase()
-            .trim() === target
-      )
+      [tile?.tileInstanceName, tile?.title, tile?.name].some((n: any) => {
+        const value = String(n ?? '')
+          .toLowerCase()
+          .trim();
+        return value === target || value.startsWith(target);
+      })
     );
 
     const integrationTileId = matchedTile?.id || matchedTile?.tileId || matchedTile?.contentTileId;
@@ -96,20 +97,14 @@ export class IntegrationTileHelper {
    * @private
    */
   private async getIntegrationTilesList(): Promise<any[]> {
-    const { frontendBaseUrl, tenantUserRoleId } = getEnvConfig();
-    //if tenantUserRoleId is not set, throw an error
-    if (!tenantUserRoleId) {
-      throw new Error('Tenant user role ID is not set');
-    }
-    const frontendHost = new URL(frontendBaseUrl).host;
+    const tenantConfig = getTenantConfig() as any;
+    const frontendBaseUrl = tenantConfig.frontendBaseUrl;
 
     const headers: Record<string, string> = {
       Origin: frontendBaseUrl,
       Referer: frontendBaseUrl,
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'x-smtip-f-host': frontendHost,
-      'x-smtip-tenant-user-role': tenantUserRoleId,
     };
 
     const res = await this.httpClient.post(API_ENDPOINTS.integrations.contentTilesList, {

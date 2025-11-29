@@ -111,6 +111,12 @@ export interface IdentityUserInfoResponse {
   work_info: work_info;
   role_id: string;
   additional_role_id?: string[];
+  source: string;
+  external_id: string;
+  deprov_source: string;
+  sync_source: string;
+  sync_identifier: string;
+  reprov_source: string;
 }
 
 export interface personal_info {

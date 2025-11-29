@@ -413,6 +413,28 @@ export class BaseVerificationUtil {
     }
   }
 
+  async verifyElementVisibilityByOpacity(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have opacity 1`).toHaveCSS(
+        'opacity',
+        '1'
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not visible.\n${error}`
+      );
+    }
+  }
+
   /**
    * Waits for the element to be hidden
    * @param locator - The locator to wait for
