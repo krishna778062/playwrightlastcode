@@ -84,6 +84,8 @@ export const API_ENDPOINTS = {
     makeContentMustRead: (contentId: string) => `/v1/content/sites/content/${contentId}/mustRead`,
     category: '/pageCategories/list',
     publish: '/content?action=publish',
+    draft: '/content?action=draft',
+    saveDraft: '/content?action=saveDraft',
     approveContent: (siteId: string, contentId: string) =>
       `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
     updateDetails: (siteId: string, contentId: string) =>
@@ -99,6 +101,7 @@ export const API_ENDPOINTS = {
     favourites: '/v1/content/sites/content/favorite',
     contentListInSite: '/v1/content/sites/content/list',
     manage: '/manage',
+    move: '/move',
     manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
     homeCarouselItems: '/v1/content/carousel/items/list',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,

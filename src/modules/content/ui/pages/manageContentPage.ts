@@ -15,6 +15,7 @@ export interface IActions {
   clickOnFirstContentButton: () => Promise<void>;
   clickOnSelectActionDropdown: () => Promise<void>;
   clickOnUnpublishButton: () => Promise<void>;
+  clickOnUnpublishButtonFromDropDown: () => Promise<void>;
   selectUnpublishButtonFromBulkActions: () => Promise<void>;
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
@@ -176,6 +177,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnUnpublishButton(): Promise<void> {
     await this.manageContentComponent.selectUnpublishButton();
+  }
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await this.manageContentComponent.clickOnUnpublishButtonFromDropDown();
   }
 
   async clickOnApplyButton(): Promise<void> {

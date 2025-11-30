@@ -284,10 +284,16 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectUnpublishButton(): Promise<void> {
     await test.step(`Selecting the unpublish button`, async () => {
+      await this.clickOnElement(this.unpublishButton);
+    });
+  }
+
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await test.step(`Clicking on the unpublish button from drop down`, async () => {
       const publishResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.unpublishButton, { delay: 2_000, timeout: 5_000 }),
+        () => this.clickOnElement(this.unpublishButton, { delay: 2_000 }),
         response =>
-          response.url().includes(API_ENDPOINTS.content.manage) &&
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_APPLY_API) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
@@ -312,7 +318,7 @@ export class ManageContentComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 60_000,
         }
       );
       return publishResponse;
@@ -404,7 +410,17 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectMoveConfirmButton(): Promise<void> {
     await test.step(`Selecting the move confirm button`, async () => {
-      await this.clickOnElement(this.moveConfirmButton);
+      const moveResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.moveConfirmButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.move) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return moveResponse;
     });
   }
 

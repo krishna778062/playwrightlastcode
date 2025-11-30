@@ -504,20 +504,20 @@ test.describe(
         await manageFeaturesPage.actions.clickOnContentCard();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.clickOnSelectAllButton();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickOnFirstContentButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await appManagerFixture.page.reload();
+        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.clickOnSelectAllButton();
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageContentPage.actions.clickOnPublishButton();
         await manageContentPage.actions.clickOnApplyButton();
-        await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
@@ -535,7 +535,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20532'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description:
             'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
