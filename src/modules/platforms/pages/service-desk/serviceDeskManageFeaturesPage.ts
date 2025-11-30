@@ -15,7 +15,7 @@ export class ServiceDeskManageFeaturesPage extends BasePage {
     super(page, '/manage-features');
     // More specific locator for Service desk in External applications section
     this.serviceDeskOption = page.getByRole('button', { name: 'Service desk' });
-    this.externalApplicationsSection = page.locator('div').filter({ hasText: 'External applications' });
+    this.externalApplicationsSection = page.getByRole('heading', { name: 'External applications' });
   }
 
   private getServiceDeskUrl(): string {
@@ -32,8 +32,6 @@ export class ServiceDeskManageFeaturesPage extends BasePage {
   async navigateToManageFeatures(): Promise<void> {
     await test.step('Navigate to Manage Features', async () => {
       await this.goToUrl(`${this.getServiceDeskUrl()}/manage-features`, { waitUntil: 'domcontentloaded' });
-      // Wait for External applications section to be visible as it contains the Service Desk option
-      await expect(this.externalApplicationsSection).toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
 

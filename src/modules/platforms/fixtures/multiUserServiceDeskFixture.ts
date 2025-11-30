@@ -1,6 +1,6 @@
 import { BrowserContext, Page, test } from '@playwright/test';
 
-import { LoginHelper } from '@core/helpers/loginHelper';
+import { LoginPage } from '@core/ui/pages/loginPage';
 
 export const multiUserServiceDeskFixture = test.extend<{
   // Admin browser context + page
@@ -32,10 +32,11 @@ export const multiUserServiceDeskFixture = test.extend<{
       }
 
       console.log(`Logging in admin user: ${process.env.SERVICE_DESK_USERNAME}`);
-      await LoginHelper.loginWithPassword(page, {
-        email: process.env.SERVICE_DESK_USERNAME!,
-        password: process.env.SERVICE_DESK_PASSWORD!,
-      });
+      // Navigate to Service Desk login page and perform login without using LoginHelper
+      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
+      const loginPage = new LoginPage(page);
+      await loginPage.performLoginWithPassword(process.env.SERVICE_DESK_USERNAME!, process.env.SERVICE_DESK_PASSWORD!);
+      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
       console.log('Admin user logged in successfully');
 
       await use(page);
@@ -63,10 +64,11 @@ export const multiUserServiceDeskFixture = test.extend<{
       }
 
       console.log(`Logging in support team member: ${process.env.SUPPORT_TEAM_MEMBER}`);
-      await LoginHelper.loginWithPassword(page, {
-        email: process.env.SUPPORT_TEAM_MEMBER!,
-        password: process.env.SERVICE_DESK_PASSWORD!,
-      });
+      // Navigate to Service Desk login page and perform login without using LoginHelper
+      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
+      const loginPage = new LoginPage(page);
+      await loginPage.performLoginWithPassword(process.env.SUPPORT_TEAM_MEMBER!, process.env.SERVICE_DESK_PASSWORD!);
+      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
       console.log('Support team member logged in successfully');
 
       await use(page);
@@ -95,10 +97,11 @@ export const multiUserServiceDeskFixture = test.extend<{
       }
 
       console.log(`Logging in end user: ${process.env.END_USER}`);
-      await LoginHelper.loginWithPassword(page, {
-        email: process.env.END_USER!,
-        password: process.env.SERVICE_DESK_PASSWORD!,
-      });
+      // Navigate to Service Desk login page and perform login without using LoginHelper
+      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
+      const loginPage = new LoginPage(page);
+      await loginPage.performLoginWithPassword(process.env.END_USER!, process.env.SERVICE_DESK_PASSWORD!);
+      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
       console.log('End user logged in successfully');
 
       await use(page);
