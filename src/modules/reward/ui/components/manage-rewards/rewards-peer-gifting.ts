@@ -65,8 +65,8 @@ export class RewardsPeerGifting extends BasePage {
     this.peerGiftingLabels = this.peerGiftingPanel.locator('[class*="PeerGifting_label"]');
     this.peerGiftingPanelHeading = this.peerGiftingLabels.locator('h3');
     this.peerGiftingPanelDescription = this.peerGiftingLabels.locator('p');
-    this.peerGiftingToggle = this.peerGiftingPanel.locator('[class*="PeerGifting_toggle"]');
-    this.peerGiftingToggleSwitch = this.peerGiftingToggle.locator('button[class*="ToggleInput-module__root"]');
+    this.peerGiftingToggle = this.peerGiftingPanel.locator('[class*="PeerGifting_toggle--"]');
+    this.peerGiftingToggleSwitch = this.peerGiftingToggle.locator('button[role="switch"]');
     this.peerGiftingError = this.peerGiftingPanel.locator('[class*="Typography-module__paragraph"]').last();
     this.saveButton = page.locator('//button[text()="Save"]');
     //Disable Peer Gifting dialog
