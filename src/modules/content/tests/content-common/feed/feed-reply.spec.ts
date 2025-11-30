@@ -3,6 +3,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -263,6 +264,131 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyReplyEditorClosed(createdPostText);
         }
       );
+
+      // Test case for CONT-19537: Verify user able to add, edit, delete reply on Home Feed
+      if (testData.feedType === 'Home Feed') {
+        test(
+          'verify user can add, edit, delete reply on Home Feed with image attachments',
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19537'],
+          },
+          async ({ appManagerFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify user able to add, edit, delete reply on Home Feed',
+              zephyrTestId: 'CONT-19537',
+              storyId: 'CONT-19537',
+            });
+
+            // Get file paths for test images
+            const image1Path = FileUtil.getFilePath(
+              __dirname,
+              '..',
+              '..',
+              '..',
+              'test-data',
+              'static-files',
+              'images',
+              FEED_TEST_DATA.ATTACHMENTS.IMAGE
+            );
+            const faviconPath = FileUtil.getFilePath(
+              __dirname,
+              '..',
+              '..',
+              '..',
+              'test-data',
+              'static-files',
+              'images',
+              FEED_TEST_DATA.ATTACHMENTS.FAVICON
+            );
+
+            // Generate unique reply text
+            const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+            const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED_REPLY;
+
+            // ==================== CREATE REPLY ====================
+            // Open reply editor for the post
+            await appManagerFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+            // Get the createFeedPostComponent from the page (used for reply editor)
+            const createFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+            const listFeedComponent = appManagerFeedPage['listFeedComponent'];
+
+            // Create reply text in editor
+            await createFeedPostComponent.createPost(replyText);
+
+            // Upload image1.jpg
+            await createFeedPostComponent.uploadFiles([image1Path]);
+
+            // Verify image1.jpg is attached
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            // Remove the file
+            await createFeedPostComponent.removeAttachedFile(0);
+
+            // Verify file is removed
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(0);
+
+            // Upload favicon.png
+            await createFeedPostComponent.uploadFiles([faviconPath]);
+
+            // Verify favicon.png is attached
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+            await createFeedPostComponent.assertions.verifyFileIsAttached(FEED_TEST_DATA.ATTACHMENTS.FAVICON);
+
+            // Submit reply
+            await listFeedComponent.submitReplyAndGetResponse();
+
+            // ==================== VERIFY REPLY CREATED ====================
+            // Verify reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+            // Verify timestamp is present
+            await listFeedComponent.verifyReplyTimestamp(replyText);
+
+            // Verify reply count = 1
+            await appManagerFeedPage.assertions.verifyReplyCount(createdPostText, 1);
+
+            // ==================== EDIT REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(replyText);
+
+            // Click Edit
+            await listFeedComponent.clickReplyEditOption();
+
+            // Verify editor is visible
+            await createFeedPostComponent.assertions.verifyEditorVisible();
+
+            // // Verify image button is NOT visible (cannot add new files)
+            // await appManagerFeedPage.actions.verifyImageButtonIsNotVisible();
+
+            // Verify attached file count is still 1 (cannot remove files)
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            // Update reply text
+            await createFeedPostComponent.updatePostText(updatedReplyText);
+
+            // Click Update button
+            await createFeedPostComponent.clickUpdateButton();
+
+            // Verify updated reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
+
+            // ==================== DELETE REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+
+            // Click Delete option
+            await listFeedComponent.clickReplyDeleteOption();
+
+            // Confirm deletion
+            await listFeedComponent.confirmDelete();
+
+            await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
+
+            await appManagerFeedPage.actions.deletePost(createdPostText);
+          }
+        );
+      }
     }
   );
 }
