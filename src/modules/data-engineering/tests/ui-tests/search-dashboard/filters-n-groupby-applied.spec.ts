@@ -8,6 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { DateHelper, SearchDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SearchDashboard } from '../../../ui/dashboards';
@@ -58,8 +59,8 @@ test.describe(
           timePeriod: PeriodFilterTimeRange.CUSTOM,
           customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
           customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
-          departments: ['Undefined'],
-          locations: ['Gurugram, Haryana, India', 'India'],
+          departments: [...TEST_FILTER_VALUES.SEARCH.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.SEARCH.LOCATIONS],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 
