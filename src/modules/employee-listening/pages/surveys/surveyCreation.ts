@@ -118,6 +118,7 @@ export class SurveyCreationPage extends BasePage {
   readonly notScheduledText: Locator;
   readonly participationWindowText: Locator;
   readonly freeTextQuestionText: Locator;
+  readonly saveButton: Locator;
 
   readonly previewSectionLocators: ((section: string) => Locator)[] = [
     (section: string) => this.previewDialog.getByText(section, { exact: true }),
@@ -400,6 +401,7 @@ export class SurveyCreationPage extends BasePage {
     this.notScheduledText = this.page.getByText('Not scheduled yet');
     this.participationWindowText = this.page.getByText('days');
     this.freeTextQuestionText = this.page.getByText('What could have been improved');
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -1711,6 +1713,16 @@ export class SurveyCreationPage extends BasePage {
     const surveyId = await this.captureSurveyIdAfterSchedule();
     await this.verifySurveyScheduledMessage();
     return surveyId;
+  }
+
+  async verifySaveButtonOnPreviewConfirm(): Promise<void> {
+    await test.step('Verify Save button is visible on preview and confirm screen', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage:
+          'Save button should be visible on preview and confirm screen when "not yet" option is selected',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
   }
 }
 

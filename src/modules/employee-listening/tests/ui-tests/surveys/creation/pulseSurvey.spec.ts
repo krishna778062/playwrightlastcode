@@ -257,146 +257,206 @@ test.describe('pulse Survey Creation Tests', () => {
     }
   );
 
-  test('verify duplicate Pulse survey preserves custom configuration and questions for audience recipient', async () => {
-    await surveyCreationPage.clickCreateSurveyButton();
-    await pulseSurveyPage.clickPulseSurvey();
-    await surveyCreationPage.clickCreateButton();
-    const surveyName = `Pulse ${Date.now()}`;
-    await surveyCreationPage.enterSurveyName(surveyName);
-    await surveyCreationPage.selectCustomIntroMessage();
-    await surveyCreationPage.selectDefaultThanksMessage();
-    await surveyCreationPage.selectAudiences(['India']);
-    await surveyCreationPage.selectDefaultFormAddress();
-    await pulseSurveyPage.selectSendDate({
-      frequencyRadioName: 'Every three months A great',
-      recurrenceDate: '25',
-      participationWindow: '12',
-      sendDateMenuName: '3',
-      endDateRadioName: 'Choose end date',
-      endDateButtonName: 'Select date…',
-    });
-    await surveyCreationPage.clickConfigureSurveyNextButton();
-    await surveyCreationPage.clickCreateYourOwnButton();
-    await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
-    await surveyCreationPage.selectAwarenessAnswerScale();
-    await surveyCreationPage.selectTheme('Business agility');
-    await surveyCreationPage.clickAddButton();
-    await surveyCreationPage.validateQuestionAddedPopup();
-    await surveyCreationPage.clickCreateYourOwnButton();
-    await surveyCreationPage.enterQuestionTitle('Test Scale type question-2');
-    await surveyCreationPage.selectAwarenessAnswerScale();
-    await surveyCreationPage.selectTheme('Business agility');
-    await surveyCreationPage.clickAddButton();
-    await surveyCreationPage.validateQuestionAddedPopup();
-    await surveyCreationPage.clickAddQuestionNextButton();
-    createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
-    await surveyCreationPage.verifySurveyScheduledMessage();
-    await surveyCreationPage.navigateToSurveysViaMenu();
-    await surveyCreationPage.searchSurveyByName(surveyName);
-    await surveyCreationPage.clickFirstSurveyManageButton();
-    await surveyCreationPage.clickDuplicateOption();
-    await surveyCreationPage.clickConfigureSurveyNextButton();
-    await surveyCreationPage.validateQuestionsOnPreview(['Test Scale type question-1', 'Test Scale type question-2']);
-    await surveyCreationPage.clickAddQuestionNextButton();
-    await pulseSurveyPage.verifySurveyDraftSavedMessage();
-    await pulseSurveyPage.clickSaveButton();
-  });
+  test(
+    'verify duplicate Pulse survey preserves custom configuration and questions for audience recipient',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      await surveyCreationPage.clickCreateSurveyButton();
+      await pulseSurveyPage.clickPulseSurvey();
+      await surveyCreationPage.clickCreateButton();
+      const surveyName = `Pulse ${Date.now()}`;
+      await surveyCreationPage.enterSurveyName(surveyName);
+      await surveyCreationPage.selectCustomIntroMessage();
+      await surveyCreationPage.selectDefaultThanksMessage();
+      await surveyCreationPage.selectAudiences(['India']);
+      await surveyCreationPage.selectDefaultFormAddress();
+      await pulseSurveyPage.selectSendDate({
+        frequencyRadioName: 'Every three months A great',
+        recurrenceDate: '25',
+        participationWindow: '12',
+        sendDateMenuName: '3',
+        endDateRadioName: 'Choose end date',
+        endDateButtonName: 'Select date…',
+      });
+      await surveyCreationPage.clickConfigureSurveyNextButton();
+      await surveyCreationPage.clickCreateYourOwnButton();
+      await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
+      await surveyCreationPage.selectAwarenessAnswerScale();
+      await surveyCreationPage.selectTheme('Business agility');
+      await surveyCreationPage.clickAddButton();
+      await surveyCreationPage.validateQuestionAddedPopup();
+      await surveyCreationPage.clickCreateYourOwnButton();
+      await surveyCreationPage.enterQuestionTitle('Test Scale type question-2');
+      await surveyCreationPage.selectAwarenessAnswerScale();
+      await surveyCreationPage.selectTheme('Business agility');
+      await surveyCreationPage.clickAddButton();
+      await surveyCreationPage.validateQuestionAddedPopup();
+      await surveyCreationPage.clickAddQuestionNextButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
+      await surveyCreationPage.verifySurveyScheduledMessage();
+      await surveyCreationPage.navigateToSurveysViaMenu();
+      await surveyCreationPage.searchSurveyByName(surveyName);
+      await surveyCreationPage.clickFirstSurveyManageButton();
+      await surveyCreationPage.clickDuplicateOption();
+      await surveyCreationPage.clickConfigureSurveyNextButton();
+      await surveyCreationPage.validateQuestionsOnPreview(['Test Scale type question-1', 'Test Scale type question-2']);
+      await surveyCreationPage.clickAddQuestionNextButton();
+      await pulseSurveyPage.verifySurveyDraftSavedMessage();
+      await pulseSurveyPage.clickSaveButton();
+    }
+  );
 
-  test('verify scheduling a draft pulse survey after modifying to site recipient type', async () => {
-    await surveyCreationPage.clickCreateSurveyButton();
-    await pulseSurveyPage.clickPulseSurvey();
-    await surveyCreationPage.clickCreateButton();
-    const surveyName = `Pulse ${Date.now()}`;
-    await surveyCreationPage.enterSurveyName(surveyName);
-    await surveyCreationPage.selectDefaultIntroAndThanks();
-    await surveyCreationPage.selectAudiences(['All Employees']);
-    await surveyCreationPage.selectDefaultFormAddress();
-    await pulseSurveyPage.selectFrequency('Pulse');
-    await pulseSurveyPage.selectFrequency('Weekly');
-    await pulseSurveyPage.selectCurrentRecurrenceDay();
-    await pulseSurveyPage.selectCustomParticipationWindow('2');
-    await pulseSurveyPage.selectSendDate({
-      frequencyRadioName: 'Every two weeks',
-      recurrenceDate: '25',
-      participationWindow: '12',
-      sendDateMenuName: '6',
-      endDateRadioName: 'Choose end date',
-      endDateButtonName: 'Select date…',
-    });
-    await surveyCreationPage.clickConfigureSurveyNextButton();
-    await surveyCreationPage.clickCreateYourOwnButton();
-    await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
-    await surveyCreationPage.selectAwarenessAnswerScale();
-    await surveyCreationPage.selectTheme('Business agility');
-    await surveyCreationPage.clickAddButton();
-    await surveyCreationPage.validateQuestionAddedPopup();
-    await surveyCreationPage.clickAddQuestionNextButton();
-    await surveyCreationPage.navigateToSurveysViaMenu();
-    await surveyCreationPage.searchSurveyByName(surveyName);
-    await surveyCreationPage.clickFirstSurveyManageButton();
-    await surveyCreationPage.clickConfigureOption();
-    await surveyCreationPage.clickCreateYourOwnButton();
-    await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
-    await surveyCreationPage.selectAwarenessAnswerScale();
-    await surveyCreationPage.selectTheme('Business agility');
-    await surveyCreationPage.clickAddButton();
-    await surveyCreationPage.clickAddQuestionNextButton();
-    createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
-    await surveyCreationPage.verifySurveyScheduledMessage();
-  });
+  test(
+    'verify scheduling a draft pulse survey after modifying to site recipient type',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      await surveyCreationPage.clickCreateSurveyButton();
+      await pulseSurveyPage.clickPulseSurvey();
+      await surveyCreationPage.clickCreateButton();
+      const surveyName = `Pulse ${Date.now()}`;
+      await surveyCreationPage.enterSurveyName(surveyName);
+      await surveyCreationPage.selectDefaultIntroAndThanks();
+      await surveyCreationPage.selectAudiences(['All Employees']);
+      await surveyCreationPage.selectDefaultFormAddress();
+      await pulseSurveyPage.selectFrequency('Pulse');
+      await pulseSurveyPage.selectFrequency('Weekly');
+      await pulseSurveyPage.selectCurrentRecurrenceDay();
+      await pulseSurveyPage.selectCustomParticipationWindow('2');
+      await pulseSurveyPage.selectSendDate({
+        frequencyRadioName: 'Every two weeks',
+        recurrenceDate: '25',
+        participationWindow: '12',
+        sendDateMenuName: '6',
+        endDateRadioName: 'Choose end date',
+        endDateButtonName: 'Select date…',
+      });
+      await surveyCreationPage.clickConfigureSurveyNextButton();
+      await surveyCreationPage.clickCreateYourOwnButton();
+      await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
+      await surveyCreationPage.selectAwarenessAnswerScale();
+      await surveyCreationPage.selectTheme('Business agility');
+      await surveyCreationPage.clickAddButton();
+      await surveyCreationPage.validateQuestionAddedPopup();
+      await surveyCreationPage.clickAddQuestionNextButton();
+      await surveyCreationPage.navigateToSurveysViaMenu();
+      await surveyCreationPage.searchSurveyByName(surveyName);
+      await surveyCreationPage.clickFirstSurveyManageButton();
+      await surveyCreationPage.clickConfigureOption();
+      await surveyCreationPage.clickCreateYourOwnButton();
+      await surveyCreationPage.enterQuestionTitle('Test Scale type question-1');
+      await surveyCreationPage.selectAwarenessAnswerScale();
+      await surveyCreationPage.selectTheme('Business agility');
+      await surveyCreationPage.clickAddButton();
+      await surveyCreationPage.clickAddQuestionNextButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
+      await surveyCreationPage.verifySurveyScheduledMessage();
+    }
+  );
 
-  test('verify app manager should able to duplicate a paused survey', async () => {
-    await surveyCreationPage.navigateToHome();
-    await surveyCreationPage.clickManageFeaturesMenuItem();
-    await surveyCreationPage.clickSurveysButton();
-    await pulseSurveyPage.waitForSurveysPageLoad(5000);
-    await surveyCreationPage.applyTypeFilter('Pulse');
-    await surveyCreationPage.applyStatusFilter('Active');
-    await pulseSurveyPage.clickFirstSurveyManageButton();
-    await pulseSurveyPage.pauseSurvey();
-    await pulseSurveyPage.confirmPauseSurvey();
-    await surveyCreationPage.clickResetButton();
-    await surveyCreationPage.applyTypeFilter('Pulse');
-    await surveyCreationPage.applyStatusFilter('Paused');
-    await pulseSurveyPage.pressEscape();
-    await pulseSurveyPage.clickFirstSurveyManageButton();
-    await surveyCreationPage.clickDuplicateOption();
-    await pulseSurveyPage.selectFrequency('Every three months');
-    await pulseSurveyPage.selectFrequency('Weekly');
-    await pulseSurveyPage.selectCurrentRecurrenceDay();
-    await pulseSurveyPage.selectCustomParticipationWindow('2');
-    await surveyCreationPage.selectDefaultFormAddress();
-    await pulseSurveyPage.selectSendDate({
-      frequencyRadioName: 'Every three months',
-      recurrenceDate: '25',
-      participationWindow: '12',
-      sendDateMenuName: '6',
-      endDateRadioName: 'Choose end date',
-      endDateButtonName: 'Select date…',
-    });
-    await surveyCreationPage.clickConfigureSurveyNextButton();
-    await surveyCreationPage.clickAddQuestionNextButton();
-    createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
-    await surveyCreationPage.verifySurveyScheduledMessage();
-  });
+  test(
+    'verify app manager should able to duplicate a paused survey',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      await surveyCreationPage.navigateToHome();
+      await surveyCreationPage.clickManageFeaturesMenuItem();
+      await surveyCreationPage.clickSurveysButton();
+      await pulseSurveyPage.waitForSurveysPageLoad(5000);
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Active');
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await pulseSurveyPage.pauseSurvey();
+      await pulseSurveyPage.confirmPauseSurvey();
+      await surveyCreationPage.clickResetButton();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Paused');
+      await pulseSurveyPage.pressEscape();
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await surveyCreationPage.clickDuplicateOption();
+      await pulseSurveyPage.selectFrequency('Every three months');
+      await pulseSurveyPage.selectFrequency('Weekly');
+      await pulseSurveyPage.selectCurrentRecurrenceDay();
+      await pulseSurveyPage.selectCustomParticipationWindow('2');
+      await surveyCreationPage.selectDefaultFormAddress();
+      await pulseSurveyPage.selectSendDate({
+        frequencyRadioName: 'Every three months',
+        recurrenceDate: '25',
+        participationWindow: '12',
+        sendDateMenuName: '6',
+        endDateRadioName: 'Choose end date',
+        endDateButtonName: 'Select date…',
+      });
+      await surveyCreationPage.clickConfigureSurveyNextButton();
+      await surveyCreationPage.clickAddQuestionNextButton();
+      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
+      await surveyCreationPage.verifySurveyScheduledMessage();
+    }
+  );
 
-  test('verify “Copy link to survey” hyperlink available on share screen', async () => {
-    await surveyCreationPage.navigateToSurveysViaMenu();
-    await surveyCreationPage.applyTypeFilter('Pulse');
-    await surveyCreationPage.applyStatusFilter('Active');
-    await pulseSurveyPage.applySortFilter('Last sent');
-    await pulseSurveyPage.clickFirstSurveyManageButton();
-    await pulseSurveyPage.copySurveyLinkAndOpenTabAndVerify();
-  });
+  test(
+    'verify “Copy link to survey” hyperlink available on share screen',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      await surveyCreationPage.navigateToSurveysViaMenu();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Active');
+      await pulseSurveyPage.applySortFilter('Last sent');
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await pulseSurveyPage.copySurveyLinkAndOpenTabAndVerify();
+    }
+  );
 
-  test('verify “Not yet” and “Schedule date and time” option will not be available if user try to edit active pulse surveys', async () => {
-    await surveyCreationPage.navigateToSurveysViaMenu();
-    await surveyCreationPage.applyTypeFilter('Pulse');
-    await surveyCreationPage.applyStatusFilter('Active');
-    await pulseSurveyPage.applySortFilter('Last sent');
-    await pulseSurveyPage.clickFirstSurveyManageButton();
-    await surveyCreationPage.editSurveymethod();
-    await surveyCreationPage.clickConfigureSurveyNextButton();
-    await pulseSurveyPage.verifyNotYetAndScheduleDateTimeNotVisible();
-  });
+  test(
+    'verify “Not yet” and “Schedule date and time” option will not be available if user try to edit active pulse surveys',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      await surveyCreationPage.navigateToSurveysViaMenu();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Active');
+      await pulseSurveyPage.applySortFilter('Last sent');
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await surveyCreationPage.editSurveymethod();
+      await surveyCreationPage.clickConfigureSurveyNextButton();
+      await pulseSurveyPage.verifyNotYetAndScheduleDateTimeNotVisible();
+    }
+  );
 });

@@ -451,4 +451,38 @@ test.describe('all Purpose Survey Creation Tests', () => {
       await surveyCreationPage.verifyConfigurationDetails();
     }
   );
+
+  test(
+    'user should see save button on preview and confirm screen if "not yet" option is selected',
+    {
+      tag: [
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+      ],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description: 'Verify Save button is visible on preview and confirm screen when "not yet" option is selected',
+        zephyrTestId: 'LS-SURVEY-012',
+        storyId: 'EL-Survey Creation',
+      });
+      const surveyName = `All pp ${Date.now()}`;
+      await surveyCreationPage.createBasicSurveySetup(surveyName);
+      await surveyCreationPage.selectDefaultIntroAndThanks();
+      await surveyCreationPage.selectAudiences(['All Employees']);
+      await surveyCreationPage.selectDefaultFormAddress();
+      await surveyCreationPage.verifySendDateOptions();
+      await surveyCreationPage.validateDraftPopupOnNext();
+      await surveyCreationPage.clickCreateYourOwnButton();
+      await surveyCreationPage.selectFreeTextQuestionType();
+      await surveyCreationPage.enterQuestionTitle('Test Free Text question');
+      await surveyCreationPage.clickAddButton();
+      await surveyCreationPage.validateQuestionAddedPopup();
+      await surveyCreationPage.validateQuestionAddedSuccessfully('Test Free Text question');
+      await surveyCreationPage.validateDraftPopupOnNext();
+      await surveyCreationPage.verifySaveButtonOnPreviewConfirm();
+    }
+  );
 });
