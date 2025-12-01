@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { getNotificationUrlPath, NotificationType } from '@/src/modules/content/constants';
 
 export interface IMySettingsNotificationsActions {
   clickOnFeedTab: () => Promise<void>;
@@ -44,7 +45,11 @@ export class MySettingsNotificationsPage
     // For user-level: navigated via profile dropdown > My settings > notifications
     const notificationsPath = userId ? `/people/${userId}/edit/notifications/email` : '';
     super(page, notificationsPath);
-    this.browserTab = this.page.getByRole('tab', { name: 'Browser' });
+    // Browser can be either a link (user-level) or tab (app-level) depending on the page context
+    // Use .or() to handle both - link is tried first (user-level), then tab (app-level)
+    this.browserTab = this.page
+      .getByRole('link', { name: 'Browser' })
+      .or(this.page.getByRole('tab', { name: 'Browser' }));
     this.emailNotificationsTab = this.page.getByRole('tab', { name: 'Email notifications' });
     this.feedButton = this.page.getByRole('button', { name: 'Feed' });
     this.feedTab = this.page.getByRole('tab', { name: 'Feed' });
@@ -63,46 +68,35 @@ export class MySettingsNotificationsPage
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify My Settings Notifications page is loaded', async () => {
-      const isBrowserTabVisible = await this.verifier.isTheElementVisible(this.browserTab, {
-        timeout: TIMEOUTS.VERY_SHORT,
-      });
-      if (isBrowserTabVisible) {
-        await this.clickOnElement(this.browserTab);
-      }
-
-      const isEmailNotificationsTabVisible = await this.verifier.isTheElementVisible(this.emailNotificationsTab, {
-        timeout: TIMEOUTS.VERY_SHORT,
-      });
-      if (isEmailNotificationsTabVisible) {
-        await this.clickOnElement(this.emailNotificationsTab);
-      }
-
-      const isFeedButtonVisible = await this.verifier.isTheElementVisible(this.feedButton, {
-        timeout: TIMEOUTS.VERY_SHORT,
-      });
-      if (isFeedButtonVisible) {
-        const isCheckboxVisible = await this.verifier.isTheElementVisible(this.shareYourPostCheckbox, {
-          timeout: TIMEOUTS.VERY_VERY_SHORT,
-        });
-        if (!isCheckboxVisible) {
-          await this.clickOnElement(this.feedButton);
-          await this.verifier.waitUntilElementIsVisible(this.shareYourPostCheckbox, {
-            stepInfo: 'Wait for Share your post checkbox to be visible after expanding Feed',
-            timeout: TIMEOUTS.SHORT,
-          });
-        }
-      } else {
-        const isFeedTabVisible = await this.verifier.isTheElementVisible(this.feedTab, {
-          timeout: TIMEOUTS.VERY_SHORT,
-        });
-        if (isFeedTabVisible) {
-          await this.clickOnElement(this.feedTab);
-        }
-      }
-
-      await this.verifier.verifyTheElementIsVisible(this.shareYourPostCheckbox, {
-        assertionMessage: 'Share your post checkbox should be visible on notifications page',
+      // Verify page is loaded by waiting for at least one key element that should always be present
+      // For app-level settings: Browser tab or Email notifications tab
+      // For user-level settings: Feed tab or Browser tab (which can be a link or tab)
+      // The browserTab locator uses .or() to handle both link and tab roles
+      const browserTabVisible = await this.verifier.isTheElementVisible(this.browserTab, {
         timeout: TIMEOUTS.SHORT,
+      });
+      if (browserTabVisible) {
+        return;
+      }
+
+      const emailNotificationsTabVisible = await this.verifier.isTheElementVisible(this.emailNotificationsTab, {
+        timeout: TIMEOUTS.SHORT,
+      });
+      if (emailNotificationsTabVisible) {
+        return;
+      }
+
+      const feedTabVisible = await this.verifier.isTheElementVisible(this.feedTab, {
+        timeout: TIMEOUTS.SHORT,
+      });
+      if (feedTabVisible) {
+        return;
+      }
+
+      // If none found with quick check, wait for Browser tab/link with longer timeout as fallback
+      await this.verifier.waitUntilElementIsVisible(this.browserTab, {
+        stepInfo: 'Wait for Browser tab/link to confirm notifications page is loaded',
+        timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
@@ -111,15 +105,13 @@ export class MySettingsNotificationsPage
    * Navigate to current user's notification settings page
    */
   async navigateToCurrentUserNotificationSettings(
-    notificationType: 'email' | 'browser' | 'mobile' = 'email'
+    notificationType: NotificationType = NotificationType.EMAIL
   ): Promise<void> {
     await test.step(`Navigate to ${notificationType} notification settings`, async () => {
       const userId = await this.page.evaluate(() => {
         return (window as any).Simpplr?.CurrentUser?.uid;
       });
-      // Map notification types to URL paths: email -> browser, mobile -> native-app
-      const urlPathType =
-        notificationType === 'mobile' ? 'native-app' : notificationType === 'email' ? 'browser' : notificationType;
+      const urlPathType = getNotificationUrlPath(notificationType);
       await this.goToUrl(`/people/${userId}/edit/notifications/${urlPathType}`);
       await this.verifyThePageIsLoaded();
     });
@@ -133,19 +125,11 @@ export class MySettingsNotificationsPage
       });
       if (isFeedButtonVisible) {
         await this.clickOnElement(this.feedButton);
-        // Wait for Feed section to expand and checkbox to be visible
-        await this.verifier.waitUntilElementIsVisible(this.shareYourPostCheckbox, {
-          stepInfo: 'Wait for Share your post checkbox to be visible after clicking Feed button',
-          timeout: TIMEOUTS.SHORT,
-        });
       } else {
         await this.clickOnElement(this.feedTab);
-        // Wait for Feed tab content to load and checkbox to be visible
-        await this.verifier.waitUntilElementIsVisible(this.shareYourPostCheckbox, {
-          stepInfo: 'Wait for Share your post checkbox to be visible after clicking Feed tab',
-          timeout: TIMEOUTS.SHORT,
-        });
       }
+      // Ensure Feed section is expanded and checkbox is visible (handles both button and tab cases)
+      await this.ensureFeedSectionIsExpanded();
     });
   }
 

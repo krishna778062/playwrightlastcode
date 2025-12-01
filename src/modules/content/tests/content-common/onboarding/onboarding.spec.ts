@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { NotificationType } from '@/src/modules/content/constants';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { MySettingsNotificationsPage } from '@/src/modules/content/ui/pages/mySettingsNotificationsPage';
 
@@ -91,7 +92,7 @@ test.describe('onboarding', () => {
         await standardUserProfileDropdown.clickOnMySettingsButton({
           stepInfo: 'Click on My settings for standard user',
         });
-        await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings('email');
+        await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
         await standardUserMySettingsPage.actions.clickOnFeedTab();
 
         // Verify the setting is applied (should be checked as per overwrite)
