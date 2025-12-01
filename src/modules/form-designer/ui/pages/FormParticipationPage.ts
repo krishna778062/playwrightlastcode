@@ -160,6 +160,7 @@ export class FormParticipationPage extends BasePage {
   }
   async fillResponseIntoFileUploadField(response: string): Promise<void> {
     await test.step('Fill response into file upload field', async () => {
+      console.log('File uploaded successfully ::: ' + this.getFileToUpload(response));
       await this.fileUploadResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
       await this.fileUploadResponse.setInputFiles(this.getFileToUpload(response));
     });
@@ -236,6 +237,6 @@ export class FormParticipationPage extends BasePage {
   }
 
   getFileToUpload(response: string): string {
-    return FileUtil.getFilePath(__dirname, '..', '..', 'test-data', `${response}`);
+    return FileUtil.getFilePath('./src/modules/form-designer/test-data', `${response}`);
   }
 }
