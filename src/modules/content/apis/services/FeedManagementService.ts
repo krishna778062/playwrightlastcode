@@ -14,6 +14,7 @@ import {
   UpdateQuestionPayload,
 } from '@core/types/feed.type';
 import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IFeedManagementOperations } from '@/src/modules/content/apis/interfaces/IFeedManagementOperations';
