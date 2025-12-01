@@ -42,12 +42,14 @@ export interface ICreateFeedPostActions {
   }) => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickPostButton: () => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  clickReplyUpdateButton: (postText: string) => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
   searchForFileInLibrary: (fileName: string) => Promise<void>;
@@ -67,6 +69,7 @@ export interface ICreateFeedPostActions {
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
@@ -365,6 +368,41 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Uploads files to a reply editor for a specific post
+   * @param filePaths - Array of file paths to upload
+   * @param postText - The text of the post to which the reply belongs (used for context, not for scoping)
+   */
+  async uploadFilesToReply(filePaths: string[], postText: string): Promise<void> {
+    await test.step('Upload files to reply editor', async () => {
+      // Setup request promises for upload requests
+      const responsePromises = [];
+      for (let i = 0; i < filePaths.length; i++) {
+        const responsePromise = this.page.waitForResponse(
+          response =>
+            response.request().url().includes('X-Amz-SignedHeaders=host') &&
+            response.request().method() === 'PUT' &&
+            response.status() === 200,
+          { timeout: 35000 }
+        );
+        responsePromises.push(responsePromise);
+      }
+
+      const fileUploadInput = this.page.locator("input[type='file']").last();
+
+      await fileUploadInput.setInputFiles(filePaths);
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
+
+      // Wait for all upload requests to complete
+      await Promise.all(responsePromises);
+    });
+  }
+
+  /**
    * Removes an attached file from the post by index
    * @param index - Zero-based index of the file to remove (default: 0 for first file)
    */
@@ -440,12 +478,26 @@ export class CreateFeedPostComponent
     });
   }
 
+  async clickReplyUpdateButton(): Promise<void> {
+    await test.step('Click update button in reply editor', async () => {
+      const updateButton = this.updateButton.last();
+      await this.clickOnElement(updateButton);
+    });
+  }
+
   /**
    * Verifies that the post editor is visible
    */
   async verifyEditorVisible(): Promise<void> {
     await test.step('Verify editor is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedEditor);
+    });
+  }
+
+  async verifyReplyEditorVisible(): Promise<void> {
+    await test.step('Verify reply editor is visible', async () => {
+      const editorLocator = this.feedEditor.last();
+      await this.verifier.verifyTheElementIsVisible(editorLocator);
     });
   }
 
