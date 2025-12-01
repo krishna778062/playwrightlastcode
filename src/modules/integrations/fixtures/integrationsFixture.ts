@@ -1,4 +1,4 @@
-import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test as base } from '@playwright/test';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
@@ -11,6 +11,17 @@ import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/i
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
+interface TenantConfig {
+  tenantName: string;
+  frontendBaseUrl: string;
+  apiBaseUrl: string;
+  appManagerEmail: string;
+  appManagerPassword: string;
+  endUserEmail?: string;
+  endUserPassword?: string;
+}
+
+export type Options = { tenantConfig: TenantConfig };
 // API-only fixture type for API helpers and services
 export interface IntegrationsApiFixture {
   apiContext: APIRequestContext;
@@ -33,9 +44,13 @@ export interface IntegrationsUiFixture {
 export interface IntegrationsUserFixture extends IntegrationsApiFixture, IntegrationsUiFixture {}
 
 // Helper function to create API-only fixtures using existing API contexts
-async function createIntegrationsApiFixture(apiContext: APIRequestContext): Promise<IntegrationsApiFixture> {
-  const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
-  const integrationTileHelper = new IntegrationTileHelper(apiContext, getEnvConfig().apiBaseUrl);
+async function createIntegrationsApiFixture(
+  apiContext: APIRequestContext,
+  tenantConfig?: TenantConfig
+): Promise<IntegrationsApiFixture> {
+  const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
+  const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl);
 
   return {
     apiContext,
@@ -48,14 +63,15 @@ async function createIntegrationsApiFixture(apiContext: APIRequestContext): Prom
 // Helper function to create UI-only fixtures
 async function createIntegrationsUiFixture(
   browser: any,
-  tileManagementHelper: IntegrationTileHelper
+  tileManagementHelper: IntegrationTileHelper,
+  tenantConfig: TenantConfig
 ): Promise<IntegrationsUiFixture> {
   const context = await browser.newContext();
   const page = await context.newPage();
 
   await LoginHelper.loginWithPassword(page, {
-    email: getEnvConfig().appManagerEmail,
-    password: getEnvConfig().appManagerPassword,
+    email: tenantConfig.appManagerEmail,
+    password: tenantConfig.appManagerPassword,
   });
 
   const homePage = new NewHomePage(page);
@@ -81,7 +97,7 @@ async function createIntegrationsUiFixture(
   };
 }
 
-export const integrationsFixture = test.extend<
+export const integrationsFixture = base.extend<
   {
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: IntegrationsApiFixture;
@@ -91,18 +107,33 @@ export const integrationsFixture = test.extend<
 
     // Combined user fixtures - complete entry points with all helpers and services
     appManagerFixture: IntegrationsUserFixture;
+
+    // Convenience fixture for just the page
+    appManagerPage: Page;
   },
   {
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
+    tenantConfig: TenantConfig;
   }
 >({
+  // Worker-scoped tenant config - read from project use options
+  tenantConfig: [
+    async ({}, use, testInfo) => {
+      const tenantConfig = (testInfo.project.use as any).tenantConfig as TenantConfig;
+      if (!tenantConfig) {
+        throw new Error('tenantConfig is not defined in project use options');
+      }
+      await use(tenantConfig);
+    },
+    { scope: 'worker' },
+  ],
   // Worker-scoped API context - shared across all tests in worker
   appManagerApiContext: [
-    async ({}, use) => {
-      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+    async ({ tenantConfig }, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(tenantConfig.apiBaseUrl, {
+        email: tenantConfig.appManagerEmail,
+        password: tenantConfig.appManagerPassword,
       });
       await use(context);
       await context.dispose();
@@ -112,8 +143,8 @@ export const integrationsFixture = test.extend<
 
   // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
   appManagerApiFixture: [
-    async ({ appManagerApiContext }, use) => {
-      const fixture = await createIntegrationsApiFixture(appManagerApiContext);
+    async ({ appManagerApiContext, tenantConfig }, use) => {
+      const fixture = await createIntegrationsApiFixture(appManagerApiContext, tenantConfig);
       await use(fixture);
 
       // Cleanup helpers that have cleanup methods
@@ -130,8 +161,12 @@ export const integrationsFixture = test.extend<
   // UI-only fixtures - browser and page components
   // Note: HomeDashboard requires tileManagementHelper, so we pass it from API fixture
   appManagerUiFixture: [
-    async ({ browser, appManagerApiFixture }, use) => {
-      const fixture = await createIntegrationsUiFixture(browser, appManagerApiFixture.tileManagementHelper);
+    async ({ browser, appManagerApiFixture, tenantConfig }, use) => {
+      const fixture = await createIntegrationsUiFixture(
+        browser,
+        appManagerApiFixture.tileManagementHelper,
+        tenantConfig
+      );
       await use(fixture);
       await fixture.browserContext.close();
     },
@@ -142,6 +177,23 @@ export const integrationsFixture = test.extend<
   appManagerFixture: [
     async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
       await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  // Convenience fixture for just the page (UI-only, no API required)
+  appManagerPage: [
+    async ({ browser, tenantConfig }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      await LoginHelper.loginWithPassword(page, {
+        email: tenantConfig.appManagerEmail,
+        password: tenantConfig.appManagerPassword,
+      });
+
+      await use(page);
+      await context.close();
     },
     { scope: 'test' },
   ],

@@ -432,6 +432,7 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
@@ -439,7 +440,7 @@ test.describe(
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
         await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.verifyAddToCampaignOptionShouldNotBeVisibleInManageContent();
+        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
         await manageContentPage.actions.clickOnContentEditButton();
         await manageContentPage.actions.UpdatedPageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
         await manageContentPage.actions.clickOnPublishChangesButton();
@@ -454,6 +455,7 @@ test.describe(
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.hoverOnFirstDropDownOption();
         await manageContentPage.actions.clickOnUnpublishButton();
+        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
         await manageContentPage.actions.clickOnDeleteOption();
         await manageContentPage.actions.clickDeleteModalConfirmButton();

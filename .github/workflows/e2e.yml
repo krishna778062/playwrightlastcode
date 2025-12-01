@@ -17,12 +17,17 @@ on:
           - 'content'
           - 'content-settings'
           - 'content-studio'
+          - 'integrations-workday'
+          - 'integrations-okta'
+          - 'integrations-azuresso'
+          - 'integrations-primary'
+          - 'content-api'
           - 'de'
           - 'de-api'
           - 'content-abac'
           - 'frontline'
-          - 'integrations'
           - 'recognition'
+          - 'privateRecognition'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
@@ -56,6 +61,7 @@ on:
           - 'dev'
           - 'prodUS'
           - 'prodEU'
+          - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
@@ -236,11 +242,11 @@ jobs:
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
               const knownFailed = data.suites.flatMap(s =>
-                s.suites.flatMap(ss =>
-                  ss.specs.flatMap(sp =>
-                    sp.tests.filter(t =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
                       t.status === 'unexpected' &&
-                      t.annotations.some(a => a.type === 'known_failure')
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
                     )
                   )
                 )
