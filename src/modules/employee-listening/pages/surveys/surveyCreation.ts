@@ -102,6 +102,8 @@ export class SurveyCreationPage extends BasePage {
   readonly browseQuestionBankButtonAlt3: Locator;
   readonly browseQuestionBankButtonAlt4: Locator;
   readonly browseQuestionBankButtonAlt5: Locator;
+  readonly pausedTag: Locator;
+  readonly resumedTag: Locator;
   readonly completedTagAlt1: Locator;
   readonly completedTagAlt2: Locator;
   readonly completedTagAlt3: Locator;
@@ -341,6 +343,8 @@ export class SurveyCreationPage extends BasePage {
     this.typeFilter = this.page.getByTestId('type-filter').or(this.page.locator('[data-testid*="type"]'));
     this.statusFilter = this.page.getByTestId('status-filter').or(this.page.locator('[data-testid*="status"]'));
     this.completedTag = this.page.getByText('Completed').or(this.page.locator('[data-testid*="completed"]'));
+    this.pausedTag = this.page.getByText('Paused', { exact: true }).first();
+    this.resumedTag = this.page.getByText('Active', { exact: true }).first();
     this.notYetRadio = this.page.getByRole('radio', { name: 'Not yet' });
     this.addNewRecipientsText = this.page.getByText('Add new recipients while');
     this.configurationDetailsContainer = this.page.locator(
@@ -361,15 +365,15 @@ export class SurveyCreationPage extends BasePage {
         .or(this.page.getByRole('button', { name: 'Create your own' }).nth(sectionNumber - 1));
     this.searchSurveysTextbox = this.page.getByRole('textbox', { name: 'Search surveys' });
     this.browseQuestionBankButtonAlt1 = this.page.getByRole('button', { name: /browse question bank/i });
-    this.browseQuestionBankButtonAlt2 = this.page.getByText('Browse question bank', { exact: false });
+    this.browseQuestionBankButtonAlt2 = this.page.locator('[aria-label*="Browse question bank"]');
     this.browseQuestionBankButtonAlt3 = this.page.locator('button:has-text("Browse question bank")');
     this.browseQuestionBankButtonAlt4 = this.page.locator('[data-testid*="browse-question-bank"]');
     this.browseQuestionBankButtonAlt5 = this.page.getByRole('button').filter({ hasText: /browse question/i });
-    this.completedTagAlt1 = this.page.locator(
+    this.completedTagAlt1 = this.page.getByText('Completed', { exact: true }).first();
+    this.completedTagAlt2 = this.page.locator(
       '[data-testid*="completed"], [data-status="completed"], [class*="completed"]'
     );
-    this.completedTagAlt2 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
-    this.completedTagAlt3 = this.page.locator('tr, .survey-row, .list-item').filter({ hasText: 'Completed' });
+    this.completedTagAlt3 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
     this.previewNextSectionButtons = [
       this.previewDialog.getByRole('button', { name: /next section/i }),
       this.previewDialog.getByRole('button', { name: /next/i }),
@@ -951,6 +955,24 @@ export class SurveyCreationPage extends BasePage {
       if (!completedTagFound) {
         throw new Error('Could not find "Completed" tag/status for the survey after completion');
       }
+    });
+  }
+
+  async verifyPausedTag(): Promise<void> {
+    await test.step('Verify Paused tag is visible after survey pause', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pausedTag, {
+        assertionMessage: 'Paused tag should be visible after survey pause',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyResumedTag(): Promise<void> {
+    await test.step('Verify Active tag is visible after survey resume', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resumedTag, {
+        assertionMessage: 'Active tag should be visible after survey resume',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 

@@ -455,8 +455,55 @@ test.describe('pulse Survey Creation Tests', () => {
       await pulseSurveyPage.applySortFilter('Last sent');
       await pulseSurveyPage.clickFirstSurveyManageButton();
       await surveyCreationPage.editSurveymethod();
-      await surveyCreationPage.clickConfigureSurveyNextButton();
-      await pulseSurveyPage.verifyNotYetAndScheduleDateTimeNotVisible();
+      await pulseSurveyPage.handleActivePulseSurveyEditFlow(surveyCreationPage);
+    }
+  );
+
+  test(
+    'verify app manager should be able to pause, resume, complete, delete a pulse survey',
+    {
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        EmployeeListeningSuiteTags.SURVEYS,
+        EmployeeListeningFeatureTags.SURVEYS_CREATE,
+        '@pulse-survey',
+      ],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description: 'Verify app manager should be able to pause, resume, complete, delete a pulse survey',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-001',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
+      await surveyCreationPage.navigateToSurveysViaMenu();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Active');
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await pulseSurveyPage.pauseSurvey();
+      await pulseSurveyPage.confirmPauseSurvey();
+      await surveyCreationPage.clickResetButton();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Paused');
+      await surveyCreationPage.verifyPausedTag();
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await pulseSurveyPage.resumeSurvey();
+      await pulseSurveyPage.confirmResumeSurvey();
+      await surveyCreationPage.clickResetButton();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Active');
+      await surveyCreationPage.verifyResumedTag();
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await pulseSurveyPage.completeSurvey();
+      await pulseSurveyPage.confirmCompleteSurvey();
+      await surveyCreationPage.clickResetButton();
+      await surveyCreationPage.applyTypeFilter('Pulse');
+      await surveyCreationPage.applyStatusFilter('Completed');
+      await surveyCreationPage.verifyCompletedTag();
+      await pulseSurveyPage.clickFirstSurveyManageButton();
+      await surveyCreationPage.clickDeleteButton();
+      await surveyCreationPage.clickConfirmDeleteButton();
+      await pulseSurveyPage.verifySurveyDeletedMessage();
     }
   );
 });
