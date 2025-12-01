@@ -1,5 +1,5 @@
 export type TenantKey = 'primary' | 'rewardSettings';
-export type EnvironmentKey = 'qa' | 'test' | 'uat';
+export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU';
 
 /**
  * Get caller function information for debugging
@@ -114,7 +114,7 @@ export const config = {
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
-    uat_eu: {
+    uatEU: {
       tenantName: 'Reward UAT-EU Primary',
       frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz/',
       apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
@@ -188,6 +188,24 @@ export const config = {
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
+    uatEU: {
+      tenantName: 'Reward UAT-EU Primary',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz/',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '4d6bb514-e57d-449c-9f8b-e78e96f343fe',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '10af260e-3449-4309-be5d-98de62efdcf7',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: 'b6e789e5-4024-43ee-b976-2dcdb217c7a1',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
   },
   appConfig: {
     staticFolderPath: '',
@@ -211,12 +229,13 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'uatEU', 'prod', 'test'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
         `Valid values are: qa, uat, test, prod\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
+        `Example: TEST_ENV=uatEU npm run test\n` +
         `Example: TEST_ENV=prod npm run test\n` +
         `Example: TEST_ENV=test npm run test\n`
     );
