@@ -27,6 +27,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly clickOnTheMemberButtonInAboutTab: Locator;
   readonly clickOnAlreadyStarIcon: Locator;
   readonly clickOnTheMemberButton: Locator;
+  readonly clickOnAddAnotherButton: Locator;
   readonly clickOnLeaveButton: Locator;
   readonly clickOnInsideContentButton: Locator;
   readonly eventsTabImage: Locator;
@@ -76,6 +77,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
+    this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' });
     this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
@@ -399,6 +401,12 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.clickOnTheManageSiteButton, {
         assertionMessage: 'Manage site button should be visible',
       });
+    });
+  }
+
+  async clickOnAddAnotherButtonAction(): Promise<void> {
+    await test.step('Click on the add another button', async () => {
+      await this.clickOnElement(this.clickOnAddAnotherButton);
     });
   }
 

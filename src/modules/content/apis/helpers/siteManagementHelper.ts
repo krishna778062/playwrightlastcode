@@ -14,6 +14,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
 
 interface Site {
   siteId: string;
@@ -35,6 +36,7 @@ export class SiteManagementHelper {
   private siteMembers: SiteMember[] = [];
   readonly siteManagementService: SiteManagementService;
   private contentManagementService: ContentManagementService;
+  private identityService: IdentityService;
 
   constructor(
     readonly apiRequestContext: APIRequestContext,
@@ -42,6 +44,7 @@ export class SiteManagementHelper {
   ) {
     this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
     this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
+    this.identityService = new IdentityService(apiRequestContext, baseUrl);
   }
 
   /**
@@ -540,6 +543,53 @@ export class SiteManagementHelper {
     };
 
     return await this.siteManagementService.getListOfSites(defaultOptions);
+  }
+
+  /**
+   * Gets a site with manage site option (isManager, isOwner, and isActive all true)
+   * @param sitesResponse - The response from getListOfSites
+   * @returns Promise containing siteId and siteName
+   */
+  async getSiteWithManageSiteOption(sitesResponse: any): Promise<{ siteId: string; siteName: string }> {
+    return await test.step('Getting site with manage site option', async () => {
+      const sites = sitesResponse.result?.listOfItems || [];
+
+      if (sites.length === 0) {
+        throw new Error('No sites found in the response');
+      }
+
+      for (const site of sites) {
+        try {
+          const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+          if (
+            siteDetails.result.isManager === true &&
+            siteDetails.result.isOwner === true &&
+            siteDetails.result.isActive === true
+          ) {
+            return {
+              siteId: siteDetails.result.siteId,
+              siteName: siteDetails.result.name || siteDetails.result.siteName,
+            };
+          }
+        } catch (error: any) {
+          // Skip sites that fail (deleted, invalid, or inaccessible) and continue to next site
+          console.log(`Skipping site ${site.siteId} due to error: ${error.message}`);
+          continue;
+        }
+      }
+
+      throw new Error('No site found with manage site option (isManager, isOwner, and isActive all true)');
+    });
+  }
+
+  /**
+   * Gets all users list
+   * @returns Promise containing the users list response with listOfItems
+   */
+  async getAllUsersList(): Promise<any> {
+    return await test.step('Getting all users list', async () => {
+      return await this.identityService.getListOfPeople();
+    });
   }
 
   async getMemberList(options?: {

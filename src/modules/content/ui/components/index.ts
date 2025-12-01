@@ -1,5 +1,6 @@
 export * from './addContentModal';
 export * from './addCoverImageComponent';
+export * from './addPeopleInSiteComponent';
 export * from './attachementUploader';
 export * from './contentDetailsComponent';
 export * from './contentEditor';
