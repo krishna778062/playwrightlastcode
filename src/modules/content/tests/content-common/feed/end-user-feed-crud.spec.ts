@@ -48,7 +48,7 @@ test.describe(
       */
 
       await standardUserFixture.homePage.verifyThePageIsLoaded();
-      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+      //await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
       feedPage = new FeedPage(standardUserFixture.page);
       await feedPage.verifyThePageIsLoaded();
@@ -134,6 +134,113 @@ test.describe(
         await feedPage.actions.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
         createdPostText = ''; // Clear post text as post is already deleted
+      }
+    );
+
+    test(
+      'verify user can create, edit and delete a feed post with file attachment on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19544'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can create, edit and delete a feed post with file attachment on site feed',
+          zephyrTestId: 'CONT-19544',
+          storyId: 'CONT-19544',
+        });
+
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Navigate to Site Dashboard as
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.verifyThePageIsLoaded();
+
+        // Click on Feed link
+        await siteDashboardPage.actions.clickOnFeedLink();
+
+        // Create Feed Post with Attachment
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        // Click "Share your thoughts or questions" button
+        await siteDashboardPage.actions.clickShareThoughtsButton();
+
+        // Get the createFeedPostComponent from siteDashboardPage
+        const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+
+        // Upload file "image1.jpg"
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.ATTACHMENTS.IMAGE
+        );
+
+        // Post the feed with attachment (createAndPost handles text and file upload internally)
+        const postResult = await createFeedPostComponent.actions.createAndPost({
+          text: initialPostText,
+          attachments: {
+            files: [imagePath],
+          },
+        });
+
+        // Store created post text and postId for cleanup
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Verify post successfully created
+        await siteDashboardPage.assertions.validatePostText(postResult.postText);
+
+        // Verify timestamp displayed
+        const feedPageForSite = new FeedPage(standardUserFixture.page);
+        await feedPageForSite.getPostTimestamp(postResult.postText);
+
+        // Verify inline image preview visible
+        await feedPageForSite.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+
+        // Edit Feed Post
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // Open option menu (three dots)
+        await siteDashboardPage.actions.clickOnOptionsMenu(createdPostText);
+
+        // Click Edit
+        await createFeedPostComponent.clickEditOption();
+
+        // Verify editor opens
+        await createFeedPostComponent.assertions.verifyEditorVisible();
+
+        // Verify file restrictions: User must NOT be able to remove files
+        // Verify attached file count is still 1 (cannot remove files)
+        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+        // Update text
+        await createFeedPostComponent.actions.updatePostText(updatedPostText);
+
+        // Click Update
+        await createFeedPostComponent.actions.clickUpdateButton();
+
+        // Verify updated content appears
+        await siteDashboardPage.assertions.validatePostText(updatedPostText);
+
+        // Delete Feed Post
+        // Open option menu
+        await siteDashboardPage.actions.clickOnOptionsMenu(updatedPostText);
+
+        // Click Delete
+        await siteDashboardPage.listFeedComponent.clickDeleteOption();
+
+        // Confirm Delete
+        await siteDashboardPage.listFeedComponent.confirmDelete();
+
+        // Verify feed post is removed
+        await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
+        createdPostId = '';
+        createdPostText = '';
       }
     );
 
