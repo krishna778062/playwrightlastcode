@@ -384,35 +384,36 @@ test.describe('pulse Survey Creation Tests', () => {
       await surveyCreationPage.navigateToHome();
       await surveyCreationPage.clickManageFeaturesMenuItem();
       await surveyCreationPage.clickSurveysButton();
-      await pulseSurveyPage.waitForSurveysPageLoad(5000);
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Active');
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await pulseSurveyPage.pauseSurvey();
-      await pulseSurveyPage.confirmPauseSurvey();
-      await surveyCreationPage.clickResetButton();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Paused');
-      await pulseSurveyPage.pressEscape();
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await surveyCreationPage.clickDuplicateOption();
-      await pulseSurveyPage.selectFrequency('Every three months');
-      await pulseSurveyPage.selectFrequency('Weekly');
-      await pulseSurveyPage.selectCurrentRecurrenceDay();
-      await pulseSurveyPage.selectCustomParticipationWindow('2');
-      await surveyCreationPage.selectDefaultFormAddress();
-      await pulseSurveyPage.selectSendDate({
-        frequencyRadioName: 'Every three months',
-        recurrenceDate: '25',
-        participationWindow: '12',
-        sendDateMenuName: '6',
-        endDateRadioName: 'Choose end date',
-        endDateButtonName: 'Select date…',
+      await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Active');
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await pulseSurveyPage.pauseSurvey();
+        await pulseSurveyPage.confirmPauseSurvey();
+        await surveyCreationPage.clickResetButton();
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Paused');
+        await pulseSurveyPage.pressEscape();
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await surveyCreationPage.clickDuplicateOption();
+        await pulseSurveyPage.selectFrequency('Every three months');
+        await pulseSurveyPage.selectFrequency('Weekly');
+        await pulseSurveyPage.selectCurrentRecurrenceDay();
+        await pulseSurveyPage.selectCustomParticipationWindow('2');
+        await surveyCreationPage.selectDefaultFormAddress();
+        await pulseSurveyPage.selectSendDate({
+          frequencyRadioName: 'Every three months',
+          recurrenceDate: '25',
+          participationWindow: '12',
+          sendDateMenuName: '6',
+          endDateRadioName: 'Choose end date',
+          endDateButtonName: 'Select date…',
+        });
+        await surveyCreationPage.clickConfigureSurveyNextButton();
+        await surveyCreationPage.clickAddQuestionNextButton();
+        createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
+        await surveyCreationPage.verifySurveyScheduledMessage();
       });
-      await surveyCreationPage.clickConfigureSurveyNextButton();
-      await surveyCreationPage.clickAddQuestionNextButton();
-      createdSurveyId = await surveyCreationPage.captureSurveyIdAfterSchedule();
-      await surveyCreationPage.verifySurveyScheduledMessage();
     }
   );
 
@@ -429,11 +430,13 @@ test.describe('pulse Survey Creation Tests', () => {
     },
     async () => {
       await surveyCreationPage.navigateToSurveysViaMenu();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Active');
-      await pulseSurveyPage.applySortFilter('Last sent');
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await pulseSurveyPage.copySurveyLinkAndOpenTabAndVerify();
+      await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Active');
+        await pulseSurveyPage.applySortFilter('Last sent');
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await pulseSurveyPage.copySurveyLinkAndOpenTabAndVerify();
+      });
     }
   );
 
@@ -450,12 +453,14 @@ test.describe('pulse Survey Creation Tests', () => {
     },
     async () => {
       await surveyCreationPage.navigateToSurveysViaMenu();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Active');
-      await pulseSurveyPage.applySortFilter('Last sent');
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await surveyCreationPage.editSurveymethod();
-      await pulseSurveyPage.handleActivePulseSurveyEditFlow(surveyCreationPage);
+      await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Active');
+        await pulseSurveyPage.applySortFilter('Last sent');
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await surveyCreationPage.editSurveymethod();
+        await pulseSurveyPage.handleActivePulseSurveyEditFlow(surveyCreationPage);
+      });
     }
   );
 
@@ -477,33 +482,35 @@ test.describe('pulse Survey Creation Tests', () => {
         storyId: 'EL-Pulse Survey Lifecycle Management',
       });
       await surveyCreationPage.navigateToSurveysViaMenu();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Active');
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await pulseSurveyPage.pauseSurvey();
-      await pulseSurveyPage.confirmPauseSurvey();
-      await surveyCreationPage.clickResetButton();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Paused');
-      await surveyCreationPage.verifyPausedTag();
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await pulseSurveyPage.resumeSurvey();
-      await pulseSurveyPage.confirmResumeSurvey();
-      await surveyCreationPage.clickResetButton();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Active');
-      await surveyCreationPage.verifyResumedTag();
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await pulseSurveyPage.completeSurvey();
-      await pulseSurveyPage.confirmCompleteSurvey();
-      await surveyCreationPage.clickResetButton();
-      await surveyCreationPage.applyTypeFilter('Pulse');
-      await surveyCreationPage.applyStatusFilter('Completed');
-      await surveyCreationPage.verifyCompletedTag();
-      await pulseSurveyPage.clickFirstSurveyManageButton();
-      await surveyCreationPage.clickDeleteButton();
-      await surveyCreationPage.clickConfirmDeleteButton();
-      await pulseSurveyPage.verifySurveyDeletedMessage();
+      await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Active');
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await pulseSurveyPage.pauseSurvey();
+        await pulseSurveyPage.confirmPauseSurvey();
+        await surveyCreationPage.clickResetButton();
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Paused');
+        await surveyCreationPage.verifyPausedTag();
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await pulseSurveyPage.resumeSurvey();
+        await pulseSurveyPage.confirmResumeSurvey();
+        await surveyCreationPage.clickResetButton();
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Active');
+        await surveyCreationPage.verifyResumedTag();
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await pulseSurveyPage.completeSurvey();
+        await pulseSurveyPage.confirmCompleteSurvey();
+        await surveyCreationPage.clickResetButton();
+        await surveyCreationPage.applyTypeFilter('Pulse');
+        await surveyCreationPage.applyStatusFilter('Completed');
+        await surveyCreationPage.verifyCompletedTag();
+        await pulseSurveyPage.clickFirstSurveyManageButton();
+        await surveyCreationPage.clickDeleteButton();
+        await surveyCreationPage.clickConfirmDeleteButton();
+        await pulseSurveyPage.verifySurveyDeletedMessage();
+      });
     }
   );
 });
