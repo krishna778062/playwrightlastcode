@@ -795,7 +795,7 @@ test.describe(
     );
 
     test(
-      'creating HTML tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      'creating Content Custom tile with specific items on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, ContentTestSuite.TILES],
       },
