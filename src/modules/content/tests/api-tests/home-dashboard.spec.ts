@@ -1,10 +1,13 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
-import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FileUtil } from '@/src/core/utils/fileUtil';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { HomeDashboardApiHelper } from '@/src/modules/content/apis/apiValidation/homeDashboardApiHelper';
+import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 
 test.describe(
   '@Home Dashboard API',
@@ -30,6 +33,296 @@ test.describe(
       }
       createdTileIds = [];
     });
+
+    const removeTileFromCleanup = (tileId: string) => {
+      createdTileIds = createdTileIds.filter(existingTileId => existingTileId !== tileId);
+    };
+
+    test(
+      'app manager can configure Home Dashboard to App Manager control and End User control',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42758',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Validate App Manager can set Home Dashboard governance to App Manager control and End User control',
+          zephyrTestId: 'CONT-42758',
+          storyId: 'CONT-42758',
+        });
+
+        const governanceResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+        await homeDashboardApiHelper.validateAppGovernanceResponse(governanceResponse);
+
+        await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+          () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
+          2,
+          2000,
+          true
+        );
+
+        const governanceEndUserResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: false,
+        });
+        await homeDashboardApiHelper.validateAppGovernanceResponse(governanceEndUserResponse);
+
+        await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+          () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
+          2,
+          2000,
+          false
+        );
+      }
+    );
+
+    test(
+      'app manager can create, verify, and remove Files tile on Home Dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42763',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Ensure Files tile lifecycle works on Home Dashboard (App Manager control)',
+          zephyrTestId: 'CONT-42763',
+          storyId: 'CONT-42763',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const site = await appManagerApiFixture.siteManagementHelper.createPublicSite({
+          siteName: TestDataGenerator.generateRandomString('FilesTileSite'),
+        });
+
+        const beachImagePath = FileUtil.getFilePath(
+          process.cwd(),
+          'src',
+          'modules',
+          'global-search',
+          'test-data',
+          'beach.jpg'
+        );
+
+        const { fileInfo } = await appManagerApiFixture.contentManagementHelper.imageUploaderService.uploadIntranetFile(
+          site.siteId,
+          'beach.jpg',
+          beachImagePath,
+          'image/jpeg'
+        );
+
+        const tilePayload = TILE_TEST_DATA.FILES_TILE({
+          title: TestDataGenerator.generateRandomString('FilesTile'),
+          items: [fileInfo.id],
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+
+        const tileId = tileResponse.result.id;
+        createdTileIds.push(tileId);
+
+        try {
+          const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+            title: tilePayload.tile.title,
+            type: 'files',
+            variant: 'intranet',
+          });
+
+          const deleteResponse =
+            await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
+          const deleteBody = await deleteResponse.json();
+          await homeDashboardApiHelper.validateTileDeletion(deleteBody);
+          removeTileFromCleanup(tileId);
+
+          const updatedList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+          await homeDashboardApiHelper.validateTileNotVisible(updatedList, tileId);
+        } finally {
+          // Leave tile id in cleanup list only when deletion fails
+        }
+      }
+    );
+
+    test(
+      'app manager can manage Sites tile with public, private, and unlisted sites',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42762',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Ensure Sites tile supports multiple site types on Home Dashboard',
+          zephyrTestId: 'CONT-42762',
+          storyId: 'CONT-42762',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const [publicSite, privateSite, unlistedSite] = await Promise.all([
+          appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public'),
+          appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private'),
+          appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted'),
+        ]);
+
+        const tilePayload = TILE_TEST_DATA.SITES_TILE({
+          title: TestDataGenerator.generateRandomString('SitesTile'),
+          items: [publicSite.siteId, privateSite.siteId, unlistedSite.siteId],
+          layout: 'list',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+
+        const tileId = tileResponse.result.id;
+        createdTileIds.push(tileId);
+
+        try {
+          const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+            title: tilePayload.tile.title,
+            type: 'sites',
+            variant: 'custom',
+            options: {
+              layout: 'list',
+            },
+          });
+
+          const deleteResponse =
+            await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
+          const deleteBody = await deleteResponse.json();
+          await homeDashboardApiHelper.validateTileDeletion(deleteBody);
+          removeTileFromCleanup(tileId);
+
+          const updatedList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+          await homeDashboardApiHelper.validateTileNotVisible(updatedList, tileId);
+        } finally {
+          // If deletion fails, tile will be removed during afterEach cleanup
+        }
+      }
+    );
+
+    test(
+      'app manager can create Site Categories tile on Home Dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42765',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Site Categories tile creation with custom size on Home Dashboard',
+          zephyrTestId: 'CONT-42765',
+          storyId: 'CONT-42765',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.SITE_CATEGORIES_TILE({
+          title: TestDataGenerator.generateRandomString('SiteCategoriesTile'),
+          size: 5,
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+
+        const tileId = tileResponse.result.id;
+        createdTileIds.push(tileId);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+          title: tilePayload.tile.title,
+          type: 'site_categories',
+          variant: 'default',
+          options: {
+            size: 5,
+          },
+        });
+      }
+    );
+
+    test(
+      'app manager can create Custom People tile on Home Dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42766',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Custom People tile creation with list layout on Home Dashboard',
+          zephyrTestId: 'CONT-42766',
+          storyId: 'CONT-42766',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        const tilePayload = TILE_TEST_DATA.PEOPLE_CUSTOM_TILE({
+          title: TestDataGenerator.generateRandomString('CustomPeopleTile'),
+          items: [endUserInfo.userId],
+          layout: 'list',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+
+        const tileId = tileResponse.result.id;
+        createdTileIds.push(tileId);
+
+        try {
+          const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+            title: tilePayload.tile.title,
+            type: 'people',
+            variant: 'custom',
+            options: {
+              layout: 'list',
+            },
+          });
+        } finally {
+          // Tile will be removed during afterEach cleanup
+        }
+      }
+    );
 
     test(
       'creating New Hires tile on Home Dashboard using  App Manager with App Manager Dashboard Control',
@@ -64,20 +357,11 @@ test.describe(
 
         // Step 2: Create a tile with app manager
         await test.step('Create tile with app manager', async () => {
-          const tilePayload = {
-            siteId: null,
-            dashboardId: 'home',
-            tile: {
-              title: null,
-              options: {
-                hireDaysThreshold: '30',
-              },
-              pushToAllHomeDashboards: false,
-              items: [],
-              type: 'people',
-              variant: 'new_hires',
-            },
-          };
+          const tilePayload = TILE_TEST_DATA.PEOPLE_NEW_HIRES_TILE({
+            title: null,
+            hireDaysThreshold: '30',
+            pushToAllHomeDashboards: false,
+          });
 
           const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
           await homeDashboardApiHelper.validateTileCreation(tileResponse);
@@ -117,20 +401,11 @@ test.describe(
         });
 
         // Create a tile first
-        const tilePayload = {
-          siteId: null,
-          dashboardId: 'home',
-          tile: {
-            title: null,
-            options: {
-              hireDaysThreshold: '30',
-            },
-            pushToAllHomeDashboards: false,
-            items: [],
-            type: 'people',
-            variant: 'new_hires',
-          },
-        };
+        const tilePayload = TILE_TEST_DATA.PEOPLE_NEW_HIRES_TILE({
+          title: null,
+          hireDaysThreshold: '30',
+          pushToAllHomeDashboards: false,
+        });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
         const tileId = tileResponse.result.id;
@@ -174,27 +449,22 @@ test.describe(
           });
           await homeDashboardApiHelper.validateAppGovernanceResponse(governanceResponse);
 
-          // Verify the setting
-          const config = await appManagerApiFixture.feedManagementHelper.getAppConfig();
-          await homeDashboardApiHelper.validateHomeEndUserControlled(config);
+          //retry to validate home is end user controlled
+          await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+            () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
+            2,
+            2000,
+            false
+          );
         });
 
         // Step 2: Create a tile (as app manager, but home is end user controlled)
         await test.step('Create tile when home is end user controlled', async () => {
-          const tilePayload = {
-            siteId: null,
-            dashboardId: 'home',
-            tile: {
-              title: null,
-              options: {
-                hireDaysThreshold: '30',
-              },
-              pushToAllHomeDashboards: false,
-              items: [],
-              type: 'people',
-              variant: 'new_hires',
-            },
-          };
+          const tilePayload = TILE_TEST_DATA.PEOPLE_NEW_HIRES_TILE({
+            title: null,
+            hireDaysThreshold: '30',
+            pushToAllHomeDashboards: false,
+          });
 
           const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
           await homeDashboardApiHelper.validateTileCreation(tileResponse);
@@ -234,20 +504,11 @@ test.describe(
         });
 
         // Create a tile first
-        const tilePayload = {
-          siteId: null,
-          dashboardId: 'home',
-          tile: {
-            title: null,
-            options: {
-              hireDaysThreshold: '30',
-            },
-            pushToAllHomeDashboards: false,
-            items: [],
-            type: 'people',
-            variant: 'new_hires',
-          },
-        };
+        const tilePayload = TILE_TEST_DATA.PEOPLE_NEW_HIRES_TILE({
+          title: null,
+          hireDaysThreshold: '30',
+          pushToAllHomeDashboards: false,
+        });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
         const tileId = tileResponse.result.id;
@@ -286,24 +547,14 @@ test.describe(
         });
 
         // Create a content tile
-        const tilePayload = {
+        const tilePayload = TILE_TEST_DATA.CONTENT_LATEST_POPULAR_TILE({
+          title: 'Latest & popular',
+          type: 'all',
+          siteFilter: 'following',
           siteId: null,
-          dashboardId: 'home',
-          tile: {
-            title: 'Latest & popular',
-            options: {
-              type: 'all',
-              siteFilter: 'following',
-              siteId: null,
-              layout: 'standard',
-            },
-            pushToAllHomeDashboards: true,
-            items: [],
-            type: 'content',
-            variant: 'latest_popular',
-          },
-          isNewTiptap: false,
-        };
+          layout: 'standard',
+          pushToAllHomeDashboards: true,
+        });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
         await homeDashboardApiHelper.validateTileCreation(tileResponse);
@@ -312,6 +563,510 @@ test.describe(
         // Verify tile visibility
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
         await homeDashboardApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
+      }
+    );
+
+    test(
+      'creating Content latest and popular tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13014',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Creating Content latest and popular tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+          zephyrTestId: 'CONT-13014',
+          storyId: 'CONT-13014',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_LATEST_POPULAR_TILE({
+          title: 'Latest & popular',
+          type: 'all',
+          siteFilter: 'following',
+          siteId: null,
+          layout: 'standard',
+          pushToAllHomeDashboards: true,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
+      }
+    );
+
+    test(
+      'creating Content Pages tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13018',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Content Page tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13018',
+          storyId: 'CONT-13018',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_LATEST_POPULAR_TILE({
+          title: TestDataGenerator.generateRandomString('ContentPageTile'),
+          type: 'page',
+          siteFilter: 'following',
+          siteId: null,
+          layout: 'grid',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'content',
+          variant: 'latest_popular',
+          options: {
+            type: 'page',
+            layout: 'grid',
+          },
+        });
+      }
+    );
+
+    test(
+      'creating Content Events tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13022',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Content Event tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13022',
+          storyId: 'CONT-13022',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_LATEST_POPULAR_TILE({
+          title: TestDataGenerator.generateRandomString('ContentEventTile'),
+          type: 'event',
+          siteFilter: 'following',
+          siteId: null,
+          layout: 'standard',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'content',
+          variant: 'latest_popular',
+          options: {
+            type: 'event',
+            layout: 'standard',
+          },
+        });
+      }
+    );
+
+    test(
+      'creating Content Albums tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13026',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Content Album tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13026',
+          storyId: 'CONT-13026',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_LATEST_POPULAR_TILE({
+          title: TestDataGenerator.generateRandomString('ContentAlbumTile'),
+          type: 'album',
+          siteFilter: 'following',
+          siteId: null,
+          layout: 'standard',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'content',
+          variant: 'latest_popular',
+          options: {
+            type: 'album',
+            layout: 'standard',
+          },
+        });
+      }
+    );
+
+    test(
+      'creating HTML tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13112',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate HTML tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13112',
+          storyId: 'CONT-13112',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+          htmlTileEnabled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.HTML_TILE({
+          title: TestDataGenerator.generateRandomString('HTMLTile'),
+          code: '<body><h1>Test HTML Tile</h1><p>This is a test HTML tile content.</p></body>',
+          height: 200,
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'html',
+          variant: 'iframe',
+        });
+      }
+    );
+
+    test(
+      'creating Content Custom tile with specific items on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, ContentTestSuite.TILES],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Content Custom tile creation with specific content items on Home Dashboard',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        // Create a site and content for the custom tile
+        const site = await appManagerApiFixture.siteManagementHelper.createPublicSite({
+          siteName: TestDataGenerator.generateRandomString('CustomContentTileSite'),
+        });
+
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: site.siteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'knowledge',
+          },
+          options: {
+            pageName: TestDataGenerator.generateRandomString('CustomTilePage'),
+            waitForSearchIndex: false,
+          },
+        });
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_CUSTOM_TILE({
+          title: TestDataGenerator.generateRandomString('CustomContentTile'),
+          items: [pageInfo.contentId],
+          layout: 'standard',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'content',
+          variant: 'custom',
+        });
+      }
+    );
+
+    test(
+      'creating Links tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13116',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Links tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13116',
+          storyId: 'CONT-13116',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.LINKS_TILE({
+          title: TestDataGenerator.generateRandomString('LinksTile'),
+          links: [
+            {
+              text: 'Test Link 1',
+              url: 'https://www.example.com',
+            },
+            {
+              text: 'Test Link 2',
+              url: 'https://www.simpplr.com',
+            },
+          ],
+          layout: 'standard',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'links',
+          variant: 'custom',
+        });
+      }
+    );
+
+    test(
+      'creating RSS tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-4085',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate RSS tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-4085',
+          storyId: 'CONT-4085',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.RSS_TILE({
+          title: TestDataGenerator.generateRandomString('RSSTile'),
+          url: 'http://rss.cnn.com/rss/cnn_topstories.rss',
+          size: 8,
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'rss',
+          variant: 'standard',
+        });
+      }
+    );
+
+    test(
+      'creating Twitter tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-2843',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Twitter tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-2843',
+          storyId: 'CONT-2843',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.TWITTER_TILE({
+          title: TestDataGenerator.generateRandomString('TwitterTile'),
+          code: '<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Test tweet content</p>&mdash; Test (@test) <a href="https://twitter.com/test/status/1234567890">January 1, 2024</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'twitter',
+          variant: 'standard',
+        });
+      }
+    );
+
+    test(
+      'creating Facebook tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13098',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Facebook tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13098',
+          storyId: 'CONT-13098',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.FACEBOOK_TILE({
+          title: TestDataGenerator.generateRandomString('FacebookTile'),
+          url: 'https://www.facebook.com/simpplr',
+          height: 1010,
+          showPosts: true,
+          showCover: true,
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'facebook',
+          variant: 'standard',
+        });
+      }
+    );
+
+    test(
+      'creating Countdown tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13123',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Countdown tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13123',
+          storyId: 'CONT-13123',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        // Set stop date to 30 days from now
+        const stopDate = new Date();
+        stopDate.setDate(stopDate.getDate() + 30);
+        const stopDateISO = stopDate.toISOString();
+
+        const tilePayload = TILE_TEST_DATA.COUNTDOWN_TILE({
+          title: TestDataGenerator.generateRandomString('CountdownTile'),
+          stopAt: stopDateISO,
+          endMessage: 'Countdown completed!',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'countdown',
+          variant: 'standard',
+        });
       }
     );
   }

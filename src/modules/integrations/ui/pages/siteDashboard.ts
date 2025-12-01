@@ -140,6 +140,7 @@ export class SiteDashboard {
     fields?: Array<{ name: string; value: string }>;
     radioOptions?: Array<{ fieldName: string; option: string }>;
     radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    dropdowns?: Array<{ fieldName: string; value: string }>;
   }): Promise<void> {
     if (config.fields) {
       for (const field of config.fields) {
@@ -162,6 +163,11 @@ export class SiteDashboard {
         );
       }
     }
+    if (config.dropdowns) {
+      for (const dropdown of config.dropdowns) {
+        await this.selectDropdownValue(dropdown.fieldName, dropdown.value);
+      }
+    }
   }
 
   /**
@@ -181,6 +187,7 @@ export class SiteDashboard {
       fields?: Array<{ name: string; value: string }>;
       radioOptions?: Array<{ fieldName: string; option: string }>;
       radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      dropdowns?: Array<{ fieldName: string; value: string }>;
     }
   ): Promise<void> {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
@@ -397,6 +404,24 @@ export class SiteDashboard {
       ],
     });
   }
+  /**
+   * Complete workflow to add an app tile with dropdown and text field
+   */
+  async addTileWithDropdownAndField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    textFieldName: string,
+    textFieldValue: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      dropdowns: [{ fieldName: dropdownFieldName, value: dropdownValue }],
+      fields: [{ name: textFieldName, value: textFieldValue }],
+    });
+  }
 
   /**
    * Complete workflow to add an app tile with manager defined settings
@@ -531,6 +556,12 @@ export class SiteDashboard {
    */
   async selectRadioOptionandValue(fieldName: string, radioOption: string, dropdownValue: string): Promise<void> {
     return this.tileOperationsComponent.selectRadioOptionandValue(fieldName, radioOption, dropdownValue);
+  }
+  /**
+   * Select a dropdown value directly by field name (without radio button)
+   */
+  async selectDropdownValue(fieldName: string, value: string): Promise<void> {
+    return this.tileOperationsComponent.selectDropdownValue(fieldName, value);
   }
   /**
    * Complete workflow to add app tile with site manager defined configuration
