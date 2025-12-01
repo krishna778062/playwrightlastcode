@@ -46,6 +46,10 @@
 
 # Form Designer Module
 /src/modules/form-designer/ @prateek-sqa @KrishanKantSimpplr @arvindsingh15992
+
+# Comms planner module
+/src/modules/comms-planner/ @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992 @ravina-Simpplr @KrishanKantSimpplr @s-jpranav
+
 # Configuration and build files
 playwright.base.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
 *.config.ts @prateek-sqa @NiroshaYadla @SonaliGupta0608 @amanmmishra @poojapathak188 @sonuSimpplr @Srikant5g @arvindsingh15992
