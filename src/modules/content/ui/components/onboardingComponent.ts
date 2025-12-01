@@ -1,6 +1,5 @@
-import { Locator, Page, Response, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
-import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TagOption } from '@modules/content/constants';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -18,55 +17,59 @@ export class OnboardingComponent extends BaseComponent {
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     this.contentOuterDiv = page.locator('.ManageContentListItem').first();
   }
+
   selectOnboardingRadioButton(option: TagOption): Locator {
     return this.page.getByRole('radio', { name: option });
   }
+
+  verifyTabVisible(tabName: string): Locator {
+    return this.page.locator('.StampList').filter({ hasText: tabName }).first();
+  }
+
   verifyOnboardingTabVisible(tabName: string): Locator {
     return this.page.getByText(tabName).first();
   }
+
   async selectOnboardingOption(option: TagOption): Promise<void> {
     await test.step(`Select onboarding option: ${option}`, async () => {
       await this.checkElement(this.selectOnboardingRadioButton(option));
     });
   }
+
   async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag is visible on content: ${option}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.verifyOnboardingTabVisible(option));
+      await this.verifier.verifyTheElementIsVisible(this.verifyTabVisible(option));
     });
   }
+
   async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
     await test.step(`Verify already selected onboarding option is visible: ${option}`, async () => {
       await this.selectOnboardingRadioButton(option).isChecked();
     });
   }
+
   async saveButtonShouldBeDisabled(): Promise<void> {
     await test.step('Save button should be disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.saveButton);
     });
   }
+
   async clickOnSaveButton(): Promise<void> {
     await test.step('Click on save button', async () => {
-      await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.saveButton),
-        (response: Response) =>
-          response.url().includes(API_ENDPOINTS.content.onboarding) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 20_000,
-        }
-      );
+      await this.clickOnElement(this.saveButton);
     });
   }
+
   async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag should not be visible on content: ${option}`, async () => {
       const textContent = await this.contentOuterDiv.textContent();
       console.log('textContent', textContent);
-      if (textContent && textContent.includes(option)) {
-        await this.verifier.verifyTheElementIsNotVisible(this.verifyOnboardingTabVisible(option));
+      if (textContent?.includes(option)) {
+        await this.verifier.verifyTheElementIsNotVisible(this.verifyTabVisible(option));
       }
     });
   }
+
   async saveOnboardingSelection(): Promise<void> {
     await test.step('Save onboarding selection', async () => {
       await this.clickOnElement(this.saveButton);

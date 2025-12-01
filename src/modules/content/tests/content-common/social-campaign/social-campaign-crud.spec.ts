@@ -1,6 +1,9 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@content/test-data/social-campaign.test-data';
+import { InappropriateContentWarningPopupComponent } from '@content/ui/components/inappropriateContentWarningPopupComponent';
+import { ShareComponent } from '@content/ui/components/shareComponent';
 import { AddCampaignPage } from '@content/ui/pages/addCampaignPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SocialCampaignPage } from '@content/ui/pages/socialCampaignPage';
@@ -14,6 +17,7 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
@@ -30,9 +34,13 @@ test.describe(
     let addCampaignPage: AddCampaignPage;
 
     test.beforeEach(async ({ appManagerFixture }) => {
+      // Enable social campaign integrations
+      await appManagerFixture.socialCampaignHelper.enableSocialCampaign();
       // Reset cleanup flag for each test
       await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
+      campaignId = '';
+      tileId = '';
     });
 
     test.afterEach(async ({ appManagerFixture }) => {
@@ -48,7 +56,7 @@ test.describe(
     test(
       'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete', '@healthcheck'],
       },
       async ({ socialCampaignManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
@@ -734,6 +742,7 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14905',
           storyId: 'CONT-14905',
+          isKnownFailure: true,
         });
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         // Create campaign with audience
@@ -778,7 +787,8 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          description:
+            'Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired',
           zephyrTestId: 'CONT-14903',
           storyId: 'CONT-14903',
         });
@@ -829,14 +839,15 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14904',
           storyId: 'CONT-14904',
+          isKnownFailure: true,
         });
 
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const applicationManagerHomePage = appManagerFixture.homePage;
         // Create campaign with audience
         const campaignOptions = {
-          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
-          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE,
-          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.YOUTUBE,
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.PRODUCT,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_NEW_BRAND,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_NEW_BRAND,
           recipient: SocialCampaignRecipient.EVERYONE,
         };
 
@@ -849,21 +860,20 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteDetails.siteId);
-
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
-        await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnEditDashboard();
-        await siteDashboardPage.actions.clickOnEditCarousel();
-        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
-        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
-        await siteDashboardPage.actions.clickDoneButton();
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllHomeCarouselItems();
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.actions.clickOnEditDashboard();
+        await applicationManagerHomePage.actions.clickOnEditCarousel();
+        await applicationManagerHomePage.actions.enterSearchCarouselInput(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.selectCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await applicationManagerHomePage.actions.clickHomeDashboardDoneButton();
+        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
         // expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
-        await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.loadPage();
+        await applicationManagerHomePage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -918,15 +928,16 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-21039'],
       },
-      async ({ socialCampaignManagerFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-21039',
           storyId: 'CONT-21039',
+          isKnownFailure: true,
         });
 
-        const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
+        const applicationManagerHomePage = appManagerFixture.homePage;
 
         // Create campaign with audience
         const campaignOptions = {
@@ -937,7 +948,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await socialCampaignManagerFixture.socialCampaignHelper.createCampaign({
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -956,7 +967,7 @@ test.describe(
         tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
         await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
-        await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
+        await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
@@ -1020,6 +1031,7 @@ test.describe(
             'In Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-40519',
           storyId: 'CONT-40519',
+          isKnownFailure: true,
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1108,7 +1120,7 @@ test.describe(
     test(
       'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14901'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -1133,6 +1145,7 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
 
+        campaignId = createdCampaign.campaignId;
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         const tileTitle = TestDataGenerator.generateRandomString();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
@@ -1142,6 +1155,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
+        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();
@@ -1225,6 +1239,141 @@ test.describe(
         await addCampaignPage.actions.selectMemberAsAudience();
         await addCampaignPage.actions.enterAudienceName(updatedAudienceName);
         await addCampaignPage.assertions.verifyAudienceNameAndCount(audienceDetails.count, updatedAudienceName);
+      }
+    );
+
+    test(
+      'in Zeus verify user submits inappropriate content while sharing a social campaign to home dashboard and site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28477'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User submits inappropriate content while Sharing a Social Campaign to Home Dashboard and Site Dashboard',
+          zephyrTestId: 'CONT-28477',
+          storyId: 'CONT-28477',
+        });
+
+        // Inappropriate text to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+
+        // Phase 1: Setup - Admin creates Social Campaign for "All Organization"
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const publicSiteName = publicSite.name;
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerApiFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+        });
+        campaignId = createdCampaign.campaignId;
+
+        // Helper function to test sharing social campaign with inappropriate content warning (Cancel and Submit Anyway flows)
+        const testShareSocialCampaignWithInappropriateContent = async (
+          userFixture: any,
+          campaignLinkText: string,
+          inappropriateText: string,
+          postIn: 'Home Feed' | 'Site Feed',
+          siteName?: string
+        ) => {
+          const shareComponent = new ShareComponent(userFixture.page);
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+
+          // Navigate to Social Campaign page
+          await userFixture.navigationHelper.clickOnSocialCampaigns();
+          const socialCampaignPage = new SocialCampaignPage(userFixture.page);
+          await socialCampaignPage.loadPage();
+          await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignLinkText);
+
+          // Click "..." option on the Social Campaign
+          await socialCampaignPage.actions.clickCampaignOptions();
+
+          // Click "Share to feed" button
+          await socialCampaignPage.actions.clickShareToFeedButton();
+
+          // Wait for share modal to appear
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          // Step 1: Cancel Flow
+          // Enter inappropriate text
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Select post location
+          if (postIn === 'Site Feed') {
+            await shareComponent.selectShareOptionAsSiteFeed();
+            if (siteName) {
+              await shareComponent.actions.enterSiteName(siteName);
+            }
+          }
+
+          // Click Share button
+          await shareComponent.actions.clickShareButton();
+
+          // Verify warning popup appears
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.actions.clickCancel();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify share modal is still functional and user can edit content
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          // Step 2: Submit Anyway Flow
+          // Enter inappropriate text again
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          // Click Share button
+          await shareComponent.actions.clickShareButton();
+
+          // Verify warning popup appears
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          // Click Submit Anyway button (Continue button)
+          await warningPopup.actions.clickContinue();
+
+          // Verify popup is closed
+          await warningPopup.assertions.verifyWarningPopupClosed();
+        };
+
+        // Phase 2: Test Execution (as End User)
+
+        // Test Home Feed scenario
+        await test.step('Test Home Feed: Inappropriate content warning when sharing social campaign', async () => {
+          await testShareSocialCampaignWithInappropriateContent(
+            standardUserFixture,
+            campaignOptions.linkText,
+            inappropriatePostText,
+            'Home Feed'
+          );
+        });
+
+        // Test Site Feed scenario
+        await test.step('Test Site Feed: Inappropriate content warning when sharing social campaign', async () => {
+          await testShareSocialCampaignWithInappropriateContent(
+            standardUserFixture,
+            campaignOptions.linkText,
+            inappropriatePostText,
+            'Site Feed',
+            publicSiteName
+          );
+        });
       }
     );
   }

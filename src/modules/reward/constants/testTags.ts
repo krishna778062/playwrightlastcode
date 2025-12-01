@@ -1,7 +1,9 @@
 export enum REWARD_SUITE_TAGS {
   MANAGE_REWARD = '@manage-reward',
+  MANAGE_WORK_ANNIVERSARY = '@manage-work-anniversary',
   REWARD_STORE = '@reward-store',
   RECOGNITION_HUB = '@recognition-hub',
+  USER_PROFILE = '@user-profile',
 }
 
 export enum REWARD_FEATURE_TAGS {
@@ -14,11 +16,16 @@ export enum REWARD_FEATURE_TAGS {
   REWARDS_ACTIVITY_TABLE = '@rewards-activity-table',
   POINTS_GIVEN_ACTIVITY = '@points-given',
   POINTS_REDEEMED_ACTIVITY = '@points-redeemed',
+  REWARDS_GIFTING_OPTIONS = '@rewards-gifting-options',
+  REWARDS_PEER_GIFTING = '@rewards-peer-gifting',
+  REWARDS_NOTIFICATIONS = '@rewards-notifications',
+  REWARDS_ALLOWANCE = '@rewards-allowance',
 
   // Recognition Hub Related Tags
   CREATE_RECOGNITION_WITH_POINTS = '@create-recognition-with-points',
   RECOGNITION_NOTIFICATION_CHECK = '@reward-point-notification-check',
   RECOGNITION_POINT_LABELING = '@reward-point-element-in-post',
+  RECOGNITION_EDIT_POINTS = '@edit-points',
 
   // Reward Store Related Tags
   REWARD_OPTIONS = '@reward-options',
@@ -37,6 +44,11 @@ export enum REWARD_FEATURE_TAGS {
 
   //Allowance refreshing cases
   REWARDS_ALLOWANCE_REFRESH = '@allowance-refreshing',
+  REWARDS_ALLOWANCE_SEEDING = '@allowance-seeding',
+
+  //Work Anniversary Related Tags
+  REWARDS_WORK_ANNIVERSARY = '@rewards-work-anniversary',
+  WORK_ANNIVERSARY_WITH_POINTS = '@work-anniversary-with-points',
 }
 
 // Combined tags for the module

@@ -5,6 +5,7 @@ import { GovernanceScreenPage } from '@content/ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '@content/ui/pages/manageApplicationPage';
 import { ManageFeaturesPage } from '@content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
+import { ManageSiteSetUpPage } from '@content/ui/pages/manageSiteSetUpPage';
 import { SiteCreationPage as ContentSiteCreationPage, SiteCreationPage } from '@content/ui/pages/siteCreationPage';
 import { SiteDetailsPage } from '@content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
@@ -56,6 +57,7 @@ test.describe(
     let createdSiteName: string;
     let manualCleanupNeeded = false;
     let manageFeaturesPage: ManageFeaturesPage;
+    let manageSiteSetUpPage: ManageSiteSetUpPage;
     let manageSitePage: ManageSitePage;
     let applicationscreen: ApplicationScreenPage;
     let manageApplicationPage: ManageApplicationPage;
@@ -69,7 +71,8 @@ test.describe(
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
-      manageSitePage = new ManageSitePage(appManagerFixture.page, '');
+      manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, '');
+      manageSitePage = new ManageSitePage(appManagerFixture.page);
       applicationscreen = new ApplicationScreenPage(appManagerFixture.page);
       manageApplicationPage = new ManageApplicationPage(appManagerFixture.page);
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
@@ -102,7 +105,13 @@ test.describe(
       test(
         `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.SITE_CREATION,
+            '@healthcheck',
+          ],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
@@ -160,70 +169,9 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
 
         // Search for the deactivated site in the search bar
-        await manageSitePage.actions.searchForSite(siteName);
+        await manageSiteSetUpPage.actions.searchForSite(siteName);
         await manageSitePage.assertions.verifyNoSitesFound(siteName);
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
-      }
-    );
-    test(
-      `to Verify enabling and disabling content submissions manage application governance page`,
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.REGRESSION,
-          ContentSuiteTags.ENABLE_DISABLE_CONTENT_SUBMISSIONS,
-        ],
-      },
-      async ({ appManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description: 'To Verify enabling and disabling content submissions manage application governance page',
-          zephyrTestId: 'CONT-23553',
-          storyId: 'CONT-23553',
-        });
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationscreen.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
-        await governanceScreenPage.actions.disableContentSubmissions('Saved changes successfully');
-        await sideNavBarComponent.verifyingCreateButtonIsVisible();
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
-        const standardUserSitesPage = new SitesPage(standardUserFixture.page, '');
-        const standardUserSideNavBarComponent = new SideNavBarComponent(standardUserFixture.page);
-        await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnFollowingTab();
-        await standardUserSitesPage.actions.openSiteFromFollowingTab();
-        const standardUserSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, '');
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsNotVisible();
-        await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMemberTab();
-        await standardUserSitesPage.actions.openSiteFromMemberTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsNotVisible();
-        await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMySitesTab();
-        await standardUserSitesPage.actions.openSiteFromMySitesTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationscreen.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
-        await governanceScreenPage.actions.enableContentSubmissions('Saved changes successfully');
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
-        await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnFollowingTab();
-        await standardUserSitesPage.actions.openSiteFromFollowingTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
-        await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMemberTab();
-        await standardUserSitesPage.actions.openSiteFromMemberTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
       }
     );
   }

@@ -3,11 +3,11 @@ import { AdoptionRateUserLoginData } from '@data-engineering/helpers/appAdaption
 import { FilterOptions } from '@data-engineering/helpers/baseAnalyticsQueryHelper';
 import { DateHelper } from '@data-engineering/helpers/dateHelper';
 import { FrameLocator, Page, test } from '@playwright/test';
-import { addDays, format, parseISO } from 'date-fns';
+import { addDays, format } from 'date-fns';
 
-import { BarChartComponent } from '../../../components/barChartComponent';
+import { VerticalBarChartComponent } from '../../../components/verticalBarChartComponent';
 
-export class AdoptionRateUserLoginMetrics extends BarChartComponent {
+export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
   constructor(
     readonly page: Page,
     readonly thoughtSpotIframe: FrameLocator
@@ -32,8 +32,12 @@ export class AdoptionRateUserLoginMetrics extends BarChartComponent {
       // Parse start and end dates
       const startDateStr = dateReplacements.startDate.split(' ')[0];
       const endDateStr = dateReplacements.endDate.split(' ')[0];
-      const startDate = parseISO(startDateStr);
-      const endDate = parseISO(endDateStr);
+      console.log(`----> X-Axis Labels - The start date string is  `, startDateStr);
+      console.log(`----> X-Axis Labels - The end date string is  `, endDateStr);
+      const startDate = DateHelper.parseIsoAsUTC(startDateStr);
+      const endDate = DateHelper.parseIsoAsUTC(endDateStr);
+      console.log(`----> X-Axis Labels - The start date is  `, startDate);
+      console.log(`----> X-Axis Labels - The end date is  `, endDate);
 
       // Determine horizontal axis label based on whether dates span one or multiple years
       const startYear = startDate.getFullYear();
@@ -67,18 +71,18 @@ export class AdoptionRateUserLoginMetrics extends BarChartComponent {
             currentDate = addDays(currentDate, 1);
           }
         } else {
-          // 30 days: alternate dates starting from 3rd day
-          // If start date is Oct 2, day 3 is Oct 4, but we want Oct 3 as first label
-          // So we start from startDate + 1 (day 2) instead of startDate + 2 (day 3)
+          // 30 days: Start from start date + 5 days, then every 7 days
+          // Example: If start date is Oct 29, labels should be: Nov 03, Nov 10, Nov 17, Nov 24, etc.
           xAxisLabels = [];
-          const firstLabelDate = addDays(startDate, 1); // Start from day 2 (which shows as Oct 3 for Oct 2 start date)
-          let currentDate = firstLabelDate;
+          // Start from start date + 5 days, then add 7 days for each subsequent label
+          let currentDate = addDays(startDate, 5);
           while (currentDate <= endDate) {
-            xAxisLabels.push(format(currentDate, 'MMMdd'));
-            currentDate = addDays(currentDate, 2); // Alternate days
+            xAxisLabels.push(format(currentDate, 'MMM dd'));
+            currentDate = addDays(currentDate, 7); // Add 7 days for next label
           }
         }
 
+        console.log(`----> X-Axis Labels - EXPECTED: The xAxisLabels are  `, xAxisLabels);
         await this.verifyXAxisLabelsAreAsExpected({
           xAxisLabels,
         });

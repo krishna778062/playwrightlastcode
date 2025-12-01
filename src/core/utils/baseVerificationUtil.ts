@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+
 export class BaseVerificationUtil {
   constructor(readonly page: Page) {
     this.page = page;
@@ -20,7 +22,7 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || 8_000,
+        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
       });
       return true;
     } catch (error) {
@@ -42,7 +44,7 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || 8_000,
+        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
       });
       return true;
     } catch {
@@ -65,7 +67,7 @@ export class BaseVerificationUtil {
   ) {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not visible`).toBeHidden({
-        timeout: options?.timeout || 8_000,
+        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
       });
     } catch (error) {
       throw new Error(
@@ -411,6 +413,28 @@ export class BaseVerificationUtil {
     }
   }
 
+  async verifyElementVisibilityByOpacity(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have opacity 1`).toHaveCSS(
+        'opacity',
+        '1'
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not visible.\n${error}`
+      );
+    }
+  }
+
   /**
    * Waits for the element to be hidden
    * @param locator - The locator to wait for
@@ -574,5 +598,53 @@ export class BaseVerificationUtil {
         timeout: options?.timeout || 8_000,
       });
     });
+  }
+
+  async verifyElementHasClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have class ${className}`).toHaveClass(
+        className,
+        {
+          timeout: options?.timeout || 8_000,
+        }
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element does not have expected class.\n${error}`
+      );
+    }
+  }
+
+  async verifyElementDoesNotHaveClass(
+    locator: Locator,
+    className: string | RegExp,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(
+        locator,
+        options?.assertionMessage ?? `expecting ${locator} to not have class ${className}`
+      ).not.toHaveClass(className, {
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element has unexpected class.\n${error}`
+      );
+    }
   }
 }

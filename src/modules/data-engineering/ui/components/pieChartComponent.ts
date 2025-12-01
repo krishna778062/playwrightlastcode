@@ -1,9 +1,11 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export class PieChartComponent extends BaseComponent {
   readonly toolTipContainer: Locator;
+  readonly chartSegmentLocator: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
   readonly getChartLabelLocatorWithLabelAs: (label: string) => Locator;
   constructor(
@@ -16,7 +18,10 @@ export class PieChartComponent extends BaseComponent {
       has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
     super(page, container);
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
+    this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-data-labels']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
@@ -24,23 +29,45 @@ export class PieChartComponent extends BaseComponent {
   }
 
   /**
+   * Waits for the pie chart to be loaded and visible
+   */
+  async waitForChartToLoad(): Promise<void> {
+    await test.step(`Wait for pie chart to load for metric ${this.metricTitle}`, async () => {
+      // Wait for the container to be visible
+      await this.verifier.waitUntilElementIsVisible(this.rootLocator, {
+        timeout: TIMEOUTS.VERY_LONG,
+        stepInfo: `Wait for metric container to be visible for ${this.metricTitle}`,
+      });
+
+      // Wait for the chart series group to be present (indicates chart is rendered)
+      const chartSeriesGroup = this.rootLocator.locator("g[class*='highcharts-series-group']");
+      await this.verifier.waitUntilElementIsVisible(chartSeriesGroup, {
+        timeout: TIMEOUTS.VERY_LONG,
+        stepInfo: `Wait for chart series group to be visible for ${this.metricTitle}`,
+      });
+    });
+  }
+
+  /**
    * Verifies the number of segments visible on the pie chart
    * @param numberOfSegments - The number of segments to verify
    */
   async verifyNumberOfSegmentsVisibleonPieChartIs(numberOfSegments: number) {
-    const chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
+    // Wait for chart to load first
+    await this.waitForChartToLoad();
+
     await expect(
-      chartSegmentLocator,
+      this.chartSegmentLocator,
       `Number of segments visible on pie chart should be ${numberOfSegments}`
-    ).toHaveCount(numberOfSegments);
+    ).toHaveCount(numberOfSegments, { timeout: TIMEOUTS.MEDIUM });
   }
 
   /**
-   * Verifies the tool tip container is visible
+   * Verifies the tool tip container has opacity 1
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: 30_000,
+      timeout: 10_000,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }

@@ -16,15 +16,9 @@ export class AnalyticsLandingPage extends BasePage {
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ANALYTICS_LANDING_PAGE);
-    this.appAnalyticsButton = page
-      .getByTestId('nav-landing-page-section-items')
-      .getByRole('link', { name: 'Application' });
-    this.recognitionAnalyticsButton = page
-      .getByTestId('nav-landing-page-section-items')
-      .getByRole('link', { name: 'Recognition' });
-    this.campaignAnalyticsButton = page
-      .getByTestId('nav-landing-page-section-items')
-      .getByRole('link', { name: 'Campaigns' });
+    this.appAnalyticsButton = page.getByTestId('landing-page-section-items').getByRole('button', { name: 'App' });
+    this.recognitionAnalyticsButton = page.getByRole('link', { name: 'Recognition' });
+    this.campaignAnalyticsButton = page.getByRole('link', { name: 'Campaigns' });
   }
 
   /**

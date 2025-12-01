@@ -4,6 +4,7 @@ import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixtu
 import { DNDAppRestriction } from '@frontline/pages/dndAppRestrictionManagerPage';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe(
@@ -75,7 +76,7 @@ test.describe(
     test(
       '[FL-358][FL-549] Verify display of user my settings when DND set for audience with source as Manual',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.DND],
+        tag: [TestPriority.P1, FrontlineFeatureTags.DND, TestGroupType.HEALTHCHECK],
       },
       async ({ endUserHomePage }) => {
         tagTest(test.info(), {

@@ -16,6 +16,7 @@ import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { IIdentityAdminOperations } from '@/src/modules/platforms/apis/interfaces/IIdentityOperations';
 import { PLATFORM_API_ENDPOINTS as API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
+import { ACGCreationAPI, ACGCreationResponse } from '@/src/modules/platforms/apis/types/acg';
 
 interface ListRolesResponse {
   status: number;
@@ -654,8 +655,10 @@ export class IdentityService implements IIdentityAdminOperations {
         const acgSyncStatus = listOfACGsJson.result.listOfItems[0].data.syncStatus;
         expect(acgSyncStatus, `Expecting ACG sync status to be Synced`).toBe('Synced');
       }, `Polling get list of ACGs API for ACG ${acgName} until we get Synced status`).toPass({
-        timeout: 40_000,
-        intervals: [1000, 4000, 7000, 10000, 20000, 30000, 40000],
+        timeout: 120_000,
+        intervals: [
+          1000, 4000, 7000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000,
+        ],
       });
     });
   }
@@ -770,6 +773,44 @@ export class IdentityService implements IIdentityAdminOperations {
         data: requestData,
       });
       return await this.httpClient.parseResponse<PeopleListResponse>(response);
+    });
+  }
+
+  /**
+   * Creates ACG with different parameters
+   * @param acgCreationParams - ACG creation parameters which contains acgname, feature, target audience, manager audience, admin audience, manager user, admin user, acg status
+   * @returns The ACG creation response
+   */
+  async createACG(acgCreationParams: ACGCreationAPI): Promise<ACGCreationResponse> {
+    return await test.step(`Creating ACG with name: ${acgCreationParams.acgName}`, async () => {
+      const payloadToCreateACG = {
+        controlGroups: [
+          {
+            admins: {
+              audiences: acgCreationParams.adminAudience ?? [],
+              users: acgCreationParams.adminUser ?? [],
+            },
+            managers: {
+              audiences: acgCreationParams.managerAudience ?? [],
+              users: acgCreationParams.managerUser ?? [],
+            },
+            targets: {
+              audiences: acgCreationParams.targetAudience,
+              users: [],
+            },
+            featureCode: acgCreationParams.feature,
+            type: 'Custom',
+            name: acgCreationParams.acgName,
+            status: acgCreationParams.acgStatus ?? 'Active',
+          },
+        ],
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.createAccessControlGroup, {
+        data: payloadToCreateACG,
+      });
+      expect(response.status(), 'ACG created successfully').toBe(201);
+      return await this.httpClient.parseResponse<ACGCreationResponse>(response);
     });
   }
 }

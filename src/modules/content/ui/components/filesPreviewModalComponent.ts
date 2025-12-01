@@ -6,8 +6,6 @@ import {
   FilesPreviewToastMessages,
 } from '@content/constants/filesPreviewEnums';
 
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-
 export enum FilesPreviewMenuActionButton {
   DOWNLOAD = 'Download',
   FILE_INFO = 'File info',
@@ -15,6 +13,8 @@ export enum FilesPreviewMenuActionButton {
   ANALYTICS = 'Analytics',
   SHOW_MORE_ACTIONS = 'Show more',
 }
+
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class FilesPreviewModalComponent extends BaseComponent {
   get filesPreviewLoadingProgressBar(): Locator {

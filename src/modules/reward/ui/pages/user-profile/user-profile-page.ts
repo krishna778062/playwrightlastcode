@@ -18,6 +18,10 @@ export class UserProfilePage extends BasePage {
   readonly allowanceRefreshingInfoIconTooltipText: Locator;
   private pointsToGiveContainer: Locator;
   private pointsToRedeemContainer: Locator;
+  // Notification settings locators
+  readonly recognitionEmailCheckbox: Locator;
+  readonly rewardsEmailCheckbox: Locator;
+  readonly notificationSettingSaveButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -45,6 +49,11 @@ export class UserProfilePage extends BasePage {
       'button[aria-label="Allowance refreshing information"]'
     );
     this.allowanceRefreshingInfoIconTooltipText = page.locator('div[id*="tippy"]>div>p');
+
+    // Notification settings locators
+    this.recognitionEmailCheckbox = page.locator('[aria-labelledby="recognition"] input[id="recognition"]');
+    this.rewardsEmailCheckbox = page.locator('[aria-labelledby="rewards"] input[id="rewards"]');
+    this.notificationSettingSaveButton = page.getByRole('button', { name: 'Save' });
   }
 
   /**
@@ -189,5 +198,77 @@ export class UserProfilePage extends BasePage {
       'Your monthly allowance is refreshing and will be available soon'
     );
     await this.allowanceRefreshingInfoIcon.click({ force: true });
+  }
+
+  /**
+   * Mock the basic-app-config API and reload the page with new language
+   */
+  async mockAppConfigLanguage(page: Page, langCode: number): Promise<void> {
+    await page.route('**/v2/account/basic-app-config', async route => {
+      const originalResponse = await route.fetch();
+      const body = await originalResponse.json();
+
+      if (body?.result?.language !== undefined) {
+        body.result.language = langCode;
+      } else {
+        console.warn('⚠️ Could not find result.language in response, leaving unchanged');
+      }
+
+      await route.fulfill({
+        response: originalResponse,
+        body: JSON.stringify(body),
+        headers: {
+          ...originalResponse.headers(),
+          'content-type': 'application/json',
+        },
+      });
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+  }
+
+  /**
+   * Restore original behavior (disable API mocking)
+   */
+  async restoreAppConfigMock(page: Page): Promise<void> {
+    await page.unroute('**/v2/account/basic-app-config');
+    await page.reload();
+    console.log('✅ Restored API, mock disabled, page reloaded.');
+  }
+
+  /**
+   * Navigate to current user profile notification settings
+   */
+  async navigateToCurrentUserProfileNotificationSetting(
+    notificationType: 'email' | 'browser' | 'mobile'
+  ): Promise<void> {
+    const userId = await this.page.evaluate(() => {
+      return (window as any).Simpplr?.CurrentUser?.uid;
+    });
+    const urlPathType = notificationType === 'mobile' ? 'native-app' : notificationType;
+    await this.page.goto(`/people/${userId}/edit/notifications/${urlPathType}`);
+  }
+
+  /**
+   * Set notification settings for recognition
+   */
+  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
+    const isChecked = await this.recognitionEmailCheckbox.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.recognitionEmailCheckbox, {
+        stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
+  }
+
+  /**
+   * Set notification settings for rewards
+   */
+  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
+    const isChecked = await this.rewardsEmailCheckbox.isChecked();
+    if (isChecked !== enabled) {
+      await this.clickOnElement(this.rewardsEmailCheckbox, {
+        stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
   }
 }

@@ -33,6 +33,9 @@ export interface ISiteDashboardActions {
   clickQuestionButton: () => Promise<void>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -56,6 +59,13 @@ export interface ISiteDashboardAssertions {
   verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   validatePostNotVisible: (postText: string) => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -92,7 +102,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
-    this.feedLink = this.page.locator('a:has-text("eed")');
+    this.feedLink = this.page.locator('a#dashboard:has-text("eed")');
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
@@ -341,5 +351,63 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async validatePostNotVisible(postText: string): Promise<void> {
     await this.listFeedComponent.validatePostNotVisible(postText);
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  /**
+   * Verifies that multiple site names are displayed on the page
+   * @param siteNames - Array of site names to verify
+   */
+  async verifySitesNamesAreDisplayed(siteNames: string[]): Promise<void> {
+    await test.step(`Verify ${siteNames.length} site name(s) are displayed`, async () => {
+      for (const siteName of siteNames) {
+        await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+          assertionMessage: `Site link "${siteName}" should be visible`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies that a single site name is displayed on the page
+   * @param siteName - The site name to verify
+   */
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
   }
 }

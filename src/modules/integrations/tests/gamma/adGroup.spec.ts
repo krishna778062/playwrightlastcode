@@ -29,7 +29,7 @@ test.describe(
     test(
       'verify that Select Active Directory groups option is visible in Zeus',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
@@ -46,7 +46,7 @@ test.describe(
     test(
       'verify that create and do not create audiences options is visible after connected with Active Directory groups.',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -75,9 +75,9 @@ test.describe(
     );
 
     test(
-      'verify that standard error message should be displayed when no group will be selected while selecting "use Active Directory groups"  through radio button',
+      'verify that standard error message should be displayed when no group will be selected while selecting "use Active Directory groups" through radio button',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -93,7 +93,7 @@ test.describe(
     test(
       'verify that Retain AD groups if user switches from "Do not use AD groups" to "Use AD groups"',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

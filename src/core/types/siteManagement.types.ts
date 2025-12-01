@@ -13,16 +13,16 @@ export enum SiteMembershipAction {
 
 export interface SiteCreationPayload {
   access: string;
-  hasPages: boolean;
-  hasEvents: boolean;
-  hasAlbums: boolean;
-  hasDashboard: boolean;
-  landingPage: string;
-  isContentFeedEnabled: boolean;
-  isContentSubmissionsEnabled: boolean;
-  isOwner: boolean;
-  isMembershipAutoApproved: boolean;
-  isBroadcast: boolean;
+  hasPages: boolean | true;
+  hasEvents: boolean | true;
+  hasAlbums: boolean | true;
+  hasDashboard: boolean | true;
+  landingPage: string | 'dashboard';
+  isContentFeedEnabled: boolean | true;
+  isContentSubmissionsEnabled: boolean | true;
+  isOwner: boolean | true;
+  isMembershipAutoApproved: boolean | false;
+  isBroadcast: boolean | false;
   name: string;
   category: {
     categoryId: string;
@@ -132,4 +132,48 @@ export interface SiteMembershipResponse {
   message: string;
   result: SiteMembershipResult;
   errors?: string[];
+}
+
+export interface SiteMember {
+  id: string;
+  peopleId: string;
+  name: string;
+  email: string;
+  city?: string;
+  country?: string;
+  isActive: boolean;
+  videoCallProvider?: string;
+  nickname?: string;
+  isProtectedAuthor: boolean;
+  isOwner: boolean;
+  isMember: boolean;
+  isManager: boolean;
+  isFollowing: boolean;
+  isFollower: boolean;
+  isFavorited: boolean;
+  isContentManager: boolean;
+  isInMandatorySubscription: boolean;
+  isAppManager: boolean;
+  relationshipVia: string;
+  hireDate?: string;
+  hasConnectedSharePointAccount: boolean;
+  hasConnectedOneDriveAccount: boolean;
+  hasConnectedGoogleDriveAccount: boolean;
+  hasConnectedBoxAccount: boolean;
+  hasConnectedDropboxAccount: boolean;
+  canRemove: boolean;
+  canMakeOwner: boolean;
+  canMakeNotManager: boolean;
+  canMakeNotContentManager: boolean;
+  canMakeManager: boolean;
+  canMakeContentManager: boolean;
+  canFollow: boolean;
+  birthday?: string;
+}
+
+export interface SiteMembershipListResponse {
+  status: string;
+  result: {
+    listOfItems: SiteMember[];
+  };
 }

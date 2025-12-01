@@ -33,6 +33,7 @@ export class BaseAppTileComponent extends BaseComponent {
   // App tile dialog locators
   readonly getAppButtonInPanel: (panelContent: Locator, appName: string) => Locator;
   readonly getAppNameElementInPanel: (panelContent: Locator, appName: string) => Locator;
+  readonly getSetUpTileButton: (title: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -61,6 +62,11 @@ export class BaseAppTileComponent extends BaseComponent {
       panelContent.locator('button').filter({ hasText: appName });
     this.getAppNameElementInPanel = (panelContent: Locator, appName: string) =>
       panelContent.locator('p').filter({ hasText: new RegExp(`^${appName}$`, 'i') });
+    this.getSetUpTileButton = (title: string) =>
+      this.page
+        .locator('//aside[contains(@class, "Tile")]')
+        .filter({ has: this.page.getByRole('heading', { name: title, exact: true }) })
+        .getByRole('button', { name: 'Set up tile', exact: true });
   }
   protected getAppTileButton(name: string): Locator {
     return this.page.getByRole('button', { name: name, exact: true });
@@ -604,6 +610,20 @@ export class BaseAppTileComponent extends BaseComponent {
       await this.clickOnElement(personalizeBtn, { timeout: 30_000 });
     });
   }
+  /**
+   * Open personalize for a tile and verify heading and field label is visible
+   */
+  async openPersonalizeAndVerify(tileTitle: string, fieldLabel: string): Promise<void> {
+    await test.step(`Open personalize and verify dialog for '${tileTitle}'`, async () => {
+      await this.openPersonalizeOptions(tileTitle);
+      const safeTitle = tileTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const dialogName = new RegExp(`^Personalize\\s+${safeTitle}\\s+tile$`, 'i');
+      const dialog = this.page.getByRole('dialog', { name: dialogName });
+      await expect(dialog).toBeVisible({ timeout: 5_000 });
+      await expect(dialog.getByLabel(fieldLabel)).toBeVisible({ timeout: 5_000 });
+      await this.clickButton('Cancel', 'Close personalize dialog');
+    });
+  }
 
   async configurePersonalizeSortBy(sortBy: string): Promise<void> {
     await test.step(`Configure personalize sort by: ${sortBy}`, async () => {
@@ -690,6 +710,12 @@ export class BaseAppTileComponent extends BaseComponent {
         input = this.fieldInputByTestId(fieldName);
       }
       await input.fill(value);
+    });
+  }
+  async openSetUpOptions(title: string): Promise<void> {
+    await test.step(`Open Set Up Tile for '${title}'`, async () => {
+      const setUpTileBtn = this.getSetUpTileButton(title);
+      await this.clickOnElement(setUpTileBtn, { timeout: 30_000 });
     });
   }
 }

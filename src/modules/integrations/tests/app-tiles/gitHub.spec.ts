@@ -40,12 +40,12 @@ test.describe(
     test(
       'create and edit GitHub My Open PRs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24073',
+          zephyrTestId: ['INT-24043', 'INT-24047', 'INT-24073'],
           storyId: 'INT-23629',
         });
 
@@ -68,12 +68,12 @@ test.describe(
     test(
       'create and verify metadata for GitHub My Open PRs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24049',
+          zephyrTestId: ['INT-24051', 'INT-24049'],
           storyId: 'INT-23629',
         });
         createdTileTitle = `Display my open PRs ${faker.string.alphanumeric({ length: 6 })}`;
@@ -94,12 +94,12 @@ test.describe(
     test(
       'create and edit GitHub Pending PR Reviews tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24069',
+          zephyrTestId: ['INT-24064', 'INT-24069', 'INT-24074'],
           storyId: 'INT-23629',
         });
 
@@ -123,7 +123,7 @@ test.describe(
     test(
       'create and verfiy metadata for GitHub Pending PR Reviews tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -190,7 +190,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24043',
+          zephyrTestId: 'INT-29073',
           storyId: 'INT-23629',
         });
         createdTileTitle = `Display my open PRs ${faker.string.alphanumeric({ length: 6 })}`;
@@ -223,7 +223,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
+          zephyrTestId: ['INT-24070', 'INT-24075', 'INT-24067'],
           storyId: 'INT-23629',
         });
 
@@ -259,7 +259,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24048',
+          zephyrTestId: ['INT-24048', 'INT-24046', 'INT-24050'],
           storyId: 'INT-23629',
         });
 
@@ -295,7 +295,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25168',
+          zephyrTestId: 'INT-24053',
           storyId: 'INT-22854',
         });
         createdTileTitle = `GitHub My Open PRs ${faker.string.alphanumeric({ length: 6 })}`;
@@ -318,7 +318,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28456',
+          zephyrTestId: 'INT-29075',
           storyId: 'INT-24422',
         });
 
@@ -348,7 +348,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25169',
+          zephyrTestId: 'INT-29074',
           storyId: 'INT-24586',
         });
 
@@ -379,7 +379,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-25169',
+          zephyrTestId: 'INT-29076',
           storyId: 'INT-24586',
         });
 
