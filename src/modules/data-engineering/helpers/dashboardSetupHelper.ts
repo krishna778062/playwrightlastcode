@@ -3,6 +3,7 @@ import { Browser, Page, test } from '@playwright/test';
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
+import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
@@ -13,6 +14,7 @@ import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboar
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { PeopleDashboard } from '@/src/modules/data-engineering/ui/dashboards/people/peopleDashboard';
 import { SearchDashboard } from '@/src/modules/data-engineering/ui/dashboards/search/searchDashboard';
+import { SitesDashboard } from '@/src/modules/data-engineering/ui/dashboards/sites/sitesDashboard';
 import { SocialInteractionDashboard } from '@/src/modules/data-engineering/ui/dashboards/social-interaction/socialInteractionDashboard';
 
 export enum UserRole {
@@ -260,6 +262,46 @@ export async function setupMobileDashboardForTest(
       mobileDashboard,
       snowflakeHelper,
       mobileDashboardQueryHelper,
+    };
+  });
+}
+
+/**
+ * Sets up Sites Dashboard for testing
+ */
+export async function setupSitesDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  sitesDashboard: SitesDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  sitesDashboardQueryHelper: SitesDashboardQueryHelper;
+}> {
+  return await test.step('Setup Sites Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create sites dashboard query helper
+    const orgId = process.env.ORG_ID || '';
+    if (!orgId) {
+      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
+    }
+    const sitesDashboardQueryHelper = new SitesDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create sites dashboard
+    const sitesDashboard = new SitesDashboard(page);
+    await sitesDashboard.loadPage();
+
+    console.log('Sites Dashboard loaded successfully');
+
+    return {
+      page,
+      sitesDashboard,
+      snowflakeHelper,
+      sitesDashboardQueryHelper,
     };
   });
 }

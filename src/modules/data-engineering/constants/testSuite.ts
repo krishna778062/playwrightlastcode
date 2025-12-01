@@ -5,4 +5,5 @@ export enum DataEngineeringTestSuite {
   SEARCH = '@search',
   PEOPLE = '@people',
   MOBILE = '@mobile',
+  SITES = '@sites',
 }

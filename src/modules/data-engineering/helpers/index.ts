@@ -5,5 +5,6 @@ export * from './mobileDashboardQueryHelper';
 export * from './pageHelper';
 export * from './peopleDashboardQueryHelper';
 export * from './searchDashboardQueryHelper';
+export * from './sitesDashboardQueryHelper';
 export * from './snowflakeHelper';
 export * from './socialInteractionQueryHelper';
