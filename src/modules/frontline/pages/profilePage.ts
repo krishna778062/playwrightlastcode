@@ -161,6 +161,7 @@ export class ProfilePage extends BasePage {
 
   async enterOtpAndVerify(otpUtils: OTPUtils, phoneNumber: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Entering OTP and verifying', async () => {
+      await this.page.waitForTimeout(8000);
       const otpValue = await otpUtils.getOTPFromSMS(phoneNumber);
       console.log(`Mobile OTP → ${otpValue}`);
 
