@@ -1,6 +1,11 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestSuite } from '@core/constants/testSuite';
 import { tagTest } from '@core/utils/testDecorator';
+import {
+  AUDIENCE_BUILDER_BUTTONS,
+  AUDIENCE_BUILDER_FILTER_OPTIONS,
+  AUDIENCE_BUILDER_FILTERS,
+} from '@platforms/constants/audience';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audienceBuilderPage';
 
@@ -68,38 +73,38 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.loadPage();
       await audienceBuilderPage.clickFiltersButton();
       //  Verify absence of Reset button when no filter value selected
-      await audienceBuilderPage.verifyButtonTextAbsence('Reset');
-      await audienceBuilderPage.clickFilterElement('Attributes');
-      await audienceBuilderPage.clickFilterOption('City');
-      await audienceBuilderPage.verifyButtonTextPresence('View results');
-      await audienceBuilderPage.clickButtonText('View results');
+      await audienceBuilderPage.verifyButtonTextAbsence(AUDIENCE_BUILDER_BUTTONS.RESET);
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+      await audienceBuilderPage.clickFilterOption(AUDIENCE_BUILDER_FILTER_OPTIONS.CITY);
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
       await audienceBuilderPage.verifyFiltersDialogClosed();
-      await audienceBuilderPage.verifyAppliedFilterRailPresence('Attributes');
+      await audienceBuilderPage.verifyAppliedFilterRailPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
       //  Reset all clears applied filters
       await audienceBuilderPage.clickFiltersButton();
-      await audienceBuilderPage.verifyButtonTextPresence('Reset all');
-      await audienceBuilderPage.clickButtonText('Reset all');
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.RESET_ALL);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.RESET_ALL);
       await audienceBuilderPage.verifyFiltersDialogClosed();
-      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Attributes');
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
       //  Verify reset functionality for Created date filter
       await audienceBuilderPage.clickFiltersButton();
-      await audienceBuilderPage.clickFilterElement('Created date');
-      await audienceBuilderPage.clickFilterOption('Last 12 months');
-      await audienceBuilderPage.clickButtonText('View results');
-      await audienceBuilderPage.verifyAppliedFilterRailPresence('Created date');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
+      await audienceBuilderPage.clickFilterOption(AUDIENCE_BUILDER_FILTER_OPTIONS.LAST_12_MONTHS);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
+      await audienceBuilderPage.verifyAppliedFilterRailPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
       await audienceBuilderPage.clickFiltersButton();
-      await audienceBuilderPage.clickButtonText('Reset');
-      await audienceBuilderPage.clickButtonText('View results');
-      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Created date');
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.RESET);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
       //  Verify clear button on filter rail removes the applied filter
       await audienceBuilderPage.clickFiltersButton();
-      await audienceBuilderPage.clickFilterElement('Attributes');
-      await audienceBuilderPage.clickFilterOption('Business unit');
-      await audienceBuilderPage.clickButtonText('View results');
-      await audienceBuilderPage.verifyAppliedFilterRailPresence('Attributes');
-      await audienceBuilderPage.clickAppliedFilterRail('Attributes');
-      await audienceBuilderPage.clickButtonText('Clear');
-      await audienceBuilderPage.verifyAppliedFilterRailAbsence('Attributes');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+      await audienceBuilderPage.clickFilterOption(AUDIENCE_BUILDER_FILTER_OPTIONS.BUSINESS_UNIT);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
+      await audienceBuilderPage.verifyAppliedFilterRailPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+      await audienceBuilderPage.clickAppliedFilterRail(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.CLEAR);
+      await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
     }
   );
 });
