@@ -94,6 +94,7 @@ export interface IAssertions {
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyTagIsVisibleOnContentUnderFavoritesTab: (option: TagOption) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -210,6 +211,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnSelectAllButton(): Promise<void> {
     await this.manageContentComponent.selectSelectAllButton();
+  }
+  async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
+    await this.manageContentComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(option);
   }
 
   async clickOnValidateButton(): Promise<void> {
