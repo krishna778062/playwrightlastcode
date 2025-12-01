@@ -6,10 +6,13 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FeedPostApiResponse } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -283,6 +286,119 @@ test.describe(
         const shortReplyText = replyText.length > 25 ? replyText.substring(0, 25) : replyText;
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+      }
+    );
+
+    test(
+      'verify that User gets notified when mentioned in Site Feed post with attachment and can navigate to view inline image',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19553'],
+      },
+      async ({ appManagerFixture, standardUserFixture, appManagerApiContext }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that User gets notified when mentioned in Site Feed post with attachment and can navigate to view inline image',
+          zephyrTestId: 'CONT-19553',
+          storyId: 'CONT-19553',
+        });
+
+        // Get appManager user info for notification message
+        const identityManagementHelper = new IdentityManagementHelper(
+          appManagerApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
+        const appManagerData = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+        const appManagerFullName = appManagerData.fullName;
+
+        // Get "All Employees" site ID
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        // Phase 1: Admin Creates Site Feed Post with Mention + Attachment
+        const siteDashboard = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteDashboard.verifyThePageIsLoaded();
+        await siteDashboard.actions.clickOnFeedLink();
+
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.clickShareThoughtsButton();
+
+        // Generate feed test data
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        createdPostText = feedTestData.text;
+
+        // Get image file path
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.ATTACHMENTS.IMAGE
+        );
+
+        // Access CreateFeedPostComponent for mention and attachment operations
+        const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+        // Create post with text
+        await createFeedPostComponent.createPost(createdPostText);
+
+        // Add user mention
+        await createFeedPostComponent.addUserNameMention(endUserInfo.fullName);
+
+        // Submit post
+        const postResult = await createFeedPostComponent.createFeedPost();
+        const feedResponseBody = (await postResult.json()) as FeedPostApiResponse;
+        createdPostId = feedResponseBody.result.feedId;
+
+        // Verify post creation with mention and inline image
+        await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Phase 2: EndUser Validates Notification
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        const notificationComponent = await standardUserFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'EndUser clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+        // Verify notification message for mention in post
+        const expectedNotificationMessage = `${appManagerFullName} mentioned you "${createdPostText}" @${endUserInfo.fullName}`;
+        const shortExpectedNotificationMessage =
+          expectedNotificationMessage.length > 40
+            ? expectedNotificationMessage.substring(0, 25)
+            : expectedNotificationMessage;
+        await activityNotificationPage.assertions.verifyNotificationExistsForMention(shortExpectedNotificationMessage);
+
+        // Phase 3: EndUser Clicks Notification and Navigates to Post
+        await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+
+        // Wait for navigation to feed post
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Phase 4: Admin Deletes Post from Global Feed
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const globalFeedPage = new FeedPage(appManagerFixture.page);
+        await globalFeedPage.verifyThePageIsLoaded();
+
+        // Navigate to post detail page using postId
+        await appManagerFixture.page.goto(PAGE_ENDPOINTS.getFeedPage(createdPostId));
+        await globalFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Delete the post
+        await globalFeedPage.actions.deletePost(createdPostText);
+        createdPostId = ''; // Clear post ID as post is already deleted
       }
     );
   }
