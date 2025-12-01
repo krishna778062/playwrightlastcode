@@ -86,6 +86,10 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.clickOnSaveButton();
   }
 
+  async clickOnSaveButtonIfEnabled(): Promise<void> {
+    return this.appslinksComponent.clickOnSaveButtonIfEnabled();
+  }
+
   async verifyApps(name: string): Promise<void> {
     return this.appslinksComponent.verifyApps(name);
   }

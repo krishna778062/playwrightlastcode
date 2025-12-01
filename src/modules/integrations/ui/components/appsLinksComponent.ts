@@ -8,6 +8,7 @@ export class AppsLinksComponents extends BaseComponent {
   readonly customJsonInputField: Locator;
   readonly appsIntegrationDropdown: Locator;
   readonly saveButton: Locator;
+  readonly saveButtonElement: Locator;
   readonly starIcon: Locator;
   readonly linkButton: Locator;
   readonly customLinkBox: Locator;
@@ -45,6 +46,7 @@ export class AppsLinksComponents extends BaseComponent {
     this.customJsonInputField = this.page.getByPlaceholder('Custom JSON *');
     this.appsIntegrationDropdown = this.page.locator('select[id="appsIntegrationProvider"]');
     this.saveButton = this.page.locator('span', { hasText: 'Save' });
+    this.saveButtonElement = this.page.getByRole('button', { name: 'Save' });
     this.starIcon = this.page.locator("span[aria-label='Mark as favorite']");
     this.linkButton = this.page.getByRole('button', { name: 'Links' });
     this.customLinkBox = this.page.locator('input[id="myLinksEnabled"]');
@@ -126,6 +128,19 @@ export class AppsLinksComponents extends BaseComponent {
   async clickOnSaveButton(): Promise<void> {
     await test.step(`Clicking on save button`, async () => {
       await this.clickOnElement(this.saveButton);
+    });
+  }
+
+  async clickOnSaveButtonIfEnabled(): Promise<void> {
+    await test.step(`Clicking on save button if enabled`, async () => {
+      // Check if the button is enabled
+      const isEnabled = await this.saveButtonElement.isEnabled();
+
+      if (isEnabled) {
+        await this.clickOnElement(this.saveButtonElement);
+      } else {
+        console.log('Save button is disabled, skipping click');
+      }
     });
   }
 

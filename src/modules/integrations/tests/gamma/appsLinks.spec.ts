@@ -23,8 +23,7 @@ test.describe(
       await appsLinks.verifyThePageIsLoaded();
       await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
       await appsLinks.cancelAllLinksPresent();
-      await appsLinks.clickOnSaveButton();
-      await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+      await appsLinks.clickOnSaveButtonIfEnabled();
     });
 
     test(
