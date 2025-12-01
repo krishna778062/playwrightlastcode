@@ -32,8 +32,8 @@ interface TenantConfig {
   apiBaseUrl: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  endUserEmail: string;
-  endUserPassword: string;
+  endUserEmail?: string;
+  endUserPassword?: string;
 }
 
 // App-level configuration (same for all tenants/environments)
@@ -190,21 +190,23 @@ export const config = {
   azuresso: {
     qa: {
       tenantName: 'Azure SSO Tenant',
-      frontendBaseUrl: ' https://azuresso-auto.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://azuresso-auto.qa.simpplr.xyz',
       apiBaseUrl: 'https://azuresso-auto-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
-      endUserPassword: 'simpplr001',
+      appManagerEmail: 'shivani.chauhan@simpplr.com',
+      appManagerPassword: 'Qwerty@123',
+      QA_MOBILE: '34595666',
+      QA_ALTERNATE: 'J3838689',
+      QA_ALTERNATE_PHONE: '837389444',
     },
-    uat: {
-      tenantName: 'Primary Tenant',
-      frontendBaseUrl: 'https://content-ui-auto1.qa.simpplr.xyz',
-      apiBaseUrl: 'https://content-ui-auto1-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
-      endUserPassword: 'simpplr001',
+    test: {
+      tenantName: 'Azure SSO Tenant',
+      frontendBaseUrl: 'https://azuresso-int.test.simpplr.xyz',
+      apiBaseUrl: 'https://azuresso-int-api.test.simpplr.xyz',
+      appManagerEmail: 'shivani.chauhan@simpplr.com',
+      appManagerPassword: 'Qwerty@123',
+      QA_MOBILE: '34595666',
+      QA_ALTERNATE: 'J3838689',
+      QA_ALTERNATE_PHONE: '837389444',
     },
   },
   workday: {
