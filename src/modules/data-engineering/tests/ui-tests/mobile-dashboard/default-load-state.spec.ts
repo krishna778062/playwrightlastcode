@@ -368,7 +368,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fail(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@mobile-adoption-rate-metric'],

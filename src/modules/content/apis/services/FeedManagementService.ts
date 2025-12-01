@@ -896,7 +896,57 @@ export class FeedManagementService implements IFeedManagementOperations {
     feedMode: FeedMode = FeedMode.TIMELINE_COMMENT_POST
   ): Promise<APIResponse> {
     return await test.step('Configuring app governance settings', async () => {
-      // Default values from the curl command
+      // Get current app config to preserve existing state (especially sitesToUploadFiles)
+      let currentConfig: any = {};
+      try {
+        const appConfigResponse = await this.getAppConfig();
+        currentConfig = appConfigResponse.result || {};
+        log.debug('Retrieved current app config for governance update', {
+          sitesToUploadFilesCount: Array.isArray(currentConfig.sitesToUploadFiles)
+            ? currentConfig.sitesToUploadFiles.length
+            : 0,
+        });
+      } catch (error) {
+        log.warn('Failed to get current app config, using defaults only', error);
+      }
+
+      // Extract governance-related fields from current config
+      const currentGovernanceSettings: any = {
+        isExpertiseAppManagerControlled: currentConfig.isExpertiseAppManagerControlled,
+        isHomeAppManagerControlled: currentConfig.isHomeAppManagerControlled,
+        isSiteAppManagerControlled: currentConfig.isSiteAppManagerControlled,
+        isExpertiseCreateAppManagerControlled: currentConfig.isExpertiseCreateAppManagerControlled,
+        feedMode: currentConfig.feedMode,
+        autoGovValidationPeriod: currentConfig.autoGovValidationPeriod,
+        autoGovernanceEnabled: currentConfig.autoGovernanceEnabled,
+        contentSubmissionsEnabled: currentConfig.contentSubmissionsEnabled,
+        feedOnContentEnabled: currentConfig.feedOnContentEnabled,
+        isExpertiseEnabled: currentConfig.isExpertiseEnabled,
+        isHomeCarouselEnabled: currentConfig.isHomeCarouselEnabled,
+        isSiteCarouselEnabled: currentConfig.isSiteCarouselEnabled,
+        allowFileUpload: currentConfig.allowFileUpload,
+        siteFilePermission: currentConfig.siteFilePermission,
+        htmlTileEnabled: currentConfig.htmlTileEnabled,
+        isNativeVideoAutoPlayEnabled: currentConfig.isNativeVideoAutoPlayEnabled,
+        allowFileShareWithPublicLink: currentConfig.allowFileShareWithPublicLink,
+        enablePersonalizedContentEmails: currentConfig.enablePersonalizedContentEmails,
+        feedPlaceholder: currentConfig.feedPlaceholder,
+        isFeedPlaceholderDefault: currentConfig.isFeedPlaceholderDefault,
+        sitesToUploadFiles: Array.isArray(currentConfig.sitesToUploadFiles)
+          ? currentConfig.sitesToUploadFiles
+              .map((site: any) => {
+                if (typeof site === 'string') return site;
+                // Handle object format: { siteId: "...", name: "..." } or just { id: "..." }
+                return site?.siteId || site?.id || String(site);
+              })
+              .filter(Boolean)
+          : [],
+        privacyPolicy: currentConfig.privacyPolicy,
+        termsOfService: currentConfig.termsOfService,
+        takeLegalAcknowledgement: currentConfig.takeLegalAcknowledgement,
+      };
+
+      // Default values (used when current config doesn't have these fields)
       const defaultSettings = {
         isExpertiseAppManagerControlled: true,
         isHomeAppManagerControlled: true,
@@ -936,8 +986,30 @@ export class FeedManagementService implements IFeedManagementOperations {
         takeLegalAcknowledgement: true,
       };
 
-      // Merge provided settings with defaults
-      const finalSettings = { ...defaultSettings, ...settings };
+      // Merge: current config -> defaults -> provided settings (provided settings take precedence)
+      const finalSettings = {
+        ...defaultSettings,
+        ...currentGovernanceSettings,
+        ...settings,
+        // Ensure nested objects are properly merged
+        privacyPolicy: {
+          ...defaultSettings.privacyPolicy,
+          ...(currentGovernanceSettings.privacyPolicy || {}),
+          ...(settings.privacyPolicy || {}),
+        },
+        termsOfService: {
+          ...defaultSettings.termsOfService,
+          ...(currentGovernanceSettings.termsOfService || {}),
+          ...(settings.termsOfService || {}),
+        },
+        // Preserve sitesToUploadFiles from current config unless explicitly provided
+        sitesToUploadFiles:
+          settings.sitesToUploadFiles !== undefined
+            ? settings.sitesToUploadFiles
+            : currentGovernanceSettings.sitesToUploadFiles.length > 0
+              ? currentGovernanceSettings.sitesToUploadFiles
+              : defaultSettings.sitesToUploadFiles,
+      };
 
       const response = await this.httpClient.post(API_ENDPOINTS.appConfig.governance, {
         data: finalSettings,
