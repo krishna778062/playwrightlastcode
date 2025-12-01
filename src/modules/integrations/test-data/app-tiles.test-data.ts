@@ -117,6 +117,7 @@ export const REDIRECT_URLS = {
   FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
+  ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
 } as const;
 
 /**

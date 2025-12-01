@@ -34,6 +34,7 @@ export enum IntegrationsSuiteTags {
   SALESFORCE = '@salesforceAppTiles',
   HEALTH_CHECK = '@healthcheck',
   TAG = '@tagComponent',
+  LINK = '@linkComponent',
 }
 
 export enum IntegrationsFeatureTags {
@@ -89,6 +90,7 @@ export const TEST_TAGS = {
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  AZURE_SYNC = '@azure-sync',
   WORKDAY_SYNC = '@workday-sync',
   PEOPLE_TAB = '@people',
   UKG_SYNCING = '@ukg-syncing',

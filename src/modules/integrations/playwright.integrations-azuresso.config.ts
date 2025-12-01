@@ -6,18 +6,28 @@ import { PROJECT_ROOT } from '@core/constants/paths';
 
 import baseConfig from '../../../playwright.base.config';
 
-import { getIntegrationConfig, initializeIntegrationConfig } from './config/integration.config';
+import {
+  getIntegrationConfig,
+  getTenantConfigByTenant,
+  initializeIntegrationConfig,
+} from './config/integration.config';
+import { Options } from './fixtures/integrationsFixture';
 
-initializeIntegrationConfig('azuresso'); //integration config is initialized for primary tenant
+initializeIntegrationConfig('azuresso'); //integration config is initialized for azuresso tenant
 
-export default defineConfig({
+export default defineConfig<Options>({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests', 'azure-sso'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests', 'gamma'),
+  testMatch: '**/azureSync.spec.ts',
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {
     timeout: 10_000,
+  },
+  use: {
+    ...baseConfig.use,
+    headless: process.env.CI ? true : false,
   },
   projects: [
     {
@@ -28,6 +38,9 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         permissions: ['camera', 'microphone'],
         baseURL: getIntegrationConfig().tenant.frontendBaseUrl,
+        get tenantConfig() {
+          return getTenantConfigByTenant('azuresso');
+        },
         launchOptions: {
           args: [
             '--disable-gpu', // Disable GPU acceleration
