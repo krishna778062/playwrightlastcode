@@ -155,6 +155,13 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
+  editPostAndReplaceSiteMentions(params: {
+    currentText: string;
+    newText: string;
+    siteNamesToRemove?: string[];
+    siteNamesToAdd?: string[];
+  }): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -1251,5 +1258,72 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void> {
+    await test.step(`Click site mention @${siteName} in post and verify navigation`, async () => {
+      // Get the post container
+      const postContainer = this.listFeedComponent.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post ${postText} should be visible`,
+      });
+
+      // Find the site mention link within the post
+      // Site mentions are rendered as links with data-type="site" and href="/site/{siteId}"
+      const siteMentionLink = postContainer.getByRole('link', { name: `@${siteName}` });
+
+      // Verify the link is visible
+      await this.verifier.verifyTheElementIsVisible(siteMentionLink, {
+        assertionMessage: `Site mention @${siteName} should be visible in post`,
+      });
+
+      // Click the site mention link
+      await this.clickOnElement(siteMentionLink);
+
+      // Verify navigation to the site page
+      await this.verifyNavigationToSite(siteId);
+    });
+  }
+
+  async verifyNavigationToSite(siteId: string): Promise<void> {
+    await test.step(`Verify navigation to site ${siteId}`, async () => {
+      // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
+      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: 15000 });
+
+      // Verify the page has loaded
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async editPostAndReplaceSiteMentions(params: {
+    currentText: string;
+    newText: string;
+    siteNamesToRemove?: string[];
+    siteNamesToAdd?: string[];
+  }): Promise<void> {
+    const { currentText, newText, siteNamesToRemove, siteNamesToAdd } = params;
+    await test.step(`Edit post and replace site mentions`, async () => {
+      // Update the post text
+      if (newText) {
+        await this.updatePostText(newText);
+      }
+
+      // Remove site mentions if specified
+      if (siteNamesToRemove && siteNamesToRemove.length > 0) {
+        for (const siteName of siteNamesToRemove) {
+          await this.createFeedPostComponent.removeSiteMention(siteName);
+        }
+      }
+
+      // Add new site mentions if specified
+      if (siteNamesToAdd && siteNamesToAdd.length > 0) {
+        for (const siteName of siteNamesToAdd) {
+          await this.createFeedPostComponent.addSiteName(siteName);
+        }
+      }
+
+      // Click Update button
+      await this.clickUpdateButton();
+    });
   }
 }
