@@ -114,9 +114,10 @@ export const REDIRECT_URLS = {
   WORKDAY_INBOX_TASKS_REPORT:
     'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
-  FRESHSERVICE: 'https://simpplr-908291654763877589.myfreshworks.com',
+  FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
+  ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
 } as const;
 
 /**
