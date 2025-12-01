@@ -535,13 +535,9 @@ export class ManageContentComponent extends BaseComponent {
     await test.step('Verifying the site name', async () => {
       // Get the site name
       const siteName = await this.siteName.innerText();
-      console.log(siteName);
-      console.log(this.siteSearchBarOptionText);
 
       // Check if site name matches the selected option
-      if (this.siteSearchBarOptionText.trim() === siteName.trim()) {
-        console.log('Site name is matching');
-      } else {
+      if (this.siteSearchBarOptionText.trim() !== siteName.trim()) {
         throw new Error(`Site name is not matching. Expected: ${this.siteSearchBarOptionText}, Found: ${siteName}`);
       }
     });
@@ -573,12 +569,9 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
       await this.waitForManageContentListItems();
       const actualCount = await this.manageContentListItems.count();
-      console.log(`Actual count: ${actualCount}`);
-      console.log(`Expected count: ${expectedCount}`);
       if (actualCount < expectedCount) {
         throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
       }
-      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
     });
   }
 
@@ -635,7 +628,6 @@ export class ManageContentComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
         await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
       } else {
-        console.log('Page category selector dropdown options is not visible skipping');
       }
     });
   }
@@ -967,8 +959,6 @@ export class ManageContentComponent extends BaseComponent {
       if (actualCount !== expectedCount) {
         throw new Error(`Expected ${expectedCount} selected checkboxes, but found ${actualCount}`);
       }
-
-      console.log(`✓ Verified ${actualCount} checkboxes are selected`);
     });
   }
 

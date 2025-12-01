@@ -14,6 +14,8 @@
  * console.log(config.tenant.appManagerPassword);
  */
 
+import { log } from '@core/utils/logger';
+
 export type TenantKey = 'primary' | 'contentSettings' | 'contentStudio' | 'contentAbac';
 export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
 
@@ -321,16 +323,16 @@ export function initializeContentConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
   if (configCache && configCache.currentTenant === tenant) {
-    console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
+    log.debug(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for same tenant
   }
 
   // Allow tenant switching - clear cache if different tenant
   if (configCache && configCache.currentTenant !== tenant) {
-    console.log(`🔧 Switching from tenant '${configCache.currentTenant}' to '${tenant}' (called from: ${caller})`);
+    log.debug(`🔧 Switching from tenant '${configCache.currentTenant}' to '${tenant}' (called from: ${caller})`);
   }
 
-  console.log(`🔧 Initializing content config for tenant: ${tenant} (called from: ${caller})`);
+  log.debug(`🔧 Initializing content config for tenant: ${tenant} (called from: ${caller})`);
 
   const environment = getCurrentEnvironment();
   const tenantConfig = config[tenant];
@@ -351,7 +353,7 @@ export function initializeContentConfig(tenant: TenantKey): void {
     appConfig: config.appConfig,
   };
 
-  console.log(
+  log.debug(
     `🔧 Content module config initialized and cache set for environment: ${environment}, tenant: ${tenant} with base url: ${envConfig.frontendBaseUrl}`
   );
 }
@@ -379,12 +381,12 @@ export function getContentTenantConfigFor(tenant: TenantKey): ContentTenantConfi
 
   // If cache is initialized for the same tenant, use it
   if (configCache && configCache.currentTenant === tenant) {
-    console.log(`🔧 Using cached config for tenant: ${tenant} (called from: ${caller})`);
+    log.debug(`🔧 Using cached config for tenant: ${tenant} (called from: ${caller})`);
     return configCache.tenantConfig;
   }
 
   // Otherwise, initialize for this tenant
-  console.log(`🔧 Initializing config for tenant: ${tenant} (called from: ${caller})`);
+  log.debug(`🔧 Initializing config for tenant: ${tenant} (called from: ${caller})`);
   initializeContentConfig(tenant);
   return configCache!.tenantConfig;
 }
@@ -407,7 +409,7 @@ export function getAppConfig(): AppConfig {
  */
 export function clearContentConfigCache(): void {
   configCache = null;
-  console.log('🔧 Content config cache cleared');
+  log.debug('🔧 Content config cache cleared');
 }
 
 /**

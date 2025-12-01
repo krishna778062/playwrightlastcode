@@ -14,6 +14,7 @@ import {
   UpdateQuestionPayload,
 } from '@core/types/feed.type';
 import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IFeedManagementOperations } from '@/src/modules/content/apis/interfaces/IFeedManagementOperations';
@@ -552,13 +553,13 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...defaultFeedPayload,
         ...overrides,
       };
-      console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post. Status: ${response.status()}`);
       }
@@ -607,13 +608,13 @@ export class FeedManagementService implements IFeedManagementOperations {
   }): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with all features via API post request', async () => {
       const payload = buildFeedWithAllFeatures(params);
-      console.log('feed payload JSON with all features: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON with all features', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
       }
@@ -741,7 +742,7 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async deleteFeed(postId: string): Promise<void> {
     return await test.step(`Deleting feed post ${postId}`, async () => {
-      console.log(`Deleting feed post ${postId}`);
+      log.debug(`Deleting feed post ${postId}`);
       const response = await this.httpClient.delete(API_ENDPOINTS.feed.delete(postId), {
         headers: {
           'Content-Type': 'application/json',
@@ -750,7 +751,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log(`Delete response:`, responseBody);
+      log.debug('Delete response', { response: responseBody });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
@@ -758,7 +759,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         );
       }
 
-      console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
+      log.debug(`Feed post ${postId} deleted successfully`, { message: responseBody.message });
     });
   }
 
@@ -786,8 +787,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
-      console.log('fileId: ', fileId);
-      console.log('attachmentURL: ', attachmentURL);
+      log.debug('File upload details', { fileId, attachmentURL });
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
@@ -801,14 +801,14 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...overrides,
       };
 
-      console.log('Feed with attachment payload:', JSON.stringify(payload, null, 2));
+      log.debug('Feed with attachment payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
 
       const responseBody = await response.json();
-      console.log('Feed with attachment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Feed with attachment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
@@ -839,7 +839,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Add comment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
@@ -947,7 +947,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App governance configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App governance configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
@@ -970,7 +970,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = (await response.json()) as AppConfigResponse;
-      console.log('App configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to get app configuration. Status: ${response.status()}`);
@@ -1016,7 +1016,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App configuration update response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration update response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to update app configuration. Status: ${response.status()}`);
@@ -1033,13 +1033,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async createQuestion(payload: CreateQuestionPayload): Promise<QuestionResponse> {
     return await test.step('Creating a question via API post request', async () => {
-      console.log('Question payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create question. Status: ${response.status()}, Message: ${responseBody.message}`);
       }
@@ -1056,13 +1056,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async updateQuestion(questionId: string, payload: UpdateQuestionPayload): Promise<QuestionResponse> {
     return await test.step(`Updating question ${questionId}`, async () => {
-      console.log('Question update payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question update payload JSON', { payload: JSON.stringify(payload, null, 2) });
       const response = await this.httpClient.put(API_ENDPOINTS.feed.update(questionId), {
         headers: { 'Content-Type': 'application/json' },
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question update response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question update response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to update question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1100,7 +1100,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'add' },
       });
       const responseBody = await response.json();
-      console.log('Upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to upvote question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1122,7 +1122,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'remove' },
       });
       const responseBody = await response.json();
-      console.log('Remove upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Remove upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to remove upvote from question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1172,7 +1172,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
       const responseBody = await response.json();
 
-      console.log('Update answer response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Update answer response JSON', { response: JSON.stringify(responseBody, null, 2) });
       // Check for error status or error messages in response
       if (!response.ok() || responseBody.status !== 'success') {
         const errorMessage = responseBody.message || `Failed to update answer ${answerId} on question ${questionId}`;

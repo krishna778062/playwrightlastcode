@@ -8,6 +8,7 @@ import {
   EventCreationPayload,
   TopicListResponse,
 } from '@core/types/contentManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
@@ -238,7 +239,7 @@ export class ContentManagementService implements IContentManagementServices {
         ...defaultEventContentPayload,
         ...overrides,
       };
-      console.log('event payload: ', payload);
+      log.debug('event payload', { payload });
       const response = await this.httpClient.post(
         API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
         {
@@ -268,7 +269,7 @@ export class ContentManagementService implements IContentManagementServices {
         }
       );
       const json = await response.json();
-      console.log('event JSON Response:', JSON.stringify(json, null, 2));
+      log.debug('event JSON Response', { response: JSON.stringify(json, null, 2) });
       if (json.status !== 'success' || !json.result?.id) {
         throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
       }
@@ -422,7 +423,7 @@ export class ContentManagementService implements IContentManagementServices {
         throw new Error(`Topic deletion failed. Response: ${JSON.stringify(json)}`);
       }
 
-      console.log(`Topics deleted successfully: ${topicIds.join(', ')}`);
+      log.debug(`Topics deleted successfully: ${topicIds.join(', ')}`);
     });
   }
 
