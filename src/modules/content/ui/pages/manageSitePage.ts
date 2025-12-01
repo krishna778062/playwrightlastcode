@@ -186,6 +186,8 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
     });
+  }
+
   async clickOnSiteTab(tabName: SitePageTab): Promise<void> {
     await this.clickOnElement(this.siteTab(tabName));
   }

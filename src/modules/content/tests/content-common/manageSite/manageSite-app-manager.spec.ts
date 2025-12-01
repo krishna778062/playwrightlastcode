@@ -302,17 +302,15 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
-        const newSiteDashboard = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
-        await newSiteDashboard.loadPage();
-        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
-        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
-        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+
+        const manageSiteContentPage = new ManageContentPage(appManagerFixture.page);
+        await manageSiteContentPage.load();
+        await manageSiteContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageSiteContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+        await manageSiteContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageSiteContentPage.actions.hoverOnFirstDropDownOption();
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
       }
     );
 

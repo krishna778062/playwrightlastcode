@@ -103,7 +103,6 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
-    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
   }
@@ -672,6 +671,10 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step(`Verify no sites found for search term: ${siteName}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
         assertionMessage: `No sites found message should be visible when searching for: ${siteName}`,
+      });
+    });
+  }
+
   async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
     await test.step(`Verify member name and site owner status for ${membersName}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.getMembersListInPeopleTab(membersName), {
