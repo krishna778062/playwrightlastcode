@@ -6,7 +6,6 @@ import { tagTest } from '@core/utils/testDecorator';
 import { getContentConfigFromCache } from '../../../config/contentConfig';
 import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
@@ -290,7 +289,7 @@ test.describe(
     );
 
     test(
-      'verify that User gets notified when mentioned in Site Feed post with attachment and can navigate to view inline image',
+      'verify that User able to add mention and topic in Site feed post',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19553'],
       },
@@ -385,20 +384,8 @@ test.describe(
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        // Phase 4: Admin Deletes Post from Global Feed
-        await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        const globalFeedPage = new FeedPage(appManagerFixture.page);
-        await globalFeedPage.verifyThePageIsLoaded();
-
-        // Navigate to post detail page using postId
-        await appManagerFixture.page.goto(PAGE_ENDPOINTS.getFeedPage(createdPostId));
-        await globalFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-
-        // Delete the post
-        await globalFeedPage.actions.deletePost(createdPostText);
-        createdPostId = ''; // Clear post ID as post is already deleted
+        await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        createdPostId = '';
       }
     );
   }
