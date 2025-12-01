@@ -36,7 +36,9 @@ export class LineChartComponent extends BaseComponent {
     this.lineChartYAxisLabels = this.rootLocator.locator('[class*="highcharts-yaxis-labels"]').locator('text');
 
     // Tool tip container
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
 
@@ -155,7 +157,7 @@ export class LineChartComponent extends BaseComponent {
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
       await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-        timeout: 30_000,
+        timeout: 10_000,
         stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
       });
     });

@@ -12,6 +12,7 @@ import {
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 
 const defaultBaseContentPayload = {
   listOfFiles: [],
@@ -326,10 +327,33 @@ export class ContentManagementService implements IContentManagementServices {
       return {
         eventId: json.result.id,
         authorName: json.result.authoredBy?.name,
+        startsAt: json.result.startsAt,
+        endsAt: json.result.endsAt,
         ...(json.result.eventSyncDetails && { eventSyncDetails: json.result.eventSyncDetails }),
         ...(json.result.hasRsvp !== undefined && { hasRsvp: json.result.hasRsvp }),
         ...(json.result.rsvp && { rsvpDetails: json.result.rsvp }),
       };
+    });
+  }
+
+  async makeContentMustRead(
+    contentId: string,
+    options: {
+      audienceType?: MustReadAudienceType | string;
+      duration?: MustReadDuration | string;
+    } = {
+      audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+      duration: MustReadDuration.NINETY_DAYS,
+    }
+  ): Promise<any> {
+    return await test.step('Making content must read via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.makeContentMustRead(contentId), {
+        data: {
+          audience_type: options.audienceType || MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+          duration: options.duration || MustReadDuration.NINETY_DAYS,
+        },
+      });
+      return await this.httpClient.parseResponse<any>(response);
     });
   }
 
@@ -482,6 +506,7 @@ export class ContentManagementService implements IContentManagementServices {
    */
   async getContentList(
     options: {
+      siteId?: string;
       size?: number;
       status?: string;
       filter?: string;
@@ -496,6 +521,7 @@ export class ContentManagementService implements IContentManagementServices {
         sortBy: options.sortBy || 'publishedNewest',
         contribution: options.contribution || 'all',
         filter: options.filter || 'managing',
+        ...(options.siteId && { siteId: options.siteId }),
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

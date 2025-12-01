@@ -1,11 +1,11 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { SortOptionLabels } from '@modules/content/constants';
-
+import { API_ENDPOINTS } from '@/src/core';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ManageContentOptions, ManageContentTags } from '@/src/modules/content/constants/manageContentOptions';
 
 export class ManageContentComponent extends BaseComponent {
@@ -72,6 +72,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
   readonly activateButton: Locator;
+  readonly verifyTabVisibleUnderFavoritesTab: (option: TagOption) => Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -155,6 +156,7 @@ export class ManageContentComponent extends BaseComponent {
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
+    this.verifyTabVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
   getPageName(pageName: string): Locator {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
@@ -365,6 +367,7 @@ export class ManageContentComponent extends BaseComponent {
       const activateResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.applyButton, { delay: 2_000, force: true }),
         response =>
+          response.url().includes(API_ENDPOINTS.site.updateStatus) &&
           response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_ACTIVATE_API) &&
           response.request().method() === 'PUT' &&
           response.status() === 200,
@@ -406,6 +409,11 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
+    await test.step(`Verifying ${option} tag is visible on content under favorites tab`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.verifyTabVisibleUnderFavoritesTab(option));
+    });
+  }
   async selectValidateButton(): Promise<void> {
     await test.step(`Selecting the validate button`, async () => {
       await this.clickOnElement(this.validateButton);
@@ -964,6 +972,11 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
+  async clickOnValidateApplyButton(): Promise<void> {
+    await test.step(`Clicking on validate apply button`, async () => {
+      await this.clickOnElement(this.applyButton);
+    });
+  }
   async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
     await test.step('Verifying all contents are deleted', async () => {
       const contentNameLocator = this.getContentNameLocator(contentNames[0]);
@@ -973,17 +986,10 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
   async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
-    await test.step(`Verifying content ${contentName} is visible in manage site`, async () => {
-      const contentLocator = this.getContentNameLocator(contentName);
-      await this.verifier.verifyTheElementIsVisible(contentLocator, {
-        assertionMessage: `Content ${contentName} should be visible`,
+    await test.step('Verifying the content is visible in manage site', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentNameLocator(contentName), {
+        assertionMessage: 'Content should be visible',
       });
-    });
-  }
-
-  async clickOnValidateApplyButton(): Promise<void> {
-    await test.step(`Clicking on validate apply button`, async () => {
-      await this.clickOnElement(this.applyButton);
     });
   }
 }

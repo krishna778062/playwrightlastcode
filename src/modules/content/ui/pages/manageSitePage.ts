@@ -4,6 +4,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
@@ -15,7 +16,11 @@ export interface IManageSiteActions {
   searchSite: (siteName: string) => Promise<void>;
   selectFilterOption: (optionName: string) => Promise<void>;
   clickOnFilterOptionsDropdownButton: () => Promise<void>;
+  clickOnSiteTab: (tabName: SitePageTab) => Promise<void>;
+  clickOnFileOption: (fileName: string) => Promise<void>;
+  clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
+  clickOnShowMoreButtonAction: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -25,12 +30,14 @@ export interface IManageSiteAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
+  verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
   readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly searchButton = this.page.locator('button[name="submitbutton"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
   readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
     // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
@@ -42,6 +49,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
   readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+  readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
+  readonly editOptionLocator = this.page.getByTestId('edit-button');
+
   private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
@@ -137,7 +147,19 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       assertionMessage: `${optionName} option should not be visible in options dropdown`,
     });
   }
+  fileOptionLocator = (fileName: string) => this.page.getByRole('link', { name: fileName }).first();
+  async verifyFileIsPresentInTheSiteFilesList(fileName: string): Promise<void> {
+    await this.verifier.isTheElementVisible(this.fileOptionLocator(fileName), {
+      assertionMessage: `Verifying that the file: ${fileName} is present in the site files list`,
+    });
+  }
+  async clickOnFileOption(fileName: string): Promise<void> {
+    await this.clickOnElement(this.fileOptionLocator(fileName));
+  }
 
+  async clickOnEditOption(): Promise<void> {
+    await this.clickOnElement(this.editOptionLocator);
+  }
   async selectFilterOption(optionName: string): Promise<void> {
     await this.clickOnElement(this.filterOptionsDropdown(optionName));
   }
@@ -164,10 +186,15 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
       assertionMessage: 'No sites found should be visible on manage site page',
     });
+  async clickOnSiteTab(tabName: SitePageTab): Promise<void> {
+    await this.clickOnElement(this.siteTab(tabName));
   }
 
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
+  }
+  async clickOnShowMoreButtonAction(): Promise<void> {
+    await this.clickOnElement(this.showMoreButton);
   }
 
   /**

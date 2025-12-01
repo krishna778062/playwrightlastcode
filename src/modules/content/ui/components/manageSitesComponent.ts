@@ -1,8 +1,9 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { BaseComponent } from '../../../../core/ui/components/baseComponent';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -32,6 +33,10 @@ export class ManageSitesComponent extends BaseComponent {
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
   readonly nothingToShowHereText: Locator;
+  readonly searchSiteNameInSearchBar: Locator;
+  readonly clickOnSearchBar: Locator;
+  readonly firstSiteDropDownOption: Locator;
+  readonly clickOnThePeopleTab: Locator;
   readonly clickOnFollowButton: Locator;
   readonly clickOnFollowSiteButton: Locator;
   readonly followingButton: Locator;
@@ -46,7 +51,9 @@ export class ManageSitesComponent extends BaseComponent {
   readonly followingButtonUnderMemberTab: Locator;
   readonly clickOnUpdateCategoryButton: Locator;
   readonly contentFilterDropdown: Locator;
+  readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
+  readonly checkboxLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -76,6 +83,10 @@ export class ManageSitesComponent extends BaseComponent {
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
+    this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
+    this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
+    this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
+    this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnFollowButton = page.getByRole('button', { name: 'Follow', exact: true });
     this.clickOnFollowSiteButton = page.getByRole('button', { name: 'Follow site' });
     this.followingButton = page.getByRole('button', { name: 'Following', exact: true });
@@ -91,9 +102,11 @@ export class ManageSitesComponent extends BaseComponent {
     this.followButtonUnderAboutTab = page.getByLabel('About').getByRole('button', { name: 'Follow', exact: true });
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
+    this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
+    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
+    this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
   }
-
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
   }
@@ -107,6 +120,10 @@ export class ManageSitesComponent extends BaseComponent {
   }
   getMembersListInPeopleTab(membersName: string): Locator {
     return this.page.getByRole('link', { name: membersName });
+  }
+
+  getSiteOwnerStatusForMember(membersName: string): Locator {
+    return this.page.getByRole('listitem').filter({ hasText: membersName }).getByText('Site owner');
   }
 
   getFavoriteButtonForUser(membersName: string): Locator {
@@ -200,6 +217,11 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnTheManageSiteButtonAction(): Promise<void> {
     await test.step('Click on the manage site button', async () => {
       await this.clickOnElement(this.clickOnTheManageSiteButton);
+    });
+  }
+  async clickOnThePeopleTabAction(): Promise<void> {
+    await test.step('Click on the people tab', async () => {
+      await this.clickOnElement(this.clickOnThePeopleTab);
     });
   }
 
@@ -402,6 +424,14 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async searchSiteNameInSearchBarAction(siteName: string): Promise<void> {
+    await test.step('Searching site name in search bar', async () => {
+      await this.clickOnElement(this.searchSiteNameInSearchBar);
+      await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+      await this.clickOnElement(this.clickOnSearchBar);
+    });
+  }
+
   getSiteFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
     return this.page.getByText(bulkActionOption).first();
   }
@@ -426,6 +456,11 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
         assertionMessage: 'Album tab image should be visible',
       });
+    });
+  }
+  async hoverOnFirstSiteNameAction(): Promise<void> {
+    await test.step('Hover on the first site name', async () => {
+      await this.hoverOverElementInJavaScript(this.firstSiteDropDownOption);
     });
   }
   async clickOnFollowButtonAction(): Promise<void> {
@@ -637,6 +672,13 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step(`Verify no sites found for search term: ${siteName}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
         assertionMessage: `No sites found message should be visible when searching for: ${siteName}`,
+  async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
+    await test.step(`Verify member name and site owner status for ${membersName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getMembersListInPeopleTab(membersName), {
+        assertionMessage: `Member name ${membersName} should be visible in people tab`,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.getSiteOwnerStatusForMember(membersName), {
+        assertionMessage: `Site owner status should be visible for ${membersName}`,
       });
     });
   }
@@ -648,8 +690,47 @@ export class ManageSitesComponent extends BaseComponent {
   getSiteRowByExactName(siteName: string): Locator {
     return this.page
       .locator('tr')
-      .filter({ has: this.page.locator('h2', { hasText: siteName }) })
+      .filter({ has: this.page.locator('td.cell-details').locator('h2', { hasText: siteName }) })
       .first();
+  }
+  /**
+   * Finds and selects the first site with an enabled checkbox from a list of site names
+   * @param siteNames - Array of site names to try
+   * @returns The name of the selected site, or null if none found
+   */
+  async selectFirstEnabledSiteCheckbox(siteNames: string[]): Promise<string | null> {
+    return await test.step('Finding and selecting first site with enabled checkbox', async () => {
+      for (const siteName of siteNames) {
+        try {
+          const siteRow = this.getSiteRowByExactName(siteName);
+          // Try specific checkbox locator first, fallback to getByLabel
+          let checkbox = siteRow.locator(this.checkboxLocator);
+          let isVisible = await checkbox.isVisible().catch(() => false);
+
+          if (!isVisible) {
+            // Fallback to getByLabel if specific locator doesn't find it
+            checkbox = siteRow.getByLabel('Select');
+            isVisible = await checkbox.isVisible().catch(() => false);
+          }
+
+          if (!isVisible) {
+            continue;
+          }
+
+          const isEnabled = await checkbox.isEnabled().catch(() => false);
+          const isDisabled = await checkbox.getAttribute('enabled').catch(() => null);
+
+          if (isEnabled && !isDisabled) {
+            await this.clickOnElement(checkbox);
+            return siteName;
+          }
+        } catch {
+          // Continue to next site if this one fails
+          continue;
+        }
+      }
+      return null;
+    });
   }
   /**
    * Selects the checkbox for a site by its exact name
@@ -658,8 +739,67 @@ export class ManageSitesComponent extends BaseComponent {
   async selectSiteCheckboxByExactName(siteName: string): Promise<void> {
     await test.step(`Selecting checkbox for site: ${siteName}`, async () => {
       const siteRow = this.getSiteRowByExactName(siteName);
-      const checkbox = siteRow.getByLabel('Select');
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('input[type="checkbox"][aria-label="Select"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Select');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Checkbox for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
       await this.clickOnElement(checkbox);
+    });
+  }
+  async hoverOnSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Hovering on site drop by exact name: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('[aria-label="Category option"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Category option');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Dropdown for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
+      await this.hoverOverElementInJavaScript(checkbox);
     });
   }
 
