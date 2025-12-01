@@ -48,7 +48,7 @@ test.describe(
       */
 
       await standardUserFixture.homePage.verifyThePageIsLoaded();
-      //await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
       feedPage = new FeedPage(standardUserFixture.page);
       await feedPage.verifyThePageIsLoaded();
