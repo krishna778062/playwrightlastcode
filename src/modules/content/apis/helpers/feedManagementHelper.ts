@@ -502,6 +502,108 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Builds an answer payload with all fields (mentions, topics, site mentions)
+   * @param answerText - The base answer text
+   * @param options - Optional fields for mentions, topics, site mentions
+   * @returns Answer payload with textJson and textHtml
+   */
+  buildAnswerPayloadWithAllFields(
+    answerText: string,
+    options?: {
+      userInfo?: { userId: string; fullName: string };
+      siteInfo?: { siteId: string; siteName: string };
+      topic?: { name: string; topicId?: string };
+    }
+  ): { textJson: string; textHtml: string; listOfAttachedFiles: any[]; ignoreToxic: boolean } {
+    const { userInfo, siteInfo, topic } = options || {};
+
+    const paragraphContent: any[] = [{ type: 'text', text: answerText }];
+
+    // Add user mention
+    if (userInfo) {
+      paragraphContent.push({ type: 'hardBreak' });
+      paragraphContent.push({
+        type: 'UserAndSiteMention',
+        attrs: { id: userInfo.userId, label: userInfo.fullName, type: 'user' },
+      });
+      paragraphContent.push({ type: 'text', text: ' ' });
+    }
+
+    // Add site mention
+    if (siteInfo) {
+      paragraphContent.push({ type: 'hardBreak' });
+      paragraphContent.push({
+        type: 'UserAndSiteMention',
+        attrs: { id: siteInfo.siteId, label: siteInfo.siteName, type: 'site' },
+      });
+      paragraphContent.push({ type: 'text', text: ' ' });
+    }
+
+    // Add topic mention
+    if (topic) {
+      paragraphContent.push({ type: 'hardBreak' });
+      paragraphContent.push({
+        type: 'TopicMention',
+        attrs: { id: `new_${topic.name}`, label: topic.name, type: 'topic' },
+      });
+      paragraphContent.push({ type: 'text', text: ' ' });
+    }
+
+    const textJson = JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: { className: '', 'data-sw-sid': null },
+          content: paragraphContent,
+        },
+      ],
+    });
+
+    // Build textHtml
+    let textHtml = `<p>${answerText}`;
+    if (userInfo) {
+      textHtml += `<br><span data-type="user" data-id="${userInfo.userId}" data-label="${userInfo.fullName}"><a href="/people/${userInfo.userId}" target="_blank">@${userInfo.fullName}</a></span> `;
+    }
+    if (siteInfo) {
+      textHtml += `<br><span data-type="site" data-id="${siteInfo.siteId}" data-label="${siteInfo.siteName}"><a href="/site/${siteInfo.siteId}" target="_blank">@${siteInfo.siteName}</a></span> `;
+    }
+    if (topic) {
+      textHtml += `<br><span data-type="topic" data-id="new_${topic.name}" data-label="${topic.name}"><a href="/topic/new_${topic.name}" target="_blank">#${topic.name}</a></span> `;
+    }
+    textHtml += '</p>';
+
+    return {
+      textJson,
+      textHtml,
+      listOfAttachedFiles: [],
+      ignoreToxic: false,
+    };
+  }
+
+  /**
+   * Creates an answer with all fields (mentions, topics, site mentions) on a question
+   * @param questionId - The question ID to answer
+   * @param answerText - The base answer text
+   * @param options - Optional fields for mentions, topics, site mentions
+   * @returns Promise with the answer response
+   */
+  async createAnswerWithAllFields(
+    questionId: string,
+    answerText: string,
+    options?: {
+      userInfo?: { userId: string; fullName: string };
+      siteInfo?: { siteId: string; siteName: string };
+      topic?: { name: string; topicId?: string };
+    }
+  ): Promise<any> {
+    return await test.step(`Creating answer with all fields on question ${questionId} via helper`, async () => {
+      const payload = this.buildAnswerPayloadWithAllFields(answerText, options);
+      return await this.feedManagementService.createAnswer(questionId, payload);
+    });
+  }
+
+  /**
    * Updates an answer on a question
    * @param questionId - The question ID
    * @param answerId - The answer ID to update
