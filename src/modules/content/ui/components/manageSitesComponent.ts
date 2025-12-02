@@ -53,6 +53,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
   readonly clickOnAddAnotherButton: Locator;
+  readonly clickOnMemberTab: Locator;
+  readonly clickOnAddPersonInDialog: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
@@ -76,6 +78,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
     this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
+    this.clickOnMemberTab = page.locator('label').filter({ hasText: 'Member' });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
@@ -104,6 +107,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
     this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' });
+    this.clickOnAddPersonInDialog = page.getByRole('dialog', { name: 'Add person to site' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
@@ -225,6 +229,11 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnAddAnotherButtonAction(): Promise<void> {
     await test.step('Click on the add another button', async () => {
       await this.clickOnElement(this.clickOnAddAnotherButton);
+    });
+  }
+  async selectMemberTabAction(): Promise<void> {
+    await test.step('Select the member tab', async () => {
+      await this.clickOnElement(this.clickOnMemberTab);
     });
   }
 
