@@ -174,6 +174,21 @@ export const config = {
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
+    uat: {
+      tenantName: 'Frontline Secondary UAT',
+      frontendBaseUrl: 'https://frontline-automation-2.uat.simpplr.xyz',
+      apiBaseUrl: 'https://frontline-automation-2-api.uat.simpplr.xyz',
+      appManagerEmail: 'E001',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '51ff9037-4d7f-4f57-88be-6d8e3fd8a962',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
     uatEU: {
       tenantName: 'Frontline Secondary UAT',
       frontendBaseUrl: 'https://frontline-automation-2.uat.simpplr.xyz',
@@ -199,7 +214,19 @@ export const config = {
  * Get current environment from TEST_ENV (defaults to 'qa' if not set)
  */
 function getCurrentEnvironment(): EnvironmentKey {
-  const testEnv = 'uatEU' as EnvironmentKey;
+  const testEnv = process.env.TEST_ENV || 'qa';
+
+  if (!['qa', 'uat', 'test', 'uatEU'].includes(testEnv)) {
+    throw new Error(
+      `Invalid TEST_ENV value: '${testEnv}'\n` +
+        `Valid values are: qa, uat, test\n` +
+        `Example: TEST_ENV=qa npm run test:module frontline\n` +
+        `Example: TEST_ENV=uat npm run test:module frontline\n` +
+        `Example: TEST_ENV=test npm run test:module frontline\n` +
+        `Example: TEST_ENV=uatEU npm run test:module frontline\n`
+    );
+  }
+
   return testEnv as EnvironmentKey;
 }
 
