@@ -786,7 +786,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       });
     });
   }
-  
+
   async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
     await test.step('Verify Recently Published smart block is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.recentlyPublishedBlock, {
