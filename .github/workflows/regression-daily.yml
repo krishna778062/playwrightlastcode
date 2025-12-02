@@ -35,6 +35,7 @@ jobs:
             alert-notification,
             employee-listening,
             form-designer,
+            comms-planner,
           ] # de is short for data-engineering
         environment: [qa]
     env:
