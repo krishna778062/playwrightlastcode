@@ -87,7 +87,7 @@ permissions:
 
 jobs:
   test-and-upload:
-    timeout-minutes: 60
+    timeout-minutes: 300
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2

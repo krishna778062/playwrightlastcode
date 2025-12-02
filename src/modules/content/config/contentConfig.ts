@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'contentSettings' | 'contentStudio' | 'contentAbac';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU';
 
 /**
  * Get caller function information for debugging
@@ -267,15 +267,16 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test', 'prodEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod, prodEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
         `Example: TEST_ENV=test npm run test\n` +
-        `Example: TEST_ENV=prodEU npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatEU npm run test\n`
     );
   }
 
