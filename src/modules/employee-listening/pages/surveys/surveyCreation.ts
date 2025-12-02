@@ -4,7 +4,6 @@ import test, { Locator, Page } from '@playwright/test';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
-import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
 import { getAlternativeAudienceCheckbox, getExactAudienceCheckbox } from '@/src/modules/employee-listening/utils/polls';
 
@@ -1690,9 +1689,6 @@ export class SurveyCreationPage extends BasePage {
     }
   }
 
-  /**
-   * Waits for the survey to be scheduled and returns the created survey ID (UUID).
-   */
   async captureSurveyIdAfterSchedule(): Promise<string | undefined> {
     const [scheduleRequest] = await Promise.all([
       this.page.waitForRequest(
@@ -1704,9 +1700,6 @@ export class SurveyCreationPage extends BasePage {
     return match ? match[1] : undefined;
   }
 
-  /**
-   * Cleans up (deletes) a survey by its ID using the provided ContentManagementService.
-   */
   async cleanupSurveyById(surveyId: string, contentManagementService: any): Promise<void> {
     if (!surveyId) return;
     try {
@@ -1717,14 +1710,7 @@ export class SurveyCreationPage extends BasePage {
     }
   }
 
-  /**
-   * Example wrapper: creates, schedules, and returns surveyId. Customize as needed for your flows.
-   */
-  async createAndScheduleSurvey(
-    surveyName: string,
-    audienceNames: string[],
-    contentManagementService: any
-  ): Promise<string | undefined> {
+  async createAndScheduleSurvey(surveyName: string, audienceNames: string[]): Promise<string | undefined> {
     await this.createBasicSurveySetup(surveyName);
     await this.selectAudiences(audienceNames);
     await this.selectDefaultIntroAndThanks();
@@ -1746,22 +1732,4 @@ export class SurveyCreationPage extends BasePage {
       });
     });
   }
-}
-
-/**
- * Utility function to encapsulate SurveyCreationPage and ContentManagementService setup for tests.
- */
-export async function setupSurveyTestContext(appManagersPage: any) {
-  const surveyCreationPage = new SurveyCreationPage(appManagersPage);
-  const cookies: Array<{ name: string; value: string }> = await appManagersPage.context().cookies();
-  const cookieHeader = cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
-  const csrfToken = cookies.find((c: { name: string }) => c.name === 'csrfid')?.value;
-  const contentManagementService = new ContentManagementService(
-    appManagersPage.request,
-    getEnvConfig().apiBaseUrl,
-    appManagersPage.authToken,
-    cookieHeader,
-    csrfToken
-  );
-  return { surveyCreationPage, contentManagementService };
 }

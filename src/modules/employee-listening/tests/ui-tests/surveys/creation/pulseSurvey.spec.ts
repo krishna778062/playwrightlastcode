@@ -8,10 +8,8 @@ import {
 } from '@/src/modules/employee-listening/constants/testTags';
 import { test } from '@/src/modules/employee-listening/fixtures/loginFixture';
 import { PulseSurveyPage } from '@/src/modules/employee-listening/pages/surveys/pulseSurveyPage';
-import {
-  setupSurveyTestContext,
-  SurveyCreationPage,
-} from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
+import { SurveyCreationPage } from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
+import { setupSurveyTestContext } from '@/src/modules/employee-listening/utils/surveys';
 
 test.describe('pulse Survey Creation Tests', () => {
   let surveyCreationPage: SurveyCreationPage;
@@ -35,7 +33,7 @@ test.describe('pulse Survey Creation Tests', () => {
   });
 
   test(
-    'verify that the app manager can create a pulse survey with custom end date frequency type of Every three months and the recipient type set to All org',
+    'verify that the app manager can create a pulse survey with custom end date frequency type of Every three months',
     {
       tag: [
         TestPriority.P0,
@@ -48,7 +46,7 @@ test.describe('pulse Survey Creation Tests', () => {
     async () => {
       tagTest(test.info(), {
         description:
-          'Verify that the app manager can create a pulse survey with custom end date frequency type of Every three months and the recipient type set to All org',
+          'Verify that the app manager can create a pulse survey with custom end date frequency type of Every three months',
         zephyrTestId: 'LS-PULSE-001',
         storyId: 'EL-Pulse Survey Creation',
       });
@@ -121,7 +119,7 @@ test.describe('pulse Survey Creation Tests', () => {
   );
 
   test(
-    'verify that the app manager can create a pulse survey with frequency type of Every two weeks and the recipient type set to Site',
+    'verify that the app manager can create a pulse survey with frequency type of Every two weeks',
     {
       tag: [
         TestPriority.P0,
@@ -133,8 +131,7 @@ test.describe('pulse Survey Creation Tests', () => {
     },
     async () => {
       tagTest(test.info(), {
-        description:
-          'Verify that the app manager can create a pulse survey with frequency type of Every two weeks and the recipient type set to Site',
+        description: 'Verify that the app manager can create a pulse survey with frequency type of Every two weeks',
         zephyrTestId: 'LS-PULSE-003',
         storyId: 'EL-Pulse Survey Creation',
       });
@@ -165,7 +162,7 @@ test.describe('pulse Survey Creation Tests', () => {
   );
 
   test(
-    'verify user able to create a pulse survey for site by creating own questions',
+    'verify user able to create a pulse survey by creating own questions',
     {
       tag: [
         TestPriority.P1,
@@ -177,7 +174,7 @@ test.describe('pulse Survey Creation Tests', () => {
     },
     async () => {
       tagTest(test.info(), {
-        description: 'Verify user able to create a pulse survey for site by creating own questions',
+        description: 'Verify user able to create a pulse survey by creating own questions',
         zephyrTestId: 'LS-PULSE-004',
         storyId: 'EL-Pulse Survey Creation',
       });
@@ -220,7 +217,7 @@ test.describe('pulse Survey Creation Tests', () => {
     async () => {
       tagTest(test.info(), {
         description: 'Verify app manager able to delete pulse survey created for audience',
-        zephyrTestId: 'LS-PULSE-005',
+        zephyrTestId: 'LS-PULSE-006',
         storyId: 'EL-Pulse Survey Deletion',
       });
       await surveyCreationPage.clickCreateSurveyButton();
@@ -269,6 +266,12 @@ test.describe('pulse Survey Creation Tests', () => {
       ],
     },
     async () => {
+      tagTest(test.info(), {
+        description:
+          'verify duplicate Pulse survey preserves custom configuration and questions for audience recipient',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-005',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
       await surveyCreationPage.clickCreateSurveyButton();
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
@@ -315,7 +318,7 @@ test.describe('pulse Survey Creation Tests', () => {
   );
 
   test(
-    'verify scheduling a draft pulse survey after modifying to site recipient type',
+    'verify scheduling a draft pulse survey after modifying',
     {
       tag: [
         TestPriority.P1,
@@ -326,6 +329,11 @@ test.describe('pulse Survey Creation Tests', () => {
       ],
     },
     async () => {
+      tagTest(test.info(), {
+        description: 'verify scheduling a draft pulse survey after modifying',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-005',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
       await surveyCreationPage.clickCreateSurveyButton();
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();
@@ -381,6 +389,11 @@ test.describe('pulse Survey Creation Tests', () => {
       ],
     },
     async () => {
+      tagTest(test.info(), {
+        description: 'verify app manager should able to duplicate a paused survey',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-004',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
       await surveyCreationPage.navigateToHome();
       await surveyCreationPage.clickManageFeaturesMenuItem();
       await surveyCreationPage.clickSurveysButton();
@@ -429,6 +442,11 @@ test.describe('pulse Survey Creation Tests', () => {
       ],
     },
     async () => {
+      tagTest(test.info(), {
+        description: 'verify “Copy link to survey” hyperlink available on share screen',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-003',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
       await surveyCreationPage.navigateToSurveysViaMenu();
       await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
         await surveyCreationPage.applyTypeFilter('Pulse');
@@ -452,6 +470,12 @@ test.describe('pulse Survey Creation Tests', () => {
       ],
     },
     async () => {
+      tagTest(test.info(), {
+        description:
+          'verify “Not yet” and “Schedule date and time” option will not be available if user try to edit active pulse surveys',
+        zephyrTestId: 'LS-PULSE-LIFECYCLE-002',
+        storyId: 'EL-Pulse Survey Lifecycle Management',
+      });
       await surveyCreationPage.navigateToSurveysViaMenu();
       await pulseSurveyPage.checkActiveSurveysAndProceed(surveyCreationPage, async () => {
         await surveyCreationPage.applyTypeFilter('Pulse');

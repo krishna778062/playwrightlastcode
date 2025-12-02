@@ -7,11 +7,9 @@ import {
   EmployeeListeningSuiteTags,
 } from '@/src/modules/employee-listening/constants/testTags';
 import { test } from '@/src/modules/employee-listening/fixtures/loginFixture';
-import {
-  setupSurveyTestContext,
-  SurveyCreationPage,
-} from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
+import { SurveyCreationPage } from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
+import { setupSurveyTestContext } from '@/src/modules/employee-listening/utils/surveys';
 
 test.describe('all Purpose Survey Creation Tests', () => {
   let surveyCreationPage: SurveyCreationPage;

@@ -1,5 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
 
+import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
+import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
+import { SurveyCreationPage } from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
+
 export function getSurveyOptionButton(page: Page, optionText: string): Locator {
   return page.getByRole('button', { name: optionText });
 }
@@ -22,4 +26,22 @@ export function getSurveyQuestionValidation(page: Page, questionText: string): L
 
 export function setTestTimeout(testObj: any, ms: number) {
   testObj.setTimeout(ms);
+}
+
+/**
+ * Utility function to encapsulate SurveyCreationPage and ContentManagementService setup for tests.
+ */
+export async function setupSurveyTestContext(appManagersPage: any) {
+  const surveyCreationPage = new SurveyCreationPage(appManagersPage);
+  const cookies: Array<{ name: string; value: string }> = await appManagersPage.context().cookies();
+  const cookieHeader = cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
+  const csrfToken = cookies.find((c: { name: string }) => c.name === 'csrfid')?.value;
+  const contentManagementService = new ContentManagementService(
+    appManagersPage.request,
+    getEnvConfig().apiBaseUrl,
+    appManagersPage.authToken,
+    cookieHeader,
+    csrfToken
+  );
+  return { surveyCreationPage, contentManagementService };
 }
