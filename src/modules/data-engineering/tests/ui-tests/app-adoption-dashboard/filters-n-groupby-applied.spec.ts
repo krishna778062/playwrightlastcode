@@ -4,6 +4,7 @@ import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -50,9 +51,9 @@ test.describe.fixme(
         testFiltersConfig = {
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
-          departments: ['test', 'QA'],
-          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          companyName: ['Simpplr'],
+          departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 
