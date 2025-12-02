@@ -95,10 +95,7 @@ test.describe('onboarding', () => {
         await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
         await standardUserMySettingsPage.actions.clickOnFeedTab();
 
-        // Verify the setting is applied (should be checked as per overwrite)
         await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
-
-        // Cleanup: close the standard user page
       });
     }
   );
