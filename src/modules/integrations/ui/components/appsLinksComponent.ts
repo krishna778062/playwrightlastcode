@@ -70,7 +70,7 @@ export class AppsLinksComponents extends BaseComponent {
     this.deleteSaveButton = this.page.locator("button:has-text('Save')").nth(1);
     this.linkURLInputField = this.page.getByPlaceholder('Link URL');
     this.linkLabelInputField = this.page.getByPlaceholder('Link label');
-    this.crossButton = this.page.locator("//i[@class = 'Icon Icon--cross Icon--line']");
+    this.crossButton = this.page.locator('i.Icon.Icon--cross.Icon--line');
     this.apps_json = [
       {
         name: 'Google Drive',

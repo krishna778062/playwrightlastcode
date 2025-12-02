@@ -237,4 +237,11 @@ export const APPS_LINKS = {
   NONE: 'None',
   TRUE: 'true',
   FALSE: 'false',
+  ADD_LINKS: 'Add links',
+  ADD_LINK: 'Add link',
+  SAVE: 'Save',
+  CONFIRM: 'Confirm',
+  ADD: 'Add',
+  EDIT_LINKS: 'Edit links',
+  CUSTOM_JSON_PLACEHOLDER: 'Custom JSON *',
 } as const;
