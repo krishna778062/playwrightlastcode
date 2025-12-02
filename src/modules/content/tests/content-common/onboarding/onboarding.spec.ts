@@ -6,16 +6,19 @@ import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { NotificationType } from '@/src/modules/content/constants';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { MySettingsNotificationsPage } from '@/src/modules/content/ui/pages/mySettingsNotificationsPage';
 
 test.describe('onboarding', () => {
   let navigationHelper: NavigationHelper;
   let mySettingsNotificationsPage: MySettingsNotificationsPage;
+  let homeDashboardPage: HomeDashboardPage;
 
   test.beforeEach('Setup for onboarding test', async ({ appManagerFixture }) => {
     await appManagerFixture.homePage.verifyThePageIsLoaded();
     navigationHelper = appManagerFixture.navigationHelper;
     mySettingsNotificationsPage = new MySettingsNotificationsPage(appManagerFixture.page);
+    homeDashboardPage = new HomeDashboardPage(appManagerFixture.page);
   });
 
   test.afterEach(async ({}) => {});
@@ -94,11 +97,78 @@ test.describe('onboarding', () => {
         });
         await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
         await standardUserMySettingsPage.actions.clickOnFeedTab();
-
-        // Verify the setting is applied (should be checked as per overwrite)
         await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
+      });
+    }
+  );
 
-        // Cleanup: close the standard user page
+  test(
+    'verify the onboarding tile on home dashboard as an app manager',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20883'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify the onboarding tile on home dashboard as an app manager [CONT-20883]',
+        zephyrTestId: 'CONT-20883',
+        storyId: 'CONT-20883',
+      });
+
+      // Scenario: Adding Onboarding Tile to Home Dashboard
+      // Given: I am an App Manager with control over the dashboard
+      // (settings applied from manage app for app manager - already set up via appManagerFixture)
+
+      // When: I add the onboarding tile to the home dashboard
+      await test.step('Click on Manage dashboard & carousel button', async () => {
+        await homeDashboardPage.actions.clickOnEditDashboardButton();
+      });
+
+      await test.step('Click on Add tile button', async () => {
+        await homeDashboardPage.actions.clickOnAddTileButton();
+      });
+
+      await test.step('Click on Add pages, events & albums button', async () => {
+        await homeDashboardPage.actions.clickOnAddContentTileOption();
+      });
+
+      await test.step('Click on Onboarding tab', async () => {
+        await homeDashboardPage.actions.clickingOnOnboardingTab();
+      });
+
+      await test.step('Click on Add to home button', async () => {
+        await homeDashboardPage.actions.clickingOnAddToHomeButton();
+      });
+
+      // Then: the onboarding tile should be displayed on the home dashboard
+      await test.step('Verify onboarding tile is displayed on home dashboard', async () => {
+        await homeDashboardPage.assertions.verifyToastMessage('Added tile to dashboard successfully');
+        await homeDashboardPage.actions.clickingOnDoneButton();
+        await homeDashboardPage.assertions.verifyOnboardingTileIsVisible();
+      });
+
+      // Scenario: Attempting to Add Onboarding Tile Again
+      // Given: I am an App Manager with control over the dashboard
+      // And: the onboarding tile is already added to the home dashboard
+      // When: I try to add the onboarding tile to the home dashboard again
+      await test.step('Click on Manage dashboard & carousel button again', async () => {
+        await homeDashboardPage.actions.clickOnEditDashboardButton();
+      });
+
+      await test.step('Click on Add tile button again', async () => {
+        await homeDashboardPage.actions.clickOnAddTileButton();
+      });
+
+      await test.step('Click on Add pages, events & albums button again', async () => {
+        await homeDashboardPage.actions.clickOnAddContentTileOption();
+      });
+
+      await test.step('Click on Onboarding tab again', async () => {
+        await homeDashboardPage.actions.clickingOnOnboardingTab();
+      });
+
+      // Then: the "Add to home" button should be disabled
+      await test.step('Verify Add to home button is disabled', async () => {
+        await homeDashboardPage.actions.verifyAddToHomeButtonIsDisabled();
       });
     }
   );
