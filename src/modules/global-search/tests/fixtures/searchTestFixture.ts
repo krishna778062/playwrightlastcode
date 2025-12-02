@@ -11,6 +11,7 @@ import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/cont
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { EnterpriseSearchService } from '@/src/modules/global-search/apis/services/EnterpriseSearchService';
 import { ExternalSearchManagementService } from '@/src/modules/global-search/apis/services/ExternalSearchManagementService';
 import { IntranetFileHelper } from '@/src/modules/global-search/ui/helpers/intranetFileHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
@@ -27,6 +28,7 @@ export interface SearchApiFixture {
   appManagementService: AppsManagementService;
   linkManagementService: LinkManagementService;
   externalSearchManagementService: ExternalSearchManagementService;
+  enterpriseSearchService: EnterpriseSearchService;
   expertiseManagementService: ExpertiseManagementService;
   identityManagementHelper: IdentityManagementHelper;
   appConfigurationService: AppConfigurationService;
@@ -57,6 +59,7 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
   const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const enterpriseSearchService = new EnterpriseSearchService(apiContext, getEnvConfig().apiBaseUrl);
   const expertiseManagementService = new ExpertiseManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const appConfigurationService = new AppConfigurationService(apiContext, getEnvConfig().apiBaseUrl);
@@ -70,6 +73,7 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
     appManagementService,
     linkManagementService,
     externalSearchManagementService,
+    enterpriseSearchService,
     expertiseManagementService,
     identityManagementHelper,
     appConfigurationService,
@@ -104,6 +108,7 @@ export const searchTestFixtures = test.extend<
   {
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: SearchApiFixture;
+    standardUserApiFixture: SearchApiFixture;
 
     // UI-only fixtures - browser and page components
     appManagerUiFixture: SearchUiFixture;
@@ -117,8 +122,11 @@ export const searchTestFixtures = test.extend<
   {
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
+    standardUserApiContext: APIRequestContext;
     siteManagementHelper: SiteManagementHelper;
     publicSite: { siteName: string; siteId: string };
+    privateSite: { siteName: string; siteId: string };
+    unlistedSite: { siteName: string; siteId: string };
   }
 >({
   // Worker-scoped API context - shared across all tests in worker
@@ -134,12 +142,28 @@ export const searchTestFixtures = test.extend<
     { scope: 'worker' },
   ],
 
+  // Worker-scoped standard user API context - shared across all tests in worker
+  standardUserApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().endUserEmail || '',
+        password: getEnvConfig().endUserPassword || '',
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
   // Worker-scoped site management helper - shared across all tests in worker
   siteManagementHelper: [
-    async ({ appManagerApiContext }, use) => {
+    async ({ appManagerApiContext }, use, workerInfo) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      console.log(`🔧 Initializing siteManagementHelper for worker ${workerInfo.workerIndex}`);
       await use(siteManagementHelper);
+      console.log(`🧹 Worker ${workerInfo.workerIndex} shutting down - calling siteManagementHelper.cleanup()`);
       await siteManagementHelper.cleanup();
+      console.log(`✅ Worker ${workerInfo.workerIndex} cleanup completed`);
     },
     { scope: 'worker' },
   ],
@@ -176,18 +200,106 @@ export const searchTestFixtures = test.extend<
     { scope: 'worker' },
   ],
 
+  // Worker-scoped private site - one site per worker to reduce unnecessary site creation
+  privateSite: [
+    async ({ siteManagementHelper }, use, workerInfo) => {
+      console.log(`🔧 Creating privateSite fixture for worker ${workerInfo.workerIndex}`);
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Private_${randomNum}`;
+      const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+
+      // Create site using existing SiteManagementHelper
+      const privateSite = await siteManagementHelper.createPrivateSite({
+        siteName: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
+        waitForSearchIndex: true,
+      });
+
+      console.log(
+        `✅ Created privateSite: ${privateSite.siteName} with ID: ${privateSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
+      );
+
+      await use({ siteName: privateSite.siteName, siteId: privateSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Private site cleanup will be handled by siteManagementHelper fixture for site: ${privateSite.siteName} with ID: ${privateSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
+
+  // Worker-scoped unlisted site - one site per worker to reduce unnecessary site creation
+  unlistedSite: [
+    async ({ siteManagementHelper }, use, workerInfo) => {
+      console.log(`🔧 Creating unlistedSite fixture for worker ${workerInfo.workerIndex}`);
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Unlisted_${randomNum}`;
+      const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+
+      // Create site using existing SiteManagementHelper
+      const unlistedSite = await siteManagementHelper.createUnlistedSite({
+        siteName: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
+        waitForSearchIndex: true,
+      });
+
+      console.log(
+        `✅ Created unlistedSite: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
+      );
+
+      await use({ siteName: unlistedSite.siteName, siteId: unlistedSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Unlisted site cleanup will be handled by siteManagementHelper fixture for site: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
+
   // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
   appManagerApiFixture: [
-    async ({ appManagerApiContext }, use) => {
+    async ({ appManagerApiContext, siteManagementHelper }, use) => {
       const fixture = await createSearchApiFixture(appManagerApiContext);
+      // Use the worker-scoped siteManagementHelper so sites created by fixtures are tracked
+      fixture.siteManagementHelper = siteManagementHelper;
       await use(fixture);
 
       // Cleanup helpers that have cleanup methods
       try {
+        // Note: siteManagementHelper cleanup is handled by worker-scoped fixture at worker shutdown
+        // Sites are shared across tests, so we don't clean them up after each test
         await fixture.feedManagementHelper.cleanup();
         await fixture.tileManagementHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  standardUserApiFixture: [
+    async ({ standardUserApiContext, siteManagementHelper }, use) => {
+      const fixture = await createSearchApiFixture(standardUserApiContext);
+      // Use the worker-scoped siteManagementHelper so sites created by fixtures are tracked
+      fixture.siteManagementHelper = siteManagementHelper;
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        // Note: siteManagementHelper cleanup is handled by worker-scoped fixture at worker shutdown
+        // Sites are shared across tests, so we don't clean them up after each test
+        await fixture.feedManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Standard user API fixture cleanup failed:', error);
       }
     },
     { scope: 'test' },

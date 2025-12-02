@@ -51,7 +51,7 @@ for (const testData of SITE_SEARCH_TEST_DATA) {
       test(
         `Verify Site Search results for a new ${testData.siteType} site in category "${testData.category}"`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, '@gdsfa'],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
