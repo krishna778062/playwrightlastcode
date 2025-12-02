@@ -277,7 +277,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickCopyLinkOption(): Promise<void> {
     await test.step('Click Copy link option', async () => {
-      await this.clickOnElement(this.copyLinkButton);
+      await this.clickByInjectingJavaScript(this.copyLinkButton);
     });
   }
 
