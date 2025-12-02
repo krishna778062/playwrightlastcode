@@ -1,4 +1,6 @@
 import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
+import { TEST_FILTER_VALUES } from '@data-engineering/constants/testFilterValues';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -47,9 +49,9 @@ test.describe(
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
         timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
-        segments: ['Default'],
-        departments: ['DuckDB Check'],
-        locations: ['Gurugram Duck DB check, Haryana, India'],
+        segments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.SEGMENTS],
+        departments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.DEPARTMENTS],
+        locations: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.LOCATIONS],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.socialInteractionDashboard;
@@ -66,7 +68,7 @@ test.describe(
     test(
       'verify Reaction/Like metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-or-likes'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@reactions-or-likes'],
       },
       async () => {
         tagTest(test.info(), {
@@ -93,7 +95,7 @@ test.describe(
     test(
       'verify Feed posts and comments metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-and-comments'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@feed-posts-and-comments'],
       },
       async () => {
         tagTest(test.info(), {
@@ -121,7 +123,7 @@ test.describe(
     test(
       'verify Replies metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
@@ -147,7 +149,7 @@ test.describe(
     test(
       'verify Shares metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@shares'],
       },
       async () => {
         tagTest(test.info(), {
@@ -173,7 +175,7 @@ test.describe(
     test(
       'verify Favorites metric data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@favorites'],
       },
       async () => {
         tagTest(test.info(), {
@@ -200,7 +202,7 @@ test.describe(
     test(
       'verify social campaign shares tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@social-campaign-shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@social-campaign-shares'],
       },
       async () => {
         tagTest(test.info(), {
@@ -228,7 +230,7 @@ test.describe(
     test(
       'verify Least engaged by Department tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@least-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
@@ -255,7 +257,7 @@ test.describe(
     test(
       'verify Least engaged by Department CSV download and validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department-csv'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@least-engaged-by-department-csv'],
       },
       async () => {
         tagTest(test.info(), {
@@ -282,7 +284,7 @@ test.describe(
     test(
       'verify Most engaged by Department tabular data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@most-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
@@ -309,7 +311,7 @@ test.describe(
     test(
       'verify Most engaged by Department CSV download and validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department-csv'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@most-engaged-by-department-csv'],
       },
       async () => {
         tagTest(test.info(), {
@@ -336,7 +338,7 @@ test.describe(
     test(
       'verify Participant engagement activity chart data validation with all filters applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@participant-engagement-activity'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@participant-engagement-activity'],
       },
       async () => {
         tagTest(test.info(), {

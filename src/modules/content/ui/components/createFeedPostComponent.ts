@@ -62,6 +62,7 @@ export interface ICreateFeedPostActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickRecognitionTab: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -79,6 +80,7 @@ export class CreateFeedPostComponent
 {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
+  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
@@ -244,6 +246,29 @@ export class CreateFeedPostComponent
       return {
         postText: options.text,
         attachmentCount,
+        postId,
+      };
+    });
+  }
+
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await test.step(`Creating and publishing feed post with text: ${text}`, async () => {
+      await this.createPost(text);
+      await this.addTopicMention(topic);
+
+      // Publish the post and get the response
+      const postResponse = await this.createFeedPost();
+
+      // Parse JSON body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      // Fetch the post id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: text,
+        attachmentCount: 0,
         postId,
       };
     });
@@ -577,6 +602,15 @@ export class CreateFeedPostComponent
   async clickQuestionButton(): Promise<void> {
     await test.step('Click question button', async () => {
       await this.clickOnElement(this.questionButton);
+    });
+  }
+
+  /**
+   * Clicks the Recognition tab in the composer to open recognition form
+   */
+  async clickRecognitionTab(): Promise<void> {
+    await test.step('Click Recognition tab', async () => {
+      await this.clickOnElement(this.recognitionTab);
     });
   }
 

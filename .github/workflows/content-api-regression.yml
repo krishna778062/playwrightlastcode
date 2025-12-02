@@ -41,7 +41,7 @@ on:
           - '1'
           - '2'
       feature_tags:
-        description: 'Comma-separated list of feature tags to include in tests (e.g., @social-campaign, @CONT-42059). Use "all" to run all tests. Note: Tag must match exactly (e.g., @social-campaign not @social-campaigns)'
+        description: 'Comma-separated list of feature tags to include in tests (e.g., @CONT-41913)'
         required: false
         default: 'all'
         type: string
@@ -61,7 +61,8 @@ jobs:
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: content-api
-      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      SLACK_WEBHOOK_URL_1: https://hooks.slack.com/services/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
+      SLACK_WEBHOOK_URL_2: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -100,57 +101,26 @@ jobs:
           # Always include @api tag for API tests
           ALL_TAGS+=("@api")
 
-          # If feature_tags is specified and not "all", prioritize it and make it required
-          # This ensures only tests with the specified feature tag run
-          elif [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+          # Add priority filter (skip if "all")
+          [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+
+          # Add test type filter (skip if "all" or "@api" since we already added it)
+          if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+          fi
+
+          # Add feature tags (skip if "all")
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
             IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
             for tag in "${FEATURES[@]}"; do
-              # Trim whitespace from tag
-              tag=$(echo "$tag" | xargs)
-              if [ -n "$tag" ]; then
-                # Ensure tag starts with @
-                if [[ ! "$tag" =~ ^@ ]]; then
-                  tag="@$tag"
-                fi
-                ALL_TAGS+=("$tag")
-              fi
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
             done
-            # When feature tags are specified, also add priority and test type if not "all"
-            [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
-            if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
-              ALL_TAGS+=("$TEST_TYPE")
-            fi
-          else
-            # No specific feature tags - use priority and test type filters
-            [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
-            if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
-              ALL_TAGS+=("$TEST_TYPE")
-            fi
           fi
 
           echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
-          # Build grep filter
-          # Playwright's --grep uses OR logic with |, but we want AND logic
-          # Since all tags appear in the test string representation, we can use a pattern
-          # that requires all tags by using positive lookahead assertions
-          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
-            # Escape special regex characters and build pattern requiring all tags
-            GREP_PARTS=()
-            for tag in "${ALL_TAGS[@]}"; do
-              # Escape special regex characters (but keep @ and -)
-              escaped_tag=$(echo "$tag" | sed 's/[.*+?^${}()|[\]\\]/\\&/g')
-              # Use positive lookahead to require this tag (works in JavaScript regex)
-              GREP_PARTS+=("(?=.*$escaped_tag)")
-            done
-            # Combine all lookaheads - this requires ALL tags to be present
-            GREP_REGEX=$(IFS=''; echo "${GREP_PARTS[*]}.*")
-          else
-            # If no tags, match everything (shouldn't happen as @api is always added)
-            GREP_REGEX=".*"
-          fi
-
+          GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
           echo "Running Content API tests with grep filter: $GREP_REGEX"
 
           # Set workers - ensure it's a valid number
@@ -288,19 +258,22 @@ jobs:
       - name: Send Slack Notification
         if: always()
         run: |
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL>  🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL>  🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
 
             # Send to Slack using curl
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"$MESSAGE\"}" \
-              $SLACK_WEBHOOK_URL
+            for WEBHOOK in "${WEBHOOKS[@]}"; do
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$MESSAGE\"}" \
+                $WEBHOOK
+            done
           else
             echo "No tests ran, skipping success notification"
           fi
@@ -308,29 +281,34 @@ jobs:
       - name: Send Smart Slack Notifications
         if: always()
         run: |
-          # Check if tests were executed
-          if [ -f "test-results/test-results.json" ]; then
-            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+           # Check if tests were executed
+           if [ -f "test-results/test-results.json" ]; then
+             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
 
-            if [ "$TOTAL_TESTS" -eq 0 ]; then
-              # No tests found
-              echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+             if [ "$TOTAL_TESTS" -eq 0 ]; then
+               # No tests found
+               echo "No tests were found matching the criteria"
+               NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-              curl -X POST -H 'Content-type: application/json' \
-                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
-                $SLACK_WEBHOOK_URL
-            else
-              # Tests were found and executed (pass or fail)
-              echo "Tests were found: $TOTAL_TESTS"
-              # Success notification already sent in previous step, no additional notification needed
-            fi
-          else
-            # No test results file - this means pipeline failed before tests could run
-            echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              # Send to Slack using curl
+              for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                 $WEBHOOK
+             else
+               # Tests were found and executed (pass or fail)
+               echo "Tests were found: $TOTAL_TESTS"
+               # Success notification already sent in previous step, no additional notification needed
+             fi
+           else
+             # No test results file - this means pipeline failed before tests could run
+             echo "No test results file found - pipeline likely failed"
+             FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
-              $SLACK_WEBHOOK_URL
-          fi
+             # Send to Slack using curl
+             for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+                 $WEBHOOK
+           fi

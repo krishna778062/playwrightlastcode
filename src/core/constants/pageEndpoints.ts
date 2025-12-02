@@ -6,7 +6,7 @@ export const PAGE_ENDPOINTS = {
   FEATURED_SITES_PAGE: '/sites/featured',
   MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
-  SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  SITE_PAGE: (siteId: string) => `/site/${siteId}/dashboard`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
   MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
@@ -95,6 +95,7 @@ export const PAGE_ENDPOINTS = {
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
+  SIMPPLR_IDP_PAGE: '/manage/app/security/simpplr_idp',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
@@ -112,6 +113,8 @@ export const PAGE_ENDPOINTS = {
   SEARCH_DASHBOARD: '/analytics/search',
   PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
+  MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
+  SITES_DASHBOARD: '/analytics/sites',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
