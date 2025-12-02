@@ -1983,13 +1983,14 @@ test.describe(
           // Verify Update button is disabled initially
           await feedPage.assertions.verifyUpdateButtonDisabled();
 
-          // Remove "Public Site" mention and replace with "Public Site2"
-          await feedPage.actions.editPostAndReplaceSiteMentions({
-            currentText: initialPostText,
-            newText: initialPostText, // Keep same text
-            siteNamesToRemove: [publicSiteName],
-            siteNamesToAdd: [publicSite2Name],
-          });
+          // Remove "Public Site" mention
+          await feedPage.actions.removeSiteMention(publicSiteName);
+
+          // Add "Public Site2" mention
+          await feedPage.actions.addSiteName(publicSite2Name);
+
+          // Click Update button to save changes
+          await feedPage.actions.clickUpdateButton();
 
           // Verify updated post shows new site mention
           await feedPage.assertions.waitForPostToBeVisible(initialPostText);

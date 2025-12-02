@@ -156,12 +156,8 @@ export interface IFeedActions {
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
   clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
-  editPostAndReplaceSiteMentions(params: {
-    currentText: string;
-    newText: string;
-    siteNamesToRemove?: string[];
-    siteNamesToAdd?: string[];
-  }): Promise<void>;
+  addSiteName(siteName: string): Promise<void>;
+  removeSiteMention(siteName: string): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -1295,35 +1291,11 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  async editPostAndReplaceSiteMentions(params: {
-    currentText: string;
-    newText: string;
-    siteNamesToRemove?: string[];
-    siteNamesToAdd?: string[];
-  }): Promise<void> {
-    const { currentText, newText, siteNamesToRemove, siteNamesToAdd } = params;
-    await test.step(`Edit post and replace site mentions`, async () => {
-      // Update the post text
-      if (newText) {
-        await this.updatePostText(newText);
-      }
+  async addSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.addSiteName(siteName);
+  }
 
-      // Remove site mentions if specified
-      if (siteNamesToRemove && siteNamesToRemove.length > 0) {
-        for (const siteName of siteNamesToRemove) {
-          await this.createFeedPostComponent.removeSiteMention(siteName);
-        }
-      }
-
-      // Add new site mentions if specified
-      if (siteNamesToAdd && siteNamesToAdd.length > 0) {
-        for (const siteName of siteNamesToAdd) {
-          await this.createFeedPostComponent.addSiteName(siteName);
-        }
-      }
-
-      // Click Update button
-      await this.clickUpdateButton();
-    });
+  async removeSiteMention(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.removeSiteMention(siteName);
   }
 }
