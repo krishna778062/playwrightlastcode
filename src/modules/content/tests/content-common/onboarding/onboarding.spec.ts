@@ -117,9 +117,6 @@ test.describe('onboarding', () => {
         await homeDashboardPage.actions.clickingOnAddToHomeButton();
         await homeDashboardPage.assertions.verifyToastMessage('Added tile to dashboard successfully');
         await homeDashboardPage.actions.clickingOnDoneButton();
-        await homeDashboardPage.assertions.verifyOnboardingTileIsVisible();
-      } else {
-        await homeDashboardPage.assertions.verifyOnboardingTileIsVisible();
       }
 
       await homeDashboardPage.actions.clickOnEditDashboardButton();

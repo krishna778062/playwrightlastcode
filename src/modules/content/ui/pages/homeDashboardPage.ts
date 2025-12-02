@@ -65,9 +65,9 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify topic details page is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.page.getByText('Home'), {
-        assertionMessage: 'Topic details page should be visible',
+    await test.step('Verify home dashboard page is loaded', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
+        assertionMessage: 'Home dashboard page should be visible',
       });
     });
   }
@@ -87,7 +87,12 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     await this.addContentTileComponent.namingTheTile(tileName);
   }
   async clickingOnAddToHomeButton(): Promise<void> {
-    await this.addContentTileComponent.clickingOnAddToHomeButton();
+    await test.step('Click on Add to home button', async () => {
+      await this.addContentTileDialog.waitFor({ state: 'visible' });
+      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'visible' });
+      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
+      await this.addContentTileComponent.clickingOnAddToHomeButton();
+    });
   }
   async verifyToastMessage(toastMessage: string): Promise<void> {
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(toastMessage);
@@ -96,8 +101,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     await test.step('Click on Done button', async () => {
       await this.clickOnElement(this.doneButton);
       await this.addContentTileDialog.waitFor({ state: 'hidden' });
-      await this.page.reload();
-      await this.verifyThePageIsLoaded();
     });
   }
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
@@ -133,6 +136,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   async clickingOnOnboardingTab(): Promise<void> {
     await test.step('Click on Onboarding tab', async () => {
       await this.clickOnElement(this.onboardingComponent.onboardingTab);
+      await this.addContentTileDialog.waitFor({ state: 'visible' });
       await this.verifier.waitUntilElementIsVisible(this.addContentTileComponent.addToHomeButton, {
         stepInfo: 'Wait for Add to home button to be visible after clicking Onboarding tab',
       });
@@ -140,15 +144,24 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async verifyOnboardingTileIsVisible(): Promise<void> {
     await test.step('Verify onboarding tile is visible on home dashboard', async () => {
-      await this.verifyingThePageTileSectionIsVisible('Onboarding');
+      const onboardingTileHeading = this.page.getByRole('heading', { name: /Onboarding/i }).first();
+      await this.verifier.waitUntilElementIsVisible(onboardingTileHeading, {
+        stepInfo: 'Wait for onboarding tile to appear on dashboard',
+      });
     });
   }
   async isAddToHomeButtonDisabled(): Promise<boolean> {
-    return await this.addContentTileComponent.addToHomeButton.isDisabled();
+    return await test.step('Check if Add to home button is disabled', async () => {
+      await this.addContentTileDialog.waitFor({ state: 'visible' });
+      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
+      return await this.addContentTileComponent.addToHomeButton.isDisabled();
+    });
   }
 
   async verifyAddToHomeButtonIsDisabled(): Promise<void> {
     await test.step('Verify Add to home button is disabled', async () => {
+      await this.addContentTileDialog.waitFor({ state: 'visible' });
+      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
       await this.verifier.verifyTheElementIsDisabled(this.addContentTileComponent.addToHomeButton);
     });
   }

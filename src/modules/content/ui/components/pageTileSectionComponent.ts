@@ -17,9 +17,12 @@ export class PageTileSectionComponent extends BaseComponent {
   }
 
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('header').filter({ hasText: tileName }), {
-      assertionMessage: `Page tile section with title ${tileName} should be visible`,
-    });
+    await this.verifier.verifyTheElementIsVisible(
+      this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first(),
+      {
+        assertionMessage: `Page tile section with title ${tileName} should be visible`,
+      }
+    );
   }
   async verifyingThePageTileSectionIsNotVisible(tileName: string): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.page.locator('header').filter({ hasText: tileName }), {
