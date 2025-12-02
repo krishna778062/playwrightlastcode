@@ -55,10 +55,11 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
         yAxisLabels: ['0.0%', '50.0%', '100.0%'],
       });
 
-      // Verify x-axis labels based on period (only 7 days and 30 days)
+      // Verify x-axis labels based on period (7 days, 30 days, and custom period)
       if (
         filterBy.timePeriod === PeriodFilterTimeRange.LAST_7_DAYS ||
-        filterBy.timePeriod === PeriodFilterTimeRange.LAST_30_DAYS
+        filterBy.timePeriod === PeriodFilterTimeRange.LAST_30_DAYS ||
+        filterBy.timePeriod === PeriodFilterTimeRange.CUSTOM
       ) {
         let xAxisLabels: string[];
 
@@ -71,11 +72,11 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
             currentDate = addDays(currentDate, 1);
           }
         } else {
-          // 30 days: Start from start date + 5 days, then every 7 days
-          // Example: If start date is Oct 29, labels should be: Nov 03, Nov 10, Nov 17, Nov 24, etc.
+          // 30 days or Custom period: Start from start date + 1 day, then every 7 days
+          // Example: If start date is Nov 02, labels should be: Nov 03, Nov 10, Nov 17, Nov 24, Dec 01, etc.
           xAxisLabels = [];
-          // Start from start date + 5 days, then add 7 days for each subsequent label
-          let currentDate = addDays(startDate, 5);
+          // Start from start date + 1 day, then add 7 days for each subsequent label
+          let currentDate = addDays(startDate, 1);
           while (currentDate <= endDate) {
             xAxisLabels.push(format(currentDate, 'MMM dd'));
             currentDate = addDays(currentDate, 7); // Add 7 days for next label
