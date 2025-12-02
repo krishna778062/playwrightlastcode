@@ -114,6 +114,8 @@ export const PAGE_ENDPOINTS = {
   SEARCH_DASHBOARD: '/analytics/search',
   PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
+  MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
+  SITES_DASHBOARD: '/analytics/sites',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -123,4 +125,6 @@ export const PAGE_ENDPOINTS = {
 
   //Form creation page
   FORM_CREATION_PAGE: '/forms',
+
+  COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
 };
