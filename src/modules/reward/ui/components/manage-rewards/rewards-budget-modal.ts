@@ -17,7 +17,9 @@ export class RewardsBudgetModal extends BasePage {
   readonly budgetPanelRemoveRadioInputBox: Locator;
   readonly budgetPanelInputBox: Locator;
   readonly budgetInputErrorMessage: Locator;
+  readonly budgetFinancialStartMonthLabel: Locator;
   readonly budgetFinancialStartMonthSelectDropdown: Locator;
+  readonly budgetFinancialStartDateLabel: Locator;
   readonly budgetFinancialStartDateSelectDropdown: Locator;
   readonly budgetBalanceApplicationFullAnnualBudget: Locator;
   readonly budgetBalanceApplicationProRATABudget: Locator;
@@ -45,8 +47,14 @@ export class RewardsBudgetModal extends BasePage {
     this.budgetPanelInputBox = this.budgetContainer.locator('input[id="budgetUsdAmount"]');
     this.budgetPanelSaveButton = this.budgetContainer.locator('button[type="submit"]');
     this.budgetInputErrorMessage = this.budgetContainer.locator('[class^="Field-module__error"] p');
+    this.budgetFinancialStartMonthLabel = this.budgetContainer.locator(
+      '[data-testid="field-Start month"] label[for="month"]'
+    );
     this.budgetFinancialStartMonthSelectDropdown = this.budgetContainer.locator(
       '[aria-label="Start month"][id="month"]'
+    );
+    this.budgetFinancialStartDateLabel = this.budgetContainer.locator(
+      '[data-testid="field-Start day"] label[for="day"]'
     );
     this.budgetFinancialStartDateSelectDropdown = this.budgetContainer.locator('[aria-label="Start day"][id="day"]');
     this.budgetBalanceApplicationFullAnnualBudget = page.locator('input[id="balanceAllocationFULL"]');
@@ -84,8 +92,10 @@ export class RewardsBudgetModal extends BasePage {
   }
 
   async verifyTheFinancialStartDateInputBox() {
-    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartDateSelectDropdown);
+    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartMonthLabel);
+    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartDateLabel);
     await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartMonthSelectDropdown);
+    await this.verifier.verifyTheElementIsVisible(this.budgetFinancialStartDateSelectDropdown);
   }
 
   async verifyTheBudgetBalance() {
