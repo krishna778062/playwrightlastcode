@@ -552,21 +552,14 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     // Calculate total count from all segments (including "No logins" as it's now displayed in UI)
     const totalCount = rawResults.reduce((sum, result) => sum + Number(result.COUNT), 0);
 
-    // Map database labels to UI labels (e.g., "No logins" -> "No login")
-    const mapDbLabelToUILabel = (dbLabel: string): string => {
-      if (dbLabel === 'No logins') {
-        return 'No login';
-      }
-      return dbLabel;
-    };
-
     // Transform and calculate percentages based on all segments
+    // Note: UI displays "No logins" (plural) which matches the SQL query output, so no mapping needed
     return rawResults.map(result => {
       const count = Number(result.COUNT);
       // Calculate percentage based on total count of all segments, rounded to 2 decimal places to match UI
       const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100 * 100) / 100 : 0;
       return {
-        behaviour: mapDbLabelToUILabel(result.BEHAVIOUR),
+        behaviour: result.BEHAVIOUR,
         count,
         percentage,
       };
