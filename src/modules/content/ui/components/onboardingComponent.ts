@@ -9,6 +9,7 @@ export class OnboardingComponent extends BaseComponent {
   readonly saveButton: Locator;
   readonly cancelButton: Locator;
   readonly contentOuterDiv: Locator;
+  readonly tagVisibleUnderFavoritesTab: (option: TagOption) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -16,6 +17,7 @@ export class OnboardingComponent extends BaseComponent {
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     this.contentOuterDiv = page.locator('.ManageContentListItem').first();
+    this.tagVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
 
   selectOnboardingRadioButton(option: TagOption): Locator {
@@ -39,6 +41,12 @@ export class OnboardingComponent extends BaseComponent {
   async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag is visible on content: ${option}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.verifyTabVisible(option));
+    });
+  }
+
+  async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
+    await test.step(`Verify tag is visible on content under favorites tab: ${option}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.tagVisibleUnderFavoritesTab(option));
     });
   }
 
