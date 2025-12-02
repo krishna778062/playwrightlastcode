@@ -58,7 +58,7 @@ export class ProfilePage extends BasePage {
 
   async fillMobileNumberOnProfilePage(phoneNumber: string, options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `Filling mobile number: ${phoneNumber}`, async () => {
-      await this.mobileInput.fill(phoneNumber);
+      await this.fillInElement(this.mobileInput, phoneNumber);
     });
   }
 
