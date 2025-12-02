@@ -1,12 +1,11 @@
 import { SitePageTab } from '@content/constants/sitePageEnums';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { getContentConfigFromCache } from '../../../config/contentConfig';
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -331,19 +330,6 @@ test.describe(
           waitForSearchIndex: false,
         });
         createdPostText = feedTestData.text;
-
-        // Get image file path
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.ATTACHMENTS.IMAGE
-        );
 
         // Access CreateFeedPostComponent for mention and attachment operations
         const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
