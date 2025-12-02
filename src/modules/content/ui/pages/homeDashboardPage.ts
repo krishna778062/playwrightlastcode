@@ -24,6 +24,7 @@ export interface IHomeDashboardPageActions {
   clickingOnSaveButton: () => Promise<void>;
   clickingOnRemoveTileButton: (tileName: string) => Promise<void>;
   clickingOnOnboardingTab: () => Promise<void>;
+  isAddToHomeButtonDisabled: () => Promise<boolean>;
   verifyAddToHomeButtonIsDisabled: () => Promise<void>;
 }
 
@@ -95,6 +96,8 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     await test.step('Click on Done button', async () => {
       await this.clickOnElement(this.doneButton);
       await this.addContentTileDialog.waitFor({ state: 'hidden' });
+      await this.page.reload();
+      await this.verifyThePageIsLoaded();
     });
   }
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
@@ -137,16 +140,13 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async verifyOnboardingTileIsVisible(): Promise<void> {
     await test.step('Verify onboarding tile is visible on home dashboard', async () => {
-      const onboardingTileLocator = this.page
-        .locator('header')
-        .filter({ hasText: /Onboarding/i })
-        .first();
-
-      await this.verifier.waitUntilElementIsVisible(onboardingTileLocator, {
-        stepInfo: 'Wait for onboarding tile to be visible on home dashboard',
-      });
+      await this.verifyingThePageTileSectionIsVisible('Onboarding');
     });
   }
+  async isAddToHomeButtonDisabled(): Promise<boolean> {
+    return await this.addContentTileComponent.addToHomeButton.isDisabled();
+  }
+
   async verifyAddToHomeButtonIsDisabled(): Promise<void> {
     await test.step('Verify Add to home button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.addContentTileComponent.addToHomeButton);
