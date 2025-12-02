@@ -136,7 +136,7 @@ export const config = {
     uatEU: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz/',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'shubham.garg@simpplr.com',
       appManagerPassword: 'Simpplr@123',
       endUserEmail: 'sonali.gupta@simpplr.com',
