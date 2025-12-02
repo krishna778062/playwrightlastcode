@@ -26,6 +26,7 @@ on:
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
+          - 'comms-planner'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
