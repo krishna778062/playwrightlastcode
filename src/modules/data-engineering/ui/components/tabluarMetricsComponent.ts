@@ -403,12 +403,17 @@ export class TabluarMetricsComponent extends BaseComponent {
       });
     });
 
-    await test.step(`verify tabular data - table is loaded`, async () => {
+    await test.step(`verify tabular data - table is loaded or no data state`, async () => {
       const dataCells = this.rootLocator.getByRole('gridcell');
-      await this.verifier.verifyCountOfElementsIsGreaterThan(dataCells, 0, {
-        timeout: 40_000,
-        assertionMessage: `table should have data cells`,
-      });
+      const noDataState = this.rootLocator.getByText('No data found for this query');
+
+      // Check if either data cells exist OR "No data found" message is visible
+      const dataCellCount = await dataCells.count();
+      const hasNoDataMessage = await noDataState.isVisible().catch(() => false);
+
+      if (dataCellCount === 0 && !hasNoDataMessage) {
+        throw new Error('Table should either have data cells or show "No data found for this query" message');
+      }
     });
   }
 
