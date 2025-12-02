@@ -5,6 +5,7 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { getNotificationUrlPath, NotificationType } from '@/src/modules/content/constants';
 
 export interface IMySettingsNotificationsActions {
+  navigateToCurrentUserNotificationSettings: (notificationType?: NotificationType) => Promise<void>;
   clickOnFeedTab: () => Promise<void>;
   clickOnShareYourPostCheckbox: () => Promise<void>;
   checkShareYourPostCheckbox: () => Promise<void>;
@@ -67,30 +68,8 @@ export class MySettingsNotificationsPage
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify My Settings Notifications page is loaded', async () => {
-      const browserTabVisible = await this.verifier.isTheElementVisible(this.browserTab, {
-        timeout: TIMEOUTS.SHORT,
-      });
-      if (browserTabVisible) {
-        return;
-      }
-
-      const emailNotificationsTabVisible = await this.verifier.isTheElementVisible(this.emailNotificationsTab, {
-        timeout: TIMEOUTS.SHORT,
-      });
-      if (emailNotificationsTabVisible) {
-        return;
-      }
-
-      const feedTabVisible = await this.verifier.isTheElementVisible(this.feedTab, {
-        timeout: TIMEOUTS.SHORT,
-      });
-      if (feedTabVisible) {
-        return;
-      }
-
-      await this.verifier.waitUntilElementIsVisible(this.browserTab, {
-        stepInfo: 'Wait for Browser tab/link to confirm notifications page is loaded',
-        timeout: TIMEOUTS.MEDIUM,
+      await this.verifier.verifyTheElementIsVisible(this.browserTab, {
+        assertionMessage: 'My Settings Notifications page should be loaded',
       });
     });
   }

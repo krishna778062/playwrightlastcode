@@ -89,7 +89,7 @@ test.describe('onboarding', () => {
         await standardUserProfileDropdown.clickOnMySettingsButton({
           stepInfo: 'Click on My settings for standard user',
         });
-        await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
+        await standardUserMySettingsPage.actions.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
         await standardUserMySettingsPage.actions.clickOnFeedTab();
         await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
       });
@@ -126,7 +126,7 @@ test.describe('onboarding', () => {
       await homeDashboardPage.actions.clickOnAddTileButton();
       await homeDashboardPage.actions.clickOnAddContentTileOption();
       await homeDashboardPage.actions.clickingOnOnboardingTab();
-      await homeDashboardPage.actions.verifyAddToHomeButtonIsDisabled();
+      await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
     }
   );
 });

@@ -25,7 +25,6 @@ export interface IHomeDashboardPageActions {
   clickingOnRemoveTileButton: (tileName: string) => Promise<void>;
   clickingOnOnboardingTab: () => Promise<void>;
   isAddToHomeButtonDisabled: () => Promise<boolean>;
-  verifyAddToHomeButtonIsDisabled: () => Promise<void>;
 }
 
 export interface IHomeDashboardPageAssertions {
@@ -35,6 +34,7 @@ export interface IHomeDashboardPageAssertions {
   verifyingCreatedPageIsNotVisibleInTile: (pageName: string) => Promise<void>;
   verifyingThePageTileSectionIsNotVisible: (tileName: string) => Promise<void>;
   verifyOnboardingTileIsVisible: () => Promise<void>;
+  verifyAddToHomeButtonIsDisabled: () => Promise<void>;
 }
 export class HomeDashboardPage extends BasePage implements IHomeDashboardPageActions, IHomeDashboardPageAssertions {
   addTileComponent: AddTileComponent;
@@ -136,7 +136,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   async clickingOnOnboardingTab(): Promise<void> {
     await test.step('Click on Onboarding tab', async () => {
       await this.clickOnElement(this.onboardingComponent.onboardingTab);
-      await this.addContentTileDialog.waitFor({ state: 'visible' });
       await this.verifier.waitUntilElementIsVisible(this.addContentTileComponent.addToHomeButton, {
         stepInfo: 'Wait for Add to home button to be visible after clicking Onboarding tab',
       });
@@ -152,16 +151,12 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async isAddToHomeButtonDisabled(): Promise<boolean> {
     return await test.step('Check if Add to home button is disabled', async () => {
-      await this.addContentTileDialog.waitFor({ state: 'visible' });
-      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
       return await this.addContentTileComponent.addToHomeButton.isDisabled();
     });
   }
 
   async verifyAddToHomeButtonIsDisabled(): Promise<void> {
     await test.step('Verify Add to home button is disabled', async () => {
-      await this.addContentTileDialog.waitFor({ state: 'visible' });
-      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
       await this.verifier.verifyTheElementIsDisabled(this.addContentTileComponent.addToHomeButton);
     });
   }
