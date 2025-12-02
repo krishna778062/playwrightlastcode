@@ -51,6 +51,7 @@ on:
           - 'test'
           - 'prodEU'
           - 'prodUS'
+          - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests (default: 5 for content, 1 for others)'
         required: true
