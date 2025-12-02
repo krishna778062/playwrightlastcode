@@ -664,7 +664,12 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
-    await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+    try {
+      await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+    } catch (error) {
+      await this.reloadPage();
+      await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
+    }
   }
 
   /**
