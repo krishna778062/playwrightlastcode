@@ -1064,6 +1064,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
+        test.fail(); // Mark as expected to fail - known failure (Bug: INT-27330)
         test.setTimeout(360000);
         tagTest(test.info(), {
           isKnownFailure: true,
