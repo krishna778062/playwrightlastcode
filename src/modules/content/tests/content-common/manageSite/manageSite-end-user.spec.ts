@@ -10,14 +10,12 @@ import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabe
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
-<<<<<<< HEAD
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
+import { AddPeopleInSiteComponent } from '@/src/modules/content/ui/components/addPeopleInSiteComponent';
 import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
-import { AddPeopleInSiteComponent } from '@/src/modules/content/ui/components/addPeopleInSiteComponent';
-import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
@@ -30,7 +28,6 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_SITE],
   },
   () => {
-    let manageSitesComponent: ManageSitesComponent;
     let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
