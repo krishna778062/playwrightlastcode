@@ -74,4 +74,6 @@ export const MESSAGES = {
   UNSAVED_CHANGES_MESSAGE: 'You have unsaved changes. Do you want to leave?',
   REQUESTED_TIME_OFF_ERROR_MESSAGE: 'Failed to request time off. Try again after some time.',
   REQUESTED_TIME_OFF_ERROR_LABEL: 'Failed to request time off. Try again after some time.',
+  ACCOUNT_CONNECTION_MESSAGE: (appName: string) =>
+    `${appName} requires that an admin account is connected. ${appName} will become available to end users once the app is fully set up and activated.`,
 } as const;
