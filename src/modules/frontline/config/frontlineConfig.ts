@@ -27,7 +27,7 @@ export const mailosaurValues: {
 } = {
   mailosaurApiKey: '3G0mJzdusG2e4QKWsyupr2emWMQaMZi2',
   mailosaurServerId: 'bie7v7vm',
-  mailosaurEmail: 'green@bie7v7vm.mailosaur.net',
+  mailosaurEmail: 'green+1@bie7v7vm.mailosaur.net',
   mailosaurPhone: '+12029891336',
 };
 

@@ -43,6 +43,14 @@ test.describe(
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
+        // check if the confluence service account is connected
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
+
         // Verify App Level Connection & Disconnection Flow
         await supportAndTicketingPage.actions.disconnectConfluenceServiceAccount();
         await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountIsDisconnected();

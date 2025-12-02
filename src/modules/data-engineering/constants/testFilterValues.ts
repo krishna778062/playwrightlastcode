@@ -4,7 +4,7 @@ export const TEST_FILTER_VALUES = {
    */
   APP_ADOPTION: {
     DEPARTMENTS: ['Information Technology', 'New department DUCK DB', 'Payroll', 'Retail', 'Undefined'],
-    LOCATIONS: ['Undefined', 'New city DUCK DB, New state DUCK DB, New country DUCK DB', 'India'],
+    LOCATIONS: ['Undefined', 'India'],
     COMPANY_NAMES: ['Undefined'],
   },
 
