@@ -31,6 +31,8 @@ export interface IContentPreviewPageActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
+  clickOnRemoveFromHomeCarouselButton: () => Promise<void>;
+  clickOnRemoveFromSiteCarouselButton: () => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
   verifyCancelButtonVisible: (postText: string) => Promise<void>;
@@ -383,6 +385,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async clickOnOptionMenuButton(): Promise<void> {
     await this.optionMenuComponent.clickOnOptionMenuButton();
+  }
+
+  async clickOnRemoveFromHomeCarouselButton(): Promise<void> {
+    await this.optionMenuComponent.clickOnRemoveFromHomeCarouselButton();
+  }
+
+  async clickOnRemoveFromSiteCarouselButton(): Promise<void> {
+    await this.optionMenuComponent.clickOnRemoveFromSiteCarouselButton();
   }
 
   /**

@@ -36,6 +36,8 @@ export interface INewHomePageAssertions {
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifyContentIsNotVisibleInHomeCarousel: (contentName: string) => Promise<void>;
+  verifyContentIsNotVisibleInSiteCarousel: (contentName: string) => Promise<void>;
 }
 
 export class NewHomePage extends BasePage {
@@ -49,6 +51,8 @@ export class NewHomePage extends BasePage {
   readonly socialCampaignNameInTileList: (socialCampaignName: string) => Locator;
   readonly peopleButton: Locator;
   readonly carouselItemText: (text: string) => Locator;
+  readonly homeCarouselItemText: (text: string) => Locator;
+  readonly siteCarouselItemText: (text: string) => Locator;
   private carouselComponent: CarouselComponent;
 
   constructor(page: Page) {
@@ -65,6 +69,8 @@ export class NewHomePage extends BasePage {
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.homeCarouselItemText = (text: string) => page.getByRole('link', { name: text, exact: true });
+    this.siteCarouselItemText = (text: string) => page.getByRole('link', { name: text, exact: true });
   }
 
   get actions(): INewHomePageActions {
@@ -152,6 +158,20 @@ export class NewHomePage extends BasePage {
       await this.verifier.verifyTheElementIsNotVisible(this.socialCampaignNameInTileList(socialCampaignName), {
         timeout: 20000,
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+  async verifyContentIsNotVisibleInHomeCarousel(contentName: string): Promise<void> {
+    await test.step('Verifying content is not visible in home carousel', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.homeCarouselItemText(contentName), {
+        assertionMessage: `Content '${contentName}' should be not visible in home carousel`,
+      });
+    });
+  }
+  async verifyContentIsNotVisibleInSiteCarousel(contentName: string): Promise<void> {
+    await test.step('Verifying content is not visible in site carousel', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.siteCarouselItemText(contentName), {
+        assertionMessage: `Content '${contentName}' should be not visible in site carousel`,
       });
     });
   }

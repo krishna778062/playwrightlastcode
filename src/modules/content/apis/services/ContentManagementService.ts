@@ -347,6 +347,34 @@ export class ContentManagementService implements IContentManagementServices {
     });
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.addHomeCarouselItem, {
+        data: {
+          siteId: null,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<any>(response);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.siteCarouselItems(siteId), {
+        data: {
+          siteId: siteId,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<any>(response);
+    });
+  }
   async makeContentMustRead(
     contentId: string,
     options: {
