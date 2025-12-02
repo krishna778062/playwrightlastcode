@@ -217,6 +217,7 @@ export interface IFeedAssertions {
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
+  verifyRemovedContentMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
@@ -1218,6 +1219,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyDeletedPostMessage(postText);
   }
 
+  /**
+   * Verifies that a removed content message is displayed for a post that was removed due to inappropriate content
+   * @param postText - The text of the post to verify removed message for
+   */
+  async verifyRemovedContentMessage(postText: string): Promise<void> {
+    await test.step(`Verify removed content message for post: ${postText}`, async () => {
+      await this.listFeedComponent.verifyRemovedContentMessage(postText);
+    });
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
   async verifyPostCannotBeInteracted(postText: string): Promise<void> {
     await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
   }
