@@ -74,6 +74,7 @@ export interface IContentPreviewPageAssertions {
   verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
   verifyContentIsNotAMustRead: () => Promise<void>;
+  verifyMustReadButtonIsNotVisible: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -543,6 +544,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyContentIsNotAMustRead(): Promise<void> {
     await this.mustReadModalComponent.verifyContentIsNotAMustRead();
+  }
+
+  async verifyMustReadButtonIsNotVisible(): Promise<void> {
+    await this.optionMenuComponent.verifyMustReadButtonIsNotVisible();
   }
 
   async verifyCommentTimestampFormat(contentCommentText: string): Promise<void> {

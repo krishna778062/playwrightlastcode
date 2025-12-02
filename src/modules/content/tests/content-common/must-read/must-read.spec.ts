@@ -133,5 +133,37 @@ test.describe(
         await contentPreviewPage.assertions.verifyContentIsMustRead();
       }
     );
+
+    test(
+      'verify that must read button is not visible for standard user when content is already must read',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5521'],
+      },
+      async ({ appManagerApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that must read button is not visible for standard user when content is already must read',
+          zephyrTestId: 'CONT-5521',
+          storyId: 'CONT-5521',
+        });
+
+        const siteDetails = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteDetails.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
+        });
+
+        await appManagerApiFixture.contentManagementHelper.makeContentMustRead(createPageInfo.contentId);
+        const contentDetails = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteDetails.siteId,
+          createPageInfo.contentId,
+          ContentType.PAGE
+        );
+        await contentDetails.loadPage();
+        await contentDetails.actions.clickOnOptionMenuButton();
+        await contentDetails.assertions.verifyMustReadButtonIsNotVisible();
+      }
+    );
   }
 );
