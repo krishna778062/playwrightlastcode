@@ -201,13 +201,31 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
+   * Compares a single column value between UI and DB
+   * Can be overridden by subclasses to customize comparison logic for specific columns
+   * @param column - The column name being compared
+   * @param normalizedUiValue - The normalized UI value
+   * @param normalizedDbValue - The normalized DB value
+   * @param keyValue - The key value for the record (for error messages)
+   */
+  protected async compareColumnValue(
+    column: string,
+    normalizedUiValue: string,
+    normalizedDbValue: string,
+    keyValue: string
+  ): Promise<void> {
+    // Default: exact string comparison
+    expect(normalizedUiValue, `${keyValue} ${column} should match exactly`).toBe(normalizedDbValue);
+  }
+
+  /**
    * Generic robust data comparison method
    * Checks that all UI records exist in DB data (order-independent)
    * @param uiData - The UI data array
    * @param dbData - The database data array (all records, not limited)
    * @param keyColumn - The column name to use for matching records
    */
-  private async runDataComparison(
+  protected async runDataComparison(
     uiData: Record<string, string>[],
     dbData: Record<string, string>[],
     keyColumn: string
@@ -253,7 +271,8 @@ export class TabluarMetricsComponent extends BaseComponent {
               expect(uiNumeric, `${keyValue} ${column} should match within tolerance`).toBeCloseTo(dbNumeric, 0);
             } else {
               // For non-percentage columns, use exact string comparison
-              expect(normalizedUiValue, `${keyValue} ${column} should match exactly`).toBe(normalizedDbValue);
+              // Subclasses can override compareColumnValue to customize comparison logic
+              await this.compareColumnValue(column, normalizedUiValue, normalizedDbValue, keyValue);
             }
           });
         }
