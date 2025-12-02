@@ -649,6 +649,8 @@ test.describe(
           variant: 'latest_popular',
           options: {
             type: 'page',
+            siteFilter: 'following',
+            siteId: null,
             layout: 'grid',
           },
         });
@@ -697,6 +699,8 @@ test.describe(
           variant: 'latest_popular',
           options: {
             type: 'event',
+            siteFilter: 'following',
+            siteId: null,
             layout: 'standard',
           },
         });
@@ -745,6 +749,8 @@ test.describe(
           variant: 'latest_popular',
           options: {
             type: 'album',
+            siteFilter: 'following',
+            siteId: null,
             layout: 'standard',
           },
         });

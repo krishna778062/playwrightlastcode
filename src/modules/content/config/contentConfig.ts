@@ -133,6 +133,21 @@ export const config = {
       socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
+    uatEU: {
+      tenantName: 'Content Primary',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz/',
+      appManagerEmail: 'shubham.garg@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'sonali.gupta@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+2@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
   },
   contentSettings: {
     qa: {
