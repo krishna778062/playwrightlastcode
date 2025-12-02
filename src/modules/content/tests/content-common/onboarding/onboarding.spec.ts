@@ -119,7 +119,6 @@ test.describe('onboarding', () => {
         await homeDashboardPage.actions.clickingOnDoneButton();
         await homeDashboardPage.assertions.verifyOnboardingTileIsVisible();
       } else {
-        await homeDashboardPage.actions.clickingOnDoneButton();
         await homeDashboardPage.assertions.verifyOnboardingTileIsVisible();
       }
 
