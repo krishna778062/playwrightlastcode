@@ -1874,5 +1874,90 @@ test.describe(
         });
       }
     );
+
+    test(
+      "in Zeus verify end user able to see Copy link option on other users' post",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19568'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: "In Zeus verify end user able to see Copy link option on other users' post",
+          zephyrTestId: 'CONT-19568',
+          storyId: 'CONT-19568',
+        });
+
+        await test.step('Login as Admin and create global post with file attachment', async () => {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          createdPostText = postText;
+
+          await adminFeedPage.actions.enterFeedPostText(postText);
+
+          const documentPath = FileUtil.getFilePath(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'test-data',
+            'static-files',
+            'excel',
+            FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
+          );
+          const postResult = await adminFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [documentPath],
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+
+          await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+        });
+
+        let replyText: string = '';
+        await test.step('Admin creates reply ', async () => {
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+
+          await adminFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+          replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+          await adminFeedPage.actions.addReplyToPost(replyText, createdPostId);
+
+          await adminFeedPage.assertions.verifyReplyIsVisible(replyText);
+        });
+
+        await test.step("End user verifies Copy link option on other user's post", async () => {
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+
+          await endUserFeedPage.reloadPage();
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+          await endUserFeedPage.actions.openPostOptionsMenu(createdPostText);
+
+          await endUserFeedPage.assertions.verifyOnlyCopyLinkOptionVisible(createdPostText);
+
+          await endUserFeedPage.actions.clickCopyLinkOption();
+
+          await endUserFeedPage.assertions.verifyToastMessage(
+            FEED_TEST_DATA.TOAST_MESSAGES.COPY_LINK_TO_POST_SUCCESSFULLY
+          );
+
+          await endUserFeedPage.actions.openPostOptionsMenu(replyText);
+
+          await endUserFeedPage.assertions.verifyReplyOptionsMenuNotVisible(replyText);
+        });
+      }
+    );
   }
 );

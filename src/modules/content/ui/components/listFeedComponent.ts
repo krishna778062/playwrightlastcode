@@ -19,6 +19,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly unlikeButtonForReply: Locator;
   readonly siteImageLocator: Locator;
   readonly editButton: Locator;
+  readonly copyLinkButton: Locator;
   readonly replyButton: Locator;
   readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
@@ -184,6 +185,7 @@ export class ListFeedComponent extends BaseComponent {
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
+    this.copyLinkButton = this.page.locator("div:text('Copy link')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
@@ -270,6 +272,53 @@ export class ListFeedComponent extends BaseComponent {
   async confirmDelete(): Promise<void> {
     await test.step('Confirm delete', async () => {
       await this.clickOnElement(this.deleteConfirmButton);
+    });
+  }
+
+  async clickCopyLinkOption(): Promise<void> {
+    await test.step('Click Copy link option', async () => {
+      await this.clickOnElement(this.copyLinkButton);
+    });
+  }
+
+  async verifyOnlyCopyLinkOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify only Copy link option is visible for post: ${postText}`, async () => {
+      // Verify Copy link is visible
+      await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
+        assertionMessage: `Copy link option should be visible for post "${postText}"`,
+      });
+
+      // Verify Edit button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should not be visible for post "${postText}"`,
+      });
+
+      // Verify Delete button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
+        assertionMessage: `Delete option should not be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply options menu is not visible for reply: ${replyText}`, async () => {
+      const replyOptionsMenu = this.getReplyOptionsMenuLocator(replyText);
+      await this.verifier.verifyTheElementIsVisible(replyOptionsMenu, {
+        assertionMessage: `Reply options menu should be visible for reply "${replyText}"`,
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.copyLinkButton, {
+        assertionMessage: `Copy link option should not be visible for reply "${replyText}"`,
+      });
+
+      // Verify Edit button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should not be visible for reply "${replyText}"`,
+      });
+
+      // Verify Delete button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
+        assertionMessage: `Delete option should not be visible for reply "${replyText}"`,
+      });
     });
   }
 

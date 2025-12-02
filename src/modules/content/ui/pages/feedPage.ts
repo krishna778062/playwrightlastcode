@@ -88,6 +88,7 @@ export interface IFeedActions {
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
+  clickCopyLinkOption: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
@@ -223,6 +224,8 @@ export interface IFeedAssertions {
   verifyShareModalIsVisible(): Promise<void>;
   verifyShareModalIsClosed: () => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
+  verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -800,6 +803,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.createFeedPostComponent.clickEditOption();
   }
 
+  async clickCopyLinkOption(): Promise<void> {
+    await this.listFeedComponent.clickCopyLinkOption();
+  }
+
   async createPost(text: string): Promise<void> {
     await this.createFeedPostComponent.createPost(text);
   }
@@ -1252,6 +1259,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyOnlyCopyLinkOptionVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyOnlyCopyLinkOptionVisible(postText);
+  }
+
+  async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyOptionsMenuNotVisible(replyText);
   }
 
   async verifyTimestampFormat(postText: string): Promise<void> {
