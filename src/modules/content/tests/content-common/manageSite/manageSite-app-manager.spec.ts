@@ -444,7 +444,6 @@ test.describe(
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.clickOnApplyButton();
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.actions.clickOnFirstContentButton();
@@ -452,7 +451,6 @@ test.describe(
         await manageContentPage.actions.clickOnPublishButton();
         await manageContentPage.actions.clickOnApplyButton();
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
@@ -537,7 +535,11 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        console.log('getListOfSitesResponse', getListOfSitesResponse);
+        const deactivatedSites = getListOfSitesResponse.result.listOfItems.filter(
+          (site: any) => site.isActive === false
+        );
+
+        console.log(`Found ${deactivatedSites.length} deactivated sites to check`);
 
         // Limit to first 20 sites to avoid pagination issues
         const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems
@@ -624,7 +626,7 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[1].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
@@ -640,8 +642,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description:
-            'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+          description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
         });
@@ -1010,6 +1011,49 @@ test.describe(
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
+      }
+    );
+    test(
+      'verify rejected content functionality under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify rejected content functionality under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20533',
+          storyId: 'CONT-20533',
+        });
+
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
+        if (!siteListResponse || siteListResponse.length === 0) {
+          throw new Error('No sites found in siteListResponse');
+        }
+        // Loop through sites to find one where standard user is NOT a member, owner, or manager
+        const newsiteInfo =
+          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        console.log('pageInfo', pageInfo);
+        await appManagerApiFixture.siteManagementHelper.rejectContent(
+          newsiteInfo.siteId, // Use the same site where the content was created
+          pageInfo.contentId,
+          'This is not good'
+        );
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
       }
     );
   }
