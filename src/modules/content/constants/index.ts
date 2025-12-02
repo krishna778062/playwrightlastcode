@@ -14,6 +14,7 @@ export * from './pageContentType';
 export * from './reactionsEmoji';
 export * from './sitePageEnums';
 export * from './siteTypes';
+export * from './smartFeedBlocks';
 export * from './sortOptionLabels';
 export * from './TagOptions';
 export * from './testSuite';
