@@ -7,7 +7,6 @@ import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 export interface IProfileScreenPageActions {
   clickOnManageTopics: () => Promise<void>;
   clickOnFavoriteOption: () => Promise<boolean>; // Returns true if user was already favorited, false otherwise
-  clickUnfollowButton: () => Promise<boolean>; // Returns true if user was being followed, false otherwise
 }
 
 export interface IProfileScreenPageAssertions {
@@ -25,8 +24,6 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   readonly manageTopicsLink: Locator = this.page
     .getByRole('link', { name: 'Manage Topics' })
     .or(this.page.locator('a', { hasText: 'Manage Topics' }));
-  readonly followButton: Locator = this.page.getByRole('button', { name: 'Follow', exact: true });
-  readonly followingButton: Locator = this.page.getByRole('button', { name: 'Following', exact: true });
 
   constructor(page: Page, peopleId: string) {
     super(page, PAGE_ENDPOINTS.getProfileScreenPage(peopleId));
@@ -95,29 +92,6 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   async clickOnManageTopics(): Promise<void> {
     await test.step('Clicking on Manage Topics from profile page', async () => {
       await this.clickOnElement(this.manageTopicsLink);
-    });
-  }
-
-  async clickUnfollowButton(): Promise<boolean> {
-    return await test.step('Clicking on unfollow button', async () => {
-      // Check if Following button is visible (user is being followed)
-      const isFollowing = await this.verifier.isTheElementVisible(this.followingButton);
-
-      if (isFollowing) {
-        // User is being followed - click Following button to unfollow
-        await this.clickOnElement(this.followingButton);
-        // Wait a bit for the state to change
-        await this.page.waitForTimeout(1000);
-        return true; // User was being followed, we just unfollowed them
-      } else {
-        // Check if Follow button is visible (user is not being followed)
-        const isFollowVisible = await this.verifier.isTheElementVisible(this.followButton);
-        if (isFollowVisible) {
-          return false; // User was not being followed
-        } else {
-          throw new Error('Neither Following nor Follow button found on profile page');
-        }
-      }
     });
   }
 }
