@@ -190,8 +190,8 @@ export const config = {
     },
     uatEU: {
       tenantName: 'Reward UAT-EU Primary',
-      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz/',
-      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      frontendBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
       appManagerUserId: '4d6bb514-e57d-449c-9f8b-e78e96f343fe',

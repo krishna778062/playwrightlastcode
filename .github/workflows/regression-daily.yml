@@ -70,10 +70,10 @@ jobs:
         run: |
           if [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+            npm run test:${{ matrix.module }} -- --grep-invert=@rewards-db --workers=3
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+            npm run test:${{ matrix.module }} -- --grep-invert=@rewards-db --workers=1
           else
             npm run test:${{ matrix.module }} -- --workers=3
           fi
