@@ -219,8 +219,8 @@ test.describe(
         await customAppsPage.connectBoxAccount('box2@simpplr.com', '_Simp_1234');
 
         // Verify connection success toast message
-        //await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected to ${appName} successfully`);
-        //await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected`);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected to ${appName} successfully`);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected`);
 
         // Verify app name and description are displayed
         await customAppsPage.verifyAppNameInHeader(appName);
