@@ -469,12 +469,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       if (targetMonth !== currentMonth || targetYear !== currentYear) {
         // Navigate to the correct month/year
         // Try to find next/previous month buttons with various selectors
-        const nextMonthButton = this.page
-          .locator('button[aria-label*="next" i], button[aria-label*="Next"], button[title*="next" i]')
-          .first();
-        const prevMonthButton = this.page
-          .locator('button[aria-label*="previous" i], button[aria-label*="Previous"], button[title*="previous" i]')
-          .first();
+        const nextMonthButton = this.page.getByRole('button', { name: 'Next month' }).first();
+        const prevMonthButton = this.page.getByRole('button', { name: 'Previous month' }).first();
 
         // Calculate how many months to navigate
         const monthsDiff = (targetYear - currentYear) * 12 + (targetMonth - currentMonth);
@@ -482,27 +478,17 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
         if (monthsDiff > 0) {
           // Navigate forward
           for (let i = 0; i < monthsDiff; i++) {
-            if (await nextMonthButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-              await this.clickOnElement(nextMonthButton);
-            } else {
-              console.warn(`Could not find next month button to navigate to ${targetMonth + 1}/${targetYear}`);
-              break;
-            }
+            await this.clickOnElement(nextMonthButton);
           }
         } else if (monthsDiff < 0) {
           // Navigate backward
           for (let i = 0; i < Math.abs(monthsDiff); i++) {
-            if (await prevMonthButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-              await this.clickOnElement(prevMonthButton);
-            } else {
-              console.warn(`Could not find previous month button to navigate to ${targetMonth + 1}/${targetYear}`);
-              break;
-            }
+            await this.clickOnElement(prevMonthButton);
           }
         }
       }
 
-      // Select the day from the calendar grid - try multiple approaches
+      // Select the day from the calendar grid
       const dayCell = this.page.getByRole('gridcell', { name: targetDay.toString(), exact: true });
 
       await this.verifier.verifyTheElementIsVisible(dayCell, {

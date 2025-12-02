@@ -205,12 +205,12 @@ test.describe(
           storyId: 'CONT-19572',
         });
 
-        // Step 2: Search existing site "All Employees"
+        // Search existing site "All Employees"
         const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(
           FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME
         );
 
-        // Step 3: Add a new event with location GGN and past date
+        // Add a new event with location GGN and past date
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT,
           { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
@@ -223,7 +223,7 @@ test.describe(
           location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
         });
 
-        // Step 4: Publish → Do Nothing (just publish, no additional actions)
+        // Publish the event
         const { eventId: pastEventId, siteId: pastEventSiteId } =
           await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
 
@@ -232,13 +232,13 @@ test.describe(
         siteIdToPublishEvent = pastEventSiteId;
         manualCleanupNeeded = true;
 
-        // Step 5: Check Home - Global Feed: past event should not appear in Upcoming Events
+        // Check Home - Global Feed: past event should not appear in Upcoming Events
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const homeFeedPage = new FeedPage(standardUserFixture.page);
         await homeFeedPage.verifyThePageIsLoaded();
         await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
 
-        // Step 6: Check Site Feed: past event should not appear in Upcoming Events
+        // Check Site Feed: past event should not appear in Upcoming Events
         const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
         await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
         await siteFeedPage.verifyThePageIsLoaded();
@@ -247,7 +247,7 @@ test.describe(
 
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
-        // Step 7: Create another event with a present date (valid upcoming event)
+        // Create another event with a present date (valid upcoming event)
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT,
           { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
@@ -265,7 +265,7 @@ test.describe(
           }
         );
 
-        // Step 8: Publish → Do Nothing
+        // Publish the event
         const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
           await eventCreationPage.actions.createAndPublishEvent(upcomingEventOptions);
 
@@ -273,17 +273,17 @@ test.describe(
         publishedEventId = upcomingEventId;
         siteIdToPublishEvent = upcomingEventSiteId;
 
-        // Step 9: Check Home - Global Feed: upcoming event should appear
+        // Check Home - Global Feed: upcoming event should appear
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.reloadPage();
         await homeFeedPage.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
-        // Step 10: Check Site Feed: upcoming event should appear
+        // Check Site Feed: upcoming event should appear
         await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
         await siteFeedPage.verifyThePageIsLoaded();
         await siteFeedPageForValidation.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
-        // Cleanup: Delete both events
+        // Delete both events
         if (pastEventId && pastEventSiteId) {
           try {
             await appManagerFixture.contentManagementHelper.deleteContent(pastEventSiteId, pastEventId);
