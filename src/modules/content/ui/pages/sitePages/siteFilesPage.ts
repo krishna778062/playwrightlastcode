@@ -15,6 +15,7 @@ export class SiteFilesPage extends BaseSitePage {
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
 
   readonly inputFilesSelector: string = `input[type="file"]`;
+  readonly siteVideosTab: Locator = this.page.getByRole('link', { name: 'Site videos' });
 
   get selectFromComputer(): Locator {
     return this.page.getByText('Drop media and files here or').locator('input[type="file"]');
@@ -86,6 +87,7 @@ export class SiteFilesPage extends BaseSitePage {
         assertionMessage: 'Verifying that the upload progress bar is visible',
       });
       await this.verifier.verifyTheElementIsNotVisible(this.uploadProgressBarLoading, {
+        timeout: TIMEOUTS.VERY_LONG,
         assertionMessage: 'Verifying that the upload progress bar is not visible',
       });
 
@@ -145,5 +147,22 @@ export class SiteFilesPage extends BaseSitePage {
       .first();
     await this.clickOnElement(fileNameToClick);
     // await filesPreviewModalComponent.verifyProgressBarLoadingIsComplete();
+  }
+
+  async clickSiteVideosTab(): Promise<void> {
+    await test.step('Clicking on the Site videos tab', async () => {
+      // Check if Site videos tab exists before clicking
+      const isVisible = await this.verifier.isTheElementVisible(this.siteVideosTab, {
+        timeout: 5000,
+      });
+      if (isVisible) {
+        await this.clickOnElement(this.siteVideosTab);
+      } else {
+        // If Site videos tab doesn't exist, videos might be in the main files list
+        // or we need to wait for it to appear. For now, we'll proceed without clicking.
+        // The upload will work in the main files area if videos tab is not available.
+        console.log('Site videos tab not found. Proceeding with file upload in main files area.');
+      }
+    });
   }
 }

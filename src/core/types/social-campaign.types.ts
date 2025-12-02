@@ -56,6 +56,7 @@ export interface SocialCampaign {
   recipientId?: string;
   status: SocialCampaignStatus;
   message: string;
+  title?: string;
   campaignUrl?: string;
   urlPreview?: {
     author_name: string;

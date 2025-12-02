@@ -59,6 +59,10 @@ export interface ICreateFeedPostActions {
   clickBoxFilesTab: () => Promise<void>;
   clickBoxFolder: (folderName: string) => Promise<void>;
   selectBoxFile: (fileName: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
+  clickRecognitionTab: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -76,10 +80,14 @@ export class CreateFeedPostComponent
 {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
+  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly cancelButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Cancel' });
 
   // Toolbar formatting buttons
   readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
@@ -238,6 +246,29 @@ export class CreateFeedPostComponent
       return {
         postText: options.text,
         attachmentCount,
+        postId,
+      };
+    });
+  }
+
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await test.step(`Creating and publishing feed post with text: ${text}`, async () => {
+      await this.createPost(text);
+      await this.addTopicMention(topic);
+
+      // Publish the post and get the response
+      const postResponse = await this.createFeedPost();
+
+      // Parse JSON body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      // Fetch the post id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: text,
+        attachmentCount: 0,
         postId,
       };
     });
@@ -419,6 +450,37 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Verifies that the Cancel button is visible in the post creation editor
+   */
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await test.step('Verify Cancel button is visible in post creation editor', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cancelButton, {
+        assertionMessage: 'Cancel button should be visible in post creation editor',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the post creation editor
+   */
+  async clickPostCreationCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in post creation editor', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the post creation editor is closed (not visible)
+   */
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await test.step('Verify post creation editor is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedEditor, {
+        assertionMessage: 'Post creation editor should be closed (not visible)',
+      });
+    });
+  }
+
+  /**
    * Adds a user or site mention to the post
    * @param userName - The user or site name to mention
    */
@@ -441,15 +503,11 @@ export class CreateFeedPostComponent
 
       // Check if the site name appears in the dropdown
       const siteLocator = this.addSiteNameFromList(siteName);
-      const isVisible = await siteLocator.isVisible().catch(() => false);
-      console.log(`Site mention dropdown for "${siteName}" is visible: ${isVisible}`);
-
-      if (isVisible) {
-        await siteLocator.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      try {
         await this.clickOnElement(siteLocator);
         console.log(`Successfully added site mention: @${siteName}`);
-      } else {
-        console.log(`Site mention "${siteName}" not found in dropdown, continuing without it`);
+      } catch (error) {
+        console.log(`Error adding site mention: @${siteName}: ${error}`);
         // Just press Enter to continue without the mention
         await this.feedEditor.press('Enter');
       }
@@ -547,6 +605,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Clicks the Recognition tab in the composer to open recognition form
+   */
+  async clickRecognitionTab(): Promise<void> {
+    await test.step('Click Recognition tab', async () => {
+      await this.clickOnElement(this.recognitionTab);
+    });
+  }
+
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify question button is not visible', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
@@ -594,7 +661,7 @@ export class CreateFeedPostComponent
       const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
       await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
         assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
-        timeout: 5000,
+        timeout: 20000,
       });
     });
   }

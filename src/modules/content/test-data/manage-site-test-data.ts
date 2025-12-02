@@ -30,4 +30,11 @@ export const MANAGE_SITE_TEST_DATA = {
   DESCRIPTION: {
     DESCRIPTION: `Description ${faker.lorem.paragraph()}`,
   },
+  FILE_DESCRIPTION: {
+    DESCRIPTION: (characterLimit: number) => {
+      // Generate a continuous string of random lowercase letters
+      return faker.string.alpha({ length: characterLimit, casing: 'lower' });
+    },
+  },
+  UPDATED_SITE_NAME: `Updated Test Site ${faker.person.firstName()}`,
 };
