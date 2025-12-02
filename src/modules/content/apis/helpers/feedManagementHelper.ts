@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { FeedMode } from '@core/types/feedManagement.types';
+import { log } from '@core/utils/logger';
 
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
@@ -321,7 +322,7 @@ export class FeedManagementHelper {
     return await test.step('Configuring app governance settings', async () => {
       const response = await this.feedManagementService.configureAppGovernance(settings, feedMode);
       const responseBody = await response.json();
-      console.log('App governance configuration completed:', responseBody);
+      log.debug('App governance configuration completed', { response: responseBody });
       return responseBody;
     });
   }

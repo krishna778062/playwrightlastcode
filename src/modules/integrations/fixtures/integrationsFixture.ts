@@ -17,8 +17,8 @@ interface TenantConfig {
   apiBaseUrl: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  endUserEmail: string;
-  endUserPassword: string;
+  endUserEmail?: string;
+  endUserPassword?: string;
 }
 
 export type Options = { tenantConfig: TenantConfig };
