@@ -1,16 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { APPS_LINKS } from '@/src/modules/integrations/test-data/gamma-data-file';
 
 export class AppsLinksComponents extends BaseComponent {
-  readonly viewExampleButton: Locator;
-  readonly copyButton: Locator;
   readonly customJsonInputField: Locator;
   readonly appsIntegrationDropdown: Locator;
   readonly saveButton: Locator;
   readonly saveButtonElement: Locator;
-  readonly starIcon: Locator;
-  readonly linkButton: Locator;
   readonly customLinkBox: Locator;
   readonly confirmButton: Locator;
   readonly addLinkLabel: Locator;
@@ -18,8 +15,6 @@ export class AppsLinksComponents extends BaseComponent {
   readonly addLinkUrl: Locator;
   readonly addButton: Locator;
   readonly editButton: Locator;
-  readonly deleteButton: Locator;
-  readonly addLink: Locator;
   readonly addLinksButton: Locator;
   readonly getHeaderLocatorFn: (headerName: string) => Locator;
   readonly getAppLocatorFn: (appName: string) => Locator;
@@ -31,34 +26,30 @@ export class AppsLinksComponents extends BaseComponent {
   readonly starIconLocatorLinkFn: (link: string) => Locator;
   readonly addedLinksLocatorFn: (linkName: string) => Locator;
   readonly h3TextLocatorFn: (message: string) => Locator;
+  readonly getDeleteLinkLocatorFn: (name: string) => Locator;
+  readonly deleteSaveButton: Locator;
   readonly apps_json: { name: string; url: string; img: string }[];
   readonly linkURLInputField: Locator;
   readonly linkLabelInputField: Locator;
   readonly crossButton: Locator;
-  readonly linksButton: Locator;
   readonly urlInput: Locator;
   readonly labelInput: Locator;
   readonly jsonData: { name: string; url: string; img: string }[];
   constructor(page: Page) {
     super(page);
-    this.viewExampleButton = this.page.getByText('View example');
-    this.copyButton = this.page.locator('span', { hasText: 'Copy' });
-    this.customJsonInputField = this.page.getByPlaceholder('Custom JSON *');
+    const getButtonByName = (name: string) => this.page.getByRole('button', { name });
+    this.customJsonInputField = this.page.getByPlaceholder(APPS_LINKS.CUSTOM_JSON_PLACEHOLDER);
     this.appsIntegrationDropdown = this.page.locator('select[id="appsIntegrationProvider"]');
     this.saveButton = this.page.locator('span', { hasText: 'Save' });
-    this.saveButtonElement = this.page.getByRole('button', { name: 'Save' });
-    this.starIcon = this.page.locator("span[aria-label='Mark as favorite']");
-    this.linkButton = this.page.getByRole('button', { name: 'Links' });
+    this.saveButtonElement = getButtonByName(APPS_LINKS.SAVE);
     this.customLinkBox = this.page.locator('input[id="myLinksEnabled"]');
-    this.confirmButton = this.page.getByRole('button', { name: 'Confirm' });
+    this.confirmButton = getButtonByName(APPS_LINKS.CONFIRM);
     this.addLinkLabel = this.page.locator('input[id="url_label"]');
-    this.addCustomLinkButton = this.page.getByRole('button', { name: 'Add link' });
     this.addLinkUrl = this.page.locator('input[id="url_value"]');
-    this.addButton = this.page.getByRole('button', { name: 'Add' });
-    this.editButton = this.page.getByRole('button', { name: 'Edit links' });
-    this.deleteButton = this.page.getByRole('button', { name: 'delete' });
-    this.addLink = this.page.getByRole('button', { name: 'Add' });
-    this.addLinksButton = this.page.getByRole('button', { name: 'Add links' });
+    this.addButton = getButtonByName(APPS_LINKS.ADD);
+    this.editButton = getButtonByName(APPS_LINKS.EDIT_LINKS);
+    this.addLinksButton = getButtonByName(APPS_LINKS.ADD_LINKS);
+    this.addCustomLinkButton = getButtonByName(APPS_LINKS.ADD_LINK);
     this.getHeaderLocatorFn = (headerName: string) => this.page.getByRole('button', { name: headerName });
     this.getAppLocatorFn = (appName: string) =>
       this.page
@@ -70,10 +61,13 @@ export class AppsLinksComponents extends BaseComponent {
     this.spanTextLocatorFn = (text: string) => this.page.locator(`span:has-text("${text}")`);
     this.buttonTextLocatorFn = (text: string) => this.page.locator(`button:has-text("${text}")`);
     this.starIconLocatorAppFn = (app: string) => this.page.getByTitle(`${app}`).locator('button');
-    this.starIconLocatorLinkFn = (link: string) =>
-      this.page.locator(`//p[text()='${link}']/..//button[@aria-label="Favorite"]`);
-    this.addedLinksLocatorFn = (linkName: string) => this.page.locator(`//p[text()='${linkName}']/../../..`);
+    this.starIconLocatorLinkFn = (link: string) => this.page.getByText(link).locator('..').getByLabel('Favorite');
+    this.addedLinksLocatorFn = (linkName: string) =>
+      this.page.getByText(linkName).locator('..').locator('..').locator('..');
     this.h3TextLocatorFn = (message: string) => this.page.locator('h3', { hasText: `${message}` });
+    this.getDeleteLinkLocatorFn = (name: string) =>
+      this.page.locator(`div:has(h3:has-text('${name}'))`).getByLabel('Delete');
+    this.deleteSaveButton = this.page.locator("button:has-text('Save')").nth(1);
     this.linkURLInputField = this.page.getByPlaceholder('Link URL');
     this.linkLabelInputField = this.page.getByPlaceholder('Link label');
     this.crossButton = this.page.locator("//i[@class = 'Icon Icon--cross Icon--line']");
@@ -95,7 +89,6 @@ export class AppsLinksComponents extends BaseComponent {
       },
     ];
     this.customJsonInputField = this.page.locator('textarea[name="customJson"]');
-    this.linksButton = this.page.locator('p', { hasText: 'Links' });
     this.urlInput = this.page.getByPlaceholder('Link URL');
     this.labelInput = this.page.getByPlaceholder('Link label');
     this.jsonData = [
@@ -287,16 +280,10 @@ export class AppsLinksComponents extends BaseComponent {
 
   async deleteCustomLink(name: string): Promise<void> {
     await test.step(`Deleting custom link`, async () => {
-      const deleteLink = this.page
-        .getByRole('heading', { name: name, level: 3 })
-        .locator('..')
-        .locator('..')
-        .locator('..')
-        .getByLabel('Delete');
+      const deleteLink = this.getDeleteLinkLocatorFn(name);
       await this.editButton.click();
       await deleteLink.click();
-      const saveButton = this.page.locator("button:has-text('Save')");
-      await saveButton.nth(1).click();
+      await this.deleteSaveButton.click();
     });
   }
 
@@ -365,7 +352,7 @@ export class AppsLinksComponents extends BaseComponent {
       const labelInput = this.page.getByPlaceholder('Link label');
       await urlInput.click();
       await labelInput.fill(label);
-      await this.addLink.click({ force: true });
+      await this.addButton.click({ force: true });
     });
   }
 
@@ -415,7 +402,7 @@ export class AppsLinksComponents extends BaseComponent {
 
   async clickAddButton(): Promise<void> {
     await test.step(`Clicking add button`, async () => {
-      await this.addLink.click();
+      await this.addButton.click();
     });
   }
 

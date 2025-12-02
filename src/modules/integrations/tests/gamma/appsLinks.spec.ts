@@ -29,7 +29,7 @@ test.describe(
     test(
       'add Apps & Links and mark them as favorite',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //Add Apps: custom JSON
@@ -63,7 +63,7 @@ test.describe(
     test(
       'verify apps and links URL in launchpad',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //Add Apps: custom JSON
@@ -99,7 +99,7 @@ test.describe(
     test(
       'verify custom links: If Custom links checkbox is selected then user should be able to see add custom link options else not',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //Add Apps: custom JSON
@@ -144,7 +144,7 @@ test.describe(
     test(
       'verify a user cannot save duplicate apps or links',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //Add Apps: custom JSON
@@ -194,7 +194,7 @@ test.describe(
     test(
       'verify add button, edit button, sort by button, search box and count on custom links tab',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         await appsLinks.addLinks(formattedLinks);
@@ -216,7 +216,7 @@ test.describe(
     test(
       'verify when there are no apps and links added then the launchpad should not be visible',
       {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1],
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
       },
       async () => {
         await appsLinks.customLinkCheckBox(APPS_LINKS.FALSE);
