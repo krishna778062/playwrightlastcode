@@ -53,6 +53,7 @@ export const MESSAGES = {
     `Are you sure you want to disconnect the ${appName} account?`,
   getAppConnectionUnavailableMessage: (appName: string) =>
     `${appName} connection is currently unavailable. Contact your app manager.`,
+  INVALID_CONNECTION_MESSAGE: 'Invalid connection, contact your app manager.',
 
   getAppDisconnectingConfirmationMessageHomeAndSiteDashboardTiles: `Home and site dashboard tiles using this connection will be removed`,
   VALID_URL: 'This is not a valid URL',
