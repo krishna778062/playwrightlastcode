@@ -80,6 +80,7 @@ test.describe(
         await standardUserSitesPage.actions.openSiteFromFollowingTab();
         const standardUserSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, '');
         await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsNotVisible();
+        await standardUserSiteDashboardPage.actions.clickOnDismissButton();
         await standardUserSideNavBarComponent.clickOnSites();
         await standardUserSitesPage.actions.clickOnMemberTab();
         await standardUserSitesPage.actions.openSiteFromMemberTab();
