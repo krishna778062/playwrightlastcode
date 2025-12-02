@@ -20,6 +20,7 @@ export interface IManageSiteActions {
   clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
   clickOnShowMoreButtonAction: () => Promise<void>;
+  clickOnAddPeopleButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -50,6 +51,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
   readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
   readonly editOptionLocator = this.page.getByTestId('edit-button');
+  readonly addPeopleButton = this.page.getByRole('button', { name: 'Add person' });
 
   private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
@@ -164,6 +166,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   async clickOnEditOption(): Promise<void> {
     await this.clickOnElement(this.editOptionLocator);
+  }
+  async clickOnAddPeopleButton(): Promise<void> {
+    await this.clickOnElement(this.addPeopleButton);
   }
   async selectFilterOption(optionName: string): Promise<void> {
     await this.clickOnElement(this.filterOptionsDropdown(optionName));

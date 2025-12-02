@@ -116,6 +116,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
   async clickOnThePeopleTab(): Promise<void> {
     await this.manageSitesComponent.clickOnThePeopleTabAction();
   }
+
   async clickOnTheManageSiteButton(): Promise<void> {
     await this.manageSitesComponent.clickOnTheManageSiteButtonAction();
   }

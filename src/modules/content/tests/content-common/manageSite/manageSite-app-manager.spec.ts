@@ -105,7 +105,6 @@ test.describe(
       orgChartPage = new ORGChartPage(appManagerFixture.page);
       favoritesPage = new FavoritesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
-
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
       usedSiteIds = [];

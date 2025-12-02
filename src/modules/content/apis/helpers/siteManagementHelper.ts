@@ -14,6 +14,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
 
 interface Site {
   siteId: string;
@@ -35,6 +36,7 @@ export class SiteManagementHelper {
   private siteMembers: SiteMember[] = [];
   readonly siteManagementService: SiteManagementService;
   private contentManagementService: ContentManagementService;
+  private identityService: IdentityService;
 
   constructor(
     readonly apiRequestContext: APIRequestContext,
@@ -42,6 +44,7 @@ export class SiteManagementHelper {
   ) {
     this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
     this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
+    this.identityService = new IdentityService(apiRequestContext, baseUrl);
   }
 
   /**
@@ -565,6 +568,35 @@ export class SiteManagementHelper {
    */
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
     return await this.siteManagementService.getListOfPeople(options);
+  }
+
+  async getSiteWithManageSiteOption(sitesResponse: any): Promise<{ siteId: string; siteName: string }> {
+    const sites = Array.isArray(sitesResponse) ? sitesResponse : sitesResponse?.result?.listOfItems || [];
+
+    if (!sites || sites.length === 0) {
+      throw new Error('No sites found in the response');
+    }
+
+    // Get site details one by one and check isManager === true, isActive === true
+    for (const site of sites) {
+      try {
+        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+        if (
+          siteDetails.result.isManager === true &&
+          siteDetails.result.isOwner === true &&
+          siteDetails.result.isActive === true
+        ) {
+          return {
+            siteId: siteDetails.result.siteId,
+            siteName: siteDetails.result.name || siteDetails.result.siteName,
+          };
+        }
+      } catch (error: any) {
+        throw error;
+      }
+    }
+
+    throw new Error('No site found with manage site option');
   }
   /**
    * Gets 2 sites that are not in the featured sites list
@@ -1237,6 +1269,21 @@ export class SiteManagementHelper {
     throw new Error('No site found with cover image and hasEvents: true');
   }
 
+  async getAllUsersList(): Promise<any> {
+    const response = await this.identityService.getListOfPeople();
+    return response.result;
+  }
+  /**
+   * Checks if a site has a valid coverImage
+   * @param site - Site object to check
+   * @returns Boolean indicating if the site has a valid coverImage
+   */
+  /**
+   * Ensures user is a member of the site with the specified role
+   * First checks if user is already a member, if not adds them, then assigns the role
+   * @param params - Object containing siteId, userId, and role
+   * @returns Promise<SiteMembershipResponse> - The membership response
+   */
   async getSiteWithMembers(
     accessType: string,
     expectedMemberCount?: number,

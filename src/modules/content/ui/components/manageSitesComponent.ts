@@ -1,9 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '../../../../core/ui/components/baseComponent';
-
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -53,7 +52,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
-
+  readonly clickOnAddAnotherButton: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
@@ -104,6 +103,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
@@ -220,6 +220,11 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnThePeopleTabAction(): Promise<void> {
     await test.step('Click on the people tab', async () => {
       await this.clickOnElement(this.clickOnThePeopleTab);
+    });
+  }
+  async clickOnAddAnotherButtonAction(): Promise<void> {
+    await test.step('Click on the add another button', async () => {
+      await this.clickOnElement(this.clickOnAddAnotherButton);
     });
   }
 

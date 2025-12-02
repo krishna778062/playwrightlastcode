@@ -10,11 +10,14 @@ import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabe
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+<<<<<<< HEAD
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
+import { AddPeopleInSiteComponent } from '@/src/modules/content/ui/components/addPeopleInSiteComponent';
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
@@ -27,6 +30,7 @@ test.describe(
     tag: [ContentSuiteTags.MANAGE_SITE],
   },
   () => {
+    let manageSitesComponent: ManageSitesComponent;
     let manageSiteStandardUserPage: ManageSiteSetUpPage;
     let manageContentPage: ManageContentPage;
     let manageFeaturesPage: ManageFeaturesPage;
@@ -35,6 +39,7 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
       manageContentPage = new ManageContentPage(standardUserFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(standardUserFixture.page);
+      manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
     });
 
     test.afterEach(async ({ page }) => {
@@ -650,6 +655,41 @@ test.describe(
         const siteDetailsPage = new SiteDetailsPage(standardUserFixture.page, newsiteInfo.siteId);
         await siteDetailsPage.loadPage();
         await manageSiteSetUpPage.assertions.verifyMemberButtonShouldBeVisible();
+      }
+    );
+    test(
+      'to verify add another button in manage site people tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23544'],
+      },
+      async ({ standardUserFixture, appManagerApiFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify add another button in manage site people tab',
+          zephyrTestId: 'CONT-23544',
+          storyId: 'CONT-23544',
+        });
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+        });
+        const newSite =
+          await standardUserApiFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+        console.log('newSite', newSite);
+        const siteId = newSite.siteId;
+        const getUserList = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
+        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
+        const memberNames = getMemBerList.result.listOfItems.map((member: any) => member.name);
+        const allUserNames = getUserList.listOfItems.map((user: any) =>
+          `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        );
+        const nonMemberNames = allUserNames.filter((userName: string) => !memberNames.includes(userName));
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, newSite.siteId);
+        await siteDashboardPage.loadPage();
+        const manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
+        const addPeopleInSiteComponent = new AddPeopleInSiteComponent(standardUserFixture.page);
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSitesComponent.clickOnThePeopleTabAction();
+        await manageSitesComponent.clickOnAddAnotherButtonAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
       }
     );
   }
