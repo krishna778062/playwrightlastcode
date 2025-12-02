@@ -7,6 +7,9 @@ import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 export interface IProfileScreenPageActions {
   clickOnManageTopics: () => Promise<void>;
   clickOnFavoriteOption: () => Promise<boolean>; // Returns true if user was already favorited, false otherwise
+  clickEditAbout: () => Promise<void>;
+  updateDateOfBirth: (month: number, day: number) => Promise<void>;
+  saveProfileChanges: () => Promise<void>;
 }
 
 export interface IProfileScreenPageAssertions {
@@ -24,6 +27,16 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   readonly manageTopicsLink: Locator = this.page
     .getByRole('link', { name: 'Manage Topics' })
     .or(this.page.locator('a', { hasText: 'Manage Topics' }));
+
+  readonly editAboutButton: Locator = this.page.getByRole('button', { name: 'Edit about' });
+  readonly editAboutDialog: Locator = this.page.getByRole('dialog', { name: 'Edit about' });
+  readonly dateOfBirthMonthInput: Locator = this.editAboutDialog
+    .getByTestId('field-Birthday month')
+    .getByTestId('SelectInput');
+  readonly dateOfBirthDayInput: Locator = this.editAboutDialog
+    .getByTestId('field-Birthday day')
+    .getByTestId('SelectInput');
+  readonly saveButton: Locator = this.editAboutDialog.getByRole('button', { name: 'Save' });
 
   constructor(page: Page, peopleId: string) {
     super(page, PAGE_ENDPOINTS.getProfileScreenPage(peopleId));
@@ -92,6 +105,45 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   async clickOnManageTopics(): Promise<void> {
     await test.step('Clicking on Manage Topics from profile page', async () => {
       await this.clickOnElement(this.manageTopicsLink);
+    });
+  }
+
+  async clickEditAbout(): Promise<void> {
+    await test.step('Clicking on Edit about button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editAboutButton, {
+        assertionMessage: 'Edit about button should be visible',
+      });
+      await this.clickOnElement(this.editAboutButton);
+      await this.verifier.verifyTheElementIsVisible(this.editAboutDialog, {
+        assertionMessage: 'Edit about dialog should be visible',
+      });
+    });
+  }
+
+  async updateDateOfBirth(month: number, day: number): Promise<void> {
+    await test.step(`Updating date of birth to month: ${month}, day: ${day}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dateOfBirthMonthInput, {
+        assertionMessage: 'Date of birth month input should be visible',
+      });
+      await this.clickOnElement(this.dateOfBirthMonthInput);
+      await this.dateOfBirthMonthInput.selectOption({ value: month.toString() });
+
+      await this.verifier.verifyTheElementIsVisible(this.dateOfBirthDayInput, {
+        assertionMessage: 'Date of birth day input should be visible',
+      });
+      await this.clickOnElement(this.dateOfBirthDayInput);
+      const dayValue = day.toString().padStart(2, '0');
+      await this.dateOfBirthDayInput.selectOption({ value: dayValue });
+    });
+  }
+
+  async saveProfileChanges(): Promise<void> {
+    await test.step('Saving profile changes', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage: 'Save button should be visible',
+      });
+      await this.clickOnElement(this.saveButton);
+      await this.saveButton.waitFor({ state: 'hidden' }).catch(() => {});
     });
   }
 }

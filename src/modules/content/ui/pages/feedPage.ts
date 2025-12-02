@@ -187,6 +187,7 @@ export interface IFeedAssertions {
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyUserDisplayedInCelebrationBlock: (userName: string) => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
@@ -237,6 +238,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
   readonly celebrityFeedBlocks: Locator;
+  readonly celebrationBlockUserName: (userName: string) => Locator;
   readonly newHireFeedBlocks: Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
@@ -261,6 +263,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
+    this.celebrationBlockUserName = (userName: string) =>
+      this.page.locator('div').filter({ hasText: `Birthday${userName}` });
   }
 
   get actions(): IFeedActions {
@@ -658,7 +662,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     try {
       await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
-    } catch (error) {
+    } catch {
       await this.reloadPage();
       await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
     }
@@ -757,6 +761,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
     await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
       assertionMessage: 'Smart feed blocks should not be visible',
+    });
+  }
+
+  async verifyUserDisplayedInCelebrationBlock(userName: string): Promise<void> {
+    await test.step(`Verify user "${userName}" is displayed in Celebration smart feed block`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.celebrityFeedBlocks, {
+        assertionMessage: 'Celebration smart feed block should be visible',
+      });
+
+      // Verify the user name link is visible within the celebration block
+      const userNameLink = this.celebrationBlockUserName(userName);
+      await this.verifier.verifyTheElementIsVisible(userNameLink.nth(1), {
+        assertionMessage: `User "${userName}" should be visible in Celebration smart feed block`,
+      });
     });
   }
 
