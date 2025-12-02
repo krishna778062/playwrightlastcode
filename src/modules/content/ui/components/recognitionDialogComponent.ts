@@ -3,7 +3,6 @@ import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export interface IRecognitionDialogActions {
-  verifyRecognitionDialogIsLoaded: () => Promise<void>;
   selectUserForRecognition: (userName: string | number) => Promise<void>;
   selectPeerRecognitionAward: (awardName: string | number) => Promise<string>;
   enterRecognitionMessage: (message: string) => Promise<void>;
@@ -20,7 +19,14 @@ export interface IRecognitionDialogActions {
   selectPostInSiteFeedInShareDialogForm: (siteName: string) => Promise<void>;
 }
 
-export class RecognitionDialogComponent extends BaseComponent implements IRecognitionDialogActions {
+export interface IRecognitionDialogAssertions {
+  verifyRecognitionDialogIsLoaded: () => Promise<void>;
+}
+
+export class RecognitionDialogComponent
+  extends BaseComponent
+  implements IRecognitionDialogActions, IRecognitionDialogAssertions
+{
   // Dialog container - scoped to the recognition dialog
   readonly recognitionDialog: Locator;
 
@@ -341,5 +347,13 @@ export class RecognitionDialogComponent extends BaseComponent implements IRecogn
       await this.clickOnElement(this.shareDialogMessageBox.first());
       await this.shareDialogMessageBox.first().fill(message);
     });
+  }
+
+  get actions(): IRecognitionDialogActions {
+    return this;
+  }
+
+  get assertions(): IRecognitionDialogAssertions {
+    return this;
   }
 }
