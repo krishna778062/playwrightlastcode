@@ -17,6 +17,13 @@ export class AddTileComponent extends BaseComponent {
   readonly customSCButton: Locator;
   readonly customSCTitleInput: Locator;
   readonly customSCTitleInputOption: (text: string) => Locator;
+  readonly sitesCategoriesTileOption: Locator;
+  readonly sitesTab: Locator;
+  readonly sitesTileTitleInput: Locator;
+  readonly sitesSearchInput: Locator;
+  readonly siteOption: (siteName: string) => Locator;
+  readonly layoutListRadio: Locator;
+  readonly layoutGridRadio: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -34,6 +41,16 @@ export class AddTileComponent extends BaseComponent {
     this.customSCTitleInput = page.locator('input.ReactSelectInput-inputField');
     this.customSCTitleInputOption = (text: string) => page.locator(`div.u-textTruncate:has-text("${text}")`).first();
     this.addContentTileOption = page.getByRole('button', { name: 'Add pages, events & albums' });
+    this.sitesCategoriesTileOption = page.getByRole('button', { name: 'Sites & categories' });
+    this.sitesTab = page.getByRole('tab', { name: 'Sites' });
+    this.sitesTileTitleInput = page.getByRole('textbox', { name: 'Tile title' });
+    this.sitesSearchInput = page
+      .locator('div')
+      .filter({ hasText: /^Select or search for a site$/ })
+      .first();
+    this.siteOption = (siteName: string) => page.locator(`div:has-text("${siteName}")`).first();
+    this.layoutListRadio = page.getByRole('radio', { name: 'List' });
+    this.layoutGridRadio = page.getByRole('radio', { name: 'Grid' });
   }
 
   async clickingOnAddContentTileOption(): Promise<void> {
@@ -128,6 +145,55 @@ export class AddTileComponent extends BaseComponent {
       );
       const responseBody = await tileResponse.json();
       return responseBody.result.id;
+    });
+  }
+
+  async clickSitesCategoriesTileOption(): Promise<void> {
+    await test.step('Click on Sites & Categories tile option', async () => {
+      await this.clickOnElement(this.sitesCategoriesTileOption);
+    });
+  }
+
+  async clickSitesTab(): Promise<void> {
+    await test.step('Click on Sites tab', async () => {
+      await this.clickOnElement(this.sitesTab);
+    });
+  }
+
+  async setSitesTileTitle(tileTitle: string): Promise<void> {
+    await test.step(`Set Sites tile title: ${tileTitle}`, async () => {
+      await this.clickOnElement(this.sitesTileTitleInput);
+      await this.sitesTileTitleInput.clear();
+      await this.fillInElement(this.sitesTileTitleInput, tileTitle);
+    });
+  }
+
+  async addSiteToTile(siteName: string): Promise<void> {
+    await test.step(`Add site "${siteName}" to Sites tile`, async () => {
+      // Click on the search input div to open the search dropdown
+      await this.clickOnElement(this.sitesSearchInput);
+      const searchInputField = this.page
+        .locator('input[placeholder*="Search"], input[role="combobox"], input[type="text"]')
+        .first();
+      await searchInputField.clear();
+      await this.fillInElement(searchInputField, siteName);
+      const addSiteDialog = this.page.getByRole('dialog', { name: 'Add sites & categories tile' });
+      const siteOption = addSiteDialog
+        .locator('a')
+        .filter({ hasText: `${siteName}` })
+        .first();
+      await siteOption.waitFor({ state: 'visible' });
+      await this.clickOnElement(siteOption);
+    });
+  }
+
+  async setLayout(layout: 'list' | 'grid'): Promise<void> {
+    await test.step(`Set layout to ${layout}`, async () => {
+      if (layout === 'list') {
+        await this.clickOnElement(this.layoutListRadio);
+      } else {
+        await this.clickOnElement(this.layoutGridRadio);
+      }
     });
   }
 }
