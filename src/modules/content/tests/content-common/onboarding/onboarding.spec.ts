@@ -6,6 +6,7 @@ import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { NotificationType } from '@/src/modules/content/constants';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { MySettingsNotificationsPage } from '@/src/modules/content/ui/pages/mySettingsNotificationsPage';
 
@@ -115,7 +116,9 @@ test.describe('onboarding', () => {
       const isButtonDisabled = await homeDashboardPage.actions.isAddToHomeButtonDisabled();
       if (!isButtonDisabled) {
         await homeDashboardPage.actions.clickingOnAddToHomeButton();
-        await homeDashboardPage.assertions.verifyToastMessage('Added tile to dashboard successfully');
+        await homeDashboardPage.assertions.verifyToastMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY
+        );
         await homeDashboardPage.actions.clickingOnDoneButton();
       }
 

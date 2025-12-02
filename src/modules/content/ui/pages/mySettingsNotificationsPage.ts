@@ -38,15 +38,12 @@ export class MySettingsNotificationsPage
   readonly shareYourPostCheckbox: Locator;
   readonly saveButton: Locator;
   readonly overwriteSettingsButton: Locator;
+  readonly dialog: Locator;
+  readonly confirmButton: Locator;
 
   constructor(page: Page, userId?: string) {
-    // This page object works for both app-level and user-level notification settings
-    // For app-level: navigated via side navbar > Application settings > Application > Defaults
-    // For user-level: navigated via profile dropdown > My settings > notifications
     const notificationsPath = userId ? `/people/${userId}/edit/notifications/email` : '';
     super(page, notificationsPath);
-    // Browser can be either a link (user-level) or tab (app-level) depending on the page context
-    // Use .or() to handle both - link is tried first (user-level), then tab (app-level)
     this.browserTab = this.page
       .getByRole('link', { name: 'Browser' })
       .or(this.page.getByRole('tab', { name: 'Browser' }));
@@ -56,6 +53,8 @@ export class MySettingsNotificationsPage
     this.shareYourPostCheckbox = this.page.getByRole('checkbox', { name: 'Shares your post' });
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
     this.overwriteSettingsButton = this.page.getByRole('button', { name: 'Overwrite notification' });
+    this.dialog = this.page.locator('[role="dialog"]').first();
+    this.confirmButton = this.dialog.getByRole('button', { name: 'Confirm' });
   }
 
   get actions(): IMySettingsNotificationsActions {
@@ -68,10 +67,6 @@ export class MySettingsNotificationsPage
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify My Settings Notifications page is loaded', async () => {
-      // Verify page is loaded by waiting for at least one key element that should always be present
-      // For app-level settings: Browser tab or Email notifications tab
-      // For user-level settings: Feed tab or Browser tab (which can be a link or tab)
-      // The browserTab locator uses .or() to handle both link and tab roles
       const browserTabVisible = await this.verifier.isTheElementVisible(this.browserTab, {
         timeout: TIMEOUTS.SHORT,
       });
@@ -93,7 +88,6 @@ export class MySettingsNotificationsPage
         return;
       }
 
-      // If none found with quick check, wait for Browser tab/link with longer timeout as fallback
       await this.verifier.waitUntilElementIsVisible(this.browserTab, {
         stepInfo: 'Wait for Browser tab/link to confirm notifications page is loaded',
         timeout: TIMEOUTS.MEDIUM,
@@ -101,9 +95,6 @@ export class MySettingsNotificationsPage
     });
   }
 
-  /**
-   * Navigate to current user's notification settings page
-   */
   async navigateToCurrentUserNotificationSettings(
     notificationType: NotificationType = NotificationType.EMAIL
   ): Promise<void> {
@@ -128,7 +119,6 @@ export class MySettingsNotificationsPage
       } else {
         await this.clickOnElement(this.feedTab);
       }
-      // Ensure Feed section is expanded and checkbox is visible (handles both button and tab cases)
       await this.ensureFeedSectionIsExpanded();
     });
   }
@@ -219,19 +209,17 @@ export class MySettingsNotificationsPage
   async confirmOverwriteSettings(): Promise<void> {
     await test.step('Confirm overwrite settings in dialog', async () => {
       // Wait for confirmation dialog to appear
-      const dialog = this.page.locator('[role="dialog"]').first();
-      await this.verifier.waitUntilElementIsVisible(dialog, {
+      await this.verifier.waitUntilElementIsVisible(this.dialog, {
         stepInfo: 'Wait for confirmation dialog to appear',
         timeout: TIMEOUTS.SHORT,
       });
 
       // Click Confirm button within the dialog (scoped to dialog to ensure correct button)
-      const confirmButton = dialog.getByRole('button', { name: 'Confirm' });
-      await this.verifier.waitUntilElementIsVisible(confirmButton, {
+      await this.verifier.waitUntilElementIsVisible(this.confirmButton, {
         stepInfo: 'Wait for Confirm button to be visible',
         timeout: TIMEOUTS.SHORT,
       });
-      await this.clickOnElement(confirmButton);
+      await this.clickOnElement(this.confirmButton);
 
       // Wait for dialog to close and overwrite to complete
       await this.verifier.waitUntilElementIsVisible(this.shareYourPostCheckbox, {
@@ -284,12 +272,11 @@ export class MySettingsNotificationsPage
         });
       } else {
         // Try Feed as tab for user-level settings
-        const feedTabAsTab = this.page.getByRole('tab', { name: 'Feed' });
-        const isFeedTabVisible = await this.verifier.isTheElementVisible(feedTabAsTab, {
+        const isFeedTabVisible = await this.verifier.isTheElementVisible(this.feedTab, {
           timeout: TIMEOUTS.VERY_SHORT,
         });
         if (isFeedTabVisible) {
-          await this.clickOnElement(feedTabAsTab);
+          await this.clickOnElement(this.feedTab);
           await this.verifier.waitUntilElementIsVisible(this.shareYourPostCheckbox, {
             stepInfo: 'Wait for Share your post checkbox to be visible after clicking Feed tab',
             timeout: TIMEOUTS.SHORT,
