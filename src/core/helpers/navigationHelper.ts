@@ -4,7 +4,6 @@ import { CreateComponent } from '@content/ui/components/createComponent';
 import { SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
-import { ApplicationSettingsOption } from '../ui/types/navigation.types';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
 import { ChatNavigationComponent } from '@/src/modules/chat/ui/components/chatNavigationComponent';
@@ -21,6 +20,7 @@ import {
   SiteCreationPage,
 } from '@/src/modules/content/ui';
 import { CreateComponent as AbacCreateComponent } from '@/src/modules/content/ui/components/globalCreateContainerComponent';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
 import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
@@ -292,9 +292,9 @@ export class NavigationHelper {
       options?.stepInfo || 'Navigating to email notification settings page via side nav bar',
       async () => {
         //click on application settings and click on application
-        await this.sideNavBarComponent.openApplicationSettingsAndSelectMenuOptionFromSideNav(
-          ApplicationSettingsOption.APPLICATION
-        );
+        await this.openApplicationSettings({ stepInfo: 'Open Application settings via side nav' });
+        const applicationScreenPage = new ApplicationScreenPage(this.page);
+        await applicationScreenPage.actions.clickOnApplication();
         //verify manage application page is visible
         const manageApplicationPage = new ManageApplicationPage(this.page);
         await manageApplicationPage.verifyThePageIsLoaded();
