@@ -29,8 +29,7 @@ export class AppsLinksComponents extends BaseComponent {
   readonly getDeleteLinkLocatorFn: (name: string) => Locator;
   readonly deleteSaveButton: Locator;
   readonly apps_json: { name: string; url: string; img: string }[];
-  readonly linkURLInputField: Locator;
-  readonly linkLabelInputField: Locator;
+  readonly linkPlaceholderInputField: (text: string) => Locator;
   readonly crossButton: Locator;
   readonly urlInput: Locator;
   readonly labelInput: Locator;
@@ -68,8 +67,7 @@ export class AppsLinksComponents extends BaseComponent {
     this.getDeleteLinkLocatorFn = (name: string) =>
       this.page.locator(`div:has(h3:has-text('${name}'))`).getByLabel('Delete');
     this.deleteSaveButton = this.page.locator("button:has-text('Save')").nth(1);
-    this.linkURLInputField = this.page.getByPlaceholder('Link URL');
-    this.linkLabelInputField = this.page.getByPlaceholder('Link label');
+    this.linkPlaceholderInputField = (text: string) => this.page.getByPlaceholder(`${text}`);
     this.crossButton = this.page.locator('i.Icon.Icon--cross.Icon--line');
     this.apps_json = [
       {
@@ -390,13 +388,13 @@ export class AppsLinksComponents extends BaseComponent {
 
   async enterLinkLabel(label: string): Promise<void> {
     await test.step(`Entering link label`, async () => {
-      await this.linkLabelInputField.fill(label);
+      await this.linkPlaceholderInputField('Link label').fill(label);
     });
   }
 
   async enterLinkUrl(url: string): Promise<void> {
     await test.step(`Entering link url`, async () => {
-      await this.linkURLInputField.fill(url);
+      await this.linkPlaceholderInputField('Link URL').fill(url);
     });
   }
 
