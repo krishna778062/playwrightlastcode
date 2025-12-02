@@ -262,7 +262,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
     this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
     this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
-    this.upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming events' }).first();
+    this.upcomingEventsBlock = this.page.getByText('Upcoming event').first();
     this.upcomingEventsBlockText = (eventTitle: string) =>
       this.upcomingEventsBlock.filter({ hasText: eventTitle }).first();
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });

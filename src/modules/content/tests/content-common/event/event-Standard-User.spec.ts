@@ -210,44 +210,7 @@ test.describe(
           FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME
         );
 
-        // Add a new event with location GGN and past date
-        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
-          ContentType.EVENT,
-          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
-        )) as EventCreationPage;
-
-        const pastEventTitle = `Past Event ${Date.now()}`;
-        const pastEventOptions = TestDataGenerator.generateEvent(undefined, getPastDate(7), getPastDate(6), {
-          title: pastEventTitle,
-          description: 'Test past event description',
-          location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
-        });
-
-        // Publish the event
-        const { eventId: pastEventId, siteId: pastEventSiteId } =
-          await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
-
-        // Store for cleanup
-        publishedEventId = pastEventId;
-        siteIdToPublishEvent = pastEventSiteId;
-        manualCleanupNeeded = true;
-
-        // Check Home - Global Feed: past event should not appear in Upcoming Events
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        const homeFeedPage = new FeedPage(standardUserFixture.page);
-        await homeFeedPage.verifyThePageIsLoaded();
-        await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
-
-        // Check Site Feed: past event should not appear in Upcoming Events
-        const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
-        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
-        await siteFeedPage.verifyThePageIsLoaded();
-        const siteFeedPageForValidation = new FeedPage(standardUserFixture.page);
-        await siteFeedPageForValidation.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
-
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-
-        // Create another event with a present date (valid upcoming event)
+        // Create an event with upcoming date (valid upcoming event)
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT,
           { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
@@ -269,27 +232,64 @@ test.describe(
         const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
           await eventCreationPage.actions.createAndPublishEvent(upcomingEventOptions);
 
-        // Update cleanup to handle both events (cleanup the last one)
+        // Store for cleanup
         publishedEventId = upcomingEventId;
         siteIdToPublishEvent = upcomingEventSiteId;
+        manualCleanupNeeded = true;
 
         // Check Home - Global Feed: upcoming event should appear
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        await homeFeedPage.reloadPage();
+        const homeFeedPage = new FeedPage(standardUserFixture.page);
+        await homeFeedPage.verifyThePageIsLoaded();
         await homeFeedPage.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
         // Check Site Feed: upcoming event should appear
+        const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
         await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
         await siteFeedPage.verifyThePageIsLoaded();
+        const siteFeedPageForValidation = new FeedPage(standardUserFixture.page);
         await siteFeedPageForValidation.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        // Create another event with past date
+        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.EVENT,
+          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
+        )) as EventCreationPage;
+
+        const pastEventTitle = `Past Event ${Date.now()}`;
+        const pastEventOptions = TestDataGenerator.generateEvent(undefined, getPastDate(7), getPastDate(6), {
+          title: pastEventTitle,
+          description: 'Test past event description',
+          location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
+        });
+
+        // Publish the event
+        const { eventId: pastEventId, siteId: pastEventSiteId } =
+          await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
+
+        // Update cleanup to handle both events (cleanup the last one)
+        publishedEventId = pastEventId;
+        siteIdToPublishEvent = pastEventSiteId;
+
+        // Check Home - Global Feed: past event should not appear in Upcoming Events
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.reloadPage();
+        await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
+        // Check Site Feed: past event should not appear in Upcoming Events
+        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
+        await siteFeedPage.verifyThePageIsLoaded();
+        await siteFeedPageForValidation.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
         // Delete both events
-        if (pastEventId && pastEventSiteId) {
+        if (upcomingEventId && upcomingEventSiteId) {
           try {
-            await appManagerFixture.contentManagementHelper.deleteContent(pastEventSiteId, pastEventId);
-            console.log(`Deleted past event: ${pastEventId}`);
+            await appManagerFixture.contentManagementHelper.deleteContent(upcomingEventSiteId, upcomingEventId);
+            console.log(`Deleted upcoming event: ${upcomingEventId}`);
           } catch (error) {
-            console.warn(`Failed to delete past event ${pastEventId}:`, error);
+            console.warn(`Failed to delete upcoming event ${upcomingEventId}:`, error);
           }
         }
       }
