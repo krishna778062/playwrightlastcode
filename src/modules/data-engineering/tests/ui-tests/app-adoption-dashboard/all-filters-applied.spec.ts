@@ -4,6 +4,7 @@ import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -26,7 +27,7 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
+test.describe(
   'app Adoption Dashboard - All Filters Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
@@ -51,12 +52,9 @@ test.describe.fixme(
         testFiltersConfig = {
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
-          departments: ['test', 'QA'],
-          // locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          locations: ['Gurugram, Haryana, India'],
-
-          // userCategories: ['Adil Option1'],
-          companyName: ['Simpplr'],
+          departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;

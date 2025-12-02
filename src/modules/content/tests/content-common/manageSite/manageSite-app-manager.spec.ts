@@ -444,7 +444,6 @@ test.describe(
         await manageContentPage.actions.clickOnUnpublishButton();
         await manageContentPage.actions.clickOnApplyButton();
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
         await manageContentPage.actions.clickOnFirstContentButton();
@@ -452,7 +451,6 @@ test.describe(
         await manageContentPage.actions.clickOnPublishButton();
         await manageContentPage.actions.clickOnApplyButton();
         await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await appManagerFixture.page.reload();
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickSortByButton();
@@ -537,7 +535,11 @@ test.describe(
           sortBy: 'alphabetical',
           filter: 'deactivated',
         });
-        console.log('getListOfSitesResponse', getListOfSitesResponse);
+        const deactivatedSites = getListOfSitesResponse.result.listOfItems.filter(
+          (site: any) => site.isActive === false
+        );
+
+        console.log(`Found ${deactivatedSites.length} deactivated sites to check`);
 
         // Limit to first 20 sites to avoid pagination issues
         const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems
@@ -624,7 +626,7 @@ test.describe(
         if (!firstSiteId) {
           throw new Error('No sites found in the response');
         }
-        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[1].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
@@ -640,8 +642,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description:
-            'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+          description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
         });
@@ -925,7 +926,7 @@ test.describe(
         await favoritesPage.assertions.verifyAlbumTabImageIsDisplayed();
         await manageAppManagerUserPage.assertions.verifyPageTabImageIsDisplayed();
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
-        await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.MUST_READ_TAG);
+        await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
       }
     );
@@ -969,7 +970,7 @@ test.describe(
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.assertions.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.REJECTED_TAG);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
       }
     );
   }

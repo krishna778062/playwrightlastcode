@@ -73,6 +73,7 @@ export class ManageContentComponent extends BaseComponent {
   readonly onboardingOption: Locator;
   readonly activateButton: Locator;
   readonly verifyTabVisibleUnderFavoritesTab: (option: TagOption) => Locator;
+  readonly selectContentByNumberOfItemsButton: (option: number) => Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -96,7 +97,7 @@ export class ManageContentComponent extends BaseComponent {
       .first();
     this.moveConfirmButton = page.getByRole('button', { name: 'Move' });
     this.siteListSelect = page.locator(`[role="listbox"]`).first();
-    this.deleteButton = page.getByText('Delete', { exact: true });
+    this.deleteButton = page.getByText('Delete', { exact: true }).first();
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
@@ -156,6 +157,7 @@ export class ManageContentComponent extends BaseComponent {
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
+    this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
     this.verifyTabVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
   getPageName(pageName: string): Locator {
@@ -274,10 +276,31 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.actionDropdown);
     });
   }
+  async selectUnpublishButtonFromBulkActions(): Promise<void> {
+    await test.step(`Selecting the unpublish button from bulk actions`, async () => {
+      await this.clickOnElement(this.unpublishButton);
+    });
+  }
 
   async selectUnpublishButton(): Promise<void> {
     await test.step(`Selecting the unpublish button`, async () => {
       await this.clickOnElement(this.unpublishButton);
+    });
+  }
+
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await test.step(`Clicking on the unpublish button from drop down`, async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.unpublishButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_APPLY_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 60_000,
+        }
+      );
+      return publishResponse;
     });
   }
   async clickOnApply(): Promise<void> {
@@ -295,7 +318,7 @@ export class ManageContentComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 60_000,
         }
       );
       return publishResponse;
@@ -387,7 +410,17 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectMoveConfirmButton(): Promise<void> {
     await test.step(`Selecting the move confirm button`, async () => {
-      await this.clickOnElement(this.moveConfirmButton);
+      const moveResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.moveConfirmButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.move) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return moveResponse;
     });
   }
 
@@ -406,6 +439,13 @@ export class ManageContentComponent extends BaseComponent {
   async selectSelectAllButton(): Promise<void> {
     await test.step(`Selecting the select all button`, async () => {
       await this.clickOnElement(this.selectAllButton);
+    });
+  }
+  async selectContentByNumberOfItems(_numberOfItems: number): Promise<void> {
+    await test.step(`Selecting the content by number of items`, async () => {
+      for (let i = 1; i <= _numberOfItems; i++) {
+        await this.clickOnElement(this.selectContentByNumberOfItemsButton(i));
+      }
     });
   }
 
@@ -604,11 +644,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectCreateNewestPublishedOptionByText(): Promise<void> {
-    await test.step('Selecting the create newest published option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Published date (newest first)' });
-    });
-  }
   async selectCreateOldestPublishedOptionByText(): Promise<void> {
     await test.step('Selecting the create oldest published option by text', async () => {
       await this.sortByButton.selectOption({ label: 'Published date (oldest first)' });

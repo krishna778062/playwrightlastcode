@@ -5,8 +5,8 @@ import { tagTest } from '@core/utils/testDecorator';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
-import { WorkdaySyncPage } from '@/src/modules/integrations/pages/workdaySyncPage';
 import { WORKDAY_SYNC } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { WorkdaySyncPage } from '@/src/modules/integrations/ui/pages/workdaySyncPage';
 
 let workdaySync: WorkdaySyncPage;
 
@@ -26,7 +26,7 @@ test.describe(
     test(
       'verify the New workday UI fields: username, password, WSDL and TenantID, verify Required field validations for workday fields, verify when enter wrong WSDL/Tenant ID at the time of integration',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
