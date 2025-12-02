@@ -383,3 +383,96 @@ test.describe(
     }
   }
 );
+
+test.describe(
+  'home Feed Post Favorite/Unfavorite Tests',
+  {
+    tag: [ContentTestSuite.FEED_MULTI_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach(async ({ standardUserFixture }) => {
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+    });
+
+    test.afterEach(async ({ appManagerFixture }) => {
+      if (createdPostId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.log('Failed to cleanup feed via API:', error);
+        }
+        createdPostId = '';
+      } else {
+        console.log('No feed was published or feed already deleted, hence skipping the deletion');
+      }
+    });
+
+    test(
+      'verify EndUser1 can favorite and unfavorite a feed post on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19557'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'In Zeus, verify user is able to favorite and unfavorite a Feed post on Home Feed',
+          zephyrTestId: 'CONT-19557',
+          storyId: 'CONT-19557',
+        });
+
+        await test.step('Create a global post', async () => {
+          await feedPage.actions.clickShareThoughtsButton();
+
+          createdPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+          await feedPage.actions.enterFeedPostText(createdPostText);
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: createdPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+
+          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+        });
+
+        await test.step('Get the count of feed as favorite', async () => {
+          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+        });
+
+        await test.step('Click on favourite icon on feed', async () => {
+          await feedPage.actions.markPostAsFavourite();
+        });
+
+        await test.step('Verify the status of feed after favorite', async () => {
+          await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+        });
+
+        await test.step('Click on favourite icon on feed post to untag', async () => {
+          await feedPage.actions.removePostFromFavourite(createdPostText);
+        });
+
+        await test.step('Verify the status of feed after unFavorite', async () => {
+          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+        });
+
+        await test.step('Click on option menu three dot, click Delete, verify confirmation, and delete', async () => {
+          await feedPage.actions.deletePost(createdPostText);
+        });
+
+        await test.step('Verify feed post is deleted without edit', async () => {
+          await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
+          createdPostId = '';
+          createdPostText = '';
+        });
+      }
+    );
+  }
+);
