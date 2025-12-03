@@ -202,9 +202,11 @@ jobs:
           else
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
+            # Wrap each tag in parentheses for better regex matching: (@tag1).*(@tag2)
             if [ ${#ALL_TAGS[@]} -gt 1 ]; then
-              # Join tags with .* for regex AND logic (e.g., @api.*@P0)
-              GREP_REGEX=$(printf '%s.*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+              # Join tags with .* for regex AND logic, wrapping each in parentheses
+              # Example: (@api).*(@P0) matches tests that have both @api and @P0 tags
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
             else
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
