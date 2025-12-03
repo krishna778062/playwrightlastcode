@@ -5,6 +5,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
+
 import { QAndAApiHelper } from '@/src/modules/content/apis/apiValidation/qAndAApiHelper';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
@@ -18,6 +20,10 @@ test.describe(
     let qAndAApiHelper: QAndAApiHelper;
 
     test.beforeEach(async ({ appManagerApiFixture }) => {
+      //Enable feed mode
+      await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
       // Enable Q&A feature before each test
       await appManagerApiFixture.feedManagementHelper.enableQuestionAnswer();
       qAndAApiHelper = new QAndAApiHelper();

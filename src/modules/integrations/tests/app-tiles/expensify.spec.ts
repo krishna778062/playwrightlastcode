@@ -18,7 +18,7 @@ import {
   STATUS_VALUES,
   TILE_IDS,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
-import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsListComponent';
+import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsComponent';
 import { CustomAppsIntegrationPage } from '@/src/modules/integrations/ui/pages/customAppsIntegrationPage';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';

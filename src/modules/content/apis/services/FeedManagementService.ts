@@ -911,28 +911,50 @@ export class FeedManagementService implements IFeedManagementOperations {
       }
 
       // Extract governance-related fields from current config
-      const currentGovernanceSettings: any = {
-        isExpertiseAppManagerControlled: currentConfig.isExpertiseAppManagerControlled,
-        isHomeAppManagerControlled: currentConfig.isHomeAppManagerControlled,
-        isSiteAppManagerControlled: currentConfig.isSiteAppManagerControlled,
-        isExpertiseCreateAppManagerControlled: currentConfig.isExpertiseCreateAppManagerControlled,
-        feedMode: currentConfig.feedMode,
-        autoGovValidationPeriod: currentConfig.autoGovValidationPeriod,
-        autoGovernanceEnabled: currentConfig.autoGovernanceEnabled,
-        contentSubmissionsEnabled: currentConfig.contentSubmissionsEnabled,
-        feedOnContentEnabled: currentConfig.feedOnContentEnabled,
-        isExpertiseEnabled: currentConfig.isExpertiseEnabled,
-        isHomeCarouselEnabled: currentConfig.isHomeCarouselEnabled,
-        isSiteCarouselEnabled: currentConfig.isSiteCarouselEnabled,
-        allowFileUpload: currentConfig.allowFileUpload,
-        siteFilePermission: currentConfig.siteFilePermission,
-        htmlTileEnabled: currentConfig.htmlTileEnabled,
-        isNativeVideoAutoPlayEnabled: currentConfig.isNativeVideoAutoPlayEnabled,
-        allowFileShareWithPublicLink: currentConfig.allowFileShareWithPublicLink,
-        enablePersonalizedContentEmails: currentConfig.enablePersonalizedContentEmails,
-        feedPlaceholder: currentConfig.feedPlaceholder,
-        isFeedPlaceholderDefault: currentConfig.isFeedPlaceholderDefault,
-        sitesToUploadFiles: Array.isArray(currentConfig.sitesToUploadFiles)
+      // Only include values that are not undefined to avoid overwriting defaults
+      const currentGovernanceSettings: any = {};
+      if (currentConfig.isExpertiseAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseAppManagerControlled = currentConfig.isExpertiseAppManagerControlled;
+      if (currentConfig.isHomeAppManagerControlled !== undefined)
+        currentGovernanceSettings.isHomeAppManagerControlled = currentConfig.isHomeAppManagerControlled;
+      if (currentConfig.isSiteAppManagerControlled !== undefined)
+        currentGovernanceSettings.isSiteAppManagerControlled = currentConfig.isSiteAppManagerControlled;
+      if (currentConfig.isExpertiseCreateAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseCreateAppManagerControlled =
+          currentConfig.isExpertiseCreateAppManagerControlled;
+      if (currentConfig.feedMode !== undefined) currentGovernanceSettings.feedMode = currentConfig.feedMode;
+      if (currentConfig.autoGovValidationPeriod !== undefined)
+        currentGovernanceSettings.autoGovValidationPeriod = currentConfig.autoGovValidationPeriod;
+      if (currentConfig.autoGovernanceEnabled !== undefined)
+        currentGovernanceSettings.autoGovernanceEnabled = currentConfig.autoGovernanceEnabled;
+      if (currentConfig.contentSubmissionsEnabled !== undefined)
+        currentGovernanceSettings.contentSubmissionsEnabled = currentConfig.contentSubmissionsEnabled;
+      if (currentConfig.feedOnContentEnabled !== undefined)
+        currentGovernanceSettings.feedOnContentEnabled = currentConfig.feedOnContentEnabled;
+      if (currentConfig.isExpertiseEnabled !== undefined)
+        currentGovernanceSettings.isExpertiseEnabled = currentConfig.isExpertiseEnabled;
+      if (currentConfig.isHomeCarouselEnabled !== undefined)
+        currentGovernanceSettings.isHomeCarouselEnabled = currentConfig.isHomeCarouselEnabled;
+      if (currentConfig.isSiteCarouselEnabled !== undefined)
+        currentGovernanceSettings.isSiteCarouselEnabled = currentConfig.isSiteCarouselEnabled;
+      if (currentConfig.allowFileUpload !== undefined)
+        currentGovernanceSettings.allowFileUpload = currentConfig.allowFileUpload;
+      if (currentConfig.siteFilePermission !== undefined)
+        currentGovernanceSettings.siteFilePermission = currentConfig.siteFilePermission;
+      if (currentConfig.htmlTileEnabled !== undefined)
+        currentGovernanceSettings.htmlTileEnabled = currentConfig.htmlTileEnabled;
+      if (currentConfig.isNativeVideoAutoPlayEnabled !== undefined)
+        currentGovernanceSettings.isNativeVideoAutoPlayEnabled = currentConfig.isNativeVideoAutoPlayEnabled;
+      if (currentConfig.allowFileShareWithPublicLink !== undefined)
+        currentGovernanceSettings.allowFileShareWithPublicLink = currentConfig.allowFileShareWithPublicLink;
+      if (currentConfig.enablePersonalizedContentEmails !== undefined)
+        currentGovernanceSettings.enablePersonalizedContentEmails = currentConfig.enablePersonalizedContentEmails;
+      if (currentConfig.feedPlaceholder !== undefined)
+        currentGovernanceSettings.feedPlaceholder = currentConfig.feedPlaceholder;
+      if (currentConfig.isFeedPlaceholderDefault !== undefined)
+        currentGovernanceSettings.isFeedPlaceholderDefault = currentConfig.isFeedPlaceholderDefault;
+      if (currentConfig.sitesToUploadFiles !== undefined) {
+        currentGovernanceSettings.sitesToUploadFiles = Array.isArray(currentConfig.sitesToUploadFiles)
           ? currentConfig.sitesToUploadFiles
               .map((site: any) => {
                 if (typeof site === 'string') return site;
@@ -940,11 +962,14 @@ export class FeedManagementService implements IFeedManagementOperations {
                 return site?.siteId || site?.id || String(site);
               })
               .filter(Boolean)
-          : [],
-        privacyPolicy: currentConfig.privacyPolicy,
-        termsOfService: currentConfig.termsOfService,
-        takeLegalAcknowledgement: currentConfig.takeLegalAcknowledgement,
-      };
+          : [];
+      }
+      if (currentConfig.privacyPolicy !== undefined)
+        currentGovernanceSettings.privacyPolicy = currentConfig.privacyPolicy;
+      if (currentConfig.termsOfService !== undefined)
+        currentGovernanceSettings.termsOfService = currentConfig.termsOfService;
+      if (currentConfig.takeLegalAcknowledgement !== undefined)
+        currentGovernanceSettings.takeLegalAcknowledgement = currentConfig.takeLegalAcknowledgement;
 
       // Default values (used when current config doesn't have these fields)
       const defaultSettings = {
