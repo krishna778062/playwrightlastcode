@@ -1,6 +1,5 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
