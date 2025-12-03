@@ -358,6 +358,37 @@ test.describe(
     );
 
     test(
+      'verify Feed Custom Placeholder Setting is Displayed in Governance Settings',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33860'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Feed Custom Placeholder Setting is Displayed in Governance Settings',
+          zephyrTestId: 'CONT-33860',
+          storyId: 'CONT-33860',
+        });
+
+        // Step 1: Set feed mode to timeline_comment_post
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+
+        // Step 2: Set languages to 1 or fewer
+        await appManagerFixture.feedManagementHelper.setOneLanguage();
+
+        // Step 3: Navigate to Governance Settings (already on the page, but ensure it's loaded)
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.verifyThePageIsLoaded();
+
+        // Step 4: Verify "Feed placeholder" section is visible
+        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsVisible();
+
+        // Step 5: Verify it's positioned below "Timeline & Feed" heading
+        await governanceScreenPage.assertions.verifyFeedPlaceholderPositionedBelowTimelineFeed();
+      }
+    );
+
+    test(
       'verify user should not be able to share feed post content file when Timeline & feed setting should be set to "Timeline"',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26731'],

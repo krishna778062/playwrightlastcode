@@ -16,7 +16,10 @@ export interface IGovernanceScreenPageActions {
   makePlaceholderDefault: () => Promise<void>;
 }
 
-export interface IGovernanceScreenPageAssertions {}
+export interface IGovernanceScreenPageAssertions {
+  verifyFeedPlaceholderSettingIsVisible: () => Promise<void>;
+  verifyFeedPlaceholderPositionedBelowTimelineFeed: () => Promise<void>;
+}
 
 export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
   // Governance locators (moved from GovernanceComponent)
@@ -32,6 +35,7 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   readonly clickOnCustomFeedPlaceholder: Locator;
   readonly customFeedPlaceholderInput: Locator;
   readonly makePlaceholderDefaultButton: Locator;
+  readonly feedPlaceholderHeading: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
@@ -48,6 +52,7 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.clickOnCustomFeedPlaceholder = page.getByRole('radio', { name: 'Custom' });
     this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
+    this.feedPlaceholderHeading = page.getByRole('heading', { name: 'Feed placeholder' });
   }
 
   get actions(): IGovernanceScreenPageActions {
@@ -56,6 +61,39 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
 
   get assertions(): IGovernanceScreenPageAssertions {
     return this;
+  }
+
+  async verifyFeedPlaceholderSettingIsVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderPositionedBelowTimelineFeed(): Promise<void> {
+    await test.step('Verify Feed placeholder is positioned below Timeline & Feed heading', async () => {
+      // Verify both elements are visible
+      await this.verifier.verifyTheElementIsVisible(this.timelineAndFeed, {
+        assertionMessage: 'Timeline & Feed heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder heading should be visible',
+      });
+
+      // Verify positioning: Feed placeholder should appear after Timeline & Feed in DOM
+      const timelineAndFeedBox = await this.timelineAndFeed.boundingBox();
+      const feedPlaceholderBox = await this.feedPlaceholderHeading.boundingBox();
+
+      if (timelineAndFeedBox && feedPlaceholderBox) {
+        // Check if Feed placeholder is positioned below Timeline & Feed (higher Y coordinate)
+        if (feedPlaceholderBox.y < timelineAndFeedBox.y) {
+          throw new Error(
+            'Feed placeholder heading should be positioned below Timeline & Feed heading, but it appears above'
+          );
+        }
+      }
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
