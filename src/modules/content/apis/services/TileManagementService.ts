@@ -119,7 +119,8 @@ export class TileManagementService {
 
     const responseBody = await response.json();
     if (!response.ok() || responseBody.status !== 'success') {
-      throw new Error(`Failed to create home dashboard tile. Status: ${response.status()}`);
+      const errorMessage = responseBody.message || responseBody.error || JSON.stringify(responseBody);
+      throw new Error(`Failed to create home dashboard tile. Status: ${response.status()}, Error: ${errorMessage}`);
     }
 
     return responseBody;

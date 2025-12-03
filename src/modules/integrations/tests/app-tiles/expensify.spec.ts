@@ -674,5 +674,109 @@ test.describe(
         await homeDashboard.loadPage();
       }
     );
+
+    test(
+      'verify tile shows error message when invalid credentials are entered',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29202',
+          storyId: 'INT-24423',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create tile first
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Navigate to custom integrations page and enter invalid credentials
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.disconnectApp(AppName);
+        await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
+        await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+
+        // Enter invalid credentials
+        const invalidUserId = 'invalid_user_id';
+        const invalidUserSecret = 'invalid_user_secret';
+        await customIntegrationsPage.enterCredentials(invalidUserId, invalidUserSecret);
+
+        // Navigate back to home dashboard and verify error message
+        await homeDashboard.loadPage();
+        await homeDashboard.verifyTileMessage(createdTileTitle, MESSAGES.INVALID_CONNECTION_MESSAGE);
+
+        // Re-connect the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.disconnectApp(AppName);
+        await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
+        await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+      }
+    );
+
+    test(
+      'verify tile shows error message after changing valid credentials to invalid',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29201',
+          storyId: 'INT-24423',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Create tile with valid credentials
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyExpensifyReportData(createdTileTitle);
+
+        // Change credentials to invalid
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.disconnectApp(AppName);
+        await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
+        await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        const invalidUserId = 'invalid_user_id';
+        const invalidUserSecret = 'invalid_user_secret';
+        await customIntegrationsPage.enterCredentials(invalidUserId, invalidUserSecret);
+
+        // Navigate back to home dashboard and verify error message
+        await homeDashboard.loadPage();
+        await homeDashboard.verifyTileMessage(createdTileTitle, MESSAGES.INVALID_CONNECTION_MESSAGE);
+
+        // Re-connect the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.disconnectApp(AppName);
+        await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
+        await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+        await homeDashboard.loadPage();
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyExpensifyReportData(createdTileTitle);
+      }
+    );
   }
 );
