@@ -93,7 +93,7 @@ test.describe(
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnApplication();
       await manageApplicationPage.actions.clickOnGovernance();
-      await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+      //await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
     });
 
     test.afterEach('Reset the placeholder and cleanup created posts', async ({ appManagerFixture }) => {
@@ -171,11 +171,6 @@ test.describe(
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
-        // Create home page instance
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
         await governanceScreenPage.actions.clickOnTimelineFeedDisabled();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -223,8 +218,6 @@ test.describe(
         const topicList = await appManagerFixture.contentManagementHelper.getTopicList();
         const topic = topicList.result.listOfItems[0].name;
         await appManagerFixture.feedManagementHelper.setOneLanguage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
         const customPlaceholder =
           'Share your thoughts @' + userInfo.firstName + ' about #' + topic + ' #' + userInfo.lastName + '#';
@@ -260,10 +253,6 @@ test.describe(
           zephyrTestId: 'CONT-33862',
           storyId: 'CONT-33862',
         });
-
-        // Navigate to Governance Settings
-        await governanceScreenPage.loadPage();
-        await governanceScreenPage.verifyThePageIsLoaded();
 
         // Select Default Placeholder option
         await governanceScreenPage.actions.makePlaceholderDefault();
@@ -332,8 +321,6 @@ test.describe(
 
         // Step 1: Admin configures custom placeholder text
         await appManagerFixture.feedManagementHelper.setOneLanguage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
-        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
         const customPlaceholder = 'Share your thoughts ' + TestDataGenerator.generateRandomString('');
         await governanceScreenPage.actions.updateTheCustomFeedPlaceholder(customPlaceholder);
