@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
-import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
+import { SurveyManagementService } from '@/src/modules/employee-listening/api/services/SurveyManagementService';
 import { SurveyCreationPage } from '@/src/modules/employee-listening/pages/surveys/surveyCreation';
 
 export function getSurveyOptionButton(page: Page, optionText: string): Locator {
@@ -36,12 +36,12 @@ export async function setupSurveyTestContext(appManagersPage: any) {
   const cookies: Array<{ name: string; value: string }> = await appManagersPage.context().cookies();
   const cookieHeader = cookies.map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
   const csrfToken = cookies.find((c: { name: string }) => c.name === 'csrfid')?.value;
-  const contentManagementService = new ContentManagementService(
+  const surveyManagementService = new SurveyManagementService(
     appManagersPage.request,
     getEnvConfig().apiBaseUrl,
     appManagersPage.authToken,
     cookieHeader,
     csrfToken
   );
-  return { surveyCreationPage, contentManagementService };
+  return { surveyCreationPage, surveyManagementService };
 }

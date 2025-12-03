@@ -1,7 +1,7 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
+import { SurveyManagementService } from '@/src/modules/employee-listening/api/services/SurveyManagementService';
 import {
   EmployeeListeningFeatureTags,
   EmployeeListeningSuiteTags,
@@ -14,18 +14,18 @@ import { setupSurveyTestContext } from '@/src/modules/employee-listening/utils/s
 test.describe('all Purpose Survey Creation Tests', () => {
   let surveyCreationPage: SurveyCreationPage;
   let createdSurveyId: string | undefined;
-  let contentManagementService: ContentManagementService;
+  let surveyManagementService: SurveyManagementService;
 
   test.beforeEach(async ({ appManagersPage }) => {
-    const { surveyCreationPage: scp, contentManagementService: cms } = await setupSurveyTestContext(appManagersPage);
+    const { surveyCreationPage: scp, surveyManagementService: sms } = await setupSurveyTestContext(appManagersPage);
     surveyCreationPage = scp;
-    contentManagementService = cms;
+    surveyManagementService = sms;
     await surveyCreationPage.navigateToSurveysViaMenu();
   });
 
   test.afterEach(async () => {
     if (createdSurveyId) {
-      await surveyCreationPage.cleanupSurveyById(createdSurveyId, contentManagementService);
+      await surveyCreationPage.cleanupSurveyById(createdSurveyId, surveyManagementService);
       createdSurveyId = undefined;
     }
   });

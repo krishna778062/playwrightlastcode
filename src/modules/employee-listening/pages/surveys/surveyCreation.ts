@@ -1700,10 +1700,10 @@ export class SurveyCreationPage extends BasePage {
     return match ? match[1] : undefined;
   }
 
-  async cleanupSurveyById(surveyId: string, contentManagementService: any): Promise<void> {
+  async cleanupSurveyById(surveyId: string, surveyManagementService: any): Promise<void> {
     if (!surveyId) return;
     try {
-      await contentManagementService.deleteSurvey(surveyId);
+      await surveyManagementService.deleteSurvey(surveyId);
       console.log(`Cleaned up survey: ${surveyId}`);
     } catch (error) {
       console.warn(`Failed to cleanup survey:`, error);
