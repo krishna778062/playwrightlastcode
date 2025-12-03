@@ -143,6 +143,7 @@ export interface IFeedActions {
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
+  clickUsernameInReactionModal: (username: string) => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -1240,6 +1241,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async closeReactionModal(): Promise<void> {
     await this.listFeedComponent.closeReactionModal();
+  }
+
+  async clickUsernameInReactionModal(username: string): Promise<void> {
+    await this.listFeedComponent.clickUsernameInReactionModal(username);
   }
 
   async clickShareIconOnPost(postText: string): Promise<void> {

@@ -1456,6 +1456,16 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async clickUsernameInReactionModal(username: string): Promise<void> {
+    await test.step(`Click on username "${username}" in reaction modal`, async () => {
+      const userLink = this.reactionModal.getByRole('link', { name: username }).first();
+      await this.verifier.verifyTheElementIsVisible(userLink, {
+        assertionMessage: `User "${username}" should be visible in reaction modal`,
+      });
+      await this.clickOnElement(userLink);
+    });
+  }
+
   /**
    * Verifies that a deleted post message is displayed for a specific post
    * @param postText - The text of the post to verify deleted message for

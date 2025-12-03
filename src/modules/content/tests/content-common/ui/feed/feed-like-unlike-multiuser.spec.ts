@@ -13,6 +13,7 @@ import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
+import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 /**
@@ -670,6 +671,86 @@ test.describe(
 
         // Close the modal
         await feedPage.actions.closeReactionModal();
+      }
+    );
+
+    test(
+      'verify that clicking on a username in the reaction modal navigates to profile screen',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31820'],
+      },
+      async ({ appManagerFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on a username in the reaction modal navigates to profile screen',
+          zephyrTestId: 'CONT-31820',
+          storyId: 'CONT-31820',
+        });
+
+        // Get user info to retrieve peopleId for URL verification
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Navigate both users to global feed
+        await Promise.all([appManagerFixture.homePage.loadPage(), siteManagerFixture.homePage.loadPage()]);
+
+        await Promise.all([
+          appManagerFixture.homePage.verifyThePageIsLoaded(),
+          siteManagerFixture.homePage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          siteManagerFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Create feed pages for both users
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded(), siteManagerFeedPage.verifyThePageIsLoaded()]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        // Add reactions from both users
+        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        await siteManagerFeedPage.page.reload();
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+
+        // Refresh to ensure all reactions are visible
+        await feedPage.page.reload();
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Given: User has opened the reaction modal
+        await feedPage.actions.clickReactionCountButton(createdPostText);
+        await feedPage.actions.verifyReactionModalIsVisible();
+
+        // Select the emoji tab containing the first user
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+
+        // When: User clicks on the first username in the list
+        await feedPage.actions.clickUsernameInReactionModal(appManagerInfo.fullName);
+
+        // Then: Application should navigate to the selected user's profile screen
+        const profilePage = new UserProfilePage(feedPage.page);
+        await profilePage.verifyThePageIsLoaded();
+
+        // Verify the URL contains the user's peopleId
+        await test.step('Verify navigation to user profile page', async () => {
+          const currentUrl = feedPage.page.url();
+          const expectedPeopleId = appManagerInfo.userId;
+          console.log('expectedPeopleId -------> ', expectedPeopleId);
+          if (!currentUrl.includes(`people/${expectedPeopleId}`)) {
+            throw new Error(`Expected URL to contain "people/${expectedPeopleId}", but got: ${currentUrl}`);
+          }
+        });
       }
     );
   }
