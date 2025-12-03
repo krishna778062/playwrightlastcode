@@ -380,6 +380,51 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Sets multiple languages in app configuration
+   * Gets current config, preserves all settings, and sets selectedLanguages to the provided array
+   * @param languageIds - Array of language IDs to set (e.g., [1, 2] for two languages)
+   * @returns Promise with the API response
+   */
+  async setMultipleLanguages(languageIds: number[]) {
+    return await test.step('Setting multiple languages in app configuration', async () => {
+      // Get current app configuration
+      const currentConfig = await this.feedManagementService.getAppConfig();
+
+      // Prepare update payload preserving all current values except selectedLanguages
+      const updatePayload = {
+        appName: currentConfig.result.appName,
+        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+        availableContentTypes: currentConfig.result.availableContentTypes,
+        addToCalendar: currentConfig.result.addToCalendar,
+        feedbackRecipients: currentConfig.result.feedbackRecipients || [],
+        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+        selectedLanguages: languageIds, // Set to provided language IDs
+        orgChartEnabled: currentConfig.result.orgChartEnabled,
+        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url || '',
+        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+        isQuestionAnswerEnabled: currentConfig.result.isQuestionAnswerEnabled,
+        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+      };
+
+      // Update app configuration
+      const response = await this.feedManagementService.updateAppConfig(updatePayload);
+
+      const responseBody = await response.json();
+      console.log(
+        `App configuration updated with ${languageIds.length} language(s). Response:`,
+        JSON.stringify(responseBody, null, 2)
+      );
+
+      return responseBody;
+    });
+  }
+
+  /**
    * Enables Q&A feature by getting current app config and updating it with isQuestionAnswerEnabled: true
    * This preserves all other existing settings while ensuring Q&A is always enabled
    * Verifies Q&A is enabled with retry logic (retries twice if verification fails)

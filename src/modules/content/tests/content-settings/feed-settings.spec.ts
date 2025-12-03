@@ -389,6 +389,34 @@ test.describe(
     );
 
     test(
+      'verify Feed Custom Placeholder Setting is not displayed when number of enabled languages is greater than 1',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33861'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Feed Custom Placeholder Setting is not displayed when number of enabled languages is greater than 1',
+          zephyrTestId: 'CONT-33861',
+          storyId: 'CONT-33861',
+        });
+
+        // ----- Set feed mode to timeline and verify "Feed placeholder" section is not visible -----
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+
+        // Verify "Feed placeholder" section is not visible
+        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsNotVisible();
+
+        // ----- Set multiple languages to 2 and verify "Feed placeholder" section is not visible -----
+        await appManagerFixture.feedManagementHelper.setMultipleLanguages([1, 2]);
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsNotVisible();
+      }
+    );
+
+    test(
       'verify user should not be able to share feed post content file when Timeline & feed setting should be set to "Timeline"',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26731'],

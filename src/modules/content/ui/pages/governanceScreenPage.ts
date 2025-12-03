@@ -18,6 +18,7 @@ export interface IGovernanceScreenPageActions {
 
 export interface IGovernanceScreenPageAssertions {
   verifyFeedPlaceholderSettingIsVisible: () => Promise<void>;
+  verifyFeedPlaceholderSettingIsNotVisible: () => Promise<void>;
   verifyFeedPlaceholderPositionedBelowTimelineFeed: () => Promise<void>;
 }
 
@@ -67,6 +68,14 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     await test.step('Verify Feed placeholder setting section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
         assertionMessage: 'Feed placeholder setting section should be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderSettingIsNotVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should not be visible',
       });
     });
   }
