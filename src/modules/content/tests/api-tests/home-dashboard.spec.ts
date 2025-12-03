@@ -595,7 +595,7 @@ test.describe(
           siteFilter: 'following',
           siteId: null,
           layout: 'standard',
-          pushToAllHomeDashboards: true,
+          pushToAllHomeDashboards: false,
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
@@ -1072,6 +1072,165 @@ test.describe(
           title: tilePayload.tile.title,
           type: 'countdown',
           variant: 'standard',
+        });
+      }
+    );
+
+    test(
+      'creating Content from Category tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-42854',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Content from Category tile creation on Home Dashboard',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        // Get a site for the tile
+        const site = await appManagerApiFixture.siteManagementHelper.createPublicSite({
+          siteName: TestDataGenerator.generateRandomString('CategorySite'),
+        });
+
+        // Get or create a page category for the site
+        // Sites typically have a default page category, so we'll get the first available one
+        const category = await appManagerApiFixture.contentManagementHelper.contentManagementService.getPageCategoryID(
+          site.siteId
+        );
+
+        const tilePayload = TILE_TEST_DATA.CONTENT_FROM_CATEGORY_TILE({
+          title: TestDataGenerator.generateRandomString('ContentFromCategoryTile'),
+          pageCategoryId: category.categoryId,
+          siteFilter: 'site',
+          siteId: site.siteId,
+          layout: 'standard',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'content',
+          variant: 'from_category',
+        });
+      }
+    );
+
+    test(
+      'creating Rich Text tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13108',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Rich Text tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13108',
+          storyId: 'CONT-13108',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.HTML_TEXT_TILE({
+          title: TestDataGenerator.generateRandomString('RichTextTile'),
+          text: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test rich text content"}]}]}',
+          bodyHtml: '<p>Test rich text content</p>',
+          pushToAllHomeDashboards: false,
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'html',
+          variant: 'text',
+        });
+      }
+    );
+
+    test(
+      'creating Video tile on Home Dashboard using App Manager with App Manager Dashboard Control',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.REGRESSION,
+          ContentTestSuite.HOME_DASHBOARD,
+          ContentTestSuite.TILES,
+          '@CONT-13120',
+        ],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Validate Video tile creation on Home Dashboard',
+          zephyrTestId: 'CONT-13120',
+          storyId: 'CONT-13120',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: true,
+        });
+
+        const tilePayload = TILE_TEST_DATA.MEDIA_VIDEO_TILE({
+          title: TestDataGenerator.generateRandomString('VideoTile'),
+          url: 'https://www.youtube.com/watch?v=Uszj_k0DGsg',
+          description: 'Test video description',
+          showInfo: true,
+          pushToAllHomeDashboards: false,
+          videoTitle: 'Test Video Title',
+          oembed: {
+            provider_url: 'https://www.youtube.com/',
+            cache_age: 86400,
+            width: 480,
+            height: 270,
+            author: 'Test Author',
+            html: '<div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.25%"><iframe src="https://www.youtube.com/embed/Uszj_k0DGsg?rel=0" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0" allowfullscreen="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"></iframe></div>',
+            url: 'https://www.youtube.com/watch?v=Uszj_k0DGsg',
+            thumbnail_width: 480,
+            duration: 0,
+            version: '1.0',
+            title: 'Test Video Title',
+            provider_name: 'YouTube',
+            type: 'video',
+            thumbnail_height: 360,
+            author_url: 'https://www.youtube.com/@test',
+            thumbnail_url: 'https://i.ytimg.com/vi/Uszj_k0DGsg/maxresdefault.jpg',
+            description: 'Test video description',
+            author_name: 'Test Author',
+          },
+        });
+
+        const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
+        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        createdTileIds.push(tileResponse.result.id);
+
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+          title: tilePayload.tile.title,
+          type: 'media',
+          variant: 'video',
         });
       }
     );
