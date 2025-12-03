@@ -17,7 +17,6 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
@@ -160,7 +159,7 @@ test.describe(
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
-        const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -185,11 +184,11 @@ test.describe(
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(siteResult.name);
+        await socialCampaignPage.actions.enterSiteName('All Employees');
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteResult.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -505,7 +504,7 @@ test.describe(
 
         socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
 
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -530,11 +529,11 @@ test.describe(
         await socialCampaignPage.actions.clickShareToFeedButton();
         await socialCampaignPage.actions.enterShareDescription(description);
         await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(siteDetails.name);
+        await socialCampaignPage.actions.enterSiteName('All Employees');
         await socialCampaignPage.actions.clickShareButton();
         await socialCampaignPage.assertions.verifyToastMessage('Shared social campaign successfully');
 
-        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -744,7 +743,7 @@ test.describe(
           storyId: 'CONT-14905',
           isKnownFailure: true,
         });
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
@@ -762,9 +761,9 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteDetails.siteId);
+        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnEditCarousel();
@@ -793,7 +792,7 @@ test.describe(
           storyId: 'CONT-14903',
         });
 
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -811,12 +810,8 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         const description = TestDataGenerator.generateRandomString();
-        await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(
-          campaignId,
-          description,
-          siteDetails.siteId
-        );
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(campaignId, description, siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
@@ -1098,9 +1093,9 @@ test.describe(
           recipient: campaignOptions.recipient,
           shouldWaitForSearchIndex: true,
         });
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         const tileTitle = TestDataGenerator.generateRandomString();
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnAddTile();
@@ -1108,7 +1103,7 @@ test.describe(
         await siteDashboardPage.actions.clickOnCustomSCTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
         await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
@@ -1146,15 +1141,15 @@ test.describe(
         });
 
         campaignId = createdCampaign.campaignId;
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
         const tileTitle = TestDataGenerator.generateRandomString();
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnEditDashboard();
         await siteDashboardPage.actions.clickOnAddTile();
         await siteDashboardPage.actions.clickOnSocialCampaignTile();
         await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteDetails.siteId);
+        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
         await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
@@ -1259,10 +1254,8 @@ test.describe(
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
 
         // Phase 1: Setup - Admin creates Social Campaign for "All Organization"
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          waitForSearchIndex: false,
-        });
-        const publicSiteName = publicSite.name;
+        const publicSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const publicSiteName = 'All Employees';
 
         // Create campaign with audience
         const campaignOptions = {
