@@ -9,7 +9,6 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -546,7 +545,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19575'],
       },
-      async ({ standardUserFixture, appManagerFixture, appManagerApiFixture }) => {
+      async ({ standardUserFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify content from a deactivated site is not shown on Recently Published block on Home & Site Feed',
@@ -562,22 +561,21 @@ test.describe(
         try {
           allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
-          await test.step('As EndUser: Navigate to site and create album', async () => {
-            const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId!);
-            await siteDashboardPage.loadPage();
-            await siteDashboardPage.verifyThePageIsLoaded();
-
-            const albumCreationPage = await siteDashboardPage.navigateToAlbumCreation();
-
+          await test.step('As EndUser: Create album', async () => {
             const timestamp = Date.now();
             albumTitle = `Test Album ${timestamp}`;
-            const albumResult = await albumCreationPage.createAndPublishAlbum({
-              title: albumTitle,
-              description: 'Test album description for deactivated site test',
-              images: [FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName],
+
+            const albumInfo = await standardUserFixture.contentManagementHelper.createAlbum({
+              siteId: allEmployeesSiteId!,
+              imageName: 'beach.jpg',
+              options: {
+                albumName: albumTitle,
+                contentDescription: 'Test album description for deactivated site test',
+              },
             });
 
-            albumContentId = albumResult.albumId;
+            albumContentId = albumInfo.contentId;
+            albumTitle = albumInfo.albumName;
           });
 
           await test.step('Verify album is visible in Recently Published block', async () => {
@@ -594,8 +592,9 @@ test.describe(
             await appManagerApiFixture.siteManagementHelper.siteManagementService.deactivateSite(allEmployeesSiteId!);
           });
           await test.step('Verify album is NOT visible after site deactivation', async () => {
-            await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-            const adminFeedPage = new FeedPage(appManagerFixture.page);
+            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+            const adminFeedPage = new FeedPage(standardUserFixture.page);
+            await adminFeedPage.reloadPage();
             await adminFeedPage.verifyThePageIsLoaded();
             await adminFeedPage.actions.clickOnShowOption('all');
 
