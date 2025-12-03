@@ -106,8 +106,6 @@ test.describe('onboarding', () => {
         description: 'Verify the onboarding tile on home dashboard as an app manager [CONT-20883]',
         zephyrTestId: 'CONT-20883',
         storyId: 'CONT-20883',
-
-        await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
       });
 
       await homeDashboardPage.actions.clickOnEditDashboardButton();
