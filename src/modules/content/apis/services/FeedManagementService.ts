@@ -553,13 +553,13 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...defaultFeedPayload,
         ...overrides,
       };
-      console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post. Status: ${response.status()}`);
       }
@@ -608,13 +608,13 @@ export class FeedManagementService implements IFeedManagementOperations {
   }): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with all features via API post request', async () => {
       const payload = buildFeedWithAllFeatures(params);
-      console.log('feed payload JSON with all features: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON with all features', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
       }
@@ -742,7 +742,7 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async deleteFeed(postId: string): Promise<void> {
     return await test.step(`Deleting feed post ${postId}`, async () => {
-      console.log(`Deleting feed post ${postId}`);
+      log.debug(`Deleting feed post ${postId}`);
       const response = await this.httpClient.delete(API_ENDPOINTS.feed.delete(postId), {
         headers: {
           'Content-Type': 'application/json',
@@ -751,7 +751,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log(`Delete response:`, responseBody);
+      log.debug('Delete response', { response: responseBody });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
@@ -759,7 +759,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         );
       }
 
-      console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
+      log.debug(`Feed post ${postId} deleted successfully`, { message: responseBody.message });
     });
   }
 
@@ -787,8 +787,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
-      console.log('fileId: ', fileId);
-      console.log('attachmentURL: ', attachmentURL);
+      log.debug('File upload details', { fileId, attachmentURL });
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
@@ -802,14 +801,14 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...overrides,
       };
 
-      console.log('Feed with attachment payload:', JSON.stringify(payload, null, 2));
+      log.debug('Feed with attachment payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
 
       const responseBody = await response.json();
-      console.log('Feed with attachment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Feed with attachment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
@@ -840,7 +839,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Add comment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
@@ -912,28 +911,50 @@ export class FeedManagementService implements IFeedManagementOperations {
       }
 
       // Extract governance-related fields from current config
-      const currentGovernanceSettings: any = {
-        isExpertiseAppManagerControlled: currentConfig.isExpertiseAppManagerControlled,
-        isHomeAppManagerControlled: currentConfig.isHomeAppManagerControlled,
-        isSiteAppManagerControlled: currentConfig.isSiteAppManagerControlled,
-        isExpertiseCreateAppManagerControlled: currentConfig.isExpertiseCreateAppManagerControlled,
-        feedMode: currentConfig.feedMode,
-        autoGovValidationPeriod: currentConfig.autoGovValidationPeriod,
-        autoGovernanceEnabled: currentConfig.autoGovernanceEnabled,
-        contentSubmissionsEnabled: currentConfig.contentSubmissionsEnabled,
-        feedOnContentEnabled: currentConfig.feedOnContentEnabled,
-        isExpertiseEnabled: currentConfig.isExpertiseEnabled,
-        isHomeCarouselEnabled: currentConfig.isHomeCarouselEnabled,
-        isSiteCarouselEnabled: currentConfig.isSiteCarouselEnabled,
-        allowFileUpload: currentConfig.allowFileUpload,
-        siteFilePermission: currentConfig.siteFilePermission,
-        htmlTileEnabled: currentConfig.htmlTileEnabled,
-        isNativeVideoAutoPlayEnabled: currentConfig.isNativeVideoAutoPlayEnabled,
-        allowFileShareWithPublicLink: currentConfig.allowFileShareWithPublicLink,
-        enablePersonalizedContentEmails: currentConfig.enablePersonalizedContentEmails,
-        feedPlaceholder: currentConfig.feedPlaceholder,
-        isFeedPlaceholderDefault: currentConfig.isFeedPlaceholderDefault,
-        sitesToUploadFiles: Array.isArray(currentConfig.sitesToUploadFiles)
+      // Only include values that are not undefined to avoid overwriting defaults
+      const currentGovernanceSettings: any = {};
+      if (currentConfig.isExpertiseAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseAppManagerControlled = currentConfig.isExpertiseAppManagerControlled;
+      if (currentConfig.isHomeAppManagerControlled !== undefined)
+        currentGovernanceSettings.isHomeAppManagerControlled = currentConfig.isHomeAppManagerControlled;
+      if (currentConfig.isSiteAppManagerControlled !== undefined)
+        currentGovernanceSettings.isSiteAppManagerControlled = currentConfig.isSiteAppManagerControlled;
+      if (currentConfig.isExpertiseCreateAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseCreateAppManagerControlled =
+          currentConfig.isExpertiseCreateAppManagerControlled;
+      if (currentConfig.feedMode !== undefined) currentGovernanceSettings.feedMode = currentConfig.feedMode;
+      if (currentConfig.autoGovValidationPeriod !== undefined)
+        currentGovernanceSettings.autoGovValidationPeriod = currentConfig.autoGovValidationPeriod;
+      if (currentConfig.autoGovernanceEnabled !== undefined)
+        currentGovernanceSettings.autoGovernanceEnabled = currentConfig.autoGovernanceEnabled;
+      if (currentConfig.contentSubmissionsEnabled !== undefined)
+        currentGovernanceSettings.contentSubmissionsEnabled = currentConfig.contentSubmissionsEnabled;
+      if (currentConfig.feedOnContentEnabled !== undefined)
+        currentGovernanceSettings.feedOnContentEnabled = currentConfig.feedOnContentEnabled;
+      if (currentConfig.isExpertiseEnabled !== undefined)
+        currentGovernanceSettings.isExpertiseEnabled = currentConfig.isExpertiseEnabled;
+      if (currentConfig.isHomeCarouselEnabled !== undefined)
+        currentGovernanceSettings.isHomeCarouselEnabled = currentConfig.isHomeCarouselEnabled;
+      if (currentConfig.isSiteCarouselEnabled !== undefined)
+        currentGovernanceSettings.isSiteCarouselEnabled = currentConfig.isSiteCarouselEnabled;
+      if (currentConfig.allowFileUpload !== undefined)
+        currentGovernanceSettings.allowFileUpload = currentConfig.allowFileUpload;
+      if (currentConfig.siteFilePermission !== undefined)
+        currentGovernanceSettings.siteFilePermission = currentConfig.siteFilePermission;
+      if (currentConfig.htmlTileEnabled !== undefined)
+        currentGovernanceSettings.htmlTileEnabled = currentConfig.htmlTileEnabled;
+      if (currentConfig.isNativeVideoAutoPlayEnabled !== undefined)
+        currentGovernanceSettings.isNativeVideoAutoPlayEnabled = currentConfig.isNativeVideoAutoPlayEnabled;
+      if (currentConfig.allowFileShareWithPublicLink !== undefined)
+        currentGovernanceSettings.allowFileShareWithPublicLink = currentConfig.allowFileShareWithPublicLink;
+      if (currentConfig.enablePersonalizedContentEmails !== undefined)
+        currentGovernanceSettings.enablePersonalizedContentEmails = currentConfig.enablePersonalizedContentEmails;
+      if (currentConfig.feedPlaceholder !== undefined)
+        currentGovernanceSettings.feedPlaceholder = currentConfig.feedPlaceholder;
+      if (currentConfig.isFeedPlaceholderDefault !== undefined)
+        currentGovernanceSettings.isFeedPlaceholderDefault = currentConfig.isFeedPlaceholderDefault;
+      if (currentConfig.sitesToUploadFiles !== undefined) {
+        currentGovernanceSettings.sitesToUploadFiles = Array.isArray(currentConfig.sitesToUploadFiles)
           ? currentConfig.sitesToUploadFiles
               .map((site: any) => {
                 if (typeof site === 'string') return site;
@@ -941,11 +962,14 @@ export class FeedManagementService implements IFeedManagementOperations {
                 return site?.siteId || site?.id || String(site);
               })
               .filter(Boolean)
-          : [],
-        privacyPolicy: currentConfig.privacyPolicy,
-        termsOfService: currentConfig.termsOfService,
-        takeLegalAcknowledgement: currentConfig.takeLegalAcknowledgement,
-      };
+          : [];
+      }
+      if (currentConfig.privacyPolicy !== undefined)
+        currentGovernanceSettings.privacyPolicy = currentConfig.privacyPolicy;
+      if (currentConfig.termsOfService !== undefined)
+        currentGovernanceSettings.termsOfService = currentConfig.termsOfService;
+      if (currentConfig.takeLegalAcknowledgement !== undefined)
+        currentGovernanceSettings.takeLegalAcknowledgement = currentConfig.takeLegalAcknowledgement;
 
       // Default values (used when current config doesn't have these fields)
       const defaultSettings = {
@@ -1020,7 +1044,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App governance configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App governance configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
@@ -1043,7 +1067,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = (await response.json()) as AppConfigResponse;
-      console.log('App configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to get app configuration. Status: ${response.status()}`);
@@ -1089,7 +1113,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App configuration update response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration update response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to update app configuration. Status: ${response.status()}`);
@@ -1106,13 +1130,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async createQuestion(payload: CreateQuestionPayload): Promise<QuestionResponse> {
     return await test.step('Creating a question via API post request', async () => {
-      console.log('Question payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create question. Status: ${response.status()}, Message: ${responseBody.message}`);
       }
@@ -1129,13 +1153,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async updateQuestion(questionId: string, payload: UpdateQuestionPayload): Promise<QuestionResponse> {
     return await test.step(`Updating question ${questionId}`, async () => {
-      console.log('Question update payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question update payload JSON', { payload: JSON.stringify(payload, null, 2) });
       const response = await this.httpClient.put(API_ENDPOINTS.feed.update(questionId), {
         headers: { 'Content-Type': 'application/json' },
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question update response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question update response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to update question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1173,7 +1197,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'add' },
       });
       const responseBody = await response.json();
-      console.log('Upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to upvote question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1195,7 +1219,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'remove' },
       });
       const responseBody = await response.json();
-      console.log('Remove upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Remove upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to remove upvote from question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1245,7 +1269,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
       const responseBody = await response.json();
 
-      console.log('Update answer response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Update answer response JSON', { response: JSON.stringify(responseBody, null, 2) });
       // Check for error status or error messages in response
       if (!response.ok() || responseBody.status !== 'success') {
         const errorMessage = responseBody.message || `Failed to update answer ${answerId} on question ${questionId}`;

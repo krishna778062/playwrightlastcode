@@ -1,18 +1,17 @@
+import { ContentType } from '@content/constants/contentType';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
+import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { SiteDashboardPage } from '../../../ui/pages/sitePages';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
-import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
 interface SiteDetails {
   siteId: string;
@@ -79,9 +78,9 @@ async function getPrerequisiteData(
 // Common attachment configuration for all test cases
 const commonAttachmentConfig = {
   hasAttachment: true as const,
-  fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
-  fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
-  mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+  fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+  fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+  mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
   filePath: FileUtil.getFilePath(
     __dirname,
     '..',
@@ -90,7 +89,21 @@ const commonAttachmentConfig = {
     'test-data',
     'static-files',
     'images',
-    FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
+    FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
+  ),
+};
+
+// Updated image configuration for version update
+const updatedImageConfig = {
+  filePath: FileUtil.getFilePath(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'test-data',
+    'static-files',
+    'images',
+    FEED_TEST_DATA.UPDATED_FEED_CONTENT.fileName
   ),
 };
 
@@ -99,22 +112,22 @@ const feedTestData = [
   {
     feedType: 'Home Feed',
     scope: 'public',
-    description: "Verify Delete File from File Preview Page doesn't appear on Home Feed",
-    storyId: 'CONT-36287',
+    description: 'Verify user can update image version in Home Feed',
+    storyId: 'CONT-36286',
     ...commonAttachmentConfig,
   },
   {
     feedType: 'Site Feed',
     scope: 'site',
-    description: "Verify Delete File from File Preview Page doesn't appear on Site Feed",
-    storyId: 'CONT-39351',
+    description: 'Verify user can update image version in Site Feed',
+    storyId: 'CONT-39628',
     ...commonAttachmentConfig,
   },
   {
     feedType: 'Content Feed',
     scope: 'site',
-    description: "Verify Delete File from File Preview Page doesn't appear on Content Feed",
-    storyId: 'CONT-39352',
+    description: 'Verify user can update image version in Content Feed',
+    storyId: 'CONT-39629',
     ...commonAttachmentConfig,
   },
 ];
@@ -122,9 +135,9 @@ const feedTestData = [
 // Data-driven test for different feed types
 for (const testData of feedTestData) {
   test.describe(
-    `@FeedFileDelete - ${testData.feedType} File Deletion Tests`,
+    `${testData.feedType} Tests`,
     {
-      tag: [ContentTestSuite.FEED_FILE_DELETE_APP_MANAGER],
+      tag: [ContentTestSuite.FEED_IMAGE_UPDATE_APP_MANAGER],
     },
     () => {
       let appManagerFeedPage: FeedPage;
@@ -133,10 +146,11 @@ for (const testData of feedTestData) {
       let siteDetails: SiteDetails;
       let pageDetails: PageDetails;
       let feedResponse: FeedResponse;
+      let feedTestDataGenerated: any;
+      let originalFileId: string;
+      let updatedFileId: string;
       let contentPreviewPage: ContentPreviewPage;
       let siteDashboardPage: SiteDashboardPage;
-      let feedTestDataGenerated: any;
-      let fileId: string;
 
       test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
         // Configure app governance settings and enable timeline comment post(feed)
@@ -234,9 +248,9 @@ for (const testData of feedTestData) {
         feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
         createdPostText = feedTestDataGenerated.text;
         createdPostId = feedResponse.result.feedId;
-        fileId = feedResponse.result.listOfFiles[0].fileId;
+        originalFileId = feedResponse.result.listOfFiles[0].fileId;
 
-        console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
+        console.log(`Created feed with image via API: ${feedResponse.result.feedId}`);
 
         // Navigate to feed URL
         if (testData.feedType === 'Content Feed') {
@@ -266,28 +280,157 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType}`,
+        `Verify user can update image version on ${testData.feedType}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, `@${testData.storyId}`],
+          tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
-        async () => {
+        async ({}) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.storyId,
             storyId: testData.storyId,
           });
 
-          // Execute file deletion flow
-          await appManagerFeedPage.actions.clickInfoIcon(fileId);
+          await appManagerFeedPage.assertions.verifyVersionImageIsDisplayed(originalFileId);
+          await appManagerFeedPage.actions.clickInfoIcon(originalFileId);
           await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-          await appManagerFeedPage.actions.clickShowMoreButton();
-          await appManagerFeedPage.actions.clickDeleteButton();
-          await appManagerFeedPage.assertions.verifyToastMessageIsVisibleWithText('Deleted file successfully');
-          //refresh the page
+          await appManagerFeedPage.actions.clickOnInfoIconOnImage();
+          await appManagerFeedPage.actions.clickOnEditVersionButton();
+          await appManagerFeedPage.assertions.verifyVersionNumber('1');
+          const responseURL = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
+          if (testData.feedType === 'Home Feed') {
+            updatedFileId = responseURL.split('/u/o/')[1].split('?')[0];
+          } else {
+            updatedFileId = responseURL.split('/u/r/')[1].split('?')[0];
+          }
+
+          await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
+          await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
+          await appManagerFeedPage.assertions.verifyVersionNumber('2');
+          await appManagerFeedPage.actions.clickOnCloseButton();
+          //referesh the page
           await appManagerFeedPage.page.reload();
-          await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(updatedFileId);
         }
       );
     }
   );
 }
+
+// ==================== SITE IMAGE FALLBACK TESTS ====================
+
+test.describe(
+  'feed Site Image Fallback Tests',
+  {
+    tag: [ContentTestSuite.FEED_APP_MANAGER],
+  },
+  () => {
+    let appManagerFeedPage: FeedPage;
+    let createdFeedId: string;
+    let siteId: string;
+    const siteName: string = 'All Employees';
+    let contentId: string;
+    let pageName: string;
+    let siteDashboardPage: SiteDashboardPage;
+    let siteImageFileId: string;
+
+    test.beforeEach('Setup test environment and data creation', async ({ appManagerFixture }) => {
+      // Initialize feed page
+      appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+      // Get or create a public site with site image
+
+      siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+      // Verify site image exists on site dashboard and get the site image fileId
+      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+      await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify site image' });
+
+      // Get site details to retrieve the site iconImage fileId for verification
+      const siteDetails = await appManagerFixture.siteManagementHelper.siteManagementService.getSiteDetails(siteId);
+      const siteImageUrl = siteDetails.result?.img;
+      if (!siteImageUrl) {
+        throw new Error(`Site ${siteName} (${siteId}) does not have an iconImage. Cannot verify site image fallback.`);
+      }
+      // Extract fileId from the site image URL
+      siteImageFileId = siteImageUrl.split('/').pop() || siteImageUrl;
+
+      console.log(`Site image URL: ${siteImageUrl}`);
+      console.log(`Site image fileId: ${siteImageFileId}`);
+
+      // Create a page without images (no cover image)
+      const pageResult = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'news',
+        },
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      contentId = pageResult.contentId;
+      pageName = pageResult.pageName;
+
+      // Share the content to Home Feed via API
+      const feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
+        scope: 'content',
+        siteId: siteId,
+        contentId: contentId,
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      createdFeedId = feedResponse.result.feedId;
+      console.log(`Created feed for content ${contentId} with feed ID: ${createdFeedId}`);
+    });
+
+    test.afterEach('Cleanup created resources', async ({ appManagerFixture }) => {
+      // Cleanup feed post
+      if (createdFeedId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdFeedId);
+          createdFeedId = '';
+        } catch (error) {
+          console.warn('Failed to cleanup feed:', error);
+        }
+      }
+
+      // Cleanup page content
+      if (contentId && siteId) {
+        try {
+          await appManagerFixture.contentManagementHelper.deleteContent(siteId, contentId);
+        } catch (error) {
+          console.warn('Failed to cleanup page content:', error);
+        }
+      }
+    });
+
+    test(
+      'verify App Manager shares content without image and site image is shown in feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36283'],
+      },
+      async ({ appManagerFixture: _appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that the site image is rendered in the feed when the shared content has no square or landscape image',
+          zephyrTestId: 'CONT-36283',
+          storyId: 'CONT-36283',
+        });
+
+        // Navigate directly to the feed URL to see the shared content
+        await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdFeedId));
+
+        // Verify that the feed card for the shared content is displayed
+
+        // Verify that the site image is rendered as the fallback image in the feed card
+        // This verifies that the image shown is the same as the site's iconImage
+        await appManagerFeedPage.assertions.verifySiteImageInFeedCard(pageName, siteId, siteImageFileId);
+      }
+    );
+  }
+);

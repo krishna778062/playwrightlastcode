@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export class SubjectLineCustomizationComponent extends BaseComponent {
   readonly customSubjectLineOption: Locator;
@@ -48,7 +49,7 @@ export class SubjectLineCustomizationComponent extends BaseComponent {
    */
   async fillCustomSubjectLine(customSubjectLine: string): Promise<void> {
     await test.step(`Fill custom subject line: ${customSubjectLine}`, async () => {
-      await this.customSubjectTextarea.fill(customSubjectLine);
+      await this.fillInElement(this.customSubjectTextarea, customSubjectLine);
     });
   }
 
@@ -80,6 +81,19 @@ export class SubjectLineCustomizationComponent extends BaseComponent {
   async clearCustomSubjectLine(): Promise<void> {
     await test.step('Clear custom subject line', async () => {
       await this.customSubjectTextarea.clear();
+    });
+  }
+
+  /**
+   * Verifies inline error message is displayed
+   * @param errorMessage - The expected error message
+   */
+  async verifyInlineErrorMessage(errorMessage: string): Promise<void> {
+    await test.step(`Verify inline error message: ${errorMessage}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(errorMessage), {
+        assertionMessage: `Inline error message should be visible: ${errorMessage}`,
+        timeout: TIMEOUTS.SHORT,
+      });
     });
   }
 }

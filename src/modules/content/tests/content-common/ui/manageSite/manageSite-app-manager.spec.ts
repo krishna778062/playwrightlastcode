@@ -1,5 +1,6 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -14,6 +15,7 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -953,6 +955,10 @@ test.describe(
         });
         const makeContentMustReadResponse = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
           createPageInfo.contentId,
+          {
+            audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+            duration: MustReadDuration.NINETY_DAYS,
+          }
         );
         console.log('makeContentMustReadResponse', makeContentMustReadResponse);
         const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
