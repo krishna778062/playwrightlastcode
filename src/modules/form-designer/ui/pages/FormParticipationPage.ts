@@ -357,6 +357,7 @@ export class FormParticipationPage extends BasePage {
   }
 
   getFileToUpload(response: string): string {
-    return FileUtil.getFilePath(__dirname, '..', '..', 'test-data', `${response}`);
+    console.log('dir name ::: ' + __dirname);
+    return FileUtil.getFilePath(__dirname, '../../test-data/', `${response}`);
   }
 }
