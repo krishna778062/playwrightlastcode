@@ -156,6 +156,7 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
+          TestGroupType.FIX,
         ],
       },
       async ({ appManagerPage }) => {
@@ -331,6 +332,272 @@ test.describe(
         await formParticipationPage.openCopiedFormLink();
         await formParticipationPage.fillResponseIntoDateField(getCurrentDateFormatted());
         await formParticipationPage.fillResponseIntoTimeField('12:15 AM');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using short text and long text components as mandatory fields and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using short text and long text components as mandatory fields and participate',
+          zephyrTestId: 'ELF-63',
+          storyId: 'ELF-63',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Short text');
+        await formCreationPage.addHeadingIntoComponent('Short text', 'Automation Test - Short text Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.addHeadingIntoComponent('Long text', 'Automation Test - Long text Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyShortTextFieldIsMandatory('Automation Test - Short text Description');
+        await formParticipationPage.verifyLongTextFieldIsMandatory('Automation Test - Long text Description');
+        await formParticipationPage.fillResponseIntoShortTextField('Automation-response-Short text');
+        await formParticipationPage.fillResponseIntoLongTextField('Automation-response-Long text');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        // delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using number component as mandatory fields and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using number components as mandatory fields and participate',
+          zephyrTestId: 'ELF-74',
+          storyId: 'ELF-74',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Number');
+        await formCreationPage.addHeadingIntoComponent('Number', 'Automation Test - Number Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyNumberFieldIsMandatory('Automation Test - Number Description');
+        await formParticipationPage.fillResponseIntoNumberField('1');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using email component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using email component as mandatory field and participate',
+          zephyrTestId: 'ELF-86',
+          storyId: 'ELF-86',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Email');
+        await formCreationPage.addHeadingIntoComponent('Email', 'Automation Test - Email Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyEmailFieldIsMandatory('Automation Test - Email Description');
+        await formParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using rating component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using rating component as mandatory field and participate',
+          zephyrTestId: 'ELF-88',
+          storyId: 'ELF-88',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Rating');
+        await formCreationPage.addHeadingIntoComponent('Rating', 'Automation Test - Rating Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyRatingFieldIsMandatory('Automation Test - Rating Description', '1');
+        await formParticipationPage.fillResponseIntoRatingField('1');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using opinion component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using opinion component as mandatory field and participate',
+          zephyrTestId: 'ELF-125',
+          storyId: 'ELF-125',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Opinion');
+        await formCreationPage.addHeadingIntoComponent('Opinion', 'Automation Test - Opinion Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyOpinionFieldIsMandatory('Automation Test - Opinion Description', '1');
+        await formParticipationPage.fillResponseIntoOpinionField('1');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
 

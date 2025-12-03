@@ -22,12 +22,19 @@ export class FormParticipationPage extends BasePage {
   //readonly actionLocator: (formName: string) => Locator = (formName: string) => this.page.getByRole('button', { name: `${formName}` }).locator("../../../..").getByRole('button', { name: 'Show more button' }).nth(1);
   readonly actionLocator: (formName: string) => Locator;
   readonly ratingResponse: (ratingValue: string) => Locator;
+  readonly ratingResponseNew: (ratingValue: string) => Locator;
+
   readonly opinionResponse: (opinionValue: string) => Locator;
   readonly legalResponse: (legalValue: string) => Locator;
   readonly dateResponse: (dateValue: string) => Locator;
   readonly timeResponse: (timeValue: string) => Locator;
   readonly datecomponent: Locator;
   readonly timecomponent: Locator;
+  readonly mandatoryFieldError: (heading: string) => Locator;
+  readonly mandatoryFieldErrorNew: (heading: string) => Locator;
+  readonly previewForm: Locator;
+
+  readonly submitButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
@@ -41,8 +48,9 @@ export class FormParticipationPage extends BasePage {
     this.actionLocator = (formName: string) =>
       this.page.locator(`(//button[text()='${formName}']/../../../..//button[@aria-label='Show more button'])[2]`);
     this.ratingResponse = (ratingValue: string) =>
-      this.page.getByRole('button', { name: `Rating field input selected icon ${ratingValue}` });
-    this.opinionResponse = (opinionValue: string) => this.page.getByRole('button', { name: `Rate ${opinionValue}` });
+      this.page.getByRole('button', { name: `Rating field input selected icon ${ratingValue}`, exact: true });
+    this.opinionResponse = (opinionValue: string) =>
+      this.page.getByRole('button', { name: `Rate ${opinionValue}`, exact: true });
     this.fileUploadResponse = this.page.locator('input[type="file"]').first();
     this.imageResponse = this.page.locator('input[type="file"]').nth(1);
     this.multiSelectResponse = (multiSelectValue: string) =>
@@ -58,6 +66,16 @@ export class FormParticipationPage extends BasePage {
     this.timeResponse = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
     this.datecomponent = this.page.getByRole('button', { name: 'Select date and time Date' });
     this.timecomponent = this.page.getByRole('combobox', { name: 'hh:mm' });
+    this.mandatoryFieldError = (heading: string) =>
+      this.page.locator(
+        `//span[normalize-space()='${heading}']/../../following::div[text()='This is a required field']`
+      );
+    this.mandatoryFieldErrorNew = (heading: string) =>
+      this.page.locator(`//span[normalize-space()='${heading}']/../../following::p[text()='This is a required field']`);
+    this.submitButton = this.page.getByRole('button', { name: 'Submit' });
+    this.previewForm = this.page.getByRole('group', { name: 'Preview' });
+    this.ratingResponseNew = (ratingValue: string) =>
+      this.page.getByRole('button', { name: `Rating field input selected icon ${ratingValue}`, exact: true });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -224,6 +242,108 @@ export class FormParticipationPage extends BasePage {
         .toBe(true);
     });
   }
+
+  async verifyShortTextFieldIsMandatory(heading: string): Promise<void> {
+    await test.step('Verify short text field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shortTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.shortTextResponse, 'Test_ST_mandatory');
+      await this.fillInElement(this.shortTextResponse, '');
+      await this.shortTextResponse.blur();
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyEmailFieldIsMandatory(heading: string): Promise<void> {
+    await test.step('Verify email field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.emailResponse, 'Test@automation.com');
+      await this.fillInElement(this.emailResponse, '');
+      await this.emailResponse.blur();
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyLongTextFieldIsMandatory(heading: string): Promise<void> {
+    await test.step('Verify long text field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.longTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.longTextResponse, 'Test_LT_mandatory');
+      await this.fillInElement(this.longTextResponse, '');
+      await this.longTextResponse.blur();
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyNumberFieldIsMandatory(heading: string): Promise<void> {
+    await test.step('Verify number field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.numberResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.numberResponse);
+      await this.clickOnElement(this.previewForm);
+      await this.numberResponse.blur();
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyRatingFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify rating field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.ratingResponseNew(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.ratingResponseNew(response));
+      await this.clickOnElement(this.ratingResponseNew(response));
+      await this.clickOnElement(this.previewForm);
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorNew(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldErrorNew(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyOpinionFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify opinion field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.opinionResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.opinionResponse(response));
+      await this.clickOnElement(this.opinionResponse(response));
+      await this.opinionResponse(response).blur();
+      await this.clickOnElement(this.previewForm);
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorNew(heading), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.mandatoryFieldErrorNew(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifySubmitButtonIsDisabled(): Promise<void> {
+    await test.step('Verify submit button is disabled', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.submitButton, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.submitButton.isDisabled({ timeout: TIMEOUTS.MEDIUM }), 'Submit button should be disabled')
+        .toBe(true);
+    });
+  }
   async verifyFormDeletedMessage(message: string): Promise<void> {
     await test.step('Verify form deleted message', async () => {
       await this.verifier.verifyTheElementIsVisible(this.page.getByText(message), { timeout: TIMEOUTS.MEDIUM });
@@ -237,6 +357,7 @@ export class FormParticipationPage extends BasePage {
   }
 
   getFileToUpload(response: string): string {
-    return FileUtil.getFilePath('./src/modules/form-designer/test-data', `${response}`);
+    const projectRoot = FileUtil.getProjectRoot();
+    return FileUtil.getFilePath(projectRoot, 'src', 'modules', 'form-designer', 'test-data', `${response}`);
   }
 }

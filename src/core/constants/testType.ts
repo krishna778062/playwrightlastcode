@@ -4,4 +4,5 @@ export enum TestGroupType {
   REGRESSION = '@regression',
   HEALTHCHECK = '@healthcheck',
   E2E = '@e2e',
+  FIX = '@fix',
 }

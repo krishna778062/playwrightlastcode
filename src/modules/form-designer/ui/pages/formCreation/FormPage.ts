@@ -43,6 +43,8 @@ export class FormCreationPage extends BasePage {
   readonly settingsIcon: Locator;
   readonly dismissSurvey: Locator;
   readonly legalComponentQuestionBox: Locator;
+  readonly previewButton: Locator;
+  readonly requiredToggle: Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -94,6 +96,8 @@ export class FormCreationPage extends BasePage {
     this.copyLink = this.page.getByText('Copy link');
     this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
     this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
+    this.previewButton = this.page.getByText('Preview');
+    this.requiredToggle = this.page.getByRole('switch', { name: 'Required' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -562,11 +566,23 @@ export class FormCreationPage extends BasePage {
       formCreationConstants.LEGAL_QUESTION = questionText;
     });
   }
+  async makeComponentMandatory(): Promise<void> {
+    await test.step('Make component mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.requiredToggle, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.requiredToggle);
+    });
+  }
 
   async clickOnCopyIcon(): Promise<void> {
     await test.step('Click on copy icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.copyIcon, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.copyIcon);
+    });
+  }
+  async clickOnPreviewButton(): Promise<void> {
+    await test.step('Click on preview button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.previewButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.previewButton);
     });
   }
   async clickOnDeleteIcon(): Promise<void> {
