@@ -17,7 +17,7 @@ export class RewardsAllowancePage extends BasePage {
   readonly allowanceDeleteButton: Locator;
 
   // User Allowance elements
-  readonly userAllowance: Locator;
+  readonly userAllowancePanel: Locator;
   readonly userAllowanceIcon: Locator;
   readonly userAllowanceGreenTick: Locator;
   readonly userAllowanceHeading: Locator;
@@ -93,35 +93,15 @@ export class RewardsAllowancePage extends BasePage {
     this.allowanceDeleteButton = page.locator('button[aria-label*="Remove"]');
 
     // User Allowance elements
-    this.userAllowance = page.locator('div[class*="PanelActionItem_layout"]').first();
-    this.userAllowanceIcon = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('i[data-testid="i-addUserMulti"]');
-    this.userAllowanceGreenTick = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('div[class*="PanelActionItem_check"]');
-    this.userAllowanceHeading = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('heading', { name: 'Users allowance' });
-    this.userAllowanceDescription = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByText('Add a monthly allowance for');
-    this.addUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Add users allowance' });
-    this.editUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Edit users allowance' });
-    this.removeUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('button', { name: 'Remove users allowance' });
+    this.userAllowancePanel = page.locator('div[class*="PanelActionItem_layout"]').first();
+    this.userAllowanceIcon = this.userAllowancePanel.locator('i[data-testid="i-addUserMulti"]');
+    this.userAllowanceGreenTick = this.userAllowancePanel.locator('div[class*="PanelActionItem_check"]');
+    this.userAllowanceHeading = this.userAllowancePanel.getByRole('heading', { name: 'Users allowance' });
+    this.userAllowanceDescription = this.userAllowancePanel.getByText('Add a monthly allowance for');
+    this.addUserAllowance = this.userAllowancePanel.locator('a[aria-label="Add users allowance"]');
+    this.editUserAllowance = this.userAllowancePanel.getByRole('link', { name: 'Edit users allowance' });
+    this.removeUserAllowance = this.userAllowancePanel.getByRole('button', { name: 'Remove users allowance' });
+
     this.currencyConversionInfoIcon = page.locator('button[aria-label="Currency conversion information"]');
     this.pointAmountInput = page.locator('#pointAmount');
     this.increaseAmountButton = page.locator('[aria-label="Plus"]');
