@@ -190,7 +190,8 @@ jobs:
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
             if [ ${#ALL_TAGS[@]} -gt 1 ]; then
-              GREP_REGEX=$(IFS='.*'; echo "${ALL_TAGS[*]}")
+              # Join tags with .* for regex AND logic (e.g., @api.*@P0)
+              GREP_REGEX=$(printf '%s.*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
             else
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
