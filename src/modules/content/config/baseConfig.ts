@@ -24,6 +24,10 @@ export default defineConfig({
   timeout: TIMEOUTS.VERY_LONG,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 4,
+  reportSlowTests: {
+    max: 10,
+    threshold: 180_000, // 180 seconds - tests taking longer than this will be reported
+  },
   use: {
     actionTimeout: 15_000,
     navigationTimeout: 30_000,

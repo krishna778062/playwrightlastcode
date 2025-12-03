@@ -1,14 +1,13 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
