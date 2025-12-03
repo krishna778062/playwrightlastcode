@@ -84,8 +84,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       });
 
       const eventsTabText = await this.eventsTabLink.textContent();
-      console.log('Events tab text:', eventsTabText);
-      console.log('Starts at date:', startsAt);
       const { month, day } = this.parseStartsAtDate(startsAt);
 
       if (!eventsTabText || !this.doesTextMatchDate(eventsTabText, month, day)) {
@@ -138,7 +136,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
 
     // Debug: Log the actual fill color
     const fillColor = await svgPath.evaluate(el => window.getComputedStyle(el).fill);
-    console.log('Actual SVG fill color:', fillColor);
 
     await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
   }
