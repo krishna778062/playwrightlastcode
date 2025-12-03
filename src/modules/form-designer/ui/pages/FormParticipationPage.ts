@@ -1,10 +1,13 @@
 import { formCreationConstants } from '@form-designer-constants/formCreation';
 import { Locator, Page, test } from '@playwright/test';
+import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
+
+const TEST_DATA_FILES_PATH = path.join(FileUtil.getProjectRoot(), 'src', 'modules', 'form-designer', 'test-data');
 
 export class FormParticipationPage extends BasePage {
   readonly threeDotsIcon: Locator;
@@ -176,17 +179,32 @@ export class FormParticipationPage extends BasePage {
       await this.clickOnElement(this.opinionResponse(response));
     });
   }
-  async fillResponseIntoFileUploadField(response: string): Promise<void> {
-    await test.step('Fill response into file upload field', async () => {
-      console.log('File uploaded successfully ::: ' + this.getFileToUpload(response));
+  // async fillResponseIntoFileUploadField(response: string): Promise<void> {
+  //   await test.step('Fill response into file upload field', async () => {
+  //     console.log('File uploaded successfully ::: ' + this.getFileToUpload(response));
+  //     await this.fileUploadResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+  //     await this.fileUploadResponse.setInputFiles(this.getFileToUpload(response));
+  //   });
+  // }
+  // async fillResponseIntoImageField(response: string): Promise<void> {
+  //   await test.step('Fill response into image field', async () => {
+  //     await this.imageResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+  //     await this.imageResponse.setInputFiles(this.getFileToUpload(response));
+  //   });
+  // }
+
+  async fillResponseIntoFileUploadField(fileName: string): Promise<void> {
+    await test.step(`Upload file: ${fileName}`, async () => {
+      const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
       await this.fileUploadResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
-      await this.fileUploadResponse.setInputFiles(this.getFileToUpload(response));
+      await this.fileUploadResponse.setInputFiles(filePath);
     });
   }
-  async fillResponseIntoImageField(response: string): Promise<void> {
-    await test.step('Fill response into image field', async () => {
+  async fillResponseIntoImageField(fileName: string): Promise<void> {
+    await test.step(`Upload image file: ${fileName}`, async () => {
+      const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
       await this.imageResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
-      await this.imageResponse.setInputFiles(this.getFileToUpload(response));
+      await this.imageResponse.setInputFiles(filePath);
     });
   }
   async fillResponseIntoMultiSelectField(response: string): Promise<void> {
@@ -356,8 +374,8 @@ export class FormParticipationPage extends BasePage {
     });
   }
 
-  getFileToUpload(response: string): string {
-    console.log('dir name ::: ' + __dirname);
-    return FileUtil.getFilePath(__dirname, '../../test-data/', `${response}`);
-  }
+  // getFileToUpload(response: string): string {
+  //   const projectRoot = FileUtil.getProjectRoot();
+  //   return FileUtil.getFilePath(projectRoot, 'src', 'modules', 'form-designer', 'test-data', `${response}`);
+  // }
 }
