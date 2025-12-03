@@ -58,7 +58,7 @@ test.describe(
       }
     );
 
-    test.fixme(
+    test(
       'verify App Admin is able to add Greenhouse job postings from a tile on Home Dashboard with All selected for Job Type',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
@@ -74,16 +74,18 @@ test.describe(
         // Use homeDashboard from fixture
         createdTileTitle = `Greenhouse  report ${faker.string.alphanumeric({ length: 6 })}`;
 
-        //add,personalize,edit,verify
-        await homeDashboard.addAppManagerDefinedWithOptions(
+        // When selecting "All", pass the second dropdown field and value
+        await homeDashboard.addTileWithDropdownAndField(
           createdTileTitle,
           AppName,
           tileName,
-          UI_ACTIONS.ADD_TO_HOME,
           GREENHOUSE_VALUES.JOB_TYPE,
           GREENHOUSE_VALUES.ALL,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
-          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE,
+          UI_ACTIONS.ADD_TO_HOME,
+          GREENHOUSE_VALUES.SHOW_ALL_REDIRECT_URL,
+          GREENHOUSE_VALUES.EXTERNAL
         );
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
@@ -166,7 +168,7 @@ test.describe(
         createdTileTitle = updatedTileTitle;
       }
     );
-    test.fixme(
+    test(
       'verify App Admin is able to add Greenhouse job postings from a tile on Site Dashboard with All selected for Job Type',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
@@ -187,16 +189,18 @@ test.describe(
         const createdSite = await siteManagementHelper.createPublicSite({ category });
         await siteDashboard.navigateToSite(createdSite.siteId);
 
-        //add,personalize,edit,verify
-        await siteDashboard.addAppManagerDefinedWithOptions(
+        // When selecting "All", pass the second dropdown field and value
+        await siteDashboard.addTileWithDropdownAndField(
           createdTileTitle,
           AppName,
           tileName,
-          UI_ACTIONS.ADD_TO_SITE,
           GREENHOUSE_VALUES.JOB_TYPE,
           GREENHOUSE_VALUES.ALL,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
-          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE,
+          UI_ACTIONS.ADD_TO_SITE,
+          GREENHOUSE_VALUES.SHOW_ALL_REDIRECT_URL,
+          GREENHOUSE_VALUES.EXTERNAL
         );
         await siteDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;

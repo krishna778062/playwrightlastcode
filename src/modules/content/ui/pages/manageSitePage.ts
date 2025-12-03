@@ -195,7 +195,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
 
       if (isBoxAlreadySelected && provider === 'Box files') {
-        console.log('Box files is already configured for this site. Update button is disabled, skipping update.');
         return; // Skip the update process
       }
       // Click on the React Select input or dropdown arrow to open dropdown
@@ -245,7 +244,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Check if the permission is already set to the desired value
       const isAlreadyChecked = await radioButton.isChecked();
       if (isAlreadyChecked) {
-        console.log(`Feed posting permission is already set to ${permission}, skipping update`);
         return;
       }
 

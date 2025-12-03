@@ -190,6 +190,7 @@ export const GREENHOUSE_VALUES = {
   INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+  SHOW_ALL_REDIRECT_URL: 'Show all redirect url',
 } as const;
 
 export const SERVICE_NOW_VALUES = {
@@ -202,4 +203,17 @@ export const SERVICE_NOW_VALUES = {
 
 export const GREENHOUSE_CREDS = {
   API_Token: 'Basic N2RlMTdmNzQ3ZjdiZjJhNzNiOTI1ODBiM2I5OTY2NmMtMzo=',
+} as const;
+
+/**
+ * Workday credentials and config for People data
+ */
+export const WORKDAY_CREDS = {
+  USERNAME: 'WorkdayWebServices_ISU',
+  PASSWORD: 'A1b@cD3#eF!',
+  WSURL: 'https://impl-services1.wd12.myworkday.com/ccx/service',
+  TENANT_ID: 'simpplr_dpt1',
+  CLIENT_ID: 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl',
+  CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
+  REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
 } as const;
