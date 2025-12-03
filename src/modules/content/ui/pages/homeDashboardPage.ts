@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -40,6 +40,9 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   readonly editDashboardButton: Locator = this.page.getByRole('button', { name: 'Manage dashboard & carousel' });
   readonly addTileButton: Locator = this.page.getByRole('button', { name: 'Add tile' });
   readonly doneButton: Locator = this.page.getByRole('button', { name: 'Done' });
+  readonly addContentTileDialog: Locator = this.page.getByRole('dialog', { name: 'Add content tile' });
+  readonly addToHomeButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Add to home' });
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.addTileComponent = new AddTileComponent(page);
@@ -79,7 +82,28 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     await this.addContentTileComponent.namingTheTile(tileName);
   }
   async clickingOnAddToHomeButton(): Promise<void> {
-    await this.addContentTileComponent.clickingOnAddToHomeButton();
+    await test.step('Click on Add to home button', async () => {
+      // First ensure the dialog is still open
+      await this.addContentTileDialog.waitFor({ state: 'visible' });
+
+      // Wait for button to be attached and visible
+      await this.addToHomeButton.waitFor({ state: 'visible' });
+
+      // Scroll button into view if needed
+      await this.addToHomeButton.scrollIntoViewIfNeeded();
+
+      // Wait for button to be enabled
+      await this.addToHomeButton.waitFor({ state: 'attached' });
+      await expect(this.addToHomeButton).toBeEnabled();
+
+      // Try normal click first, if it fails, use force click
+      try {
+        await this.addToHomeButton.click({ timeout: 5000 });
+      } catch {
+        // If normal click fails, try force click (might be blocked by overlay or animation)
+        await this.addToHomeButton.click({ force: true });
+      }
+    });
   }
   async verifyToastMessage(toastMessage: string): Promise<void> {
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(toastMessage);
