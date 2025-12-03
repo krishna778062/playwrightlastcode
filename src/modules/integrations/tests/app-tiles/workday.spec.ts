@@ -1104,7 +1104,13 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove default display job postings workday apptile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayjobpostings',
+        ],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -1134,13 +1140,19 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove default display job postings workday apptile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayjobpostings',
+        ],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-21416',
-          storyId: 'INT-20803',
+          storyId: 'INT-21591',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
