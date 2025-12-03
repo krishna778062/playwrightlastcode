@@ -212,7 +212,6 @@ WHERE s.tenant_code = '{tenantCode}'
   {departmentFilter}
 GROUP BY s.search_term
 ORDER BY failed_search_count DESC
-LIMIT 10;
 `,
   Most_Searches_Performed_By_Department: `
 SELECT
