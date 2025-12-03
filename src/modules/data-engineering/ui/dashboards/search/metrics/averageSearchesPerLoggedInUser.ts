@@ -21,6 +21,8 @@ export class AverageSearchesPerLoggedInUser extends HeroMetricsComponent {
    * @param expectedValue - The expected metric value
    */
   async verifyMetricValue(expectedValue: number): Promise<void> {
-    await this.verifyMetricValueIsLoadedForHeroMetric(expectedValue);
+    // Round to 1 decimal place to match UI display format
+    const roundedValue = Math.round(expectedValue * 10) / 10;
+    await this.verifyMetricValueIsLoadedForHeroMetric(roundedValue);
   }
 }

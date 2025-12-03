@@ -85,41 +85,67 @@ FROM
   Top_Search_Queries: `
 SELECT
     s.search_term,
-    COUNT(s.search_term) AS total_search,
-    COUNT(sr.search_term) AS clickthrough,
-    CONCAT(ROUND((COUNT(sr.search_term) * 100.0 / NULLIF(COUNT(s.search_term), 0)), 2), ' %') AS success_rate
-FROM udl.vw_search s
-INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
-LEFT JOIN udl.vw_search_result_click sr ON s.code = sr.search_code
-WHERE s.tenant_code = '{tenantCode}'
-  AND DATE(s.search_performed_datetime) >= '{startDate}'
-  AND DATE(s.search_performed_datetime) <= '{endDate}'
-  {locationFilter}
-  {departmentFilter}
-GROUP BY s.search_term
-ORDER BY COUNT(s.search_term) DESC, s.search_term ASC
-LIMIT 20;
-`,
-  Top_Search_Queries_With_No_Clickthrough: `
-SELECT
-    s.search_term,
-    COUNT(s.search_term) AS total_search,
-    (COUNT(s.search_term) - COUNT(sr.search_term)) AS no_click_count,
+    COUNT(DISTINCT s.code) AS total_search,
+    COUNT(DISTINCT sr.code) AS clickthrough,
     CONCAT(
-        ROUND(((COUNT(s.search_term) - COUNT(sr.search_term)) * 100.0 / NULLIF(COUNT(s.search_term), 0)), 2),
+        ROUND(
+            (COUNT(DISTINCT sr.code) * 100.0 / NULLIF(COUNT(DISTINCT s.code), 0)),
+            2
+        ),
         ' %'
-    ) AS no_click_rate
+    ) AS success_rate
 FROM udl.vw_search s
 INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
-LEFT JOIN udl.vw_search_result_click sr ON s.code = sr.search_code
+LEFT JOIN udl.vw_search_result_click sr
+    ON s.code = sr.search_code
 WHERE s.tenant_code = '{tenantCode}'
-  AND DATE(s.search_performed_datetime) >= '{startDate}'
-  AND DATE(s.search_performed_datetime) <= '{endDate}'
+  AND s.search_performed_datetime >= '{startDate}'
+  AND s.search_performed_datetime <= '{endDate}'
   {locationFilter}
   {departmentFilter}
 GROUP BY s.search_term
 ORDER BY total_search DESC, s.search_term ASC
-LIMIT 10;
+LIMIT 20;
+`,
+  Top_Search_Queries_With_No_Clickthrough: `
+WITH search_data AS (
+  SELECT 
+    s.search_term,
+    s.code,
+    s.tenant_code
+  FROM udl.vw_search s
+  INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
+  WHERE s.tenant_code = '{tenantCode}'
+    AND s.search_performed_datetime >= '{startDate}'
+    AND s.search_performed_datetime <= '{endDate}'
+    {locationFilter}
+    {departmentFilter}
+),
+click_data AS (
+  SELECT 
+    search_code,
+    tenant_code
+  FROM udl.vw_search_result_click
+  WHERE tenant_code = '{tenantCode}'
+)
+SELECT
+  s.search_term,
+  COUNT(DISTINCT s.code) AS total_search,
+  (COUNT(DISTINCT s.code) - COUNT(DISTINCT c.search_code)) AS no_click_count,
+  CONCAT(
+    ROUND(
+      ((COUNT(DISTINCT s.code) - COUNT(DISTINCT c.search_code))::numeric 
+        / NULLIF(COUNT(DISTINCT s.code), 0) * 100),
+      2
+    ),
+    ' %'
+  ) AS no_click_rate
+FROM search_data s
+LEFT JOIN click_data c
+  ON s.code = c.search_code
+GROUP BY s.search_term
+ORDER BY total_search DESC, s.search_term ASC
+LIMIT 20;
 `,
   Top_Clickthrough_Types: `
 WITH total_clicks AS (
@@ -186,7 +212,7 @@ WHERE s.tenant_code = '{tenantCode}'
   {departmentFilter}
 GROUP BY s.search_term
 ORDER BY failed_search_count DESC
-LIMIT 5;
+LIMIT 10;
 `,
   Most_Searches_Performed_By_Department: `
 SELECT

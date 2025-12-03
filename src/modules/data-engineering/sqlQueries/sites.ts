@@ -261,7 +261,7 @@ export const SitesSql = {
     )
     WHERE total_popularity > 0
     ORDER BY total_popularity ASC, site_name ASC
-    LIMIT 10
+    LIMIT 15
   `,
 
   /**
