@@ -1,8 +1,26 @@
-name: Content API Regression Tests
+name: Content Regression Tests
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
     inputs:
+      module_name:
+        description: 'Select the content module to test'
+        required: true
+        default: 'content'
+        type: choice
+        options:
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+      test_category:
+        description: 'Select UI or API tests'
+        required: true
+        default: 'ui'
+        type: choice
+        options:
+          - 'ui'
+          - 'api'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -15,7 +33,7 @@ on:
       test_type:
         description: 'Select the type of tests to run'
         required: true
-        default: '@api'
+        default: 'all'
         type: choice
         options:
           - '@smoke'
@@ -27,27 +45,31 @@ on:
         default: 'qa'
         type: choice
         options:
+          - 'test'
           - 'qa'
           - 'uat'
-          - 'test'
           - 'prodEU'
           - 'prodUS'
+          - 'uatEU'
       workers:
-        description: 'Number of parallel workers to run tests'
+        description: 'Number of parallel workers to run tests (default: 5 for content UI, 1 for others)'
         required: true
         default: '1'
         type: choice
         options:
           - '1'
           - '2'
+          - '3'
+          - '4'
+          - '5'
       feature_tags:
         description: 'Comma-separated list of feature tags to include in tests (e.g., @CONT-41913)'
         required: false
         default: 'all'
         type: string
   schedule:
-    # Run daily at 3 AM UTC for API regression tests
-    - cron: '0 5 * * *'
+    # Run daily at 3 AM UTC for content regression tests
+    - cron: '0 4 * * *'
 
 permissions:
   contents: read
@@ -55,14 +77,14 @@ permissions:
   pages: write
 
 jobs:
-  api-test-and-upload:
-    timeout-minutes: 60
+  content-test-and-upload:
+    timeout-minutes: 300
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: content-api
-      SLACK_WEBHOOK_URL_1: https://hooks.slack.com/services/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
-      SLACK_WEBHOOK_URL_2: https://hooks.slack.com/services/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
+      MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}
+      E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -88,7 +110,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
-      - name: Run Content API tests
+      - name: Run Content tests
         id: run-tests
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
@@ -96,16 +118,21 @@ jobs:
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
+          MODULE="${{ inputs.module_name || 'content' }}"
+          TEST_CATEGORY="${{ inputs.test_category || 'ui' }}"
           ALL_TAGS=()
 
-          # Always include @api tag for API tests
-          ALL_TAGS+=("@api")
+          # Add @api tag if API tests are selected
+          # This works for any module that has API tests (currently content, but extensible for future modules)
+          if [ "$TEST_CATEGORY" = "api" ]; then
+            ALL_TAGS+=("@api")
+          fi
 
           # Add priority filter (skip if "all")
           [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
 
-          # Add test type filter (skip if "all" or "@api" since we already added it)
-          if [ "$TEST_TYPE" != "all" ] && [ "$TEST_TYPE" != "@api" ]; then
+          # Add test type filter (skip if "all")
+          if [ "$TEST_TYPE" != "all" ]; then
             ALL_TAGS+=("$TEST_TYPE")
           fi
 
@@ -117,25 +144,81 @@ jobs:
             done
           fi
 
-          echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
+          echo "Debug: Module=$MODULE, TestCategory=$TEST_CATEGORY, Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
-          GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
-          echo "Running Content API tests with grep filter: $GREP_REGEX"
-
-          # Set workers - ensure it's a valid number
+          # Set workers - default to 5 for content UI tests, use input value for others
           WORKERS="${{ inputs.workers || '1' }}"
           if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ]; then
-            WORKERS="1"
+            if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ]; then
+              WORKERS="5"
+            else
+              WORKERS="1"
+            fi
+          fi
+          # Override to 5 for content UI module if it's the default '1' (user didn't specify)
+          if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ] && [ "$WORKERS" = "1" ]; then
+            WORKERS="5"
           fi
 
-          TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-api.config.ts --grep="$GREP_REGEX" --workers="$WORKERS"
+          # Determine config file based on module and test category
+          # Generic logic that works for all modules:
+          # - {module} + ui -> playwright.{module}.config.ts
+          # - {module} + api -> playwright.{module}-api.config.ts
+          # Examples:
+          #   content + ui -> playwright.content.config.ts
+          #   content + api -> playwright.content-api.config.ts
+          #   content-abac + ui -> playwright.content-abac.config.ts
+          #   content-abac + api -> playwright.content-abac-api.config.ts (if exists in future)
+          if [ "$TEST_CATEGORY" = "api" ]; then
+            CONFIG_FILE="src/modules/content/playwright.${MODULE}-api.config.ts"
+          else
+            CONFIG_FILE="src/modules/content/playwright.${MODULE}.config.ts"
+          fi
+
+          # Verify config file exists
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "Error: Config file not found: $CONFIG_FILE"
+            echo ""
+            echo "Module: $MODULE"
+            echo "Test Category: $TEST_CATEGORY"
+            echo "Expected config: $CONFIG_FILE"
+            echo ""
+            echo "Available config files:"
+            ls -la src/modules/content/playwright.*.config.ts || true
+            echo ""
+            if [ "$TEST_CATEGORY" = "api" ]; then
+              echo "Note: API tests may not be available for module '$MODULE' yet."
+              echo "Available test categories for '$MODULE': ui"
+            fi
+            exit 1
+          fi
+
+          echo "Using config file: $CONFIG_FILE"
+
+          if [ ${#ALL_TAGS[@]} -eq 0 ]; then
+            echo "Running all tests without filters"
+            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
+          else
+            # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
+            # This ensures tests match ALL specified tags, not just one
+            # Wrap each tag in parentheses for better regex matching: (@tag1).*(@tag2)
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              # Join tags with .* for regex AND logic, wrapping each in parentheses
+              # Example: (@api).*(@P0) matches tests that have both @api and @P0 tags
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+            fi
+            echo "Running Content tests with grep filter: $GREP_REGEX"
+            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
+          fi
 
       - name: Upload test report to github artifact backup
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content-api-test-report
+          name: content-test-report
           path: playwright-report
 
       - name: Configure AWS Credentials
@@ -258,14 +341,17 @@ jobs:
       - name: Send Slack Notification
         if: always()
         run: |
-          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+          WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
+            BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+            ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="<!subteam^S087M3C16GL>  🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="<!subteam^S087M3C16GL>  🔌 *Content API Automation Suite* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
 
             # Send to Slack using curl
@@ -281,7 +367,7 @@ jobs:
       - name: Send Smart Slack Notifications
         if: always()
         run: |
-          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+          WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
            # Check if tests were executed
            if [ -f "test-results/test-results.json" ]; then
              TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
@@ -289,13 +375,17 @@ jobs:
              if [ "$TOTAL_TESTS" -eq 0 ]; then
                # No tests found
                echo "No tests were found matching the criteria"
-               NO_TESTS_MESSAGE="⚠️ *No API Tests Found* - \`content-api\` module triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+               BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+               ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+               NO_TESTS_MESSAGE="⚠️ *No Content Tests Found* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
               # Send to Slack using curl
               for WEBHOOK in "${WEBHOOKS[@]}"; do
                curl -X POST -H 'Content-type: application/json' \
                  --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
                  $WEBHOOK
+              done
              else
                # Tests were found and executed (pass or fail)
                echo "Tests were found: $TOTAL_TESTS"
@@ -304,11 +394,15 @@ jobs:
            else
              # No test results file - this means pipeline failed before tests could run
              echo "No test results file found - pipeline likely failed"
-             FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content API Automation Suite Pipeline Failed* - \`content-api\` module pipeline triggered by \`${{ github.actor }}\` from \`${{ github.ref_name }}\` branch on \`${{ inputs.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+             BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+             ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+             FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content Regression Automation Suite Pipeline Failed* - \`${MODULE_NAME}\` module pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
              # Send to Slack using curl
              for WEBHOOK in "${WEBHOOKS[@]}"; do
                curl -X POST -H 'Content-type: application/json' \
                  --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
                  $WEBHOOK
+             done
            fi
