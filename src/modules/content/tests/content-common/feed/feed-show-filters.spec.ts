@@ -9,6 +9,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -383,7 +384,7 @@ test.describe(
         );
         if (result.status === 'success') {
           console.log(`✓ Successfully added ${endUserInfo.fullName} as member: ${result.message}`);
-          testData.endUserId = result.result?.userId;
+          testData.endUserId = result.result.userId;
         } else {
           throw new Error(`Failed to add user as member: ${result.message || 'Unknown error'}`);
         }
@@ -517,7 +518,7 @@ test.describe(
             SitePermission.MEMBER,
             SiteMembershipAction.ADD
           );
-          testData.endUserId = result.result?.userId;
+          testData.endUserId = result.result.userId;
           console.log('✓ End User is now a member');
         } else {
           console.log('End User is already a member - skipping membership addition step');
@@ -536,6 +537,90 @@ test.describe(
         for (const content of contents) {
           await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
           console.log(`✓ End User (member) can see ${content.type}: ${content.title}`);
+        }
+      }
+    );
+
+    test(
+      'recently Published Smart Block - Verify content from deactivated site is not visible',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19575'],
+      },
+      async ({ standardUserFixture, appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify content from a deactivated site is not shown on Recently Published block on Home & Site Feed',
+          zephyrTestId: 'CONT-19575',
+          storyId: 'CONT-19575',
+        });
+
+        // Test data storage for cleanup
+        let albumContentId: string | null = null;
+        let allEmployeesSiteId: string | null = null;
+        let albumTitle: string | null = null;
+
+        try {
+          allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+          await test.step('As EndUser: Navigate to site and create album', async () => {
+            const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId!);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.verifyThePageIsLoaded();
+
+            const albumCreationPage = await siteDashboardPage.navigateToAlbumCreation();
+
+            const timestamp = Date.now();
+            albumTitle = `Test Album ${timestamp}`;
+            const albumResult = await albumCreationPage.createAndPublishAlbum({
+              title: albumTitle,
+              description: 'Test album description for deactivated site test',
+              images: [FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName],
+            });
+
+            albumContentId = albumResult.albumId;
+          });
+
+          await test.step('Verify album is visible in Recently Published block', async () => {
+            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+            const endUserFeedPage = new FeedPage(standardUserFixture.page);
+            await endUserFeedPage.verifyThePageIsLoaded();
+            await endUserFeedPage.actions.clickOnShowOption('all');
+
+            await endUserFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+            await endUserFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(albumTitle!);
+          });
+
+          await test.step('As Admin: Deactivate "All Employees" site', async () => {
+            await appManagerApiFixture.siteManagementHelper.siteManagementService.deactivateSite(allEmployeesSiteId!);
+          });
+          await test.step('Verify album is NOT visible after site deactivation', async () => {
+            await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+            const adminFeedPage = new FeedPage(appManagerFixture.page);
+            await adminFeedPage.verifyThePageIsLoaded();
+            await adminFeedPage.actions.clickOnShowOption('all');
+
+            await adminFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+            await adminFeedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(albumTitle!);
+          });
+        } finally {
+          // Cleanup: Reactivate site and delete content
+          await test.step('Cleanup: Reactivate site and delete content', async () => {
+            if (allEmployeesSiteId) {
+              try {
+                await appManagerApiFixture.siteManagementHelper.siteManagementService.activateSite(allEmployeesSiteId);
+              } catch (error) {
+                console.warn(`Failed to reactivate site ${allEmployeesSiteId}:`, error);
+              }
+            }
+
+            if (allEmployeesSiteId && albumContentId) {
+              try {
+                await appManagerApiFixture.contentManagementHelper.deleteContent(allEmployeesSiteId, albumContentId);
+              } catch (error) {
+                console.warn(`Failed to delete album ${albumContentId}:`, error);
+              }
+            }
+          });
         }
       }
     );
