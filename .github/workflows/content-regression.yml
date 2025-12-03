@@ -187,7 +187,13 @@ jobs:
             echo "Running all tests without filters"
             TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
           else
-            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+            # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
+            # This ensures tests match ALL specified tags, not just one
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(IFS='.*'; echo "${ALL_TAGS[*]}")
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+            fi
             echo "Running Content tests with grep filter: $GREP_REGEX"
             TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
           fi
