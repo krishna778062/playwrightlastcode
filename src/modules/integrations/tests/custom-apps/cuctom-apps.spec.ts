@@ -58,7 +58,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-XXXXX',
+          zephyrTestId: 'INT-23404',
         });
 
         const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
@@ -86,7 +86,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-XXXXX',
+          zephyrTestId: 'INT-23402',
         });
 
         const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
@@ -216,7 +216,7 @@ test.describe(
         await customAppsPage.verifyToastMessageIsVisibleWithText(`${appName} added`);
 
         // Connect Box account via OAuth popup
-        await customAppsPage.connectBoxAccount('box2@simpplr.com', '_Simp_1234');
+        await customAppsPage.connectBoxAccount(boxApp.ACCOUNT_EMAIL, boxApp.ACCOUNT_PASSWORD);
 
         // Verify connection success toast message
         await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected to ${appName} successfully`);

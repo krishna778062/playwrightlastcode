@@ -19,6 +19,8 @@ export const CUSTOM_APPS_TEST_DATA = {
     AUTH_URL: 'https://account.box.com/api/oauth2/authorize',
     TOKEN_URL: 'https://api.box.com/oauth2/token',
     BASE_URL: 'https://api.box.com',
+    ACCOUNT_EMAIL: 'box2@simpplr.com',
+    ACCOUNT_PASSWORD: '_Simp_1234',
   },
 
   /**
