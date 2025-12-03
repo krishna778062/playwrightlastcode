@@ -406,6 +406,16 @@ export class SiteDashboard {
   }
   /**
    * Complete workflow to add an app tile with dropdown and text field
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param dropdownFieldName - The name of the first dropdown field
+   * @param dropdownValue - The value to select in the first dropdown
+   * @param textFieldName - The name of the text field
+   * @param textFieldValue - The value for the text field
+   * @param destination - The destination (Add to home/Add to site)
+   * @param secondDropdownFieldName - Optional second dropdown field name (appears when "All" is selected)
+   * @param secondDropdownValue - Optional second dropdown value
    */
   async addTileWithDropdownAndField(
     tileTitle: string,
@@ -415,14 +425,21 @@ export class SiteDashboard {
     dropdownValue: string,
     textFieldName: string,
     textFieldValue: string,
-    destination: string
+    destination: string,
+    secondDropdownFieldName?: string,
+    secondDropdownValue?: string
   ): Promise<void> {
+    const dropdowns = [{ fieldName: dropdownFieldName, value: dropdownValue }];
+
+    // If second dropdown field name and value are provided, add them to the dropdowns array
+    if (secondDropdownFieldName && secondDropdownValue) {
+      dropdowns.push({ fieldName: secondDropdownFieldName, value: secondDropdownValue });
+    }
     await this.addTile(tileTitle, appName, tileName, destination, {
-      dropdowns: [{ fieldName: dropdownFieldName, value: dropdownValue }],
+      dropdowns,
       fields: [{ name: textFieldName, value: textFieldValue }],
     });
   }
-
   /**
    * Complete workflow to add an app tile with manager defined settings
    */

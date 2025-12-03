@@ -186,11 +186,16 @@ export class ListFeedComponent extends BaseComponent {
       .getByRole('button', { name: 'Share this post' })
       .first();
 
+  readonly reportPostOption: Locator;
+  readonly reportReplyOption: Locator;
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
+    this.reportPostOption = this.page.getByRole('menuitem', { name: 'Report post' });
+    this.reportReplyOption = this.page.getByText('Report reply');
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
@@ -276,6 +281,18 @@ export class ListFeedComponent extends BaseComponent {
   async clickDeleteOption(): Promise<void> {
     await test.step('Click delete option', async () => {
       await this.clickOnElement(this.deleteButton);
+    });
+  }
+
+  async clickReportPostOption(): Promise<void> {
+    await test.step('Click Report post option', async () => {
+      await this.clickOnElement(this.reportPostOption);
+    });
+  }
+
+  async clickReportReplyOption(): Promise<void> {
+    await test.step('Click Report reply option', async () => {
+      await this.clickOnElement(this.reportReplyOption);
     });
   }
 
@@ -453,7 +470,40 @@ export class ListFeedComponent extends BaseComponent {
       }
       await this.clickOnReplyButton(postId);
     });
-    console.log('replyText :   ', replyText);
+    return replyText;
+  }
+
+  /**
+   * Adds a reply to a specific post with inappropriate content handling
+   * This method handles the case where inappropriate content warning popup appears
+   * @param replyText - The reply text to add
+   * @param postId - The post ID to reply to (optional, can be empty string)
+   * @param mentionUserName - Optional mention user name
+   */
+  async addReplyToPostWithInappropriateContent(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with inappropriate content handling`, async () => {
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+
+      // Wait for reply input to be visible (without waiting for API response)
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+      await this.fillInElement(this.replyEditor, replyText);
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else {
+        await this.fillInElement(this.replyEditor, replyText);
+      }
+
+      // Click submit reply button
+      await this.clickOnElement(this.submitReplyButton.first(), { stepInfo: 'Clicking on submit reply button' });
+    });
     return replyText;
   }
 
@@ -1437,6 +1487,29 @@ export class ListFeedComponent extends BaseComponent {
       const deletedMessage = postContainer.locator('div').filter({ hasText: /^This post has been deleted\.$/ });
       await this.verifier.verifyTheElementIsVisible(deletedMessage, {
         assertionMessage: `Deleted post message should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that a removed content message is displayed for a post that was removed due to inappropriate content
+   * @param postText - The text of the post to verify removed message for
+   */
+  async verifyRemovedContentMessage(postText: string): Promise<void> {
+    await test.step(`Verify removed content message is visible for post: ${postText}`, async () => {
+      // First, find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      // Verify the removed content message is visible within the post container
+      // The message should be: "This post has been removed due to inappropriate content"
+      const removedMessage = postContainer
+        .locator('div')
+        .filter({ hasText: /This post has been removed due to inappropriate content/i });
+      await this.verifier.verifyTheElementIsVisible(removedMessage, {
+        assertionMessage: `Removed content message should be visible for post "${postText}"`,
       });
     });
   }
