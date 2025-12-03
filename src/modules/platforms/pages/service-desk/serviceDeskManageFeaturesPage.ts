@@ -54,6 +54,10 @@ export class ServiceDeskManageFeaturesPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    // Not needed for this test - kept for BasePage compatibility
+    await test.step('Verify Manage Features page is loaded', async () => {
+      await expect(this.page.getByRole('heading', { name: 'Manage features' })).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
   }
 }
