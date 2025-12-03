@@ -549,16 +549,14 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
       return [];
     }
 
-    // Filter out "No logins" for percentage calculation (as it's not displayed in UI)
-    const visibleSegments = rawResults.filter(result => result.BEHAVIOUR !== 'No logins');
+    // Calculate total count from all segments (including "No logins" as it's now displayed in UI)
+    const totalCount = rawResults.reduce((sum, result) => sum + Number(result.COUNT), 0);
 
-    // Calculate total count only from visible segments (excluding "No logins")
-    const totalCount = visibleSegments.reduce((sum, result) => sum + Number(result.COUNT), 0);
-
-    // Transform and calculate percentages based on visible segments only
+    // Transform and calculate percentages based on all segments
+    // Note: UI displays "No logins" (plural) which matches the SQL query output, so no mapping needed
     return rawResults.map(result => {
       const count = Number(result.COUNT);
-      // Use visible segments total for percentage calculation, rounded to 2 decimal places to match UI
+      // Calculate percentage based on total count of all segments, rounded to 2 decimal places to match UI
       const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100 * 100) / 100 : 0;
       return {
         behaviour: result.BEHAVIOUR,

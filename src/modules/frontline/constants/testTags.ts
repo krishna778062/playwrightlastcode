@@ -3,6 +3,7 @@ export const FrontlineFeatureTags = {
   HEALTHCHECK: '@healthcheck',
   DND: '@dndAppRestriction',
   LOGIN_WITH_OTP: '@loginWithOtp',
+  LWO_PROFILE: '@profile',
 } as const;
 
 export const FrontlineSuiteTags = {

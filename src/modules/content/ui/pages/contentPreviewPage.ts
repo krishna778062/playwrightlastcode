@@ -8,6 +8,7 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
@@ -16,6 +17,7 @@ import { MustReadModalComponent } from '@/src/modules/content/ui/components/must
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
+  clickShareContentButton(): Promise<void>;
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
   enterRejectReason: (reason: string) => Promise<void>;
@@ -63,6 +65,13 @@ export interface IContentPreviewPageAssertions {
   verifyCommentCount: (expectedCount: number) => Promise<void>;
   verifyMustReadModalIsVisible: () => Promise<void>;
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotVisible(text: string): Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
+  verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
   verifyContentIsNotAMustRead: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
@@ -98,6 +107,13 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
   readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
   readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
+  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
+  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
+  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
+  readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
+  readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -119,7 +135,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.contentDetailsComponent = new ContentDetailsComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
-    this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 
@@ -275,6 +290,9 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async waitForPostToBeVisible(expectedText: string): Promise<void> {
     await this.listFeedComponent.waitForPostToBeVisible(expectedText);
   }
+  async verifyPostIsNotVisible(text: string): Promise<void> {
+    await this.listFeedComponent.verifyPostIsNotVisible(text);
+  }
 
   /**
    * Clicks the share thoughts button to open post editor
@@ -315,6 +333,21 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    */
   async clickOnMustReadModalCancelButton(): Promise<void> {
     await this.mustReadModalComponent.clickOnMustReadModalCancelButton();
+  }
+  async clickOnFavouriteContentButton(): Promise<void> {
+    await test.step('Click on favourite content button', async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.favouriteContentButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.favourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await publishResponse.finished();
+    });
   }
 
   /**
@@ -361,8 +394,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       // Find reply containers using the new classes - this is the primary method
       // Count only visible comment containers
       const count = await this.page.locator('div[class*="_postBody_eonic_8"]').count();
-
-      console.log('Count of visible comments: ', count);
 
       return count;
     });
@@ -411,9 +442,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.clickOnElement(allCommentsLink);
     });
   }
+
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
   }
+
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
   }
@@ -436,6 +469,54 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyReplyEditorClosed(postText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyEditorClosed(postText);
+  }
+
+  async verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+  }
+
+  /**
+   * Verifies that the share button is not visible on content detail page
+   */
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible on Feed post on content page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.sharePostButton, {
+        assertionMessage: 'Share button should not be visible on content detail page',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the share button is not visible on comments
+   */
+  async verifyContentShareButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify share button is not visible for Content Page', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
+        assertionMessage: 'Share button should not be visible on Content Page when timeline mode is enabled',
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed posts/comments
+   */
+  async verifyReactionButtonIsVisible(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisible();
+  }
+
+  /**
+   * Verifies that the reaction button is visible on feed replies/comment replies
+   */
+  async verifyReactionButtonIsVisibleForReply(): Promise<void> {
+    await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  /**
+   * Verifies that a reply is visible
+   */
+  async verifyReplyIsVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyIsVisible(replyText);
   }
 
   async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
@@ -476,5 +557,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickShareContentButton(): Promise<void> {
+    await test.step('Click Share content button', async () => {
+      await this.clickOnElement(this.shareContentButton);
+    });
   }
 }

@@ -203,3 +203,23 @@ export interface QuestionResponse extends FeedPostResponse {
     type: 'question';
   };
 }
+
+/**
+ * Response structure for getting question details (GetFeedPost API)
+ */
+export interface GetQuestionDetailsResponse {
+  apiName: string;
+  status: string;
+  message: string;
+  result: FeedResult & {
+    title: string;
+    type: 'question';
+    duplicateOf: string | null;
+    listOfDuplicates: any[];
+    audiences: any[];
+    odinFeedId: string | null;
+    canMarkDuplicate: boolean;
+  };
+  responseTimeStamp: number;
+  delay: number;
+}

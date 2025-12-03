@@ -13,7 +13,7 @@ export default defineConfig({
   ...baseConfig,
   timeout: TIMEOUTS.VERY_LONG,
   name: 'Content API Automation',
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'api-tests'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-common', 'api'),
   testMatch: '**/*.spec.ts',
   use: {
     ...baseConfig.use,

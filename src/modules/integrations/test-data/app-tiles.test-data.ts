@@ -114,9 +114,10 @@ export const REDIRECT_URLS = {
   WORKDAY_INBOX_TASKS_REPORT:
     'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
-  FRESHSERVICE: 'https://simpplr-908291654763877589.myfreshworks.com',
+  FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
+  ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
 } as const;
 
 /**
@@ -189,6 +190,7 @@ export const GREENHOUSE_VALUES = {
   INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+  SHOW_ALL_REDIRECT_URL: 'Show all redirect url',
 } as const;
 
 export const SERVICE_NOW_VALUES = {
@@ -197,4 +199,21 @@ export const SERVICE_NOW_VALUES = {
   CONSUMER_KEY: '3488c64de4b34dd8a6bddf91911aa1fe',
   SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
   URL: 'https://dev275557.service-now.com',
+} as const;
+
+export const GREENHOUSE_CREDS = {
+  API_Token: 'Basic N2RlMTdmNzQ3ZjdiZjJhNzNiOTI1ODBiM2I5OTY2NmMtMzo=',
+} as const;
+
+/**
+ * Workday credentials and config for People data
+ */
+export const WORKDAY_CREDS = {
+  USERNAME: 'WorkdayWebServices_ISU',
+  PASSWORD: 'A1b@cD3#eF!',
+  WSURL: 'https://impl-services1.wd12.myworkday.com/ccx/service',
+  TENANT_ID: 'simpplr_dpt1',
+  CLIENT_ID: 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl',
+  CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
+  REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
 } as const;
