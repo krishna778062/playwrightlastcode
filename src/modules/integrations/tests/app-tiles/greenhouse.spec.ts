@@ -11,7 +11,7 @@ import { GREENHOUSE_VALUES } from '../../test-data/app-tiles.test-data';
 
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GREENHOUSE_CREDS, REDIRECT_URLS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
-import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsListComponent';
+import { AppConnectorOptions } from '@/src/modules/integrations/ui/components/customAppsComponent';
 import { CustomAppsIntegrationPage } from '@/src/modules/integrations/ui/pages/customAppsIntegrationPage';
 
 test.describe(
