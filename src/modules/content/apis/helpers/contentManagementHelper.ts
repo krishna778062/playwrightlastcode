@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { log } from '@core/utils/logger';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -82,7 +83,6 @@ export class ContentManagementHelper {
     }
 
     // No content found, get a site from site service and create a page
-    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
     // Get sites filtered by access type
     const sitesResponse = await this.siteManagementService.getListOfSites({
@@ -140,18 +140,19 @@ export class ContentManagementHelper {
 
   async getContentCreatedAtDetails(
     sortBy: ContentSortBy,
-    options?: { size?: number; filter?: string; status?: string }
+    options?: { size?: number; filter?: string; status?: string; contribution?: string }
   ): Promise<string[] | null> {
     const size = options?.size || 1000;
     const filter = options?.filter || 'owned';
     const status = options?.status || 'published';
+    const contribution = options?.contribution || 'all';
 
     const siteListResponse = await this.contentManagementService.getContentList({
       sortBy: sortBy,
       size: size,
-      contribution: 'all',
       filter: filter, // Match curl command parameter
       status: status, // Match curl command parameter
+      contribution: contribution,
     });
 
     // Determine which date field to use based on sort type
@@ -186,23 +187,51 @@ export class ContentManagementHelper {
       }
 
       if (targetDate) {
-        const date = new Date(targetDate);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // Extract date directly from ISO string (YYYY-MM-DD) to avoid timezone conversion
+        // API returns: "2025-11-30T23:59:00.000Z" -> extract "2025-11-30"
+        const dateUTCString = targetDate.split('T')[0];
 
-        // Check if the date is today using UTC comparison
-        if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+        // Validate the date string format
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTCString)) {
+          console.warn(`Invalid date string format: ${targetDate}`);
+          continue;
+        }
+
+        // Get today and yesterday dates using local timezone to match UI behavior
+        // The UI uses the browser's local timezone to determine "Today" vs "Yesterday"
+        const now = new Date();
+        // Convert API UTC date to local date for comparison
+        const apiDate = new Date(targetDate);
+        const apiLocalDateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`;
+
+        // Get today's local date string
+        const todayLocalDateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        // Get yesterday's local date string
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayLocalDateString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+        // Debug: Log comparison for debugging
+        console.log(
+          `Item ${i}: Comparing apiLocalDateString="${apiLocalDateString}" with todayLocalDateString="${todayLocalDateString}" and yesterdayLocalDateString="${yesterdayLocalDateString}" (UTC: dateUTCString="${dateUTCString}")`
+        );
+
+        // Check if the date is today using local date string comparison
+        // This matches the UI behavior which uses local timezone
+        if (apiLocalDateString === todayLocalDateString) {
           dates.push('Today');
         }
-        // Check if the date is yesterday using UTC comparison
-        else if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+        // Check if the date is yesterday using local date string comparison
+        else if (apiLocalDateString === yesterdayLocalDateString) {
           dates.push('Yesterday');
         }
-        // For other dates, return formatted date
+        // For other dates, return formatted date using UTC components
         else {
           const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
-          const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+          // Parse the UTC date string (YYYY-MM-DD) to get exact date components
+          const [year, month, day] = dateUTCString.split('-').map(Number);
+          const formattedDate = `${monthNames[month - 1]} ${day}, ${year}`;
           dates.push(formattedDate);
         }
       } else {
@@ -351,6 +380,74 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async createDraftPage(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      waitForSearchIndex?: boolean;
+      publishAt?: string;
+      publishTo?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, contentInfo, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+    const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+    const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    const pageResult = await this.contentManagementService.saveDraftPageContent(siteId, {
+      title: finalPageName,
+      body,
+      bodyHtml,
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      contentType: contentInfo.contentType,
+      contentSubType: contentInfo.contentSubType,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+      ...(options.publishAt && { publishAt: options.publishAt }),
+      ...(options.publishTo && { publishTo: options.publishTo }),
+    });
+
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalPageName,
+        objectType: 'content',
+      });
+    }
+
+    const createdContent = {
+      siteId,
+      contentId: pageResult.pageId,
+      pageName: finalPageName,
+      authorName: pageResult.authorName,
+      contentDescription: finalContentDescription,
+      publishAt: pageResult.publishAt,
+      publishTo: pageResult.publishTo,
+      isScheduled: pageResult.isScheduled,
+    };
+    this.content.push({ siteId, contentId: pageResult.pageId });
+    return { ...createdContent };
+  }
+
   /**
    * Creates a new scheduled page in an existing site
    * @param siteId - The ID of the existing site
@@ -441,13 +538,10 @@ export class ContentManagementHelper {
     if (contentId && siteId) {
       try {
         await this.contentManagementService.deleteContent(siteId, contentId);
-        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
       } catch (error) {
-        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        log.error(`Failed to delete content ${contentId} from site ${siteId}`, error);
         throw error;
       }
-    } else {
-      console.log('No content ID or site ID provided for deletion');
     }
   }
 
