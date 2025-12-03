@@ -356,7 +356,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-15418',
+          zephyrTestId: 'INT-15414',
         });
 
         const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
