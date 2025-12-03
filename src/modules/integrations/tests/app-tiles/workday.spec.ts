@@ -10,7 +10,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import {
+  CONNECTOR_IDS,
+  REDIRECT_URLS,
+  TILE_IDS,
+  WORKDAY_CREDS,
+} from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
 const CreateAnotherRequest = 'Create another request';
@@ -23,16 +28,6 @@ const AppManagerDefined = 'App manager defined';
 const SiteManagerDefined = 'Site manager defined';
 const PayslipListUrl = 'Payslip list URL';
 const InboxTasksReportUrl = 'Inbox tasks report URL';
-// Workday credentials for People data configuration
-const WORKDAY_USERNAME = 'WorkdayWebServices_ISU';
-const WORKDAY_PASSWORD = 'A1b@cD3#eF!';
-const WORKDAY_WSURL = 'https://impl-services1.wd12.myworkday.com/ccx/service';
-const WORKDAY_TENANT_ID = 'simpplr_dpt1';
-const WORKDAY_CLIENT_ID = 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl';
-const WORKDAY_CLIENT_SECRET =
-  'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3';
-const WORKDAY_REFRESH_TOKEN =
-  'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj';
 
 test.describe(
   'workday App Tiles Integration',
@@ -55,7 +50,7 @@ test.describe(
       'verify workday is connected with valid credentials',
       {
         tag: [
-          TestPriority.P1,
+          TestPriority.P0,
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
@@ -74,13 +69,13 @@ test.describe(
         await peopleTab.navigateToPeopleDataPage();
         await peopleTab.deselectWorkdayIfChecked();
         await peopleTab.configureWorkdayCredentials({
-          username: WORKDAY_USERNAME,
-          password: WORKDAY_PASSWORD,
-          wsdlUrl: WORKDAY_WSURL,
-          tenantId: WORKDAY_TENANT_ID,
-          clientId: WORKDAY_CLIENT_ID,
-          clientSecret: WORKDAY_CLIENT_SECRET,
-          refreshToken: WORKDAY_REFRESH_TOKEN,
+          username: WORKDAY_CREDS.USERNAME,
+          password: WORKDAY_CREDS.PASSWORD,
+          wsdlUrl: WORKDAY_CREDS.WSURL,
+          tenantId: WORKDAY_CREDS.TENANT_ID,
+          clientId: WORKDAY_CREDS.CLIENT_ID,
+          clientSecret: WORKDAY_CREDS.CLIENT_SECRET,
+          refreshToken: WORKDAY_CREDS.REFRESH_TOKEN,
         });
         await peopleTab.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
       }
