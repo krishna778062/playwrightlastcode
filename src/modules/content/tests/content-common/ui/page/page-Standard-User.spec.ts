@@ -11,9 +11,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-
 import { FileUtil } from '@/src/core/utils/fileUtil';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 

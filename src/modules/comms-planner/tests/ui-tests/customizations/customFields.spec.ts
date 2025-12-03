@@ -1,13 +1,19 @@
+import { CUSTOM_FIELD_TYPES } from '@modules/comms-planner/constants/constant';
+import { test } from '@modules/comms-planner/fixtures/loginFixture';
+import {
+  createCustomField,
+  deleteCustomField,
+  verifyCustomFieldInListing,
+} from '@modules/comms-planner/helpers/customField';
 import { CustomFieldsPage } from '@modules/comms-planner/pages/customizations/customFieldsPage';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { test } from '@/src/modules/comms-planner/fixtures/loginFixture';
 
 test.describe('customizations - Custom field', () => {
   let customFieldsPage: CustomFieldsPage;
-  const DATE_NOW: number = new Date().getTime();
+  const DATE_NOW: string = Date.now().toString().slice(-6);
 
   test.beforeEach(async ({ appManagersPage }) => {
     customFieldsPage = new CustomFieldsPage(appManagersPage);
@@ -35,16 +41,13 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `Label | ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.LABEL,
         options: [`option 1`, `option 2`, `option 3`],
       };
 
-      // await customFieldsPage.filterCustomFieldListingByFieldType(`Label`);
-
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeLabel(meta.options);
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 
@@ -67,13 +70,12 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `Text - ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.TEXT,
       };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeText();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 
@@ -96,13 +98,12 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `TA - ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.TEXTAREA,
       };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeTextArea();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 
@@ -125,13 +126,12 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `Num - ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.NUMBER,
       };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeNumber();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 
@@ -154,13 +154,12 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `Date - ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.DATE,
       };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeDate();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 
@@ -183,14 +182,13 @@ test.describe('customizations - Custom field', () => {
       });
       const meta = {
         name: `DD - ${DATE_NOW}`,
+        type: CUSTOM_FIELD_TYPES.DROPDOWN,
         options: [`option 1`, `option 2`, `option 3`],
       };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeDD(meta.options);
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await deleteCustomField(customFieldsPage, meta);
     }
   );
 });

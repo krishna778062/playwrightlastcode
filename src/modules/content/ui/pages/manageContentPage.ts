@@ -366,13 +366,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async checkValidateOptionInBulkActions(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
-    console.log('clicking on checkbox');
     await this.clickOnElement(this.clickOnBulkOptions);
-    console.log('clicking on bulk options');
     await this.verifier.verifyTheElementIsVisible(this.validateOption, {
       assertionMessage: 'Validate option should be visible in bulk actions',
     });
-    console.log('validate option should be visible in bulk actions');
   }
   async openContentDetailsPage(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
