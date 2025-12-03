@@ -78,4 +78,29 @@ export class PeopleTabPage extends BasePage {
   async verifyDisableFieldsForSyncing(): Promise<void> {
     await this.peopleTabComponent.verifyDisableFieldsForSyncing();
   }
+
+  async navigateToPeopleDataPage(): Promise<void> {
+    await this.goToUrl(PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
+    await this.peopleTabComponent.verifyNavigatedToPeoplePage();
+  }
+
+  async deselectWorkdayIfChecked(): Promise<void> {
+    await this.peopleTabComponent.deselectWorkdayIfChecked();
+  }
+
+  async configureWorkdayCredentials(params: {
+    username: string;
+    password: string;
+    wsdlUrl: string;
+    tenantId: string;
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+  }): Promise<void> {
+    await this.peopleTabComponent.configureWorkdayCredentials(params);
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.verifyToastMessageIsVisibleWithText(message);
+  }
 }
