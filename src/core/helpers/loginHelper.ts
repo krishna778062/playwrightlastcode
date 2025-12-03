@@ -27,7 +27,7 @@ export class LoginHelper {
 
     const identifierLookup: Record<string, () => string> = {
       email: () => user.email || tenantConfig?.appManagerEmail || '',
-      employee: () => tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '',
+      employee: () => user.email || tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '',
       mobile: () => tenantConfig?.QA_MOBILE || tenantConfig?.UAT_MOBILE || '',
       phone: () =>
         tenantConfig?.QA_ALTERNATE_PHONE ||

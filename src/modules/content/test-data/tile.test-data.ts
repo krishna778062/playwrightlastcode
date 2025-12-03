@@ -312,4 +312,98 @@ export const TILE_TEST_DATA = {
       isNewTiptap: false,
     };
   },
+
+  /**
+   * Generates a content from category tile payload
+   */
+  CONTENT_FROM_CATEGORY_TILE: (overrides?: {
+    title?: string;
+    pageCategoryId?: string;
+    siteFilter?: 'following' | 'all' | 'site';
+    siteId?: string | null;
+    layout?: 'standard' | 'grid' | 'list';
+    pushToAllHomeDashboards?: boolean;
+  }) => ({
+    siteId: null,
+    dashboardId: 'home',
+    tile: {
+      title: overrides?.title || faker.company.buzzNoun() + ' Content From Category Tile',
+      options: {
+        pageCategoryId: overrides?.pageCategoryId || '',
+        layout: overrides?.layout || 'standard',
+        siteFilter: overrides?.siteFilter || 'site',
+        siteId: overrides?.siteId ?? null,
+      },
+      pushToAllHomeDashboards: overrides?.pushToAllHomeDashboards ?? false,
+      items: [],
+      type: 'content',
+      variant: 'from_category',
+    },
+    isNewTiptap: false,
+  }),
+
+  /**
+   * Generates an HTML text (Rich Text) tile payload
+   */
+  HTML_TEXT_TILE: (overrides?: {
+    title?: string;
+    text?: string;
+    bodyHtml?: string;
+    pushToAllHomeDashboards?: boolean;
+  }) => ({
+    siteId: null,
+    dashboardId: 'home',
+    tile: {
+      title: overrides?.title || faker.company.buzzNoun() + ' Rich Text Tile',
+      options: {
+        text:
+          overrides?.text ||
+          '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test rich text content"}]}]}',
+        bodyHtml: overrides?.bodyHtml || '<p>Test rich text content</p>',
+      },
+      pushToAllHomeDashboards: overrides?.pushToAllHomeDashboards ?? false,
+      items: [],
+      type: 'html',
+      variant: 'text',
+    },
+    isNewTiptap: true,
+  }),
+
+  /**
+   * Generates a media video tile payload
+   */
+  MEDIA_VIDEO_TILE: (overrides?: {
+    title?: string;
+    url?: string;
+    description?: string;
+    showInfo?: boolean;
+    pushToAllHomeDashboards?: boolean;
+    oembed?: any;
+    initialUrl?: string;
+    videoFile?: string | null;
+    videoTitle?: string;
+  }) => {
+    const videoUrl = overrides?.url || 'https://www.youtube.com/watch?v=Uszj_k0DGsg';
+    return {
+      siteId: null,
+      dashboardId: 'home',
+      tile: {
+        title: overrides?.title || faker.company.buzzNoun() + ' Video Tile',
+        options: {
+          url: videoUrl,
+          description: overrides?.description || 'Video description',
+          showInfo: overrides?.showInfo ?? true,
+          initialUrl: overrides?.initialUrl || videoUrl,
+          videoFile: overrides?.videoFile ?? null,
+          title: overrides?.videoTitle || 'Video Title',
+          ...(overrides?.oembed && { oembed: overrides.oembed }),
+        },
+        pushToAllHomeDashboards: overrides?.pushToAllHomeDashboards ?? false,
+        items: [],
+        type: 'media',
+        variant: 'video',
+      },
+      isNewTiptap: false,
+    };
+  },
 } as const;
