@@ -190,6 +190,7 @@ export const GREENHOUSE_VALUES = {
   INTERNAL: 'Internal',
   JOB_BOARD_TOKEN: 'Job board token',
   JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+  SHOW_ALL_REDIRECT_URL: 'Show all redirect url',
 } as const;
 
 export const SERVICE_NOW_VALUES = {
