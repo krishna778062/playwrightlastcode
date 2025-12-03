@@ -2,10 +2,9 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { getContentConfigFromCache } from '../../../config/contentConfig';
-
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
+import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
