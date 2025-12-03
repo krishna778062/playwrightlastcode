@@ -28,6 +28,7 @@ export const FEED_TEST_DATA = {
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
     EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
   },
   TIMEOUTS: {
