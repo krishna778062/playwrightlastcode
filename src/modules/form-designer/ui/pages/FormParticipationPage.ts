@@ -17,6 +17,7 @@ export class FormParticipationPage extends BasePage {
   readonly numberResponse: Locator;
   readonly emailResponse: Locator;
   readonly fileUploadResponse: Locator;
+  // fileUploadResponsePreview declared below as a function returning Locator
   readonly imageResponse: Locator;
   readonly multiSelectResponse: (multiSelectValue: string) => Locator;
   readonly singleSelectResponse: (singleSelectValue: string) => Locator;
@@ -35,7 +36,15 @@ export class FormParticipationPage extends BasePage {
   readonly timecomponent: Locator;
   readonly mandatoryFieldError: (heading: string) => Locator;
   readonly mandatoryFieldErrorNew: (heading: string) => Locator;
+  readonly mandatoryFieldErrorAddress: (heading: string, message: string) => Locator;
   readonly previewForm: Locator;
+  readonly addressLine1Response: Locator;
+  readonly addressLine2Response: Locator;
+  readonly cityTownResponse: Locator;
+  readonly stateRegionProvinceResponse: Locator;
+  readonly zipPostCodeResponse: Locator;
+  readonly countryResponse: Locator;
+  readonly fileUploadResponsePreview: (fileName: string) => Locator;
 
   readonly submitButton: Locator;
 
@@ -79,6 +88,15 @@ export class FormParticipationPage extends BasePage {
     this.previewForm = this.page.getByRole('group', { name: 'Preview' });
     this.ratingResponseNew = (ratingValue: string) =>
       this.page.getByRole('button', { name: `Rating field input selected icon ${ratingValue}`, exact: true });
+    this.mandatoryFieldErrorAddress = (heading: string, message: string) =>
+      this.page.locator(`//span[normalize-space()='${heading}']/../../following::div[text()='${message}']`);
+    this.addressLine1Response = this.page.getByRole('textbox', { name: 'Address line 1 ' });
+    this.addressLine2Response = this.page.getByRole('textbox', { name: 'Address line 2 *', exact: true });
+    this.cityTownResponse = this.page.getByRole('textbox', { name: 'City/Town *', exact: true });
+    this.stateRegionProvinceResponse = this.page.getByRole('textbox', { name: 'State/Region/Province *', exact: true });
+    this.zipPostCodeResponse = this.page.getByRole('textbox', { name: 'Zip/Postal code *', exact: true });
+    this.countryResponse = this.page.getByRole('textbox', { name: 'Country *', exact: true });
+    this.fileUploadResponsePreview = (fileName: string) => this.page.getByText(fileName);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -179,19 +197,6 @@ export class FormParticipationPage extends BasePage {
       await this.clickOnElement(this.opinionResponse(response));
     });
   }
-  // async fillResponseIntoFileUploadField(response: string): Promise<void> {
-  //   await test.step('Fill response into file upload field', async () => {
-  //     console.log('File uploaded successfully ::: ' + this.getFileToUpload(response));
-  //     await this.fileUploadResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
-  //     await this.fileUploadResponse.setInputFiles(this.getFileToUpload(response));
-  //   });
-  // }
-  // async fillResponseIntoImageField(response: string): Promise<void> {
-  //   await test.step('Fill response into image field', async () => {
-  //     await this.imageResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
-  //     await this.imageResponse.setInputFiles(this.getFileToUpload(response));
-  //   });
-  // }
 
   async fillResponseIntoFileUploadField(fileName: string): Promise<void> {
     await test.step(`Upload file: ${fileName}`, async () => {
@@ -349,6 +354,136 @@ export class FormParticipationPage extends BasePage {
         .expect(
           await this.mandatoryFieldErrorNew(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyAddressField1IsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addressLine1Response, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.addressLine1Response, 'Automation-response-Address line 1');
+      await this.fillInElement(this.addressLine1Response, '');
+      await this.addressLine1Response.blur();
+      await this.clickOnElement(this.previewForm);
+      test
+        .expect(
+          await this.mandatoryFieldErrorAddress(heading, message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Mandatory field error should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyAddressField2IsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addressLine2Response, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.addressLine2Response, 'Automation-response-Address line 2');
+      await this.fillInElement(this.addressLine2Response, '');
+      await this.addressLine2Response.blur();
+    });
+    await this.clickOnElement(this.previewForm);
+    test
+      .expect(
+        await this.mandatoryFieldErrorAddress(heading, message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
+  async verifyCityTownIsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cityTownResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.cityTownResponse, 'Automation-response-City/Town');
+      await this.fillInElement(this.cityTownResponse, '');
+      await this.cityTownResponse.blur();
+    });
+    await this.clickOnElement(this.previewForm);
+  }
+  async verifyStateRegionProvinceIsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.stateRegionProvinceResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.stateRegionProvinceResponse, 'Automation-response-State/Region/Province');
+      await this.fillInElement(this.stateRegionProvinceResponse, '');
+      await this.stateRegionProvinceResponse.blur();
+    });
+    await this.clickOnElement(this.previewForm);
+  }
+
+  async verifyZipPostCodeIsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.zipPostCodeResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.zipPostCodeResponse, 'Automation-response-Zip/Post code');
+      await this.fillInElement(this.zipPostCodeResponse, '');
+      await this.zipPostCodeResponse.blur();
+    });
+    await this.clickOnElement(this.previewForm);
+  }
+  async verifyCountryIsMandatory(heading: string, message: string): Promise<void> {
+    await test.step(`Verify ${message} field is mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.countryResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.countryResponse, 'Automation-response-Country');
+      await this.fillInElement(this.countryResponse, '');
+      await this.countryResponse.blur();
+    });
+    await this.clickOnElement(this.previewForm);
+  }
+
+  async fillResponseIntoAddressLine1Field(response: string): Promise<void> {
+    await test.step('Fill response into address line 1 field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addressLine1Response, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.addressLine1Response, response);
+    });
+  }
+  async fillResponseIntoAddressLine2Field(response: string): Promise<void> {
+    await test.step('Fill response into address line 2 field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addressLine2Response, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.addressLine2Response, response);
+    });
+  }
+  async fillResponseIntoCityTownField(response: string): Promise<void> {
+    await test.step('Fill response into city/town field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cityTownResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.cityTownResponse, response);
+    });
+  }
+  async fillResponseIntoStateRegionProvinceField(response: string): Promise<void> {
+    await test.step('Fill response into state/region/province field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.stateRegionProvinceResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.stateRegionProvinceResponse, response);
+    });
+  }
+  async fillResponseIntoZipPostCodeField(response: string): Promise<void> {
+    await test.step('Fill response into zip/post code field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.zipPostCodeResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.zipPostCodeResponse, response);
+    });
+  }
+  async fillResponseIntoCountryField(response: string): Promise<void> {
+    await test.step('Fill response into country field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.countryResponse, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.countryResponse, response);
+    });
+  }
+  async verifyFileUploadResponse(fileName: string): Promise<void> {
+    await test.step(`Verify ${fileName} file upload response`, async () => {
+      test
+        .expect(
+          await this.fileUploadResponsePreview(fileName).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${fileName} file upload response should be visible`
+        )
+        .toBe(true);
+    });
+  }
+  async verifyEmailValidationMessage(heading: string, message: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });
+    await this.clickOnElement(this.previewForm);
+    await test.step('Verify email validation message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorAddress(heading, message), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      test
+        .expect(
+          await this.mandatoryFieldErrorAddress(heading, message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${message} - Email validation message should be visible`
         )
         .toBe(true);
     });

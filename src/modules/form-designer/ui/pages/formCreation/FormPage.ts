@@ -573,6 +573,15 @@ export class FormCreationPage extends BasePage {
     });
   }
 
+  async makeAddressFieldsMandatory(message: string): Promise<void> {
+    await test.step(`Make ${message} field mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator('switch', message), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.getRoleLocator('switch', message));
+    });
+  }
+
   async clickOnCopyIcon(): Promise<void> {
     await test.step('Click on copy icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.copyIcon, { timeout: TIMEOUTS.MEDIUM });

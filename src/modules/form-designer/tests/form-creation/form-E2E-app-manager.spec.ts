@@ -156,7 +156,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.FIX,
         ],
       },
       async ({ appManagerPage }) => {
@@ -607,6 +606,210 @@ test.describe(
         await formCreationPage.clickOn('menuitem', 'Delete');
         await formCreationPage.clickOn('button', 'Delete');
         await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using address component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using address component as mandatory field and participate',
+          zephyrTestId: 'ELF-890',
+          storyId: 'ELF-890',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Address');
+        await formCreationPage.addHeadingIntoComponent('Address', 'Automation Test - Address Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeAddressFieldsMandatory('Address is required');
+        await formCreationPage.makeAddressFieldsMandatory('Address line 2 is required');
+        await formCreationPage.makeAddressFieldsMandatory('City/Town is required');
+        await formCreationPage.makeAddressFieldsMandatory('State/Region/Province is');
+        await formCreationPage.makeAddressFieldsMandatory('Zip/Post code is required');
+        await formCreationPage.makeAddressFieldsMandatory('Country is required');
+        await formCreationPage.makeAddressFieldsMandatory('Show error messages');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyAddressField1IsMandatory(
+          'Automation Test - Address Description',
+          'Address is required'
+        );
+        await formParticipationPage.verifyAddressField2IsMandatory(
+          'Automation Test - Address Description',
+          'Address line 2 is required'
+        );
+        await formParticipationPage.verifyCityTownIsMandatory(
+          'Automation Test - Address Description',
+          'City/Town is required'
+        );
+        await formParticipationPage.verifyStateRegionProvinceIsMandatory(
+          'Automation Test - Address Description',
+          'State/Region/Province is required'
+        );
+        await formParticipationPage.verifyZipPostCodeIsMandatory(
+          'Automation Test - Address Description',
+          'Zip/Post code is required'
+        );
+        await formParticipationPage.verifyCountryIsMandatory(
+          'Automation Test - Address Description',
+          'Country is required'
+        );
+        await formParticipationPage.fillResponseIntoAddressLine1Field('Automation-response-Address line 1');
+        await formParticipationPage.fillResponseIntoAddressLine2Field('Automation-response-Address line 2');
+        await formParticipationPage.fillResponseIntoCityTownField('Automation-response-City/Town');
+        await formParticipationPage.fillResponseIntoStateRegionProvinceField(
+          'Automation-response-State/Region/Province'
+        );
+        await formParticipationPage.fillResponseIntoZipPostCodeField('123456');
+        await formParticipationPage.fillResponseIntoCountryField('Automation-response-Country');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to fill responses on preview screen same as participation page for media components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to fill responses on preview screen same as participation page for media components',
+          zephyrTestId: 'ELF-908',
+          storyId: 'ELF-908',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.clickOnPreviewButton();
+        await formParticipationPage.fillResponseIntoFileUploadField('sample_csv.csv');
+        await formParticipationPage.fillResponseIntoImageField('image1.jpg');
+        await formParticipationPage.verifyFileUploadResponse('sample_csv.csv');
+        await formParticipationPage.verifyFileUploadResponse('image1.jpg');
+      }
+    );
+
+    test(
+      'email Validation Message- Verify the validation message appear when Standard user enters the invalid/Valid email and try to click on submit button.',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Email Validation Message- Verify the validation message appear when Standard user enters the invalid/Valid email and try to click on submit button.',
+          zephyrTestId: 'ELF-126',
+          storyId: 'ELF-126',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Email');
+        await formCreationPage.addHeadingIntoComponent('Email', 'Automation Test - Email Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.fillResponseIntoEmailField('test');
+        await formParticipationPage.verifyEmailValidationMessage(
+          'Automation Test - Email Description',
+          'Please enter a valid email address'
+        );
+
+        //delete the form
+        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formCreationPage.clickOn('menuitem', 'Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+      }
+    );
+
+    test(
+      'verify app manager able to fill responses on preview screen same as participation page for multi choice components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          TestGroupType.E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to fill responses on preview screen same as participation page for multi choice components',
+          zephyrTestId: 'ELF-907',
+          storyId: 'ELF-907',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('multi select');
+        await formCreationPage.dragAndDropElement('single select');
+        await formCreationPage.dragAndDropElement('dropdown');
+        await formCreationPage.clickOnPreviewButton();
+        await formParticipationPage.fillResponseIntoMultiSelectField('Weekly');
+        await formParticipationPage.fillResponseIntoMultiSelectField('Monthly');
+        await formParticipationPage.fillResponseIntoMultiSelectField('Yearly');
+        await formParticipationPage.fillResponseIntoSingleSelectField('Weekly');
+        await formParticipationPage.fillResponseIntoDropdownField('Yearly');
       }
     );
   }
