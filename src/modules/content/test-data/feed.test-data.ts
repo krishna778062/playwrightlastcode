@@ -6,6 +6,7 @@ export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
+    CONTENT_UNPUBLISHED: 'Unpublished content successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
   },
   ATTACHMENTS: {
