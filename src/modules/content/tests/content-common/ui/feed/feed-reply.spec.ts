@@ -362,6 +362,7 @@ test.describe(
     let socialUserPostId: string;
     let endUserInfo: { userId: string; fullName: string };
     let socialUserInfo: { userId: string; fullName: string };
+    let createdPostId: string;
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture, socialCampaignManagerFixture }) => {
       // Configure app governance settings
@@ -415,6 +416,10 @@ test.describe(
       if (socialUserPostId) {
         await appManagerFixture.feedManagementHelper.deleteFeed(socialUserPostId);
         socialUserPostId = '';
+      }
+      if (createdPostId) {
+        await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        createdPostId = '';
       }
     });
 
@@ -484,6 +489,7 @@ test.describe(
         const user2Info = { userId: user2Data.userId, fullName: user2Data.fullName };
 
         // Step 1: Login as User 1 and create a feed post with attachment via UI
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const user1FeedPage = new FeedPage(appManagerFixture.page);
         await user1FeedPage.verifyThePageIsLoaded();
 
@@ -510,12 +516,14 @@ test.describe(
         // Create and post the feed with attachment
         const postResult = await user1FeedPage.actions.createAndPost({ text: postText });
         const postId = postResult.postId || '';
+        createdPostId = postId;
 
         // Verify post is visible
         await user1FeedPage.assertions.waitForPostToBeVisible(postText);
 
         // Step 2: Login as User 2 and reply to User 1's post
         const user2FeedPage = new FeedPage(siteManagerFixture.page);
+        await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
         await user2FeedPage.verifyThePageIsLoaded();
         await user2FeedPage.reloadPage();
         await user2FeedPage.assertions.waitForPostToBeVisible(postText);
@@ -538,9 +546,6 @@ test.describe(
         const shortReplyText = replyText.substring(0, 25);
         const expectedNotificationMessage = `${user2Info.fullName} replied to your post "${shortReplyText}`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
-
-        // Cleanup: Delete the created post
-        await appManagerFixture.feedManagementHelper.deleteFeed(postId);
       }
     );
   }
