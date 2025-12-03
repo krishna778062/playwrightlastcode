@@ -48,12 +48,11 @@ on:
           - 'test'
           - 'qa'
           - 'uat'
-          - 'test'
           - 'prodEU'
           - 'prodUS'
           - 'uatEU'
       workers:
-        description: 'Number of parallel workers to run tests (default: 5 for content, 1 for others)'
+        description: 'Number of parallel workers to run tests (default: 5 for content UI, 1 for others)'
         required: true
         default: '1'
         type: choice
@@ -124,6 +123,7 @@ jobs:
           ALL_TAGS=()
 
           # Add @api tag if API tests are selected
+          # This works for any module that has API tests (currently content, but extensible for future modules)
           if [ "$TEST_CATEGORY" = "api" ]; then
             ALL_TAGS+=("@api")
           fi
@@ -162,15 +162,16 @@ jobs:
           fi
 
           # Determine config file based on module and test category
+          # Generic logic that works for all modules:
+          # - {module} + ui -> playwright.{module}.config.ts
+          # - {module} + api -> playwright.{module}-api.config.ts
+          # Examples:
+          #   content + ui -> playwright.content.config.ts
+          #   content + api -> playwright.content-api.config.ts
+          #   content-abac + ui -> playwright.content-abac.config.ts
+          #   content-abac + api -> playwright.content-abac-api.config.ts (if exists in future)
           if [ "$TEST_CATEGORY" = "api" ]; then
-            # Only content module has API config, other modules don't support API tests
-            if [ "$MODULE" = "content" ]; then
-              CONFIG_FILE="src/modules/content/playwright.content-api.config.ts"
-            else
-              echo "Error: API tests are only available for 'content' module. Selected module: $MODULE"
-              echo "Available modules with API support: content"
-              exit 1
-            fi
+            CONFIG_FILE="src/modules/content/playwright.${MODULE}-api.config.ts"
           else
             CONFIG_FILE="src/modules/content/playwright.${MODULE}.config.ts"
           fi
@@ -178,10 +179,22 @@ jobs:
           # Verify config file exists
           if [ ! -f "$CONFIG_FILE" ]; then
             echo "Error: Config file not found: $CONFIG_FILE"
+            echo ""
+            echo "Module: $MODULE"
+            echo "Test Category: $TEST_CATEGORY"
+            echo "Expected config: $CONFIG_FILE"
+            echo ""
             echo "Available config files:"
             ls -la src/modules/content/playwright.*.config.ts || true
+            echo ""
+            if [ "$TEST_CATEGORY" = "api" ]; then
+              echo "Note: API tests may not be available for module '$MODULE' yet."
+              echo "Available test categories for '$MODULE': ui"
+            fi
             exit 1
           fi
+
+          echo "Using config file: $CONFIG_FILE"
 
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
