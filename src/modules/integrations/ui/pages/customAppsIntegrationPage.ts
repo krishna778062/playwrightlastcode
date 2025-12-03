@@ -605,11 +605,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   async verifyAppIsDisplayedInList(appName: string): Promise<void> {
     return this.customAppsComponent.verifyAppIsDisplayedInList(appName);
   }
-
-  // =====================
-  // Filter Methods
-  // =====================
-
   /**
    * Select a status filter option
    * @param status - The status to filter by ('Enabled' or 'Disabled')
@@ -639,11 +634,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   async clearTypeFilter(): Promise<void> {
     return this.customAppsComponent.clearTypeFilter();
   }
-
-  // =====================
-  // Sort Methods
-  // =====================
-
   /**
    * Select a sort by option
    * @param sortBy - The sort by option ('Last used', 'Date created', or 'Name')
@@ -707,10 +697,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   async verifyAppsSortedAlphabeticallyZA(): Promise<void> {
     return this.customAppsComponent.verifyAppsSortedAlphabeticallyZA();
   }
-
-  // =====================
-  // Create Custom App Methods
-  // =====================
 
   /**
    * Click on Add custom app dropdown and select an option
@@ -798,10 +784,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   async scrollPageBy(pixels: number): Promise<void> {
     return this.customAppsComponent.scrollPageBy(pixels);
   }
-
-  // =====================
-  // OAuth2 App Configuration Methods
-  // =====================
 
   /**
    * Select connection type from dropdown
@@ -904,5 +886,12 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async verifyConnectionMessage(appName: string): Promise<void> {
     return this.customAppsComponent.verifyConnectionMessage(appName);
+  }
+
+  /**
+   * Verify toast message appears
+   */
+  async verifyToastMessage(message: string): Promise<void> {
+    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
   }
 }

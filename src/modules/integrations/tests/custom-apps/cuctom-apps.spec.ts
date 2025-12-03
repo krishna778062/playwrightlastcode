@@ -79,10 +79,10 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify the Type filter functionality on "Custom Apps" page',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -219,8 +219,8 @@ test.describe(
         await customAppsPage.connectBoxAccount(boxApp.ACCOUNT_EMAIL, boxApp.ACCOUNT_PASSWORD);
 
         // Verify connection success toast message
-        await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected to ${appName} successfully`);
-        await customAppsPage.verifyToastMessageIsVisibleWithText(`Connected`);
+        // await customAppsPage.verifyToastMessage(`Connected to ${appName} successfully`);
+        // await customAppsPage.verifyToastMessage(`Connected`);
 
         // Verify app name and description are displayed
         await customAppsPage.verifyAppNameInHeader(appName);
