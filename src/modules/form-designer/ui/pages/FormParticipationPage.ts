@@ -357,7 +357,6 @@ export class FormParticipationPage extends BasePage {
   }
 
   getFileToUpload(response: string): string {
-    const projectRoot = FileUtil.getProjectRoot();
-    return FileUtil.getFilePath(projectRoot, 'src', 'modules', 'form-designer', 'test-data', `${response}`);
+    return FileUtil.getFilePath('src', 'modules', 'form-designer', 'test-data', `${response}`);
   }
 }
