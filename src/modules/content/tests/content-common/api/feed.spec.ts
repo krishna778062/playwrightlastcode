@@ -3,6 +3,7 @@ import { contentTestFixture as test, users } from '@content/fixtures/contentFixt
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { log } from '@core/utils/logger';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -19,17 +20,17 @@ test.describe(
       try {
         await appManagerApiFixture.feedManagementHelper.cleanup();
       } catch (error) {
-        console.warn('Feed cleanup failed:', error);
+        log.warn('Feed cleanup failed', error);
       }
       try {
         await standardUserApiFixture.feedManagementHelper.cleanup();
       } catch (error) {
-        console.warn('Feed cleanup failed:', error);
+        log.warn('Feed cleanup failed', error);
       }
     });
 
     test(
-      'api Validation of App manager Feed creation on home Page',
+      'validation of App manager Feed creation on home Page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41913', ContentTestSuite.FEED_APP_MANAGER],
       },
@@ -65,7 +66,7 @@ test.describe(
     );
 
     test(
-      'api Validation of Standard User Feed creation on home Page',
+      'validation of Standard User Feed creation on home Page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41915', ContentTestSuite.FEED_STANDARD_USER],
       },
@@ -101,7 +102,7 @@ test.describe(
     );
 
     test(
-      'aPI Validation of App manager Feed creation with all features on home',
+      'validation of App manager Feed creation with all features on home',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42012', ContentTestSuite.FEED_APP_MANAGER],
       },
@@ -136,7 +137,7 @@ test.describe(
             siteMention = { id: publicSite.siteId, label: publicSite.name };
           }
         } catch (error) {
-          console.warn('Could not get public site for mention:', error);
+          log.warn('Could not get public site for mention', error);
         }
 
         // Upload file first to get fileId for attachment
@@ -149,7 +150,7 @@ test.describe(
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
-          console.warn('Could not upload file for attachment:', error);
+          log.warn('Could not upload file for attachment', error);
         }
 
         // Generate feed test data with all features using TestDataGenerator
@@ -199,7 +200,7 @@ test.describe(
     );
 
     test(
-      'aPI Validation of Standard User Feed creation with all features on home',
+      'validation of Standard User Feed creation with all features on home',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42052', ContentTestSuite.FEED_STANDARD_USER],
       },
@@ -234,7 +235,7 @@ test.describe(
             siteMention = { id: publicSite.siteId, label: publicSite.name };
           }
         } catch (error) {
-          console.warn('Could not get public site for mention:', error);
+          log.warn('Could not get public site for mention', error);
         }
 
         // Upload file first to get fileId for attachment (using appManagerApiFixture for upload)
@@ -247,7 +248,7 @@ test.describe(
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
-          console.warn('Could not upload file for attachment:', error);
+          log.warn('Could not upload file for attachment', error);
         }
 
         // Generate feed test data with all features using TestDataGenerator
