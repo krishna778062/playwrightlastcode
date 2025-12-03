@@ -3,5 +3,5 @@ export enum TestGroupType {
   SANITY = '@sanity',
   REGRESSION = '@regression',
   HEALTHCHECK = '@healthcheck',
-  E2E = '@e2e',
+  E2E = '@form-e2e',
 }
