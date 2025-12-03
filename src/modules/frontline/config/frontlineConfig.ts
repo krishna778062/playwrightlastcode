@@ -193,7 +193,7 @@ export const config = {
       tenantName: 'Frontline Secondary UAT',
       frontendBaseUrl: 'https://frontline.uat-eu.simpplr.xyz/',
       apiBaseUrl: 'https://frontline-api.uat-eu.simpplr.xyz',
-      appManagerEmail: 'meenakshi.joshi@simpplr.com',
+      appManagerEmail: '1473',
       appManagerPassword: 'Simp@123',
       endUserEmail: 'meenakshi.joshi@simpplr.com',
       endUserPassword: 'Simp@123',
