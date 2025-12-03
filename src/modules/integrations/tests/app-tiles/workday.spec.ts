@@ -10,7 +10,13 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { CONNECTOR_IDS, REDIRECT_URLS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import {
+  CONNECTOR_IDS,
+  REDIRECT_URLS,
+  TILE_IDS,
+  WORKDAY_CREDS,
+} from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
 const CreateAnotherRequest = 'Create another request';
 const Vacation = 'Vacation';
@@ -39,6 +45,41 @@ test.describe(
         createdTileTitle = undefined;
       }
     });
+
+    test(
+      'verify workday is connected with valid credentials',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayconnect',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        void homeDashboard;
+        void tileManagementHelper;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21414',
+          storyId: 'INT-21182',
+        });
+        const peopleTab = new PeopleTabPage(appManagerFixture.page);
+        await peopleTab.navigateToPeopleDataPage();
+        await peopleTab.deselectWorkdayIfChecked();
+        await peopleTab.configureWorkdayCredentials({
+          username: WORKDAY_CREDS.USERNAME,
+          password: WORKDAY_CREDS.PASSWORD,
+          wsdlUrl: WORKDAY_CREDS.WSURL,
+          tenantId: WORKDAY_CREDS.TENANT_ID,
+          clientId: WORKDAY_CREDS.CLIENT_ID,
+          clientSecret: WORKDAY_CREDS.CLIENT_SECRET,
+          refreshToken: WORKDAY_CREDS.REFRESH_TOKEN,
+        });
+        await peopleTab.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+      }
+    );
 
     test(
       'verify app manager is able to create, edit and remove pending learning courses workday apptile on home dashboard',
@@ -958,13 +999,7 @@ test.describe(
     test(
       'verify metadata for Workday Display Inbox user defined tile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workday-paystubs',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
 
       async ({ appManagerFixture }) => {
