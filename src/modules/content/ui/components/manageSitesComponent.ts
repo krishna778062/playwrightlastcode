@@ -53,6 +53,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
+  readonly SubscriptionButton: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -104,6 +105,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
@@ -411,6 +413,12 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnInsideContentButtonAction(): Promise<void> {
     await test.step('Click on the manage content button', async () => {
       await this.clickOnElement(this.clickOnInsideContentButton);
+    });
+  }
+
+  async clickOnSubscriptionButtonAction(): Promise<void> {
+    await test.step('Click on the add subscription button', async () => {
+      await this.clickOnElement(this.SubscriptionButton);
     });
   }
 
