@@ -215,7 +215,7 @@ export class LoginWithOtpPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
         await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
-        await this.page.waitForTimeout(8000);
+        await this.page.waitForTimeout(20000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
         await this.clickOnElement(this.verifyButton);
@@ -235,7 +235,7 @@ export class LoginWithOtpPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
         await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(enterType);
-        await this.page.waitForTimeout(8000);
+        await this.page.waitForTimeout(20000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         console.log('otpMobile--------------', otpMobile);
         await this.fillInElement(this.enterOtpInput, otpMobile);
@@ -257,7 +257,7 @@ export class LoginWithOtpPage extends BasePage {
         });
 
         await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalOrMandatoryLWO('mobile');
-        await this.page.waitForTimeout(8000);
+        await this.page.waitForTimeout(20000);
         otpMobile = await otpUtils.getOTPFromSMS(phone);
         await this.fillInElement(this.enterOtpInput, otpMobile);
         await this.clickOnElement(this.verifyButton);
@@ -265,7 +265,7 @@ export class LoginWithOtpPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
         await this.verifyForBothMobileAndEmailVerificationPageIsLoadedForOptionalOrMandatoryLWO('email');
-        await this.page.waitForTimeout(8000);
+        await this.page.waitForTimeout(20000);
         otpEmail = await otpUtils.getOTPFromEmail(email);
         await this.fillInElement(this.enterOtpInput, otpEmail);
         await this.clickOnElement(this.verifyButton);
@@ -321,7 +321,7 @@ export class LoginWithOtpPage extends BasePage {
     await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(identifierType);
 
     // Get and enter OTP
-    await this.page.waitForTimeout(8000);
+    await this.page.waitForTimeout(20000);
     otpValue =
       identifierType === 'mobile'
         ? await otpUtils.getOTPFromSMS(identifier)
