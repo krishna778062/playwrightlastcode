@@ -15,6 +15,12 @@ test.describe(
     tag: [ContentTestSuite.API],
   },
   () => {
+    test.beforeEach(async ({ appManagerApiFixture }) => {
+      //Enable feed mode
+      await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
+    });
     test.afterEach(async ({ appManagerApiFixture, standardUserApiFixture }) => {
       // Cleanup if needed
       try {
