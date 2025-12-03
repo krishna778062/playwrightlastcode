@@ -10,6 +10,7 @@ import {
   SiteMembershipResponse,
   SitePermission,
 } from '@core/types/siteManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
@@ -179,7 +180,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         }
         const json = await response.json();
         lastResponse = json;
-        console.log('followersAndFollowingList response:', json);
+        log.debug('followersAndFollowingList response', { response: json });
 
         // Merge results by type
         if (json.result && Array.isArray(json.result)) {
@@ -220,14 +221,14 @@ export class SiteManagementService implements ISiteManagementOperations {
   async deactivateSite(siteId: string) {
     return await test.step(`Deactivating site using API: ${siteId}`, async () => {
       const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
-      console.log('Deactivate site full URL:', fullUrl);
+      log.debug('Deactivate site full URL', { url: fullUrl });
       const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
         data: {
           ids: [siteId],
           newStatus: 'deactivated',
         },
       });
-      console.log('Deactivate site response:', response.status());
+      log.debug('Deactivate site response', { status: response.status() });
       const json = await response.json();
       if (json.status !== 'success') {
         throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
@@ -243,14 +244,14 @@ export class SiteManagementService implements ISiteManagementOperations {
   async activateSite(siteId: string) {
     return await test.step(`Activating site using API: ${siteId}`, async () => {
       const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.activate}` : API_ENDPOINTS.site.activate;
-      console.log('Activate site full URL:', fullUrl);
+      log.debug('Activate site full URL', { url: fullUrl });
       const response = await this.httpClient.put(API_ENDPOINTS.site.activate, {
         data: {
           ids: [siteId],
           newStatus: 'activated',
         },
       });
-      console.log('Activate site response:', response.status());
+      log.debug('Activate site response', { status: response.status() });
       const json = await response.json();
       if (json.status !== 'success') {
         throw new Error(`Failed to activate site: ${JSON.stringify(json)}`);
@@ -284,8 +285,7 @@ export class SiteManagementService implements ISiteManagementOperations {
     if (!file) {
       throw new Error(`File with name ${fileName} not found in site ${siteId}`);
     }
-    console.log('File found:', file.id);
-    console.log('Author name:', file.owner.name);
+    log.debug('File found', { fileId: file.id, authorName: file.owner.name });
     return {
       fileId: file.id,
       authorName: file.owner.name,
@@ -314,7 +314,7 @@ export class SiteManagementService implements ISiteManagementOperations {
             },
           });
           const responseBody = await response.json();
-          console.log('responseBody', responseBody);
+          log.debug('responseBody', { response: responseBody });
           // Find the specific file by checking the title field
           file = responseBody.result?.listOfItems?.find((item: any) => item.item.title === fileName);
           expect(file).toBeDefined();
@@ -324,7 +324,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         }
       ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
     });
-    console.log('fileID', file.item.fileId);
+    log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };
   }
 
@@ -430,15 +430,16 @@ export class SiteManagementService implements ISiteManagementOperations {
       // Use action as query parameter similar to approveContent endpoint pattern
       const endpointWithAction = `${API_ENDPOINTS.content.manageContent(siteId, contentId)}`;
 
-      console.log(`Attempting to reject content with payload: ${JSON.stringify(rejectPayload)}`);
+      log.debug('Attempting to reject content', { payload: JSON.stringify(rejectPayload) });
       const response = await this.httpClient.post(endpointWithAction, {
         data: rejectPayload,
       });
 
       const json = await response.json();
-      console.log(
-        `rejectContent response status: ${response.status()}, response body: ${JSON.stringify(json, null, 2)}`
-      );
+      log.debug('rejectContent response', {
+        status: response.status(),
+        responseBody: JSON.stringify(json, null, 2),
+      });
 
       if (!response.ok() || json.status !== 'success') {
         // Extract error details from errors array if present
@@ -452,7 +453,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         );
       }
 
-      console.log(`Successfully rejected content: ${contentId}`);
+      log.debug(`Successfully rejected content: ${contentId}`);
       return json;
     });
   }
@@ -476,7 +477,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         );
       }
 
-      console.log(`Successfully unfeatured site: ${siteId}`);
+      log.debug(`Successfully unfeatured site: ${siteId}`);
       return json;
     });
   }
@@ -559,12 +560,12 @@ export class SiteManagementService implements ISiteManagementOperations {
         const response = await this.httpClient.delete(`${API_ENDPOINTS.site.category}/${categoryInfo.categoryId}`);
 
         if (response.status() === 200) {
-          console.log(`Category "${categoryName}" deleted successfully via API`);
+          log.debug(`Category "${categoryName}" deleted successfully via API`);
         } else {
-          console.log(`Category deletion response status: ${response.status()}`);
+          log.debug(`Category deletion response status: ${response.status()}`);
         }
       } catch (error) {
-        console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
+        log.error(`Failed to delete category "${categoryName}" via API`, error);
         throw error;
       }
     });
@@ -646,7 +647,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Carousel items response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Carousel items response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to get carousel items for ${siteId}. Status: ${response.status()}`);
@@ -669,7 +670,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Home carousel items response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Home carousel items response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to get home carousel items. Status: ${response.status()}`);
@@ -690,7 +691,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       const response = await this.httpClient.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
 
       const responseBody = await response.json();
-      console.log('Delete carousel item response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Delete carousel item response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(
@@ -716,7 +717,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       const response = await this.httpClient.delete(API_ENDPOINTS.content.deleteHomeCarouselItem(carouselItemId));
 
       const responseBody = await response.json();
-      console.log('Delete home carousel item response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Delete home carousel item response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to delete home carousel item ${carouselItemId}. Status: ${response.status()}`);
