@@ -395,8 +395,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       // Count only visible comment containers
       const count = await this.page.locator('div[class*="_postBody_eonic_8"]').count();
 
-      console.log('Count of visible comments: ', count);
-
       return count;
     });
   }
