@@ -4,11 +4,11 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
-
+import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
+
 test.describe(
   '@Subscriptions - Verify Add subscription button',
   {

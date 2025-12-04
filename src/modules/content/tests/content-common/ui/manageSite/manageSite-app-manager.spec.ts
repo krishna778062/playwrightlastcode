@@ -977,13 +977,13 @@ test.describe(
       }
     );
     test(
-      'verify the subscription page',
+      'to verify the created and published dates of content in  Manage site content',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23980'],
       },
       async ({ appManagerApiFixture, appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'verify the subscription page',
+          description: 'to verify the created and published dates of content in  Manage site content',
           zephyrTestId: 'CONT-23980',
           storyId: 'CONT-23980',
         });
@@ -994,18 +994,21 @@ test.describe(
           size: 1000,
         });
         const siteId = getSiteListResponse.result.listOfItems[0].siteId;
-        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
-          siteId: siteId,
-          contentInfo: { contentType: 'page', contentSubType: 'news' },
-        });
-        const createEventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
-          siteId: siteId,
-          contentInfo: { contentType: 'event' },
-        });
-        const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
-          siteId: siteId,
-          imageName: 'beach.jpg',
-        });
+        // Create page, event, and album in parallel since they are independent API calls
+        const [createPageInfo, createEventInfo, createAlbumInfo] = await Promise.all([
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: siteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createEvent({
+            siteId: siteId,
+            contentInfo: { contentType: 'event' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createAlbum({
+            siteId: siteId,
+            imageName: 'beach.jpg',
+          }),
+        ]);
 
         // Get content list to retrieve createdAt dates for the created content
         const contentListResponse =
@@ -1042,9 +1045,12 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDate);
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDate);
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDate);
+        // Verify all three dates in parallel since they're already rendered on the page
+        await Promise.all([
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDate),
+        ]);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickFilterButton();
@@ -1089,18 +1095,21 @@ test.describe(
           size: 1000,
         });
         const siteIdAfterUpdate = getSiteListResponseAfterUpdate.result.listOfItems[0].siteId;
-        const createPageInfoAfterUpdate = await appManagerApiFixture.contentManagementHelper.createPage({
-          siteId: siteIdAfterUpdate,
-          contentInfo: { contentType: 'page', contentSubType: 'news' },
-        });
-        const createEventInfoAfterUpdate = await appManagerApiFixture.contentManagementHelper.createEvent({
-          siteId: siteIdAfterUpdate,
-          contentInfo: { contentType: 'event' },
-        });
-        const createAlbumInfoAfterUpdate = await appManagerApiFixture.contentManagementHelper.createAlbum({
-          siteId: siteIdAfterUpdate,
-          imageName: 'beach.jpg',
-        });
+        // Create page, event, and album in parallel since they are independent API calls
+        const [createPageInfoAfterUpdate, createEventInfoAfterUpdate, createAlbumInfoAfterUpdate] = await Promise.all([
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: siteIdAfterUpdate,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createEvent({
+            siteId: siteIdAfterUpdate,
+            contentInfo: { contentType: 'event' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createAlbum({
+            siteId: siteIdAfterUpdate,
+            imageName: 'beach.jpg',
+          }),
+        ]);
 
         // Get content list to retrieve createdAt dates for the created content
         const contentListResponseAfterUpdate =
@@ -1140,9 +1149,12 @@ test.describe(
         await manageContentPageAfterUpdate.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDateAfterUpdate);
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDateAfterUpdate);
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDateAfterUpdate);
+        // Verify all three dates in parallel since they're already rendered on the page
+        await Promise.all([
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDateAfterUpdate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDateAfterUpdate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDateAfterUpdate),
+        ]);
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.actions.clickFilterButton();
@@ -1170,7 +1182,7 @@ test.describe(
         );
         await profileScreenPage.loadPage();
         await profileScreenPage.actions.openEditTimezone();
-        // Generate random timezone value between 1 and 300 (inclusive)
+        // select default timezone
         await profileScreenPage.actions.selectTimezone('328');
         await profileScreenPage.actions.clickOnSaveTimezoneButton();
       }
