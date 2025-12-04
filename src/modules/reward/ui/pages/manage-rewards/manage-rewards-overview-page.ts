@@ -408,9 +408,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       manageRecognitionPage.loadPage(), // action that triggers API
       manageRecognitionPage.verifyThePageIsLoaded(),
     ]);
-    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
-    console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
     const isRewardEnabled = body.enabled;
     const isPeerGiftingDisabled = body.peerGiftingEnabled;
     console.log(
@@ -832,6 +830,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
     } else if (!isRewardEnabled && isPeerGiftingDisabled) {
       // Directly enable Rewards
+      await manageRecognitionPage.loadPage();
       await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
       await manageRecognitionPage.enableRewardsButton.click();
       await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');

@@ -15,6 +15,7 @@ export default defineConfig({
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
     // headless: true in CI, false locally
     headless: !!process.env.CI,
+    viewport: null,
     // default viewport left undefined here — project-level configs will set explicit viewport
   },
   reporter: [
