@@ -44,11 +44,21 @@ export class CustomFieldsPage extends BasePage {
   readonly customFieldModalDescription: Locator;
   readonly customFieldModalButtonCreate: Locator;
   readonly customFieldModalButtonCancel: Locator;
+  readonly customFieldCreateConfirmationTooltip: Locator;
 
   readonly customFieldNameInput: Locator;
   readonly customFieldType: Locator;
   readonly customFieldLocation: Locator;
   readonly customFieldTypeOptions: Locator;
+
+  /**
+   * Custom field modal - edit
+   */
+  readonly customFieldEditModalTitle: Locator;
+  readonly customFieldEditModalDescription: Locator;
+  readonly customFieldEditModalButtonSave: Locator;
+  readonly customFieldEditModalButtonCancel: Locator;
+  readonly customFieldEditConfirmationTooltip: Locator;
 
   /**
    * Custom field modal - label
@@ -150,11 +160,23 @@ export class CustomFieldsPage extends BasePage {
     );
     this.customFieldModalButtonCreate = this.page.getByRole('button', { name: 'Create' });
     this.customFieldModalButtonCancel = this.page.getByRole('button', { name: 'Cancel' });
+    this.customFieldCreateConfirmationTooltip = this.page.getByText('Custom field definition created successfully.');
 
     this.customFieldNameInput = this.page.locator('input[name="fieldName"]');
     this.customFieldType = this.page.getByRole('button', { name: 'Select type' });
     this.customFieldLocation = this.page.getByRole('button', { name: 'Add Field To Location' });
     this.customFieldTypeOptions = this.page.getByRole('menu');
+
+    /**
+     * Custom field modal - edit
+     */
+    this.customFieldEditModalTitle = this.page.getByRole('heading', { name: 'Edit custom field' });
+    this.customFieldEditModalDescription = this.page.getByText(
+      'Define a custom field to organize your content more effectively.'
+    );
+    this.customFieldEditModalButtonSave = this.page.getByRole('button', { name: 'Save' });
+    this.customFieldEditModalButtonCancel = this.page.getByRole('button', { name: 'Cancel' });
+    this.customFieldEditConfirmationTooltip = this.page.getByText('Custom field definition updated successfully.');
 
     /**
      * Custom field - label
@@ -288,6 +310,12 @@ export class CustomFieldsPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
+      await this.selectOptionsForCustomFieldTypeLabel(options);
+    });
+  }
+
+  async selectOptionsForCustomFieldTypeLabel(options: string[]): Promise<void> {
+    await test.step('Select options for custom field type: Labels', async () => {
       for (const option of options) {
         await this.fillInElement(this.customFieldModalLabelOptionsInput, option, {
           stepInfo: `Fill in label custom field's option '${option}'`,
@@ -312,6 +340,12 @@ export class CustomFieldsPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
+      await this.selectOptionsForCustomFieldTypeDD(options);
+    });
+  }
+
+  async selectOptionsForCustomFieldTypeDD(options: string[]): Promise<void> {
+    await test.step('Select options for custom field type: Dropdown', async () => {
       for (const option of options) {
         await this.fillInElement(this.customFieldModalDDOptionsInput, option, {
           stepInfo: `Fill in Dropdown custom field's option '${option}'`,
@@ -386,6 +420,32 @@ export class CustomFieldsPage extends BasePage {
     });
   }
 
+  async clickEditCustomFieldModalSaveButton(): Promise<void> {
+    await test.step('Click on "Save" custom field button', async () => {
+      await this.clickOnElement(this.customFieldEditModalButtonSave, {
+        stepInfo: 'Click "Save" custom field button to edit custom fields',
+      });
+    });
+  }
+
+  async verifyCustomFieldCreationConfirmation(): Promise<void> {
+    await test.step('Verify custom field creation confirmation tooltip', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customFieldCreateConfirmationTooltip, {
+        assertionMessage: 'After custom field creation confirmation tooltip should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyCustomFieldUpdateConfirmation(): Promise<void> {
+    await test.step('Verify custom field update confirmation tooltip', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customFieldEditConfirmationTooltip, {
+        assertionMessage: 'After custom field update confirmation tooltip should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
   async clickAddCustomFieldButton(): Promise<void> {
     await test.step('Click on "Add" custom field button', async () => {
       await this.clickOnElement(this.addCustomFieldButton, {
@@ -403,6 +463,16 @@ export class CustomFieldsPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
     });
+  }
+
+  async deleteAllOptionsOfCustomField(): Promise<void> {
+    await this.page.waitForTimeout(1000);
+
+    const selector = '[data-testid^="label-option-delete-"]';
+
+    while ((await this.page.locator(selector).count()) > 0) {
+      await this.page.locator(selector).first().click();
+    }
   }
 
   async toggleAndVerifyCreatedCustomFieldStatus(name: string, enable: boolean): Promise<void> {
@@ -499,6 +569,27 @@ export class CustomFieldsPage extends BasePage {
       });
       await this.verifier.verifyTheElementIsVisible(this.customFieldModalButtonCancel, {
         assertionMessage: 'Cancel custom field modal button should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyOpenedCustomFieldEditModal(): Promise<void> {
+    await test.step('Verify | Edit custom field modal is open', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customFieldEditModalTitle, {
+        assertionMessage: 'Custom field edit modal title should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.customFieldEditModalDescription, {
+        assertionMessage: 'Custom field edit modal description should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.customFieldEditModalButtonSave, {
+        assertionMessage: 'Save custom field edit modal button should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.customFieldEditModalButtonCancel, {
+        assertionMessage: 'Cancel custom field edit modal button should be visible',
         timeout: TIMEOUTS.MEDIUM,
       });
     });
