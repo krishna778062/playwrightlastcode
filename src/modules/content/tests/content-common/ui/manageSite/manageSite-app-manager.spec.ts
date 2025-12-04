@@ -106,6 +106,7 @@ test.describe(
       orgChartPage = new ORGChartPage(appManagerFixture.page);
       favoritesPage = new FavoritesPage(appManagerFixture.page);
       // Clear used site IDs at the start of each test for fresh tracking
+
       siteManagementHelper = appManagerFixture.siteManagementHelper;
       addToCampaignComponent = new AddToCampaignComponent(appManagerFixture.page);
       usedSiteIds = [];
@@ -538,6 +539,11 @@ test.describe(
           filter: 'deactivated',
         });
         console.log('getListOfSitesResponse', getListOfSitesResponse);
+        const deactivatedSites = getListOfSitesResponse.result.listOfItems.filter(
+          (site: any) => site.isActive === false
+        );
+
+        console.log(`Found ${deactivatedSites.length} deactivated sites to check`);
 
         // Limit to first 20 sites to avoid pagination issues
         const deactivatedSiteNames = getListOfSitesResponse.result.listOfItems
@@ -625,6 +631,7 @@ test.describe(
           throw new Error('No sites found in the response');
         }
         await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[0].name);
+        await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[1].name);
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
@@ -642,6 +649,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+          description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
         });
@@ -1003,6 +1011,7 @@ test.describe(
         await manageAppManagerUserPage.assertions.verifyPageTabImageIsDisplayed();
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContent(TagOption.MUST_READ_TAG);
+        await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
       }
     );

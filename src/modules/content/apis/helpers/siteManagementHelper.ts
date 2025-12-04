@@ -1,5 +1,7 @@
 import { APIRequestContext, test } from '@playwright/test';
 
+import { log } from '@core/utils/logger';
+
 import {
   SiteCreationPayload,
   SiteMembershipAction,
@@ -120,7 +122,7 @@ export class SiteManagementHelper {
     waitForSearchIndex?: boolean;
   }) {
     const { siteName, category, overrides, waitForSearchIndex } = params;
-    console.log(`Creating public site: ${siteName}`);
+    log.debug(`Creating public site: ${siteName}`);
     return await this._createSiteBaseMethod({
       siteName,
       category,
@@ -370,9 +372,9 @@ export class SiteManagementHelper {
     // Add the user as a member to the site
     try {
       await this.makeUserSiteMembership(site.siteId, memberEmail, SitePermission.MEMBER, SiteMembershipAction.ADD);
-      console.log(`Successfully added ${memberEmail} as member to site ${site.siteName}`);
+      log.debug(`Successfully added ${memberEmail} as member to site ${site.siteName}`);
     } catch (error) {
-      console.warn(`Failed to add ${memberEmail} as member to site ${site.siteName}:`, error);
+      log.warn(`Failed to add ${memberEmail} as member to site ${site.siteName}`, error);
     }
 
     return {
@@ -412,9 +414,9 @@ export class SiteManagementHelper {
     for (const { siteId, siteName } of this.sites) {
       try {
         await this.siteManagementService.deactivateSite(siteId);
-        console.log(`Deactivated site ${siteName} (${siteId})`);
+        log.debug(`Deactivated site ${siteName} (${siteId})`);
       } catch (error) {
-        console.warn(`Failed to deactivate site ${siteName} (${siteId}):`, error);
+        log.warn(`Failed to deactivate site ${siteName} (${siteId})`, error);
       }
     }
 
@@ -476,12 +478,12 @@ export class SiteManagementHelper {
     );
 
     if (existingSite) {
-      console.log(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
+      log.debug(`Found existing site: ${existingSite.name} with ID: ${existingSite.siteId}`);
       return existingSite.siteId;
     }
 
     // Site not found, create a new one
-    console.log(`Site "${siteName}" not found. Creating a new site...`);
+    log.debug(`Site "${siteName}" not found. Creating a new site...`);
 
     const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const createdSite = await this.createSiteByAccessType(accessType, siteName, options);
@@ -506,7 +508,7 @@ export class SiteManagementHelper {
       const existingMember = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
 
       if (existingMember) {
-        console.log(`User ${userId} is already a member of site ${siteId}`);
+        log.debug(`User ${userId} is already a member of site ${siteId}`);
         return {
           status: 'success',
           message: 'User is already a member',
@@ -640,7 +642,7 @@ export class SiteManagementHelper {
         throw new Error(`Not enough non-featured sites found. Found: ${nonFeaturedSites.length}, Required: ${count}`);
       }
 
-      console.log(
+      log.debug(
         `Selected ${nonFeaturedSites.length} non-featured sites: ${nonFeaturedSites.map(s => s.name).join(', ')}`
       );
       return nonFeaturedSites;
@@ -723,7 +725,7 @@ export class SiteManagementHelper {
         });
     }
 
-    console.log(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+    log.debug(`Created new site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
     return { siteId: createdSite.siteId, siteName: createdSite.siteName };
   }
 
@@ -764,9 +766,9 @@ export class SiteManagementHelper {
       if (matchesRequirements) {
         siteId = siteDetails.siteId;
         siteName = siteDetails.name;
-        console.log(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
+        log.debug(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
       } else {
-        console.log(`Existing site doesn't match requirements, will create new site`);
+        log.debug(`Existing site doesn't match requirements, will create new site`);
         siteDetails = undefined; // Reset to undefined so we create a new site
       }
     }
@@ -818,20 +820,20 @@ export class SiteManagementHelper {
           const siteDetails = siteDetailsResponse.result;
 
           // Debug logging to check membership values
-          console.log(`Checking site: ${siteDetails.name} (${site.siteId})`);
-          console.log(
+          log.debug(`Checking site: ${siteDetails.name} (${site.siteId})`);
+          log.debug(
             `  isMember: ${siteDetails.isMember} (${typeof siteDetails.isMember}), present: ${'isMember' in siteDetails}`
           );
-          console.log(
+          log.debug(
             `  isOwner: ${siteDetails.isOwner} (${typeof siteDetails.isOwner}), present: ${'isOwner' in siteDetails}`
           );
-          console.log(
+          log.debug(
             `  isManager: ${siteDetails.isManager} (${typeof siteDetails.isManager}), present: ${'isManager' in siteDetails}`
           );
-          console.log(
+          log.debug(
             `  isFollower: ${siteDetails.isFollower} (${typeof siteDetails.isFollower}), present: ${'isFollower' in siteDetails}`
           );
-          console.log(
+          log.debug(
             `  isAccessRequested: ${siteDetails.isAccessRequested} (${typeof siteDetails.isAccessRequested}), present: ${'isAccessRequested' in siteDetails}`
           );
 
@@ -855,7 +857,7 @@ export class SiteManagementHelper {
             (allowIsMemberAbsent && !('isManager' in siteDetails));
 
           // Log detailed condition evaluation
-          console.log(
+          log.debug(
             `  Condition evaluation:
     - isMember: ${siteDetails.isMember} => ${isMemberCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
     - isOwner: ${siteDetails.isOwner} => ${isOwnerCondition ? 'PASS' : 'FAIL'} (needs: false/undefined)
@@ -873,7 +875,7 @@ export class SiteManagementHelper {
           ) {
             const fieldsAbsent =
               !('isMember' in siteDetails) || !('isOwner' in siteDetails) || !('isManager' in siteDetails);
-            console.log(
+            log.debug(
               `✓ Found site where user is not a member/owner/manager${fieldsAbsent ? ' (some fields absent from payload)' : ''}: ${siteDetails.name} (${siteDetails.siteId})`
             );
             return {
@@ -882,7 +884,7 @@ export class SiteManagementHelper {
             };
           }
         } catch (error) {
-          console.warn(`Failed to check site ${site.siteId}:`, error);
+          log.warn(`Failed to check site ${site.siteId}`, error);
           // Continue to next site if this one fails
           continue;
         }
@@ -923,7 +925,7 @@ export class SiteManagementHelper {
     const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
 
     if (!userMembership) {
-      console.log(`User ${userId} not found in membership list`);
+      log.debug(`User ${userId} not found in membership list`);
       return false;
     }
 
@@ -931,7 +933,7 @@ export class SiteManagementHelper {
     const hasCorrectRole = currentRole === expectedRole;
 
     if (hasCorrectRole) {
-      console.log(`✓ Role verification successful: User ${userId} has role ${expectedRole}`);
+      log.debug(`✓ Role verification successful: User ${userId} has role ${expectedRole}`);
       return true;
     }
 
@@ -955,7 +957,7 @@ export class SiteManagementHelper {
       (member: any) => member.peopleId !== excludeUserId && member.isManager === true
     );
     if (anotherManager) {
-      console.log(`Found another manager (${anotherManager.peopleId}) to use as temporary owner`);
+      log.debug(`Found another manager (${anotherManager.peopleId}) to use as temporary owner`);
       return anotherManager.peopleId;
     }
 
@@ -963,17 +965,17 @@ export class SiteManagementHelper {
       (member: any) => member.peopleId !== excludeUserId && member.isContentManager === true
     );
     if (anotherContentManager) {
-      console.log(`Found another content manager (${anotherContentManager.peopleId}) to use as temporary owner`);
+      log.debug(`Found another content manager (${anotherContentManager.peopleId}) to use as temporary owner`);
       return anotherContentManager.peopleId;
     }
 
     const anyOtherMember = members.find((member: any) => member.peopleId !== excludeUserId && member.isMember === true);
     if (anyOtherMember) {
-      console.log(`Found another member (${anyOtherMember.peopleId}) to use as temporary owner`);
+      log.debug(`Found another member (${anyOtherMember.peopleId}) to use as temporary owner`);
       return anyOtherMember.peopleId;
     }
 
-    console.warn(`No other members found in site ${siteId} to use as temporary owner`);
+    log.warn(`No other members found in site ${siteId} to use as temporary owner`);
     return null;
   }
 
@@ -991,7 +993,7 @@ export class SiteManagementHelper {
     userId: string,
     desiredRole: SitePermission
   ): Promise<SiteMembershipResponse> {
-    console.log(
+    log.debug(
       `User ${userId} is currently an OWNER. Assigning another user as owner will automatically demote current owner to MANAGER.`
     );
 
@@ -1011,11 +1013,11 @@ export class SiteManagementHelper {
     );
     const temporaryOwnerOriginalRole = this.getCurrentRoleFromMember(temporaryOwnerMember);
 
-    console.log(`Temporary owner ${temporaryOwnerUserId} current role: ${temporaryOwnerOriginalRole || 'MEMBER'}`);
+    log.debug(`Temporary owner ${temporaryOwnerUserId} current role: ${temporaryOwnerOriginalRole || 'MEMBER'}`);
 
     try {
       // Step 3: Assign temporary owner as OWNER (this automatically demotes current owner to MANAGER)
-      console.log(
+      log.debug(
         `Assigning user ${temporaryOwnerUserId} as OWNER (this will automatically demote current owner ${userId} to MANAGER)`
       );
       await this.makeUserSiteMembership(
@@ -1031,15 +1033,13 @@ export class SiteManagementHelper {
       // Step 4: Verify the original owner was automatically demoted to MANAGER
       const verifyDemoted = await this.verifyRoleAssignment(siteId, userId, SitePermission.MANAGER);
       if (!verifyDemoted) {
-        console.warn(
+        log.warn(
           `Warning: Original owner ${userId} may not have been automatically demoted to MANAGER as expected. Proceeding anyway.`
         );
       }
 
       // Step 5: Now assign the desired role to the original user (who is now a MANAGER)
-      console.log(
-        `Assigning desired role ${desiredRole} to user ${userId} (currently MANAGER after automatic demotion)`
-      );
+      log.debug(`Assigning desired role ${desiredRole} to user ${userId} (currently MANAGER after automatic demotion)`);
       const response = await this.makeUserSiteMembership(
         siteId,
         userId,
@@ -1050,14 +1050,14 @@ export class SiteManagementHelper {
       // Step 6: Verify the desired role was assigned
       const verified = await this.verifyRoleAssignment(siteId, userId, desiredRole);
       if (!verified) {
-        console.warn(
+        log.warn(
           `Warning: Desired role ${desiredRole} may not have been assigned to user ${userId}. Response: ${JSON.stringify(response)}`
         );
       }
 
       // Step 7: Restore temporary owner to their original role (unless desired role is OWNER - then keep them as owner)
       if (desiredRole !== SitePermission.OWNER) {
-        console.log(
+        log.debug(
           `Restoring temporary owner ${temporaryOwnerUserId} to original role: ${temporaryOwnerOriginalRole || SitePermission.MANAGER}`
         );
         try {
@@ -1069,23 +1069,22 @@ export class SiteManagementHelper {
             SiteMembershipAction.SET_PERMISSION
           );
           await this.verifyRoleAssignment(siteId, temporaryOwnerUserId, restoreRole);
-          console.log(`✓ Temporary owner ${temporaryOwnerUserId} restored to ${restoreRole}`);
+          log.debug(`✓ Temporary owner ${temporaryOwnerUserId} restored to ${restoreRole}`);
         } catch (restoreError) {
           // Log but don't fail - the main operation succeeded
-          console.warn(
-            `Warning: Failed to restore temporary owner ${temporaryOwnerUserId} to original role. This is non-critical. Error: ${restoreError}`
+          log.warn(
+            `Warning: Failed to restore temporary owner ${temporaryOwnerUserId} to original role. This is non-critical.`,
+            restoreError
           );
         }
       } else {
-        console.log(
-          `Keeping temporary owner ${temporaryOwnerUserId} as OWNER since desired role for ${userId} is OWNER`
-        );
+        log.debug(`Keeping temporary owner ${temporaryOwnerUserId} as OWNER since desired role for ${userId} is OWNER`);
       }
 
       return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`Error during owner role change: ${errorMessage}`);
+      log.error(`Error during owner role change: ${errorMessage}`);
       throw new Error(`Failed to change role for owner ${userId} to ${desiredRole}. Error: ${errorMessage}`);
     }
   }
@@ -1108,19 +1107,19 @@ export class SiteManagementHelper {
     const userMembership = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
     const isUserMember = !!userMembership;
 
-    console.log('User Membership Status:', JSON.stringify(userMembership, null, 2));
+    log.debug('User Membership Status', { membership: JSON.stringify(userMembership, null, 2) });
 
     // Step 2: Determine current role from boolean flags (not from permission field)
     const currentRole = this.getCurrentRoleFromMember(userMembership);
     const hasCorrectRole = currentRole === role;
 
-    console.log(
+    log.debug(
       `User ${userId} - Current Role: ${currentRole || 'Not a member'}, Desired Role: ${role}, Match: ${hasCorrectRole}`
     );
 
     // Step 3: If user already has the correct role, return success
     if (hasCorrectRole) {
-      console.log(`User ${userId} already has the correct role ${role} in site ${siteId}`);
+      log.debug(`User ${userId} already has the correct role ${role} in site ${siteId}`);
       return {
         status: 'success',
         message: `User already has role ${role}`,
@@ -1130,20 +1129,20 @@ export class SiteManagementHelper {
 
     // Step 4: If user is not a member, add them first
     if (!isUserMember) {
-      console.log(`User ${userId} is not a member of site ${siteId}, adding as member first`);
+      log.debug(`User ${userId} is not a member of site ${siteId}, adding as member first`);
       await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
 
       // If the desired role is not member, set it separately
       if (role !== SitePermission.MEMBER) {
-        console.log(`Setting user ${userId} role to ${role}`);
+        log.debug(`Setting user ${userId} role to ${role}`);
         const response = await this.makeUserSiteMembership(siteId, userId, role, SiteMembershipAction.SET_PERMISSION);
 
         // Verify the role was set correctly
         const verified = await this.verifyRoleAssignment(siteId, userId, role);
         if (!verified) {
-          console.warn(
-            `Warning: Role assignment may have failed. Expected ${role}, but verification did not confirm. Response: ${JSON.stringify(response)}`
-          );
+          log.warn(`Warning: Role assignment may have failed. Expected ${role}, but verification did not confirm.`, {
+            response: JSON.stringify(response),
+          });
         }
 
         return response;
@@ -1152,7 +1151,7 @@ export class SiteManagementHelper {
       // Verify member role was set
       const verified = await this.verifyRoleAssignment(siteId, userId, SitePermission.MEMBER);
       if (!verified) {
-        console.warn(`Warning: Member role assignment may have failed for user ${userId}`);
+        log.warn(`Warning: Member role assignment may have failed for user ${userId}`);
       }
 
       return {
@@ -1163,11 +1162,11 @@ export class SiteManagementHelper {
     }
 
     // Step 5: User is a member but has wrong role - update it
-    console.log(`User ${userId} is a member but has wrong role (${currentRole}), updating to ${role}`);
+    log.debug(`User ${userId} is a member but has wrong role (${currentRole}), updating to ${role}`);
 
     // Special handling: If user is currently an OWNER, we need special logic
     if (currentRole === SitePermission.OWNER && role !== SitePermission.OWNER) {
-      console.log(`User ${userId} is currently an OWNER. Using special owner demotion flow to assign role ${role}`);
+      log.debug(`User ${userId} is currently an OWNER. Using special owner demotion flow to assign role ${role}`);
       return await this.handleOwnerRoleChange(siteId, userId, role);
     }
 
@@ -1177,20 +1176,20 @@ export class SiteManagementHelper {
       // Verify the role was set correctly
       const verified = await this.verifyRoleAssignment(siteId, userId, role);
       if (!verified) {
-        console.warn(
-          `Warning: Role update may have failed. Expected ${role}, but verification did not confirm. Response: ${JSON.stringify(response)}`
-        );
+        log.warn(`Warning: Role update may have failed. Expected ${role}, but verification did not confirm.`, {
+          response: JSON.stringify(response),
+        });
         // Don't throw error, but log warning - API might have succeeded but verification timing issue
       }
 
       return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`Failed to update role using SET_PERMISSION: ${errorMessage}`);
+      log.error(`Failed to update role using SET_PERMISSION: ${errorMessage}`);
 
       // If SET_PERMISSION fails, try a more aggressive approach:
       // Remove user and re-add with correct role
-      console.log(`Attempting fallback: Remove and re-add user with correct role`);
+      log.debug(`Attempting fallback: Remove and re-add user with correct role`);
       try {
         // Remove user
         await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
@@ -1206,7 +1205,7 @@ export class SiteManagementHelper {
           // Verify the role was set correctly
           const verified = await this.verifyRoleAssignment(siteId, userId, role);
           if (!verified) {
-            console.error(
+            log.error(
               `Error: Fallback role assignment failed. User ${userId} does not have role ${role} after remove/re-add`
             );
             throw new Error(
@@ -1230,7 +1229,7 @@ export class SiteManagementHelper {
         };
       } catch (fallbackError) {
         const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-        console.error(`Fallback approach also failed: ${fallbackErrorMessage}`);
+        log.error(`Fallback approach also failed: ${fallbackErrorMessage}`);
         throw new Error(
           `Failed to update user ${userId} role to ${role} in site ${siteId}. SET_PERMISSION failed: ${errorMessage}. Fallback failed: ${fallbackErrorMessage}`
         );
@@ -1297,11 +1296,11 @@ export class SiteManagementHelper {
       async () => {
         // Get all sites first (outside the loop)
         const sitesResponse = await this.getListOfSites({ filter: accessType.toLowerCase(), size: 1000 });
-        console.log(`Found ${sitesResponse.result.listOfItems.length} sites`);
+        log.debug(`Found ${sitesResponse.result.listOfItems.length} sites`);
         // Filter only by isActive to check all active sites
         const sites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
 
-        console.log(`Filtered to ${sites.length} active site(s) to check`);
+        log.debug(`Filtered to ${sites.length} active site(s) to check`);
 
         if (sites.length === 0) {
           throw new Error(
@@ -1320,14 +1319,14 @@ export class SiteManagementHelper {
           };
         }
 
-        console.log(`Expected: ${expectedMemberCount} members`);
+        log.debug(`Expected: ${expectedMemberCount} members`);
 
         // Loop through all sites to find one with expected member count
         for (let i = 0; i < sites.length; i++) {
           const siteInfo = sites[i];
           const siteId = siteInfo.siteId;
 
-          console.log(`Checking site ${i + 1}/${sites.length}: ${siteInfo.name} (${siteId})`);
+          log.debug(`Checking site ${i + 1}/${sites.length}: ${siteInfo.name} (${siteId})`);
 
           // Get site details
           const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
@@ -1336,11 +1335,11 @@ export class SiteManagementHelper {
           const membersResponse = await this.getSiteMembershipList(siteId, options);
           const memberCount = membersResponse.result?.listOfItems?.length || 0;
 
-          console.log(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
+          log.debug(`Site ${siteInfo.name} (${siteId}) has ${memberCount} members`);
 
           // Check if this site has the expected number of members
           if (memberCount >= expectedMemberCount) {
-            console.log(`✓ Found site with ${memberCount} members`);
+            log.debug(`✓ Found site with ${memberCount} members`);
 
             // Filter out excluded user if provided
             let filteredMembers = membersResponse.result;
@@ -1351,7 +1350,7 @@ export class SiteManagementHelper {
                 const excludedUserName = userInfo.fullName;
                 const excludedUserId = userInfo.userId;
 
-                console.log(`Excluding user: ${excludedUserName} (${options.excludeUserEmail}) from members list`);
+                log.debug(`Excluding user: ${excludedUserName} (${options.excludeUserEmail}) from members list`);
 
                 // Filter out the excluded user from members list
                 const originalMembers = membersResponse.result?.listOfItems || [];
@@ -1372,19 +1371,19 @@ export class SiteManagementHelper {
                   listOfItems: filteredMembersList,
                 };
 
-                console.log(
+                log.debug(
                   `Filtered members: ${originalMembers.length} -> ${filteredMembersList.length} (excluded: ${excludedUserName})`
                 );
 
                 // Check if filtered members still meet the requirement
                 if (filteredMembersList.length < expectedMemberCount) {
-                  console.log(
+                  log.debug(
                     `After filtering, site has ${filteredMembersList.length} members (need ${expectedMemberCount}), continuing...`
                   );
                   continue;
                 }
               } catch (error) {
-                console.log(`Warning: Failed to get user info for exclusion: ${error}. Returning all members.`);
+                log.warn(`Warning: Failed to get user info for exclusion`, error);
                 // If we can't get user info, return all members
                 filteredMembers = membersResponse.result;
               }
@@ -1469,123 +1468,6 @@ export class SiteManagementHelper {
   }
 
   /**
-   * Gets the list of carousel items for a site and removes them all
-   * @param siteId - The site ID to get carousel items from
-   * @returns Promise containing the number of items removed
-   */
-  async getAndRemoveAllCarouselItems(siteId: string): Promise<number> {
-    return await test.step(`Getting and removing all carousel items from site: ${siteId}`, async () => {
-      // Get the list of carousel items
-      const carouselResponse = await this.siteManagementService.getSiteCarouselItems(siteId);
-
-      if (!carouselResponse.result?.listOfItems?.length) {
-        console.log(`No carousel items found for site ${siteId}`);
-        return 0;
-      }
-
-      const carouselItems = carouselResponse.result.listOfItems;
-      console.log(`Found ${carouselItems.length} carousel items to remove`);
-
-      let removedCount = 0;
-
-      // Remove each carousel item
-      for (const item of carouselItems) {
-        try {
-          await this.siteManagementService.deleteSiteCarouselItem(siteId, item.carouselItemId);
-          console.log(`Successfully removed carousel item: ${item.carouselItemId}`);
-          removedCount++;
-        } catch (error) {
-          console.error(`Failed to remove carousel item ${item.carouselItemId}:`, error);
-          // Continue with other items even if one fails
-        }
-      }
-
-      console.log(`Successfully removed ${removedCount} out of ${carouselItems.length} carousel items`);
-      return removedCount;
-    });
-  }
-
-  /**
-   * Gets the list of home carousel items and removes them all
-   * @returns Promise containing the number of items removed
-   */
-  async getAndRemoveAllHomeCarouselItems(): Promise<number> {
-    return await test.step('Getting and removing all home carousel items', async () => {
-      // Get the list of home carousel items
-      const carouselResponse = await this.siteManagementService.getHomeCarouselItems();
-
-      if (!carouselResponse.result?.listOfItems?.length) {
-        console.log('No home carousel items found');
-        return 0;
-      }
-
-      const carouselItems = carouselResponse.result.listOfItems;
-      console.log(`Found ${carouselItems.length} home carousel items to remove`);
-
-      let removedCount = 0;
-
-      // Remove each carousel item
-      for (const item of carouselItems) {
-        try {
-          await this.siteManagementService.deleteHomeCarouselItem(item.carouselItemId);
-          console.log(`Successfully removed home carousel item: ${item.carouselItemId}`);
-          removedCount++;
-        } catch (error) {
-          console.error(`Failed to remove home carousel item ${item.carouselItemId}:`, error);
-          // Continue with other items even if one fails
-        }
-      }
-
-      console.log(`Successfully removed ${removedCount} out of ${carouselItems.length} home carousel items`);
-      return removedCount;
-    });
-  }
-
-  /**
-   * Gets the list of carousel items for a site
-   * @param siteId - The site ID to get carousel items from
-   * @returns Promise containing the carousel items list
-   */
-  async getSiteCarouselItems(siteId: string): Promise<any> {
-    return await test.step(`Getting carousel items for site: ${siteId}`, async () => {
-      return await this.siteManagementService.getSiteCarouselItems(siteId);
-    });
-  }
-
-  /**
-   * Gets the home carousel items list
-   * @returns Promise containing the home carousel items response
-   */
-  async getHomeCarouselItems(): Promise<any> {
-    return await test.step('Getting home carousel items', async () => {
-      return await this.siteManagementService.getHomeCarouselItems();
-    });
-  }
-
-  /**
-   * Removes a specific carousel item from a site
-   * @param siteId - The site ID containing the carousel item
-   * @param carouselItemId - The carousel item ID to remove
-   * @returns Promise containing the delete response
-   */
-  async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
-    return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
-      return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
-    });
-  }
-
-  /**
-   * Deletes a carousel item from the home dashboard
-   * @param carouselItemId - The carousel item ID to delete
-   * @returns Promise containing the delete response
-   */
-  async deleteHomeCarouselItem(carouselItemId: string): Promise<any> {
-    return await test.step(`Deleting home carousel item ${carouselItemId}`, async () => {
-      return await this.siteManagementService.deleteHomeCarouselItem(carouselItemId);
-    });
-  }
-
-  /**
    * Creates a site and assigns the user as owner
    * @param userId - The user ID to make owner
    * @returns Promise with site details
@@ -1618,7 +1500,7 @@ export class SiteManagementHelper {
           (member: any) => member.peopleId === userId && member.isOwner === true
         );
         if (isOwner) {
-          console.log(`Found site ${site.name} (${site.siteId}) where user ${userId} is an owner`);
+          log.debug(`Found site ${site.name} (${site.siteId}) where user ${userId} is an owner`);
           return {
             siteId: site.siteId,
             siteName: site.name,
@@ -1626,10 +1508,10 @@ export class SiteManagementHelper {
         }
       }
       // If no site found where user is owner, create a new one
-      console.log(`No site found where user ${userId} is an owner, creating a new site...`);
+      log.debug(`No site found where user ${userId} is an owner, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     } else {
-      console.log(`No active sites found, creating a new site...`);
+      log.debug(`No active sites found, creating a new site...`);
       return await this.createSiteWithUserAsOwner(userId);
     }
   }
@@ -1656,14 +1538,14 @@ export class SiteManagementHelper {
         for (const site of activeSites) {
           const memberListResponse = await this.siteManagementService.getSiteMembershipList(site.siteId);
 
-          console.log('memberListResponse', memberListResponse.result.listOfItems);
+          log.debug('memberListResponse', { members: memberListResponse.result.listOfItems });
 
           // Check if all users are neither members nor owners
           const memberPeopleIds = memberListResponse.result.listOfItems.map((member: any) => member.peopleId);
           const allUsersNotMembers = userId.every(userId => !memberPeopleIds.includes(userId));
 
           if (allUsersNotMembers) {
-            console.log('Found site:' + site);
+            log.debug('Found site', { site });
             return { siteId: site.siteId, siteName: site.name };
           }
         }
@@ -1694,13 +1576,13 @@ export class SiteManagementHelper {
 
         // Check if all users are not members AND site has content
         if (allUsersNotMembers && (site.hasPages || site.hasEvents || site.hasAlbums)) {
-          console.log(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
+          log.debug(`Found ${accessType} site with content: ${site.name} (${site.siteId})`);
           return { siteId: site.siteId, siteName: site.name };
         }
       }
 
       // If no site with content found, create a new one with pages enabled
-      console.log(`No ${accessType} site with content found, creating new site...`);
+      log.debug(`No ${accessType} site with content found, creating new site...`);
       const createdSite = await this.createSiteByAccessType(accessType, undefined, {
         hasPages: true,
         waitForSearchIndex: true,
@@ -1720,11 +1602,11 @@ export class SiteManagementHelper {
         size: options?.size,
         sortBy: options?.sortBy,
       });
-      console.log('Deactivated site list response', siteListResponse);
+      log.debug('Deactivated site list response', { response: siteListResponse });
       const site = siteListResponse.result.listOfItems.find(
         (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
       );
-      console.log('Deactivated site', site);
+      log.debug('Deactivated site', { site });
       if (!site) {
         //create a site and make it deactivated
         const createdSite = await this.createSite({

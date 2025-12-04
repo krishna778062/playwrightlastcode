@@ -169,6 +169,22 @@ test.describe(
             privateSiteId = site.siteId;
             console.log(`✓ Found site where user is not a member: ${site.siteId} (${site.name})`);
             break;
+          try {
+            const privateSiteDetails =
+              await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(site.siteId);
+            console.log(
+              `Checking site ${site.siteId} (${site.name}) - isMember: ${privateSiteDetails.result?.isMember}`
+            );
+            if (privateSiteDetails.result?.isMember === false || privateSiteDetails.result?.isMember === undefined) {
+              privateSiteId = site.siteId;
+              console.log(`✓ Found site where user is not a member: ${site.siteId} (${site.name})`);
+              break;
+            }
+          } catch (error) {
+            console.log(
+              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
+            );
+            // Continue to next site
           }
         }
 
@@ -425,6 +441,68 @@ test.describe(
           throw new Error('No valid site ID found in filtered sites');
         }
         await manageSitesComponent.hoverOnSiteCheckboxByExactName(selectedSite.name);
+        const activeSites = getListOfSitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        console.log(`Found ${activeSites.length} active sites to check`);
+
+        // Check each site's details to find one where user has canEdit=true and isOwner=true
+        let selectedSite: { siteId: string; name: string } | null = null;
+        for (const site of activeSites) {
+          try {
+            const siteDetails = await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(
+              site.siteId
+            );
+            console.log(
+              `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
+            );
+
+            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
+              selectedSite = { siteId: site.siteId, name: site.name };
+              console.log(`✓ Found site where user can edit and is owner: ${site.siteId} (${site.name})`);
+              break;
+            }
+          } catch (error) {
+            console.log(
+              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
+            );
+            // Continue to next site
+          }
+        }
+
+        if (!selectedSite) {
+          throw new Error('No sites found with canEdit=true and isOwner=true');
+        }
+
+        // Initialize ManageSitePage for Show More button
+        const manageSitePage = new ManageSitePage(standardUserFixture.page);
+        await manageSitePage.loadPage();
+
+        // Retry logic: Click "Show More" button if site is not found
+        const maxRetriesForShowMoreButton = 10;
+        for (let attempt = 0; attempt < maxRetriesForShowMoreButton; attempt++) {
+          try {
+            await manageSitesComponent.hoverOnSiteCheckboxByExactName(selectedSite.name);
+            console.log(`✓ Successfully hovered on site checkbox: ${selectedSite.name}`);
+            break;
+          } catch {
+            if (attempt < maxRetriesForShowMoreButton - 1) {
+              console.log(
+                `Site "${selectedSite.name}" not found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
+              );
+              try {
+                await manageSitePage.actions.clickOnShowMoreButtonAction();
+              } catch {
+                console.log('Show More button not available or clickable');
+                // Continue to next attempt
+              }
+            } else {
+              throw new Error(
+                `Failed to hover on site checkbox "${selectedSite.name}" after ${maxRetriesForShowMoreButton} attempts. Site may not be visible in the UI.`
+              );
+            }
+          }
+        }
+
         await editSitePage.actions.clickOnEditOption();
         await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
         await editSitePage.actions.clickOnUpdateButton();
@@ -479,6 +557,7 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
       async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action from end user can deactivate the site',
           zephyrTestId: 'CONT-26576',
@@ -507,6 +586,38 @@ test.describe(
 
         // Limit to first 20 sites to avoid pagination issues
         const deactivatedSiteNames = sitesWithEditAndOwner.slice(0, 20).map((item: any) => item.name);
+        // Check each deactivated site's details to find one where user has canEdit=true and isOwner=true
+        const sitesWithEditAndOwner: { siteId: string; name: string }[] = [];
+        for (const site of getListOfSitesResponse.result.listOfItems.slice(0, 20)) {
+          // Limit to first 20 sites to avoid too many API calls
+          try {
+            const siteDetails = await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(
+              site.siteId
+            );
+            console.log(
+              `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
+            );
+
+            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
+              sitesWithEditAndOwner.push({ siteId: site.siteId, name: site.name });
+              console.log(`✓ Found deactivated site where user can edit and is owner: ${site.siteId} (${site.name})`);
+            }
+          } catch (error) {
+            console.log(
+              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
+            );
+            // Continue to next site
+          }
+        }
+
+        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
+        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
+        if (sitesWithEditAndOwner.length === 0) {
+          throw new Error('No deactivated sites found with canEdit=true and isOwner=true');
+        }
+
+        // Limit to first 20 sites to avoid pagination issues
+        const deactivatedSiteNames = sitesWithEditAndOwner.map((item: any) => item.name);
 
         console.log('deactivatedSiteNames', deactivatedSiteNames);
         if (deactivatedSiteNames.length === 0) {
@@ -546,6 +657,7 @@ test.describe(
         await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
         await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
         const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+        const getSiteListResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
         });
@@ -607,6 +719,69 @@ test.describe(
         }
 
         await manageSitesComponent.selectSiteCheckboxByExactName(selectedSite.name);
+        const activeSites = getListOfSitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        console.log(`Found ${activeSites.length} active sites to check`);
+
+        // Check each site's details to find one where user has canEdit=true and isOwner=true
+        let selectedSite: { siteId: string; name: string } | null = null;
+        for (const site of activeSites) {
+          try {
+            const siteDetails = await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(
+              site.siteId
+            );
+            console.log(
+              `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
+            );
+
+            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
+              selectedSite = { siteId: site.siteId, name: site.name };
+              console.log(`✓ Found site where user can edit and is owner: ${site.siteId} (${site.name})`);
+              break;
+            }
+          } catch (error) {
+            console.log(
+              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
+            );
+            // Continue to next site
+          }
+        }
+
+        if (!selectedSite) {
+          throw new Error('No sites found with canEdit=true and isOwner=true');
+        }
+
+        // Initialize ManageSitePage for Show More button
+        const manageSitePage = new ManageSitePage(standardUserFixture.page);
+        await manageSitePage.loadPage();
+
+        const firstSiteId = selectedSite.siteId;
+
+        // Retry logic: Click "Show More" button if site checkbox is not found
+        const maxRetriesForShowMoreButton = 10;
+        for (let attempt = 0; attempt < maxRetriesForShowMoreButton; attempt++) {
+          try {
+            await manageSitesComponent.selectSiteCheckboxByExactName(selectedSite.name);
+            console.log(`✓ Successfully selected site checkbox: ${selectedSite.name}`);
+            break;
+          } catch {
+            if (attempt < maxRetriesForShowMoreButton - 1) {
+              console.log(
+                `Site checkbox "${selectedSite.name}" not found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
+              );
+              try {
+                await manageSitePage.actions.clickOnShowMoreButtonAction();
+              } catch {
+                console.log('Show More button not available or clickable');
+                // Continue to next attempt
+              }
+            } else {
+              throw new Error(
+                `Failed to select site checkbox "${selectedSite.name}" after ${maxRetriesForShowMoreButton} attempts. Site may not be visible in the UI.`
+              );
+            }
+          }
+        }
         await manageContentPage.actions.clickOnSelectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
         await manageContentPage.actions.clickOnApply();
