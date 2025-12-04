@@ -158,7 +158,7 @@ test.describe(
           appManagerFixture.page,
           siteDetails.siteId,
           createPageInfo.contentId,
-          ContentType.PAGE
+          ContentType.PAGE.toLowerCase()
         );
         await contentDetails.loadPage();
         await contentDetails.actions.clickOnOptionMenuButton();
