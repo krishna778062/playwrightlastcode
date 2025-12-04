@@ -162,13 +162,6 @@ test.describe(
         console.log(`Found ${privateSites.length} active private sites to check`);
 
         for (const site of privateSites) {
-          const privateSiteDetails =
-            await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(site.siteId);
-          console.log(`Checking site ${site.siteId} (${site.name}) - isMember: ${privateSiteDetails.result?.isMember}`);
-          if (privateSiteDetails.result?.isMember === false || privateSiteDetails.result?.isMember === undefined) {
-            privateSiteId = site.siteId;
-            console.log(`✓ Found site where user is not a member: ${site.siteId} (${site.name})`);
-            break;
           try {
             const privateSiteDetails =
               await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(site.siteId);
@@ -435,17 +428,11 @@ test.describe(
         if (sitesWithEditAndOwner.length === 0) {
           throw new Error('No sites found with canEdit=true and isOwner=true');
         }
-        const selectedSite = sitesWithEditAndOwner[1];
-        const firstSiteId = selectedSite.siteId;
-        if (!firstSiteId) {
-          throw new Error('No valid site ID found in filtered sites');
-        }
-        await manageSitesComponent.hoverOnSiteCheckboxByExactName(selectedSite.name);
-        const activeSites = getListOfSitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
-
-        console.log(`Found ${activeSites.length} active sites to check`);
 
         // Check each site's details to find one where user has canEdit=true and isOwner=true
+        const activeSites = getListOfSitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+        console.log(`Found ${activeSites.length} active sites to check`);
+
         let selectedSite: { siteId: string; name: string } | null = null;
         for (const site of activeSites) {
           try {
@@ -556,8 +543,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
-      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture }) => {
-      async ({ standardUserFixture, standardUserApiFixture }) => {
+      async ({ standardUserFixture, standardUserApiFixture, appManagerApiFixture: _appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'to verify the bulk action from end user can deactivate the site',
           zephyrTestId: 'CONT-26576',
@@ -575,17 +561,6 @@ test.describe(
           filter: 'deactivated',
         });
 
-        const sitesWithEditAndOwner = getListOfSitesResponse.result.listOfItems.filter(
-          (item: any) => item.canEdit === true && item.isOwner === true
-        );
-        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
-        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
-        if (sitesWithEditAndOwner.length === 0) {
-          throw new Error('No sites found with canEdit=true and isOwner=true');
-        }
-
-        // Limit to first 20 sites to avoid pagination issues
-        const deactivatedSiteNames = sitesWithEditAndOwner.slice(0, 20).map((item: any) => item.name);
         // Check each deactivated site's details to find one where user has canEdit=true and isOwner=true
         const sitesWithEditAndOwner: { siteId: string; name: string }[] = [];
         for (const site of getListOfSitesResponse.result.listOfItems.slice(0, 20)) {
@@ -617,7 +592,7 @@ test.describe(
         }
 
         // Limit to first 20 sites to avoid pagination issues
-        const deactivatedSiteNames = sitesWithEditAndOwner.map((item: any) => item.name);
+        const deactivatedSiteNames = sitesWithEditAndOwner.slice(0, 20).map((item: any) => item.name);
 
         console.log('deactivatedSiteNames', deactivatedSiteNames);
         if (deactivatedSiteNames.length === 0) {
@@ -656,7 +631,6 @@ test.describe(
         await manageContentPage.actions.clickOnActivateApplyButton();
         await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
         await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
-        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
         const getSiteListResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
@@ -712,15 +686,7 @@ test.describe(
           throw new Error('No sites found with canEdit=true and isOwner=true');
         }
 
-        const selectedSite = sitesWithEditAndOwner[1];
-        const firstSiteId = selectedSite.siteId;
-        if (!firstSiteId) {
-          throw new Error('No valid site ID found in filtered sites');
-        }
-
-        await manageSitesComponent.selectSiteCheckboxByExactName(selectedSite.name);
         const activeSites = getListOfSitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
-
         console.log(`Found ${activeSites.length} active sites to check`);
 
         // Check each site's details to find one where user has canEdit=true and isOwner=true

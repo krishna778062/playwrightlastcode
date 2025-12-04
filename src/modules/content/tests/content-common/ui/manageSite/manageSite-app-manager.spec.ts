@@ -649,7 +649,6 @@ test.describe(
         tagTest(test.info(), {
           description:
             'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
-          description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
         });
