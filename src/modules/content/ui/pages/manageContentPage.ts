@@ -2,8 +2,9 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { ManageContentOptions, ManageContentTags, SortOptionLabels } from '@/src/modules/content/constants';
+import { ManageContentOptions, ManageContentTags, SortOptionLabels, TagOption } from '@/src/modules/content/constants';
 import { ManageContentComponent } from '@/src/modules/content/ui/components/manageContentComponent';
 import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 
@@ -14,6 +15,8 @@ export interface IActions {
   clickOnFirstContentButton: () => Promise<void>;
   clickOnSelectActionDropdown: () => Promise<void>;
   clickOnUnpublishButton: () => Promise<void>;
+  clickOnUnpublishButtonFromDropDown: () => Promise<void>;
+  selectUnpublishButtonFromBulkActions: () => Promise<void>;
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
   clickFilterButton: () => Promise<void>;
@@ -40,6 +43,7 @@ export interface IActions {
   verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
   selectTheStatusFilter: (status: string) => Promise<void>;
   clickOnSelectAllButton: () => Promise<void>;
+  selectContentByNumberOfItems: (numberOfItems: number) => Promise<void>;
   applyButtonShouldBeDisabled: () => Promise<void>;
   selectEditedNewestOption: () => Promise<void>;
   selectEditedOldestOption: () => Promise<void>;
@@ -63,7 +67,6 @@ export interface IActions {
   clickDeleteModalConfirmButton: () => Promise<void>;
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   selectSiteSearchBarOption: () => Promise<void>;
-  selectCreateNewestPublishedOption: () => Promise<void>;
   getAllContentNames: () => Promise<string[]>;
   verifyAddToCampaignOptionShouldNotBeVisibleInManageContent: () => Promise<void>;
   clickOnContentEditButton: () => Promise<void>;
@@ -74,6 +77,9 @@ export interface IActions {
   clickOnActivateApplyButton: () => Promise<void>;
   clickOnApply: () => Promise<void>;
   verifyAllContentsAreDeleted: (contentNames: string[]) => Promise<void>;
+  selectOnboardingOption: (option: TagOption) => Promise<void>;
+  saveButtonShouldBeDisabled: () => Promise<void>;
+  clickOnOnboardingSaveButton: () => Promise<void>;
 }
 
 export interface IAssertions {
@@ -88,6 +94,11 @@ export interface IAssertions {
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
   verifyValidationRequiredIsVisible: () => Promise<void>;
+  verifyAlreadySelectedOnboardingOptionVisible: (option: TagOption) => Promise<void>;
+  verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
+  verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
+  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
+  verifyTagIsVisibleOnContentUnderFavoritesTab: (option: TagOption) => Promise<void>;
 }
 
 export class ManageContentPage extends BasePage implements IActions, IAssertions {
@@ -162,9 +173,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnSelectActionDropdown(): Promise<void> {
     await this.manageContentComponent.selectActionDropdown();
   }
+  async selectUnpublishButtonFromBulkActions(): Promise<void> {
+    await this.manageContentComponent.selectUnpublishButtonFromBulkActions();
+  }
 
   async clickOnUnpublishButton(): Promise<void> {
     await this.manageContentComponent.selectUnpublishButton();
+  }
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await this.manageContentComponent.clickOnUnpublishButtonFromDropDown();
   }
 
   async clickOnApplyButton(): Promise<void> {
@@ -204,6 +221,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnSelectAllButton(): Promise<void> {
     await this.manageContentComponent.selectSelectAllButton();
+  }
+  async selectContentByNumberOfItems(numberOfItems: number): Promise<void> {
+    await this.manageContentComponent.selectContentByNumberOfItems(numberOfItems);
+  }
+  async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
+    await this.manageContentComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(option);
   }
 
   async clickOnValidateButton(): Promise<void> {
@@ -246,9 +269,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectCreatedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOption();
   }
-  async selectCreateNewestPublishedOption(): Promise<void> {
-    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
-  }
+
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
@@ -283,19 +304,29 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickSortByButton(): Promise<void> {
     await this.manageContentComponent.clickSortByButton();
   }
-
-  async selectEditedNewestOption(): Promise<void> {
-    await this.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
-  }
-  async selectEditedOldestOption(): Promise<void> {
-    await this.selectSortOption(SortOptionLabels.MODIFIED_OLDEST);
-  }
   /**
    * Parameterized function to select any sort option by SortOptionLabels enum
    * @param sortBy - The sort option to select
    */
   async selectSortOption(sortBy: SortOptionLabels): Promise<void> {
-    await this.manageContentComponent.selectSortOption(sortBy);
+    await this.performActionAndWaitForResponse(
+      () => this.manageContentComponent.selectSortOption(sortBy),
+      response =>
+        response.url().includes(API_ENDPOINTS.content.contentListInSite) &&
+        response.request().method() === 'POST' &&
+        response.status() === 200,
+      {
+        timeout: 20_000,
+      }
+    );
+  }
+
+  async selectEditedNewestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedNewestOptionByText();
+  }
+
+  async selectEditedOldestOption(): Promise<void> {
+    await this.manageContentComponent.selectEditedOldestOptionByText();
   }
 
   async selectPageCategory(): Promise<void> {
@@ -337,13 +368,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async checkValidateOptionInBulkActions(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
-    console.log('clicking on checkbox');
     await this.clickOnElement(this.clickOnBulkOptions);
-    console.log('clicking on bulk options');
     await this.verifier.verifyTheElementIsVisible(this.validateOption, {
       assertionMessage: 'Validate option should be visible in bulk actions',
     });
-    console.log('validate option should be visible in bulk actions');
   }
   async openContentDetailsPage(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
@@ -452,5 +480,35 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyContentVisibleInManageSite(contentName: string): Promise<void> {
     await this.manageContentComponent.verifyContentVisibleInManageSite(contentName);
+  }
+
+  // Onboarding methods - Actions
+  async selectOnboardingOption(option: TagOption): Promise<void> {
+    await this.onboardingComponent.selectOnboardingOption(option);
+  }
+
+  async saveButtonShouldBeDisabled(): Promise<void> {
+    await this.onboardingComponent.saveButtonShouldBeDisabled();
+  }
+
+  async clickOnOnboardingSaveButton(): Promise<void> {
+    await this.onboardingComponent.clickOnSaveButton();
+  }
+
+  // Onboarding methods - Assertions
+  async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyAlreadySelectedOnboardingOptionVisible(option);
+  }
+
+  async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagShouldNotBeVisibleOnContent(option);
+  }
+
+  async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
+    // Call the inherited method from BaseActionUtil (BasePage extends BaseActionUtil)
+    await super.verifyToastMessageIsVisibleWithText(message);
+  }
+  async verifyTagIsVisibleOnContent(option: TagOption): Promise<void> {
+    await this.onboardingComponent.verifyTagIsVisibleOnContent(option);
   }
 }

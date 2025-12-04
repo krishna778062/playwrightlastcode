@@ -5,6 +5,7 @@ export const MANAGE_CONTENT_TEST_DATA = {
   MONTH_NAMES: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   UPDATED_PAGE_NAME: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page Updated`,
   PAST_YEAR_DATE: getPastDate(),
+  UPDATED_ONBOARDING_STATUS: 'Updated onboarding status',
 };
 
 function getPastDate() {

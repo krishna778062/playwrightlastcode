@@ -1,4 +1,3 @@
-import { UKG_CREDS } from '@integrations/test-data/gamma-data-file';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
@@ -117,10 +116,10 @@ export class UkgSyncComponents extends BaseComponent {
   ): Promise<void> {
     await test.step(`Add Ukg Connection Details: ${source}`, async () => {
       const fields = [
-        { name: UKG_CREDS.USERNAME, value: username },
-        { name: UKG_CREDS.PASSWORD, value: password },
-        { name: UKG_CREDS.BASE_URL, value: url },
-        { name: UKG_CREDS.KEY, value: key },
+        { name: username, value: SYNCING.USERNAME },
+        { name: password, value: SYNCING.PASSWORD },
+        { name: url, value: SYNCING.BASE_URL },
+        { name: key, value: SYNCING.KEY },
       ];
 
       for (const field of fields) {

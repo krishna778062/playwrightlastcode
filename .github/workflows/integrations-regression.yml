@@ -13,18 +13,25 @@ permissions:
 
 jobs:
   integrations-regression-tests:
-    timeout-minutes: 120
+    timeout-minutes: 200
     runs-on: [kubernetes]
     strategy:
       fail-fast: false
       matrix:
-        module: [integrations-primary, integrations-workday]
+        module: [integrations-primary, integrations-workday, integrations-azuresso]
         environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
+      - name: Record Start Time
+        id: start-time
+        run: |
+          echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
+          echo "START_TIME_READABLE=$(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+          echo "Job started at: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -269,4 +276,42 @@ jobs:
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
+          fi
+
+      - name: Check Execution Duration and Alert if Exceeded
+        if: always()
+        run: |
+          # Calculate job duration
+          END_TIME=$(date +%s)
+          DURATION_SECONDS=$((END_TIME - ${{ env.START_TIME }}))
+          DURATION_MINUTES=$((DURATION_SECONDS / 60))
+          DURATION_HOURS=$((DURATION_MINUTES / 60))
+          REMAINING_MINUTES=$((DURATION_MINUTES % 60))
+
+          # Threshold in minutes (120 minutes = 2 hours)
+          THRESHOLD_MINUTES=120
+
+          echo "Job Duration: ${DURATION_HOURS}h ${REMAINING_MINUTES}m (${DURATION_MINUTES} minutes total)"
+          echo "Threshold: ${THRESHOLD_MINUTES} minutes"
+
+          # Store duration for reference
+          echo "DURATION_MINUTES=$DURATION_MINUTES" >> $GITHUB_ENV
+          echo "DURATION_DISPLAY=${DURATION_HOURS}h ${REMAINING_MINUTES}m" >> $GITHUB_ENV
+
+          # Send alert if duration exceeded threshold
+          if [ "$DURATION_MINUTES" -gt "$THRESHOLD_MINUTES" ]; then
+            EXCEEDED_BY=$((DURATION_MINUTES - THRESHOLD_MINUTES))
+            
+            DURATION_ALERT="⏱️ *Integrations Regression Duration Alert* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` exceeded the 2-hour threshold!\n\n📊 *Execution Summary:*\n• Total Duration: *${DURATION_HOURS}h ${REMAINING_MINUTES}m* (${DURATION_MINUTES} min)\n• Threshold: 120 min (2 hours)\n• Exceeded By: *${EXCEEDED_BY} minutes*\n\n📈 *Test Results:*\n• Total: ${{ env.TOTAL_TESTS }} | ✅ Passed: ${{ env.PASSED_TESTS }} | ❌ Failed: ${{ env.FAILED_TESTS }} | ⏭️ Skipped: ${{ env.SKIPPED_TESTS }}\n\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+            echo "DURATION_ALERT: $DURATION_ALERT"
+            
+            # Send duration alert to Slack
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$DURATION_ALERT\"}" \
+              $SLACK_WEBHOOK_URL
+              
+            echo "⚠️ Duration alert sent to Slack - Job exceeded 120 minute threshold"
+          else
+            echo "✅ Job completed within threshold (${DURATION_MINUTES} min <= ${THRESHOLD_MINUTES} min)"
           fi

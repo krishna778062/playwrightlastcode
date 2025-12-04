@@ -140,6 +140,7 @@ export class SiteDashboard {
     fields?: Array<{ name: string; value: string }>;
     radioOptions?: Array<{ fieldName: string; option: string }>;
     radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+    dropdowns?: Array<{ fieldName: string; value: string }>;
   }): Promise<void> {
     if (config.fields) {
       for (const field of config.fields) {
@@ -162,6 +163,11 @@ export class SiteDashboard {
         );
       }
     }
+    if (config.dropdowns) {
+      for (const dropdown of config.dropdowns) {
+        await this.selectDropdownValue(dropdown.fieldName, dropdown.value);
+      }
+    }
   }
 
   /**
@@ -181,6 +187,7 @@ export class SiteDashboard {
       fields?: Array<{ name: string; value: string }>;
       radioOptions?: Array<{ fieldName: string; option: string }>;
       radioOptionsWithValues?: Array<{ fieldName: string; option: string; value: string }>;
+      dropdowns?: Array<{ fieldName: string; value: string }>;
     }
   ): Promise<void> {
     await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
@@ -397,7 +404,42 @@ export class SiteDashboard {
       ],
     });
   }
+  /**
+   * Complete workflow to add an app tile with dropdown and text field
+   * @param tileTitle - The title of the tile to add
+   * @param appName - The name of the app to add
+   * @param tileName - The name of the tile to add
+   * @param dropdownFieldName - The name of the first dropdown field
+   * @param dropdownValue - The value to select in the first dropdown
+   * @param textFieldName - The name of the text field
+   * @param textFieldValue - The value for the text field
+   * @param destination - The destination (Add to home/Add to site)
+   * @param secondDropdownFieldName - Optional second dropdown field name (appears when "All" is selected)
+   * @param secondDropdownValue - Optional second dropdown value
+   */
+  async addTileWithDropdownAndField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    textFieldName: string,
+    textFieldValue: string,
+    destination: string,
+    secondDropdownFieldName?: string,
+    secondDropdownValue?: string
+  ): Promise<void> {
+    const dropdowns = [{ fieldName: dropdownFieldName, value: dropdownValue }];
 
+    // If second dropdown field name and value are provided, add them to the dropdowns array
+    if (secondDropdownFieldName && secondDropdownValue) {
+      dropdowns.push({ fieldName: secondDropdownFieldName, value: secondDropdownValue });
+    }
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      dropdowns,
+      fields: [{ name: textFieldName, value: textFieldValue }],
+    });
+  }
   /**
    * Complete workflow to add an app tile with manager defined settings
    */
@@ -533,6 +575,12 @@ export class SiteDashboard {
     return this.tileOperationsComponent.selectRadioOptionandValue(fieldName, radioOption, dropdownValue);
   }
   /**
+   * Select a dropdown value directly by field name (without radio button)
+   */
+  async selectDropdownValue(fieldName: string, value: string): Promise<void> {
+    return this.tileOperationsComponent.selectDropdownValue(fieldName, value);
+  }
+  /**
    * Complete workflow to add app tile with site manager defined configuration
    */
   async addTileWithSiteManagerDefined(
@@ -634,7 +682,7 @@ export class SiteDashboard {
     });
   }
   /**
-   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   * Complete workflow to add a ServiceNow tile with App Manager Defined settings
    */
   async addAppManagerDefinedWithOptions(
     tileTitle: string,
@@ -642,13 +690,12 @@ export class SiteDashboard {
     tileName: string,
     destination: string,
     fieldName: string,
-    fieldValue: string,
-    fieldName2: string,
-    fieldValue2: string
+    fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
-      radioOptionsWithValues: [{ fieldName: fieldName, option: 'Site manager defined', value: fieldValue }],
-      fields: [{ name: fieldName2, value: fieldValue2 }],
+    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+      radioOptionsWithValues: [
+        { fieldName: fieldName, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue },
+      ],
     });
   }
   /**
