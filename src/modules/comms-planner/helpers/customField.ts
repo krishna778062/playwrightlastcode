@@ -31,6 +31,18 @@ export const verifyCustomFieldInListing = async (
   await customFieldsPage.filterCustomFieldListingByFieldType(meta.type);
 };
 
+export const toggleCustomFieldStatusInListing = async (
+  customFieldsPage: CustomFieldsPage,
+  meta: {
+    type: string;
+    name: string;
+    options?: string[];
+  }
+) => {
+  await customFieldsPage.toggleAndVerifyCreatedCustomFieldStatus(meta.name, false);
+  await customFieldsPage.toggleAndVerifyCreatedCustomFieldStatus(meta.name, true);
+};
+
 export const createCustomField = async (
   customFieldsPage: CustomFieldsPage,
   meta: {
