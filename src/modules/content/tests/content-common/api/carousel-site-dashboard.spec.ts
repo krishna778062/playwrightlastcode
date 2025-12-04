@@ -9,7 +9,7 @@ import { CarouselApiHelper } from '@/src/modules/content/apis/apiValidation/caro
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
-  '@Home Carousel API',
+  '@Site Carousel API',
   {
     tag: [ContentTestSuite.API],
   },
@@ -21,62 +21,68 @@ test.describe(
     });
 
     test(
-      'app manager can enable and disable home carousel',
+      'app manager can enable and disable site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CCONT-42874'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42878'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate App Manager can enable and disable home carousel',
-          zephyrTestId: 'CONT-42874',
-          storyId: 'CONT-42874',
+          description: 'Validate App Manager can enable and disable site carousel',
+          zephyrTestId: 'CONT-42878',
+          storyId: 'CONT-42878',
         });
 
-        // Enable home carousel
+        // Get existing site
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Enable site carousel
         const enableResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-          isHomeCarouselEnabled: true,
+          isSiteCarouselEnabled: true,
         });
         await carouselApiHelper.validateAppGovernanceResponse(enableResponse);
 
-        // Verify carousel is enabled with retry
-        await carouselApiHelper.validateHomeCarouselEnabled(() =>
+        // Verify site carousel is enabled with retry
+        await carouselApiHelper.validateSiteCarouselEnabled(() =>
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
 
-        // Disable home carousel
+        // Disable site carousel
         const disableResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-          isHomeCarouselEnabled: false,
+          isSiteCarouselEnabled: false,
         });
         await carouselApiHelper.validateAppGovernanceResponse(disableResponse);
 
-        // Verify carousel is disabled with retry
-        await carouselApiHelper.validateHomeCarouselDisabled(() =>
+        // Verify site carousel is disabled with retry
+        await carouselApiHelper.validateSiteCarouselDisabled(() =>
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
       }
     );
 
     test(
-      'app manager can add and remove Page content from home carousel',
+      'app manager can add and remove page content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42875'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42879'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate App Manager can add and remove content from home carousel',
-          zephyrTestId: 'CONT-42875',
-          storyId: 'CONT-42875',
+          description: 'Validate App Manager can add and remove page content from site carousel',
+          zephyrTestId: 'CONT-42879',
+          storyId: 'CONT-42879',
         });
 
-        // Enable home carousel
+        // Enable site carousel
         await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-          isHomeCarouselEnabled: true,
+          isSiteCarouselEnabled: true,
         });
 
-        // Verify carousel is enabled before proceeding
-        await carouselApiHelper.validateHomeCarouselEnabled(() =>
+        // Verify site carousel is enabled before proceeding
+        await carouselApiHelper.validateSiteCarouselEnabled(() =>
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
+
+        // Get existing site
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
         // Get existing content for carousel
         const contentInfo = await appManagerApiFixture.contentManagementHelper.getContentId({
@@ -84,52 +90,56 @@ test.describe(
           status: 'published',
         });
 
-        // Add content to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(contentInfo.contentId);
+        // Add content to site carousel
+        const addResponse = await appManagerApiFixture.carouselHelper.addSiteCarouselItem(
+          siteId,
+          contentInfo.contentId
+        );
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
-        // Verify content is in carousel
-        const carouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify content is in site carousel
+        const carouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemInList(carouselItems, contentInfo.contentId);
 
-        // Remove content from carousel
+        // Remove content from site carousel
         const carouselItem = carouselItems.result.listOfItems.find(
           (item: any) => item.item?.id === contentInfo.contentId
         );
-        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteHomeCarouselItem(
+        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteSiteCarouselItem(
+          siteId,
           carouselItem.carouselItemId
         );
         await carouselApiHelper.validateCarouselItemDeletionResponse(deleteResponse);
 
-        // Verify content is removed from carousel
-        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify content is removed from site carousel
+        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemNotInList(updatedCarouselItems, contentInfo.contentId);
       }
     );
 
     test(
-      'app manager can add and remove event content from home carousel',
+      'app manager can add and remove event content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-5393'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42880'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate App Manager can add and remove event content from home carousel',
-          zephyrTestId: 'CONT-5393',
-          storyId: 'CONT-5393',
+          description: 'Validate App Manager can add and remove event content from site carousel',
+          zephyrTestId: 'CONT-42880',
+          storyId: 'CONT-42880',
         });
 
-        // Enable home carousel
+        // Enable site carousel
         await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-          isHomeCarouselEnabled: true,
+          isSiteCarouselEnabled: true,
         });
 
-        // Verify carousel is enabled before proceeding
-        await carouselApiHelper.validateHomeCarouselEnabled(() =>
+        // Verify site carousel is enabled before proceeding
+        await carouselApiHelper.validateSiteCarouselEnabled(() =>
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
 
-        // Get existing site for event creation
+        // Get existing site
         const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
         // Create event content
@@ -139,59 +149,60 @@ test.describe(
             contentType: 'event',
           },
           options: {
-            eventName: TestDataGenerator.generateRandomString('CarouselEvent'),
-            contentDescription: 'Test event for carousel',
+            eventName: TestDataGenerator.generateRandomString('SiteCarouselEvent'),
+            contentDescription: 'Test event for site carousel',
             location: 'Test Location',
             waitForSearchIndex: false,
           },
         });
 
-        // Add event to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(eventInfo.contentId);
+        // Add event to site carousel
+        const addResponse = await appManagerApiFixture.carouselHelper.addSiteCarouselItem(siteId, eventInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
-        // Verify event is in carousel
-        const carouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify event is in site carousel
+        const carouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemInList(carouselItems, eventInfo.contentId);
 
-        // Remove event from carousel
+        // Remove event from site carousel
         const carouselItem = carouselItems.result.listOfItems.find(
           (item: any) => item.item?.id === eventInfo.contentId
         );
-        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteHomeCarouselItem(
+        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteSiteCarouselItem(
+          siteId,
           carouselItem.carouselItemId
         );
         await carouselApiHelper.validateCarouselItemDeletionResponse(deleteResponse);
 
-        // Verify event is removed from carousel
-        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify event is removed from site carousel
+        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemNotInList(updatedCarouselItems, eventInfo.contentId);
       }
     );
 
     test(
-      'app manager can add and remove album content from home carousel',
+      'app manager can add and remove album content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-10863'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42881'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'Validate App Manager can add and remove album content from home carousel',
-          zephyrTestId: 'CONT-10863',
-          storyId: 'CONT-10863',
+          description: 'Validate App Manager can add and remove album content from site carousel',
+          zephyrTestId: 'CONT-42881',
+          storyId: 'CONT-42881',
         });
 
-        // Enable home carousel
+        // Enable site carousel
         await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-          isHomeCarouselEnabled: true,
+          isSiteCarouselEnabled: true,
         });
 
-        // Verify carousel is enabled before proceeding
-        await carouselApiHelper.validateHomeCarouselEnabled(() =>
+        // Verify site carousel is enabled before proceeding
+        await carouselApiHelper.validateSiteCarouselEnabled(() =>
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
 
-        // Get existing site for album creation
+        // Get existing site
         const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
         // Create album content
@@ -199,31 +210,32 @@ test.describe(
           siteId: siteId,
           imageName: 'beach.jpg',
           options: {
-            albumName: TestDataGenerator.generateRandomString('CarouselAlbum'),
-            contentDescription: 'Test album for carousel',
+            albumName: TestDataGenerator.generateRandomString('SiteCarouselAlbum'),
+            contentDescription: 'Test album for site carousel',
             waitForSearchIndex: false,
           },
         });
 
-        // Add album to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(albumInfo.contentId);
+        // Add album to site carousel
+        const addResponse = await appManagerApiFixture.carouselHelper.addSiteCarouselItem(siteId, albumInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
-        // Verify album is in carousel
-        const carouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify album is in site carousel
+        const carouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemInList(carouselItems, albumInfo.contentId);
 
-        // Remove album from carousel
+        // Remove album from site carousel
         const carouselItem = carouselItems.result.listOfItems.find(
           (item: any) => item.item?.id === albumInfo.contentId
         );
-        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteHomeCarouselItem(
+        const deleteResponse = await appManagerApiFixture.carouselHelper.carouselService.deleteSiteCarouselItem(
+          siteId,
           carouselItem.carouselItemId
         );
         await carouselApiHelper.validateCarouselItemDeletionResponse(deleteResponse);
 
-        // Verify album is removed from carousel
-        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        // Verify album is removed from site carousel
+        const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getSiteCarouselItems(siteId);
         await carouselApiHelper.validateCarouselItemNotInList(updatedCarouselItems, albumInfo.contentId);
       }
     );
