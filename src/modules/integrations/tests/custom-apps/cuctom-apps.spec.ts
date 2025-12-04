@@ -913,20 +913,22 @@ test.describe(
 
         await customAppsPage.clickEditFromMenu();
 
-        await customAppsPage.verifyFieldIsEnabled('name');
-        await customAppsPage.verifyFieldIsEnabled('description');
-        await customAppsPage.verifyDropdownIsEnabled('category');
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
 
-        await customAppsPage.selectAppCategory('Support & Ticketing');
+        await customAppsPage.verifyFieldIsEnabled(formFields.NAME);
+        await customAppsPage.verifyFieldIsEnabled(formFields.DESCRIPTION);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CATEGORY);
 
-        await customAppsPage.scrollPageBy(300);
-        await customAppsPage.verifyDropdownIsDisabled('connectionType');
-        await customAppsPage.verifyDropdownIsDisabled('authType');
-        await customAppsPage.verifyFieldIsDisabled('authDetails.baseUrl');
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
 
         await customAppsPage.scrollPageBy(300);
-        await customAppsPage.verifyFieldIsEnabled('authDetails.usernameLabel');
-        await customAppsPage.verifyFieldIsEnabled('authDetails.passwordLabel');
+        await customAppsPage.verifyDropdownIsDisabled(formFields.CONNECTION_TYPE);
+        await customAppsPage.verifyDropdownIsDisabled(formFields.AUTH_TYPE);
+        await customAppsPage.verifyFieldIsDisabled(formFields.BASE_URL);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyFieldIsEnabled(formFields.USERNAME_LABEL);
+        await customAppsPage.verifyFieldIsEnabled(formFields.PASSWORD_LABEL);
 
         await customAppsPage.clickButton('Save');
 
@@ -996,23 +998,25 @@ test.describe(
 
         await customAppsPage.clickEditFromMenu();
 
-        await customAppsPage.verifyFieldIsEnabled('name');
-        await customAppsPage.verifyFieldIsEnabled('description');
-        await customAppsPage.verifyDropdownIsEnabled('category');
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
 
-        await customAppsPage.selectAppCategory('Support & Ticketing');
+        await customAppsPage.verifyFieldIsEnabled(formFields.NAME);
+        await customAppsPage.verifyFieldIsEnabled(formFields.DESCRIPTION);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CATEGORY);
 
-        await customAppsPage.scrollPageBy(300);
-        await customAppsPage.verifyDropdownIsDisabled('connectionType');
-        await customAppsPage.verifyDropdownIsDisabled('authType');
-        await customAppsPage.verifyDropdownIsDisabled('subAuthType');
-        await customAppsPage.verifyFieldIsDisabled('authDetails.clientId');
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
 
         await customAppsPage.scrollPageBy(300);
-        await customAppsPage.verifyFieldIsDisabled('authDetails.clientSecret');
-        await customAppsPage.verifyFieldIsDisabled('authDetails.authUrl');
-        await customAppsPage.verifyFieldIsDisabled('authDetails.tokenUrl');
-        await customAppsPage.verifyFieldIsDisabled('authDetails.baseUrl');
+        await customAppsPage.verifyDropdownIsDisabled(formFields.CONNECTION_TYPE);
+        await customAppsPage.verifyDropdownIsDisabled(formFields.AUTH_TYPE);
+        await customAppsPage.verifyDropdownIsDisabled(formFields.SUB_AUTH_TYPE);
+        await customAppsPage.verifyFieldIsDisabled(formFields.CLIENT_ID);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyFieldIsDisabled(formFields.CLIENT_SECRET);
+        await customAppsPage.verifyFieldIsDisabled(formFields.AUTH_URL);
+        await customAppsPage.verifyFieldIsDisabled(formFields.TOKEN_URL);
+        await customAppsPage.verifyFieldIsDisabled(formFields.BASE_URL);
 
         await customAppsPage.clickButton('Save');
 
@@ -1260,6 +1264,227 @@ test.describe(
         await customAppsPage.customAppsComponent.clickDialogButton('Disable', 'Confirm disable');
 
         await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisabledMessage(appName));
+
+        await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
+        await customAppsPage.customAppsComponent.clickDialogButton('Delete', 'Confirm delete');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(appName));
+        createdAppName = null;
+      }
+    );
+
+    test(
+      'verify App level disconnect flow - API token',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-15835',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const fieldLabels = CUSTOM_APPS_TEST_DATA.FIELD_LABELS;
+
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(trelloApp.DESCRIPTION);
+
+        await customAppsPage.selectAppCategory(trelloApp.CATEGORY);
+        await customAppsPage.uploadLogoFile(trelloApp.LOGO_FILE);
+        await customAppsPage.selectConnectionType(trelloApp.CONNECTION_TYPE);
+        await customAppsPage.selectAuthType(trelloApp.AUTH_TYPE);
+
+        await customAppsPage.enterFieldValue(fieldLabels.BASE_URL, trelloApp.BASE_URL);
+        await customAppsPage.enterFieldValue(fieldLabels.API_TOKEN_LABEL, trelloApp.API_TOKEN_LABEL);
+        await customAppsPage.enterFieldValue(fieldLabels.AUTHORIZATION_HEADER, trelloApp.AUTHORIZATION_HEADER);
+
+        await customAppsPage.scrollPageBy(200);
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await customAppsPage.page.waitForTimeout(2000);
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.enterAPIToken(CREDENTIALS.TRELLO.API_TOKEN);
+
+        await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Enable);
+        await customAppsPage.customAppsComponent.clickDialogButton('Enable', 'Confirm enable');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(appName));
+
+        await customAppsPage.verifyFieldIsDisplayed('API Token');
+        await customAppsPage.verifyDisconnectAccountButtonIsDisplayed();
+        await customAppsPage.verifyEditButtonIsDisplayed();
+
+        await customAppsPage.clickDisconnectAccountButton();
+
+        await customAppsPage.verifyDialogTitle(MESSAGES.DISCONNECT_CUSTOM_APP_DIALOG_TITLE);
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.getAppDisconnectingConfirmationMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.DISCONNECT_WARNING_MESSAGE);
+
+        await customAppsPage.clickDisconnectAccountInDialog();
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(appName));
+
+        await customAppsPage.verifyFieldIsDisplayed('API Token');
+        await customAppsPage.verifySaveButtonIsDisplayed();
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
+        await customAppsPage.customAppsComponent.clickDialogButton('Delete', 'Confirm delete');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(appName));
+        createdAppName = null;
+      }
+    );
+
+    test(
+      'verify all fields are editable when connection is disabled - API token',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-15779',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const fieldLabels = CUSTOM_APPS_TEST_DATA.FIELD_LABELS;
+
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(trelloApp.DESCRIPTION);
+
+        await customAppsPage.selectAppCategory(trelloApp.CATEGORY);
+        await customAppsPage.uploadLogoFile(trelloApp.LOGO_FILE);
+        await customAppsPage.selectConnectionType(trelloApp.CONNECTION_TYPE);
+        await customAppsPage.selectAuthType(trelloApp.AUTH_TYPE);
+
+        await customAppsPage.enterFieldValue(fieldLabels.BASE_URL, trelloApp.BASE_URL);
+        await customAppsPage.enterFieldValue(fieldLabels.API_TOKEN_LABEL, trelloApp.API_TOKEN_LABEL);
+        await customAppsPage.enterFieldValue(fieldLabels.AUTHORIZATION_HEADER, trelloApp.AUTHORIZATION_HEADER);
+
+        await customAppsPage.scrollPageBy(200);
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await customAppsPage.page.waitForTimeout(2000);
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        await customAppsPage.clickEditFromMenu();
+
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
+
+        await customAppsPage.verifyFieldIsEnabled(formFields.NAME);
+        await customAppsPage.verifyFieldIsEnabled(formFields.DESCRIPTION);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CATEGORY);
+
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CONNECTION_TYPE);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.AUTH_TYPE);
+        await customAppsPage.verifyFieldIsEnabled(formFields.BASE_URL);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyFieldIsEnabled(formFields.API_TOKEN_LABEL);
+        await customAppsPage.verifyFieldIsEnabled(formFields.AUTHORIZATION_HEADER);
+
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.ACCOUNT_CONNECTION_MESSAGE(appName));
+
+        await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
+        await customAppsPage.customAppsComponent.clickDialogButton('Delete', 'Confirm delete');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(appName));
+        createdAppName = null;
+      }
+    );
+
+    test(
+      'verify all fields are editable when connection is disabled - OAuth 2.0 Auth code',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-15778',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const boxApp = CUSTOM_APPS_TEST_DATA.BOX_DELETE_ENABLED_APP;
+        const fieldLabels = CUSTOM_APPS_TEST_DATA.FIELD_LABELS;
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
+
+        const appName = `${boxApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(boxApp.DESCRIPTION);
+
+        await customAppsPage.selectAppCategory(boxApp.CATEGORY);
+        await customAppsPage.uploadLogoFile(boxApp.LOGO_FILE);
+        await customAppsPage.selectConnectionType(boxApp.CONNECTION_TYPE);
+        await customAppsPage.selectAuthType(boxApp.AUTH_TYPE);
+        await customAppsPage.selectSubAuthType(boxApp.SUB_AUTH_TYPE);
+
+        await customAppsPage.enterFieldValue(fieldLabels.CLIENT_ID, boxApp.CLIENT_ID);
+        await customAppsPage.enterFieldValue(fieldLabels.SECRET_KEY, boxApp.CLIENT_SECRET);
+        await customAppsPage.enterFieldValue(fieldLabels.AUTH_URL, boxApp.AUTH_URL);
+        await customAppsPage.enterFieldValue(fieldLabels.TOKEN_URL, boxApp.TOKEN_URL);
+        await customAppsPage.enterFieldValue(fieldLabels.BASE_URL, boxApp.BASE_URL);
+
+        await customAppsPage.scrollPageBy(200);
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await customAppsPage.page.waitForTimeout(2000);
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.clickButton('Custom apps');
+
+        await customAppsPage.searchForApps(appName);
+        await customAppsPage.customAppsComponent.clickOnAppConnector(appName);
+
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        await customAppsPage.clickEditFromMenu();
+
+        await customAppsPage.verifyFieldIsEnabled(formFields.NAME);
+        await customAppsPage.verifyFieldIsEnabled(formFields.DESCRIPTION);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CATEGORY);
+
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.CONNECTION_TYPE);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.AUTH_TYPE);
+        await customAppsPage.verifyDropdownIsEnabled(formFields.SUB_AUTH_TYPE);
+        await customAppsPage.verifyFieldIsEnabled(formFields.CLIENT_ID);
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyFieldIsEnabled(formFields.AUTH_URL);
+        await customAppsPage.verifyFieldIsEnabled(formFields.TOKEN_URL);
+        await customAppsPage.verifyFieldIsEnabled(formFields.BASE_URL);
+
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.ACCOUNT_CONNECTION_MESSAGE(appName));
 
         await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
         await customAppsPage.customAppsComponent.clickDialogButton('Delete', 'Confirm delete');

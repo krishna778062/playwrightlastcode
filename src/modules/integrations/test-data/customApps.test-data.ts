@@ -150,6 +150,7 @@ export const CUSTOM_APPS_TEST_DATA = {
     FILE_STORAGE: 'File storage',
     CALENDAR: 'Calendar',
     CRM: 'CRM',
+    SUPPORT_TICKETING: 'Support & Ticketing',
   },
 
   /**
@@ -201,5 +202,26 @@ export const CUSTOM_APPS_TEST_DATA = {
   TOAST_MESSAGES: {
     APP_ADDED_SUFFIX: 'added',
     CONNECTED_TO_BOX: 'Connected to Box successfully',
+  },
+
+  /**
+   * Form Field Names (used for verification of enabled/disabled state)
+   */
+  FORM_FIELD_NAMES: {
+    NAME: 'name',
+    DESCRIPTION: 'description',
+    CATEGORY: 'category',
+    CONNECTION_TYPE: 'connectionType',
+    AUTH_TYPE: 'authType',
+    SUB_AUTH_TYPE: 'subAuthType',
+    CLIENT_ID: 'authDetails.clientId',
+    CLIENT_SECRET: 'authDetails.clientSecret',
+    AUTH_URL: 'authDetails.authUrl',
+    TOKEN_URL: 'authDetails.tokenUrl',
+    BASE_URL: 'authDetails.baseUrl',
+    USERNAME_LABEL: 'authDetails.usernameLabel',
+    PASSWORD_LABEL: 'authDetails.passwordLabel',
+    API_TOKEN_LABEL: 'authDetails.apiTokenLabel',
+    AUTHORIZATION_HEADER: 'authDetails.authorizationHeader',
   },
 } as const;
