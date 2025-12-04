@@ -14,12 +14,15 @@ import {
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { ContentPreviewPage, ManageSitesComponent } from '@/src/modules/content/ui';
 import { FilesPreviewMenuActionButton } from '@/src/modules/content/ui/components/filesPreviewModalComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
+import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
 import { PeopleScreenPage } from '@/src/modules/content/ui/pages/peopleScreenPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteFilesPage } from '@/src/modules/content/ui/pages/sitePages/siteFilesPage';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe('favorite', () => {
   let sideNavBarComponent: SideNavBarComponent;
@@ -477,6 +480,116 @@ test.describe('favorite', () => {
         );
         await siteFilesPage.filesPreviewModalComponent.verifyToastMessageIsVisibleWithText('Deleted file successfully');
       });
+    }
+  );
+  test(
+    'to verify the favourite and unfavourite content functionality',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26268'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'To verify the favourite and unfavourite content functionality',
+        zephyrTestId: 'CONT-26268',
+        storyId: 'CONT-26268',
+      });
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+
+      // Create page, album, and event content
+      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'page', contentSubType: 'news' },
+      });
+      const albumInfo = await appManagerFixture.contentManagementHelper.createAlbum({
+        siteId: siteInfo.siteId,
+        imageName: 'beach.jpg',
+      });
+      const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'event' },
+      });
+
+      // Favorite page
+      const contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        pageInfo.contentId,
+        'page'
+      );
+      await contentPreviewPage.loadPage();
+      await contentPreviewPage.actions.clickOnFavouriteContentButton();
+
+      // Favorite album
+      const contentPreviewPageAlbum = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        albumInfo.contentId,
+        'album'
+      );
+      await contentPreviewPageAlbum.loadPage();
+      await contentPreviewPageAlbum.actions.clickOnFavouriteContentButton();
+
+      // Favorite event
+      const contentPreviewPageEvent = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        eventInfo.contentId,
+        'event'
+      );
+      await contentPreviewPageEvent.loadPage();
+      await contentPreviewPageEvent.actions.clickOnFavouriteContentButton();
+
+      // Navigate to favorites and verify all content is visible
+      const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+      await manageSitesComponent.clickOnTheFavouriteTabsAction();
+      const favoritesPage = new FavoritesPage(appManagerFixture.page);
+      await favoritesPage.actions.clickOnContentButton();
+      await Promise.all([
+        favoritesPage.assertions.verifyContentIsVisibleInSearchResults(pageInfo.pageName),
+        favoritesPage.assertions.verifyContentIsVisibleInSearchResults(albumInfo.albumName),
+        favoritesPage.assertions.verifyContentIsVisibleInSearchResults(eventInfo.eventName),
+      ]);
+
+      // Unfavorite page and verify it can be favorited again
+      await favoritesPage.actions.unfavoriteContentByName(pageInfo.pageName);
+      const contentPreviewPageForUnfavorite = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        pageInfo.contentId,
+        'page'
+      );
+      await contentPreviewPageForUnfavorite.loadPage();
+      await contentPreviewPageForUnfavorite.assertions.verifyUserCanMarkAsFavoriteContent();
+
+      // Navigate back to favorites page
+      await manageSitesComponent.clickOnTheFavouriteTabsAction();
+      await favoritesPage.actions.clickOnContentButton();
+
+      // Unfavorite album and verify it can be favorited again
+      await favoritesPage.actions.unfavoriteContentByName(albumInfo.albumName);
+      const contentPreviewPageAlbumForUnfavorite = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        albumInfo.contentId,
+        'album'
+      );
+      await contentPreviewPageAlbumForUnfavorite.loadPage();
+      await contentPreviewPageAlbumForUnfavorite.assertions.verifyUserCanMarkAsFavoriteContent();
+
+      // Navigate back to favorites page
+      await manageSitesComponent.clickOnTheFavouriteTabsAction();
+      await favoritesPage.actions.clickOnContentButton();
+
+      // Unfavorite event and verify it can be favorited again
+      await favoritesPage.actions.unfavoriteContentByName(eventInfo.eventName);
+      const contentPreviewPageEventForUnfavorite = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        eventInfo.contentId,
+        'event'
+      );
+      await contentPreviewPageEventForUnfavorite.loadPage();
+      await contentPreviewPageEventForUnfavorite.assertions.verifyUserCanMarkAsFavoriteContent();
     }
   );
 });
