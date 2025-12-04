@@ -8,6 +8,7 @@ import {
   EventCreationPayload,
   TopicListResponse,
 } from '@core/types/contentManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
@@ -167,6 +168,72 @@ export class ContentManagementService implements IContentManagementServices {
     }
     return categoryInfo;
   }
+  async updateContentDetails(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    return await test.step('Updating content details via API PUT request', async () => {
+      const contentResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId), {});
+      const contentResponseBody = await contentResponse.json();
+      const contentItem = (contentResponseBody.result || contentResponseBody) as any;
+
+      if (!contentItem?.id) {
+        throw new Error(`Content with ID ${contentId} not found`);
+      }
+
+      const formattedPublishAt = new Date(publishAt).toISOString();
+      const authoredById =
+        (contentItem.authoredBy as any)?.peopleId || (contentItem.authoredBy as any)?.id || contentItem.authoredBy;
+      const categoryId = contentItem.category?.id || contentItem.category?.categoryId;
+      const contentSubType = contentItem.contentSubType;
+      const bodyString =
+        typeof contentItem.body === 'string' ? contentItem.body : JSON.stringify(contentItem.body || '');
+
+      if (!authoredById || !categoryId || !contentSubType) {
+        throw new Error(
+          `Missing required fields: authoredBy=${!!authoredById}, category.id=${!!categoryId}, contentSubType=${!!contentSubType}`
+        );
+      }
+
+      const updatePayload: any = {
+        authoredBy: authoredById,
+        contentSubType: contentSubType,
+        listOfFiles: contentItem.listOfFiles || [],
+        publishAt: formattedPublishAt,
+        body: bodyString,
+        imgCaption: contentItem.imgCaption || '',
+        publishingStatus: contentItem.isScheduled ? 'scheduled' : 'immediate',
+        listOfInlineImages: contentItem.listOfInlineImages || [],
+        listOfInlineVideos: contentItem.listOfInlineVideos || [],
+        summary: contentItem.summary || null,
+        bodyHtml: contentItem.bodyHtml || '',
+        imgLayout: contentItem.imgLayout || 'small',
+        isMaximumWidth: contentItem.isMaximumWidth || false,
+        isQuestionAnswerEnabled:
+          contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
+        title: contentItem.title || '',
+        isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
+        listOfTopics: contentItem.listOfTopics || [],
+        category: { id: categoryId, name: contentItem.category?.name || 'Uncategorized' },
+        manualTransEnabled: contentItem.manualTransEnabled || false,
+        contentType: contentItem.type || contentItem.contentType || 'page',
+        isRestricted: contentItem.isRestricted || false,
+        language: contentItem.language || 'en-US',
+      };
+
+      // Only include optional fields if they have values (avoid sending null/undefined/read-only fields)
+      // readTimeInMin, publishTo, and targetAudience are likely read-only or not allowed in updates
+      // so we exclude them to avoid "Additional properties" errors
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
+        data: updatePayload,
+      });
+
+      if (!response.ok()) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to update content details. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+        );
+      }
+    });
+  }
 
   /**
    * Publishes new page content to a site.
@@ -301,7 +368,7 @@ export class ContentManagementService implements IContentManagementServices {
         ...defaultEventContentPayload,
         ...overrides,
       };
-      console.log('event payload: ', payload);
+      log.debug('event payload', { payload });
       const response = await this.httpClient.post(
         API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
         {
@@ -331,7 +398,7 @@ export class ContentManagementService implements IContentManagementServices {
         }
       );
       const json = await response.json();
-      console.log('event JSON Response:', JSON.stringify(json, null, 2));
+      log.debug('event JSON Response', { response: JSON.stringify(json, null, 2) });
       if (json.status !== 'success' || !json.result?.id) {
         throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
       }
@@ -485,7 +552,7 @@ export class ContentManagementService implements IContentManagementServices {
         throw new Error(`Topic deletion failed. Response: ${JSON.stringify(json)}`);
       }
 
-      console.log(`Topics deleted successfully: ${topicIds.join(', ')}`);
+      log.debug(`Topics deleted successfully: ${topicIds.join(', ')}`);
     });
   }
 

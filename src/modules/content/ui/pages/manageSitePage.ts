@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -6,6 +6,7 @@ import { FeedPostingPermission } from '@/src/modules/content/constants/feedPosti
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
@@ -63,10 +64,13 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     .locator('div[class*="css-15bnrdl-singleValue"]')
     .filter({ hasText: /Box files/i });
 
+  private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
+
   constructor(page: Page, siteId?: string) {
     const pageUrl = siteId ? PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId) : PAGE_ENDPOINTS.MANAGE_SITE_PAGE;
     super(page, pageUrl);
     this.manageSitesComponent = new ManageSitesComponent(page);
+    this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -83,15 +87,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     return this;
   }
 
-  async verifyNoSitesFound(siteName: string): Promise<void> {
-    const noSitesFound = this.siteList.filter({ hasText: siteName });
-    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
-      assertionMessage: 'No sites found should be visible on manage site page',
-    });
-  }
-
   async verifySiteIsDeactivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
-    const { test } = await import('@playwright/test');
     await test.step(`Verify site ${siteName} is deactivated`, async () => {
       const siteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
         filter: 'deactivated',
@@ -108,7 +104,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   }
 
   async verifySiteIsActivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
-    const { test } = await import('@playwright/test');
     await test.step(`Verify site ${siteName} is activated`, async () => {
       const activatedSiteDetails = await siteManagementHelper.siteManagementService.getListOfSites({
         filter: 'active',
@@ -169,6 +164,30 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     await this.clickOnElement(this.filterOptionsDropdown(optionName));
   }
 
+  getSiteNameLocator(siteName: string): Locator {
+    return this.page.getByText(siteName, { exact: true });
+  }
+  async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
+    // Handle both single site name and array of site names
+    const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
+
+    let index = 0;
+    while (index < namesArray.length) {
+      const siteName = namesArray[index];
+      await this.verifier.verifyTheElementIsVisible(this.getSiteNameLocator(siteName), {
+        assertionMessage: 'Site name should be displayed on manage site page',
+      });
+      index++;
+    }
+  }
+  async verifyNoSitesFound(siteName: string): Promise<void> {
+    await this.manageSitesComponent.verifyNoSitesFoundAction(siteName);
+    const noSitesFound = this.siteList.filter({ hasText: siteName });
+    await this.verifier.verifyTheElementIsNotVisible(noSitesFound, {
+      assertionMessage: 'No sites found should be visible on manage site page',
+    });
+  }
+
   async clickOnSiteTab(tabName: SitePageTab): Promise<void> {
     await this.clickOnElement(this.siteTab(tabName));
   }
@@ -195,7 +214,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
 
       if (isBoxAlreadySelected && provider === 'Box files') {
-        console.log('Box files is already configured for this site. Update button is disabled, skipping update.');
         return; // Skip the update process
       }
       // Click on the React Select input or dropdown arrow to open dropdown
@@ -245,7 +263,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Check if the permission is already set to the desired value
       const isAlreadyChecked = await radioButton.isChecked();
       if (isAlreadyChecked) {
-        console.log(`Feed posting permission is already set to ${permission}, skipping update`);
         return;
       }
 

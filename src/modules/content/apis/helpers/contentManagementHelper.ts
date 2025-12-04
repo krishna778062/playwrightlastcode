@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { log } from '@core/utils/logger';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -82,7 +83,6 @@ export class ContentManagementHelper {
     }
 
     // No content found, get a site from site service and create a page
-    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
     // Get sites filtered by access type
     const sitesResponse = await this.siteManagementService.getListOfSites({
@@ -529,6 +529,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located
@@ -538,13 +541,10 @@ export class ContentManagementHelper {
     if (contentId && siteId) {
       try {
         await this.contentManagementService.deleteContent(siteId, contentId);
-        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
       } catch (error) {
-        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        log.error(`Failed to delete content ${contentId} from site ${siteId}`, error);
         throw error;
       }
-    } else {
-      console.log('No content ID or site ID provided for deletion');
     }
   }
 
