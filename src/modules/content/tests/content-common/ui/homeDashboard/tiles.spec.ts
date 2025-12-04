@@ -7,10 +7,12 @@ import { tagTest } from '@core/utils/testDecorator';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 
 test.describe('edit Topic', () => {
   let homeDashboardPage: HomeDashboardPage;
@@ -100,6 +102,80 @@ test.describe('edit Topic', () => {
       await homeDashboardPage.actions.clickingOnRemoveTileButton(tileName);
       await homeDashboardPage.assertions.verifyToastMessage('Removed tile from dashboard successfully');
       await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(tileName);
+    }
+  );
+
+  test(
+    'to verify app manager can reorder tiles on home dashboard',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-13605'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'to verify app manager can reorder tiles on home dashboard',
+        zephyrTestId: 'CONT-13605',
+        storyId: 'CONT-13605',
+      });
+
+      // Navigate to Home page
+      await appManagerFixture.navigationHelper.clickOnHomeButton();
+
+      // Enter edit mode
+      await homeDashboardPage.actions.clickOnEditDashboardButton();
+
+      // Generate unique tile names
+      const textTileTitle = `Text Tile ${faker.string.alphanumeric(6)}`;
+      const sitesTileTitle = `Sites Tile ${faker.string.alphanumeric(6)}`;
+      const textTileDescription = FEED_TEST_DATA.SEARCH.RANDOM_TEXT;
+
+      // Get a site name for Sites & Category tile
+      // Using "All Employees" as it's commonly available
+      const siteName = 'All Employees';
+
+      // Add Text/HTML & Links tile
+      await homeDashboardPage.actions.addTextHtmlLinksTile(textTileDescription, textTileTitle);
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+
+      // Add Sites & Category tile
+      await homeDashboardPage.actions.addSitesCategoryTile(siteName, sitesTileTitle);
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+
+      // Reorder tiles - move Sites tile before Text tile
+      await homeDashboardPage.actions.reorderTiles(sitesTileTitle, textTileTitle);
+
+      // Verify tile order (Sites should be before Text)
+      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+
+      //  Exit edit mode and refresh page
+      await homeDashboardPage.actions.clickingOnDoneButton();
+      await appManagerFixture.page.reload();
+      await homeDashboardPage.verifyThePageIsLoaded();
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(textTileTitle);
+
+      // Verify tile order persists after refresh
+      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+
+      // Remove tiles via three dots menu
+      await homeDashboardPage.actions.clickOnEditDashboardButton();
+
+      // Remove Text tile
+      await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(textTileTitle);
+      await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
+      await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+
+      // Remove Sites tile
+      await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(sitesTileTitle);
+      await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
+      await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+
+      // Exit edit mode
+      await homeDashboardPage.actions.clickingOnDoneButton();
+
+      // Verify tiles are removed
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(textTileTitle);
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(sitesTileTitle);
     }
   );
 });
