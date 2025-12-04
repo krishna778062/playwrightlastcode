@@ -17,9 +17,9 @@ test.describe('rewards overview page', { tag: [REWARD_FEATURE_TAGS.REWARD_OVERVI
         storyId: 'RC-3094',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
       await manageRewardsOverviewPage.loadPage();
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
+      await manageRewardsOverviewPage.enableTheRewardsAndPeerGiftingIfDisabled();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(manageRewardsOverviewPage.rewardsTabHeading);
 
@@ -58,6 +58,7 @@ test.describe('rewards overview page', { tag: [REWARD_FEATURE_TAGS.REWARD_OVERVI
       // Disable Peer gifting and click on the Allowances "i" button.
       await manageRewardsOverviewPage.peerGifting.disableThePeerGifting();
       await manageRewardsOverviewPage.loadPage();
+      await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.verifyTheElementIsVisible(
         manageRewardsOverviewPage.pointBalanceSummaryActionBarButton
       );

@@ -50,12 +50,10 @@ async function createRewardUiFixture(browser: any, userType: RewardUserType): Pr
 }
 
 export const rewardTestFixture = test.extend<{
-  // UI-only fixtures - browser and page components
   appManagerFixture: RewardUiFixture;
   recoManagerFixture: RewardUiFixture;
   standardUserFixture: RewardUiFixture;
 }>({
-  // UI-only fixtures - browser and page components
   appManagerFixture: [
     async ({ browser }, use) => {
       const fixture = await createRewardUiFixture(browser, 'appManager');
@@ -84,5 +82,4 @@ export const rewardTestFixture = test.extend<{
   ],
 });
 
-// Export commonly used types for better type safety
 export type RewardTestFixture = typeof rewardTestFixture;

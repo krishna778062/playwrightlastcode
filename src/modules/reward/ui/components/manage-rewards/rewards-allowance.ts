@@ -146,6 +146,46 @@ export class RewardsAllowance extends BasePage {
     }
   }
 
+  /**
+   * Clicks the add or edit button for a specific allowance type
+   * @param action - 'add' to click add button, 'edit' to click edit button
+   * @param allowanceType - The type of allowance: 'user' | 'audience' | 'manager' | 'individual'
+   * @param options - Optional timeout and step info for the click action
+   */
+  async clickAllowanceButton(
+    action: 'add' | 'edit',
+    allowanceType: 'user' | 'audience' | 'manager' | 'individual',
+    options?: { timeout?: number; stepInfo?: string }
+  ): Promise<void> {
+    let button: Locator;
+
+    // Get the appropriate button based on action and allowance type
+    switch (allowanceType) {
+      case 'user':
+        button =
+          action === 'add' ? this.rewardsUserAllowance.addUserAllowance : this.rewardsUserAllowance.editUserAllowance;
+        break;
+      case 'audience':
+        button =
+          action === 'add'
+            ? this.rewardsAudienceAllowance.addAudienceAllowance
+            : this.rewardsAudienceAllowance.editAudienceAllowance;
+        break;
+      case 'manager':
+        button =
+          action === 'add'
+            ? this.rewardsManagerAllowance.addManagerAllowance
+            : this.rewardsManagerAllowance.editManagerAllowance;
+        break;
+      case 'individual':
+        button =
+          action === 'add'
+            ? this.rewardsIndividualAllowance.addIndividualAllowance
+            : this.rewardsIndividualAllowance.editIndividualAllowance;
+        break;
+    }
+  }
+
   async validateToastMessage(expectedMessage: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.successToastContainer);
     await this.verifier.verifyElementHasText(this.successToastBoxMessage, expectedMessage);
@@ -154,9 +194,7 @@ export class RewardsAllowance extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.rewardsIndividualAllowance.individualAllowanceDescription, {
-      timeout: 15000,
-    });
+    await this.verifier.waitUntilElementIsVisible(this.rewardsIndividualAllowance.individualAllowanceDescription);
   }
 
   /**
@@ -299,5 +337,62 @@ export class RewardsAllowance extends BasePage {
     await this.page.unroute('**/recognition/v1/tenant/config');
     await this.page.unroute('**/recognition/admin/rewards/config');
     await this.page.unroute('**/recognition/admin/rewards/config/peer');
+  }
+
+  /**
+   * Clicks the add or edit button for a specific allowance type based on which one is visible
+   * @param allowance - The type of allowance: 'user' | 'audience' | 'manager' | 'individual'
+   */
+  async clickOnTheAddOrEditButton(allowance: 'user' | 'audience' | 'manager' | 'individual'): Promise<void> {
+    let addButton: Locator;
+    let editButton: Locator;
+    let removeButton: Locator;
+
+    // Choose locators based on allowance type
+    switch (allowance) {
+      case 'user':
+        addButton = this.rewardsUserAllowance.addUserAllowance;
+        editButton = this.rewardsUserAllowance.editUserAllowance;
+        removeButton = this.rewardsUserAllowance.removeUserAllowance;
+        break;
+      case 'audience':
+        addButton = this.rewardsAudienceAllowance.addAudienceAllowance;
+        editButton = this.rewardsAudienceAllowance.editAudienceAllowance;
+        removeButton = this.rewardsAudienceAllowance.removeAudienceAllowance;
+        break;
+      case 'manager':
+        addButton = this.rewardsManagerAllowance.addManagerAllowance;
+        editButton = this.rewardsManagerAllowance.editManagerAllowance;
+        removeButton = this.rewardsManagerAllowance.removeManagerAllowance;
+        break;
+      case 'individual':
+        addButton = this.rewardsIndividualAllowance.addIndividualAllowance;
+        editButton = this.rewardsIndividualAllowance.editIndividualAllowance;
+        removeButton = this.rewardsIndividualAllowance.removeIndividualAllowance;
+        break;
+      default:
+        throw new Error(`Unknown allowance type: ${allowance}`);
+    }
+
+    if (await this.verifier.isTheElementVisible(removeButton, { timeout: 5000 })) {
+      if (await removeButton.isEnabled()) {
+        await this.removeTheExistingAllowance('user');
+        await this.validateToastMessage('Saved changes successfully');
+        await this.clickOnElement(addButton, {
+          timeout: 10000,
+          stepInfo: `Clicking add ${allowance} allowance button`,
+        });
+      } else {
+        await this.clickOnElement(editButton, {
+          timeout: 10000,
+          stepInfo: `Clicking edit ${allowance} allowance button`,
+        });
+      }
+    } else {
+      await this.clickOnElement(addButton, {
+        timeout: 10000,
+        stepInfo: `Clicking add ${allowance} allowance button`,
+      });
+    }
   }
 }

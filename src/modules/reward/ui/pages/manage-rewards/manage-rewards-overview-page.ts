@@ -6,6 +6,7 @@ import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-p
 import fs from 'fs';
 import path from 'path';
 
+import { RewardsApiService } from '@core/api';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
@@ -396,29 +397,20 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
-    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().endsWith('/recognition/admin/rewards') &&
-          res.request().resourceType() === 'xhr' &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      manageRecognitionPage.loadPage(), // action that triggers API
-      manageRecognitionPage.verifyThePageIsLoaded(),
-    ]);
-    const body = await apiResponse.json();
-    const isRewardEnabled = body.enabled;
-    const isPeerGiftingDisabled = body.peerGiftingEnabled;
+    const rewardsApi = new RewardsApiService();
+    const rewardsData = await rewardsApi.getRewardsAsJson(this.page);
+    const isRewardEnabled = rewardsData.enabled;
+    const isPeerGiftingDisabled = rewardsData.peerGiftingEnabled;
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await this.loadPage();
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
     }
   }
 
