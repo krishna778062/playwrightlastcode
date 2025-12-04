@@ -17,7 +17,8 @@ export class ActivityNotificationPage extends BasePage implements IActivityNotif
     this.notificationItems = (notificationText: string) =>
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
-    this.notificationByText = (notificationText: string) => this.page.getByText(notificationText);
+    this.notificationByText = (notificationText: string) =>
+      this.page.locator('a div').filter({ hasText: notificationText });
   }
 
   get assertions(): IActivityNotificationAssertions {
