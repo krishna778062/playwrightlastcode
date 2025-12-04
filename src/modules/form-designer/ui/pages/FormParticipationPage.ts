@@ -23,7 +23,6 @@ export class FormParticipationPage extends BasePage {
   readonly singleSelectResponse: (singleSelectValue: string) => Locator;
   readonly dropdownResponse: (dropdownValue: string) => Locator;
   readonly dropdownComponent: Locator;
-  //readonly actionLocator: (formName: string) => Locator = (formName: string) => this.page.getByRole('button', { name: `${formName}` }).locator("../../../..").getByRole('button', { name: 'Show more button' }).nth(1);
   readonly actionLocator: (formName: string) => Locator;
   readonly ratingResponse: (ratingValue: string) => Locator;
   readonly ratingResponseNew: (ratingValue: string) => Locator;
@@ -56,7 +55,6 @@ export class FormParticipationPage extends BasePage {
     this.longTextResponse = this.page.getByRole('textbox', { name: 'Long text' });
     this.numberResponse = this.page.getByRole('spinbutton', { name: 'Enter number for the property' });
     this.emailResponse = this.page.getByRole('textbox', { name: 'Email' });
-    // this.actionLocator = (formName: string) => this.page.getByRole('button', { name: `${formName}` }).locator("../../../..").getByRole('button', { name: 'Show more button' }).nth(1);
     this.actionLocator = (formName: string) =>
       this.page.locator(`(//button[text()='${formName}']/../../../..//button[@aria-label='Show more button'])[2]`);
     this.ratingResponse = (ratingValue: string) =>
@@ -70,7 +68,6 @@ export class FormParticipationPage extends BasePage {
     this.singleSelectResponse = (singleSelectValue: string) =>
       this.page.getByRole('radio', { name: `${singleSelectValue}`, exact: true });
     this.dropdownResponse = (dropdownValue: string) => this.page.getByRole('menu').getByText(`${dropdownValue}`);
-    // this.dropdownResponse = (dropdownValue: string) => this.page.locator(`('span').filter({ hasText: '${dropdownValue}' }).first()`);
     this.dropdownComponent = this.page.getByRole('button', { name: 'Dropdown field input label' });
     this.legalResponse = (legalValue: string) =>
       this.page.getByRole('checkbox', { name: `${legalValue}`, exact: true });
@@ -122,12 +119,9 @@ export class FormParticipationPage extends BasePage {
   }
   async clickOnThreeDotsIcon(): Promise<void> {
     await test.step('Click on three dots icon', async () => {
-      // await this.verifier.verifyTheElementIsVisible(this.actionLocator(formCreationConstants.FORM_NAME), { timeout: TIMEOUTS.MEDIUM });
-
       await this.verifier.verifyTheElementIsVisible(this.actionLocator(formCreationConstants.FORM_NAME), {
         timeout: TIMEOUTS.MEDIUM,
       });
-      //await this.verifier.verifyTheElementIsVisible(this.threeDotsIcon, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.actionLocator(formCreationConstants.FORM_NAME));
     });
   }
@@ -169,6 +163,20 @@ export class FormParticipationPage extends BasePage {
     await test.step('Fill response into long text field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.longTextResponse, { timeout: TIMEOUTS.MEDIUM });
       await this.fillInElement(this.longTextResponse, response);
+    });
+  }
+
+  async verifyShortTextFieldResponse(response: string): Promise<void> {
+    await test.step('Verify short text field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shortTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.shortTextResponse).toHaveValue(new RegExp(response), { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  async verifyLongTextFieldResponse(response: string): Promise<void> {
+    await test.step('Verify long text field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.longTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.longTextResponse).toHaveValue(new RegExp(response), { timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -508,9 +516,4 @@ export class FormParticipationPage extends BasePage {
         .toBe(true);
     });
   }
-
-  // getFileToUpload(response: string): string {
-  //   const projectRoot = FileUtil.getProjectRoot();
-  //   return FileUtil.getFilePath(projectRoot, 'src', 'modules', 'form-designer', 'test-data', `${response}`);
-  // }
 }

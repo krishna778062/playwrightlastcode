@@ -4,6 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { formCreationConstants } from '../../constants/formCreation';
 import { FormSuiteTags } from '../../constants/formTestTags';
 import { FormCreationPage } from '../../ui/pages/formCreation/FormPage';
 import { FormParticipationPage } from '../../ui/pages/FormParticipationPage';
@@ -18,8 +19,26 @@ test.describe(
   () => {
     test.beforeEach(async ({ appManagerPage }) => {
       const formCreationPage = new FormCreationPage(appManagerPage);
+      const formParticipationPage = new FormParticipationPage(appManagerPage);
       await formCreationPage.loadPage();
       await formCreationPage.verifyThePageIsLoaded();
+    });
+
+    test.afterEach(async ({ appManagerPage }) => {
+      const formCreationPage = new FormCreationPage(appManagerPage);
+      const formParticipationPage = new FormParticipationPage(appManagerPage);
+      if (formCreationConstants.FORM_NAME) {
+        try {
+          //delete the form
+          await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
+          await formParticipationPage.clickOnThreeDotsIcon();
+          await formCreationPage.clickOn('menuitem', 'Delete');
+          await formCreationPage.clickOn('button', 'Delete');
+          await formParticipationPage.verifyFormDeletedMessage('Form deleted');
+        } catch (error) {
+          console.warn(`Cleanup failed for Form: ${formCreationConstants.FORM_NAME}`, error);
+        }
+      }
     });
 
     test(
@@ -30,7 +49,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -72,7 +91,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -113,7 +132,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -155,7 +174,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -185,13 +204,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoImageField('image1.jpg');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -203,7 +215,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -237,13 +249,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoDropdownField('Yearly');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -255,7 +260,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -286,13 +291,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoLegalField();
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -304,7 +302,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -333,13 +331,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoTimeField('12:15 AM');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -351,7 +342,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -409,7 +400,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -443,13 +434,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoNumberField('1');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -461,7 +445,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -495,13 +479,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoEmailField('test@automation.com');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -513,7 +490,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -547,13 +524,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoRatingField('1');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -565,7 +535,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -599,13 +569,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoOpinionField('1');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -617,7 +580,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -687,13 +650,6 @@ test.describe(
         await formParticipationPage.fillResponseIntoCountryField('Automation-response-Country');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
 
@@ -705,7 +661,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -737,7 +693,7 @@ test.describe(
           TestGroupType.SANITY,
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
+          FormSuiteTags.FORM_E2E,
         ],
       },
       async ({ appManagerPage }) => {
@@ -769,13 +725,6 @@ test.describe(
           'Automation Test - Email Description',
           'Please enter a valid email address'
         );
-
-        //delete the form
-        await formCreationPage.goToUrl(PAGE_ENDPOINTS.FORM_CREATION_PAGE);
-        await formParticipationPage.clickOnThreeDotsIcon();
-        await formCreationPage.clickOn('menuitem', 'Delete');
-        await formCreationPage.clickOn('button', 'Delete');
-        await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
   }
