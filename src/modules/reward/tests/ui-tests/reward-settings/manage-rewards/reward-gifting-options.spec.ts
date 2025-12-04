@@ -21,7 +21,9 @@ test.describe('gifting options page exchange rate validation', () => {
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const rewardGiftingOptionsPage = new RewardGiftingOptionsPage(appManagerFixture.page);
+      await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
       await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifyThePageIsLoaded();
 
