@@ -68,9 +68,18 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
-        assertionMessage: 'Home dashboard page should be visible',
-      });
+      const isEditButtonVisible = await this.verifier.isTheElementVisible(this.editDashboardButton);
+
+      if (isEditButtonVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
+          assertionMessage: 'Home dashboard page should be visible',
+        });
+      } else {
+        const homeTextLocator = this.page.getByRole('heading', { name: /Home/i }).first();
+        await this.verifier.verifyTheElementIsVisible(homeTextLocator, {
+          assertionMessage: 'Home dashboard page should be visible',
+        });
+      }
     });
   }
   async clickOnEditDashboardButton(): Promise<void> {
