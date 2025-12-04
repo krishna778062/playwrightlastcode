@@ -59,6 +59,11 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly dialogCancelButton: Locator;
   readonly dialogDisconnectButton: Locator;
 
+  // PKCE and Token URL locators
+  readonly codeChallengeMethodDropdown: Locator;
+  readonly addHeadersForTokenUrlCheckbox: Locator;
+  readonly tokenRequestHeadersInput: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE);
     this.resultListAppTilesItemCountLocator = page.locator('div[class*="ConnectorsList_resultCount"]');
@@ -90,6 +95,13 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.dialogTitleHeading = this.dialog.locator('h2, h3, h4');
     this.dialogCancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
     this.dialogDisconnectButton = this.dialog.getByRole('button', { name: 'Disconnect account' });
+
+    // PKCE and Token URL locators
+    this.codeChallengeMethodDropdown = page.locator('select[name="authDetails.codeChallengeMethod"]');
+    this.addHeadersForTokenUrlCheckbox = page.getByRole('checkbox', { name: 'Add headers for Token URL' });
+    this.tokenRequestHeadersInput = page.locator(
+      'input[name="authDetails.tokenRequestHeaders"], textarea[name="authDetails.tokenRequestHeaders"]'
+    );
   }
 
   /**
@@ -835,9 +847,8 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async selectCodeChallengeMethod(method: string): Promise<void> {
     await test.step(`Select code challenge method: ${method}`, async () => {
-      const dropdown = this.page.locator('select[name="authDetails.codeChallengeMethod"]');
-      await dropdown.waitFor({ state: 'visible' });
-      await dropdown.selectOption({ label: method });
+      await this.codeChallengeMethodDropdown.waitFor({ state: 'visible' });
+      await this.codeChallengeMethodDropdown.selectOption({ label: method });
     });
   }
 
@@ -846,9 +857,8 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async checkAddHeadersForTokenUrl(): Promise<void> {
     await test.step('Check "Add headers for Token URL" checkbox', async () => {
-      const checkbox = this.page.getByRole('checkbox', { name: 'Add headers for Token URL' });
-      await checkbox.waitFor({ state: 'visible' });
-      await checkbox.check();
+      await this.addHeadersForTokenUrlCheckbox.waitFor({ state: 'visible' });
+      await this.addHeadersForTokenUrlCheckbox.check();
     });
   }
 
@@ -858,11 +868,8 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async enterTokenRequestHeaders(headers: string): Promise<void> {
     await test.step(`Enter token request headers: ${headers}`, async () => {
-      const input = this.page.locator(
-        'input[name="authDetails.tokenRequestHeaders"], textarea[name="authDetails.tokenRequestHeaders"]'
-      );
-      await input.waitFor({ state: 'visible' });
-      await input.fill(headers);
+      await this.tokenRequestHeadersInput.waitFor({ state: 'visible' });
+      await this.tokenRequestHeadersInput.fill(headers);
     });
   }
 
