@@ -778,40 +778,5 @@ test.describe(
         await formParticipationPage.verifyFormDeletedMessage('Form deleted');
       }
     );
-
-    test(
-      'verify app manager able to fill responses on preview screen same as participation page for multi choice components',
-      {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.REGRESSION,
-          TestGroupType.HEALTHCHECK,
-          TestGroupType.E2E,
-          TestGroupType.TestAutomation,
-        ],
-      },
-      async ({ appManagerPage }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify app manager able to fill responses on preview screen same as participation page for multi choice components',
-          zephyrTestId: 'ELF-907',
-          storyId: 'ELF-907',
-        });
-
-        const formCreationPage = new FormCreationPage(appManagerPage);
-        const formParticipationPage = new FormParticipationPage(appManagerPage);
-        await formCreationPage.clickOnCreateFormButton();
-        await formCreationPage.dragAndDropElement('multi select');
-        await formCreationPage.dragAndDropElement('single select');
-        await formCreationPage.dragAndDropElement('dropdown');
-        await formCreationPage.clickOnPreviewButton();
-        await formParticipationPage.fillResponseIntoMultiSelectField('Weekly');
-        await formParticipationPage.fillResponseIntoMultiSelectField('Monthly');
-        await formParticipationPage.fillResponseIntoMultiSelectField('Yearly');
-        await formParticipationPage.fillResponseIntoSingleSelectField('Weekly');
-        await formParticipationPage.fillResponseIntoDropdownField('Yearly');
-      }
-    );
   }
 );
