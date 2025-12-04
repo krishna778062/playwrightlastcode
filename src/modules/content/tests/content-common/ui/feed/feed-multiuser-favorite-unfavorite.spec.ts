@@ -51,6 +51,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -208,6 +209,7 @@ test.describe(
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
         filePath: FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
