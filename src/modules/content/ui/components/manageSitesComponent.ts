@@ -32,6 +32,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly searchSiteNameInSearchBar: Locator;
+  readonly clickOnSearchBar: Locator;
   readonly firstSiteDropDownOption: Locator;
   readonly clickOnThePeopleTab: Locator;
   readonly clickOnFollowButton: Locator;
@@ -51,6 +53,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
+  readonly SubscriptionButton: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -79,6 +82,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
+    this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
     this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
     this.clickOnThePeopleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnFollowButton = page.getByRole('button', { name: 'Follow', exact: true });
@@ -100,8 +105,8 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
-
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
   }
@@ -158,8 +163,6 @@ export class ManageSitesComponent extends BaseComponent {
       });
 
       const eventsTabText = await this.eventsTab.allTextContents();
-      console.log('Events tab text:', eventsTabText);
-      console.log('Starts at date:', startsAt);
       const { month, day } = this.parseStartsAtDate(startsAt);
 
       if (!this.doesTextMatchDate(eventsTabText[0], month, day)) {
@@ -192,11 +195,6 @@ export class ManageSitesComponent extends BaseComponent {
     const cleanText = text.trim().replace(/[\s\u200C\u200D\uFEFF\u00A0\u2000-\u200F\u2028-\u202F\u205F\u3000]+/g, ' ');
     const lowerText = cleanText.toLowerCase();
     const lowerMonth = expectedMonth.toLowerCase();
-
-    console.log(`🔍 Matching: "${text}" | Expected: ${expectedMonth}${expectedDay}`);
-    console.log(`📝 Clean text: "${cleanText}" -> "${lowerText}"`);
-    console.log(`✅ Month "${lowerMonth}": ${lowerText.includes(lowerMonth)}`);
-    console.log(`✅ Day "${expectedDay}": ${cleanText.includes(expectedDay)}`);
 
     return lowerText.includes(lowerMonth) && cleanText.includes(expectedDay);
   }
@@ -294,7 +292,6 @@ export class ManageSitesComponent extends BaseComponent {
 
     // Debug: Log the actual fill color
     const fillColor = await svgPath.evaluate(el => window.getComputedStyle(el).fill);
-    console.log('Actual SVG fill color:', fillColor);
 
     await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
   }
@@ -313,8 +310,6 @@ export class ManageSitesComponent extends BaseComponent {
           }
         );
         await publishResponse.finished();
-      } else {
-        console.log('The user is not marked as favorite');
       }
     });
   }
@@ -411,11 +406,25 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async clickOnSubscriptionButtonAction(): Promise<void> {
+    await test.step('Click on the add subscription button', async () => {
+      await this.clickOnElement(this.SubscriptionButton);
+    });
+  }
+
   async verifyEventsTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify events tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.eventsTabImage, {
         assertionMessage: 'Events tab image should be visible',
       });
+    });
+  }
+
+  async searchSiteNameInSearchBarAction(siteName: string): Promise<void> {
+    await test.step('Searching site name in search bar', async () => {
+      await this.clickOnElement(this.searchSiteNameInSearchBar);
+      await this.fillInElement(this.searchSiteNameInSearchBar, siteName);
+      await this.clickOnElement(this.clickOnSearchBar);
     });
   }
 
@@ -476,7 +485,6 @@ export class ManageSitesComponent extends BaseComponent {
 
           // Log for debugging
           if (urlMatches && methodMatches) {
-            console.log(`Membership request response status: ${response.status()}, URL: ${response.url()}`);
           }
 
           return urlMatches && methodMatches && statusMatches;
@@ -487,17 +495,12 @@ export class ManageSitesComponent extends BaseComponent {
       );
 
       const responseJson = await requestMembershipResponse.json();
-      console.log('requestMembershipResponse JSON:', JSON.stringify(responseJson, null, 2));
-      console.log('requestMembershipResponse status:', requestMembershipResponse.status());
-      console.log('requestMembershipResponse URL:', requestMembershipResponse.url());
 
       // Extract request_id from response: result.request_id
       const requestId = responseJson.result?.request_id || responseJson.request_id;
       if (!requestId) {
         throw new Error(`No request_id found in membership request response: ${JSON.stringify(responseJson)}`);
       }
-
-      console.log('Extracted request_id:', requestId);
       return requestId;
     });
   }
@@ -567,12 +570,8 @@ export class ManageSitesComponent extends BaseComponent {
             .map((item: any) => item.name || item.fullName || `${item.firstName} ${item.lastName}`)
             .filter(Boolean)
         : [];
-      console.log(`Total names in API following list: ${allApiNames.length}`);
-
       // If following list is empty, user is not following anyone - click follow button
-      if (allApiNames.length === 0) {
-        console.log('No names in following list, clicking follow button to start following');
-      } else {
+      if (allApiNames.length > 0) {
         // Check which names are visible on screen
         const visibleNames: string[] = [];
         for (const userName of allApiNames) {
@@ -580,22 +579,16 @@ export class ManageSitesComponent extends BaseComponent {
           const isVisible = await nameLocator.isVisible().catch(() => false);
           if (isVisible) {
             visibleNames.push(userName);
-            console.log(`✓ Found visible name: ${userName}`);
           }
         }
 
         // If names are found and visible, return them
         if (visibleNames.length > 0) {
-          console.log(`Found ${visibleNames.length} visible names:`, visibleNames);
           return visibleNames;
         }
-
-        // If names exist in API but not visible, they are not in following list - click follow button
-        console.log('Names exist in API but not visible in UI, clicking follow button');
       }
 
       // Click follow button when no names in following list or names not visible
-      console.log('Clicking follow button');
       let followButtonClicked = false;
       const followButtonCount = await this.followButtonUnderAboutTab.count();
       if (followButtonCount > 0) {
@@ -604,17 +597,11 @@ export class ManageSitesComponent extends BaseComponent {
           await this.clickOnElement(this.followButtonUnderAboutTab);
           // Wait for API to update after clicking follow button
           followButtonClicked = true;
-          console.log('Follow button clicked successfully');
-        } else {
-          console.log('Follow button exists but not visible');
         }
-      } else {
-        console.log('Follow button not found');
       }
 
       // Get updated list and return the names that were added
       if (followButtonClicked && getUpdatedListCallback) {
-        console.log('Getting updated following list after clicking follow button');
         // Retry getting updated list with a few attempts
         let retries = 3;
         while (retries > 0) {
@@ -628,20 +615,14 @@ export class ManageSitesComponent extends BaseComponent {
 
             // Find names that were added (in updated list but not in original)
             const addedNames = updatedNames.filter((name: string) => !allApiNames.includes(name));
-            console.log(`Names added after clicking follow button (${addedNames.length}):`, addedNames);
             return addedNames.length > 0 ? addedNames : updatedNames;
           } else {
             retries--;
             if (retries > 0) {
-              console.log(`Updated following list is still empty, retrying... (${retries} attempts left)`);
               await this.page.waitForTimeout(2000);
-            } else {
-              console.log('Updated following list is still empty after all retries');
             }
           }
         }
-      } else if (followButtonClicked && !getUpdatedListCallback) {
-        console.log('Follow button clicked but no callback provided to get updated list');
       }
 
       return [];
@@ -750,6 +731,39 @@ export class ManageSitesComponent extends BaseComponent {
       }
 
       await this.clickOnElement(checkbox);
+    });
+  }
+  async hoverOnSiteCheckboxByExactName(siteName: string): Promise<void> {
+    await test.step(`Hovering on site drop by exact name: ${siteName}`, async () => {
+      const siteRow = this.getSiteRowByExactName(siteName);
+      // Try specific checkbox locator first, fallback to getByLabel
+      let checkbox = siteRow.locator('[aria-label="Category option"]').first();
+      let isVisible = await checkbox.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Fallback to getByLabel if specific locator doesn't find it
+        checkbox = siteRow.getByLabel('Category option');
+        isVisible = await checkbox.isVisible().catch(() => false);
+      }
+
+      if (!isVisible) {
+        throw new Error(`Dropdown for site "${siteName}" is not visible`);
+      }
+
+      // Check if checkbox is already checked to avoid duplicate clicks
+      const isChecked = await checkbox.isChecked().catch(() => false);
+      if (isChecked) {
+        return; // Already selected, no need to click again
+      }
+
+      const isEnabled = await checkbox.isEnabled().catch(() => false);
+      const isDisabled = await checkbox.getAttribute('disabled').catch(() => null);
+
+      if (!isEnabled || isDisabled) {
+        throw new Error(`Checkbox for site "${siteName}" is disabled and cannot be clicked`);
+      }
+
+      await this.hoverOverElementInJavaScript(checkbox);
     });
   }
 

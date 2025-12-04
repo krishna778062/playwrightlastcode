@@ -36,6 +36,7 @@ export interface ISiteDashboardActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickOnDismissButton: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -63,7 +64,9 @@ export interface ISiteDashboardAssertions {
   verifyShareButtonIsNotVisible: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -71,6 +74,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
   readonly siteLink: (siteName: string) => Locator;
+  readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
   readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
   readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
@@ -79,6 +83,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.page.getByRole('button', { name: socialCampaignName }).first();
   readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
   readonly shareThoughtsButton: Locator;
+  readonly dismissButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
@@ -100,11 +105,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
-    this.feedLink = this.page.locator('a#dashboard:has-text("eed")');
+    this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
+    this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -170,7 +177,11 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async clickOnFeedLink(): Promise<void> {
     await test.step('Click on feed link', async () => {
-      await this.clickOnElement(this.feedLink);
+      if (await this.dashboardFeedLink.isVisible()) {
+        await this.clickOnElement(this.dashboardFeedLink);
+      } else {
+        await this.clickOnElement(this.feedLink);
+      }
     });
   }
 
@@ -367,6 +378,32 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
   }
 
+  /**
+   * Verifies that multiple site names are displayed on the page
+   * @param siteNames - Array of site names to verify
+   */
+  async verifySitesNamesAreDisplayed(siteNames: string[]): Promise<void> {
+    await test.step(`Verify ${siteNames.length} site name(s) are displayed`, async () => {
+      for (const siteName of siteNames) {
+        await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+          assertionMessage: `Site link "${siteName}" should be visible`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies that a single site name is displayed on the page
+   * @param siteName - The site name to verify
+   */
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
+  }
+
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
   }
@@ -381,5 +418,9 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickOnDismissButton(): Promise<void> {
+    await this.clickOnElement(this.dismissButton);
   }
 }

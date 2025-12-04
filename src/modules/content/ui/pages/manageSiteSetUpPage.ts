@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { SubscriptionComponent } from '@/src/modules/content/ui/components/subscriptionComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteSetUpActions {
@@ -36,6 +37,7 @@ export interface IManageSiteSetUpActions {
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
   searchForSite: (siteName: string) => Promise<void>;
   selectSite: () => Promise<void>;
+  clickOnSubscriptionButton: () => Promise<void>;
 }
 
 export interface IManageSiteSetUpAssertions {
@@ -54,6 +56,7 @@ export interface IManageSiteSetUpAssertions {
   verifyPageTabImageIsDisplayed: () => Promise<void>;
   verifyThePageIsLoaded: () => Promise<void>;
   verifySitesNamesAreDisplayed: (siteNames: string | string[]) => Promise<void>;
+  searchSiteNameInSearchBar: (siteName: string) => Promise<void>;
   // Follow/Unfollow assertions
   checkMembersNameShouldBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
   checkMembersNameShouldNotBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
@@ -61,6 +64,7 @@ export interface IManageSiteSetUpAssertions {
   verifyUnfollowButtonShouldBeChangedIntoFollowButton: () => Promise<void>;
   verifyMemberButtonShouldBeVisible: () => Promise<void>;
   verifyMemberNameAndSiteOwnerStatus: (membersName: string) => Promise<void>;
+  verifyAddSubscriptionPageIsLoaded: () => Promise<void>;
 }
 
 export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
@@ -74,11 +78,13 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
+  private subscriptionComponent: SubscriptionComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+    this.subscriptionComponent = new SubscriptionComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -236,6 +242,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
   async clickOnCancelOption(): Promise<void> {
     await this.updateSiteCategoryComponent.clickOnCancelOption();
   }
+  async searchSiteNameInSearchBar(siteName: string): Promise<void> {
+    await this.manageSitesComponent.searchSiteNameInSearchBarAction(siteName);
+  }
 
   async clickOnSites(): Promise<void> {
     await this.manageSitesComponent.clickOnSiteAction();
@@ -249,6 +258,12 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
+      assertionMessage: 'Site name should be displayed on manage site page',
+    });
+  }
+
   async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
     // Handle both single site name and array of site names
     const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
@@ -256,6 +271,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     let index = 0;
     while (index < namesArray.length) {
       const siteName = namesArray[index];
+      await this.searchSiteNameInSearchBar(siteName);
       await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
         assertionMessage: 'Site name should be displayed on manage site page',
       });
@@ -294,5 +310,15 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
     await this.manageSitesComponent.verifyMemberNameAndSiteOwnerStatus(membersName);
+  }
+
+  // Subscription actions
+  async clickOnSubscriptionButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnSubscriptionButtonAction();
+  }
+
+  // Subscription assertions
+  async verifyAddSubscriptionPageIsLoaded(): Promise<void> {
+    await this.subscriptionComponent.assertions.verifyAddSubscriptionPageIsLoaded();
   }
 }

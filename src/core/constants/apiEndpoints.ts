@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
     carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    addSiteCarouselItem: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items`,
     requestMembership: `membership/request`,
     acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
     deleteCarouselItem: (siteId: string, carouselItemId: string) =>
@@ -84,6 +85,8 @@ export const API_ENDPOINTS = {
     makeContentMustRead: (contentId: string) => `/v1/content/sites/content/${contentId}/mustRead`,
     category: '/pageCategories/list',
     publish: '/content?action=publish',
+    draft: '/content?action=draft',
+    saveDraft: '/content?action=saveDraft',
     approveContent: (siteId: string, contentId: string) =>
       `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
     updateDetails: (siteId: string, contentId: string) =>
@@ -98,8 +101,10 @@ export const API_ENDPOINTS = {
     deleteTopics: '/v1/content/topics/bulk-delete',
     favourites: '/v1/content/sites/content/favorite',
     contentListInSite: '/v1/content/sites/content/list',
+    move: '/move',
     manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
     homeCarouselItems: '/v1/content/carousel/items/list',
+    addHomeCarouselItem: '/v1/content/carousel/items',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
   },

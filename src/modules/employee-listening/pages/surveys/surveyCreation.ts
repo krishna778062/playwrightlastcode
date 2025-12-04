@@ -81,6 +81,8 @@ export class SurveyCreationPage extends BasePage {
   readonly deleteFourthAnswerButton: Locator;
   readonly previewDialog: Locator;
   readonly duplicateOption: Locator;
+  readonly copyLink: Locator;
+  readonly editSurvey: Locator;
   readonly completeOption: Locator;
   readonly completeButton: Locator;
   readonly resetButton: Locator;
@@ -99,6 +101,8 @@ export class SurveyCreationPage extends BasePage {
   readonly browseQuestionBankButtonAlt3: Locator;
   readonly browseQuestionBankButtonAlt4: Locator;
   readonly browseQuestionBankButtonAlt5: Locator;
+  readonly pausedTag: Locator;
+  readonly resumedTag: Locator;
   readonly completedTagAlt1: Locator;
   readonly completedTagAlt2: Locator;
   readonly completedTagAlt3: Locator;
@@ -115,6 +119,7 @@ export class SurveyCreationPage extends BasePage {
   readonly notScheduledText: Locator;
   readonly participationWindowText: Locator;
   readonly freeTextQuestionText: Locator;
+  readonly saveButton: Locator;
 
   readonly previewSectionLocators: ((section: string) => Locator)[] = [
     (section: string) => this.previewDialog.getByText(section, { exact: true }),
@@ -329,12 +334,16 @@ export class SurveyCreationPage extends BasePage {
     this.deleteFourthAnswerButton = this.page.getByRole('button', { name: 'delete First question Fourth' });
     this.previewDialog = this.page.getByRole('dialog');
     this.duplicateOption = this.page.getByRole('menuitem', { name: 'Duplicate' });
+    this.copyLink = this.page.getByText('Copy link to survey');
+    this.editSurvey = this.page.getByRole('menuitem', { name: 'Edit' });
     this.completeOption = this.page.getByRole('menuitem', { name: 'Complete' });
     this.completeButton = this.page.getByRole('button', { name: 'Complete' });
     this.resetButton = this.page.getByRole('button', { name: 'Reset' });
     this.typeFilter = this.page.getByTestId('type-filter').or(this.page.locator('[data-testid*="type"]'));
     this.statusFilter = this.page.getByTestId('status-filter').or(this.page.locator('[data-testid*="status"]'));
     this.completedTag = this.page.getByText('Completed').or(this.page.locator('[data-testid*="completed"]'));
+    this.pausedTag = this.page.getByText('Paused', { exact: true }).first();
+    this.resumedTag = this.page.getByText('Active', { exact: true }).first();
     this.notYetRadio = this.page.getByRole('radio', { name: 'Not yet' });
     this.addNewRecipientsText = this.page.getByText('Add new recipients while');
     this.configurationDetailsContainer = this.page.locator(
@@ -355,15 +364,15 @@ export class SurveyCreationPage extends BasePage {
         .or(this.page.getByRole('button', { name: 'Create your own' }).nth(sectionNumber - 1));
     this.searchSurveysTextbox = this.page.getByRole('textbox', { name: 'Search surveys' });
     this.browseQuestionBankButtonAlt1 = this.page.getByRole('button', { name: /browse question bank/i });
-    this.browseQuestionBankButtonAlt2 = this.page.getByText('Browse question bank', { exact: false });
+    this.browseQuestionBankButtonAlt2 = this.page.locator('[aria-label*="Browse question bank"]');
     this.browseQuestionBankButtonAlt3 = this.page.locator('button:has-text("Browse question bank")');
     this.browseQuestionBankButtonAlt4 = this.page.locator('[data-testid*="browse-question-bank"]');
     this.browseQuestionBankButtonAlt5 = this.page.getByRole('button').filter({ hasText: /browse question/i });
-    this.completedTagAlt1 = this.page.locator(
+    this.completedTagAlt1 = this.page.getByText('Completed', { exact: true }).first();
+    this.completedTagAlt2 = this.page.locator(
       '[data-testid*="completed"], [data-status="completed"], [class*="completed"]'
     );
-    this.completedTagAlt2 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
-    this.completedTagAlt3 = this.page.locator('tr, .survey-row, .list-item').filter({ hasText: 'Completed' });
+    this.completedTagAlt3 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
     this.previewNextSectionButtons = [
       this.previewDialog.getByRole('button', { name: /next section/i }),
       this.previewDialog.getByRole('button', { name: /next/i }),
@@ -395,6 +404,7 @@ export class SurveyCreationPage extends BasePage {
     this.notScheduledText = this.page.getByText('Not scheduled yet');
     this.participationWindowText = this.page.getByText('days');
     this.freeTextQuestionText = this.page.getByText('What could have been improved');
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -754,6 +764,10 @@ export class SurveyCreationPage extends BasePage {
       await this.clickOnElement(this.scheduleSurveyButton, {
         stepInfo: 'Click Schedule Survey button',
       });
+      await this.verifier.verifyTheElementIsVisible(this.surveyScheduledMessage, {
+        assertionMessage: 'Survey scheduled message should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -804,6 +818,22 @@ export class SurveyCreationPage extends BasePage {
     await test.step('Click Duplicate option', async () => {
       await this.clickOnElement(this.duplicateOption, {
         stepInfo: 'Click Duplicate option',
+      });
+    });
+  }
+
+  async copySurveyLink(): Promise<void> {
+    await test.step('Click Copy Survey Link option', async () => {
+      await this.clickOnElement(this.copyLink, {
+        stepInfo: 'Copy Survey Link option',
+      });
+    });
+  }
+
+  async editSurveymethod(): Promise<void> {
+    await test.step('Click Edit Survey option', async () => {
+      await this.clickOnElement(this.editSurvey, {
+        stepInfo: 'Copy Edit  option',
       });
     });
   }
@@ -924,6 +954,24 @@ export class SurveyCreationPage extends BasePage {
       if (!completedTagFound) {
         throw new Error('Could not find "Completed" tag/status for the survey after completion');
       }
+    });
+  }
+
+  async verifyPausedTag(): Promise<void> {
+    await test.step('Verify Paused tag is visible after survey pause', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pausedTag, {
+        assertionMessage: 'Paused tag should be visible after survey pause',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyResumedTag(): Promise<void> {
+    await test.step('Verify Active tag is visible after survey resume', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resumedTag, {
+        assertionMessage: 'Active tag should be visible after survey resume',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -1621,5 +1669,67 @@ export class SurveyCreationPage extends BasePage {
     await this.clickAllPurposeSurvey();
     await this.clickCreateButton();
     await this.enterSurveyName(surveyName);
+  }
+
+  async selectCustomAnswerScale() {
+    const customAnswerScale = this.page.getByRole('radio', { name: /Custom/i });
+    await customAnswerScale.waitFor({ state: 'visible' });
+    await customAnswerScale.check();
+  }
+
+  async selectQualityAnswerScale() {
+    const qualityAnswerScale = this.page.getByRole('radio', { name: /Quality/i });
+    await qualityAnswerScale.waitFor({ state: 'visible' });
+    await qualityAnswerScale.check();
+  }
+
+  async validateQuestionsOnPreview(expectedQuestions: string[]) {
+    for (const question of expectedQuestions) {
+      await this.page.getByText(question, { exact: false }).waitFor({ state: 'visible' });
+    }
+  }
+
+  async captureSurveyIdAfterSchedule(): Promise<string | undefined> {
+    const [scheduleRequest] = await Promise.all([
+      this.page.waitForRequest(
+        (request: any) => request.url().includes('/sentiment-ai/v1/surveys/') && request.method() === 'PUT'
+      ),
+      this.clickScheduleSurveyButton(),
+    ]);
+    const match = /\/sentiment-ai\/v1\/surveys\/([a-f0-9-]+)/.exec(scheduleRequest.url());
+    return match ? match[1] : undefined;
+  }
+
+  async cleanupSurveyById(surveyId: string, surveyManagementService: any): Promise<void> {
+    if (!surveyId) return;
+    try {
+      await surveyManagementService.deleteSurvey(surveyId);
+      console.log(`Cleaned up survey: ${surveyId}`);
+    } catch (error) {
+      console.warn(`Failed to cleanup survey:`, error);
+    }
+  }
+
+  async createAndScheduleSurvey(surveyName: string, audienceNames: string[]): Promise<string | undefined> {
+    await this.createBasicSurveySetup(surveyName);
+    await this.selectAudiences(audienceNames);
+    await this.selectDefaultIntroAndThanks();
+    await this.selectDefaultFormAddress();
+    await this.selectSendDate();
+    await this.clickConfigureSurveyNextButton();
+    await this.clickAddQuestionNextButton();
+    const surveyId = await this.captureSurveyIdAfterSchedule();
+    await this.verifySurveyScheduledMessage();
+    return surveyId;
+  }
+
+  async verifySaveButtonOnPreviewConfirm(): Promise<void> {
+    await test.step('Verify Save button is visible on preview and confirm screen', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage:
+          'Save button should be visible on preview and confirm screen when "not yet" option is selected',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
   }
 }

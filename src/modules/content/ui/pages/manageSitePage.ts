@@ -19,6 +19,7 @@ export interface IManageSiteActions {
   clickOnFileOption: (fileName: string) => Promise<void>;
   clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
+  clickOnShowMoreButtonAction: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -35,6 +36,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
   readonly searchButton = this.page.locator('button[name="submitbutton"]');
   readonly siteList = this.page.locator('.type--title').first();
+  readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
   readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
     // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
@@ -174,6 +176,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   async clickOnFilterOptionsDropdownButton(): Promise<void> {
     await this.clickOnElement(this.reactSelectInput);
   }
+  async clickOnShowMoreButtonAction(): Promise<void> {
+    await this.clickOnElement(this.showMoreButton);
+  }
 
   /**
    * Sets the External Files provider (e.g., "Box files")
@@ -190,7 +195,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
 
       if (isBoxAlreadySelected && provider === 'Box files') {
-        console.log('Box files is already configured for this site. Update button is disabled, skipping update.');
         return; // Skip the update process
       }
       // Click on the React Select input or dropdown arrow to open dropdown
@@ -240,7 +244,6 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Check if the permission is already set to the desired value
       const isAlreadyChecked = await radioButton.isChecked();
       if (isAlreadyChecked) {
-        console.log(`Feed posting permission is already set to ${permission}, skipping update`);
         return;
       }
 
