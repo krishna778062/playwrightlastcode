@@ -129,4 +129,43 @@ test.describe('onboarding', () => {
       await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
     }
   );
+
+  test(
+    'verify addition of onboarding tile on home dashboard when it has already been added by App manager',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20886'],
+    },
+    async ({ appManagerFixture: _appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify addition of onboarding tile on home dashboard when it has already been added by App manager [CONT-20886]',
+        zephyrTestId: 'CONT-20886',
+        storyId: 'CONT-20886',
+      });
+
+      await test.step('Given I am a user with control over the home dashboard and the onboarding tile is already added to the home dashboard by App manager', async () => {
+        await homeDashboardPage.verifyThePageIsLoaded();
+      });
+
+      await test.step('When I try to add the onboarding tile to the home dashboard again', async () => {
+        await homeDashboardPage.actions.clickOnEditDashboardButton();
+        await homeDashboardPage.actions.clickOnAddTileButton();
+        await homeDashboardPage.actions.clickOnAddContentTileOption();
+        await homeDashboardPage.actions.clickingOnOnboardingTab();
+      });
+
+      await test.step('Then I should receive a prompt in the "Add Tile Modal" and should reflect message, "This tile is already added to this dashboard. Edit dashboard to update or remove this tile."', async () => {
+        await homeDashboardPage.assertions.verifyTileAlreadyAddedMessage();
+      });
+
+      await test.step('And the option "Add to home" should be disabled', async () => {
+        await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
+      });
+
+      await test.step('And I should be informed that the onboarding tile is already added to the home dashboard', async () => {
+        await homeDashboardPage.actions.closeAddContentTileDialog();
+        await homeDashboardPage.actions.clickingOnDoneButton();
+      });
+    }
+  );
 });
