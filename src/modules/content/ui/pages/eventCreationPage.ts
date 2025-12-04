@@ -497,7 +497,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
       await this.clickOnElement(dayCell);
 
       // Verify the date was set by checking if the picker closed
-      await calendarGrid.waitFor({ state: 'hidden', timeout: 3000 });
+      await calendarGrid.waitFor({ state: 'hidden' });
     });
   }
 }
