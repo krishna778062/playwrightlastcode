@@ -1339,7 +1339,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyNavigationToSite(siteId: string): Promise<void> {
     await test.step(`Verify navigation to site ${siteId}`, async () => {
       // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
-      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: 15000 });
+      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: TIMEOUTS.MEDIUM });
 
       // Verify the page has loaded
       await this.page.waitForLoadState('domcontentloaded');

@@ -1912,12 +1912,6 @@ test.describe(
         const publicSite2Name = publicSiteName;
         const publicSite2Id = publicSiteId;
 
-        console.log('Test sites:');
-        console.log('Public Site:', publicSiteName, publicSiteId);
-        console.log('Private Site:', privateSiteName, privateSiteId);
-        console.log('Public Site 2 (for replacement):', publicSite2Name, publicSite2Id);
-        console.log('Using App Manager - has access to all sites');
-
         // Navigate to Home → Global Feed
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
