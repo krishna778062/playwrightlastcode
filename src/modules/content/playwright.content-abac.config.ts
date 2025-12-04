@@ -12,7 +12,7 @@ initializeContentConfig('contentAbac');
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-abac'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-abac', 'ui'),
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 1 : 2,
   timeout: 180_000,

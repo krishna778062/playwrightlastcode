@@ -9,6 +9,11 @@ import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSe
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
+import { ManageSitesComponent } from '../../../ui/components/manageSitesComponent';
+
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   '@Subscriptions - Verify Add subscription button',
   {

@@ -863,7 +863,7 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   * Complete workflow to add a ServiceNow tile with App Manager Defined settings
    */
   async addAppManagerDefinedWithOptions(
     tileTitle: string,
@@ -871,13 +871,12 @@ export class HomeDashboard extends BasePage {
     tileName: string,
     destination: string,
     fieldName: string,
-    fieldValue: string,
-    fieldName2: string,
-    fieldValue2: string
+    fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
-      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
-      fields: [{ name: fieldName2, value: fieldValue2 }],
+    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+      radioOptionsWithValues: [
+        { fieldName: fieldName, option: ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, value: fieldValue },
+      ],
     });
   }
   /**
