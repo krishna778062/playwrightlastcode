@@ -1,6 +1,7 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
@@ -27,6 +28,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly viewPostLink: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
+  readonly replyFileUploadInput: Locator;
+  readonly replyAttachedFiles: Locator;
   readonly reactionCountButton: Locator;
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
@@ -179,11 +182,16 @@ export class ListFeedComponent extends BaseComponent {
       .getByRole('button', { name: 'Share this post' })
       .first();
 
+  readonly reportPostOption: Locator;
+  readonly reportReplyOption: Locator;
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
     this.deleteButton = this.page.locator("div:text('Delete')");
     this.editButton = this.page.locator("div:text('Edit')");
+    this.reportPostOption = this.page.getByRole('menuitem', { name: 'Report post' });
+    this.reportReplyOption = this.page.getByText('Report reply');
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
@@ -196,6 +204,8 @@ export class ListFeedComponent extends BaseComponent {
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.replyFileUploadInput = this.page.locator("input[type='file']");
+    this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
@@ -261,6 +271,18 @@ export class ListFeedComponent extends BaseComponent {
   async clickDeleteOption(): Promise<void> {
     await test.step('Click delete option', async () => {
       await this.clickOnElement(this.deleteButton);
+    });
+  }
+
+  async clickReportPostOption(): Promise<void> {
+    await test.step('Click Report post option', async () => {
+      await this.clickOnElement(this.reportPostOption);
+    });
+  }
+
+  async clickReportReplyOption(): Promise<void> {
+    await test.step('Click Report reply option', async () => {
+      await this.clickOnElement(this.reportReplyOption);
     });
   }
 
@@ -438,7 +460,102 @@ export class ListFeedComponent extends BaseComponent {
       }
       await this.clickOnReplyButton(postId);
     });
-    console.log('replyText :   ', replyText);
+    return replyText;
+  }
+
+  /**
+   * Adds a reply to a specific post with inappropriate content handling
+   * This method handles the case where inappropriate content warning popup appears
+   * @param replyText - The reply text to add
+   * @param postId - The post ID to reply to (optional, can be empty string)
+   * @param mentionUserName - Optional mention user name
+   */
+  async addReplyToPostWithInappropriateContent(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with inappropriate content handling`, async () => {
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+
+      // Wait for reply input to be visible (without waiting for API response)
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+      await this.fillInElement(this.replyEditor, replyText);
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else {
+        await this.fillInElement(this.replyEditor, replyText);
+      }
+
+      // Click submit reply button
+      await this.clickOnElement(this.submitReplyButton.first(), { stepInfo: 'Clicking on submit reply button' });
+    });
+    return replyText;
+  }
+
+  /**
+   * Adds a reply to a post with file attachment
+   * @param replyText - The text content for the reply
+   * @param postId - The ID of the post to reply to
+   * @param filePath - The path to the file to upload
+   * @param mentionUserName - Optional user name to mention
+   * @returns Promise<string> - The reply text
+   */
+  async addReplyToPostWithFile(
+    replyText: string,
+    postId: string,
+    filePath: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with file attachment`, async () => {
+      // Click reply button
+      const replyApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+
+      await replyApiPromise;
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+
+      // Enter reply text
+      await this.fillInElement(this.replyEditor, replyText);
+
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      }
+
+      // Upload file
+      const uploadResponsePromise = this.page.waitForResponse(
+        response =>
+          response.request().url().includes('X-Amz-SignedHeaders=host') &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        { timeout: 35000 }
+      );
+
+      await this.replyFileUploadInput.setInputFiles([filePath]);
+      await this.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+      await expect(this.replyAttachedFiles).toHaveCount(1);
+
+      // Wait for upload to complete
+      await uploadResponsePromise;
+
+      // Submit reply
+      await this.clickOnReplyButton(postId);
+    });
+    console.log('replyText with file: ', replyText);
     return replyText;
   }
 
@@ -1422,6 +1539,29 @@ export class ListFeedComponent extends BaseComponent {
       const deletedMessage = postContainer.locator('div').filter({ hasText: /^This post has been deleted\.$/ });
       await this.verifier.verifyTheElementIsVisible(deletedMessage, {
         assertionMessage: `Deleted post message should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that a removed content message is displayed for a post that was removed due to inappropriate content
+   * @param postText - The text of the post to verify removed message for
+   */
+  async verifyRemovedContentMessage(postText: string): Promise<void> {
+    await test.step(`Verify removed content message is visible for post: ${postText}`, async () => {
+      // First, find the post container
+      const postContainer = this.page.locator('div[class*="postContent"]').filter({ hasText: postText }).first();
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container should be visible for post "${postText}"`,
+      });
+
+      // Verify the removed content message is visible within the post container
+      // The message should be: "This post has been removed due to inappropriate content"
+      const removedMessage = postContainer
+        .locator('div')
+        .filter({ hasText: /This post has been removed due to inappropriate content/i });
+      await this.verifier.verifyTheElementIsVisible(removedMessage, {
+        assertionMessage: `Removed content message should be visible for post "${postText}"`,
       });
     });
   }

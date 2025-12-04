@@ -43,6 +43,12 @@ export interface IContentPreviewPageActions {
   clickShowMoreCommentsButton: () => Promise<void>;
   getVisibleCommentCount: () => Promise<number>;
   addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
+  addReplyToCommentWithFile: (
+    replyText: string,
+    postId: string,
+    filePath: string,
+    mentionUserName?: string
+  ) => Promise<string>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
@@ -405,8 +411,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       // Count only visible comment containers
       const count = await this.page.locator('div[class*="_postBody_eonic_8"]').count();
 
-      console.log('Count of visible comments: ', count);
-
       return count;
     });
   }
@@ -461,6 +465,23 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async addReplyToComment(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     return await this.listFeedComponent.addReplyToPost(replyText, postId, mentionUserName);
+  }
+
+  /**
+   * Adds a reply to a comment with file attachment
+   * @param replyText - The text content for the reply
+   * @param postId - The ID of the comment to reply to
+   * @param filePath - The path to the file to upload
+   * @param mentionUserName - Optional user name to mention
+   * @returns Promise<string> - The reply text
+   */
+  async addReplyToCommentWithFile(
+    replyText: string,
+    postId: string,
+    filePath: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    return await this.listFeedComponent.addReplyToPostWithFile(replyText, postId, filePath, mentionUserName);
   }
 
   async openReplyEditorForPost(postText: string): Promise<void> {

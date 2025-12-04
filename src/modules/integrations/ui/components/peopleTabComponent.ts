@@ -15,6 +15,14 @@ export class PeopleTabComponent extends BaseComponent {
   readonly fieldEditableCheckbox: (fieldName: string) => Locator;
   readonly fieldDisplayCheckbox: (fieldName: string) => Locator;
   readonly fieldSyncingCheckbox: (fieldName: string) => Locator;
+  readonly workdayUsernameInput: () => Locator;
+  readonly workdayPasswordInput: () => Locator;
+  readonly tenantIdInput: () => Locator;
+  readonly clientIdInput: () => Locator;
+  readonly clientSecretInput: () => Locator;
+  readonly refreshTokenInput: () => Locator;
+  readonly wsdlUrlInput: () => Locator;
+  readonly apiClientToggle: () => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -28,6 +36,15 @@ export class PeopleTabComponent extends BaseComponent {
     this.fieldDisplayCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'display');
     this.fieldSyncingCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'syncing');
     this.saveButton = () => this.rootLocator.getByRole('button', { name: 'Save' });
+    // People data → Workday credentials inputs
+    this.workdayUsernameInput = () => this.rootLocator.getByLabel(/Workday username/i);
+    this.workdayPasswordInput = () => this.rootLocator.getByLabel(/Workday password/i);
+    this.tenantIdInput = () => this.rootLocator.getByLabel(/Tenant ID/i);
+    this.clientIdInput = () => this.rootLocator.getByLabel(/Client ID/i);
+    this.clientSecretInput = () => this.rootLocator.getByLabel(/Client Secret/i);
+    this.refreshTokenInput = () => this.rootLocator.getByLabel(/Refresh Token/i);
+    this.wsdlUrlInput = () => this.rootLocator.getByLabel(/WSDL URL/i);
+    this.apiClientToggle = () => this.rootLocator.getByLabel(/API client/i);
   }
 
   private getFieldCheckbox(fieldName: string, columnType: 'editable' | 'display' | 'syncing'): Locator {
@@ -86,6 +103,18 @@ export class PeopleTabComponent extends BaseComponent {
       const isChecked = await checkbox.isChecked();
       if (!isChecked) {
         await checkbox.check();
+        await this.saveButton().click();
+      }
+    });
+  }
+
+  async deselectWorkdayIfChecked(): Promise<void> {
+    await test.step('Deselect Workday checkbox if checked and click Save', async () => {
+      const checkbox = this.workdayCheckbox();
+      await expect(checkbox, 'expecting Workday checkbox to be visible').toBeVisible();
+      const isChecked = await checkbox.isChecked();
+      if (isChecked) {
+        await checkbox.uncheck();
         await this.saveButton().click();
       }
     });
@@ -210,6 +239,30 @@ export class PeopleTabComponent extends BaseComponent {
       expect(namePronunciationIsChecked, 'Name pronunciation field should not be checked in syncing column').toBe(
         false
       );
+    });
+  }
+
+  async configureWorkdayCredentials(params: {
+    username: string;
+    password: string;
+    wsdlUrl: string;
+    tenantId: string;
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+  }): Promise<void> {
+    await test.step('Select Workday and enter credentials, then save', async () => {
+      const workdayCheckbox = this.workdayCheckbox();
+      await workdayCheckbox.check();
+      await this.workdayUsernameInput().fill(params.username);
+      await this.workdayPasswordInput().fill(params.password);
+      await this.wsdlUrlInput().fill(params.wsdlUrl);
+      await this.tenantIdInput().fill(params.tenantId);
+      await this.apiClientToggle().click();
+      await this.clientIdInput().fill(params.clientId);
+      await this.clientSecretInput().fill(params.clientSecret);
+      await this.refreshTokenInput().fill(params.refreshToken);
+      await this.saveButton().click();
     });
   }
 }
