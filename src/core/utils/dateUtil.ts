@@ -200,3 +200,58 @@ export function validateTimestampFormat(timestamp: string): boolean {
 
   return timestampPattern.test(timestamp.trim());
 }
+
+/**
+ * Formats a createdAt date string (ISO format) for display in manage content pages.
+ * Returns "Today" for today's date, "Yesterday" for yesterday's date, or "Month Day, Year" format for other dates.
+ * This matches the UI behavior which uses local timezone to determine "Today" vs "Yesterday".
+ * @param {string} createdAt - The createdAt date in ISO format (e.g., "2025-11-30T23:59:00.000Z")
+ * @returns {string} Formatted date string: "Today", "Yesterday", or "Month Day, Year" (e.g., "January 15, 2025")
+ */
+export function formatCreatedAtDateForManageContent(createdAt: string): string {
+  if (!createdAt) {
+    throw new Error('createdAt date is required');
+  }
+
+  // Extract date directly from ISO string (YYYY-MM-DD) to avoid timezone conversion
+  // API returns: "2025-11-30T23:59:00.000Z" -> extract "2025-11-30"
+  const dateUTCString = createdAt.split('T')[0];
+
+  // Validate the date string format
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTCString)) {
+    throw new Error(`Invalid date string format: ${createdAt}`);
+  }
+
+  // Get today and yesterday dates using local timezone to match UI behavior
+  // The UI uses the browser's local timezone to determine "Today" vs "Yesterday"
+  const now = new Date();
+  // Convert API UTC date to local date for comparison
+  const apiDate = new Date(createdAt);
+  const apiLocalDateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`;
+
+  // Get today's local date string
+  const todayLocalDateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  // Get yesterday's local date string
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayLocalDateString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+  // Check if the date is today using local date string comparison
+  // This matches the UI behavior which uses local timezone
+  if (apiLocalDateString === todayLocalDateString) {
+    return 'Today';
+  }
+  // Check if the date is yesterday using local date string comparison
+  else if (apiLocalDateString === yesterdayLocalDateString) {
+    return 'Yesterday';
+  }
+  // For other dates, return formatted date using UTC components
+  else {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // Parse the UTC date string (YYYY-MM-DD) to get exact date components
+    const [year, month, day] = dateUTCString.split('-').map(Number);
+    const formattedDate = `${monthNames[month - 1]} ${day}, ${year}`;
+    return formattedDate;
+  }
+}

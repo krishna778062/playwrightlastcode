@@ -82,4 +82,19 @@ export const MESSAGES = {
   NO_FAVORITES_LINK: 'No favorite links available',
   SAVE_APPS_FAVORITE: 'Save apps as favorites to access them quickly',
   SAVE_LINKS_FAVORITE: 'Save links as favorites to access them quickly',
+  getAppSettingsUpdatedMessage: (appName: string) => `${appName} settings updated`,
+  getUserLevelConnectionMessage: (appName: string) =>
+    `To use ${appName}, end users will be required to connect their accounts once the app is fully set up and activated.`,
+  getAppAndUserLevelConnectionMessage: (appName: string) =>
+    `${appName} requires that an admin account is connected. To use ${appName}, end users will be required to connect their accounts once the app is fully set up and activated.`,
+  DELETE_CUSTOM_APP_DIALOG_TITLE: 'Delete custom app',
+  ENABLE_CUSTOM_APP_DIALOG_TITLE: 'Enable custom app',
+  DISCONNECT_CUSTOM_APP_DIALOG_TITLE: 'Disconnect custom app account',
+  DISCONNECT_WARNING_MESSAGE: 'Home and site dashboard tiles using this connection will be removed',
+  CHECKLIST_CONNECT_APP_LEVEL: 'Connect the app-level account',
+  CHECKLIST_CREATE_API_ACTION: 'Create API action',
+  CHECKLIST_CREATE_CUSTOM_APP_TILE: 'Create custom app tile',
+  CHECKLIST_ENABLE_APP: 'Enable the app',
+  CUSTOM_APPS_EMPTY_STATE: 'Add your own apps to use them',
+  NO_RESULTS_DESCRIPTION: 'Try adjusting search term or filters',
 } as const;

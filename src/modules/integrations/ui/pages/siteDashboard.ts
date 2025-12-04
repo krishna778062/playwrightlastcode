@@ -682,7 +682,7 @@ export class SiteDashboard {
     });
   }
   /**
-   * Complete workflow to add a Greenhouse tile with App Manager Defined settings
+   * Complete workflow to add a ServiceNow tile with App Manager Defined settings
    */
   async addAppManagerDefinedWithOptions(
     tileTitle: string,
@@ -690,13 +690,12 @@ export class SiteDashboard {
     tileName: string,
     destination: string,
     fieldName: string,
-    fieldValue: string,
-    fieldName2: string,
-    fieldValue2: string
+    fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'Greenhouse', tileName, destination, {
-      radioOptionsWithValues: [{ fieldName: fieldName, option: 'Site manager defined', value: fieldValue }],
-      fields: [{ name: fieldName2, value: fieldValue2 }],
+    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+      radioOptionsWithValues: [
+        { fieldName: fieldName, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue },
+      ],
     });
   }
   /**
@@ -835,5 +834,27 @@ export class SiteDashboard {
     linkSelector?: string
   ): Promise<void> {
     await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
+  }
+  /**
+   * Verify Service Now tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyServiceNowTileContentStructure(tileTitle);
+  }
+  /**
+   * Complete workflow to add a ServiceNow tile with Dropdown
+   */
+  async addTileWithDropdownField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    value: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      dropdowns: [{ fieldName, value }],
+    });
   }
 }

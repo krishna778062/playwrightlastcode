@@ -93,6 +93,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -100,6 +101,7 @@ test.describe(
         );
         const documentPath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -1872,6 +1874,67 @@ test.describe(
             publicSiteName
           );
         });
+      }
+    );
+
+    test(
+      'verify user is able to see Follow button on hovering profile icon on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20094'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user is able to see Follow button on hovering profile icon on Home Feed',
+          zephyrTestId: 'CONT-20094',
+          storyId: 'CONT-20094',
+        });
+
+        // Get Application Manager user info
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerFullName = appManagerInfo.fullName;
+
+        // Create feed post by App Manager
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const postResult = await adminFeedPage.actions.createAndPost({ text: postText });
+        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Add reply to the post
+        await adminFeedPage.actions.openReplyEditorForPost(postText);
+        const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+        await adminFeedPage.actions.addReplyToPost(replyText, postResult.postId || '');
+        await adminFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+        // Login as EndUser and verify Follow button on hover in feed post
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.reloadPage();
+        await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Hover on profile icon in feed post - verify user name, photo, and Follow button
+        await endUserFeedPage.actions.hoverOnProfileIconInPost(postText, appManagerFullName);
+        await endUserFeedPage.assertions.verifyUserNameVisibleOnHover(appManagerFullName);
+        await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+
+        // Click Follow button and verify Following button is visible
+        await endUserFeedPage.actions.clickFollowButtonOnHover(appManagerFullName);
+        await endUserFeedPage.assertions.verifyFollowingButtonVisibleOnHover(appManagerFullName);
+
+        await endUserFeedPage.actions.clickOnSideToRemoveProfilePopover();
+
+        // Hover on profile icon in reply - verify Following button is visible
+        await endUserFeedPage.actions.hoverOnProfileIconInReply(replyText, appManagerFullName);
+        await endUserFeedPage.assertions.verifyFollowingButtonVisibleOnHover(appManagerFullName);
+
+        // Click Following button in reply and verify Follow button is visible
+        await endUserFeedPage.actions.clickFollowingButtonOnHover(appManagerFullName);
+        await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
       }
     );
   }
