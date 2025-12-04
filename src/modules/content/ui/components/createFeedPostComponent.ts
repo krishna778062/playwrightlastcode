@@ -154,7 +154,7 @@ export class CreateFeedPostComponent
     this.page.locator('span').filter({ hasText: expectedPlaceholder });
   // Box file browsing section
   readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
-  readonly filePickerDialog = this.page.locator('[role="dialog"]');
+  readonly filePickerDialog = this.page.getByRole('dialog', { name: 'File manager' });
   readonly filePickerTabs = this.page.locator('[role="tab"]');
   readonly boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
   readonly boxFolderLocator = (folderName: string) =>
@@ -1020,6 +1020,7 @@ export class CreateFeedPostComponent
 
       await this.verifier.verifyTheElementIsVisible(folderNameDiv, {
         assertionMessage: `Box folder "${folderName}" should be visible`,
+        timeout: TIMEOUTS.VERY_SHORT,
       });
 
       // Click on the folder name div
@@ -1036,10 +1037,12 @@ export class CreateFeedPostComponent
         await this.verifier
           .verifyTheElementIsVisible(this.boxTableRows.first(), {
             assertionMessage: 'Folder contents table should be visible after clicking folder',
+            timeout: TIMEOUTS.VERY_SHORT,
           })
           .catch(async () => {
             await this.verifier.verifyTheElementIsVisible(this.boxBreadcrumb, {
               assertionMessage: 'Folder breadcrumb should be visible after clicking folder',
+              timeout: TIMEOUTS.VERY_SHORT,
             });
           });
       }
@@ -1050,48 +1053,22 @@ export class CreateFeedPostComponent
    * Selects a file from Box
    * @param fileName - Name of the file to select (empty string to select first available file)
    */
-  async selectBoxFile(fileName: string): Promise<void> {
+  async selectBoxFile(fileName?: string): Promise<void> {
     await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
       if (fileName) {
-        // Find file in table by name
-        const fileRow = this.page.locator('table tbody tr').filter({ hasText: fileName });
-        await this.verifier.verifyTheElementIsVisible(fileRow, {
+        const file = this.filePickerDialog.getByRole('button', { name: fileName });
+        await this.verifier.verifyTheElementIsVisible(file, {
           assertionMessage: `Box file "${fileName}" should be visible`,
+          timeout: TIMEOUTS.VERY_SHORT,
         });
-        // Click on the checkbox in the first column
-        const checkbox = fileRow.locator('td').first().locator('input[type="checkbox"]');
-        await this.verifier.verifyTheElementIsVisible(checkbox, {
-          assertionMessage: `Checkbox for file "${fileName}" should be visible`,
-        });
-        await this.clickOnElement(checkbox);
+        await file.check();
       } else {
-        // Select first available file (not a folder)
-        // Wait for table to load after folder navigation
-        await this.verifier.verifyTheElementIsVisible(this.boxTableRows.first(), {
-          assertionMessage: 'At least one table row should be available',
+        const file = this.filePickerDialog.getByRole('checkbox', { name: '.pdf' }).first();
+        await this.verifier.verifyTheElementIsVisible(file, {
+          assertionMessage: `Box file ".pdf" should be visible`,
+          timeout: TIMEOUTS.VERY_SHORT,
         });
-
-        // Find the first row that has a checkbox (files and folders both have checkboxes, but we want files)
-        // Files typically don't have the folder icon or folder-related classes
-        const folderIconLocator = this.page.locator(
-          'div[class*="folder"], div[class*="Folder"], i[class*="folder"], i[class*="Folder"]'
-        );
-        const fileRow = this.boxTableRows.filter({ hasNot: folderIconLocator }).first();
-
-        // If no file found with that filter, just use the first row
-        const rowToUse = (await fileRow.count()) > 0 ? fileRow : this.boxTableRows.first();
-
-        // Click on the checkbox in the first column
-        const checkbox = rowToUse.locator('td').first().locator('input[type="checkbox"]');
-        await this.verifier.verifyTheElementIsVisible(checkbox, {
-          assertionMessage: 'Checkbox for file should be visible',
-        });
-        await this.clickOnElement(checkbox);
-
-        // Verify selection registered - checkbox should be checked
-        await this.verifier.verifyTheElementIsVisible(checkbox, {
-          assertionMessage: 'Checkbox should remain visible after selection',
-        });
+        await file.check();
       }
     });
   }
