@@ -58,6 +58,7 @@ export const FEED_TEST_DATA = {
   },
   URLS: {
     EMBED_YOUTUBE_URL: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+    EMBED_VIMEO_URL: 'https://vimeo.com/76979871',
   },
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",

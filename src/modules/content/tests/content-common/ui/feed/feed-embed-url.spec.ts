@@ -104,3 +104,67 @@ test.describe(
     });
   }
 );
+
+test.describe(
+  '@FeedPostCreationWithEmbedURL - Feed Post and Reply With Embed Video URL Tests',
+  {
+    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL],
+  },
+  () => {
+    let createdPostId: string;
+    const youtubeUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+    const vimeoUrl = FEED_TEST_DATA.URLS.EMBED_VIMEO_URL;
+
+    test(
+      'verify user is able to add embed video with text on Home Feed Post and reply',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19558'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'CONT-19558',
+          description: 'Verify user able to add embed video with text on Home Feed Post and reply',
+          storyId: 'CONT-19558',
+        });
+
+        const feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.actions.verifyThePageIsLoaded();
+
+        // Generate test data
+        const postText = TestDataGenerator.generateRandomText();
+        const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+        await feedPage.actions.clickShareThoughtsButton();
+
+        await test.step(`And Enter the text with video url "${youtubeUrl}" on the Feed Editor section`, async () => {
+          const feedPostOptions: FeedPostOptions = {
+            text: postText,
+            embedUrl: youtubeUrl,
+          };
+          const postResult = await feedPage.actions.createAndPost(feedPostOptions);
+          createdPostId = postResult.postId || '';
+        });
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+        await feedPage.assertions.verifyEmbedUrlPreviewIsVisible(youtubeUrl);
+
+        await feedPage.actions.addReplyToPostWithEmbedUrl(replyText, createdPostId, vimeoUrl);
+
+        await feedPage.assertions.verifyReplyIsVisible(replyText);
+        await feedPage.assertions.verifyEmbedUrlPreviewIsVisibleInReply(vimeoUrl, replyText);
+      }
+    );
+
+    test.afterEach('Cleanup test data', async ({ standardUserFixture }) => {
+      try {
+        // Clean up created post if it exists (using API method)
+        if (createdPostId) {
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
+          createdPostId = '';
+        }
+      } catch (error) {
+        console.warn('Cleanup failed:', error);
+      }
+    });
+  }
+);

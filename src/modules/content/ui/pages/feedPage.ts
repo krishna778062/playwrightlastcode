@@ -155,6 +155,7 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  addReplyToPostWithEmbedUrl(replyText: string, postId: string, embedUrl: string): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -212,6 +213,8 @@ export interface IFeedAssertions {
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbedUrlPreviewIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbedUrlPreviewIsVisibleInReply: (embedUrl: string, replyText: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
@@ -492,6 +495,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async addReplyToPost(replyText: string, postId: string): Promise<void> {
     await this.listFeedComponent.addReplyToPost(replyText, postId);
+  }
+
+  async addReplyToPostWithEmbedUrl(replyText: string, postId: string, embedUrl: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPostWithEmbedUrl(replyText, postId, embedUrl);
   }
 
   async openReplyEditorForPost(postText: string): Promise<void> {
@@ -1184,6 +1191,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async verifyEmbedUrlPreviewIsVisible(embedUrl: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbedUrlPreviewIsVisible(embedUrl);
+  }
+
+  async verifyEmbedUrlPreviewIsVisibleInReply(embedUrl: string, replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbedUrlPreviewIsVisibleInReply(embedUrl, replyText);
   }
 
   async verifyShareButtonIsNotVisible(): Promise<void> {

@@ -224,6 +224,11 @@ export class CreateFeedPostComponent
       // Add post content
       await this.createPost(options.text);
 
+      // Handle embed URL if provided
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
+
       // Handle attachments if provided
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
