@@ -75,7 +75,6 @@ export class ActivityNotificationPage
     await test.step(`Verify notification exists for mention: ${expectedNotificationMessage}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.notificationByMention(expectedNotificationMessage).first(), {
         assertionMessage: `Notification with text "${expectedNotificationMessage}" should be visible`,
-        timeout: 10000,
       });
     });
   }
