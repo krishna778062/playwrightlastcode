@@ -31,10 +31,11 @@ test.describe(
         });
 
         const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+        const feedPage = new FeedPage(appManagerFixture.page);
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
 
-        await recognitionHub.clickOnGiveRecognition();
+        await feedPage.actions.clickOnGiveRecognition();
 
         const recognitionDialog = new RecognitionDialogComponent(appManagerFixture.page);
 
@@ -55,7 +56,7 @@ test.describe(
 
         await recognitionHub.page.reload();
 
-        await recognitionHub.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
 
@@ -72,6 +73,7 @@ test.describe(
         });
 
         const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+        const feedPage = new FeedPage(appManagerFixture.page);
         const shareMessage = 'Sharing this recognition to feed';
 
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -80,7 +82,7 @@ test.describe(
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
 
-        await recognitionHub.clickOnGiveRecognition();
+        await feedPage.actions.clickOnGiveRecognition();
 
         const recognitionDialog = new RecognitionDialogComponent(appManagerFixture.page);
 
@@ -98,10 +100,10 @@ test.describe(
         await recognitionDialog.actions.clickSkipButton();
 
         await recognitionHub.page.reload();
-        await recognitionHub.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
-        await recognitionHub.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
 
         await recognitionHub.clickShareButtonOnFirstRecognition();
 
@@ -121,7 +123,6 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
-        const feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
 
         await feedPage.reloadPage();
@@ -129,7 +130,7 @@ test.describe(
         await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
-        await recognitionHub.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
 
         await recognitionHub.clickShareButtonOnFirstRecognition();
 
