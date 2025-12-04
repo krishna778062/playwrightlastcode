@@ -46,6 +46,13 @@ export class ListFeedComponent extends BaseComponent {
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
   readonly sharePostButton: Locator;
+  // Smart feed block locators
+  readonly topPicksBlock: Locator;
+  readonly upcomingEventsBlock: Locator;
+  readonly recentlyPublishedBlock: Locator;
+  readonly celebrationBlock: Locator;
+  readonly popularContentBlock: Locator;
+  readonly commentIcon: Locator;
 
   readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
   readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
@@ -56,6 +63,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly settingsButton: Locator = this.page.getByRole('button', { name: 'Settings' });
   readonly muteButton: Locator = this.page.getByRole('button', { name: 'Mute' });
   readonly unmuteButton: Locator = this.page.getByRole('button', { name: 'Unmute' });
+  readonly randomClickOnPage: Locator = this.page.locator('.row').first();
 
   // Dynamic locator functions
   /**
@@ -187,6 +195,29 @@ export class ListFeedComponent extends BaseComponent {
   readonly reportPostOption: Locator;
   readonly reportReplyOption: Locator;
 
+  readonly getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
+    this.page
+      .locator(
+        '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
+      )
+      .first();
+
+  readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
+    this.page
+      .locator('._reply_1ii4b_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
+      .first();
+
+  readonly getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
+
+  readonly getFollowingButtonLocator = (userName: string): Locator =>
+    this.page.getByRole('button', { name: 'Following' });
+
+  readonly getProfilePopoverLocator = (userName: string): Locator =>
+    this.page
+      .locator('div')
+      .filter({ hasText: `${userName}View in org chart` })
+      .first();
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -222,6 +253,14 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+
+    // Smart feed block locators
+    this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
+    this.upcomingEventsBlock = this.page.locator('header').filter({ hasText: 'Upcoming event' });
+    this.recentlyPublishedBlock = this.page.locator('header').filter({ hasText: 'Recently published' });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
+    this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
     this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
     this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
@@ -1135,12 +1174,12 @@ export class ListFeedComponent extends BaseComponent {
       // Ensure post is visible first
       await this.waitForPostToBeVisible(postText);
 
-      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
         assertionMessage: `Like/React button should be visible for post "${postText}"`,
       });
 
       // Click the like button
-      await this.clickOnElement(this.likeButton);
+      await this.clickOnElement(this.likeButton.first());
     });
   }
 
@@ -1686,6 +1725,49 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Verifies that a specific smart feed block is visible
+   * @param blockName - The name of the smart feed block to verify (use SmartFeedBlock enum)
+   */
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await test.step(`Verify smart feed block "${blockName}" is visible`, async () => {
+      let blockLocator: Locator;
+      switch (blockName.toLowerCase()) {
+        case 'top picks':
+          blockLocator = this.topPicksBlock;
+          break;
+        case 'upcoming events':
+          blockLocator = this.upcomingEventsBlock;
+          break;
+        case 'recently published':
+          blockLocator = this.recentlyPublishedBlock;
+          break;
+        case 'celebration':
+          blockLocator = this.celebrationBlock;
+          break;
+        case 'popular content':
+          blockLocator = this.popularContentBlock;
+          break;
+        default:
+          throw new Error(`Unknown smart feed block: ${blockName}`);
+      }
+      await this.verifier.verifyTheElementIsVisible(blockLocator, {
+        assertionMessage: `Smart feed block "${blockName}" should be visible`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the comment icon is not visible (for timeline mode)
+   */
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await test.step('Verify comment icon is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.commentIcon, {
+        assertionMessage: 'Comment icon should not be visible in timeline mode',
+      });
+    });
+  }
+
   async clickOnReplyButton(postText: string): Promise<void> {
     await test.step(`Click on reply button for post: ${postText}`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -1699,6 +1781,95 @@ export class ListFeedComponent extends BaseComponent {
         }
       );
       return postResponse;
+    });
+  }
+
+  async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
+    await test.step(`Hover on profile icon in post: ${postText} for user: ${userName}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const profileIcon = this.getProfileIconLocatorForPost(postText, userName);
+      await this.verifier.verifyTheElementIsVisible(profileIcon, {
+        assertionMessage: `Profile icon should be visible for post "${postText}"`,
+      });
+      await this.clickOnElement(profileIcon);
+      const profilePopover = this.getProfilePopoverLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(profilePopover, {
+        assertionMessage: `Profile popover should be visible for user "${userName}"`,
+      });
+    });
+  }
+
+  async hoverOnProfileIconInReply(replyText: string, userName: string): Promise<void> {
+    await test.step(`Hover on profile icon in reply: ${replyText} for user: ${userName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.replyLocator(replyText), {
+        assertionMessage: `Reply "${replyText}" should be visible`,
+      });
+      const profileIcon = this.getProfileIconLocatorForReply(replyText, userName);
+      await this.verifier.verifyTheElementIsVisible(profileIcon, {
+        assertionMessage: `Profile icon should be visible for reply "${replyText}"`,
+      });
+      await this.clickOnElement(profileIcon);
+      const profilePopover = this.getProfilePopoverLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(profilePopover, {
+        assertionMessage: `Profile popover should be visible for user "${userName}"`,
+      });
+    });
+  }
+
+  async verifyFollowButtonVisible(userName: string): Promise<void> {
+    await test.step(`Verify Follow button is visible for user: ${userName}`, async () => {
+      const followButton = this.getFollowButtonLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(followButton, {
+        assertionMessage: `Follow button should be visible for user "${userName}"`,
+      });
+    });
+  }
+
+  async verifyFollowingButtonVisible(userName: string): Promise<void> {
+    await test.step(`Verify Following button is visible for user: ${userName}`, async () => {
+      const followingButton = this.getFollowingButtonLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(followingButton, {
+        assertionMessage: `Following button should be visible for user "${userName}"`,
+      });
+    });
+  }
+
+  async clickFollowButton(userName: string): Promise<void> {
+    await test.step(`Click Follow button for user: ${userName}`, async () => {
+      const followButton = this.getFollowButtonLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(followButton, {
+        assertionMessage: `Follow button should be visible for user "${userName}"`,
+      });
+      await this.clickOnElement(followButton);
+    });
+  }
+
+  async clickFollowingButton(userName: string): Promise<void> {
+    await test.step(`Click Following button for user: ${userName}`, async () => {
+      const followingButton = this.getFollowingButtonLocator(userName);
+      await this.verifier.verifyTheElementIsVisible(followingButton, {
+        assertionMessage: `Following button should be visible for user "${userName}"`,
+      });
+      await this.clickOnElement(followingButton);
+    });
+  }
+
+  async clickOnSideToRemoveProfilePopover(): Promise<void> {
+    await test.step(`Click on side to remove profile popover`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.randomClickOnPage, {
+        assertionMessage: `Side to remove profile popover should be visible`,
+      });
+      await this.clickOnElement(this.randomClickOnPage);
+    });
+  }
+
+  async verifyUserNameVisible(userName: string): Promise<void> {
+    await test.step(`Verify user name and photo are visible for: ${userName}`, async () => {
+      // Verify user name is visible in the hover tooltip/popover
+      const userNameLocator = this.page.getByTestId('profilePopover').getByRole('link', { name: userName });
+      await this.verifier.verifyTheElementIsVisible(userNameLocator, {
+        assertionMessage: `User name "${userName}" should be visible on hover`,
+      });
     });
   }
 }
