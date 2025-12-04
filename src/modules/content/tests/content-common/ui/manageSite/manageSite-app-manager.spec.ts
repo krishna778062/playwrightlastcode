@@ -8,8 +8,8 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
   BulkActionOptions,
-  ContentSortBy,
   CONTENT_VALIDATION_PERIOD_TIME,
+  ContentSortBy,
   ContentStatus,
   ManageContentOptions,
   ManageContentTags,
@@ -1187,7 +1187,8 @@ test.describe(
         // select default timezone
         await profileScreenPage.actions.selectTimezone('328');
         await profileScreenPage.actions.clickOnSaveTimezoneButton();
-
+      }
+    );
     test(
       'verify user able to apply validate action on selected content under Content tab in Manage Site',
       {
