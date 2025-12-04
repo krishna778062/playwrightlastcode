@@ -1,13 +1,16 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
+import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
+import { SiteDashboardPage, SiteFeedPage } from '@/src/modules/content/ui/pages/sitePages';
 
 test.describe(
   'feed Comments/Replies Visibility - Verify User can view 10 comments or replies on Feed detail page',
@@ -309,6 +312,155 @@ test.describe(
 
         // Verify User is able view the other Comments added to the Content (all 18 should be visible now)
         await contentPreviewPage.assertions.verifyCommentCount(18);
+      }
+    );
+
+    test(
+      'content Comments with Unpublish - Verify comments disappear after content unpublish',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-19566'],
+      },
+      async ({ appManagerFixture, standardUserFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can create comments on content item with file attachments, validate visibility in feeds, and verify comments disappear after unpublish',
+          zephyrTestId: 'CONT-19566',
+          storyId: 'CONT-19566',
+        });
+
+        let testSiteId: string = '';
+        let testContentId: string = '';
+        let testContentType: string = '';
+        let firstCommentText: string = '';
+        let secondCommentText: string = '';
+        const image1Path = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          'image1.jpg'
+        );
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+
+        testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        const contentListResponse =
+          await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
+            siteId: testSiteId,
+            sortBy: 'publishedNewest',
+            size: 1,
+            status: 'published',
+          });
+
+        if (contentListResponse.result.listOfItems.length === 0) {
+          throw new Error('No published content found in "All Employees" site.');
+        }
+
+        const latestContent = contentListResponse.result.listOfItems[0];
+        testContentId = latestContent.contentId || latestContent.id;
+        testContentType = latestContent.type.toLowerCase();
+
+        const contentPreviewPage = new ContentPreviewPage(
+          standardUserFixture.page,
+          testSiteId,
+          testContentId,
+          testContentType
+        );
+        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        await contentPreviewPage.verifyThePageIsLoaded();
+
+        await contentPreviewPage.actions.clickShareThoughtsButton();
+        const feedTestData1 = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: testSiteId,
+          contentId: testContentId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        firstCommentText = feedTestData1.text;
+
+        const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+        await createFeedPostComponent.actions.createAndPost({
+          text: firstCommentText,
+          attachments: {
+            files: [image1Path],
+          },
+        });
+
+        // Verify first comment on Home Feed, then Site Feed, then click All Comments from Site Feed
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const homeFeedPage = new FeedPage(standardUserFixture.page);
+        await homeFeedPage.verifyThePageIsLoaded();
+        await homeFeedPage.assertions.waitForPostToBeVisible(firstCommentText);
+
+        const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+        await siteFeedPage.loadPage({ stepInfo: 'Load site feed page' });
+        await siteFeedPage.verifyThePageIsLoaded();
+        const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+        await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(firstCommentText);
+
+        // Click "All Comments" from site dashboard to open content detail page
+        await contentPreviewPage.actions.clickAllCommentsLink();
+        await contentPreviewPage.verifyThePageIsLoaded();
+
+        // Post 2nd comment with attachment on content detail page, then verify on home and site
+        await contentPreviewPage.actions.clickShareThoughtsButton();
+        const feedTestData2 = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: testSiteId,
+          contentId: testContentId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        secondCommentText = feedTestData2.text;
+
+        await createFeedPostComponent.actions.createAndPost({
+          text: secondCommentText,
+          attachments: {
+            files: [image1Path],
+          },
+        });
+
+        // Verify second comment on Home Feed
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.verifyThePageIsLoaded();
+        await homeFeedPage.assertions.waitForPostToBeVisible(secondCommentText);
+
+        // Verify second comment on Site Feed
+        await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed' });
+        await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(secondCommentText);
+
+        // As app manager, unpublish the content
+        const adminContentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          testSiteId,
+          testContentId,
+          testContentType
+        );
+        await adminContentPreviewPage.loadPage({ stepInfo: 'Admin: Load content preview page' });
+        await adminContentPreviewPage.verifyThePageIsLoaded();
+        await adminContentPreviewPage.actions.unpublishingTheContent();
+        await adminContentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
+        );
+
+        // Verify content and comments are not visible on home and site
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.verifyThePageIsLoaded();
+        await homeFeedPage.assertions.verifyPostIsNotVisible(firstCommentText);
+        await homeFeedPage.assertions.verifyPostIsNotVisible(secondCommentText);
+
+        await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed after unpublish' });
+        await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(firstCommentText);
+        await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(secondCommentText);
       }
     );
   }

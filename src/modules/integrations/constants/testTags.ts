@@ -36,6 +36,7 @@ export enum IntegrationsSuiteTags {
   TAG = '@tagComponent',
   LINK = '@linkComponent',
   SERVICENOW_APPTILES = '@serviceNowAppTiles',
+  CUSTOM_APPS = '@customApps',
 }
 
 export enum IntegrationsFeatureTags {

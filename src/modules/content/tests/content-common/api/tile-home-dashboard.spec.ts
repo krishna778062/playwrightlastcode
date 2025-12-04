@@ -6,7 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { HomeDashboardApiHelper } from '@/src/modules/content/apis/apiValidation/homeDashboardApiHelper';
+import { TileApiHelper } from '@/src/modules/content/apis/apiValidation/tileApiHelper';
 import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 
 test.describe(
@@ -15,11 +15,11 @@ test.describe(
     tag: [ContentTestSuite.API],
   },
   () => {
-    let homeDashboardApiHelper: HomeDashboardApiHelper;
+    let tileApiHelper: TileApiHelper;
     let createdTileIds: string[] = [];
 
     test.beforeEach(async () => {
-      homeDashboardApiHelper = new HomeDashboardApiHelper();
+      tileApiHelper = new TileApiHelper();
     });
 
     test.afterEach(async ({ appManagerApiFixture }) => {
@@ -60,9 +60,9 @@ test.describe(
         const governanceResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
           isHomeAppManagerControlled: true,
         });
-        await homeDashboardApiHelper.validateAppGovernanceResponse(governanceResponse);
+        await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
-        await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+        await tileApiHelper.validateHomeGovernanceControlledWithRetry(
           () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
           2,
           2000,
@@ -72,9 +72,9 @@ test.describe(
         const governanceEndUserResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
           isHomeAppManagerControlled: false,
         });
-        await homeDashboardApiHelper.validateAppGovernanceResponse(governanceEndUserResponse);
+        await tileApiHelper.validateAppGovernanceResponse(governanceEndUserResponse);
 
-        await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+        await tileApiHelper.validateHomeGovernanceControlledWithRetry(
           () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
           2,
           2000,
@@ -132,14 +132,14 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
 
         const tileId = tileResponse.result.id;
         createdTileIds.push(tileId);
 
         try {
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+          await tileApiHelper.validateTileMetadata(tilesList, tileId, {
             title: tilePayload.tile.title,
             type: 'files',
             variant: 'intranet',
@@ -148,11 +148,11 @@ test.describe(
           const deleteResponse =
             await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
           const deleteBody = await deleteResponse.json();
-          await homeDashboardApiHelper.validateTileDeletion(deleteBody);
+          await tileApiHelper.validateTileDeletion(deleteBody);
           removeTileFromCleanup(tileId);
 
           const updatedList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileNotVisible(updatedList, tileId);
+          await tileApiHelper.validateTileNotVisible(updatedList, tileId);
         } finally {
           // Leave tile id in cleanup list only when deletion fails
         }
@@ -195,14 +195,14 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
 
         const tileId = tileResponse.result.id;
         createdTileIds.push(tileId);
 
         try {
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+          await tileApiHelper.validateTileMetadata(tilesList, tileId, {
             title: tilePayload.tile.title,
             type: 'sites',
             variant: 'custom',
@@ -214,11 +214,11 @@ test.describe(
           const deleteResponse =
             await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
           const deleteBody = await deleteResponse.json();
-          await homeDashboardApiHelper.validateTileDeletion(deleteBody);
+          await tileApiHelper.validateTileDeletion(deleteBody);
           removeTileFromCleanup(tileId);
 
           const updatedList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileNotVisible(updatedList, tileId);
+          await tileApiHelper.validateTileNotVisible(updatedList, tileId);
         } finally {
           // If deletion fails, tile will be removed during afterEach cleanup
         }
@@ -254,13 +254,13 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
 
         const tileId = tileResponse.result.id;
         createdTileIds.push(tileId);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileId, {
           title: tilePayload.tile.title,
           type: 'site_categories',
           variant: 'default',
@@ -303,24 +303,20 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
 
         const tileId = tileResponse.result.id;
         createdTileIds.push(tileId);
 
-        try {
-          const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileMetadata(tilesList, tileId, {
-            title: tilePayload.tile.title,
-            type: 'people',
-            variant: 'custom',
-            options: {
-              layout: 'list',
-            },
-          });
-        } finally {
-          // Tile will be removed during afterEach cleanup
-        }
+        const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
+        await tileApiHelper.validateTileMetadata(tilesList, tileId, {
+          title: tilePayload.tile.title,
+          type: 'people',
+          variant: 'custom',
+          options: {
+            layout: 'list',
+          },
+        });
       }
     );
 
@@ -348,11 +344,11 @@ test.describe(
           const governanceResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
             isHomeAppManagerControlled: true,
           });
-          await homeDashboardApiHelper.validateAppGovernanceResponse(governanceResponse);
+          await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
           // Verify the setting
           const config = await appManagerApiFixture.feedManagementHelper.getAppConfig();
-          await homeDashboardApiHelper.validateHomeAppManagerControlled(config);
+          await tileApiHelper.validateHomeAppManagerControlled(config);
         });
 
         // Step 2: Create a tile with app manager
@@ -364,7 +360,7 @@ test.describe(
           });
 
           const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-          await homeDashboardApiHelper.validateTileCreation(tileResponse);
+          await tileApiHelper.validateTileCreation(tileResponse);
           createdTileIds.push(tileResponse.result.id);
         });
 
@@ -372,7 +368,7 @@ test.describe(
         await test.step('Verify tile visibility', async () => {
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
           const tileId = createdTileIds[createdTileIds.length - 1];
-          await homeDashboardApiHelper.validateTileVisibility(tilesList, tileId);
+          await tileApiHelper.validateTileVisibility(tilesList, tileId);
         });
       }
     );
@@ -415,11 +411,11 @@ test.describe(
           const deleteResponse =
             await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
           const deleteResponseBody = await deleteResponse.json();
-          await homeDashboardApiHelper.validateTileDeletion(deleteResponseBody);
+          await tileApiHelper.validateTileDeletion(deleteResponseBody);
 
           // Verify tile is not visible
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileNotVisible(tilesList, tileId);
+          await tileApiHelper.validateTileNotVisible(tilesList, tileId);
         });
       }
     );
@@ -447,10 +443,10 @@ test.describe(
           const governanceResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
             isHomeAppManagerControlled: false,
           });
-          await homeDashboardApiHelper.validateAppGovernanceResponse(governanceResponse);
+          await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
           //retry to validate home is end user controlled
-          await homeDashboardApiHelper.validateHomeGovernanceControlledWithRetry(
+          await tileApiHelper.validateHomeGovernanceControlledWithRetry(
             () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
             2,
             2000,
@@ -467,7 +463,7 @@ test.describe(
           });
 
           const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-          await homeDashboardApiHelper.validateTileCreation(tileResponse);
+          await tileApiHelper.validateTileCreation(tileResponse);
           createdTileIds.push(tileResponse.result.id);
         });
 
@@ -475,7 +471,7 @@ test.describe(
         await test.step('Verify tile visibility', async () => {
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
           const tileId = createdTileIds[createdTileIds.length - 1];
-          await homeDashboardApiHelper.validateTileVisibility(tilesList, tileId);
+          await tileApiHelper.validateTileVisibility(tilesList, tileId);
         });
       }
     );
@@ -518,11 +514,11 @@ test.describe(
           const deleteResponse =
             await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(tileId);
           const deleteResponseBody = await deleteResponse.json();
-          await homeDashboardApiHelper.validateTileDeletion(deleteResponseBody);
+          await tileApiHelper.validateTileDeletion(deleteResponseBody);
 
           // Verify tile is not visible
           const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-          await homeDashboardApiHelper.validateTileNotVisible(tilesList, tileId);
+          await tileApiHelper.validateTileNotVisible(tilesList, tileId);
         });
       }
     );
@@ -557,12 +553,12 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         // Verify tile visibility
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
+        await tileApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
       }
     );
 
@@ -599,11 +595,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
+        await tileApiHelper.validateTileVisibility(tilesList, tileResponse.result.id);
       }
     );
 
@@ -639,11 +635,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'content',
           variant: 'latest_popular',
@@ -689,11 +685,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'content',
           variant: 'latest_popular',
@@ -739,11 +735,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'content',
           variant: 'latest_popular',
@@ -788,11 +784,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'html',
           variant: 'iframe',
@@ -839,11 +835,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'content',
           variant: 'custom',
@@ -890,11 +886,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'links',
           variant: 'custom',
@@ -932,11 +928,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'rss',
           variant: 'standard',
@@ -973,11 +969,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'twitter',
           variant: 'standard',
@@ -1017,11 +1013,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'facebook',
           variant: 'standard',
@@ -1064,11 +1060,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'countdown',
           variant: 'standard',
@@ -1117,11 +1113,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'content',
           variant: 'from_category',
@@ -1159,11 +1155,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'html',
           variant: 'text',
@@ -1223,11 +1219,11 @@ test.describe(
         });
 
         const tileResponse = await appManagerApiFixture.tileManagementHelper.createHomeDashboardTile(tilePayload);
-        await homeDashboardApiHelper.validateTileCreation(tileResponse);
+        await tileApiHelper.validateTileCreation(tileResponse);
         createdTileIds.push(tileResponse.result.id);
 
         const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
-        await homeDashboardApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
+        await tileApiHelper.validateTileMetadata(tilesList, tileResponse.result.id, {
           title: tilePayload.tile.title,
           type: 'media',
           variant: 'video',
