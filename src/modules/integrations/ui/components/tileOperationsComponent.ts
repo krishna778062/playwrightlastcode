@@ -101,6 +101,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly salesforceHasPages: Locator;
   readonly salesforceHasEvents: Locator;
   readonly salesforceViewCompleteReportLink: Locator;
+  readonly serviceNowTicketPattern: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -140,7 +141,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
     this.reportIdPattern = /^R[A-Za-z0-9]+$/;
     this.amountPattern = /^\$\d+\.\d{2}$/;
-    this.lastUpdatedPattern = /Last updated \d+ (days?|hours?) ago/;
+    this.lastUpdatedPattern = /Last updated \d+ (days?|hours?|minutes?) ago/;
     this.duePattern = /Due/;
     this.ukgProPaystubLinks = page.getByRole('link', { name: /ultipro\.com/ });
     this.ukgProReceivedDateParagraph = page.getByText(/Received on/);
@@ -195,6 +196,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.salesforceHasPages = page.getByText('Has Pages');
     this.salesforceHasEvents = page.getByText('Has Events');
     this.salesforceViewCompleteReportLink = page.getByRole('link', { name: /View complete report/ });
+    this.serviceNowTicketPattern = /^INC\d+$/;
 
     // Workday: patterns for lessons count and registered date line
     this.lessonsPattern = /^\d+\s+Lessons?$/;
@@ -680,7 +682,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     });
   }
   /**
-   * Verify DocuSign tile content structure
+   * Verify Docebo tile content structure
    * @param tileTitle - The title of the tile to verify
    */
   async verifyDoceboTileContentStructure(tileTitle: string): Promise<void> {
@@ -1130,7 +1132,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       // Verify added Tile data
       const containers = tile.locator(this.container);
       const count = await containers.count();
-      expect(count, 'At least one container should be present in Greenhouse tile').toBeGreaterThan(0);
+      expect(count, 'At least one container should be present in Salesforce tile').toBeGreaterThan(0);
       // Verify required elements
       await expect(tile.getByText('Simpplr Site Name').first()).toBeVisible();
       await expect(tile.getByText('Site Type').first()).toBeVisible();
@@ -1160,6 +1162,25 @@ export class TileOperationsComponent extends BaseAppTileComponent {
         await this.page.waitForURL(urlRegex);
         await this.page.goBack();
       }
+    });
+  }
+  /**
+   * Verify Service Now tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Service Now tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Service Now tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Service Now tile').toBeGreaterThan(0);
+
+      // Verify last updated text is visible
+      await expect(tile.getByText(this.lastUpdatedPattern).first()).toBeVisible();
+      // Verify ticket ID pattern (e.g., #INC12345)
+      await expect(tile.getByText(this.serviceNowTicketPattern).first()).toBeVisible();
     });
   }
 }
