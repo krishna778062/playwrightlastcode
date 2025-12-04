@@ -379,17 +379,17 @@ export class ContentManagementHelper {
     this.content.push({ siteId, contentId: pageResult.pageId });
     return { ...createdContent };
   }
-  /**
-   * Creates a page as draft (not published)
-   * @param params - Page creation parameters
-   * @returns Created draft page information
-   */
+
   async createDraftPage(params: {
     siteId: string;
     contentInfo: { contentType: string; contentSubType: string };
     options?: {
       pageName?: string;
       contentDescription?: string;
+      waitForSearchIndex?: boolean;
+      publishAt?: string;
+      publishTo?: string;
+      listOfTopics?: string[];
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -397,6 +397,19 @@ export class ContentManagementHelper {
     const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
     const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
     const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
 
     const pageResult = await this.contentManagementService.saveDraftPageContent(siteId, {
       title: finalPageName,
@@ -408,7 +421,18 @@ export class ContentManagementHelper {
       },
       contentType: contentInfo.contentType,
       contentSubType: contentInfo.contentSubType,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+      ...(options.publishAt && { publishAt: options.publishAt }),
+      ...(options.publishTo && { publishTo: options.publishTo }),
     });
+
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalPageName,
+        objectType: 'content',
+      });
+    }
 
     const createdContent = {
       siteId,
@@ -416,6 +440,9 @@ export class ContentManagementHelper {
       pageName: finalPageName,
       authorName: pageResult.authorName,
       contentDescription: finalContentDescription,
+      publishAt: pageResult.publishAt,
+      publishTo: pageResult.publishTo,
+      isScheduled: pageResult.isScheduled,
     };
     this.content.push({ siteId, contentId: pageResult.pageId });
     return { ...createdContent };
@@ -502,6 +529,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located
