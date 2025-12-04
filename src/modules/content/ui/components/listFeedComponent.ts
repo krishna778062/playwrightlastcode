@@ -44,6 +44,13 @@ export class ListFeedComponent extends BaseComponent {
   readonly shareSocialCampaignButton = (description: string) =>
     this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
   readonly sharePostButton: Locator;
+  // Smart feed block locators
+  readonly topPicksBlock: Locator;
+  readonly upcomingEventsBlock: Locator;
+  readonly recentlyPublishedBlock: Locator;
+  readonly celebrationBlock: Locator;
+  readonly popularContentBlock: Locator;
+  readonly commentIcon: Locator;
 
   readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
   readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
@@ -241,6 +248,14 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+
+    // Smart feed block locators
+    this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
+    this.upcomingEventsBlock = this.page.locator('header').filter({ hasText: 'Upcoming event' });
+    this.recentlyPublishedBlock = this.page.locator('header').filter({ hasText: 'Recently published' });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
+    this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
     this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
     this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
@@ -1629,6 +1644,49 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: 'View post link should be visible in post detail page',
       });
       await this.clickOnElement(viewPostLink);
+    });
+  }
+
+  /**
+   * Verifies that a specific smart feed block is visible
+   * @param blockName - The name of the smart feed block to verify (use SmartFeedBlock enum)
+   */
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await test.step(`Verify smart feed block "${blockName}" is visible`, async () => {
+      let blockLocator: Locator;
+      switch (blockName.toLowerCase()) {
+        case 'top picks':
+          blockLocator = this.topPicksBlock;
+          break;
+        case 'upcoming events':
+          blockLocator = this.upcomingEventsBlock;
+          break;
+        case 'recently published':
+          blockLocator = this.recentlyPublishedBlock;
+          break;
+        case 'celebration':
+          blockLocator = this.celebrationBlock;
+          break;
+        case 'popular content':
+          blockLocator = this.popularContentBlock;
+          break;
+        default:
+          throw new Error(`Unknown smart feed block: ${blockName}`);
+      }
+      await this.verifier.verifyTheElementIsVisible(blockLocator, {
+        assertionMessage: `Smart feed block "${blockName}" should be visible`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the comment icon is not visible (for timeline mode)
+   */
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await test.step('Verify comment icon is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.commentIcon, {
+        assertionMessage: 'Comment icon should not be visible in timeline mode',
+      });
     });
   }
 

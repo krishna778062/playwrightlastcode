@@ -17,6 +17,7 @@ import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { SmartFeedBlock } from '@/src/modules/content/constants/smartFeedBlocks';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
@@ -62,6 +63,11 @@ test.describe(
     let feedPostText: string = '';
     let feedReplyText: string = '';
     let commentReplyText: string = '';
+    // Variables for smart feed blocks setup
+    let setupEventId: string = '';
+    let setupEventSiteId: string = '';
+    let setupPageId: string = '';
+    let setupPageSiteId: string = '';
 
     test.beforeEach('Setting up the environment', async ({ appManagerFixture }) => {
       placeholder = false;
@@ -145,6 +151,28 @@ test.describe(
         }
         createdContentId = '';
         createdContentSiteId = '';
+      }
+
+      // Cleanup setup event for smart feed blocks
+      if (setupEventId && setupEventSiteId) {
+        try {
+          await appManagerFixture.contentManagementHelper.deleteContent(setupEventSiteId, setupEventId);
+        } catch (error) {
+          console.log('Failed to cleanup setup event:', error);
+        }
+        setupEventId = '';
+        setupEventSiteId = '';
+      }
+
+      // Cleanup setup page for smart feed blocks
+      if (setupPageId && setupPageSiteId) {
+        try {
+          await appManagerFixture.contentManagementHelper.deleteContent(setupPageSiteId, setupPageId);
+        } catch (error) {
+          console.log('Failed to cleanup setup page:', error);
+        }
+        setupPageId = '';
+        setupPageSiteId = '';
       }
 
       siteId = '';
@@ -746,6 +774,102 @@ test.describe(
 
         // Verify "Add Reaction" button is visible for the comment reply
         await contentPreviewPage.assertions.verifyReactionButtonIsVisibleForReply();
+      }
+    );
+
+    test(
+      'verify Timeline Option Governance Setting on Home, Site, and Content Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19576'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Timeline Option Governance Setting on Home, Site, and Content Feed',
+          zephyrTestId: 'CONT-19576',
+          storyId: 'CONT-19576',
+        });
+
+        // Setup: Create event and page content so smart feed blocks are visible
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+          waitForSearchIndex: false,
+        });
+        const setupSiteId = siteInfo.siteId;
+
+        // Create an event for "Upcoming events" block
+        const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
+          siteId: setupSiteId,
+          contentInfo: {
+            contentType: 'event',
+          },
+          options: {
+            waitForSearchIndex: false,
+          },
+        });
+        setupEventId = eventInfo.contentId;
+        setupEventSiteId = setupSiteId;
+
+        // Create a page for "Recently published" and "Top picks" blocks
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: setupSiteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'knowledge',
+          },
+          options: {
+            waitForSearchIndex: false,
+          },
+        });
+        setupPageId = pageInfo.contentId;
+        setupPageSiteId = setupSiteId;
+
+        //  Set Timeline option under "Timeline & feed" section
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+
+        // Verify Home-Global Feed
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+
+        // Verify "Share your thoughts or question" is not displayed
+        await feedPage.assertions.verifyFeedSectionIsNotVisible();
+
+        // Verify Content Comment icon is not visible on Timeline
+        await feedPage.assertions.verifyCommentIconIsNotVisible();
+
+        // Verify smart feed blocks are displayed
+        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.TOP_PICKS);
+        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
+        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
+
+        // Use the siteId from setup
+        const targetSiteId = setupSiteId;
+
+        // Click on "feed" link
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, targetSiteId);
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+
+        // Verify "Share your thoughts or question" is not displayed
+        await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+
+        // Verify smart feed blocks are displayed
+        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.POPULAR_CONTENT);
+        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
+        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
+
+        // Get first available content and navigate to content detail page
+        const contentInfo = await appManagerFixture.contentManagementHelper.getContentId();
+        contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          contentInfo.siteId,
+          contentInfo.contentId,
+          contentInfo.contentType
+        );
+        await contentPreviewPage.loadPage();
+
+        // Verify comment icon on the detail page is not visible
+        await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
       }
     );
   }

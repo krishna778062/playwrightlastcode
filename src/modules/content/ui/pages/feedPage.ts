@@ -235,6 +235,8 @@ export interface IFeedAssertions {
   verifyShareModalIsVisible(): Promise<void>;
   verifyShareModalIsClosed: () => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
   hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
   verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
@@ -780,6 +782,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
       assertionMessage: 'Smart feed blocks should not be visible',
     });
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
 
   async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
