@@ -1,4 +1,6 @@
-import test, { Locator, Page } from '@playwright/test';
+import test, { expect, Locator, Page } from '@playwright/test';
+
+import { DEFAULT_LOCATIONS } from '@modules/comms-planner/constants/constant';
 
 import { PAGE_ENDPOINTS } from '@/src/core';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -18,6 +20,24 @@ export class CustomFieldsPage extends BasePage {
   readonly customFieldListFieldTypeFilter: Locator;
 
   /**
+   * Customization page - Table
+   */
+  readonly customFieldTableStatus: (customFieldRowIndex: number) => Locator;
+  readonly customFieldTableRow: (customFieldName: string) => Locator;
+  readonly customFieldTableAction: (customFieldRowIndex: number) => Locator;
+  readonly customFieldTableActionMenu: (id: string) => Locator;
+  readonly customFieldTableStatusToggle: (customFieldRowIndex: number) => Locator;
+  readonly customFieldDeleteConfirmationTooltip: Locator;
+  readonly customFieldStatusToggleConfirmationTooltip: Locator;
+
+  /**
+   * Customization page - Custom field deletion confirmation tooltip
+   */
+  readonly customFieldDeleteConfirmationModalTitle: Locator;
+  readonly customFieldDeleteConfirmationModalDescription: Locator;
+  readonly customFieldDeleteConfirmationModalDeleteButton: Locator;
+
+  /**
    * Custom field modal
    */
   readonly customFieldModalTitle: Locator;
@@ -27,6 +47,7 @@ export class CustomFieldsPage extends BasePage {
 
   readonly customFieldNameInput: Locator;
   readonly customFieldType: Locator;
+  readonly customFieldLocation: Locator;
   readonly customFieldTypeOptions: Locator;
 
   /**
@@ -69,6 +90,11 @@ export class CustomFieldsPage extends BasePage {
    */
   readonly customFieldModalDateHelper: Locator;
 
+  /**
+   * Custom field modal - People
+   */
+  readonly customFieldModalPeopleHelper: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.COMMS_PLANNER_CUSTOMIZATION);
 
@@ -85,6 +111,37 @@ export class CustomFieldsPage extends BasePage {
     this.customFieldListFieldTypeFilter = this.page.getByRole('button', { name: 'Field type' });
 
     /**
+     * Customization page - Table
+     */
+    this.customFieldTableRow = (customFieldName: string) =>
+      this.page
+        .locator('div[data-testid^="custom-field-table-row-"][data-testid$="-cell-fieldName"]')
+        .filter({ hasText: customFieldName });
+
+    this.customFieldTableStatus = (customFieldRowIndex: number) =>
+      this.page.getByTestId(`custom-field-table-row-${customFieldRowIndex}-cell-isEnable`);
+    this.customFieldTableAction = (customFieldRowIndex: number) =>
+      this.page.locator(`div[data-testid="custom-field-table-row-${customFieldRowIndex}-cell-actions"] button`);
+    this.customFieldTableActionMenu = (buttonId: string) =>
+      this.page.locator(`div[role="menu"][aria-labelledby="${buttonId}"]`);
+    this.customFieldTableStatusToggle = (customFieldRowIndex: number) =>
+      this.page.getByTestId(`custom-field-table-row-${customFieldRowIndex}-cell-isEnable`);
+
+    this.customFieldDeleteConfirmationTooltip = this.page.getByText('Custom field definition deleted successfully');
+    this.customFieldStatusToggleConfirmationTooltip = this.page.getByText(
+      'Custom field status has been updated successfully'
+    );
+
+    /**
+     * Customization page - Custom field deletion confirmation tooltip
+     */
+    this.customFieldDeleteConfirmationModalTitle = this.page.getByText('Delete custom field?');
+    this.customFieldDeleteConfirmationModalDescription = this.page.getByText(
+      'This custom field will be removed from all new campaigns and activities, but it will remain visible in existing records where it has already been used.'
+    );
+    this.customFieldDeleteConfirmationModalDeleteButton = this.page.getByRole('button', { name: 'Delete' });
+
+    /**
      * Custom field modal
      */
     this.customFieldModalTitle = this.page.getByRole('heading', { name: 'Create a custom field' });
@@ -96,6 +153,7 @@ export class CustomFieldsPage extends BasePage {
 
     this.customFieldNameInput = this.page.locator('input[name="fieldName"]');
     this.customFieldType = this.page.getByRole('button', { name: 'Select type' });
+    this.customFieldLocation = this.page.getByRole('button', { name: 'Add Field To Location' });
     this.customFieldTypeOptions = this.page.getByRole('menu');
 
     /**
@@ -132,6 +190,11 @@ export class CustomFieldsPage extends BasePage {
      * Custom field - Date
      */
     this.customFieldModalDateHelper = this.page.getByText('Pick a date for launches, deadlines, or milestones.');
+
+    /**
+     * Custom field - People
+     */
+    this.customFieldModalPeopleHelper = this.page.getByText('Assign owners, contributors, or key contacts.');
 
     /**
      * Custom field - Dropdown
@@ -180,13 +243,35 @@ export class CustomFieldsPage extends BasePage {
     });
   }
 
+  async selectCustomFieldLocation(locations: string[] = DEFAULT_LOCATIONS): Promise<void> {
+    await test.step('Select custom field locations', async () => {
+      await this.clickOnElement(this.customFieldLocation, {
+        stepInfo: 'Select custom field locations',
+      });
+
+      for (const location of locations) {
+        await this.page.getByRole('checkbox', { name: location, exact: true }).click();
+      }
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
   async filterCustomFieldListingByFieldType(type: string): Promise<void> {
     await test.step('Filter custom field listing by field type', async () => {
       await this.clickOnElement(this.customFieldListFieldTypeFilter, {
         stepInfo: 'Select custom field type to filter custom field listing',
       });
 
-      await this.page.getByRole('option', { name: type }).click();
+      let name: string = type;
+
+      switch (type) {
+        case 'Label':
+          name = 'Labels';
+      }
+
+      await this.page.getByRole('checkbox', { name, exact: true }).click();
+      await this.page.mouse.click(0, 0);
     });
   }
 
@@ -282,6 +367,17 @@ export class CustomFieldsPage extends BasePage {
     });
   }
 
+  async selectCustomFieldTypePeople(): Promise<void> {
+    await test.step('Select custom field type: People', async () => {
+      await this.selectCustomFieldType(`People`);
+
+      await this.verifier.verifyTheElementIsVisible(this.customFieldModalPeopleHelper, {
+        assertionMessage: `Custom field type 'People' helper text should be visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
   async clickCreateCustomFieldModalButton(): Promise<void> {
     await test.step('Click on "Create" custom field button', async () => {
       await this.clickOnElement(this.customFieldModalButtonCreate, {
@@ -294,6 +390,95 @@ export class CustomFieldsPage extends BasePage {
     await test.step('Click on "Add" custom field button', async () => {
       await this.clickOnElement(this.addCustomFieldButton, {
         stepInfo: 'Click "Add" custom field button to create custom fields',
+      });
+    });
+  }
+
+  async verifyCreatedCustomField(name: string): Promise<void> {
+    await test.step('Verify | Newly created custom field', async () => {
+      const { customFieldTableRows } = await this.findCustomFieldInTable(name);
+
+      await this.verifier.verifyTheElementIsVisible(customFieldTableRows, {
+        assertionMessage: 'Newly created custom field should be visible in the table',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async toggleAndVerifyCreatedCustomFieldStatus(name: string, enable: boolean): Promise<void> {
+    await test.step('Verify | Toggle created custom field status', async () => {
+      const { index } = await this.findCustomFieldInTable(name);
+
+      await this.customFieldTableStatusToggle(index).getByRole('switch').click();
+      await this.verifier.verifyTheElementIsVisible(this.customFieldStatusToggleConfirmationTooltip, {
+        assertionMessage: 'After custom field status change confirmation tooltip should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await expect(this.customFieldTableStatus(index)).toContainText(enable ? 'Active' : 'Inactive');
+    });
+  }
+
+  async findCustomFieldInTable(name: string) {
+    const customFieldTableRows = this.customFieldTableRow(name);
+
+    const count = await customFieldTableRows.count();
+    let matchedIndex = -1;
+
+    for (let rowIndex = 0; rowIndex < count; rowIndex++) {
+      const text = await customFieldTableRows.nth(rowIndex).innerText();
+      if (text === name) {
+        matchedIndex = rowIndex;
+        break;
+      }
+    }
+
+    return {
+      customFieldTableRows,
+      index: matchedIndex,
+    };
+  }
+
+  async clickCustomFieldTableAction(action: string, name: string): Promise<void> {
+    await test.step('Verify | Newly created custom field', async () => {
+      const { index } = await this.findCustomFieldInTable(name);
+
+      const actionButton = this.customFieldTableAction(index);
+      await this.page.waitForTimeout(1000);
+      await actionButton.click();
+
+      const actionButtonIdAttribute = await actionButton.getAttribute('id');
+      const customFieldActionMenu = this.customFieldTableActionMenu(actionButtonIdAttribute || '');
+      await this.verifier.verifyTheElementIsVisible(customFieldActionMenu, {
+        assertionMessage: 'Menu should be shown when custom field action button is clicked',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const customFieldActionMenuEditItem = customFieldActionMenu.getByRole('menuitem', { name: action });
+      await customFieldActionMenuEditItem.click();
+    });
+  }
+
+  async verifyDeleteConfirmationModal(): Promise<void> {
+    await test.step('Verify | Delete confirmation modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customFieldDeleteConfirmationModalTitle, {
+        assertionMessage: 'Delete confirmation modal title should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyTheElementIsVisible(this.customFieldDeleteConfirmationModalDescription, {
+        assertionMessage: 'Delete confirmation modal description should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async clickDeleteConfirmationModalPrimaryButton(): Promise<void> {
+    await test.step('Verify | Click on "Delete" button on delete confirmation modal', async () => {
+      await this.customFieldDeleteConfirmationModalDeleteButton.click();
+
+      await this.verifier.verifyTheElementIsVisible(this.customFieldDeleteConfirmationTooltip, {
+        assertionMessage: 'After custom field deletion confirmation tooltip should be visible',
+        timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
