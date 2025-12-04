@@ -122,6 +122,7 @@ export const REDIRECT_URLS = {
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
+  SERVICENOW: 'https://ven05143.service-now.com/',
 } as const;
 
 /**
@@ -227,4 +228,5 @@ export const WORKDAY_CREDS = {
 export const SERVICENOW_VALUES = {
   TIME_PERIOD: 'Time Period',
   DAYS_30: '30 days',
+  INCIDENT_VIEW_VALUE: 'Self Service',
 } as const;

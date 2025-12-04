@@ -11,6 +11,7 @@ export class PageTileSectionComponent extends BaseComponent {
   readonly removeTileConfirmationDialog: Locator;
   readonly removeTileConfirmationButton: Locator;
   readonly getThreeDotsButtonForTile: (tileTitle: string) => Locator;
+  readonly getTileHeadingLocator: (tileName: string) => Locator;
   constructor(readonly page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -21,10 +22,12 @@ export class PageTileSectionComponent extends BaseComponent {
       this.page.locator(`div[class*="Tile-optionsContainer"]`).first();
     this.removeTileConfirmationDialog = page.getByRole('dialog', { name: 'Remove tile' });
     this.removeTileConfirmationButton = this.removeTileConfirmationDialog.getByRole('button', { name: 'Remove' });
+    this.getTileHeadingLocator = (tileName: string) =>
+      this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first();
   }
 
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.page.locator('header').filter({ hasText: tileName }), {
+    await this.verifier.verifyTheElementIsVisible(this.getTileHeadingLocator(tileName), {
       assertionMessage: `Page tile section with title ${tileName} should be visible`,
     });
   }
