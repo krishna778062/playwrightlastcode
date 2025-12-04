@@ -186,7 +186,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   async verifyingMemberIconIsNotVisibleForSite(siteName: string, tileName: string): Promise<void> {
     await this.pageTileSectionComponent.verifyingMemberIconIsNotVisibleForSite(siteName, tileName);
   }
-  
+
   async clickingOnOnboardingTab(): Promise<void> {
     await test.step('Click on Onboarding tab', async () => {
       await this.clickOnElement(this.onboardingComponent.onboardingTab);
