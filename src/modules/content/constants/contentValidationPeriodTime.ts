@@ -1,0 +1,3 @@
+export enum CONTENT_VALIDATION_PERIOD_TIME {
+  TWELVE_MONTHS = '12',
+}

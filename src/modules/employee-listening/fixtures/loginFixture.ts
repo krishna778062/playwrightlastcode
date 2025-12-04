@@ -63,7 +63,9 @@ async function createEmployeeListeningUiFixture(
   browser: any,
   _apiContext: APIRequestContext
 ): Promise<EmployeeListeningUiFixture> {
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    permissions: ['clipboard-read', 'clipboard-write'],
+  });
   const page = await context.newPage();
 
   await LoginHelper.loginWithPassword(page, {
@@ -180,7 +182,9 @@ export const employeeListeningTestFixtures = base.extend<
 
   standardUserUiFixture: [
     async ({ browser, standardUserApiContext: _standardUserApiContext }, use) => {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ['clipboard-read', 'clipboard-write'],
+      });
       const page = await context.newPage();
 
       await LoginHelper.loginWithPassword(page, users.standardUser);

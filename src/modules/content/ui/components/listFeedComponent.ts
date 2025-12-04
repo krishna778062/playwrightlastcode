@@ -1,6 +1,7 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
@@ -27,6 +28,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly viewPostLink: Locator;
   readonly submitReplyButton: Locator;
   readonly replyEditor: Locator;
+  readonly replyFileUploadInput: Locator;
+  readonly replyAttachedFiles: Locator;
   readonly reactionCountButton: Locator;
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
@@ -201,6 +204,8 @@ export class ListFeedComponent extends BaseComponent {
     this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.replyFileUploadInput = this.page.locator("input[type='file']");
+    this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
@@ -489,6 +494,68 @@ export class ListFeedComponent extends BaseComponent {
       // Click submit reply button
       await this.clickOnElement(this.submitReplyButton.first(), { stepInfo: 'Clicking on submit reply button' });
     });
+    return replyText;
+  }
+
+  /**
+   * Adds a reply to a post with file attachment
+   * @param replyText - The text content for the reply
+   * @param postId - The ID of the post to reply to
+   * @param filePath - The path to the file to upload
+   * @param mentionUserName - Optional user name to mention
+   * @returns Promise<string> - The reply text
+   */
+  async addReplyToPostWithFile(
+    replyText: string,
+    postId: string,
+    filePath: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with file attachment`, async () => {
+      // Click reply button
+      const replyApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+
+      await replyApiPromise;
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+
+      // Enter reply text
+      await this.fillInElement(this.replyEditor, replyText);
+
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      }
+
+      // Upload file
+      const uploadResponsePromise = this.page.waitForResponse(
+        response =>
+          response.request().url().includes('X-Amz-SignedHeaders=host') &&
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
+        { timeout: 35000 }
+      );
+
+      await this.replyFileUploadInput.setInputFiles([filePath]);
+      await this.page.waitForSelector("div[class='FileItem-name']", { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+      await expect(this.replyAttachedFiles).toHaveCount(1);
+
+      // Wait for upload to complete
+      await uploadResponsePromise;
+
+      // Submit reply
+      await this.clickOnReplyButton(postId);
+    });
+    console.log('replyText with file: ', replyText);
     return replyText;
   }
 
