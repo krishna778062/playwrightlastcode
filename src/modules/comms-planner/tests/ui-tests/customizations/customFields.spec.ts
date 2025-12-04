@@ -3,6 +3,7 @@ import { test } from '@modules/comms-planner/fixtures/loginFixture';
 import {
   createCustomField,
   deleteCustomField,
+  toggleCustomFieldStatusInListing,
   verifyCustomFieldInListing,
 } from '@modules/comms-planner/helpers/customField';
 import { CustomFieldsPage } from '@modules/comms-planner/pages/customizations/customFieldsPage';
@@ -47,6 +48,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
@@ -75,6 +77,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
@@ -103,6 +106,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
@@ -131,6 +135,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
@@ -159,6 +164,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
@@ -188,6 +194,7 @@ test.describe('customizations - Custom field', () => {
 
       await createCustomField(customFieldsPage, meta);
       await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
       await deleteCustomField(customFieldsPage, meta);
     }
   );
