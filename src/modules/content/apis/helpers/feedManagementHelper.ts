@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { FeedMode } from '@core/types/feedManagement.types';
+import { log } from '@core/utils/logger';
 
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
@@ -321,7 +322,7 @@ export class FeedManagementHelper {
     return await test.step('Configuring app governance settings', async () => {
       const response = await this.feedManagementService.configureAppGovernance(settings, feedMode);
       const responseBody = await response.json();
-      console.log('App governance configuration completed:', responseBody);
+      log.debug('App governance configuration completed', { response: responseBody });
       return responseBody;
     });
   }
@@ -381,81 +382,73 @@ export class FeedManagementHelper {
   /**
    * Enables Q&A feature by getting current app config and updating it with isQuestionAnswerEnabled: true
    * This preserves all other existing settings while ensuring Q&A is always enabled
-   * Retries up to 2 times if the feature is not enabled successfully
+   * Verifies Q&A is enabled with retry logic (retries twice if verification fails)
    * @returns Promise with the API response
    */
   async enableQuestionAnswer() {
     return await test.step('Enable Question & Answer feature', async () => {
-      const maxRetries = 2;
-      let lastError: Error | null = null;
+      const verificationDelay = 2000; // 2 seconds between verification attempts
 
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-          // Get current app configuration
-          const currentConfig = await this.feedManagementService.getAppConfig();
+      // Get current app configuration
+      const currentConfig = await this.feedManagementService.getAppConfig();
+      console.log('Current Q&A status:', currentConfig.result.isQuestionAnswerEnabled);
 
-          if (attempt === 0) {
-            console.log('Current Q&A status:', currentConfig.result.isQuestionAnswerEnabled);
-          } else {
-            console.log(`Retry attempt ${attempt} to enable Q&A feature`);
-          }
+      // Prepare update payload with all current values except isQuestionAnswerEnabled
+      const updatePayload = {
+        appName: currentConfig.result.appName,
+        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+        availableContentTypes: currentConfig.result.availableContentTypes,
+        addToCalendar: currentConfig.result.addToCalendar,
+        feedbackRecipients: currentConfig.result.feedbackRecipients,
+        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+        shareFeedback: currentConfig.result.shareFeedback,
+        socialCampaignsPolicyUrl: currentConfig.result.socialCampaignsPolicyUrl,
+        selectedLanguages: currentConfig.result.selectedLanguages.ids,
+        orgChartEnabled: currentConfig.result.orgChartEnabled,
+        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+        calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url,
+        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+        isQuestionAnswerEnabled: true, // Always set to true
+        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+      };
 
-          // Prepare update payload with all current values except isQuestionAnswerEnabled
-          const updatePayload = {
-            appName: currentConfig.result.appName,
-            automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
-            availableContentTypes: currentConfig.result.availableContentTypes,
-            addToCalendar: currentConfig.result.addToCalendar,
-            feedbackRecipients: currentConfig.result.feedbackRecipients,
-            enableSmsNotifications: currentConfig.result.enableSmsNotifications,
-            enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
-            shareFeedback: currentConfig.result.shareFeedback,
-            socialCampaignsPolicyUrl: currentConfig.result.socialCampaignsPolicyUrl,
-            selectedLanguages: currentConfig.result.selectedLanguages.ids,
-            orgChartEnabled: currentConfig.result.orgChartEnabled,
-            isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
-            isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
-            isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
-            isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
-            calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
-            calendarOffice365Url: currentConfig.result.calendarOffice365Url,
-            isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
-            isQuestionAnswerEnabled: true, // Always set to true
-            isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
-          };
+      // Update app configuration (called only once)
+      const response = await this.feedManagementService.updateAppConfig(updatePayload);
+      const responseBody = await response.json();
+      console.log('Q&A config update response:', JSON.stringify(responseBody, null, 2));
 
-          // Update app configuration
-          const response = await this.feedManagementService.updateAppConfig(updatePayload);
+      // Verify Q&A is enabled in config with retry logic (retry twice if false)
+      const verificationRetries = 2; // Retry twice = 3 total attempts (initial + 2 retries)
+      let isEnabled = false;
 
-          const responseBody = await response.json();
-          console.log('Q&A enabled successfully. Response:', JSON.stringify(responseBody, null, 2));
+      for (let verifyAttempt = 0; verifyAttempt <= verificationRetries; verifyAttempt++) {
+        await new Promise(resolve => setTimeout(resolve, verificationDelay));
+        const verifyConfig = await this.feedManagementService.getAppConfig();
+        log.debug('Q&A config verification', { verifyConfig: verifyConfig.result });
+        isEnabled = verifyConfig.result.isQuestionAnswerEnabled;
 
-          // Wait a bit to ensure Q&A is properly enabled
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          // Verify Q&A is enabled
-          const verifyConfig = await this.feedManagementService.getAppConfig();
-          if (!verifyConfig.result.isQuestionAnswerEnabled) {
-            throw new Error('Q&A feature was not enabled successfully');
-          }
-
-          // Success - return the response
-          return responseBody;
-        } catch (error) {
-          lastError = error as Error;
-          console.log(`Attempt ${attempt + 1} failed:`, lastError.message);
-
-          // If this is not the last attempt, wait before retrying
-          if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          }
+        if (isEnabled) {
+          console.log(`Q&A verified as enabled (attempt ${verifyAttempt + 1}/${verificationRetries + 1})`);
+          break; // Success, exit verification loop
+        } else if (verifyAttempt < verificationRetries) {
+          // Only log retry message if we have more attempts left
+          console.log(
+            `Q&A not yet enabled in config (verification attempt ${verifyAttempt + 1}/${verificationRetries + 1}), retrying...`
+          );
         }
       }
 
-      // If we get here, all attempts failed
-      throw new Error(
-        `Q&A feature was not enabled successfully after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
-      );
+      if (!isEnabled) {
+        throw new Error('Q&A feature was not enabled in config after verification retries');
+      }
+
+      // Success - return the response
+      return responseBody;
     });
   }
 
