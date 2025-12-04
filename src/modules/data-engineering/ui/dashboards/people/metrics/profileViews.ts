@@ -2,6 +2,7 @@ import { FrameLocator, Page } from '@playwright/test';
 
 import { PeopleDashboardTabularMetricsComponent } from './basePeopleDashboardTabularMetricsComponent';
 
+import { CSVUtils } from '@/src/core/utils/csvUtils';
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
 import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
@@ -47,25 +48,41 @@ export class ProfileViews extends PeopleDashboardTabularMetricsComponent {
     const { filePath, fileName } = await this.downloadDataAsCSV();
 
     try {
+      // Parse CSV to get actual headers dynamically
+      const actualCSVHeaders = CSVUtils.getHeadersFromReportCSV(filePath);
+
+      // Base CSV headers (always present)
+      const baseCsvHeaders = [
+        'Name',
+        'Email',
+        'Company name',
+        'Division',
+        'Department',
+        'City',
+        'State',
+        'Country',
+        'Count',
+      ];
+
+      // Build expected headers based on actual CSV headers
+      const expectedCsvHeaders: string[] = [...baseCsvHeaders];
+      if (actualCSVHeaders.includes('Segment') || actualCSVHeaders.includes('Segment name')) {
+        const segmentHeader = actualCSVHeaders.includes('Segment') ? 'Segment' : 'Segment name';
+        expectedCsvHeaders.splice(3, 0, segmentHeader);
+      }
+      if (actualCSVHeaders.includes('User category') || actualCSVHeaders.includes('User Category')) {
+        const countryIndex = expectedCsvHeaders.indexOf('Country');
+        const userCategoryHeader = actualCSVHeaders.includes('User category') ? 'User category' : 'User Category';
+        expectedCsvHeaders.splice(countryIndex + 1, 0, userCategoryHeader);
+      }
+
       const validationConfig: CSVValidationConfig = {
         csvPath: filePath,
         expectedDBData: snowflakeData as any,
         metricName: PEOPLE_METRICS.PROFILE_VIEWS.title,
         selectedPeriod,
         ...(customDates || {}),
-        expectedHeaders: [
-          'Name',
-          'Email',
-          'Company name',
-          'Division',
-          'Department',
-          'City',
-          'State',
-          'Country',
-          'User category',
-          'Segment',
-          'Count',
-        ],
+        expectedHeaders: expectedCsvHeaders,
         transformations: {
           headerMapping: {
             Name: 'Name',

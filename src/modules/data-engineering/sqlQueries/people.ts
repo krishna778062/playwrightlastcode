@@ -238,6 +238,7 @@ export const PeopleSql = {
     inner join simpplr_common_tenant.udl.vw_interaction i
       on i.receiver_user_code = u.code
     where u.tenant_code = '{tenantCode}'
+      and i.tenant_code = '{tenantCode}'
       and i.interaction_datetime between '{startDate}' and '{endDate}'
       and i.interaction_type_code in ('IT001')
       and i.interaction_entity_code = 'ET001'
