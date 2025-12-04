@@ -73,13 +73,14 @@ export interface IContentPreviewPageAssertions {
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyContentShareButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
   verifyContentIsNotAMustRead: () => Promise<void>;
+  verifyMustReadButtonIsNotVisible: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -512,10 +513,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   /**
    * Verifies that the share button is not visible on comments
    */
-  async verifyContentShareButtonIsNotVisible(): Promise<void> {
-    await test.step('Verify share button is not visible for Content Page', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
-        assertionMessage: 'Share button should not be visible on Content Page when timeline mode is enabled',
+  async verifyContentShareButtonIsVisible(): Promise<void> {
+    await test.step('Verify share button is visible for Content Page', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentSharePostButton, {
+        assertionMessage: 'Share button should be visible on Content Page when timeline mode is enabled',
         timeout: 10000,
       });
     });
@@ -564,6 +565,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async verifyContentIsNotAMustRead(): Promise<void> {
     await this.mustReadModalComponent.verifyContentIsNotAMustRead();
+  }
+
+  async verifyMustReadButtonIsNotVisible(): Promise<void> {
+    await this.optionMenuComponent.verifyMustReadButtonIsNotVisible();
   }
 
   async verifyCommentTimestampFormat(contentCommentText: string): Promise<void> {
