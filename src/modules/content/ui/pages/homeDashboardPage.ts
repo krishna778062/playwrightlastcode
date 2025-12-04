@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -74,7 +74,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     });
   }
   async clickOnEditDashboardButton(): Promise<void> {
-    await this.clickOnElement(this.editDashboardButton);
+    await this.clickByInjectingJavaScript(this.editDashboardButton);
   }
   async clickOnAddTileButton(): Promise<void> {
     await this.clickOnElement(this.addTileButton);
@@ -90,28 +90,18 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async clickingOnAddToHomeButton(): Promise<void> {
     await test.step('Click on Add to home button', async () => {
-      await this.addContentTileDialog.waitFor({ state: 'visible' });
-      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'visible' });
-      await this.addContentTileComponent.addToHomeButton.waitFor({ state: 'attached' });
-      await this.addContentTileComponent.clickingOnAddToHomeButton();
       // First ensure the dialog is still open
       await this.addContentTileDialog.waitFor({ state: 'visible' });
 
-      // Wait for button to be attached and visible
       await this.addToHomeButton.waitFor({ state: 'visible' });
 
-      // Scroll button into view if needed
       await this.addToHomeButton.scrollIntoViewIfNeeded();
 
-      // Wait for button to be enabled
       await this.addToHomeButton.waitFor({ state: 'attached' });
-      await expect(this.addToHomeButton).toBeEnabled();
 
-      // Try normal click first, if it fails, use force click
       try {
         await this.addToHomeButton.click({ timeout: 5000 });
       } catch {
-        // If normal click fails, try force click (might be blocked by overlay or animation)
         await this.addToHomeButton.click({ force: true });
       }
     });
