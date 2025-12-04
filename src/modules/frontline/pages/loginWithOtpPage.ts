@@ -1,6 +1,7 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
+import { LoginPage } from '@core/ui/pages/loginPage';
 
 import { LWO_MESSAGES } from '../constants/lwoConstants';
 
@@ -41,6 +42,15 @@ export class LoginWithOtpPage extends BasePage {
   readonly dontShowThisAgainModalCancelButton: Locator;
   readonly dontShowThisAgainModalConfirmButton: Locator;
   readonly dontShowThisAgainModalCloseButton: Locator;
+
+  // OTP flow specific locators (not in LoginPage)
+  readonly useOtpButton: Locator;
+  readonly letsGetStartedHeading: Locator;
+  readonly emailOption: Locator;
+  readonly sendOtpButton: Locator;
+  readonly verificationCodeMessage: Locator;
+  readonly enterOtpTextbox: Locator;
+  readonly verifyOtpButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -87,6 +97,13 @@ export class LoginWithOtpPage extends BasePage {
     this.dontShowThisAgainModalCancelButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Cancel' });
     this.dontShowThisAgainModalConfirmButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Confirm' });
     this.dontShowThisAgainModalCloseButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Close' });
+    this.useOtpButton = page.getByRole('button', { name: 'Use OTP' });
+    this.letsGetStartedHeading = page.getByRole('heading', { name: "Let's get started..." });
+    this.emailOption = page.getByText('Email');
+    this.sendOtpButton = page.getByRole('button', { name: 'Send OTP' });
+    this.verificationCodeMessage = page.getByText('A verification code has been sent to your email');
+    this.enterOtpTextbox = page.getByRole('textbox', { name: 'Enter OTP' });
+    this.verifyOtpButton = page.getByRole('button', { name: 'Verify OTP' });
   }
 
   /**
@@ -370,6 +387,92 @@ export class LoginWithOtpPage extends BasePage {
 
       // Click Confirm button
       await this.clickOnElement(this.dontShowThisAgainModalConfirmButton);
+    });
+  }
+
+  private async verifyLoginPageElements(loginPage: LoginPage): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(loginPage.usernameInput);
+    await this.verifier.verifyTheElementIsVisible(loginPage.continueButton);
+  }
+
+  private async verifyAuthenticatePage(options?: { timeout?: number }): Promise<void> {
+    await this.page.waitForURL(/authenticate/, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+    await this.verifier.verifyTheElementIsVisible(this.useOtpButton, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+  }
+
+  private async verifyLetsGetStartedHeading(options?: { timeout?: number }): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.letsGetStartedHeading, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+  }
+
+  private async verifyOtpSentConfirmation(options?: { timeout?: number }): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.verificationCodeMessage, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+    await this.verifier.verifyElementHasText(
+      this.verificationCodeMessage,
+      'A verification code has been sent to your email',
+      {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      }
+    );
+    await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+    await this.verifier.verifyTheElementIsVisible(this.enterOtpTextbox, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
+  }
+
+  private async verifyVerifyOtpButton(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.verifyOtpButton);
+  }
+
+  async performLoginWithOtp(
+    loginPage: LoginPage,
+    email: string,
+    otpUtils: OTPUtils,
+    otpEmail: string,
+    options?: { timeout?: number }
+  ): Promise<void> {
+    await test.step(`Logging in with email ${email} using OTP`, async () => {
+      // Navigate to login page and enter email in username input field
+      await this.verifyLoginPageElements(loginPage);
+      await this.fillInElement(loginPage.usernameInput, email);
+      await this.clickOnElement(loginPage.continueButton);
+
+      // Wait for authenticate page and validate Use OTP button is visible
+      await this.verifyAuthenticatePage(options);
+
+      // Click Use OTP button to navigate to lets get started page
+      await this.clickOnElement(this.useOtpButton);
+      await this.verifyLetsGetStartedHeading(options);
+
+      // Click Email option and validate send OTP button is visible
+      await this.verifier.verifyTheElementIsVisible(this.emailOption);
+      await this.clickOnElement(this.emailOption);
+      await this.verifier.verifyTheElementIsVisible(this.sendOtpButton, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      });
+
+      // Click Send OTP and validate verification messages and OTP input field is visible
+      await this.clickOnElement(this.sendOtpButton);
+      await this.verifyOtpSentConfirmation(options);
+
+      // Get and enter OTP in enter OTP textbox
+      await this.page.waitForTimeout(20000); // Wait for OTP to be sent
+      const otpValue = await otpUtils.getOTPFromEmail(otpEmail);
+      console.log(`Email OTP → ${otpValue}`);
+      await this.fillInElement(this.enterOtpTextbox, otpValue);
+      await this.verifyVerifyOtpButton();
+
+      // Click Verify OTP button to verify OTP
+      await this.clickOnElement(this.verifyOtpButton);
     });
   }
 }
