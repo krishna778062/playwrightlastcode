@@ -438,7 +438,7 @@ test.describe(
           CreateNewIncident,
           FIELD_NAMES.INCIDENT_VIEW,
           SERVICENOW_VALUES.INCIDENT_VIEW_VALUE,
-          UI_ACTIONS.ADD_TO_SITE
+          UI_ACTIONS.ADD_TO_HOME
         );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
