@@ -93,6 +93,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -100,6 +101,7 @@ test.describe(
         );
         const documentPath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
