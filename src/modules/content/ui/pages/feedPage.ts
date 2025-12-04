@@ -1347,7 +1347,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await recognitionHub.verifyRecognitionPostVisible(message);
     });
   }
-  
+
   async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
     await this.listFeedComponent.hoverOnProfileIconInPost(postText, userName);
   }
