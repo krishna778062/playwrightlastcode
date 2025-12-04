@@ -23,13 +23,13 @@ test.describe(
     test(
       'app manager can enable and disable site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42878'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42894'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can enable and disable site carousel',
-          zephyrTestId: 'CONT-42878',
-          storyId: 'CONT-42878',
+          zephyrTestId: 'CONT-42894',
+          storyId: 'CONT-42894',
         });
 
         // Get existing site
@@ -62,13 +62,13 @@ test.describe(
     test(
       'app manager can add and remove page content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42879'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42895'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can add and remove page content from site carousel',
-          zephyrTestId: 'CONT-42879',
-          storyId: 'CONT-42879',
+          zephyrTestId: 'CONT-42895',
+          storyId: 'CONT-42895',
         });
 
         // Enable site carousel
@@ -120,13 +120,13 @@ test.describe(
     test(
       'app manager can add and remove event content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42880'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42896'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can add and remove event content from site carousel',
-          zephyrTestId: 'CONT-42880',
-          storyId: 'CONT-42880',
+          zephyrTestId: 'CONT-42896',
+          storyId: 'CONT-42896',
         });
 
         // Enable site carousel
@@ -183,13 +183,13 @@ test.describe(
     test(
       'app manager can add and remove album content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42881'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42897'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can add and remove album content from site carousel',
-          zephyrTestId: 'CONT-42881',
-          storyId: 'CONT-42881',
+          zephyrTestId: 'CONT-42897',
+          storyId: 'CONT-42897',
         });
 
         // Enable site carousel
