@@ -23,6 +23,7 @@ export interface INewHomePageActions {
   setCustomSCTitle: (title: string) => Promise<void>;
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
+  clickIncludeFeed: () => Promise<void>;
   enterSearchCarouselInput: (text: string) => Promise<void>;
   selectCarouselItem: (text: string) => Promise<void>;
   clickDoneButton: () => Promise<void>;
@@ -170,6 +171,10 @@ export class NewHomePage extends BasePage {
 
   async clickExcludeFeed(): Promise<void> {
     return this.changeLayoutComponent.clickExcludeFeed();
+  }
+
+  async clickIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickIncludeFeed();
   }
 
   async enterSearchCarouselInput(text: string): Promise<void> {
