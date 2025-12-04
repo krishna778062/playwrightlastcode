@@ -20,6 +20,7 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
+import { AddPeopleInSiteComponent } from '@/src/modules/content/ui/components/addPeopleInSiteComponent';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
@@ -789,6 +790,83 @@ test.describe(
         await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
       }
     );
+
+    test(
+      'to verify the search in manage site people tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23718'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the search in manage site people tab',
+          zephyrTestId: 'CONT-23718',
+          storyId: 'CONT-23718',
+          isKnownFailure: true,
+        });
+        const siteInfoForPeopleTab = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+        });
+
+        const activeSite = siteInfoForPeopleTab.result.listOfItems.find((site: any) => site.isActive === true);
+        if (!activeSite) {
+          throw new Error('No active site found');
+        }
+        const siteId = activeSite.siteId;
+        const newSiteDashboard = new ManageSiteSetUpPage(appManagerFixture.page, siteId);
+        await newSiteDashboard.loadPage();
+        const manageSitesComponentForAppManager = new ManageSitesComponent(appManagerFixture.page);
+        await manageSitesComponentForAppManager.clickOnThePeopleTabAction();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        const getUserList = await appManagerApiFixture.identityManagementHelper.identityService.getListOfPeople();
+        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId, {
+          type: 'members',
+        });
+        const getFollowersList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId, {
+          type: 'followers',
+        });
+        const allSitePeople = [
+          ...(getMemBerList.result.listOfItems || []),
+          ...(getFollowersList.result.listOfItems || []),
+        ];
+        const memberNames = allSitePeople.map((member: any) => member.name?.trim());
+        const memberEmails = allSitePeople.map((member: any) => member.email?.toLowerCase());
+        const allUserNames = getUserList.result.listOfItems.map((user: any) =>
+          `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        );
+        const nonMemberNames = allUserNames.filter((userName: string, index: number) => {
+          const user = getUserList.result.listOfItems[index];
+          const userEmail = (user.email || '').toLowerCase();
+          const normalizedUserName = userName.trim().toLowerCase();
+          const isMemberByName = memberNames.some(
+            (memberName: string) => (memberName || '').trim().toLowerCase() === normalizedUserName
+          );
+          const isMemberByEmail = memberEmails.includes(userEmail);
+          return !isMemberByName && !isMemberByEmail;
+        });
+        if (nonMemberNames.length < 2) {
+          throw new Error('Not enough non-member users found to add');
+        }
+        const selectedUserName = nonMemberNames[0];
+        const anotherUserName = nonMemberNames[1];
+        const addPeopleInSiteComponent = new AddPeopleInSiteComponent(appManagerFixture.page);
+        await addPeopleInSiteComponent.fillAddPeopleInput(selectedUserName);
+        await addPeopleInSiteComponent.clickOnAddButton(siteId);
+        await appManagerFixture.page.reload();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        await manageSitesComponentForAppManager.selectMemberTabAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(anotherUserName);
+        await addPeopleInSiteComponent.clickOnAddButton(siteId);
+        await appManagerFixture.page.reload();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(anotherUserName);
+        await addPeopleInSiteComponent.verifyAlreadyMemberOrFollowerTagShouldBeVisible(anotherUserName);
+        await appManagerFixture.page.reload();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(selectedUserName);
+        await addPeopleInSiteComponent.verifyAlreadyMemberOrFollowerTagShouldBeVisible(selectedUserName);
+      }
+    );
+
     test(
       'to verify the favourite content filters',
       {
