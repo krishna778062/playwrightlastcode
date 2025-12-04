@@ -1057,12 +1057,12 @@ export class ListFeedComponent extends BaseComponent {
       // Ensure post is visible first
       await this.waitForPostToBeVisible(postText);
 
-      await this.verifier.verifyTheElementIsVisible(this.likeButton, {
+      await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
         assertionMessage: `Like/React button should be visible for post "${postText}"`,
       });
 
       // Click the like button
-      await this.clickOnElement(this.likeButton);
+      await this.clickOnElement(this.likeButton.first());
     });
   }
 
