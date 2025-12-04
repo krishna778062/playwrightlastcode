@@ -2,6 +2,7 @@ import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { ContentPostingPermission } from '@/src/modules/content/constants/contentStatus';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
@@ -10,6 +11,7 @@ import { ManageSitesComponent } from '@/src/modules/content/ui/components/manage
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
   setFeedPostingPermission: (permission: FeedPostingPermission) => Promise<void>;
+  setContentPostsPermission: (state: ContentPostingPermission) => Promise<void>;
   clickOnOptionsDropdown: (siteName: string) => Promise<void>;
   clickOnSearchButton: () => Promise<void>;
   searchSite: (siteName: string) => Promise<void>;
@@ -43,6 +45,8 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
     return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
   };
+  readonly contentPostsPermissionRadio = (state: ContentPostingPermission) =>
+    this.page.getByRole('radio', { name: state });
   readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
   readonly siteReferenceEllipses = (siteName: string) =>
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
@@ -250,6 +254,27 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Permission needs to be changed, click the radio button
       await radioButton.click({ force: true });
       await this.expect(radioButton).toBeChecked();
+
+      // Look for and click Save/Update button if it exists
+      const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+      await this.verifier.verifyTheElementIsVisible(saveButton, {
+        assertionMessage: 'Save/Update button should be visible',
+      });
+      await saveButton.click();
+    });
+  }
+
+  /**
+   * Sets the Content posts permission (Enable/Disable) for the site
+   * @param state - 'Enabled' to enable Content posts, 'Disabled' to disable it
+   */
+  async setContentPostsPermission(state: ContentPostingPermission): Promise<void> {
+    await test.step(`Set Content posts permission to ${state}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentPostsPermissionRadio(state), {
+        assertionMessage: `Content posts permission radio button for "${state}" should be visible`,
+      });
+
+      await this.clickOnElement(this.contentPostsPermissionRadio(state));
 
       // Look for and click Save/Update button if it exists
       const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
