@@ -1,4 +1,4 @@
-import test, { Locator, Page } from '@playwright/test';
+import test, { expect, Locator, Page } from '@playwright/test';
 
 import { DEFAULT_LOCATIONS } from '@modules/comms-planner/constants/constant';
 
@@ -22,10 +22,13 @@ export class CustomFieldsPage extends BasePage {
   /**
    * Customization page - Table
    */
+  readonly customFieldTableStatus: (customFieldRowIndex: number) => Locator;
   readonly customFieldTableRow: (customFieldName: string) => Locator;
   readonly customFieldTableAction: (customFieldRowIndex: number) => Locator;
   readonly customFieldTableActionMenu: (id: string) => Locator;
+  readonly customFieldTableStatusToggle: (customFieldRowIndex: number) => Locator;
   readonly customFieldDeleteConfirmationTooltip: Locator;
+  readonly customFieldStatusToggleConfirmationTooltip: Locator;
 
   /**
    * Customization page - Custom field deletion confirmation tooltip
@@ -115,11 +118,19 @@ export class CustomFieldsPage extends BasePage {
         .locator('div[data-testid^="custom-field-table-row-"][data-testid$="-cell-fieldName"]')
         .filter({ hasText: customFieldName });
 
+    this.customFieldTableStatus = (customFieldRowIndex: number) =>
+      this.page.getByTestId(`custom-field-table-row-${customFieldRowIndex}-cell-isEnable`);
     this.customFieldTableAction = (customFieldRowIndex: number) =>
       this.page.locator(`div[data-testid="custom-field-table-row-${customFieldRowIndex}-cell-actions"] button`);
     this.customFieldTableActionMenu = (buttonId: string) =>
       this.page.locator(`div[role="menu"][aria-labelledby="${buttonId}"]`);
+    this.customFieldTableStatusToggle = (customFieldRowIndex: number) =>
+      this.page.getByTestId(`custom-field-table-row-${customFieldRowIndex}-cell-isEnable`);
+
     this.customFieldDeleteConfirmationTooltip = this.page.getByText('Custom field definition deleted successfully');
+    this.customFieldStatusToggleConfirmationTooltip = this.page.getByText(
+      'Custom field status has been updated successfully'
+    );
 
     /**
      * Customization page - Custom field deletion confirmation tooltip
@@ -387,11 +398,24 @@ export class CustomFieldsPage extends BasePage {
     await test.step('Verify | Newly created custom field', async () => {
       const { customFieldTableRows } = await this.findCustomFieldInTable(name);
 
-      await this.page.mouse.click(0, 0);
       await this.verifier.verifyTheElementIsVisible(customFieldTableRows, {
         assertionMessage: 'Newly created custom field should be visible in the table',
         timeout: TIMEOUTS.MEDIUM,
       });
+    });
+  }
+
+  async toggleAndVerifyCreatedCustomFieldStatus(name: string, enable: boolean): Promise<void> {
+    await test.step('Verify | Toggle created custom field status', async () => {
+      const { index } = await this.findCustomFieldInTable(name);
+
+      await this.customFieldTableStatusToggle(index).getByRole('switch').click();
+      await this.verifier.verifyTheElementIsVisible(this.customFieldStatusToggleConfirmationTooltip, {
+        assertionMessage: 'After custom field status change confirmation tooltip should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await expect(this.customFieldTableStatus(index)).toContainText(enable ? 'Active' : 'Inactive');
     });
   }
 
@@ -403,7 +427,7 @@ export class CustomFieldsPage extends BasePage {
 
     for (let rowIndex = 0; rowIndex < count; rowIndex++) {
       const text = await customFieldTableRows.nth(rowIndex).innerText();
-      if (text.includes(name)) {
+      if (text === name) {
         matchedIndex = rowIndex;
         break;
       }
@@ -420,6 +444,7 @@ export class CustomFieldsPage extends BasePage {
       const { index } = await this.findCustomFieldInTable(name);
 
       const actionButton = this.customFieldTableAction(index);
+      await this.page.waitForTimeout(1000);
       await actionButton.click();
 
       const actionButtonIdAttribute = await actionButton.getAttribute('id');
