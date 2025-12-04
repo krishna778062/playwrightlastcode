@@ -35,6 +35,7 @@ export enum IntegrationsSuiteTags {
   HEALTH_CHECK = '@healthcheck',
   TAG = '@tagComponent',
   LINK = '@linkComponent',
+  SERVICENOW_APPTILES = '@serviceNowAppTiles',
   CUSTOM_APPS = '@customApps',
 }
 
