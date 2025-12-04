@@ -157,6 +157,14 @@ export interface IFeedActions {
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
   clickOnGiveRecognition(): Promise<void>;
+  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
+  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
+  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
+  clickFollowButtonOnHover: (userName: string) => Promise<void>;
+  clickFollowingButtonOnHover: (userName: string) => Promise<void>;
+  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
+  clickOnSideToRemoveProfilePopover(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -230,6 +238,13 @@ export interface IFeedAssertions {
   verifyShareModalIsClosed: () => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
   verifyRecognitionPostVisible: (message?: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
+  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
+  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
+  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -770,6 +785,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
       assertionMessage: 'Smart feed blocks should not be visible',
     });
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
 
   async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
@@ -1323,5 +1346,37 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       const recognitionHub = new RecognitionHubPage(this.page);
       await recognitionHub.verifyRecognitionPostVisible(message);
     });
+  }
+  
+  async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
+    await this.listFeedComponent.hoverOnProfileIconInPost(postText, userName);
+  }
+
+  async hoverOnProfileIconInReply(replyText: string, userName: string): Promise<void> {
+    await this.listFeedComponent.hoverOnProfileIconInReply(replyText, userName);
+  }
+
+  async verifyFollowButtonVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyFollowButtonVisible(userName);
+  }
+
+  async verifyFollowingButtonVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyFollowingButtonVisible(userName);
+  }
+
+  async clickFollowButtonOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.clickFollowButton(userName);
+  }
+
+  async clickFollowingButtonOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.clickFollowingButton(userName);
+  }
+
+  async verifyUserNameVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyUserNameVisible(userName);
+  }
+
+  async clickOnSideToRemoveProfilePopover(): Promise<void> {
+    await this.listFeedComponent.clickOnSideToRemoveProfilePopover();
   }
 }

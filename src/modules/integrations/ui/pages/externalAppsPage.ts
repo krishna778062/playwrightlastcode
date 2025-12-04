@@ -1,4 +1,4 @@
-import { CustomAppsListComponent } from '@integrations-components/customAppsListComponent';
+import { CustomAppsComponent } from '@integrations-components/customAppsComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -75,7 +75,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   readonly disconnectButtons: Locator;
   readonly connectButtons: Locator;
   readonly acceptButton: Locator;
-  readonly customAppsListComponent: CustomAppsListComponent;
+  readonly customAppsComponent: CustomAppsComponent;
   readonly connectConfluenceButton: Locator;
   readonly serviceNowUserName: Locator;
   readonly serviceNowPassword: Locator;
@@ -96,7 +96,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
     this.connectedStatusIndicators = page.locator('ConnectedServices-module');
     this.disconnectButtons = page.locator('button[aria-label*="Disconnect"]');
     this.connectButtons = page.locator('button[aria-label*="Connect"]');
-    this.customAppsListComponent = new CustomAppsListComponent(page);
+    this.customAppsComponent = new CustomAppsComponent(page);
     this.acceptButton = page.locator('button[type="submit"]');
     this.connectConfluenceButton = page.locator('button[aria-label="Connect your Atlassian Confluence account"]');
     this.serviceNowUserName = page.locator('#user_name');
@@ -160,7 +160,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   }
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
+    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   /**

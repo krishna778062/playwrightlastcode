@@ -63,6 +63,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -70,6 +71,7 @@ test.describe(
         );
         const image3Path = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -83,6 +85,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -90,6 +93,7 @@ test.describe(
         );
         const image786Path = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -103,6 +107,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -110,6 +115,7 @@ test.describe(
         );
         const ratioTextPath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',

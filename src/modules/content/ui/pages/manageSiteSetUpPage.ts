@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { SubscriptionComponent } from '@/src/modules/content/ui/components/subscriptionComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteSetUpActions {
@@ -36,6 +37,7 @@ export interface IManageSiteSetUpActions {
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
   searchForSite: (siteName: string) => Promise<void>;
   selectSite: () => Promise<void>;
+  clickOnSubscriptionButton: () => Promise<void>;
 }
 
 export interface IManageSiteSetUpAssertions {
@@ -62,6 +64,7 @@ export interface IManageSiteSetUpAssertions {
   verifyUnfollowButtonShouldBeChangedIntoFollowButton: () => Promise<void>;
   verifyMemberButtonShouldBeVisible: () => Promise<void>;
   verifyMemberNameAndSiteOwnerStatus: (membersName: string) => Promise<void>;
+  verifyAddSubscriptionPageIsLoaded: () => Promise<void>;
 }
 
 export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
@@ -75,11 +78,13 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
+  private subscriptionComponent: SubscriptionComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+    this.subscriptionComponent = new SubscriptionComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -305,5 +310,15 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
     await this.manageSitesComponent.verifyMemberNameAndSiteOwnerStatus(membersName);
+  }
+
+  // Subscription actions
+  async clickOnSubscriptionButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnSubscriptionButtonAction();
+  }
+
+  // Subscription assertions
+  async verifyAddSubscriptionPageIsLoaded(): Promise<void> {
+    await this.subscriptionComponent.assertions.verifyAddSubscriptionPageIsLoaded();
   }
 }
