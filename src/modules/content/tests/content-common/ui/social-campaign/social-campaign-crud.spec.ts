@@ -761,7 +761,7 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllCarouselItems(siteId);
+        await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
@@ -855,7 +855,7 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         //remove all the carousel items from the site
-        await appManagerFixture.siteManagementHelper.getAndRemoveAllHomeCarouselItems();
+        await appManagerFixture.carouselHelper.getAndRemoveAllHomeCarouselItems();
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
         await applicationManagerHomePage.actions.clickOnEditDashboard();

@@ -427,7 +427,17 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Upload file "image3.jpg" under content and create album with topic
       // Use path.resolve to ensure absolute path resolution
-      const imagePath = path.resolve(__dirname, '..', '..', '..', 'test-data', 'static-files', 'images', 'image3.jpg');
+      const imagePath = path.resolve(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'test-data',
+        'static-files',
+        'images',
+        'image3.jpg'
+      );
 
       const albumCreationOptions = TestDataGenerator.generateAlbum({
         fileName: imagePath,
