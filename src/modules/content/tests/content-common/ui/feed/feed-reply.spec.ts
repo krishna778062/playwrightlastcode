@@ -285,6 +285,7 @@ for (const testData of feedTestData) {
               '..',
               '..',
               '..',
+              '..',
               'test-data',
               'static-files',
               'images',
@@ -292,6 +293,7 @@ for (const testData of feedTestData) {
             );
             const faviconPath = FileUtil.getFilePath(
               __dirname,
+              '..',
               '..',
               '..',
               '..',
@@ -416,6 +418,7 @@ for (const testData of feedTestData) {
             // Get file path for sample.xlsx
             const documentPath = FileUtil.getFilePath(
               __dirname,
+              '..',
               '..',
               '..',
               '..',

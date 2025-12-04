@@ -93,6 +93,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -100,6 +101,7 @@ test.describe(
         );
         const documentPath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -174,6 +176,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -232,10 +235,10 @@ test.describe(
         await siteDashboardPage.actions.clickOnOptionsMenu(updatedPostText);
 
         // Click Delete
-        await siteDashboardPage.listFeedComponent.clickDeleteOption();
+        await siteDashboardPage.listFeedComponent.actions.clickDeleteOption();
 
         // Confirm Delete
-        await siteDashboardPage.listFeedComponent.confirmDelete();
+        await siteDashboardPage.listFeedComponent.actions.confirmDelete();
 
         // Verify feed post is removed
         await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
@@ -301,6 +304,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -324,7 +328,7 @@ test.describe(
 
         // Verify timestamp displayed
         const listFeedComponent = contentPreviewPage['listFeedComponent'];
-        await listFeedComponent.getPostTimestamp(postResult.postText);
+        await listFeedComponent.assertions.getPostTimestamp(postResult.postText);
 
         // Verify inline image preview visible
         const feedPageForContent = new FeedPage(standardUserFixture.page);
@@ -334,7 +338,7 @@ test.describe(
         const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
 
         // Open option menu (three dots)
-        await listFeedComponent.openPostOptionsMenu(createdPostText);
+        await listFeedComponent.actions.openPostOptionsMenu(createdPostText);
 
         // Click Edit
         await createFeedPostComponent.clickEditOption();
@@ -355,13 +359,13 @@ test.describe(
 
         // Delete Feed Post
         // Open option menu
-        await listFeedComponent.openPostOptionsMenu(updatedPostText);
+        await listFeedComponent.actions.openPostOptionsMenu(updatedPostText);
 
         // Click Delete
-        await listFeedComponent.clickDeleteOption();
+        await listFeedComponent.actions.clickDeleteOption();
 
         // Confirm Delete
-        await listFeedComponent.confirmDelete();
+        await listFeedComponent.actions.confirmDelete();
 
         // Verify feed post is removed
         await contentPreviewPage.assertions.verifyPostIsNotVisible(updatedPostText);
@@ -1297,7 +1301,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -1660,7 +1664,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
