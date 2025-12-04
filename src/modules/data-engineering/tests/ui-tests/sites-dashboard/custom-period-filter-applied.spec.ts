@@ -192,7 +192,6 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          isKnownFailure: true,
           description:
             'To verify the answer of Most Popular sites in Sites dashboard with custom period filter applied',
           zephyrTestId: 'DE-26383',

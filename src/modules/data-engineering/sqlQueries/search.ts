@@ -52,34 +52,17 @@ WHERE s.tenant_code = '{tenantCode}'
   Average_Searches_Per_Logged_In_User: `
 SELECT
     CASE
-        WHEN q1.distinct_user_count = 0 THEN 0
-        ELSE q2.total_count * 1.0 / q1.distinct_user_count
+        WHEN COUNT(DISTINCT CASE WHEN dua.HAS_LOGGED_IN THEN u.CODE ELSE NULL END) = 0 THEN 0
+        ELSE SUM(dua.TOTAL_SEARCH) * 1.0 / NULLIF(COUNT(DISTINCT CASE WHEN dua.HAS_LOGGED_IN THEN u.CODE ELSE NULL END), 0)
     END AS final_ratio
-FROM
-    (
-        SELECT COUNT(DISTINCT dua.USER_CODE) AS distinct_user_count
-        FROM UDL.DAILY_USER_ADOPTION AS dua
-        INNER JOIN UDL.USER AS u
-            ON dua.USER_CODE = u.CODE
-        WHERE u.TENANT_CODE = '{tenantCode}'
-          AND dua.reporting_date >= '{startDate}'
-          AND dua.reporting_date <= '{endDate}'
-          AND dua.HAS_LOGGED_IN = TRUE
-          {locationFilter}
-          {departmentFilter}
-    ) q1,
-    (
-        SELECT COUNT(s.code) AS total_count
-        FROM udl.vw_search s
-        INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
-        LEFT JOIN udl.vw_search_result_click sr ON s.code = sr.search_code
-        WHERE s.tenant_code = '{tenantCode}'
-          AND DATE(s.search_performed_datetime) >= '{startDate}'
-          AND DATE(s.search_performed_datetime) <= '{endDate}'
-          {locationFilter}
-          {departmentFilter}
-    ) q2;
-
+FROM UDL.VW_DAILY_USER_ADOPTION AS dua
+INNER JOIN UDL.VW_USER_AS_IS AS u
+    ON dua.USER_CODE = u.CODE
+WHERE u.TENANT_CODE = '{tenantCode}'
+  AND dua.REPORTING_DATE >= DATE(SPLIT_PART('{startDate}', ' ', 1))
+  AND dua.REPORTING_DATE < DATE(SPLIT_PART('{endDate}', ' ', 1))
+  {locationFilter}
+  {departmentFilter};
 `,
 
   Top_Search_Queries: `
