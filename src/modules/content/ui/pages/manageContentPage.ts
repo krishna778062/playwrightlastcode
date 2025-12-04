@@ -50,6 +50,7 @@ export interface IActions {
   clickShowMoreButton: () => Promise<void>;
   selectPageOption: () => Promise<void>;
   verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnValidationViewAllButton: () => Promise<void>;
   clickOnMoveButton: () => Promise<void>;
   selectMoveApplyButton: () => Promise<void>;
   moveContentSearchBar: (siteName: string) => Promise<void>;
@@ -92,6 +93,7 @@ export interface IAssertions {
   scheduledTagVisibleInManageContent: () => Promise<void>;
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
+  verifyValidationRequiredIsVisible: () => Promise<void>;
   verifyAlreadySelectedOnboardingOptionVisible: (option: TagOption) => Promise<void>;
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
@@ -466,6 +468,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
+  }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await this.manageContentComponent.verifyValidationRequiredIsVisible();
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await this.manageContentComponent.clickOnValidationViewAllButton();
   }
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);

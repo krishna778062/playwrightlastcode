@@ -9,6 +9,7 @@ import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteMan
 import {
   BulkActionOptions,
   ContentSortBy,
+  CONTENT_VALIDATION_PERIOD_TIME,
   ContentStatus,
   ManageContentOptions,
   ManageContentTags,
@@ -26,6 +27,7 @@ import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addT
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
@@ -1185,6 +1187,79 @@ test.describe(
         // select default timezone
         await profileScreenPage.actions.selectTimezone('328');
         await profileScreenPage.actions.clickOnSaveTimezoneButton();
+
+    test(
+      'verify user able to apply validate action on selected content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_CONTENT, '@CONT-20539'],
+      },
+      async ({ appManagerFixture, standardUserApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user able to apply validate action on selected content under Content tab in Manage Site',
+          customTags: [ContentSuiteTags.MANAGE_CONTENT],
+          zephyrTestId: 'CONT-20539',
+          storyId: 'CONT-20539',
+        });
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.selectContentValidationPeriodTime(
+          CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
+        );
+        const sitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+
+        // Find a site where the standard user is owner and can manage
+        // The list response includes isOwner and canManage properties directly
+        const site = sitesResponse.result.listOfItems.find(
+          (site: any) => site.isActive === true && site.isOwner === true && site.canManage === true
+        );
+
+        if (!site) {
+          throw new Error('No site found where isOwner is true and canManage is true');
+        }
+
+        const siteId = site.siteId;
+        console.log(`Found site ${site.name} (${siteId}) where standard user is owner and can manage`);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
+        });
+        console.log('pageInfo', pageInfo);
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
+          siteId,
+          pageInfo.contentId,
+          MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
+        );
+        await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
+        await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
+          ManageContentTags.VALIDATION_REQUIRED
+        );
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.clickOnValidateButton();
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.assertions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(
+          ManageContentOptions.UNPUBLISH
+        );
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
       }
     );
   }
