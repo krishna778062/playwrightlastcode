@@ -35,6 +35,7 @@ export enum IntegrationsSuiteTags {
   HEALTH_CHECK = '@healthcheck',
   TAG = '@tagComponent',
   LINK = '@linkComponent',
+  CUSTOM_APPS = '@customApps',
 }
 
 export enum IntegrationsFeatureTags {
@@ -48,6 +49,7 @@ export enum IntegrationsFeatureTags {
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
   HOTJAR = '@hotjar',
   WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
+  APPS_LINKS = '@apps-links',
 }
 
 export const TEST_TAGS = {
