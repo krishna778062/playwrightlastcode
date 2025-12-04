@@ -107,14 +107,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
-  static actions: any;
-
-  // Expose locators for unified verification
   readonly editButton: Locator;
   readonly deleteButton: Locator;
   readonly unpublishButton: Locator;
   readonly publishButton: Locator;
   readonly moveButton: Locator;
+  static actions: any;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
@@ -454,6 +452,18 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
+
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+  }
+
+  async verifyEditOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+  }
+  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+  }
+
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }

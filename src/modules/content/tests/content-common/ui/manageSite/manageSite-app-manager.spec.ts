@@ -101,6 +101,7 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
+      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
@@ -291,9 +292,37 @@ test.describe(
     );
 
     test(
+      'verify draft stamp and its options menu on content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20535'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify draft stamp and its options menu on content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20535',
+          storyId: 'CONT-20535',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const pageInfo = await appManagerFixture.contentManagementHelper.createDraftPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+
+        const manageSiteContentPage = new ManageContentPage(appManagerFixture.page);
+        await manageSiteContentPage.load();
+        await manageSiteContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageSiteContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+        await manageSiteContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageSiteContentPage.actions.hoverOnFirstDropDownOption();
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+      }
+    );
+
+    test(
       'verify Add to campaign option under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20537'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -372,7 +401,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          description: 'to verify the onboarding option in manage site content',
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
@@ -616,7 +645,7 @@ test.describe(
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action from end user can activate the site',
+          description: 'to verify the bulk action from app manager can activate the site',
           zephyrTestId: 'CONT-26574',
           storyId: 'CONT-26574',
         });
