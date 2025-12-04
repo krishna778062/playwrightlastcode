@@ -1,20 +1,51 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
-import { RewardsPeerGifting } from '@rewards/ui/components/manage-rewards/rewards-peer-gifting';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
+import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
+import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-peer-gifting';
+import fs from 'fs';
+import path from 'path';
 
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { BasePage } from '@/src/core/ui/pages/basePage';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
+import { BasePage } from '@core/pages/basePage';
+import { CSVUtils } from '@core/utils/csvUtils';
+
 import { FileUtil } from '@/src/core/utils';
-import { CSVUtils } from '@/src/core/utils/csvUtils';
+
+export type RecordResult = { URL: string; points: number } | null;
+
+interface CSVRow {
+  'Date time': string;
+  'Gifter name': string;
+  'Gifter email': string;
+  'Gifter department': string;
+  'Gifter location': string;
+  'Receiver name': string;
+  'Receiver email': string;
+  'Receiver department': string;
+  'Receiver location': string;
+  'Receiver payroll currency': string;
+  'Custom conversion rate': string | number | null;
+  Type: string;
+  'Points value': string | number;
+  'USD value': string | number;
+  'Transaction status': string;
+  Message: string;
+  URL: string;
+}
 
 export class ManageRewardsOverviewPage extends BasePage {
   // Components
   readonly peerGifting: RewardsPeerGifting;
+  readonly budgetModal: RewardsBudgetModal;
+  readonly rewardsAllowance: RewardsAllowance;
 
   // Page container and not found
   readonly manageRewardsPageContainer: Locator;
   readonly manageRewardsPageNotFound: Locator;
   public harnessFlagResponse: Response | undefined;
+  readonly header: Locator;
 
   // Reward Terminology
   readonly rewardsTabHeading: Locator;
@@ -38,8 +69,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   // Summary tile
   readonly summaryTiles: Locator;
   private summaryTilePElements: Locator;
-  private monthSpendToDateInfoIcon: Locator;
-  private annualBudgetBalanceInfoIcon: Locator;
+  readonly monthSpendToDateInfoIcon: Locator;
+  readonly annualBudgetBalanceInfoIcon: Locator;
   readonly pointBalanceSummaryAllowanceInfoIcon: Locator;
   readonly pointBalanceSummaryUserAllowanceInfoIcon: Locator;
   readonly pointBalanceSummaryAllowancePoints: Locator;
@@ -72,8 +103,8 @@ export class ManageRewardsOverviewPage extends BasePage {
   // Activity Container
   readonly activityContainer: Locator;
   readonly activityPanelHeader: Locator;
-  // readonly activityPanelLastUpdatedText: Locator;
-  // readonly activityPanelLastUpdatedInfoIcon: Locator;
+  readonly activityPanelLastUpdatedText: Locator;
+  readonly activityPanelLastUpdatedInfoIcon: Locator;
   readonly activityPanelFiltersButton: Locator;
   readonly activityPanelFiltersButtonText: Locator;
   readonly activityTableDownloadCSVButton: Locator;
@@ -97,6 +128,12 @@ export class ManageRewardsOverviewPage extends BasePage {
   readonly disableRewardH1Text: Locator;
   readonly disableRewardText: Locator;
   readonly disableRewardButton: Locator;
+  readonly disabledRewardPeerGiftingContainer: Locator;
+  readonly disabledRewardRewardsBudgetContainer: Locator;
+  readonly disabledRewardCurrencyConversionContainer: Locator;
+  readonly disableRewardOptionsContainer: Locator;
+  readonly disabledRewardAddPeerGiftingButton: Locator;
+  readonly disabledRewardEditPeerGiftingButton: Locator;
 
   // Tab locators
   readonly rewardsTab: Locator;
@@ -106,15 +143,24 @@ export class ManageRewardsOverviewPage extends BasePage {
   private readonly confirmInput: Locator;
   private readonly confirmButton: Locator;
 
+  // Save button and toast messages
+  readonly saveButton: Locator;
+  readonly toastMessage: Locator;
+  readonly disabledRewardAddBudgetButton: Locator;
+  readonly disabledRewardEditBudgetButton: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE);
 
     // Initialize components
     this.peerGifting = new RewardsPeerGifting(page);
+    this.budgetModal = new RewardsBudgetModal(page);
+    this.rewardsAllowance = new RewardsAllowance(page);
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
     this.manageRewardsPageNotFound = page.getByTestId('no-results');
+    this.header = page.locator('h1, h2, h3').first();
 
     // Locators for the Rewards Overview page
     this.rewardsTab = page.getByRole('tab', { name: 'Rewards', exact: true });
@@ -215,10 +261,10 @@ export class ManageRewardsOverviewPage extends BasePage {
     // Activity Container
     this.activityContainer = page.locator('div[class*="Panel-module__panel"]');
     this.activityPanelHeader = this.activityContainer.getByRole('heading', { level: 3 });
-    // this.activityPanelLastUpdatedText = this.activityContainer.locator('h3+div span');
-    // this.activityPanelLastUpdatedInfoIcon = this.activityContainer.getByRole('button', {
-    //   name: 'Activity update time',
-    // });
+    this.activityPanelLastUpdatedText = this.activityContainer.locator('h3+div span');
+    this.activityPanelLastUpdatedInfoIcon = this.activityContainer.getByRole('button', {
+      name: 'Activity update time',
+    });
     this.activityPanelFiltersButton = this.activityContainer.locator('div[class^="Activity_filters"] input');
     this.activityPanelFiltersButtonText = this.activityContainer.locator(
       'div[class^="Activity_filters"] input + div span'
@@ -232,7 +278,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.activityPanelTableHeader = this.activityContainer.locator('table th');
     this.activityPanelTableSortableHeader = this.activityContainer.locator('table th button');
     this.activityPanelTableSortableHeaderText = this.activityContainer.locator('table th button > div');
-    this.tooltipText = page.locator('[id^="tippy-"] p');
+    this.tooltipText = page.locator('[data-tippy-root] p');
     this.activityTableNoResultHeading = this.activityContainer.locator(
       '[class*="Activity_container"] h3[class*="Typography-module__heading3"]'
     );
@@ -262,15 +308,47 @@ export class ManageRewardsOverviewPage extends BasePage {
     });
     this.disableRewardText = this.disableRewardContainer.locator('[class*="TypographyBody-module__wrapper"] p');
     this.disableRewardButton = this.disableRewardContainer.locator('form > button[data-state="closed"]');
+    this.disableRewardOptionsContainer = page.locator('div[class*="Panel-module__panel"]').nth(1);
+    this.disabledRewardPeerGiftingContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(0);
+    this.disabledRewardAddPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Add peer gifting"]'
+    );
+    this.disabledRewardEditPeerGiftingButton = this.disabledRewardPeerGiftingContainer.locator(
+      'a[aria-label="Edit peer gifting"]'
+    );
+
+    this.disabledRewardRewardsBudgetContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(1);
+    this.disabledRewardAddBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Add rewards budget"]'
+    );
+    this.disabledRewardEditBudgetButton = this.disabledRewardRewardsBudgetContainer.locator(
+      'button[aria-label="Edit rewards budget"]'
+    );
+    this.disabledRewardCurrencyConversionContainer = this.disableRewardOptionsContainer
+      .locator('div[class*="PanelActionItem_layout"]')
+      .nth(2);
 
     // Dialog box
     this.dialogBox = this.page.locator('[role="dialog"]');
     this.confirmInput = this.dialogBox.locator('input[type="text"]');
     this.confirmButton = this.dialogBox.getByRole('button', { name: 'Disable' });
+
+    // Save button and toast messages
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
+    this.toastMessage = this.page.locator('div.Toastify__toast-body p');
+  }
+
+  get dialogContainerForm(): DialogBox {
+    return new DialogBox(this.page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.rewardsTabHeading, {
+    await this.verifier.verifyTheElementIsVisible(this.insightBulbButton, {
+      timeout: 30000,
       assertionMessage: 'Verify the Rewards Overview page is loaded',
     });
   }
@@ -318,38 +396,32 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         res =>
-          res.url().includes('/recognition/admin/rewards') && res.status() === 200 && res.request().method() === 'GET'
+          res.url().endsWith('/recognition/admin/rewards') &&
+          res.request().resourceType() === 'xhr' &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
       ),
-      this.loadPage(),
-      this.rewardsTabHeading.waitFor({ state: 'visible', timeout: 15000 }),
+      manageRecognitionPage.loadPage(), // action that triggers API
+      manageRecognitionPage.verifyThePageIsLoaded(),
     ]);
     console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
     const body = await apiResponse.json();
     console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
     const isRewardEnabled = body.enabled;
-    const isPeerGiftingEnabled = body.peerGiftingEnabled;
+    const isPeerGiftingDisabled = body.peerGiftingEnabled;
     console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingEnabled}`
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-
-    // Enable rewards if not enabled
-    if (!isRewardEnabled) {
-      const isEnableButtonVisible = await this.verifier.isTheElementVisible(this.enableRewardsButton, {
-        timeout: 5000,
-      });
-      if (isEnableButtonVisible) {
-        await this.clickOnElement(this.enableRewardsButton, {
-          stepInfo: 'Enabling rewards',
-        });
-        await this.verifyToastMessageIsVisibleWithText('Rewards enabled');
-      }
+    if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
+      await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
+      await this.loadPage();
     }
-
-    // Reload to ensure we're on the overview page
-    await this.loadPage();
   }
 
   async disableTheRewards(): Promise<void> {
@@ -371,6 +443,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     });
 
     await this.verifyToastMessageIsVisibleWithText('Rewards disabled');
+    await this.dismissTheToastMessage();
     await this.verifier.waitUntilElementIsVisible(this.rewardsTabHeading);
   }
 
@@ -386,90 +459,12 @@ export class ManageRewardsOverviewPage extends BasePage {
     }
   }
 
-  /**
-   * Optimized function to open recognition created before 24 hours
-   * Performs the following steps:
-   * 1. Checks the Activity table
-   * 2. Click the "Show more" button until date difference is more than 3 days
-   * 3. Find the specified user's recognition and click "View recognition"
-   * 4. Validates the post opens in the same page
-   */
-  async openTheRecognitionCreatedBefore24Hrs(recognitionGiver: string): Promise<string> {
-    await test.step('Click and verify "Show more" button until last 3 days data is loaded', async () => {
-      while (await this.verifier.isTheElementVisible(this.activityPanelTableShowMoreButton)) {
-        const [_response] = await Promise.all([
-          this.page.waitForResponse(
-            res => res.url().includes('/recognition/admin/rewards/transactions') && res.status() === 200
-          ),
-          this.activityPanelTableShowMoreButton.click(),
-        ]);
-        const lastRowDate = await this.activityPanelTableRows.last().locator('td').first().textContent();
-        const currentDate = new Date();
-        const lastRowDateWithYear = new Date(lastRowDate + ` ${currentDate.getFullYear()}`);
-        const differenceInTime = currentDate.getDate() - lastRowDateWithYear.getDate();
-        if (differenceInTime > 5) break;
-      }
-    });
-
-    const rows = this.page.locator('tr[data-testid^="dataGridRow"]');
-    let rewardPointsText: any;
-    const rowCount = await rows.count();
-    for (let i = rowCount - 1; i > 0; i--) {
-      await rows.nth(i).locator('td').first().scrollIntoViewIfNeeded();
-      const dateText = await rows.nth(i).locator('td').first().textContent();
-      const rowDate = new Date(dateText + ` ${new Date().getFullYear()}`); // Append current year to date string
-      const today = new Date();
-      const diffDays = (today.getTime() - rowDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (
-        recognitionGiver === (await rows.nth(i).locator('td').nth(1).textContent()) &&
-        diffDays > 2 &&
-        (await rows.nth(i).locator('td').nth(3).locator('p').textContent()) === 'Peer recognition'
-      ) {
-        await rows.nth(i).locator('td').last().scrollIntoViewIfNeeded();
-        await rows.nth(i).locator('td').last().click();
-        await this.viewRecognitionDropdown.waitFor({ state: 'visible' });
-        await this.viewRecognitionDropdown.scrollIntoViewIfNeeded();
-        rewardPointsText = await rows.nth(i).locator('td').nth(4).textContent();
-        await expect(this.viewRecognitionDropdown).toBeVisible();
-        await expect(this.viewRecognitionDropdownText).toHaveText('View recognition');
-        await this.viewRecognitionDropdownLink.click();
-        // Import RecognitionHubPage dynamically to avoid circular dependencies
-        const { RecognitionHubPage } = await import('@rewards/ui/pages/recognition-hub/recognition-hub-page');
-        const recognitionHub = new RecognitionHubPage(this.page);
-        await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
-        break;
-      }
-    }
-    return rewardPointsText;
-  }
-
   async verifyTheMenuListItems(menuList: string[]) {
     const menuItem: string[] = await this.sideBarMenuList.allTextContents();
     for (const menu of menuList) {
       expect(menuItem).toContain(menu);
     }
   }
-
-  async getTheActivityTableUpdatedTime(lastUpdatedAt: any): Promise<string> {
-    if (!lastUpdatedAt) {
-      throw new Error('Invalid timestamp: lastUpdatedAt is required.');
-    }
-
-    const now = new Date();
-    const updatedAt = new Date(lastUpdatedAt);
-    const diffMs = now.getTime() - updatedAt.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMinutes <= 59) {
-      return `Last updated ${diffMinutes} min ago`;
-    } else if (diffMinutes > 59 && diffMinutes < 120) {
-      return 'Last updated 1 hours ago';
-    } else {
-      return 'Check the Job is failing, it is updated more than 2 hours';
-    }
-  }
-
-  // Methods from ManageRewardsPage
 
   /**
    * Load page with Harness flag response
@@ -537,6 +532,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     const rewardsStore = new RewardsStore(this.page);
 
     // Navigate to rewards store and validate
+    await rewardsStore.loadPage();
     await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
     await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
     await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'United States');
@@ -552,10 +548,8 @@ export class ManageRewardsOverviewPage extends BasePage {
     // Navigate to manage rewards and validate activity table
     await this.loadPage();
     await this.activityContainer.last().waitFor({ state: 'visible', timeout: 15000 });
-    await this.clickOnElement(this.activityPointsRedeemTable, {
-      stepInfo: 'Clicking on points redeem table',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.activityPanelTableViewRecognitionItems.last());
+    await this.clickByInjectingJavaScript(this.activityPointsRedeemTable);
+    await this.verifier.waitUntilElementIsVisible(this.activityPanelTableRows.last());
   }
 
   async verifyTheActivityTableForGiftCard(): Promise<void> {
@@ -602,5 +596,395 @@ export class ManageRewardsOverviewPage extends BasePage {
         FileUtil.deleteTemporaryFile(csvFile.filePath);
       }
     });
+  }
+
+  /**
+   * Mock the wallets API response for testing disable rewards without unredeemed points
+   */
+  async mockTheWalletsApiResponse() {
+    await this.page.route('**/recognition/admin/rewards/analytics/wallets', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ result: { pointAmount: 0, usersCount: 0 } }),
+      })
+    );
+    await this.page.reload();
+  }
+
+  /**
+   * Validate disable rewards for different languages
+   */
+  async disableRewardsForDifferentLanguage(confirmText: string, disableButton: boolean) {
+    const dialogBox = this.page.locator('[role="dialog"][data-state="open"]');
+    const inputBox = dialogBox.locator('input[type="text"]');
+    const confirmButton = dialogBox.getByRole('button').last();
+    const inputBoxError = dialogBox.locator('div[class*="Field-module__error"] p');
+
+    await inputBox.fill(confirmText);
+    await inputBox.blur();
+    disableButton ? await expect(confirmButton).toBeEnabled() : await expect(confirmButton).toBeDisabled();
+    disableButton ? await expect(inputBoxError).not.toBeVisible() : await expect(inputBoxError).toBeVisible();
+  }
+
+  // Budget-related methods
+  async clickOnAddEditBudgetButton(): Promise<string> {
+    await this.clickOnElement(this.budgetSummaryActionBarButton, {
+      stepInfo: 'Clicking on Add/Edit Budget button',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.budgetModal.budgetContainer);
+    const isRemoveOptionVisible = await this.verifier.isTheElementVisible(
+      this.budgetModal.budgetPanelRemoveRadioInputBox,
+      { timeout: 2000 }
+    );
+    return isRemoveOptionVisible ? 'Edit budget' : 'Add budget';
+  }
+
+  async verifyBudgetSummaryElements(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryTileContainer, {
+      assertionMessage: 'Verify Budget Summary tile container is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryHeadingIcon, {
+      assertionMessage: 'Verify Budget Summary heading icon is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(this.budgetSummaryHeadingText, {
+      assertionMessage: 'Verify Budget Summary heading text is visible',
+    });
+  }
+
+  async getTheBudgetApiResponse(): Promise<any> {
+    await this.page.reload();
+    const response = await this.page.waitForResponse(
+      response => response.url().includes('/recognition/admin/rewards/analytics/budget') && response.status() === 200
+    );
+    return await response.json();
+  }
+
+  async validateTheLabelAndTooltip(data: any, label: string): Promise<void> {
+    if (label === 'Month spend to date') {
+      await expect(this.summaryTilePElements.nth(0)).toContainText('Month spend to date');
+      await this.monthSpendToDateInfoIcon.click();
+      const tooltipText =
+        'Month spend to date is representative of points that have been gifted this current month, including pending transactions.';
+      await expect(this.tooltipText).toBeVisible();
+      await expect(this.tooltipText).toHaveText(tooltipText);
+      await this.monthSpendToDateInfoIcon.click();
+    } else if (label === 'budget balance') {
+      await expect(this.summaryTilePElements.nth(2)).toContainText(/budget balance/);
+      await this.annualBudgetBalanceInfoIcon.click();
+
+      const amount = data.result.budgetBalanceDetails.totalBudgetUsdAmount;
+      const refreshDate = data.result.budgetBalanceDetails.nextBudgetRefreshAt;
+
+      const currentUserTimeZone = await this.page.evaluate(() => {
+        return (window as any).Simpplr?.CurrentUser?.timezoneIso;
+      });
+
+      const formattedAmount = `$${amount.toLocaleString('en-US')}`;
+      const formattedDate = new Date(refreshDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: currentUserTimeZone,
+      });
+      const tooltipText1 = `Refreshes to ${formattedAmount} ${formattedDate}.`;
+      await expect(this.tooltipText.nth(0)).toBeVisible();
+      await expect(this.tooltipText.nth(0)).toHaveText(tooltipText1);
+      const tooltipText2 = 'Recognition managers will be notified if the budget is exceeded.';
+      await expect(this.tooltipText.nth(1)).toHaveText(tooltipText2);
+      await this.annualBudgetBalanceInfoIcon.click();
+    }
+  }
+
+  async selectRadioIfNotSelected(locator: Locator): Promise<void> {
+    const isSelected = await locator.isChecked();
+    if (!isSelected) {
+      await this.clickOnElement(locator, {
+        stepInfo: 'Selecting radio button',
+      });
+    }
+  }
+
+  async clickOnDisabledRewardsAddEditBudgetButton(): Promise<void> {
+    await this.disabledRewardRewardsBudgetContainer.waitFor({ state: 'attached', timeout: 30000 });
+    if (await this.verifier.isTheElementVisible(this.disabledRewardAddBudgetButton)) {
+      await this.clickOnElement(this.disabledRewardAddBudgetButton);
+    } else if (await this.verifier.isTheElementVisible(this.disabledRewardEditBudgetButton)) {
+      await this.clickOnElement(this.disabledRewardEditBudgetButton);
+    } else {
+      throw new Error('Neither Add Budget nor Edit Budget button is visible.');
+    }
+  }
+
+  getRandomNo(min: number, max: number, exclude?: number): number {
+    let randomNum: number;
+    do {
+      randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (exclude !== undefined && randomNum === exclude);
+    return randomNum;
+  }
+
+  // Tooltip validation methods for allowance tests
+  async validateTheAddButtonTooltip(
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
+  ): Promise<void> {
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.addManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.addAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.addIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    if (!button) {
+      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
+    }
+
+    // Wait for the button to be visible & enabled before hovering (best practice)
+    await expect(button).toBeVisible({ timeout: 5000 });
+
+    // Preferred: normal hover (avoid force unless UI requires it)
+    await button.scrollIntoViewIfNeeded();
+    await button.hover({ force: true });
+
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString));
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString),
+      'Allowances cannot be added while refreshing'
+    );
+  }
+
+  async validateTheEditButtonTooltip(
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
+  ): Promise<void> {
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.editManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.editAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.editIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    await button.hover({ force: true });
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString).last());
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString).last(),
+      'Allowances cannot be edited while refreshing'
+    );
+  }
+
+  async validateTheRemoveButtonTooltip(
+    allowanceType: 'Users allowance' | 'Manager allowances' | 'Audience allowances' | 'Individual allowances'
+  ): Promise<void> {
+    const buttonMap: Record<string, Locator> = {
+      'Users allowance': this.rewardsAllowance.rewardsUserAllowance.removeUserAllowance,
+      'Manager allowances': this.rewardsAllowance.rewardsManagerAllowance.removeManagerAllowance,
+      'Audience allowances': this.rewardsAllowance.rewardsAudienceAllowance.removeAudienceAllowance,
+      'Individual allowances': this.rewardsAllowance.rewardsIndividualAllowance.removeIndividualAllowance,
+    };
+
+    const button = buttonMap[allowanceType];
+    if (!button) {
+      throw new Error(`validateTheAddButtonTooltip: no button locator found for allowanceType="${allowanceType}"`);
+    }
+
+    // Wait for the button to be visible & enabled before hovering (best practice)
+    await expect(button).toBeVisible({ timeout: 5000 });
+
+    // Preferred: normal hover (avoid force unless UI requires it)
+    await button.hover({ force: true });
+
+    const locatorString = `//div[contains(@class,'PanelActionItem_layout')]//h3[text()="${allowanceType}"]//parent::div//following-sibling::div//div[@role="tooltip"]`;
+    await this.verifier.verifyTheElementIsVisible(this.page.locator(locatorString).first());
+    await this.verifier.verifyElementContainsText(
+      this.page.locator(locatorString).first(),
+      'Allowances cannot be removed while refreshing'
+    );
+  }
+
+  async checkTheRewardsIsEnabled(isRewardEnabled: boolean, isPeerGiftingDisabled: boolean): Promise<void> {
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
+    if (!isRewardEnabled && !isPeerGiftingDisabled) {
+      await manageRecognitionPage.disabledRewardPeerGiftingContainer.waitFor({
+        state: 'visible',
+        timeout: 15000,
+      });
+      await this.clickOnDisabledRewardsAddEditPeerGiftingButton();
+      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
+        await manageRecognitionPage.rewardsAllowance.saveAmount();
+        await manageRecognitionPage.peerGifting.visit();
+        await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
+      }
+      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
+      await manageRecognitionPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
+      await manageRecognitionPage.peerGifting.saveButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
+      await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRecognitionPage.enableRewardsButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');
+      await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (!isRewardEnabled && isPeerGiftingDisabled) {
+      // Directly enable Rewards
+      await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await manageRecognitionPage.enableRewardsButton.click();
+      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');
+      await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
+    } else if (isRewardEnabled && !isPeerGiftingDisabled) {
+      await manageRecognitionPage.peerGifting.loadPage();
+      await manageRecognitionPage.verifier.waitUntilElementIsVisible(
+        manageRecognitionPage.peerGifting.peerGiftingHeading
+      );
+      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
+        await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
+        await manageRecognitionPage.rewardsAllowance.saveAmount();
+        await manageRecognitionPage.peerGifting.visit();
+        await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
+      }
+      await manageRecognitionPage.peerGifting.enableThePeerGifting('Immediately');
+    } else if (isRewardEnabled && isPeerGiftingDisabled) {
+      // Both are already enabled, do nothing
+      console.log('Reward and Gifting is enabled.');
+    }
+  }
+
+  async clickOnDisabledRewardsAddEditPeerGiftingButton(): Promise<void> {
+    await this.disabledRewardPeerGiftingContainer.waitFor({ state: 'attached', timeout: 15000 });
+    if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardAddPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardAddPeerGiftingButton);
+    } else if (await this.verifier.verifyTheElementIsVisible(this.disabledRewardEditPeerGiftingButton)) {
+      await this.clickOnElement(this.disabledRewardEditPeerGiftingButton);
+    } else {
+      throw new Error('Neither Add Budget nor Edit Peer Gifting button is visible.');
+    }
+  }
+
+  /**
+   * Get the record's URL and Points value where:
+   * - Date time is older than 23:59:59 (i.e. strictly older than 24h - 1s)
+   * - Gifter name matches (if provided)
+   * - Otherwise, picks the newest record older than that threshold
+   * - Ignores records whose URL is "deleted"
+   * - Ensures the URL looks like a recognition post (best-effort heuristic)
+   *
+   * Defensive: validates dates, coerces points to number, trims names.
+   */
+  async getRecordOlderThan24Hrs(records: CSVRow[], gifterName?: string) {
+    if (!Array.isArray(records) || records.length === 0) return null;
+
+    const nowMs = Date.now();
+    const minAgeMs = 24 * 60 * 60 * 1000; // 86,399,000 ms
+
+    const isLikelyRecognitionUrl = (rawUrl: unknown) => {
+      const url = (rawUrl ?? '').toString().trim();
+      if (url.length === 0) return false;
+      const normalized = url.toLowerCase();
+      if (normalized === 'deleted') return false;
+
+      const hasRecognitionFragment = /\/recognition?/i.test(url);
+      const looksLikeHttp = /^https?:\/\//i.test(url);
+      return hasRecognitionFragment || looksLikeHttp;
+    };
+
+    // Normalize rows with parsed date; keep only ones older than threshold, valid dates, and valid recognition URLs
+    const olderRecords = records
+      .map(r => {
+        const rawDate = r['Date time'];
+        const dateStr = typeof rawDate === 'string' ? rawDate.trim() : '';
+        const parsedMs = Number.isFinite(Date.parse(dateStr)) ? Date.parse(dateStr) : NaN;
+        return { row: r, parsedMs };
+      })
+      .filter(item => {
+        const { row, parsedMs } = item;
+        // Must have a valid date and be older than minAgeMs
+        if (!Number.isFinite(parsedMs) || !(nowMs - parsedMs > minAgeMs)) return false;
+
+        // URL must not be 'deleted' and should look like a recognition post
+        const urlRaw = row['URL'] ?? '';
+        return isLikelyRecognitionUrl(urlRaw);
+      })
+      .map(item => item.row);
+
+    if (olderRecords.length === 0) return null;
+
+    // If gifterName provided, filter by it (case-insensitive, trimmed)
+    let filtered = olderRecords;
+    if (typeof gifterName === 'string' && gifterName.trim().length > 0) {
+      const normalizedGifter = gifterName.trim().toLowerCase();
+      filtered = olderRecords.filter(r => {
+        const name = (r['Gifter name'] ?? '').toString().trim().toLowerCase();
+        return name === normalizedGifter;
+      });
+    }
+
+    if (filtered.length === 0) return null;
+
+    // Pick the newest (latest) record among the filtered ones
+    const latest = filtered.reduce((best, current) => {
+      const bestMs = Number.isFinite(Date.parse((best['Date time'] ?? '').toString().trim()))
+        ? Date.parse((best['Date time'] ?? '').toString().trim())
+        : NaN;
+      const curMs = Number.isFinite(Date.parse((current['Date time'] ?? '').toString().trim()))
+        ? Date.parse((current['Date time'] ?? '').toString().trim())
+        : NaN;
+
+      if (Number.isNaN(bestMs)) return current;
+      if (Number.isNaN(curMs)) return best;
+      return curMs > bestMs ? current : best;
+    });
+
+    // Coerce points to number safely
+    const rawPoints = latest['Points value'];
+    let points = 0;
+    if (typeof rawPoints === 'number') points = rawPoints;
+    else if (typeof rawPoints === 'string') {
+      const parsed = Number(rawPoints.trim());
+      points = Number.isFinite(parsed) ? parsed : 0;
+    }
+    const url = (latest.URL ?? '').toString();
+    return { URL: url, points };
+  }
+
+  /**
+   * Clicks the Download CSV button, reads file, finds records older than 24 hours
+   * Optionally filters by recognitionGiver (gifter name).
+   *
+   * Returns:
+   *  - resultForGiver: result for provided recognitionGiver (or null)
+   *  - resultAny: newest record older than 24 hrs regardless of gifter (or null)
+   *  - pointsToValidate: convenience number (prefers resultForGiver if recognitionGiver provided)
+   *  - urlToOpen: convenience URL (same preference)
+   */
+  public async openTheRecognitionPostCreatedBefore24Hrs(recognitionGiver?: string): Promise<{
+    resultForGiver: RecordResult;
+    resultAny: RecordResult;
+    pointsToValidate: number | null;
+    urlToOpen: string | null;
+  }> {
+    const [download] = await Promise.all([
+      this.page.waitForEvent('download', { timeout: 25000 }),
+      this.clickOnElement(this.activityTableDownloadCSVButton, {
+        stepInfo: 'Clicking on Download CSV button',
+      }),
+    ]);
+    const csvFilePath = path.resolve('./downloads', download.suggestedFilename());
+    await download.saveAs(csvFilePath);
+    const records = (await CSVUtils.getAllRecords(csvFilePath)) as unknown as CSVRow[];
+    const resultForGiver = await this.getRecordOlderThan24Hrs(records, recognitionGiver);
+    const resultAny = await this.getRecordOlderThan24Hrs(records);
+    const prefer = resultForGiver !== null ? resultForGiver : resultAny;
+    const pointsToValidate = prefer ? prefer.points : null;
+    const urlToOpen = prefer ? prefer.URL : null;
+    try {
+      fs.unlinkSync(csvFilePath);
+    } catch (e) {
+      /* ignore errors */
+    }
+    return { resultForGiver, resultAny, pointsToValidate, urlToOpen };
   }
 }

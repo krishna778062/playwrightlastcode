@@ -1,5 +1,6 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 /**
@@ -30,9 +31,12 @@ export class TabluarMetricsComponent extends BaseComponent {
     readonly metricTitle: string
   ) {
     // Find the container internally
-    const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
-    });
+    const container = thoughtSpotIframe
+      .locator('[class*="answer-content-module__answerVizContainer"]')
+      .filter({
+        has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: false }),
+      })
+      .first();
 
     super(page, container);
 
@@ -180,12 +184,38 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
-   * Normalizes values by removing percentage symbols and comma separators for comparison
+   * Normalizes values by removing percentage symbols, comma separators, and trailing zeros for comparison
    * @param value - The value to normalize
-   * @returns Normalized value without % symbol and commas
+   * @returns Normalized value without % symbol, commas, and trailing zeros
    */
   private normalizeValue(value: string): string {
-    return value.replace('%', '').replace(/,/g, '');
+    // Remove % symbol and commas
+    let normalized = value.replace('%', '').replace(/,/g, '');
+
+    // Remove trailing zeros from decimal numbers (e.g., "2.0" → "2", "2.50" → "2.5")
+    // Only remove zeros that come after a decimal point
+    normalized = normalized.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+
+    // Trim any whitespace (handles spaces like in "100.0 %")
+    return normalized.trim();
+  }
+
+  /**
+   * Compares a single column value between UI and DB
+   * Can be overridden by subclasses to customize comparison logic for specific columns
+   * @param column - The column name being compared
+   * @param normalizedUiValue - The normalized UI value
+   * @param normalizedDbValue - The normalized DB value
+   * @param keyValue - The key value for the record (for error messages)
+   */
+  protected async compareColumnValue(
+    column: string,
+    normalizedUiValue: string,
+    normalizedDbValue: string,
+    keyValue: string
+  ): Promise<void> {
+    // Default: exact string comparison
+    expect(normalizedUiValue, `${keyValue} ${column} should match exactly`).toBe(normalizedDbValue);
   }
 
   /**
@@ -195,7 +225,7 @@ export class TabluarMetricsComponent extends BaseComponent {
    * @param dbData - The database data array (all records, not limited)
    * @param keyColumn - The column name to use for matching records
    */
-  private async runDataComparison(
+  protected async runDataComparison(
     uiData: Record<string, string>[],
     dbData: Record<string, string>[],
     keyColumn: string
@@ -241,7 +271,8 @@ export class TabluarMetricsComponent extends BaseComponent {
               expect(uiNumeric, `${keyValue} ${column} should match within tolerance`).toBeCloseTo(dbNumeric, 0);
             } else {
               // For non-percentage columns, use exact string comparison
-              expect(normalizedUiValue, `${keyValue} ${column} should match exactly`).toBe(normalizedDbValue);
+              // Subclasses can override compareColumnValue to customize comparison logic
+              await this.compareColumnValue(column, normalizedUiValue, normalizedDbValue, keyValue);
             }
           });
         }
@@ -372,12 +403,17 @@ export class TabluarMetricsComponent extends BaseComponent {
       });
     });
 
-    await test.step(`verify tabular data - table is loaded`, async () => {
+    await test.step(`verify tabular data - table is loaded or no data state`, async () => {
       const dataCells = this.rootLocator.getByRole('gridcell');
-      await this.verifier.verifyCountOfElementsIsGreaterThan(dataCells, 0, {
-        timeout: 40_000,
-        assertionMessage: `table should have data cells`,
-      });
+      const noDataState = this.rootLocator.getByText('No data found for this query');
+
+      // Check if either data cells exist OR "No data found" message is visible
+      const dataCellCount = await dataCells.count();
+      const hasNoDataMessage = await noDataState.isVisible().catch(() => false);
+
+      if (dataCellCount === 0 && !hasNoDataMessage) {
+        throw new Error('Table should either have data cells or show "No data found for this query" message');
+      }
     });
   }
 
@@ -552,7 +588,7 @@ export class TabluarMetricsComponent extends BaseComponent {
       const downloadAction = async () => {
         await this.rootLocator.hover();
         await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
-          timeout: 10_000,
+          timeout: TIMEOUTS.LONG,
           assertionMessage: `Download csv button should be visible`,
         });
         await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });

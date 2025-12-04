@@ -7,6 +7,8 @@ export enum EmployeeListeningSuiteTags {
   POLLS = '@polls',
   POLLS_MANAGEMENT = '@polls-management',
   AI_POLLS = '@ai-polls',
+  SURVEYS = '@surveys',
+  SURVEYS_MANAGEMENT = '@surveys-management',
 }
 
 export enum EmployeeListeningFeatureTags {
@@ -21,6 +23,10 @@ export enum EmployeeListeningFeatureTags {
   POLLS_SEARCH = '@polls-search',
   POLLS_ENABLE_DISABLE = '@polls-enable-disable',
   POLLS_PAGE_VALIDATION = '@polls-page-validation',
+  SURVEYS_CREATE = '@surveys-create',
+  SURVEYS_MANAGE = '@surveys-manage',
+  SURVEYS_SCHEDULING = '@surveys-scheduling',
+  SURVEYS_QUESTIONS = '@surveys-questions',
 }
 
 export const EmployeeListeningTestTags = [

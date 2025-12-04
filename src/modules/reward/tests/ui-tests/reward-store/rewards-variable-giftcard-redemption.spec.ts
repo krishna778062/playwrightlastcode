@@ -15,7 +15,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
   test(
     '[RC-3227] Validate Variable amount gift card redemptions',
     {
-      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -23,10 +23,16 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
         zephyrTestId: 'RC-3227',
         storyId: 'RC-3227',
       });
+      tagTest(test.info(), {
+        description: 'Validate Associate point values with rewards',
+        zephyrTestId: 'RC-3239',
+        storyId: 'RC-3239',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       const giftCardName = 'Airbnb';
       let limits: number[] = [];
 
+      // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
       await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.header);
 

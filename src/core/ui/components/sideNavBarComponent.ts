@@ -9,6 +9,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
   readonly feedLink: Locator;
   readonly homeLink: Locator;
+  readonly orgChartButton: Locator;
 
   readonly sitesButton: Locator;
   readonly navigateOnApplication: Locator;
@@ -17,7 +18,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickOnManageFeature: Locator;
   readonly clickOnFeedSideMenu: Locator;
   readonly clickingOnHome: Locator;
-
+  readonly favoritePeopleSection: Locator;
   //analytics section
   readonly analyticsButton: Locator;
   readonly appAnalyticsButton: Locator;
@@ -38,14 +39,26 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageRolesButton: Locator;
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
+  readonly peopleButton: Locator;
 
   //social campaigns section
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly favoriteButton: Locator;
+
+  //recognition section
+  readonly recognitionLink: Locator;
+  readonly recognitionFeature: Locator;
+  readonly homeNavMenu: Locator;
+  readonly manageNavMenu: Locator;
+
+  //content moderation section
+  readonly clickOnContentModeration: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.createSection = page.locator('span', { hasText: 'Create' });
+    this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
+    this.createSection = page.getByRole('button', { name: 'Create', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
@@ -78,6 +91,17 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
+    this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+
+    //recognition section
+    this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
+    this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
+    this.homeNavMenu = page.getByRole('menuitem', { name: 'Home' });
+    this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
   }
 
   /**
@@ -224,6 +248,11 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.analyticsButton);
     });
   }
+  async clickOnFavoritePeopleSection(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Favourite People Section`, async () => {
+      await this.clickOnElement(this.favoritePeopleSection);
+    });
+  }
 
   async openManageCampaigns(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Manage Campaigns`, async () => {
@@ -237,9 +266,50 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Org chart button`, async () => {
+      await this.hoverOverElementInJavaScript(this.peopleButton);
+      await this.clickOnElement(this.orgChartButton);
+    });
+  }
+
+  async clickOnFavorite(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
+      await this.clickOnElement(this.favoriteButton);
+    });
+  }
+  /**
+   * Clicks on Recognition Link under home menu of side navigation bar
+   * @param options - The options for the step
+   */
+  async clickRecognitionLinkUnderHomeNavMenu(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `Clicking recognition link under home side navigation menu`, async () => {
+      await this.clickOnElement(this.homeNavMenu, { stepInfo: `clicking home side navigation menu` });
+      await expect(this.recognitionLink, `expecting recognition link to be visible on side bar menu`).toBeVisible();
+      await this.clickOnElement(this.recognitionLink, {
+        stepInfo: `clicking recognition link under home side navigation menu`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on Recognition link inside manage menu of side navigation bar
+   * @param options - The options for the step
+   */
+  async clickRecognitionLinkInsideManageNavMenu(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking recognition link inside manage side navigation menu', async () => {
+      await this.clickOnElement(this.manageNavMenu, {
+        stepInfo: 'Clicking manage side navigation menu',
+      });
+      await this.clickOnElement(this.recognitionLink, {
+        stepInfo: 'Clicking recognition link inside manage side navigation menu',
+      });
+    });
+  }
+
   async verifyingCreateButtonIsVisible(): Promise<void> {
     await test.step('Verifying Create button is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
+      await this.verifier.verifyTheElementIsVisible(this.createSection);
     });
   }
 }

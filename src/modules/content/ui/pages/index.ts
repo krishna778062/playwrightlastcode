@@ -1,6 +1,7 @@
 export * from './activityNotificationPage';
 export * from './albumCreationPage';
 export * from './applicationsScreenPage';
+export * from './contentModerationQueuePage';
 export * from './contentPreviewPage';
 export * from './editPagePage';
 export * from './eventCreationPage';
@@ -12,6 +13,7 @@ export * from './manageApplicationPage';
 export * from './manageContentPage';
 export * from './manageFeaturesPage';
 export * from './manageSitePage';
+export * from './manageSiteSetUpPage';
 export * from './pageCreationPage';
 export * from './privilegesScreenPage';
 export * from './siteCategoriesPage';

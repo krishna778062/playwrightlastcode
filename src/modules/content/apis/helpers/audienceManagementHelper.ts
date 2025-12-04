@@ -1,6 +1,7 @@
 import { APIRequestContext } from '@playwright/test';
 
 import { Audience, AudienceRule, CreateAudienceRequest, CreateAudienceResponse } from '@core/types/audience.types';
+import { log } from '@core/utils/logger';
 
 import { AudienceManagementService } from '@/src/modules/content/apis/services/AudienceManagementService';
 
@@ -63,7 +64,20 @@ export class AudienceManagementHelper {
         name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
         description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
         type: 'mixed',
-        audienceRule: { AND: [] },
+        audienceRule: {
+          AND: [
+            {
+              AND: [
+                {
+                  values: [{ value: 'A' }],
+                  attribute: 'first_name',
+                  operator: 'CONTAINS',
+                  fieldType: 'regular',
+                },
+              ],
+            },
+          ],
+        },
       });
       return {
         audienceId: newAudience.result.audienceId,
@@ -117,6 +131,7 @@ export class AudienceManagementHelper {
    * @returns Promise<CreateAudienceResponse>
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    log.debug('createAudience request', { request: JSON.stringify(request) });
     return await this.audienceManagementService.createAudience(request);
   }
 
@@ -138,7 +153,7 @@ export class AudienceManagementHelper {
   async deleteAudience(audienceId: string): Promise<void> {
     // Note: This would need to be implemented in AudienceManagementService
     // For now, we'll just log that cleanup is needed
-    console.log(`Audience ${audienceId} cleanup needed - delete method not implemented yet`);
+    log.debug(`Audience ${audienceId} cleanup needed - delete method not implemented yet`);
   }
 
   /**
@@ -152,9 +167,45 @@ export class AudienceManagementHelper {
     audienceCount: string | number;
   }> {
     const response = await this.audienceManagementService.getAudienceList();
-    const audience = response.result.listOfItems.find(audience => audience.description !== null);
+
+    log.debug('response', { response: JSON.stringify(response.result.listOfItems) });
+    const audience = response.result.listOfItems.find(
+      audience =>
+        audience.description !== null &&
+        audience.description !== '' &&
+        audience.audienceCount &&
+        audience.audienceCount > 0
+    );
+
+    log.debug('audience', { audience: JSON.stringify(audience) });
+    log.debug('audience description', { description: JSON.stringify(audience?.description) });
     if (!audience) {
-      throw new Error('No audience with no description found');
+      //create audience with description
+      const newAudience = await this.createAudience({
+        name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
+        description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
+        type: 'mixed',
+        audienceRule: {
+          AND: [
+            {
+              AND: [
+                {
+                  values: [{ value: 'A' }],
+                  attribute: 'first_name',
+                  operator: 'CONTAINS',
+                  fieldType: 'regular',
+                },
+              ],
+            },
+          ],
+        },
+      });
+      return {
+        name: newAudience.result.name,
+        description: newAudience.result.description,
+        audienceId: newAudience.result.audienceId,
+        audienceCount: newAudience.result.audienceMemberCount,
+      };
     }
     return {
       name: audience.name,

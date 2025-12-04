@@ -28,6 +28,15 @@ export enum IntegrationsSuiteTags {
   WORKDAY = '@workdayAppTiles',
   HOTJAR = '@hotjar',
   WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
+  FORM = '@formAppTiles',
+  DISPLAY = '@displayAppTiles',
+  HYBRID = '@hybridAppTiles',
+  SALESFORCE = '@salesforceAppTiles',
+  HEALTH_CHECK = '@healthcheck',
+  TAG = '@tagComponent',
+  LINK = '@linkComponent',
+  SERVICENOW_APPTILES = '@serviceNowAppTiles',
+  CUSTOM_APPS = '@customApps',
 }
 
 export enum IntegrationsFeatureTags {
@@ -41,6 +50,7 @@ export enum IntegrationsFeatureTags {
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
   HOTJAR = '@hotjar',
   WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
+  APPS_LINKS = '@apps-links',
 }
 
 export const TEST_TAGS = {
@@ -77,11 +87,14 @@ export const TEST_TAGS = {
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
   HOTJAR: IntegrationsSuiteTags.HOTJAR,
   WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
+  HEALTH_CHECK: IntegrationsSuiteTags.HEALTH_CHECK,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
+  AZURE_SYNC = '@azure-sync',
+  WORKDAY_SYNC = '@workday-sync',
   PEOPLE_TAB = '@people',
   UKG_SYNCING = '@ukg-syncing',
 }

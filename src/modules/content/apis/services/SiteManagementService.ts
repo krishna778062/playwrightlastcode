@@ -6,12 +6,15 @@ import {
   SiteListOptions,
   SiteListResponse,
   SiteMembershipAction,
+  SiteMembershipListResponse,
   SiteMembershipResponse,
   SitePermission,
 } from '@core/types/siteManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
+import { PeopleListResponse } from '@/src/core/types/people.type';
 import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
 
 const defaultSitePayload: SiteCreationPayload = {
@@ -65,6 +68,29 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getListOfPeople(options?: { size?: number; filter?: string }): Promise<PeopleListResponse> {
+    return await test.step(`Getting list of people using API`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.people, {
+        data: {
+          filter: options?.filter || 'favorites',
+          size: options?.size || 100,
+        },
+      });
+      return await this.httpClient.parseResponse<PeopleListResponse>(response);
+    });
+  }
+
+  async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
+    return await test.step(`Accepting membership request for site: ${siteId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.acceptMembershipRequest(siteId), {
+        data: {
+          action: 'approve',
+          request_id: requestId,
+        },
+      });
+      return await response.json();
+    });
+  }
   /**
    * Adds a new site using the API
    * @param overrides - The overrides to use for the site creation
@@ -79,7 +105,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           const randomNum = Math.floor(Math.random() * 1000000 + 1);
           return `AutomateUI_Test_${randomNum}`;
         })();
-      const categoryObj = await this.getCategoryId(overrides.category?.name || 'default');
+      const categoryObj = await this.getCategoryId(overrides.category?.name || 'uncategorized');
 
       // Always include as true, only override if explicitly provided
       const optionalParams = {
@@ -135,6 +161,59 @@ export class SiteManagementService implements ISiteManagementOperations {
     });
   }
 
+  async getFollowersAndFollowingList(userId: string, size: number = 100): Promise<any> {
+    return await test.step(`Getting followers and following list for user: ${userId}`, async () => {
+      const allResults: any[] = [];
+      let nextPageToken: number | undefined = undefined;
+      let hasMorePages = true;
+      let lastResponse: any = null;
+
+      while (hasMorePages) {
+        const response = await this.httpClient.get(
+          API_ENDPOINTS.identity.followersAndFollowingList(userId, size, nextPageToken)
+        );
+        if (!response.ok()) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(
+            `Failed to get followers and following list. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+          );
+        }
+        const json = await response.json();
+        lastResponse = json;
+        log.debug('followersAndFollowingList response', { response: json });
+
+        // Merge results by type
+        if (json.result && Array.isArray(json.result)) {
+          for (const item of json.result) {
+            const existingItem = allResults.find(r => r.type === item.type);
+            if (existingItem) {
+              // Append to existing list
+              existingItem.listOfItems = [...existingItem.listOfItems, ...item.listOfItems];
+              existingItem.count = String(parseInt(existingItem.count) + item.listOfItems.length);
+              existingItem.nextPageToken = item.nextPageToken;
+            } else {
+              // Add new item
+              allResults.push({ ...item });
+            }
+          }
+
+          // Check if there's a nextPageToken for any type
+          const followingItem = json.result.find((item: any) => item.type === 'following');
+          nextPageToken = followingItem?.nextPageToken;
+          hasMorePages = nextPageToken !== undefined && nextPageToken !== null;
+        } else {
+          hasMorePages = false;
+        }
+      }
+
+      return {
+        status: lastResponse?.status || 'success',
+        responseTimeStamp: lastResponse?.responseTimeStamp,
+        message: lastResponse?.message || 'Retrieved list successfully',
+        result: allResults,
+      };
+    });
+  }
   /**
    * Deactivates a site using the API
    * @param siteId - The id of the site to deactivate
@@ -142,14 +221,14 @@ export class SiteManagementService implements ISiteManagementOperations {
   async deactivateSite(siteId: string) {
     return await test.step(`Deactivating site using API: ${siteId}`, async () => {
       const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
-      console.log('Deactivate site full URL:', fullUrl);
+      log.debug('Deactivate site full URL', { url: fullUrl });
       const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
         data: {
           ids: [siteId],
           newStatus: 'deactivated',
         },
       });
-      console.log('Deactivate site response:', response.status());
+      log.debug('Deactivate site response', { status: response.status() });
       const json = await response.json();
       if (json.status !== 'success') {
         throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
@@ -165,14 +244,14 @@ export class SiteManagementService implements ISiteManagementOperations {
   async activateSite(siteId: string) {
     return await test.step(`Activating site using API: ${siteId}`, async () => {
       const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.activate}` : API_ENDPOINTS.site.activate;
-      console.log('Activate site full URL:', fullUrl);
+      log.debug('Activate site full URL', { url: fullUrl });
       const response = await this.httpClient.put(API_ENDPOINTS.site.activate, {
         data: {
           ids: [siteId],
           newStatus: 'activated',
         },
       });
-      console.log('Activate site response:', response.status());
+      log.debug('Activate site response', { status: response.status() });
       const json = await response.json();
       if (json.status !== 'success') {
         throw new Error(`Failed to activate site: ${JSON.stringify(json)}`);
@@ -206,8 +285,7 @@ export class SiteManagementService implements ISiteManagementOperations {
     if (!file) {
       throw new Error(`File with name ${fileName} not found in site ${siteId}`);
     }
-    console.log('File found:', file.id);
-    console.log('Author name:', file.owner.name);
+    log.debug('File found', { fileId: file.id, authorName: file.owner.name });
     return {
       fileId: file.id,
       authorName: file.owner.name,
@@ -236,7 +314,7 @@ export class SiteManagementService implements ISiteManagementOperations {
             },
           });
           const responseBody = await response.json();
-          console.log('responseBody', responseBody);
+          log.debug('responseBody', { response: responseBody });
           // Find the specific file by checking the title field
           file = responseBody.result?.listOfItems?.find((item: any) => item.item.title === fileName);
           expect(file).toBeDefined();
@@ -246,7 +324,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         }
       ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
     });
-    console.log('fileID', file.item.fileId);
+    log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };
   }
 
@@ -264,7 +342,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         size: options.size || 1000,
         canManage: options.canManage !== undefined ? options.canManage : true,
         filter: options.filter || 'active',
-        sortBy: options.sortBy || 'createdNewest',
+        sortBy: options.sortBy || 'alphabetical',
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
@@ -277,6 +355,105 @@ export class SiteManagementService implements ISiteManagementOperations {
         throw new Error(`Failed to get sites list. Status: ${json.status}`);
       }
 
+      return json;
+    });
+  }
+  async approveContent(siteId: string, contentId: string): Promise<void> {
+    return await test.step(`Approving content: ${contentId} for site: ${siteId}`, async () => {
+      // First, get the content details to get all required fields
+      const getResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId));
+      const contentData = await getResponse.json();
+
+      if (!getResponse.ok() || contentData.status !== 'success') {
+        throw new Error(`Failed to get content details. Status: ${getResponse.status()}`);
+      }
+
+      const content = contentData.result;
+
+      // Prepare the approval payload with all required fields from the existing content
+      const approvalPayload = {
+        authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
+        contentSubType: content.contentSubType || content.type || 'general',
+        contentType: content.type || 'page',
+        listOfFiles: content.listOfFiles || [],
+        publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),
+        body: content.body || '',
+        imgCaption: content.imgCaption || '',
+        isRestricted: content.isRestricted || false,
+        publishingStatus: content.status === 'published' ? 'immediate' : content.publishingStatus || 'immediate',
+        listOfInlineImages: content.listOfInlineImages || [],
+        listOfInlineVideos: content.listOfInlineVideos || [],
+        summary: content.summary || null,
+        readTimeInMin: content.readTimeInMin || 1,
+        publishTo: content.publishTo || null,
+        bodyHtml: content.bodyHtml || `<p>${content.excerpt || ''}</p>`,
+        imgLayout: content.imgLayout || 'small',
+        isMaximumWidth: content.isMaximumWidth || false,
+        isQuestionAnswerEnabled: content.isQuestionAnswerEnabled !== undefined ? content.isQuestionAnswerEnabled : true,
+        targetAudience: content.targetAudience || [],
+        title: content.title || '',
+        language: content.language || 'en-US',
+        isFeedEnabled: content.isFeedEnabled !== undefined ? content.isFeedEnabled : true,
+        listOfTopics: content.listOfTopics || [],
+        category: content.category
+          ? {
+              id: content.category.id || content.category.categoryId || '',
+              name: content.category.name || '',
+            }
+          : { id: '', name: 'Uncategorized' },
+        manualTransEnabled: content.manualTransEnabled || false,
+        // Event-specific fields
+        ...(content.startsAt && { startsAt: content.startsAt }),
+        ...(content.endsAt && { endsAt: content.endsAt }),
+        ...(content.timezoneIso && { timezoneIso: content.timezoneIso }),
+        ...(content.location && { location: content.location }),
+        ...(content.isAllDay !== undefined && { isAllDay: content.isAllDay }),
+        // Album-specific fields
+        ...(content.listOfAlbumMedia && { listOfAlbumMedia: content.listOfAlbumMedia }),
+        ...(content.coverImageMediaId && { coverImageMediaId: content.coverImageMediaId }),
+      };
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.approveContent(siteId, contentId), {
+        data: approvalPayload,
+      });
+      return await response.json();
+    });
+  }
+
+  async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
+    return await test.step(`Rejecting content: ${contentId} for site: ${siteId}`, async () => {
+      const rejectPayload = {
+        rejectionComment: rejectionComment || 'This is not good',
+        action: 'reject',
+      };
+
+      // Use action as query parameter similar to approveContent endpoint pattern
+      const endpointWithAction = `${API_ENDPOINTS.content.manageContent(siteId, contentId)}`;
+
+      log.debug('Attempting to reject content', { payload: JSON.stringify(rejectPayload) });
+      const response = await this.httpClient.post(endpointWithAction, {
+        data: rejectPayload,
+      });
+
+      const json = await response.json();
+      log.debug('rejectContent response', {
+        status: response.status(),
+        responseBody: JSON.stringify(json, null, 2),
+      });
+
+      if (!response.ok() || json.status !== 'success') {
+        // Extract error details from errors array if present
+        const errors = json.errors || [];
+        const errorMessages = errors.map((err: any) => `${err.error_code}: ${err.message}`).join(', ');
+        const errorMessage = json.message || json.error || errorMessages || 'Unknown error';
+        const errorCode = json.errors?.[0]?.error_code || json.errorCode || json.code || 'N/A';
+
+        throw new Error(
+          `Failed to reject content. HTTP Status: ${response.status()}, Error Code: ${errorCode}, Message: ${errorMessage}, Full Response: ${JSON.stringify(json)}`
+        );
+      }
+
+      log.debug(`Successfully rejected content: ${contentId}`);
       return json;
     });
   }
@@ -300,7 +477,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         );
       }
 
-      console.log(`Successfully unfeatured site: ${siteId}`);
+      log.debug(`Successfully unfeatured site: ${siteId}`);
       return json;
     });
   }
@@ -343,7 +520,6 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
-
   /**
    * Updates site access level (public/private/unlisted)
    * @param siteId - The ID of the site to update
@@ -384,12 +560,12 @@ export class SiteManagementService implements ISiteManagementOperations {
         const response = await this.httpClient.delete(`${API_ENDPOINTS.site.category}/${categoryInfo.categoryId}`);
 
         if (response.status() === 200) {
-          console.log(`Category "${categoryName}" deleted successfully via API`);
+          log.debug(`Category "${categoryName}" deleted successfully via API`);
         } else {
-          console.log(`Category deletion response status: ${response.status()}`);
+          log.debug(`Category deletion response status: ${response.status()}`);
         }
       } catch (error) {
-        console.log(`Failed to delete category "${categoryName}" via API: ${error}`);
+        log.error(`Failed to delete category "${categoryName}" via API`, error);
         throw error;
       }
     });
@@ -415,10 +591,13 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param options - Optional parameters for the membership list request
    * @returns Promise containing the membership list response
    */
-  async getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any> {
+  async getSiteMembershipList(
+    siteId: string,
+    options?: { size?: number; type?: string }
+  ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
-        size: 16,
+        size: 100,
         type: 'members',
         ...options,
       };
@@ -448,57 +627,6 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       if (!response.ok()) {
         throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
-      }
-
-      return responseBody;
-    });
-  }
-
-  /**
-   * Gets the carousel items list for a specific site
-   * @param siteId - The site ID to retrieve carousel items for
-   * @returns Promise containing the carousel items response
-   */
-  async getSiteCarouselItems(siteId: string): Promise<any> {
-    return await test.step(`Getting carousel items for site ID: ${siteId}`, async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.site.carouselItems(siteId), {
-        data: {
-          siteId: siteId,
-        },
-      });
-
-      const responseBody = await response.json();
-      console.log('Carousel items response:', JSON.stringify(responseBody, null, 2));
-
-      if (!response.ok()) {
-        throw new Error(`Failed to get carousel items for ${siteId}. Status: ${response.status()}`);
-      }
-
-      return responseBody;
-    });
-  }
-
-  /**
-   * Deletes a carousel item from a specific site
-   * @param siteId - The site ID containing the carousel item
-   * @param carouselItemId - The carousel item ID to delete
-   * @returns Promise containing the delete response
-   */
-  async deleteSiteCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
-    return await test.step(`Deleting carousel item ${carouselItemId} from site ${siteId}`, async () => {
-      const response = await this.httpClient.delete(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId));
-
-      const responseBody = await response.json();
-      console.log('Delete carousel item response:', JSON.stringify(responseBody, null, 2));
-
-      if (!response.ok()) {
-        throw new Error(
-          `Failed to delete carousel item ${carouselItemId} from site ${siteId}. Status: ${response.status()}`
-        );
-      }
-
-      if (responseBody.status !== 'success') {
-        throw new Error(`Delete carousel item failed. Response: ${JSON.stringify(responseBody)}`);
       }
 
       return responseBody;

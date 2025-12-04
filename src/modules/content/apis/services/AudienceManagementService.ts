@@ -76,7 +76,9 @@ export class AudienceManagementService {
       const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
         data: request,
       });
-      return (await response.json()) as CreateAudienceResponse;
+      const responseData = (await response.json()) as CreateAudienceResponse;
+      console.log('CreateAudienceResponse', JSON.stringify(responseData));
+      return responseData;
     });
   }
 

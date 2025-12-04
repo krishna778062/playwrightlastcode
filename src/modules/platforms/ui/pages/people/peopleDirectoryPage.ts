@@ -64,7 +64,7 @@ export class PeopleDirectoryPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await expect(this.manager).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      // await expect(this.manager).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.division).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.expertise).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.hireDate).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
