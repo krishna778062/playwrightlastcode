@@ -426,12 +426,12 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('File upload');
-        await formCreationPage.addHeadingIntoComponent('File Upload', 'Automation Test - File Upload Description');
+        await formCreationPage.dragAndDropElement('Upload file');
+        await formCreationPage.addHeadingIntoComponent('Upload file', 'Automation Test - File Upload Description');
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verifyCopiedComponentIsVisible('File Upload');
+        await formCreationPage.verifyCopiedComponentIsVisible('Upload file');
         await formCreationPage.clickOnDeleteIcon();
-        await formCreationPage.verifyComponentIsDeleted('File Upload');
+        await formCreationPage.verifyComponentIsDeleted('Upload file');
       }
     );
     test(
@@ -448,12 +448,12 @@ test.describe(
         const formCreationPage = new FormCreationPage(appManagerPage);
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.verifyBlockSectionIsVisible();
-        await formCreationPage.dragAndDropElement('Image');
-        await formCreationPage.addHeadingIntoComponent('Image', 'Automation Test - Image Description');
+        await formCreationPage.dragAndDropElement('Upload image');
+        await formCreationPage.addHeadingIntoComponent('Upload image', 'Automation Test - Image Description');
         await formCreationPage.clickOnCopyIcon();
-        await formCreationPage.verifyCopiedComponentIsVisible('Image');
+        await formCreationPage.verifyCopiedComponentIsVisible('Upload image');
         await formCreationPage.clickOnDeleteIcon();
-        await formCreationPage.verifyComponentIsDeleted('Image');
+        await formCreationPage.verifyComponentIsDeleted('Upload image');
       }
     );
     test(
