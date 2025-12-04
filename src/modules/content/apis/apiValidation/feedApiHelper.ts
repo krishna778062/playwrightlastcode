@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
-import { FeedPostResponse } from '@core/types/feed.type';
+import { FeedPostResponse, FeedResult } from '@core/types/feed.type';
 
 export class FeedApiHelper {
   /**
@@ -136,6 +136,71 @@ export class FeedApiHelper {
       expect(feedResponse.result.listOfLinks, 'listOfLinks should be an array').toBeInstanceOf(Array);
       expect(feedResponse.result.listOfLinks.length, 'Should contain at least one link').toBeGreaterThan(0);
       expect(typeof feedResponse.result.listOfLinks[0], 'Link should be a string').toBe('string');
+    });
+  }
+
+  /**
+   * Validates the feed update response (FeedResult from updatePost)
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param originalFeedId - The original feed ID that was updated
+   * @param expectedText - The expected text that should be in textJson
+   */
+  async validateFeedUpdateResponse(
+    updatedFeedResult: FeedResult,
+    originalFeedId: string,
+    expectedText: string
+  ): Promise<void> {
+    await test.step('Validate feed update response', async () => {
+      expect(updatedFeedResult.feedId, 'Feed ID should match the original feed ID').toBe(originalFeedId);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain the updated text').toContain(expectedText);
+    });
+  }
+
+  /**
+   * Validates that the feed update response contains site mentions
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param siteMentions - Array of site mentions with id and label
+   */
+  async validateFeedUpdateResponseSiteMentions(
+    updatedFeedResult: FeedResult,
+    siteMentions: { id: string; label: string }[]
+  ): Promise<void> {
+    // Store in local variable to ensure proper closure capture
+    const mentions = siteMentions;
+    await test.step('Validate feed update response contains site mentions', async () => {
+      if (!mentions || mentions.length === 0) {
+        throw new Error('siteMentions array is required and must not be empty');
+      }
+      expect(updatedFeedResult.textJson, 'Text JSON should contain site mentions').toContain('UserAndSiteMention');
+      expect(updatedFeedResult.textJson, 'Text JSON should contain first site ID').toContain(mentions[0].id);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain site type').toContain('"type":"site"');
+      if (mentions.length > 1) {
+        expect(updatedFeedResult.textJson, 'Text JSON should contain second site ID').toContain(mentions[1].id);
+      }
+    });
+  }
+
+  /**
+   * Validates that the feed update response contains user mentions
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param userMentions - Array of user mentions with id and label
+   */
+  async validateFeedUpdateResponseUserMentions(
+    updatedFeedResult: FeedResult,
+    userMentions: { id: string; label: string }[]
+  ): Promise<void> {
+    // Store in local variable to ensure proper closure capture
+    const mentions = userMentions;
+    await test.step('Validate feed update response contains user mentions', async () => {
+      if (!mentions || mentions.length === 0) {
+        throw new Error('userMentions array is required and must not be empty');
+      }
+      expect(updatedFeedResult.textJson, 'Text JSON should contain user mentions').toContain('UserAndSiteMention');
+      expect(updatedFeedResult.textJson, 'Text JSON should contain first user ID').toContain(mentions[0].id);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain user type').toContain('"type":"user"');
+      if (mentions.length > 1) {
+        expect(updatedFeedResult.textJson, 'Text JSON should contain second user ID').toContain(mentions[1].id);
+      }
     });
   }
 }
