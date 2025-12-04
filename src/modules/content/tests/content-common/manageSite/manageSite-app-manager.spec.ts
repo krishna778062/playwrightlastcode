@@ -485,13 +485,28 @@ test.describe(
           zephyrTestId: 'CONT-20539',
           storyId: 'CONT-20539',
         });
-        await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.selectContentValidationPeriodTime(
           CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
         );
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const sitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+
+        // Find a site where the standard user is owner and can manage
+        // The list response includes isOwner and canManage properties directly
+        const site = sitesResponse.result.listOfItems.find(
+          (site: any) => site.isActive === true && site.isOwner === true && site.canManage === true
+        );
+
+        if (!site) {
+          throw new Error('No site found where isOwner is true and canManage is true');
+        }
+
+        const siteId = site.siteId;
+        console.log(`Found site ${site.name} (${siteId}) where standard user is owner and can manage`);
         const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: siteId,
           contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
@@ -501,6 +516,8 @@ test.describe(
         const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
         await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
         const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPageForStandardUser.actions.clickSortByButton();
         await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
           siteId,
