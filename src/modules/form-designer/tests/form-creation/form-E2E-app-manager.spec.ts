@@ -463,7 +463,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
@@ -516,7 +515,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
@@ -569,7 +567,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
@@ -622,7 +619,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
@@ -711,7 +707,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
@@ -744,7 +739,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           TestGroupType.E2E,
-          TestGroupType.TestAutomation,
         ],
       },
       async ({ appManagerPage }) => {
