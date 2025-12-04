@@ -397,6 +397,13 @@ export class CreateFeedPostComponent
   async clickPostButton(): Promise<void> {
     await test.step('Click post button', async () => {
       await this.clickOnElement(this.postButton);
+      await this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        { timeout: 20_000 }
+      );
     });
   }
 
