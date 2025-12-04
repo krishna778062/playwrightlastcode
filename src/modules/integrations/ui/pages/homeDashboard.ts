@@ -1052,4 +1052,26 @@ export class HomeDashboard extends BasePage {
   ): Promise<void> {
     await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
   }
+  /**
+   * Verify Service Now tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyServiceNowTileContentStructure(tileTitle);
+  }
+  /**
+   * Complete workflow to add a ServiceNow tile with Dropdown
+   */
+  async addTileWithDropdownField(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    fieldName: string,
+    value: string,
+    destination: string
+  ): Promise<void> {
+    await this.addTile(tileTitle, appName, tileName, destination, {
+      dropdowns: [{ fieldName, value }],
+    });
+  }
 }
