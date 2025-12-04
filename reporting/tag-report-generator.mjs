@@ -20,74 +20,25 @@ function generateResolvedKnownFailuresTableRows(resolvedKnownFailures) {
   }
 
   return resolvedKnownFailures
-    .sort((a, b) => {
-      // Sort by resolved date (most recent first)
-      const dateA = new Date(a.resolvedDate);
-      const dateB = new Date(b.resolvedDate);
-      return dateB - dateA;
-    })
     .map((failure, index) => {
-      const rowClass = index % 2 === 0 ? '' : 'bg-gray-50';
-      const formattedDate =
-        failure.bugReportedDate === 'Unknown'
-          ? 'Unknown'
-          : new Date(failure.bugReportedDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            });
+      const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-emerald-50/50';
 
-      // Handle long test names with truncation
-      const maxTestNameLength = 60;
-      const maxSuiteNameLength = 35;
-
-      function smartTruncate(text, maxLength) {
-        if (text.length <= maxLength) return text;
-
-        const truncated = text.substring(0, maxLength - 3);
-        const lastSpace = truncated.lastIndexOf(' ');
-        const lastDash = truncated.lastIndexOf('-');
-        const lastUnderscore = truncated.lastIndexOf('_');
-
-        const breakPoint = Math.max(lastSpace, lastDash, lastUnderscore);
-
-        if (breakPoint > maxLength * 0.7) {
-          return truncated.substring(0, breakPoint) + '...';
-        } else {
-          return truncated + '...';
-        }
-      }
-
-      const truncatedTestName = smartTruncate(failure.testName, maxTestNameLength);
-      const truncatedSuiteName = smartTruncate(failure.suiteName, maxSuiteNameLength);
-
-      // Priority color mapping
-      const priorityColors = {
-        High: 'bg-red-100 text-red-800',
-        Medium: 'bg-yellow-100 text-yellow-800',
-        Low: 'bg-green-100 text-green-800',
-        Unknown: 'bg-gray-100 text-gray-800',
-      };
-
-      const priorityClass = priorityColors[failure.priority] || priorityColors.Unknown;
+      // Truncate test name for display
+      const maxLen = 35;
+      const truncatedName =
+        failure.testName.length > maxLen ? failure.testName.substring(0, maxLen) + '...' : failure.testName;
 
       return `
-        <tr class="${rowClass} hover:bg-green-100 hover:text-green-700 transition-colors duration-200 cursor-pointer">
-          <td class="px-4 py-2 text-sm text-center">
-            <a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium font-mono">${failure.testCaseNo}</a>
+        <tr class="${rowClass} hover:bg-emerald-100 transition-colors">
+          <td class="px-3 py-1.5 text-xs">
+            ${
+              failure.testCaseNo && failure.testId
+                ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-emerald-600 hover:text-emerald-800 font-mono font-medium">${failure.testCaseNo}</a>`
+                : `<span class="text-slate-500 font-mono">${failure.testCaseNo || '-'}</span>`
+            }
           </td>
-          <td class="px-4 py-2 text-sm">
-            <div title="${failure.testName}" class="break-words">${truncatedTestName}</div>
-            <div class="text-xs text-gray-500 break-words">${truncatedSuiteName}</div>
-          </td>
-          <td class="px-4 py-2 text-sm text-center text-gray-600">${formattedDate}</td>
-          <td class="px-4 py-2 text-sm text-center">
-            <a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">${failure.ticketId}</a>
-          </td>
-          <td class="px-4 py-2 text-sm text-center">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityClass}">
-              ${failure.priority}
-            </span>
+          <td class="px-3 py-1.5 text-xs">
+            <div title="${failure.testName}" class="font-medium text-slate-700">${truncatedName}</div>
           </td>
         </tr>`;
     })
@@ -103,105 +54,53 @@ function generateKnownFailuresTableRows(knownFailures) {
   if (!knownFailures || knownFailures.length === 0) {
     return `
       <tr>
-        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-          <div class="text-4xl mb-2">✅</div>
-          <div class="font-medium">No Known Failures</div>
-          <div class="text-sm">All tests are passing or have been fixed!</div>
+        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+          <div class="text-3xl mb-2">✅</div>
+          <div class="font-medium text-sm">No Known Failures</div>
         </td>
       </tr>`;
   }
 
   return knownFailures
-    .sort((a, b) => {
-      // First sort by priority: High > Medium > Low
-      const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-      const priorityA = priorityOrder[a.priority] || 0;
-      const priorityB = priorityOrder[b.priority] || 0;
-
-      if (priorityA !== priorityB) {
-        return priorityB - priorityA; // Higher priority first
-      }
-
-      // If same priority, sort by bug reported date (oldest first to show longest outstanding issues)
-      const dateA = a.bugReportedDate === 'Unknown' ? new Date(0) : new Date(a.bugReportedDate);
-      const dateB = b.bugReportedDate === 'Unknown' ? new Date(0) : new Date(b.bugReportedDate);
-      return dateA - dateB;
-    })
     .map((failure, index) => {
-      const rowClass = index % 2 === 0 ? '' : 'bg-gray-50';
-      const formattedDate =
-        failure.bugReportedDate === 'Unknown'
-          ? 'Unknown'
-          : new Date(failure.bugReportedDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            });
+      // Truncate test name for display
+      const maxLen = 35;
+      const truncatedName =
+        failure.testName.length > maxLen ? failure.testName.substring(0, maxLen) + '...' : failure.testName;
 
-      // Handle long test names with truncation
-      const maxTestNameLength = 60;
-      const maxSuiteNameLength = 35;
-
-      // truncation that tries to break at word boundaries
-      function smartTruncate(text, maxLength) {
-        if (text.length <= maxLength) return text;
-
-        // Try to find a good break point (space, dash, underscore)
-        const truncated = text.substring(0, maxLength - 3);
-        const lastSpace = truncated.lastIndexOf(' ');
-        const lastDash = truncated.lastIndexOf('-');
-        const lastUnderscore = truncated.lastIndexOf('_');
-
-        // Use the best break point found
-        const breakPoint = Math.max(lastSpace, lastDash, lastUnderscore);
-
-        if (breakPoint > maxLength * 0.7) {
-          // Only use break point if it's not too early
-          return truncated.substring(0, breakPoint) + '...';
-        } else {
-          return truncated + '...';
-        }
-      }
-
-      const truncatedTestName = smartTruncate(failure.testName, maxTestNameLength);
-      const truncatedSuiteName = smartTruncate(failure.suiteName, maxSuiteNameLength);
-
-      const testNameTooltip = failure.testName.length > maxTestNameLength ? `title="${failure.testName}"` : '';
-      const suiteNameTooltip = failure.suiteName.length > maxSuiteNameLength ? `title="${failure.suiteName}"` : '';
-
-      // Priority color coding
-      const priorityColors = {
-        High: 'bg-red-100 text-red-800',
-        Medium: 'bg-yellow-100 text-yellow-800',
-        Low: 'bg-green-100 text-green-800',
+      // Determine priority badge color
+      const priorityStyles = {
+        High: 'bg-red-100 text-red-700',
+        Medium: 'bg-orange-100 text-orange-700',
+        Low: 'bg-green-100 text-green-700',
+        Unknown: 'bg-gray-100 text-gray-500',
       };
-      const priorityColor = priorityColors[failure.priority] || 'bg-gray-100 text-gray-800';
+      const priorityClass = priorityStyles[failure.priority] || priorityStyles['Unknown'];
 
       return `
-        <tr class="${rowClass} hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 cursor-pointer">
-          <td class="px-4 py-2 text-sm text-center">
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <td class="px-2 py-2.5 text-sm">
             ${
               failure.testCaseNo && failure.testId
-                ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium font-mono">${failure.testCaseNo}</a>`
-                : `<span class="text-gray-600 font-mono">${failure.testCaseNo || 'N/A'}</span>`
+                ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-mono text-xs">${failure.testCaseNo}</a>`
+                : `<span class="text-gray-500 font-mono text-xs">${failure.testCaseNo || '-'}</span>`
             }
+            <div class="text-gray-500 text-xs mt-0.5">${truncatedName}</div>
           </td>
-          <td class="px-4 py-2 text-center text-base font-bold text-gray-900 test-name-cell">
-            <div ${testNameTooltip} class="break-words">${truncatedTestName}</div>
-            <div class="text-xs text-gray-500 break-words" ${suiteNameTooltip}>${truncatedSuiteName}</div>
+          <td class="px-2 py-2.5 text-sm">
+            <div title="${failure.testName}" class="text-gray-700">${failure.suiteName || ''}</div>
           </td>
-          <td class="px-4 py-2 text-sm text-center text-gray-600">${formattedDate}</td>
-          <td class="px-4 py-2 text-sm text-center">
+          <td class="px-2 py-2.5 text-center">
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${priorityClass}">${failure.priority || 'Unknown'}</span>
+          </td>
+          <td class="px-2 py-2.5 text-center">
             ${
               failure.ticketUrl
-                ? `<a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">${failure.ticketId}</a>`
-                : `<span class="text-gray-500">${failure.ticketId || 'N/A'}</span>`
+                ? `<a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">View</a>`
+                : failure.ticketId
+                  ? `<span class="text-gray-600 text-sm">${failure.ticketId}</span>`
+                  : `<span class="text-gray-400">-</span>`
             }
-          </td>
-          <td class="px-4 py-2 text-sm text-center">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor}">
-              ${failure.priority || 'Medium'}
-            </span>
           </td>
         </tr>`;
     })
@@ -228,22 +127,36 @@ function generateTableRows(tagStats) {
       const actualTotal = stats.passed + actualFailures + stats.flaky;
       const passRate = actualTotal > 0 ? ((stats.passed / actualTotal) * 100).toFixed(2) : '0.00';
       const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
-      const rowClass = index % 2 === 0 ? '' : 'bg-gray-50';
+      const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50';
       const passRateColor =
-        parseFloat(passRate) === 100
-          ? 'text-pass-green'
-          : parseFloat(passRate) === 0
-            ? 'text-fail-red'
-            : 'text-gray-700';
+        parseFloat(passRate) === 100 ? 'text-green-600' : parseFloat(passRate) === 0 ? 'text-red-600' : 'text-gray-700';
+
+      // Simple colored numbers
+      const passedText =
+        stats.passed > 0
+          ? `<span class="text-green-600 font-semibold">${stats.passed}</span>`
+          : `<span class="text-gray-400">0</span>`;
+      const failedText =
+        stats.failed > 0
+          ? `<span class="text-red-500 font-semibold">${stats.failed}</span>`
+          : `<span class="text-gray-400">0</span>`;
+      const skippedText =
+        stats.skipped > 0
+          ? `<span class="text-gray-600">${stats.skipped}</span>`
+          : `<span class="text-gray-400">0</span>`;
+      const flakyText =
+        stats.flaky > 0
+          ? `<span class="text-orange-500 font-semibold">${stats.flaky}</span>`
+          : `<span class="text-gray-400">0</span>`;
 
       return `
-        <tr class="${rowClass} hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 cursor-pointer" data-tag="${tag.toLowerCase()}" data-has-failures="${stats.failed > 0 || stats.flaky > 0}" data-has-actual-failures="${actualFailures > 0 || stats.flaky > 0}">
-          <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${capitalizedTag}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-center text-sm text-pass-green font-medium">${stats.passed}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-center text-sm text-fail-red font-medium" title="${stats.knownFailures > 0 ? `${stats.knownFailures} known failures excluded from fail count` : 'No known failures'}">${stats.failed}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-center text-sm text-gray-500">${stats.skipped}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-center text-sm text-flaky-amber">${stats.flaky}</td>
-          <td class="px-4 py-2 whitespace-nowrap text-center text-sm font-medium ${passRateColor}">${passRate}%</td>
+        <tr class="${rowClass} hover:bg-blue-50 transition-colors cursor-pointer border-b border-gray-100" data-tag="${tag.toLowerCase()}" data-has-failures="${stats.failed > 0 || stats.flaky > 0}" data-has-actual-failures="${actualFailures > 0 || stats.flaky > 0}">
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${capitalizedTag}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-center text-sm">${passedText}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-center text-sm" title="${stats.knownFailures > 0 ? `${stats.knownFailures} known failures excluded from fail count` : 'No known failures'}">${failedText}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-center text-sm">${skippedText}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-center text-sm">${flakyText}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-center text-sm font-semibold ${passRateColor}">${passRate}%</td>
         </tr>`;
     })
     .join('');
@@ -277,6 +190,43 @@ function generateStyles() {
       /* Allow proper scrolling by removing flex centering */
       min-height: 100vh;
       padding: 1rem; /* Equivalent to p-4 */
+    }
+
+    /* Custom Scrollbar Styling - Minimal & Modern */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #d1d5db transparent;
+    }
+    
+    /* Table scrollbar */
+    #tableWrapper::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    #tableWrapper::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 5px;
+    }
+    #tableWrapper::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      border-radius: 5px;
+    }
+    #tableWrapper::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
     }
 
     /* glossy sheen + subtle color glow + fine pattern - IMPROVED */
@@ -435,11 +385,11 @@ function generateStyles() {
       width: 100%;
       height: 40px;
       padding: 10px 104px 10px 46px;
-      border: 1px solid #d5dbe3;
-      border-radius: 9999px;
-      background: #fff;
+      border: none;
+      border-radius: 10px;
+      background: #F1F5F9;
       font-size: 14px;
-      transition: box-shadow .15s ease, border-color .15s ease;
+      transition: box-shadow .15s ease, background-color .15s ease;
     }
     
     /* Hide browser's native clear button */
@@ -459,8 +409,8 @@ function generateStyles() {
     
     .search-box input:focus {
       outline: none;
-      border-color: #1e55ff;
-      box-shadow: 0 0 0 2px rgba(30, 85, 255, .18);
+      background: #E2E8F0;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, .2);
     }
     
     .search-icon {
@@ -912,22 +862,24 @@ function generateInteractiveCode() {
       
       // Restore toggle state from session storage
       const failureToggle = document.getElementById('failure-toggle');
-      if (failureToggle) {
+      const track = document.getElementById('toggle-track');
+      const dot = document.getElementById('toggle-dot');
+      
+      if (failureToggle && track && dot) {
         // Restore state from session storage
         const savedState = sessionStorage.getItem('failure-toggle-state');
-        if (savedState !== null) {
-          failureToggle.checked = savedState === 'true';
-          console.log('Toggle state restored from storage:', failureToggle.checked);
+        if (savedState === 'true') {
+          failureToggle.checked = true;
+          track.classList.remove('bg-white/30');
+          track.classList.add('bg-green-400');
+          dot.style.transform = 'translateX(20px)';
         } else {
           failureToggle.checked = false;
-          console.log('Toggle initialized to default OFF');
         }
         
         // Add event listener to save state when changed
         failureToggle.addEventListener('change', function() {
           sessionStorage.setItem('failure-toggle-state', this.checked.toString());
-          console.log('Toggle state saved:', this.checked);
-          filterTable();
         });
       }
       
@@ -945,10 +897,112 @@ function generateInteractiveCode() {
       filterTable();
     }
 
+    // Copy code to clipboard
+    function copyCode(btn) {
+      const pre = btn.parentElement.querySelector('pre');
+      const code = pre.textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!';
+        btn.classList.add('bg-green-600');
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('bg-green-600');
+        }, 2000);
+      });
+    }
+
+    // Filter chips functionality
+    let currentFilter = 'all';
+    function setFilter(filter) {
+      currentFilter = filter;
+      const allBtn = document.getElementById('filter-all');
+      const failBtn = document.getElementById('filter-failures');
+      const flakyBtn = document.getElementById('filter-flaky');
+      const failureToggle = document.getElementById('failure-toggle');
+      
+      // Reset all chips
+      [allBtn, failBtn, flakyBtn].forEach(btn => {
+        if (btn) {
+          btn.classList.remove('bg-white', 'text-blue-700');
+          btn.classList.add('bg-white/20', 'text-white');
+        }
+      });
+      
+      // Highlight active chip
+      const activeBtn = filter === 'all' ? allBtn : filter === 'failures' ? failBtn : flakyBtn;
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-white/20', 'text-white');
+        activeBtn.classList.add('bg-white', 'text-blue-700');
+      }
+      
+      // Apply filter
+      const tbody = document.querySelector('#resultsTable tbody');
+      if (!tbody) return;
+      
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.forEach((row) => {
+        const hasFailures = row.getAttribute('data-has-actual-failures') === 'true';
+        const flakyCell = row.cells[4];
+        const flakyCount = parseInt(flakyCell?.textContent?.trim()) || 0;
+        
+        if (filter === 'all') {
+          row.style.display = '';
+        } else if (filter === 'failures') {
+          row.style.display = hasFailures ? '' : 'none';
+        } else if (filter === 'flaky') {
+          row.style.display = flakyCount > 0 ? '' : 'none';
+        }
+      });
+      
+      // Update no results state
+      const visibleRows = rows.filter(r => r.style.display !== 'none').length;
+      const noResults = document.getElementById('noResults');
+      const tableWrap = document.getElementById('tableWrapper');
+      if (noResults && tableWrap) {
+        if (visibleRows === 0) {
+          noResults.classList.remove('hidden');
+          tableWrap.classList.add('hidden');
+        } else {
+          noResults.classList.add('hidden');
+          tableWrap.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Toggle failures only with visual update
+    function toggleFailuresOnly() {
+      const checkbox = document.getElementById('failure-toggle');
+      const track = document.getElementById('toggle-track');
+      const dot = document.getElementById('toggle-dot');
+      
+      if (!checkbox || !track || !dot) return;
+      
+      checkbox.checked = !checkbox.checked;
+      
+      if (checkbox.checked) {
+        track.classList.remove('bg-[#D1D5DB]');
+        track.classList.add('bg-green-400');
+        dot.style.transform = 'translateX(20px)';
+      } else {
+        track.classList.remove('bg-green-400');
+        track.classList.add('bg-[#D1D5DB]');
+        dot.style.transform = 'translateX(0)';
+      }
+      
+      // Save state to session storage
+      sessionStorage.setItem('failure-toggle-state', checkbox.checked.toString());
+      
+      filterTable();
+    }
+
     // Make functions globally accessible
     window.filterTable = filterTable;
     window.clearSearch = clearSearch;
     window.sortTable = sortTable;
+    window.copyCode = copyCode;
+    window.setFilter = setFilter;
+    window.toggleFailuresOnly = toggleFailuresOnly;
     
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -1003,161 +1057,138 @@ export function generateHTML(
       theme: {
         extend: {
           colors: {
-            'pass-green': '#10b981',
-            'fail-red': '#ef4444',
-            'flaky-amber': '#f59e0b',
-            'primary-blue': '#2563eb',
+            'pass-green': '#22C55E',
+            'fail-red': '#EF4444',
+            'flaky-orange': '#F97316',
+            'skip-blue': '#3B82F6',
+            'known-orange': '#F97316',
+            'flaky-purple': '#8B5CF6',
+            'primary-blue': '#3B82F6',
+            'secondary-blue': '#1E3A8A',
           }
         }
       }
     }
   </script>
 </head>
-<body>
+<body class="bg-[#F5F7FB] min-h-screen">
 
-  <!-- Main Container Card -->
-  <div class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden mt-8 mb-8">
+  <!-- Main Container -->
+  <div class="w-full">
 
-    <!-- Header Section -->
-    <header class="bg-primary-blue text-white p-4 sm:p-6 rounded-t-xl text-center">
-      <h1 class="text-2xl sm:text-3xl font-extrabold mb-1">Tag-wise Test Report</h1>
-      <div class="text-xs space-y-0.5 mt-2">
-        <p class="font-bold text-white"><strong>Module:</strong> ${moduleName.toUpperCase()} | <strong>Environment:</strong> ${testEnv.toUpperCase()}</p>
-        <p class="opacity-90"><strong>Test Run Date:</strong> ${formattedDate}</p>
-        <p class="opacity-90"><strong>Execution Duration:</strong> ${formattedDuration}</p>
+    <!-- Header Bar -->
+    <header class="bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] text-white px-6 py-5 shadow-md">
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl font-semibold flex items-center gap-3">
+          <span class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">📊</span>
+          Tag Report
+        </h1>
+        <div class="flex items-center gap-4 text-sm">
+          <span class="font-medium">${formattedDate}</span>
+          <span class="flex items-center gap-1.5 font-medium">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+            ${formattedDuration}
+          </span>
+        </div>
       </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <div class="flex border-b border-gray-200 px-6 pt-4">
-      <a href="index.html" class="py-2 px-4 text-gray-600 font-medium hover:text-primary-blue transition">Detailed Report</a>
-      <button class="py-2 px-4 border-b-2 border-primary-blue text-primary-blue font-semibold">Tag Report</button>
-    </div>
-
     <!-- Report Content -->
-    <main class="p-4 sm:p-6">
+    <main class="p-4">
 
-      <h2 class="text-xl font-bold mb-4 text-gray-800">Summary & Key Metrics</h2>
-
-      <!-- Summary Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 mb-8">
-
-        <!-- TOTAL TESTS -->
-        <a href="index.html" target="_blank" class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-indigo-600 uppercase mb-1">Total Tests</p>
-          <p class="text-2xl font-extrabold text-indigo-700">${totalTests}</p>
+      <!-- Summary Metrics Row - Pill Badges -->
+      <div class="flex items-center gap-4 mb-5 flex-wrap">
+        <a href="index.html" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-gray-800 text-white rounded-xl hover:bg-gray-900 transition-all no-underline shadow-sm">
+          <span class="font-bold text-lg">${totalTests}</span>
+          <span class="text-sm opacity-90">total</span>
         </a>
-
-        <!-- PASSED -->
-        <a href="index.html#?q=s:passed" target="_blank" class="p-3 bg-pass-green/10 border border-pass-green/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-pass-green uppercase mb-1">Passed</p>
-          <p class="text-2xl font-extrabold text-pass-green">${totalPassed}</p>
+        <a href="index.html#?q=s:passed" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all no-underline shadow-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+          <span class="font-bold text-lg">${totalPassed}</span>
+          <span class="text-sm opacity-90">passed</span>
         </a>
-
-        <!-- FAILED -->
-        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-fail-red/10 border border-fail-red/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-fail-red uppercase mb-1">Failed</p>
-          <p class="text-2xl font-extrabold text-fail-red">${totalFailed + totalKnownFailures}</p>
-
-          <!-- Failed Tooltip -->
+        <a href="index.html#?q=s:failed" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all no-underline shadow-sm failed-card relative">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          <span class="font-bold text-lg">${totalFailed + totalKnownFailures}</span>
+          <span class="text-sm opacity-90">failed</span>
           <div class="failed-tooltip">
             <div class="tooltip-content">
-              <div class="tooltip-title">Failed Tests</div>
-              <div class="tooltip-line"><span class="text-red-400">❌ Total Failed:</span> ${totalFailed + totalKnownFailures}</div>
-              <div class="tooltip-line"><span class="text-yellow-400">⚠️ Known Failures:</span> ${totalKnownFailures}</div>
-              <div class="tooltip-formula">
-                <span class="text-red-400">🚨 Actual Failed:</span> ${totalFailed + totalKnownFailures} - ${totalKnownFailures} = <span class="text-red-400 font-bold">${totalFailed}</span>
-              </div>
+              <div class="tooltip-line">Total: ${totalFailed + totalKnownFailures} | Known: ${totalKnownFailures} | Actual: ${totalFailed}</div>
             </div>
           </div>
         </a>
-                <!-- KNOWN FAILURES -->
-        <a href="index.html#?q=s:failed" target="_blank" class="p-3 bg-orange-100 border border-orange-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-orange-600 uppercase mb-1">Known Failures</p>
-          <p class="text-2xl font-extrabold text-orange-600">${totalKnownFailures}</p>
+        <a href="index.html#?q=s:failed" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all no-underline shadow-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+          <span class="font-bold text-lg">${totalKnownFailures}</span>
+          <span class="text-sm opacity-90">known</span>
         </a>
-
-        <!-- SKIPPED -->
-        <a href="index.html#?q=s:skipped" target="_blank" class="p-3 bg-gray-100 border border-gray-300 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-gray-600 uppercase mb-1">Skipped</p>
-          <p class="text-2xl font-extrabold text-gray-700">${totalSkipped}</p>
+        <a href="index.html#?q=s:skipped" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all no-underline shadow-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 4l8 6-8 6V4z"></path><path d="M14 4h2v12h-2V4z"></path></svg>
+          <span class="font-bold text-lg">${totalSkipped}</span>
+          <span class="text-sm opacity-90">skip</span>
         </a>
-
-        <!-- FLAKY -->
-        <a href="index.html#?q=s:flaky" target="_blank" class="p-3 bg-flaky-amber/10 border border-flaky-amber/30 rounded-lg shadow-md text-center transform hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer block no-underline">
-          <p class="text-xs font-semibold text-flaky-amber uppercase mb-1">Flaky</p>
-          <p class="text-2xl font-extrabold text-flaky-amber">${totalFlaky}</p>
+        <a href="index.html#?q=s:flaky" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-all no-underline shadow-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg>
+          <span class="font-bold text-lg">${totalFlaky}</span>
+          <span class="text-sm opacity-90">flaky</span>
         </a>
-
-        <!-- PASS RATE (KPI) -->
-        <div class="pass-rate-card p-3 bg-primary-blue text-white rounded-lg shadow-lg text-center flex flex-col justify-center transform hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer">
-          <p class="text-xs font-semibold uppercase mb-1">Overall Pass Rate</p>
-          <p class="text-2xl font-black">${overallPassRate.toFixed(2)}%</p>
-          
-          <!-- Tooltip -->
+        <div class="pass-rate-card flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-800 rounded-xl shadow-sm cursor-pointer relative border border-slate-200">
+          <span class="font-bold text-xl">${overallPassRate.toFixed(1)}%</span>
+          <span class="text-sm text-slate-600">pass rate</span>
+          <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
           <div class="pass-rate-tooltip">
             <div class="tooltip-content">
-              <div class="tooltip-title">Pass Rate</div>
-              <div class="tooltip-line"><span class="text-green-400">✅ Passed:</span> ${totalPassed}</div>
-              <div class="tooltip-line"><span class="text-red-400">❌ Total Failed:</span> ${totalFailed + totalKnownFailures}</div>
-              <div class="tooltip-line"><span class="text-yellow-400">⚠️ Known Failures:</span> ${totalKnownFailures}</div>
-              <div class="tooltip-line"><span class="text-orange-400">🔄 Flaky:</span> ${totalFlaky}</div>
-              <div class="tooltip-formula">
-                <span class="text-red-400">🚨 Actual Failed:</span> ${totalFailed + totalKnownFailures} - ${totalKnownFailures} = <span class="text-red-400 font-bold">${totalFailed}</span>
-              </div>
-              <div class="tooltip-formula">
-                <span class="text-white font-bold">${totalPassed} ÷ ${totalPassed + totalFailed + totalFlaky} = ${overallPassRate.toFixed(2)}%</span>
-              </div>
+              <div class="tooltip-formula">${totalPassed} ÷ ${totalPassed + totalFailed + totalFlaky} = ${overallPassRate.toFixed(2)}%</div>
             </div>
           </div>
         </div>
       </div>
-    
-      <!-- Filter and Search Section -->
-      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
-        <!-- Search Input -->
-        <div class="w-full sm:w-[450px]">
-          <div class="search-box relative">
-            <input
-              id="searchInput"
-              type="text"
-              placeholder="Search tags… e.g., P1, P2, Absolute"
-              aria-label="Search tags"
-              aria-controls="resultsTable"
-              autocomplete="off"
-              autocapitalize="off"
-              autocorrect="off"
-              spellcheck="false"
-            />
-            <button class="clear-search" onclick="clearSearch()" aria-label="Clear search">×</button>
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </div>
-        </div>
 
-        <!-- Toggle Switch for Failures Only -->
-        <div class="flex items-center space-x-3">
-          <span class="text-sm font-medium text-gray-700 select-none">Show failures only</span>
-          <div class="toggle-container">
-            <input type="checkbox" id="failure-toggle" class="toggle-checkbox" onchange="filterTable()"/>
-            <label for="failure-toggle" class="toggle-label"></label>
+      <!-- 2-Column Layout - Equal Width -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        <!-- LEFT: Tag Results -->
+        <div class="bg-white rounded-2xl overflow-hidden" style="border: 1px solid #F0F0F0; box-shadow: 0px 2px 8px rgba(0,0,0,0.04);">
+          <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3 flex items-center justify-between">
+            <h3 class="text-sm font-semibold flex items-center gap-2">
+              🏷️ Tag Results
+            </h3>
+            <!-- Failures Only Toggle -->
+            <label class="flex items-center gap-2 cursor-pointer" onclick="toggleFailuresOnly()">
+              <span class="text-xs font-medium text-white/90">Failures only</span>
+              <div class="relative w-11 h-6">
+                <input type="checkbox" id="failure-toggle" class="sr-only"/>
+                <div id="toggle-track" class="absolute inset-0 bg-[#D1D5DB] rounded-full transition-colors duration-200"></div>
+                <div id="toggle-dot" class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"></div>
+              </div>
+            </label>
           </div>
-        </div>
-      </div>
-
-      <!-- Tag Report Table -->
-      <div class="tag-results-container overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto" id="tableWrapper">
-        <table class="min-w-full divide-y divide-gray-200" id="resultsTable">
-          <thead class="bg-gradient-to-r from-blue-600 to-blue-500 sticky top-0 z-10 shadow-md">
+          <div class="p-4">
+            <div class="search-box relative mb-4">
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Search tags... e.g., P1, P2, Absolute"
+                class="w-full text-sm"
+                aria-label="Search tags"
+                autocomplete="off"
+              />
+              <button class="clear-search" onclick="clearSearch()">×</button>
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </div>
+            <div class="overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar" id="tableWrapper">
+        <table class="min-w-full" id="resultsTable">
+          <thead class="bg-[#E5E7EB] sticky top-0 z-10" style="border-bottom: 1px solid #E4E7EB;">
             <tr>
-              <th scope="col" class="px-4 py-2 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(0)">TAG NAME ↕</th>
-              <th scope="col" class="px-4 py-2 text-center text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(1)">PASSED ↕</th>
-              <th scope="col" class="px-4 py-2 text-center text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(2)">FAILED ↕</th>
-              <th scope="col" class="px-4 py-2 text-center text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(3)">SKIPPED ↕</th>
-              <th scope="col" class="px-4 py-2 text-center text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(4)">FLAKY ↕</th>
-              <th scope="col" class="px-4 py-2 text-center text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-blue-700" onclick="sortTable(5)">PASSED % ↕</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(0)">TAG NAME <span class="text-gray-400">⇅</span></th>
+              <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(1)">PASSED <span class="text-gray-400">⇅</span></th>
+              <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(2)">FAILED <span class="text-gray-400">⇅</span></th>
+              <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(3)">SKIPPED <span class="text-gray-400">⇅</span></th>
+              <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(4)">FLAKY <span class="text-gray-400">⇅</span></th>
+              <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer hover:bg-gray-100 transition" onclick="sortTable(5)">PASSED % <span class="text-gray-400">⇅</span></th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
@@ -1166,138 +1197,136 @@ export function generateHTML(
         </table>
       </div>
       
-      <!-- No Results Message -->
-      <div id="noResults" class="hidden text-center py-10">
-        <div id="noResultsIcon" class="text-gray-400 text-5xl mb-4">🔍</div>
-        <div id="noResultsTitle" class="text-gray-600 font-semibold">No tags found</div>
-        <div id="noResultsSubtitle" class="text-gray-500 text-sm mt-2">Try another search term</div>
-      </div>
-
-      <!-- Known Failures Section -->
-      <div class="mt-12">
-        <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
-          <span class="text-2xl mr-2">⚠️</span>
-          Known Failures
-          <span class="ml-2 text-sm font-normal text-gray-500">(${knownFailureData.activeKnownFailures.length})</span>
-        </h2>
-        
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div class="overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto">
-            <table class="min-w-full divide-y divide-gray-200 known-failures-table">
-              <thead class="bg-gradient-to-r from-orange-500 to-orange-400 sticky top-0 z-10 shadow-md">
-                <tr>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Test Case No
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[200px]">
-                    Test Name
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Bug Reported Date
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Ticket ID
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Priority
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                ${knownFailuresRows}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        ${
-          knownFailureData.activeKnownFailures.length > 0
-            ? `
-          <div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <div class="flex items-start">
-              <div class="text-orange-600 text-lg mr-3">ℹ️</div>
-              <div class="text-sm text-orange-800">
-                <p class="font-medium mb-1">About Known Failures</p>
-                <p>These are tests that are currently failing but have been identified as known issues with tracking tickets. They are excluded from failure counts in the main report.</p>
-              </div>
-            </div>
-          </div>
-        `
-            : `
-          <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="flex items-start">
-              <div class="text-blue-600 text-lg mr-3">ℹ️</div>
-              <div class="text-sm text-blue-800">
-                <p class="font-medium mb-1">What are Known Failures?</p>
-                <p class="mb-2">Known failures are tests that are currently failing but have been identified as known issues with tracking tickets. They help distinguish between:</p>
-                <ul class="list-disc list-inside space-y-1 ml-2">
-                  <li><strong>Actual failures:</strong> New issues that need immediate attention</li>
-                  <li><strong>Known failures:</strong> Existing issues with tickets that are being tracked</li>
-                </ul>
-                <p class="mt-2 text-xs text-blue-700">When tests have known failure annotations, they are excluded from failure counts to give you a clearer picture of your test suite's health.</p>
-              </div>
-            </div>
-          </div>
-        `
-        }
-      </div>
-
-      <!-- Resolved Known Failures Section -->
-      ${
-        knownFailureData.resolvedKnownFailures && knownFailureData.resolvedKnownFailures.length > 0
-          ? `
-      <div class="mt-12">
-        <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
-          <span class="text-2xl mr-2">✅</span>
-          Recently Resolved Known Failures
-          <span class="ml-2 text-sm font-normal text-gray-500">(${knownFailureData.resolvedKnownFailures.length})</span>
-        </h2>
-        
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div class="overflow-x-auto scroll-container border border-gray-200 rounded-lg shadow-inner max-h-[400px] overflow-y-auto">
-            <table class="min-w-full divide-y divide-gray-200 known-failures-table">
-              <thead class="bg-gradient-to-r from-green-500 to-green-400 sticky top-0 z-10 shadow-md">
-                <tr>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Test Case No
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[200px]">
-                    Test Name
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Bug Reported Date
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Ticket ID
-                  </th>
-                  <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                    Priority
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                ${resolvedKnownFailuresRows}
-              </tbody>
-            </table>
-          </div>
-        
-          <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div class="flex items-start">
-              <div class="text-green-600 text-lg mr-3">🎉</div>
-              <div class="text-sm text-green-800">
-                <p class="font-medium mb-1">Resolved Known Failures</p>
-                <p>These tests were previously marked as known failures but are now passing. This indicates the underlying issues have been fixed. Consider removing the known failure annotations from these tests.</p>
-              </div>
+            <!-- No Results -->
+            <div id="noResults" class="hidden text-center py-6">
+              <div id="noResultsIcon" class="text-slate-400 text-3xl mb-2">🔍</div>
+              <div id="noResultsTitle" class="text-slate-600 text-sm font-medium">No tags found</div>
+              <div id="noResultsSubtitle" class="text-slate-400 text-xs">Try different search</div>
             </div>
           </div>
         </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT: Known Failures -->
+        <div class="bg-white rounded-2xl overflow-hidden" style="border: 1px solid #F0F0F0; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+          <div class="bg-[#FFD8B0] text-orange-900 px-4 py-3 flex items-center justify-between border-b border-orange-300">
+            <h3 class="text-base font-bold flex items-center gap-2">
+              ⚠️ Known Failures
+            </h3>
+            <span class="bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">${knownFailureData.activeKnownFailures.length}</span>
+          </div>
+          <div class="p-3">
+            <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+                  <tr>
+                    <th class="px-2 py-2 text-left font-semibold text-gray-600 uppercase text-xs">Test Case</th>
+                    <th class="px-2 py-2 text-left font-semibold text-gray-600 uppercase text-xs">Test Name</th>
+                    <th class="px-2 py-2 text-center font-semibold text-gray-600 uppercase text-xs">Priority</th>
+                    <th class="px-2 py-2 text-center font-semibold text-gray-600 uppercase text-xs">Ticket</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-orange-50">
+                  ${knownFailuresRows}
+                </tbody>
+              </table>
+            </div>
+        
+          ${
+            knownFailureData.activeKnownFailures.length > 0
+              ? `
+            <div class="mt-3 flex items-start gap-2 text-sm text-orange-700 bg-orange-50 px-3 py-2.5 rounded-lg">
+              <span class="text-orange-500 mt-0.5">ℹ️</span>
+              <span><strong>Note:</strong> Known failures are tests that are currently failing but have been identified as known issues with tracking tickets. These are excluded from failure counts.</span>
+            </div>
+          `
+              : `
+            <div class="mt-4 text-center py-6 bg-green-50 rounded-xl">
+              <span class="text-4xl">✅</span>
+              <p class="text-green-700 text-sm font-semibold mt-2">No Known Failures</p>
+              <p class="text-green-600 text-xs mt-1">All tests are in good health!</p>
+            </div>
+          `
+          }
+          
+          <!-- How to Add Known Failure - Accordion -->
+          <details class="mt-4 group">
+            <summary class="px-3 py-2.5 text-sm font-medium text-blue-600 cursor-pointer bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-between transition-all">
+              <span class="flex items-center gap-2">
+                💡 <span class="underline">Click here</span> to learn how to add a Known Failure to your test
+              </span>
+              <svg class="w-4 h-4 text-blue-500 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="mt-2 relative">
+              <button onclick="copyCode(this)" class="absolute top-2 right-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded flex items-center gap-1 transition-colors z-10">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                Copy
+              </button>
+              <pre class="text-xs bg-[#0F172A] text-gray-300 px-4 py-5 rounded-xl overflow-x-auto font-mono leading-relaxed"><code><span class="text-cyan-400">test</span>(
+  <span class="text-green-400">'your test name'</span>,
+  { <span class="text-purple-400">tag</span>: [TestPriority.<span class="text-orange-400">P0</span>] },
+  <span class="text-cyan-400">async</span> ({ appManagerFixture }) => {
+    <span class="text-yellow-400">tagTest</span>(test.<span class="text-cyan-400">info</span>(), {
+      <span class="text-purple-400">isKnownFailure</span>: <span class="text-orange-400">true</span>,
+      <span class="text-purple-400">bugTicket</span>: <span class="text-green-400">'INT-12345'</span>,
+      <span class="text-purple-400">bugReportedDate</span>: <span class="text-green-400">'2025-01-15'</span>,
+      <span class="text-purple-400">knownFailurePriority</span>: <span class="text-green-400">'Medium'</span>, <span class="text-gray-500">// High, Medium, Low</span>
+      <span class="text-purple-400">knownFailureNote</span>: <span class="text-green-400">'Description of the issue'</span>,
+      <span class="text-purple-400">zephyrTestId</span>: <span class="text-green-400">'INT-29249'</span>,
+    });
+
+    <span class="text-gray-500">// Your test steps here...</span>
+  }
+);</code></pre>
+            </div>
+            <div class="mt-2 flex items-center gap-2 text-xs text-gray-600 bg-orange-50 rounded-lg px-3 py-2">
+              <span class="text-orange-400">●</span>
+              <span>Place <strong>tagTest()</strong> as the first line inside your test function, before any test logic.</span>
+            </div>
+          </details>
+
+          ${
+            knownFailureData.resolvedKnownFailures && knownFailureData.resolvedKnownFailures.length > 0
+              ? `
+            <div class="mt-4 p-3 bg-[#ECFDF5] rounded-xl">
+              <p class="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                <span class="bg-green-100 p-1 rounded">✅</span>
+                Recently Resolved (${knownFailureData.resolvedKnownFailures.length})
+              </p>
+              <p class="text-xs text-green-600 mb-3">Tests that were marked as known failures but are now passing.</p>
+              <div class="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar">
+                ${knownFailureData.resolvedKnownFailures
+                  .map(
+                    f => `
+                  <div class="flex items-center gap-3 p-2 bg-white rounded-lg border border-green-200">
+                    <span class="text-green-500 text-lg">✓</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs font-mono text-gray-700">${f.testCaseNo || '-'}</div>
+                      <div class="text-xs text-gray-500 truncate" title="${f.testName}">${f.testName.length > 35 ? f.testName.substring(0, 35) + '...' : f.testName}</div>
+                    </div>
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `
+              : ''
+          }
+          </div>
+        </div>
+        <!-- END RIGHT -->
       </div>
-      `
-          : ''
-      }
     
-      <!-- Footer Timestamp -->
-      <p class="mt-8 text-xs text-gray-400 text-center">Report created: ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: process.env.CI ? 'Asia/Kolkata' : undefined })}</p>
+      <!-- Footer -->
+      <footer class="mt-6 pb-4 text-center">
+        <p class="text-xs text-gray-500 flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+          Generated: ${new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short', timeZone: process.env.CI ? 'Asia/Kolkata' : undefined })}
+        </p>
+      </footer>
     </main>
   </div>
   

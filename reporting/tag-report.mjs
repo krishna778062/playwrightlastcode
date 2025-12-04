@@ -90,7 +90,9 @@ function extractTagStatistics(testResults) {
 
   processSuites(testResults.suites, (suite, spec) => {
     // Collect all tags (from spec.tags and @tags in title)
-    const tags = new Set([...(spec.tags || []), ...((spec.title || '').match(/@\w+/g) || [])]);
+    const rawTags = [...(spec.tags || []), ...((spec.title || '').match(/@\w+/g) || [])];
+    const normalizedTags = rawTags.map(tag => (tag.startsWith('@') ? tag : `@${tag}`));
+    const tags = new Set(normalizedTags);
 
     tags.forEach(tag => {
       // Initialize tag stats if not exists
@@ -126,31 +128,64 @@ function extractTagStatistics(testResults) {
 
 /**
  * Extract known failure data from test results
+ * Detects known failures from:
+ * 1. @known-failure tag in test title/tags
+ * 2. known_failure annotation type
  */
 function extractKnownFailures(testResults) {
   const knownFailures = [];
   const resolvedKnownFailures = [];
 
   processSuites(testResults.suites, (suite, spec) => {
+    // Check if this spec has @known-failure tag
+    const hasKnownFailureTag =
+      spec.tags?.includes('known-failure') || spec.title?.toLowerCase().includes('@known-failure');
+
+    if (!hasKnownFailureTag) return;
+
     spec.tests?.forEach(test => {
-      test.results?.forEach(result => {
-        const knownFailureAnnotation = result.annotations?.find(annotation => annotation.type === 'known_failure');
+      // Get the last result (most recent run)
+      const lastResult = test.results?.[test.results.length - 1];
+      const testStatus = lastResult?.status || test.status || 'unknown';
 
-        if (knownFailureAnnotation) {
-          const knownFailureData = parseKnownFailureAnnotation(result.annotations, spec, suite, test);
+      // Collect all annotations from test and last result
+      const allAnnotations = [...(test.annotations || []), ...(lastResult?.annotations || [])];
 
-          // Check if this known failure test is now passing
-          if (result.status === 'passed') {
-            resolvedKnownFailures.push({
-              ...knownFailureData,
-              status: 'resolved',
-              resolvedDate: new Date().toISOString(),
-            });
-          } else {
-            knownFailures.push(knownFailureData);
-          }
-        }
-      });
+      // Check if we have detailed annotations to parse
+      const hasDetailedAnnotations = allAnnotations.some(
+        a => a.type === 'bug_ticket' || a.type === 'known_failure_priority' || a.type === 'zephyrId'
+      );
+
+      // Build known failure data using parseKnownFailureAnnotation if we have detailed annotations
+      let knownFailureData;
+      if (hasDetailedAnnotations) {
+        knownFailureData = parseKnownFailureAnnotation(allAnnotations, spec, suite, test);
+      } else {
+        // Fallback to basic extraction from title
+        knownFailureData = {
+        testName: spec.title || 'Unknown Test',
+        testCaseNo: `TC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+        testId: spec.id || '',
+        suiteName: suite?.title || 'Unknown Suite',
+        specFile: spec.file || '',
+        ticketId: extractTicketFromTitle(spec.title),
+        ticketUrl: '',
+        priority: 'Medium',
+        bugReportedDate: 'Unknown',
+      };
+      }
+
+      // Check if this known failure test is now passing (resolved)
+      if (testStatus === 'passed') {
+        resolvedKnownFailures.push({
+          ...knownFailureData,
+          status: 'resolved',
+          resolvedDate: new Date().toISOString(),
+        });
+      } else if (testStatus === 'failed' || testStatus === 'timedOut') {
+        knownFailures.push(knownFailureData);
+      }
+      // Skip tests with status 'skipped' - they didn't run
     });
   });
 
@@ -158,6 +193,15 @@ function extractKnownFailures(testResults) {
     activeKnownFailures: removeDuplicateFailures(knownFailures),
     resolvedKnownFailures: removeDuplicateFailures(resolvedKnownFailures),
   };
+}
+
+/**
+ * Extract ticket ID from test title (e.g., "JIRA-1234" from description)
+ */
+function extractTicketFromTitle(title) {
+  if (!title) return '';
+  const match = title.match(/([A-Z]+-\d+)/);
+  return match ? match[1] : '';
 }
 
 /**
@@ -237,8 +281,12 @@ function removeDuplicateFailures(failures) {
  * Calculate total statistics from tag data
  */
 function calculateTotals(tagStats) {
-  // Only count priority tags (P0, P1, P2, P3) for overall metrics
+  // Prefer priority tags (P0, P1, P2, P3) for overall metrics
   const priorityTags = Object.keys(tagStats).filter(isPriorityTag);
+
+  // If no priority tags, fall back to using ALL unique tests from all tags
+  // This handles test modules that don't use P0-P3 tagging
+  const usePriorityTags = priorityTags.length > 0;
 
   let totalTests = 0;
   let totalPassed = 0;
@@ -247,16 +295,41 @@ function calculateTotals(tagStats) {
   let totalSkipped = 0;
   let totalKnownFailures = 0;
 
-  // Sum up statistics from all priority tags
-  priorityTags.forEach(tag => {
-    totalTests += tagStats[tag].total;
-    totalPassed += tagStats[tag].passed;
-    // Exclude known failures from failure count
-    totalFailed += tagStats[tag].failed - (tagStats[tag].knownFailures || 0);
-    totalFlaky += tagStats[tag].flaky;
-    totalSkipped += tagStats[tag].skipped;
-    totalKnownFailures += tagStats[tag].knownFailures || 0;
-  });
+  if (usePriorityTags) {
+    // Sum up statistics from all priority tags
+    priorityTags.forEach(tag => {
+      totalTests += tagStats[tag].total;
+      totalPassed += tagStats[tag].passed;
+      // Exclude known failures from failure count
+      totalFailed += tagStats[tag].failed - (tagStats[tag].knownFailures || 0);
+      totalFlaky += tagStats[tag].flaky;
+      totalSkipped += tagStats[tag].skipped;
+      totalKnownFailures += tagStats[tag].knownFailures || 0;
+    });
+  } else {
+    // No priority tags - calculate from unique test counts across all tags
+    // Use the tag with highest total as reference to avoid double-counting
+    const allTags = Object.keys(tagStats);
+
+    // Find the tag with the highest total (likely the main category tag)
+    let maxTotal = 0;
+    let mainTag = null;
+    allTags.forEach(tag => {
+      if (tagStats[tag].total > maxTotal) {
+        maxTotal = tagStats[tag].total;
+        mainTag = tag;
+      }
+    });
+
+    if (mainTag) {
+      totalTests = tagStats[mainTag].total;
+      totalPassed = tagStats[mainTag].passed;
+      totalFailed = tagStats[mainTag].failed - (tagStats[mainTag].knownFailures || 0);
+      totalFlaky = tagStats[mainTag].flaky;
+      totalSkipped = tagStats[mainTag].skipped;
+      totalKnownFailures = tagStats[mainTag].knownFailures || 0;
+    }
+  }
 
   // Calculate pass rate excluding known failures and skipped tests
   // Only count tests that were actually executed (passed + failed + flaky)
