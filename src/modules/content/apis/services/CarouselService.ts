@@ -124,14 +124,24 @@ export class CarouselService implements ICarouselOperations {
       const responseBody = await response.json();
       log.debug('Add site carousel item response', { response: JSON.stringify(responseBody, null, 2) });
 
+      // Check for errors in response (even if status is 200)
+      if (responseBody.errors && responseBody.errors.length > 0) {
+        const errorMessage = responseBody.errors.map((e: any) => e.message || e.sub_message).join(', ');
+        throw new Error(`Failed to add site carousel item ${contentId} to site ${siteId}. ${errorMessage}`);
+      }
+
       if (!response.ok()) {
         throw new Error(
           `Failed to add site carousel item ${contentId} to site ${siteId}. Status: ${response.status()}`
         );
       }
 
-      if (responseBody.status !== 'success') {
-        throw new Error(`Add site carousel item failed. Response: ${JSON.stringify(responseBody)}`);
+      if (responseBody.status !== 'success' || (responseBody.errors && responseBody.errors.length > 0)) {
+        const errorMessage =
+          responseBody.errors && responseBody.errors.length > 0
+            ? responseBody.errors.map((e: any) => e.message || e.sub_message).join(', ')
+            : `Response: ${JSON.stringify(responseBody)}`;
+        throw new Error(`Add site carousel item failed. ${errorMessage}`);
       }
 
       return responseBody;
