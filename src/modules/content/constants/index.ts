@@ -3,6 +3,7 @@ export * from './contentFilter';
 export * from './contentSortBy';
 export * from './contentStatus';
 export * from './contentType';
+export * from './contentValidationPeriodTime';
 export * from './dateField';
 export * from './feedPostingPermission';
 export * from './feedSortBy';

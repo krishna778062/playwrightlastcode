@@ -48,7 +48,9 @@ export const ORGANIZATION_SETTINGS = {
 } as const;
 
 export const FIELD_NAMES = {
+  INCIDENT_VIEW: 'Incident view',
   ORGANIZATION: 'Organization',
+  TIME_PERIOD: 'Time Period',
   STATUS: 'Status',
   SORT_BY: 'Sort by',
   SORT_ORDER: 'Sort order',
