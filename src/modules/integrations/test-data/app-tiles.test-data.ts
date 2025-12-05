@@ -232,3 +232,25 @@ export const SERVICENOW_VALUES = {
   DAYS_30: '30 days',
   INCIDENT_VIEW_VALUE: 'Self Service',
 } as const;
+
+/**
+ * Workday labels and values used across tests
+ */
+export const WORKDAY_VALUES = {
+  CreateAnotherRequest: 'Create another request',
+  Vacation: 'Vacation',
+  Wedding: 'Wedding',
+  AppName: 'Workday',
+  paystubsTileName: 'Display recent paystubs',
+  inboxTileName: 'Display inbox',
+  jobPostingsTileName: 'Display job postings',
+  AppManagerDefined: 'App manager defined',
+  SiteManagerDefined: 'Site manager defined',
+  PayslipListUrl: 'Payslip list URL',
+  InboxTasksReportUrl: 'Inbox tasks report URL',
+  JobType: 'Job type',
+  InternalJobType: 'Internal jobs',
+  ExternalJobType: 'External jobs',
+  AllJobType: 'All jobs',
+  InternalJobPostingsUrl: 'Example internal job URL',
+} as const;

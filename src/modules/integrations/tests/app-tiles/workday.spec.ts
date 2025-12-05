@@ -15,25 +15,28 @@ import {
   REDIRECT_URLS,
   TILE_IDS,
   WORKDAY_CREDS,
+  WORKDAY_VALUES,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
-const CreateAnotherRequest = 'Create another request';
-const Vacation = 'Vacation';
-const Wedding = 'Wedding';
-const AppName = 'Workday';
-const paystubsTileName = 'Display recent paystubs';
-const inboxTileName = 'Display inbox';
-const jobPostingsTileName = 'Display job postings';
-const AppManagerDefined = 'App manager defined';
-const SiteManagerDefined = 'Site manager defined';
-const PayslipListUrl = 'Payslip list URL';
-const InboxTasksReportUrl = 'Inbox tasks report URL';
-const JobType = 'Job type';
-const InternalJobType = 'Internal jobs';
-const ExternalJobType = 'External jobs';
-const AllJobType = 'All jobs';
-const InternalJobPostingsUrl = 'Example internal job URL';
+const {
+  CreateAnotherRequest,
+  Vacation,
+  Wedding,
+  AppName,
+  paystubsTileName,
+  inboxTileName,
+  jobPostingsTileName,
+  AppManagerDefined,
+  SiteManagerDefined,
+  PayslipListUrl,
+  InboxTasksReportUrl,
+  JobType,
+  InternalJobType,
+  ExternalJobType,
+  AllJobType,
+  InternalJobPostingsUrl,
+} = WORKDAY_VALUES;
 
 test.describe(
   'workday App Tiles Integration',
