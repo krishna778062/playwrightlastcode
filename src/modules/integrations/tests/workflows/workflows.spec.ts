@@ -17,7 +17,7 @@ test.describe(
 
     test.beforeEach(async ({ appManagerFixture }) => {
       workflowsPage = new WorkflowsPage(appManagerFixture.page);
-      await workflowsPage.actions.navigateToWorkflowsPage();
+      await workflowsPage.loadPage();
       await workflowsPage.assertions.verifyThePageIsLoaded();
     });
 
@@ -33,7 +33,6 @@ test.describe(
           zephyrTestId: 'TBD',
         });
 
-        await workflowsPage.assertions.verifyThePageIsLoaded();
         await workflowsPage.actions.selectWorkflowStatusFilter('Draft');
         await workflowsPage.assertions.verifyOnlyWorkflowsWithStatusAreVisible('Draft');
         await workflowsPage.actions.selectWorkflowStatusFilter('Unpublished');
