@@ -1117,8 +1117,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21415',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-24332',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1147,8 +1147,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21416',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-21424',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
