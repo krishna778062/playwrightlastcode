@@ -1945,10 +1945,18 @@ test.describe(
           throw new Error('No public site available');
         }
 
-        // Get another public site for mention
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
         if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
-          throw new Error('No additional public site available for mention');
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          throw new Error('No additional site available for mention');
         }
 
         // Create feed with site mention
@@ -2077,9 +2085,18 @@ test.describe(
 
         // Get user and site info for mentions
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
         if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
-          throw new Error('No additional public site available for mention');
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          throw new Error('No additional site available for mention');
         }
         const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
         const availableTopics = topicList.result?.listOfItems || [];
@@ -2430,8 +2447,16 @@ test.describe(
           throw new Error('No private site available');
         }
 
-        // Get another site for mention (can be any access type)
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
         if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
           throw new Error('No additional site available for mention');
         }
@@ -2501,8 +2526,16 @@ test.describe(
           throw new Error('No unlisted site available');
         }
 
-        // Get another site for mention (can be any access type)
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
         if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
           throw new Error('No additional site available for mention');
         }
@@ -2692,7 +2725,16 @@ test.describe(
 
         // Get user and site info for mentions
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
         if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
           throw new Error('No additional site available for mention');
         }
@@ -2775,7 +2817,16 @@ test.describe(
 
         // Get user and site info for mentions
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
         if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
           throw new Error('No additional site available for mention');
         }
