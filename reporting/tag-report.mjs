@@ -137,12 +137,6 @@ function extractKnownFailures(testResults) {
   const resolvedKnownFailures = [];
 
   processSuites(testResults.suites, (suite, spec) => {
-    // Check if this spec has @known-failure tag
-    const hasKnownFailureTag =
-      spec.tags?.includes('known-failure') || spec.title?.toLowerCase().includes('@known-failure');
-
-    if (!hasKnownFailureTag) return;
-
     spec.tests?.forEach(test => {
       // Get the last result (most recent run)
       const lastResult = test.results?.[test.results.length - 1];
@@ -150,6 +144,15 @@ function extractKnownFailures(testResults) {
 
       // Collect all annotations from test and last result
       const allAnnotations = [...(test.annotations || []), ...(lastResult?.annotations || [])];
+
+      // Check if this test is a known failure via:
+      // 1. @known-failure tag on the spec
+      // 2. known_failure annotation from tagTest()
+      const hasKnownFailureTag =
+        spec.tags?.includes('known-failure') || spec.title?.toLowerCase().includes('@known-failure');
+      const hasKnownFailureAnnotation = allAnnotations.some(a => a.type === 'known_failure');
+
+      if (!hasKnownFailureTag && !hasKnownFailureAnnotation) return;
 
       // Check if we have detailed annotations to parse
       const hasDetailedAnnotations = allAnnotations.some(
@@ -163,16 +166,16 @@ function extractKnownFailures(testResults) {
       } else {
         // Fallback to basic extraction from title
         knownFailureData = {
-        testName: spec.title || 'Unknown Test',
-        testCaseNo: `TC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-        testId: spec.id || '',
-        suiteName: suite?.title || 'Unknown Suite',
-        specFile: spec.file || '',
-        ticketId: extractTicketFromTitle(spec.title),
-        ticketUrl: '',
-        priority: 'Medium',
-        bugReportedDate: 'Unknown',
-      };
+          testName: spec.title || 'Unknown Test',
+          testCaseNo: `TC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+          testId: spec.id || '',
+          suiteName: suite?.title || 'Unknown Suite',
+          specFile: spec.file || '',
+          ticketId: extractTicketFromTitle(spec.title),
+          ticketUrl: '',
+          priority: 'Medium',
+          bugReportedDate: 'Unknown',
+        };
       }
 
       // Check if this known failure test is now passing (resolved)

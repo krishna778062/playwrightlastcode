@@ -52,13 +52,7 @@ function generateResolvedKnownFailuresTableRows(resolvedKnownFailures) {
  */
 function generateKnownFailuresTableRows(knownFailures) {
   if (!knownFailures || knownFailures.length === 0) {
-    return `
-      <tr>
-        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
-          <div class="text-3xl mb-2">✅</div>
-          <div class="font-medium text-sm">No Known Failures</div>
-        </td>
-      </tr>`;
+    return '';
   }
 
   return knownFailures
@@ -85,10 +79,10 @@ function generateKnownFailuresTableRows(knownFailures) {
                 ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-mono text-xs">${failure.testCaseNo}</a>`
                 : `<span class="text-gray-500 font-mono text-xs">${failure.testCaseNo || '-'}</span>`
             }
-            <div class="text-gray-500 text-xs mt-0.5">${truncatedName}</div>
           </td>
           <td class="px-2 py-2.5 text-sm">
-            <div title="${failure.testName}" class="text-gray-700">${failure.suiteName || ''}</div>
+            <div title="${failure.testName}" class="text-gray-700">${truncatedName}</div>
+            ${failure.note ? `<div class="text-[10px] text-gray-500 italic mt-0.5">${failure.note}</div>` : ''}
           </td>
           <td class="px-2 py-2.5 text-center">
             <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${priorityClass}">${failure.priority || 'Unknown'}</span>
@@ -96,7 +90,7 @@ function generateKnownFailuresTableRows(knownFailures) {
           <td class="px-2 py-2.5 text-center">
             ${
               failure.ticketUrl
-                ? `<a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">View</a>`
+                ? `<a href="${failure.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">${failure.ticketId || 'View'}</a>`
                 : failure.ticketId
                   ? `<span class="text-gray-600 text-sm">${failure.ticketId}</span>`
                   : `<span class="text-gray-400">-</span>`
@@ -1216,6 +1210,9 @@ export function generateHTML(
             <span class="bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">${knownFailureData.activeKnownFailures.length}</span>
           </div>
           <div class="p-3">
+          ${
+            knownFailureData.activeKnownFailures.length > 0
+              ? `
             <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
               <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
@@ -1231,10 +1228,6 @@ export function generateHTML(
                 </tbody>
               </table>
             </div>
-        
-          ${
-            knownFailureData.activeKnownFailures.length > 0
-              ? `
             <div class="mt-3 flex items-start gap-2 text-sm text-orange-700 bg-orange-50 px-3 py-2.5 rounded-lg">
               <span class="text-orange-500 mt-0.5">ℹ️</span>
               <span><strong>Note:</strong> Known failures are tests that are currently failing but have been identified as known issues with tracking tickets. These are excluded from failure counts.</span>
@@ -1290,26 +1283,57 @@ export function generateHTML(
           ${
             knownFailureData.resolvedKnownFailures && knownFailureData.resolvedKnownFailures.length > 0
               ? `
-            <div class="mt-4 p-3 bg-[#ECFDF5] rounded-xl">
-              <p class="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
-                <span class="bg-green-100 p-1 rounded">✅</span>
-                Recently Resolved (${knownFailureData.resolvedKnownFailures.length})
-              </p>
-              <p class="text-xs text-green-600 mb-3">Tests that were marked as known failures but are now passing.</p>
-              <div class="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar">
-                ${knownFailureData.resolvedKnownFailures
-                  .map(
-                    f => `
-                  <div class="flex items-center gap-3 p-2 bg-white rounded-lg border border-green-200">
-                    <span class="text-green-500 text-lg">✓</span>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-xs font-mono text-gray-700">${f.testCaseNo || '-'}</div>
-                      <div class="text-xs text-gray-500 truncate" title="${f.testName}">${f.testName.length > 35 ? f.testName.substring(0, 35) + '...' : f.testName}</div>
-                    </div>
-                  </div>
-                `
-                  )
-                  .join('')}
+            <div class="mt-4 bg-[#ECFDF5] rounded-xl overflow-hidden">
+              <div class="bg-green-600 text-white px-4 py-2.5 flex items-center justify-between">
+                <h4 class="text-sm font-semibold flex items-center gap-2">
+                  ✅ Recently Resolved
+                </h4>
+                <span class="bg-white text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">${knownFailureData.resolvedKnownFailures.length}</span>
+              </div>
+              <p class="text-xs text-green-700 px-4 py-2 bg-green-50">Tests that were marked as known failures but are now passing.</p>
+              <div class="overflow-x-auto max-h-[200px] overflow-y-auto custom-scrollbar">
+                <table class="min-w-full text-sm">
+                  <thead class="bg-green-100 sticky top-0 border-b border-green-200">
+                    <tr>
+                      <th class="px-2 py-2 text-left font-semibold text-green-800 uppercase text-xs">Test Case</th>
+                      <th class="px-2 py-2 text-left font-semibold text-green-800 uppercase text-xs">Test Name</th>
+                      <th class="px-2 py-2 text-center font-semibold text-green-800 uppercase text-xs">Priority</th>
+                      <th class="px-2 py-2 text-center font-semibold text-green-800 uppercase text-xs">Ticket</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-green-100">
+                    ${knownFailureData.resolvedKnownFailures
+                      .map(
+                        f => `
+                      <tr class="hover:bg-green-50 transition-colors">
+                        <td class="px-2 py-2.5 text-sm">
+                          ${
+                            f.testCaseNo && f.testId
+                              ? `<a href="index.html#?testId=${f.testId}" target="_blank" class="text-green-600 hover:text-green-800 font-mono text-xs">${f.testCaseNo}</a>`
+                              : `<span class="text-gray-500 font-mono text-xs">${f.testCaseNo || '-'}</span>`
+                          }
+                        </td>
+                        <td class="px-2 py-2.5 text-sm">
+                          <div title="${f.testName}" class="text-gray-700">${f.testName.length > 35 ? f.testName.substring(0, 35) + '...' : f.testName}</div>
+                          ${f.note ? `<div class="text-[10px] text-gray-500 italic mt-0.5">${f.note}</div>` : ''}
+                        </td>
+                        <td class="px-2 py-2.5 text-center">
+                          <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${f.priority === 'High' ? 'bg-red-100 text-red-700' : f.priority === 'Medium' ? 'bg-orange-100 text-orange-700' : f.priority === 'Low' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${f.priority || 'Unknown'}</span>
+                        </td>
+                        <td class="px-2 py-2.5 text-center">
+                          ${
+                            f.ticketUrl
+                              ? `<a href="${f.ticketUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">${f.ticketId || 'View'}</a>`
+                              : f.ticketId
+                                ? `<span class="text-gray-600 text-sm">${f.ticketId}</span>`
+                                : `<span class="text-gray-400">-</span>`
+                          }
+                        </td>
+                      </tr>`
+                      )
+                      .join('')}
+                  </tbody>
+                </table>
               </div>
             </div>
           `
