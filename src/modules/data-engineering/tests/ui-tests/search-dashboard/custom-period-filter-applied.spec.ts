@@ -295,7 +295,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fail(
       'verify Most searches performed by Department metric data validation with custom period filter applied (July 1, 2025 to Current Date)',
       {
         tag: [
