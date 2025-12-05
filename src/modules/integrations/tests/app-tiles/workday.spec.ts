@@ -1338,5 +1338,40 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(All job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28735',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings all job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          AllJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        // Verify tile metadata, show more behaviour and redirect URL
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, AllJobType);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+      }
+    );
   }
 );
