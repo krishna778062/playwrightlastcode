@@ -1408,7 +1408,7 @@ test.describe(
     );
 
     test(
-      'verify app manager defined job postings tile UI, redirect URL(External job types) and Show more behaviour',
+      'verify app manager defined job postings tile metadata, redirect URL(External job types) and Show more behaviour',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
