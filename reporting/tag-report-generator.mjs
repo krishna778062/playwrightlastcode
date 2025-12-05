@@ -1234,6 +1234,13 @@ export function generateHTML(
               <p class="text-green-700 text-sm font-semibold mt-2">No Known Failures</p>
               <p class="text-green-600 text-xs mt-1">All tests are in good health!</p>
             </div>
+            <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p class="text-xs text-gray-600 leading-relaxed">
+                <strong class="text-gray-700">What are Known Failures?</strong><br/>
+                Known failures are tests that are currently failing but have been identified as known issues with tracking tickets (e.g., Jira). 
+                They are excluded from failure counts and pass rate calculations, helping you focus on unexpected failures.
+              </p>
+            </div>
           `
           }
           
