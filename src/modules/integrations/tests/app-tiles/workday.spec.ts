@@ -1289,5 +1289,54 @@ test.describe(
         createdTileTitle = updatedTileTitle;
       }
     );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday job postings user defined tile on site dashboard(Internal)',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22734',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTileWithUserDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          JobType,
+          InternalJobPostingsUrl
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
   }
 );
