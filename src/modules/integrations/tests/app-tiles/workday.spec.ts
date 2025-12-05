@@ -1301,8 +1301,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27987, INT-27528',
+          storyId: 'INT-27948',
         });
 
         createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
