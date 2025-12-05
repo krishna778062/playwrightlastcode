@@ -242,6 +242,8 @@ export const WORKDAY_VALUES = {
   Vacation: 'Vacation',
   Wedding: 'Wedding',
   AppName: 'Workday',
+  pendingLearningCoursesTile: 'Display pending learning courses',
+  applyTimeOffTile: 'Apply for time off',
   paystubsTileName: 'Display recent paystubs',
   inboxTileName: 'Display inbox',
   jobPostingsTileName: 'Display job postings',

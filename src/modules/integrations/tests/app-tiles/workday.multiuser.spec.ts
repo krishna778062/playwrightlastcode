@@ -9,7 +9,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { REDIRECT_URLS } from '../../test-data/app-tiles.test-data';
+import { REDIRECT_URLS, WORKDAY_VALUES } from '../../test-data/app-tiles.test-data';
 
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
@@ -21,16 +21,18 @@ test.describe(
     tag: [IntegrationsSuiteTags.WORKDAY, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
-    const AppName = 'Workday';
-    const pendingLearningCoursesTile = 'Display pending learning courses';
-    const applyTimeOffTile = 'Apply for time off';
-    const paystubsTile = 'Display recent paystubs';
-    const inboxTile = 'Display inbox';
-    const AppManagerDefined = 'App manager defined';
-    const SiteManagerDefined = 'Site manager defined';
-    const PayslipListUrl = 'Payslip list URL';
-    const InboxTasksReportUrl = 'Inbox tasks report URL';
-    const jobPostingsTileName = 'Display job postings';
+    const {
+      AppName,
+      pendingLearningCoursesTile,
+      applyTimeOffTile,
+      paystubsTileName: paystubsTile,
+      inboxTileName: inboxTile,
+      AppManagerDefined,
+      SiteManagerDefined,
+      PayslipListUrl,
+      InboxTasksReportUrl,
+      jobPostingsTileName,
+    } = WORKDAY_VALUES;
     let createdTileTitle: string | undefined = undefined;
 
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
