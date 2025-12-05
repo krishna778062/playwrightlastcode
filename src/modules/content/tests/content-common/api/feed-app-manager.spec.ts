@@ -964,5 +964,398 @@ test.describe(
         await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
     );
+
+    test(
+      'app Manager Add Edit Delete Text Feed on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42929'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with text on public site',
+          zephyrTestId: 'CONT-42929',
+          storyId: 'CONT-42929',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Generate feed test data for site
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: publicSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Text Feed on Public Site Dashboard
+        const updatedText = 'Updated text feed on public site';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Text Feed on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Text Feed on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42928'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with text on private site',
+          zephyrTestId: 'CONT-42928',
+          storyId: 'CONT-42928',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Generate feed test data for site
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: privateSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Text Feed on Private Site Dashboard
+        const updatedText = 'Updated text feed on private site';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Text Feed on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Text Feed on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42929'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with text on unlisted site',
+          zephyrTestId: 'CONT-42929',
+          storyId: 'CONT-42929',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Generate feed test data for site
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: unlistedSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Text Feed on Unlisted Site Dashboard
+        const updatedText = 'Updated text feed on unlisted site';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Text Feed on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Special Characters on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36066'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with special characters on public site',
+          zephyrTestId: 'CONT-36066',
+          storyId: 'CONT-36066',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Generate feed test data with special characters
+        const specialCharsText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: publicSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        // Override text with special characters
+        feedTestData.text = specialCharsText;
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with Special Characters on Public Site Dashboard
+        const updatedText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?%^&* -updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Special Characters on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Emojis on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36067'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with emojis on public site',
+          zephyrTestId: 'CONT-36067',
+          storyId: 'CONT-36067',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Create feed with emojis
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Created a feed post with Emoji',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteId: publicSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with Emojis on Public Site Dashboard
+        const updatedText = 'Updated feed with emoji 😅';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Emojis on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with File Attachment on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42930'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with file attachment on public site',
+          zephyrTestId: 'CONT-42930',
+          storyId: 'CONT-42930',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Upload file first to get fileId for attachment
+        let fileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for attachment', error);
+        }
+
+        if (!fileId) {
+          throw new Error('Failed to upload file for attachment');
+        }
+
+        // Create feed with file attachment
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with file attachment on public site',
+          siteId: publicSite.siteId,
+          withAttachment: true,
+          fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+          fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+          mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+          fileId: fileId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseFiles(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with File Attachment on Public Site Dashboard
+        // Upload a new image for the update
+        let updatedFileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for update attachment', error);
+        }
+
+        const updatedText = 'Test feed with file attachment on public site - Updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: updatedFileId ? [buildAttachmentObject(updatedFileId)] : [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+        if (updatedFileId) {
+          await feedApiHelper.validateFeedResultFiles(updatedFeedResult);
+        }
+
+        //Delete Feed with File Attachment on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
   }
 );
