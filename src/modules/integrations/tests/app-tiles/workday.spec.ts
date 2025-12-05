@@ -393,7 +393,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22836',
+          zephyrTestId: 'INT-22836, INT-22826',
           storyId: 'INT-21182',
         });
 
@@ -547,7 +547,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
+          zephyrTestId: 'INT-22734, INT-22735',
           storyId: 'INT-21590',
         });
 
