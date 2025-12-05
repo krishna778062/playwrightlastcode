@@ -1937,5 +1937,73 @@ test.describe(
         await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
       }
     );
+
+    test(
+      'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+          zephyrTestId: 'CONT-19560',
+          storyId: 'CONT-19560',
+        });
+
+        const siteName = 'All Employees';
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        await feedPage.actions.clickShareThoughtsButton();
+
+        await feedPage.actions.enterFeedPostText(postText);
+
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          'image1.jpg'
+        );
+        await feedPage.actions.uploadFiles([imagePath]);
+
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        await feedPage.actions.clickPostButton();
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.actions.clickSiteNameOnPost(postText, siteName);
+
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+        const siteFeedPage = new FeedPage(standardUserFixture.page);
+        await siteFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        await siteFeedPage.assertions.verifyPostDetails(postText, 1);
+
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.actions.deletePost(postText);
+      }
+    );
   }
 );

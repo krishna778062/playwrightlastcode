@@ -216,6 +216,9 @@ export class ListFeedComponent extends BaseComponent {
       .filter({ hasText: `${userName}View in org chart` })
       .first();
 
+  readonly siteNameLocator = (postText: string, siteName: string): Locator =>
+    this.page.getByRole('link', { name: siteName }).first();
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -461,6 +464,15 @@ export class ListFeedComponent extends BaseComponent {
       await this.clickOnElement(this.infoIcon);
 
       await fileApiPromise;
+    });
+  }
+
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await test.step(`Click site name on post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(postText, siteName), {
+        assertionMessage: `Site name "${postText}" should be visible on post`,
+      });
+      await this.clickOnElement(this.siteNameLocator(postText, siteName));
     });
   }
 

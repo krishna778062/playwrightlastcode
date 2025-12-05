@@ -163,6 +163,7 @@ export interface IFeedActions {
   clickFollowingButtonOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
+  clickSiteNameOnPost: (postText: string, siteName: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -511,6 +512,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async openReplyEditorForPost(postText: string): Promise<void> {
     await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await this.listFeedComponent.clickSiteNameOnPost(postText, siteName);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
