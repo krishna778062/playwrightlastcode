@@ -1179,7 +1179,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27984',
+          zephyrTestId: 'INT-27984, INT-21427',
           storyId: 'INT-27948',
         });
 
@@ -1216,8 +1216,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27985, INT-21417',
+          storyId: 'INT-27948',
         });
 
         createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
