@@ -1369,8 +1369,8 @@ test.describe(
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         // Verify tile metadata, show more behaviour and redirect URL
         await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, AllJobType);
-        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
 
@@ -1402,6 +1402,7 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, InternalJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY);
       }
     );
   }
