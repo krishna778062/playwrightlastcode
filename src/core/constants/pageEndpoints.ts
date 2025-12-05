@@ -95,6 +95,7 @@ export const PAGE_ENDPOINTS = {
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
+  WORKFLOWS_PAGE: '/workflows',
   SIMPPLR_IDP_PAGE: '/manage/app/security/simpplr_idp',
   APPS_LINKS: '/manage/apps-and-links',
 
