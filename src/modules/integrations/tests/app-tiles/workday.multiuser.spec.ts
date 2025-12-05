@@ -30,6 +30,7 @@ test.describe(
     const SiteManagerDefined = 'Site manager defined';
     const PayslipListUrl = 'Payslip list URL';
     const InboxTasksReportUrl = 'Inbox tasks report URL';
+    const jobPostingsTileName = 'Display job postings';
     let createdTileTitle: string | undefined = undefined;
 
     multiUserTileFixture.afterEach(async ({ adminPage, tileManagementHelper }) => {
@@ -44,7 +45,7 @@ test.describe(
     multiUserTileFixture(
       'verify Display pending learning courses workday apptile is visible to end users after it has been added by the App Manager',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -69,7 +70,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Display pending learning courses workday apptile is visible to end users on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -102,7 +103,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for Workday Apply Time Off tile on Home dashboard - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -127,7 +128,7 @@ test.describe(
     multiUserTileFixture(
       'multi-user tile management for Workday Apply Time Off tile on Site dashboard - Admin creates, EndUser verifies, Admin deletes',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -160,7 +161,7 @@ test.describe(
     multiUserTileFixture(
       'verify Display recent paystubs app manager defined workday apptile is visible to end users on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -193,7 +194,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Display recent paystubs workday apptile is visible to end users on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -234,7 +235,7 @@ test.describe(
     multiUserTileFixture(
       'verify Display inbox app manager defined workday apptile is visible to end users on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -268,7 +269,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Display inbox workday apptile is visible to end users on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -304,6 +305,31 @@ test.describe(
         await endUserSiteDashboard.isTilePresent(createdTileTitle);
         await siteDashboard.removeTile(createdTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+
+    multiUserTileFixture(
+      'verify Display workday job postings default apptile is visible to end users after it has been added by the App Manager',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY],
+      },
+      async ({ adminPage, endUserPage, tileManagementHelper }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-28964',
+          storyId: 'INT-20803',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday display job postings tile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile, verify by both users, then remove
+        const adminHomeDashboard = new HomeDashboard(adminPage, tileManagementHelper);
+        await adminHomeDashboard.addTile(createdTileTitle, AppName, jobPostingsTileName, UI_ACTIONS.ADD_TO_HOME);
+        await adminHomeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await adminHomeDashboard.isTilePresent(createdTileTitle);
+        const endUserHomeDashboard = new HomeDashboard(endUserPage, tileManagementHelper);
+        await waitUntilTilePresentInApi(endUserPage, createdTileTitle);
+        await endUserHomeDashboard.reloadAndVerifyTilePresent(createdTileTitle);
       }
     );
   }
