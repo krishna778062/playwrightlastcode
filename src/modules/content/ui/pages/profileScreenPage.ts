@@ -4,12 +4,17 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
+import { EditContactComponent } from '@/src/modules/content/ui/components/editContactComponent';
+
 export interface IProfileScreenPageActions {
   clickOnManageTopics: () => Promise<void>;
   clickOnFavoriteOption: () => Promise<boolean>; // Returns true if user was already favorited, false otherwise
   clickEditAbout: () => Promise<void>;
   updateDateOfBirth: (month: number, day: number) => Promise<void>;
   saveProfileChanges: () => Promise<void>;
+  openEditTimezone: () => Promise<void>;
+  selectTimezone: (value: string) => Promise<void>;
+  clickOnSaveTimezoneButton: () => Promise<void>;
 }
 
 export interface IProfileScreenPageAssertions {
@@ -18,11 +23,13 @@ export interface IProfileScreenPageAssertions {
 
 export class ProfileScreenPage extends BasePage implements IProfileScreenPageActions, IProfileScreenPageAssertions {
   private baseActionUtil: BaseActionUtil;
+  private editContactComponent: EditContactComponent;
   readonly copyProfileLinkOption: Locator = this.page.getByRole('button', { name: 'Copy profile link' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly favoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Favorite' }).nth(1);
   readonly unfavoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Unfavorite' }).nth(1);
   readonly favoriteTextLocator: Locator = this.page.getByTestId('desktop-layout').getByText('Favorite');
+  readonly editTimezoneButton: Locator = this.page.getByRole('button', { name: 'Edit contact' });
 
   readonly manageTopicsLink: Locator = this.page
     .getByRole('link', { name: 'Manage Topics' })
@@ -41,6 +48,7 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   constructor(page: Page, peopleId: string) {
     super(page, PAGE_ENDPOINTS.getProfileScreenPage(peopleId));
     this.baseActionUtil = new BaseActionUtil(page);
+    this.editContactComponent = new EditContactComponent(page);
   }
 
   get actions(): IProfileScreenPageActions {
@@ -54,7 +62,7 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
       // Use "Show more" button as it's reliably present on profile pages
-      await this.verifier.verifyTheElementIsVisible(this.ellipsesButton, {
+      await this.verifier.verifyTheElementIsVisible(this.copyProfileLinkOption, {
         assertionMessage: 'Profile screen page should be visible',
       });
     });
@@ -144,6 +152,24 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
       });
       await this.clickOnElement(this.saveButton);
       await this.saveButton.waitFor({ state: 'hidden' }).catch(() => {});
+    });
+  }
+  
+  async openEditTimezone(): Promise<void> {
+    await test.step('Opening edit timezone dialog', async () => {
+      await this.clickOnElement(this.editTimezoneButton);
+    });
+  }
+
+  async selectTimezone(value: string): Promise<void> {
+    await test.step(`Selecting timezone with value: ${value}`, async () => {
+      await this.editContactComponent.selectTimezone(value);
+    });
+  }
+
+  async clickOnSaveTimezoneButton(): Promise<void> {
+    await test.step('Clicking on save timezone button', async () => {
+      await this.editContactComponent.clickOnSaveButton();
     });
   }
 }

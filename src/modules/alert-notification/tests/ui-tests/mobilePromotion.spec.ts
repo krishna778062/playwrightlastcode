@@ -217,7 +217,7 @@ test.describe(
         mobilePromotionPage.mobilePromotionEmailSMSComponent.emailInput
       );
       await mobilePromotionPage.commonActionsComponent.verifyErrorMessage(
-        ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_INVALID_EMAIL_ERROR
       );
 
       //Clearing error message by clicking on scan QR button
@@ -230,7 +230,7 @@ test.describe(
         mobilePromotionPage.mobilePromotionEmailSMSComponent.emailInput
       );
       await mobilePromotionPage.commonActionsComponent.verifyErrorMessage(
-        ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_INVALID_EMAIL_ERROR
       );
 
       //Clearing error message by clicking on scan QR button
@@ -243,7 +243,7 @@ test.describe(
         mobilePromotionPage.mobilePromotionEmailSMSComponent.emailInput
       );
       await mobilePromotionPage.commonActionsComponent.verifyErrorMessage(
-        ALERT_NOTIFICATION_MESSAGES.INVALID_EMAIL_ERROR
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_INVALID_EMAIL_ERROR
       );
     });
 

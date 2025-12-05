@@ -71,6 +71,9 @@ export class ManageContentComponent extends BaseComponent {
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
+  readonly validationRequiredInfoBox: Locator;
+  readonly validationViewAllButton: Locator;
+  readonly validationRequiredTag: Locator;
   readonly activateButton: Locator;
   readonly verifyTabVisibleUnderFavoritesTab: (option: TagOption) => Locator;
   readonly selectContentByNumberOfItemsButton: (option: number) => Locator;
@@ -152,11 +155,18 @@ export class ManageContentComponent extends BaseComponent {
       .locator('div')
       .filter({ hasText: /^Unpublished$/ })
       .first();
+    this.validationRequiredTag = page
+      .locator('div')
+      .filter({ hasText: /^Validation required$/ })
+      .first();
+
     this.addToCampaignOption = page.getByText('Add to campaign', { exact: true });
+    this.validationViewAllButton = page.getByRole('button', { name: 'View all' });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
+    this.validationRequiredInfoBox = page.locator('.InfoBox').first();
     this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
     this.verifyTabVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
@@ -474,6 +484,18 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnOnboardingOption(): Promise<void> {
     await test.step(`Clicking on the onboarding option`, async () => {
       await this.clickOnElement(this.onboardingOption);
+    });
+  }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await test.step('Verifying the validation required is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.validationRequiredInfoBox, {
+        assertionMessage: 'Validation required info box should be visible',
+      });
+    });
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await test.step('Clicking on the validation view all button', async () => {
+      await this.clickOnElement(this.validationRequiredInfoBox);
     });
   }
 
@@ -906,6 +928,8 @@ export class ManageContentComponent extends BaseComponent {
         return this.scheduledTag;
       case ManageContentTags.DRAFT:
         return this.draftTag;
+      case ManageContentTags.VALIDATION_REQUIRED:
+        return this.validationRequiredTag;
       default:
         throw new Error(`Unknown tag: ${tag}`);
     }
