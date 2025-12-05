@@ -57,11 +57,6 @@ function generateKnownFailuresTableRows(knownFailures) {
 
   return knownFailures
     .map((failure, index) => {
-      // Truncate test name for display
-      const maxLen = 35;
-      const truncatedName =
-        failure.testName.length > maxLen ? failure.testName.substring(0, maxLen) + '...' : failure.testName;
-
       // Determine priority badge color
       const priorityStyles = {
         High: 'bg-red-100 text-red-700',
@@ -73,16 +68,16 @@ function generateKnownFailuresTableRows(knownFailures) {
 
       return `
         <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-          <td class="px-2 py-2.5 text-sm">
+          <td class="px-2 py-2.5 text-sm whitespace-nowrap">
             ${
               failure.testCaseNo && failure.testId
                 ? `<a href="index.html#?testId=${failure.testId}" target="_blank" class="text-blue-600 hover:text-blue-800 font-mono text-xs">${failure.testCaseNo}</a>`
                 : `<span class="text-gray-500 font-mono text-xs">${failure.testCaseNo || '-'}</span>`
             }
           </td>
-          <td class="px-2 py-2.5 text-sm">
-            <div title="${failure.testName}" class="text-gray-700">${truncatedName}</div>
-            ${failure.note ? `<div class="text-[10px] text-gray-500 italic mt-0.5">${failure.note}</div>` : ''}
+          <td class="px-2 py-2.5 text-sm max-w-[300px]">
+            <div title="${failure.testName}" class="text-gray-700 truncate">${failure.testName}</div>
+            ${failure.suiteName ? `<div class="text-[10px] font-mono text-blue-600 mt-0.5">${failure.suiteName}</div>` : ''}
           </td>
           <td class="px-2 py-2.5 text-center">
             <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${priorityClass}">${failure.priority || 'Unknown'}</span>
@@ -1306,16 +1301,16 @@ export function generateHTML(
                       .map(
                         f => `
                       <tr class="hover:bg-green-50 transition-colors">
-                        <td class="px-2 py-2.5 text-sm">
+                        <td class="px-2 py-2.5 text-sm whitespace-nowrap">
                           ${
                             f.testCaseNo && f.testId
                               ? `<a href="index.html#?testId=${f.testId}" target="_blank" class="text-green-600 hover:text-green-800 font-mono text-xs">${f.testCaseNo}</a>`
                               : `<span class="text-gray-500 font-mono text-xs">${f.testCaseNo || '-'}</span>`
                           }
                         </td>
-                        <td class="px-2 py-2.5 text-sm">
-                          <div title="${f.testName}" class="text-gray-700">${f.testName.length > 35 ? f.testName.substring(0, 35) + '...' : f.testName}</div>
-                          ${f.note ? `<div class="text-[10px] text-gray-500 italic mt-0.5">${f.note}</div>` : ''}
+                        <td class="px-2 py-2.5 text-sm max-w-[300px]">
+                          <div title="${f.testName}" class="text-gray-700 truncate">${f.testName}</div>
+                          ${f.suiteName ? `<div class="text-[10px] font-mono text-blue-600 mt-0.5">${f.suiteName}</div>` : ''}
                         </td>
                         <td class="px-2 py-2.5 text-center">
                           <span class="px-2 py-0.5 text-xs font-semibold rounded-md ${f.priority === 'High' ? 'bg-red-100 text-red-700' : f.priority === 'Medium' ? 'bg-orange-100 text-orange-700' : f.priority === 'Low' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${f.priority || 'Unknown'}</span>
@@ -1334,6 +1329,12 @@ export function generateHTML(
                       .join('')}
                   </tbody>
                 </table>
+              </div>
+              <div class="px-4 py-3 bg-green-50 border-t border-green-200">
+                <p class="text-xs text-green-700 flex items-start gap-2">
+                  <span class="text-base">🎉</span>
+                  <span>These tests were previously marked as known failures but are now passing. This indicates the underlying issues have been fixed. <strong>Consider removing the known failure annotations from these tests.</strong></span>
+                </p>
               </div>
             </div>
           `
