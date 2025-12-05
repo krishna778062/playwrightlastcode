@@ -311,14 +311,14 @@ test.describe(
     );
 
     multiUserTileFixture(
-      'verify Display workday job postings default apptile is visible to end users after it has been added by the App Manager',
+      'verify Display workday job postings default apptile is visible to end users on home dashboard after it has been added by the App Manager',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28964',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-21576',
+          storyId: 'INT-27948',
         });
 
         //Generate a random tile title
@@ -336,14 +336,14 @@ test.describe(
     );
 
     multiUserTileFixture(
-      'verify Display workday job postings default apptile is visible to end users after it has been added by the Site Manager',
+      'verify Display workday job postings default apptile is visible to end users on site dashboard after it has been added by the Site Manager',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
-          zephyrTestId: 'INT-28966',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-22742',
+          storyId: 'INT-27948',
         });
 
         //Generate a random tile title
