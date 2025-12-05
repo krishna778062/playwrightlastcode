@@ -44,7 +44,22 @@ export function buildFeedTextJsonAndTextHtml(text: string) {
   };
 }
 
-export function buildFeedTextWithTopicMentions(text: string, topics: { id: string; name: string }[]) {
+/**
+ * Builds textJson and textHtml for feed replies with support for text, topics, user mentions, and site mentions
+ * @param text - The base text for the reply (optional)
+ * @param options - Optional parameters for mentions and topics
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedReplyText(
+  text: string = '',
+  options?: {
+    topics?: { id: string; name: string }[];
+    userMentions?: { id: string; label: string }[];
+    siteMentions?: { id: string; label: string }[];
+  }
+) {
+  const { topics = [], userMentions = [], siteMentions = [] } = options || {};
+
   const content = [
     {
       type: 'paragraph',
@@ -60,7 +75,7 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
   if (text) {
     content[0].content.push({
       type: 'text',
-      text: text + ' ',
+      text: text + (topics.length > 0 || userMentions.length > 0 || siteMentions.length > 0 ? ' ' : ''),
     });
   }
 
@@ -74,8 +89,43 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
         type: 'topic',
       },
     });
+    if (index < topics.length - 1 || userMentions.length > 0 || siteMentions.length > 0) {
+      content[0].content.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
 
-    if (index < topics.length - 1) {
+  // Add user mentions
+  userMentions.forEach((user, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: user.id,
+        label: user.label,
+        type: 'user',
+      },
+    });
+    if (index < userMentions.length - 1 || siteMentions.length > 0) {
+      content[0].content.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
+
+  // Add site mentions
+  siteMentions.forEach((site, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: site.id,
+        label: site.label,
+        type: 'site',
+      },
+    });
+    if (index < siteMentions.length - 1) {
       content[0].content.push({
         type: 'text',
         text: ' ',
@@ -88,14 +138,162 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
     content,
   });
 
-  const topicLinks = topics
-    .map(
-      topic =>
-        `<span data-type="topic" data-id="${topic.id}" data-label="${topic.name}"><a href="/topic/${topic.id}" target="_blank">#${topic.name}</a></span>`
-    )
-    .join(' ');
+  // Build textHtml
+  let textHtml = '<p>';
+  if (text) {
+    textHtml += text;
+  }
 
-  const textHtml = `<p>${text} ${topicLinks}</p>`;
+  // Add topic links
+  if (topics.length > 0) {
+    const topicLinks = topics
+      .map(
+        topic =>
+          `<span data-type="topic" data-id="${topic.id}" data-label="${topic.name}"><a href="/topic/${topic.id}" target="_blank">#${topic.name}</a></span>`
+      )
+      .join(' ');
+    textHtml += text ? ` ${topicLinks}` : topicLinks;
+  }
+
+  // Add user mention links
+  if (userMentions.length > 0) {
+    const userLinks = userMentions
+      .map(
+        user =>
+          `<span data-type="user" data-id="${user.id}" data-label="${user.label}"><a href="/people/${user.id}" target="_blank">@${user.label}</a></span>`
+      )
+      .join(' ');
+    textHtml += text || topics.length > 0 ? ` ${userLinks}` : userLinks;
+  }
+
+  // Add site mention links
+  if (siteMentions.length > 0) {
+    const siteLinks = siteMentions
+      .map(
+        site =>
+          `<span data-type="site" data-id="${site.id}" data-label="${site.label}"><a href="/site/${site.id}" target="_blank">@${site.label}</a></span>`
+      )
+      .join(' ');
+    textHtml += text || topics.length > 0 || userMentions.length > 0 ? ` ${siteLinks}` : siteLinks;
+  }
+
+  textHtml += '</p>';
+
+  return {
+    textJson,
+    textHtml,
+  };
+}
+
+/**
+ * @deprecated Use buildFeedReplyText instead. This function is kept for backward compatibility.
+ * Builds textJson and textHtml with topic mentions for feed posts
+ */
+export function buildFeedTextWithTopicMentions(text: string, topics: { id: string; name: string }[]) {
+  return buildFeedReplyText(text, { topics });
+}
+
+/**
+ * Builds textJson and textHtml with site mentions for feed post updates
+ * @param text - The base text for the feed post
+ * @param siteMentions - Array of site mentions with id and label
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedTextWithSiteMentions(text: string, siteMentions: { id: string; label: string }[]) {
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [] as any[],
+    },
+  ];
+
+  // Add site mentions
+  siteMentions.forEach((site, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: site.id,
+        label: site.label,
+        type: 'site',
+      },
+    });
+    content[0].content.push({
+      type: 'text',
+      text: index < siteMentions.length - 1 ? '  ' : ' ',
+    });
+  });
+
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  const siteLinks = siteMentions
+    .map(
+      site =>
+        `<span data-type="site" data-id="${site.id}" data-label="${site.label}"><a href="/site/${site.id}" target="_blank">@${site.label}</a></span>`
+    )
+    .join('  ');
+
+  const textHtml = `<p>${siteLinks} </p>`;
+
+  return {
+    textJson,
+    textHtml,
+  };
+}
+
+/**
+ * Builds textJson and textHtml with user mentions for feed post updates
+ * @param text - The base text for the feed post
+ * @param userMentions - Array of user mentions with id and label
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedTextWithUserMentions(text: string, userMentions: { id: string; label: string }[]) {
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [] as any[],
+    },
+  ];
+
+  // Add user mentions
+  userMentions.forEach((user, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: user.id,
+        label: user.label,
+        type: 'user',
+      },
+    });
+    content[0].content.push({
+      type: 'text',
+      text: index < userMentions.length - 1 ? '  ' : ' ',
+    });
+  });
+
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  const userLinks = userMentions
+    .map(
+      user =>
+        `<span data-type="user" data-id="${user.id}" data-label="${user.label}"><a href="/people/${user.id}" target="_blank">@${user.label}</a></span>`
+    )
+    .join('  ');
+
+  const textHtml = `<p>${userLinks} </p>`;
 
   return {
     textJson,
