@@ -3,6 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export interface IRecognitionDialogActions {
+  clickShareDialogShareButton(): Promise<void>;
   selectUserForRecognition: (userName: string | number) => Promise<void>;
   selectPeerRecognitionAward: (awardName: string | number) => Promise<string>;
   enterRecognitionMessage: (message: string) => Promise<void>;
@@ -349,6 +350,11 @@ export class RecognitionDialogComponent
     });
   }
 
+  async clickShareDialogShareButton(): Promise<void> {
+    await test.step('Click Share button in share dialog', async () => {
+      await this.clickOnElement(this.shareDialogShareButton);
+    });
+  }
   get actions(): IRecognitionDialogActions {
     return this;
   }

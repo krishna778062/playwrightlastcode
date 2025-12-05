@@ -142,7 +142,7 @@ test.describe(
 
         await recognitionDialog.actions.enterMessageInShareDialog(shareMessage);
 
-        await recognitionDialog.shareDialogShareButton.click();
+        await recognitionDialog.actions.clickShareDialogShareButton();
 
         await recognitionDialog.actions.waitForShareDialogToClose();
 
