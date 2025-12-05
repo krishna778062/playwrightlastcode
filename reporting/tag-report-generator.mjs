@@ -853,6 +853,8 @@ function generateInteractiveCode() {
       const failureToggle = document.getElementById('failure-toggle');
       const track = document.getElementById('toggle-track');
       const dot = document.getElementById('toggle-dot');
+      const label = document.getElementById('failure-toggle-label');
+      const text = document.getElementById('failure-toggle-text');
       
       if (failureToggle && track && dot) {
         // Restore state from session storage
@@ -860,8 +862,16 @@ function generateInteractiveCode() {
         if (savedState === 'true') {
           failureToggle.checked = true;
           track.classList.remove('bg-white/30');
-          track.classList.add('bg-green-400');
+          track.classList.add('bg-red-400');
           dot.style.transform = 'translateX(20px)';
+          // Apply highlight styling
+          if (label) {
+            label.classList.add('bg-red-500/30', 'ring-2', 'ring-red-300');
+          }
+          if (text) {
+            text.classList.remove('text-white/90');
+            text.classList.add('text-white', 'font-bold');
+          }
         } else {
           failureToggle.checked = false;
         }
@@ -964,19 +974,37 @@ function generateInteractiveCode() {
       const checkbox = document.getElementById('failure-toggle');
       const track = document.getElementById('toggle-track');
       const dot = document.getElementById('toggle-dot');
+      const label = document.getElementById('failure-toggle-label');
+      const text = document.getElementById('failure-toggle-text');
       
       if (!checkbox || !track || !dot) return;
       
       checkbox.checked = !checkbox.checked;
       
       if (checkbox.checked) {
-        track.classList.remove('bg-[#D1D5DB]');
-        track.classList.add('bg-green-400');
+        // Active state - highlight the toggle
+        track.classList.remove('bg-white/30');
+        track.classList.add('bg-red-400');
         dot.style.transform = 'translateX(20px)';
+        if (label) {
+          label.classList.add('bg-red-500/30', 'ring-2', 'ring-red-300');
+        }
+        if (text) {
+          text.classList.remove('text-white/90');
+          text.classList.add('text-white', 'font-bold');
+        }
       } else {
-        track.classList.remove('bg-green-400');
-        track.classList.add('bg-[#D1D5DB]');
+        // Inactive state
+        track.classList.remove('bg-red-400');
+        track.classList.add('bg-white/30');
         dot.style.transform = 'translateX(0)';
+        if (label) {
+          label.classList.remove('bg-red-500/30', 'ring-2', 'ring-red-300');
+        }
+        if (text) {
+          text.classList.remove('text-white', 'font-bold');
+          text.classList.add('text-white/90');
+        }
       }
       
       // Save state to session storage
@@ -1143,11 +1171,11 @@ export function generateHTML(
               🏷️ Tag Results
             </h3>
             <!-- Failures Only Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer" onclick="toggleFailuresOnly()">
-              <span class="text-xs font-medium text-white/90">Failures only</span>
+            <label id="failure-toggle-label" class="flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg transition-all duration-200" onclick="toggleFailuresOnly()">
+              <span id="failure-toggle-text" class="text-xs font-medium text-white/90 transition-all duration-200">Failures only</span>
               <div class="relative w-11 h-6">
                 <input type="checkbox" id="failure-toggle" class="sr-only"/>
-                <div id="toggle-track" class="absolute inset-0 bg-[#D1D5DB] rounded-full transition-colors duration-200"></div>
+                <div id="toggle-track" class="absolute inset-0 bg-white/30 rounded-full transition-colors duration-200"></div>
                 <div id="toggle-dot" class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"></div>
               </div>
             </label>
