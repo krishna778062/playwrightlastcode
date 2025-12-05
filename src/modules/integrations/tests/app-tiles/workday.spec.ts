@@ -24,10 +24,16 @@ const Wedding = 'Wedding';
 const AppName = 'Workday';
 const paystubsTileName = 'Display recent paystubs';
 const inboxTileName = 'Display inbox';
+const jobPostingsTileName = 'Display job postings';
 const AppManagerDefined = 'App manager defined';
 const SiteManagerDefined = 'Site manager defined';
 const PayslipListUrl = 'Payslip list URL';
 const InboxTasksReportUrl = 'Inbox tasks report URL';
+const JobType = 'Job type';
+const InternalJobType = 'Internal jobs';
+const ExternalJobType = 'External jobs';
+const AllJobType = 'All jobs';
+const InternalJobPostingsUrl = 'Example internal job URL';
 
 test.describe(
   'workday App Tiles Integration',
@@ -61,6 +67,7 @@ test.describe(
         });
         const peopleTab = new PeopleTabPage(appManagerFixture.page);
         await peopleTab.navigateToPeopleDataPage();
+        await peopleTab.verifyNavigatedToPeoplePage();
         await peopleTab.deselectWorkdayIfChecked();
         await peopleTab.configureWorkdayCredentials({
           username: WORKDAY_CREDS.USERNAME,
@@ -194,7 +201,7 @@ test.describe(
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.isTilePresent(createdTileTitle);
-        //verify events UI
+        //verify pending learning courses tile data
         await siteDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
         createdTileTitle = undefined;
       }
@@ -211,6 +218,7 @@ test.describe(
           zephyrTestId: 'INT-27858',
           storyId: 'INT-26436',
         });
+
         createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add, verify
@@ -754,7 +762,6 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.PAYSLIP_LIST_URL);
-        createdTileTitle = undefined;
       }
     );
 
@@ -950,7 +957,6 @@ test.describe(
         await homeDashboard.isTilePresent(createdTileTitle);
         //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
-        createdTileTitle = undefined;
       }
     );
 
@@ -1097,20 +1103,13 @@ test.describe(
         //verify personalize button behaviour
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.INBOX_REPORT_URL);
-        createdTileTitle = undefined;
       }
     );
 
     test(
       'verify app manager is able to create, edit and remove default display job postings workday apptile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayjobpostings',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -1140,13 +1139,7 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove default display job postings workday apptile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayjobpostings',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;

@@ -115,6 +115,8 @@ export const REDIRECT_URLS = {
   WORKDAY_INBOX_TASKS_REPORT:
     'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
+  WORKDAY_JOB_POSTINGS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/inst/9925$1420/rel-task/2998$16774.htmld',
+  WORKDAY_EXTERNAL_JOB_POSTINGS: 'https://simpplr-dpt1.impl-wd12.myworkdayjobs.com/External',
   FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',

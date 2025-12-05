@@ -568,6 +568,7 @@ export class HomeDashboard extends BasePage {
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
+
   /**
    * Verify Calendar upcoming events tile data
    */
@@ -955,11 +956,11 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
   }
-  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
-    await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
+  async verifyWorkdayJobPostingsmetadata(tileTitle: string, jobType: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayJobPostingsmetadata(tileTitle, jobType);
   }
-  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
-    await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
+  async clickEditDashboard(): Promise<void> {
+    await this.appTileComponent.clickEditDashboard();
   }
   /**
    * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
@@ -1052,5 +1053,71 @@ export class HomeDashboard extends BasePage {
     linkSelector?: string
   ): Promise<void> {
     await this.tileOperationsComponent.verifySalesforceViewCompleteReportLink(tileTitle, expectedUrl, linkSelector);
+  }
+
+  async addTileWithAppManagerDefinedDropdownAndText(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    destination: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    textFieldName: string,
+    textValue: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile with dropdown and text: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.selectRadioOptionandValue(dropdownFieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, dropdownValue);
+      await this.selectRadioOptionAndTextInput(textFieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, textValue);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  async selectRadioOptionAndTextInput(fieldName: string, radioOption: string, textValue: string): Promise<void> {
+    return this.tileOperationsComponent.selectRadioOptionAndTextInput(fieldName, radioOption, textValue);
+  }
+
+  /**
+   * Complete workflow to add an app tile with User defined radio for both a dropdown and a text field,
+   * then click Add to home.
+   */
+  async addTileWithUserDefinedDropdownAndText(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    dropdownFieldName: string,
+    textFieldName: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile with User defined dropdown and text: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      // Select User defined for both fields, do not choose/enter any values
+      await this.selectRadioOption(dropdownFieldName, ORGANIZATION_SETTINGS.USER_DEFINED);
+      await this.selectRadioOption(textFieldName, ORGANIZATION_SETTINGS.USER_DEFINED);
+      await this.appTileComponent.submitTileToHomeOrDashboard(UI_ACTIONS.ADD_TO_HOME);
+    });
+  }
+
+  /**
+   * Open Personalize for a tile, select a dropdown value and enter a text field, then Save
+   */
+  async personalizeDropdownAndText(
+    tileTitle: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    textFieldName: string,
+    textValue: string
+  ): Promise<void> {
+    await test.step(`Personalize '${tileTitle}' with dropdown and text`, async () => {
+      await this.appTileComponent.openPersonalizeOptions(tileTitle);
+      await this.selectFromDropdown(dropdownFieldName, dropdownValue);
+      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
+  async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileDropdown(tileTitle, fieldName, fieldValue);
+  }
+  async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
   }
 }
