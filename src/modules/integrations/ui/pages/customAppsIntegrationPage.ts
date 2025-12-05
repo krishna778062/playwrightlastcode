@@ -54,6 +54,16 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly alertMessage: Locator;
   readonly saveButtonByRole: Locator;
 
+  // Dialog locators
+  readonly dialogTitleHeading: Locator;
+  readonly dialogCancelButton: Locator;
+  readonly dialogDisconnectButton: Locator;
+
+  // PKCE and Token URL locators
+  readonly codeChallengeMethodDropdown: Locator;
+  readonly addHeadersForTokenUrlCheckbox: Locator;
+  readonly tokenRequestHeadersInput: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE);
     this.resultListAppTilesItemCountLocator = page.locator('div[class*="ConnectorsList_resultCount"]');
@@ -72,8 +82,6 @@ export class CustomAppsIntegrationPage extends BasePage {
       `p:has-text("${MESSAGES.getAppConnectionUnavailableMessage('Expensify')}")`
     );
     this.apiTokenInput = page.locator('input[name="apiToken"]');
-
-    // Initialize new locators using Playwright's recommended patterns
     this.customAppsLink = page.getByRole('link', { name: 'Custom apps' });
     this.connectionHeading = page.getByRole('heading', { name: 'Connection' });
     this.disconnectAccountButton = page.getByRole('button', { name: 'Disconnect account' });
@@ -82,10 +90,18 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.setupChecklistButton = page.getByRole('button', { name: /setup checklist/i });
     this.dialog = page.getByRole('dialog');
     this.appDescriptionText = page.getByText(/App to integrate with|to support actions/i);
-
-    // Initialize verification locators
     this.alertMessage = page.getByRole('alert');
     this.saveButtonByRole = page.getByRole('button', { name: 'Save' });
+    this.dialogTitleHeading = this.dialog.locator('h2, h3, h4');
+    this.dialogCancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
+    this.dialogDisconnectButton = this.dialog.getByRole('button', { name: 'Disconnect account' });
+
+    // PKCE and Token URL locators
+    this.codeChallengeMethodDropdown = page.locator('select[name="authDetails.codeChallengeMethod"]');
+    this.addHeadersForTokenUrlCheckbox = page.getByRole('checkbox', { name: 'Add headers for Token URL' });
+    this.tokenRequestHeadersInput = page.locator(
+      'input[name="authDetails.tokenRequestHeaders"], textarea[name="authDetails.tokenRequestHeaders"]'
+    );
   }
 
   /**
@@ -116,6 +132,22 @@ export class CustomAppsIntegrationPage extends BasePage {
 
   getFieldInput(fieldLabel: string, fieldName: string): Locator {
     return this.page.getByLabel(fieldLabel, { exact: false }).or(this.page.locator(`input[name="${fieldName}"]`));
+  }
+
+  getStatusBadge(status: 'Enabled' | 'Disabled'): Locator {
+    return this.page.getByText(status, { exact: true }).first();
+  }
+
+  getFieldByName(fieldName: string): Locator {
+    return this.page.locator(`input[name="${fieldName}"], textarea[name="${fieldName}"]`);
+  }
+
+  getDropdownByName(selectName: string): Locator {
+    return this.page.locator(`select[name="${selectName}"]`);
+  }
+
+  getFieldByLabel(fieldLabel: string): Locator {
+    return this.page.getByText(fieldLabel, { exact: false }).first();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -810,6 +842,38 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Select code challenge method from dropdown (for PKCE)
+   * @param method - The code challenge method (e.g., 'Plain', 'SHA-256')
+   */
+  async selectCodeChallengeMethod(method: string): Promise<void> {
+    await test.step(`Select code challenge method: ${method}`, async () => {
+      await this.codeChallengeMethodDropdown.waitFor({ state: 'visible' });
+      await this.codeChallengeMethodDropdown.selectOption({ label: method });
+    });
+  }
+
+  /**
+   * Check the "Add headers for Token URL" checkbox
+   */
+  async checkAddHeadersForTokenUrl(): Promise<void> {
+    await test.step('Check "Add headers for Token URL" checkbox', async () => {
+      await this.addHeadersForTokenUrlCheckbox.waitFor({ state: 'visible' });
+      await this.addHeadersForTokenUrlCheckbox.check();
+    });
+  }
+
+  /**
+   * Enter token request headers value
+   * @param headers - The token request headers value
+   */
+  async enterTokenRequestHeaders(headers: string): Promise<void> {
+    await test.step(`Enter token request headers: ${headers}`, async () => {
+      await this.tokenRequestHeadersInput.waitFor({ state: 'visible' });
+      await this.tokenRequestHeadersInput.fill(headers);
+    });
+  }
+
+  /**
    * Enter value in a textbox field by its label name
    * @param fieldName - The label name of the field (e.g., 'Client ID*', 'Secret key*', 'Auth URL*')
    * @param value - The value to enter
@@ -893,5 +957,173 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async verifyToastMessage(message: string): Promise<void> {
     return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  /**
+   * Verify Edit button is displayed
+   */
+  async verifyEditButtonIsDisplayed(): Promise<void> {
+    await test.step('Verify Edit button is displayed', async () => {
+      await expect(this.editButton.first(), 'Expected Edit button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify status badge text (Enabled/Disabled)
+   * @param expectedStatus - The expected status text
+   */
+  async verifyStatusBadge(expectedStatus: 'Enabled' | 'Disabled'): Promise<void> {
+    await test.step(`Verify status badge shows "${expectedStatus}"`, async () => {
+      await expect(
+        this.getStatusBadge(expectedStatus),
+        `Expected status badge to show "${expectedStatus}"`
+      ).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify dialog title is displayed
+   * @param title - The expected dialog title
+   */
+  async verifyDialogTitle(title: string): Promise<void> {
+    await test.step(`Verify dialog title: "${title}"`, async () => {
+      await expect(
+        this.dialogTitleHeading.filter({ hasText: title }),
+        `Expected dialog title "${title}" to be visible`
+      ).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Cancel button in dialog
+   */
+  async clickCancelButton(): Promise<void> {
+    await test.step('Click Cancel button', async () => {
+      await expect(this.dialogCancelButton, 'Expected Cancel button to be visible').toBeVisible();
+      await this.dialogCancelButton.click();
+    });
+  }
+
+  /**
+   * Verify field is displayed with label
+   * @param fieldLabel - The field label to verify
+   */
+  async verifyFieldIsDisplayed(fieldLabel: string): Promise<void> {
+    await test.step(`Verify field "${fieldLabel}" is displayed`, async () => {
+      await expect(this.getFieldByLabel(fieldLabel), `Expected field "${fieldLabel}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Disconnect account button
+   */
+  async clickDisconnectAccountButton(): Promise<void> {
+    await test.step('Click Disconnect account button', async () => {
+      await expect(this.disconnectAccountButton, 'Expected Disconnect account button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+      await this.disconnectAccountButton.click();
+    });
+  }
+
+  /**
+   * Verify checklist item is unchecked (incomplete)
+   * @param checklistText - The text of the checklist item
+   */
+  async verifyChecklistItemIsUnchecked(checklistText: string): Promise<void> {
+    await test.step(`Verify checklist item is unchecked: "${checklistText}"`, async () => {
+      await this.verifySetupStepIsIncomplete(checklistText);
+    });
+  }
+
+  /**
+   * Verify Save button is displayed
+   */
+  async verifySaveButtonIsDisplayed(): Promise<void> {
+    await test.step('Verify Save button is displayed', async () => {
+      await expect(this.saveButton, 'Expected Save button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Disconnect account button in dialog
+   */
+  async clickDisconnectAccountInDialog(): Promise<void> {
+    await test.step('Click Disconnect account button in dialog', async () => {
+      await expect(
+        this.dialogDisconnectButton,
+        'Expected Disconnect account button in dialog to be visible'
+      ).toBeVisible();
+      await this.dialogDisconnectButton.click();
+    });
+  }
+
+  /**
+   * Click Edit option from three dots menu
+   */
+  async clickEditFromMenu(): Promise<void> {
+    await test.step('Click Edit from connector options menu', async () => {
+      await this.customAppsComponent.selectConnectorOption(AppConnectorOptions.Edit);
+    });
+  }
+
+  /**
+   * Verify a text field is enabled
+   * @param fieldName - The name attribute of the field
+   */
+  async verifyFieldIsEnabled(fieldName: string): Promise<void> {
+    await test.step(`Verify field "${fieldName}" is enabled`, async () => {
+      await expect(this.getFieldByName(fieldName), `Expected field "${fieldName}" to be enabled`).toBeEnabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a text field is disabled
+   * @param fieldName - The name attribute of the field
+   */
+  async verifyFieldIsDisabled(fieldName: string): Promise<void> {
+    await test.step(`Verify field "${fieldName}" is disabled`, async () => {
+      await expect(this.getFieldByName(fieldName), `Expected field "${fieldName}" to be disabled`).toBeDisabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a dropdown/select is enabled
+   * @param selectName - The name attribute of the select
+   */
+  async verifyDropdownIsEnabled(selectName: string): Promise<void> {
+    await test.step(`Verify dropdown "${selectName}" is enabled`, async () => {
+      await expect(this.getDropdownByName(selectName), `Expected dropdown "${selectName}" to be enabled`).toBeEnabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a dropdown/select is disabled
+   * @param selectName - The name attribute of the select
+   */
+  async verifyDropdownIsDisabled(selectName: string): Promise<void> {
+    await test.step(`Verify dropdown "${selectName}" is disabled`, async () => {
+      await expect(this.getDropdownByName(selectName), `Expected dropdown "${selectName}" to be disabled`).toBeDisabled(
+        {
+          timeout: TIMEOUTS.SHORT,
+        }
+      );
+    });
   }
 }

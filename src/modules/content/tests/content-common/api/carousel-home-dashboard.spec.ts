@@ -147,7 +147,7 @@ test.describe(
         });
 
         // Add event to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(eventInfo.contentId, 'event');
+        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(eventInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
         // Verify event is in carousel
@@ -172,13 +172,13 @@ test.describe(
     test(
       'app manager can add and remove album content from home carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42877'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-10863'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can add and remove album content from home carousel',
-          zephyrTestId: 'CONT-42877',
-          storyId: 'CONT-42877',
+          zephyrTestId: 'CONT-10863',
+          storyId: 'CONT-10863',
         });
 
         // Enable home carousel
@@ -206,7 +206,7 @@ test.describe(
         });
 
         // Add album to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(albumInfo.contentId, 'album');
+        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(albumInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
         // Verify album is in carousel

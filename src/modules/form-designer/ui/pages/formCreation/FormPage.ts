@@ -42,13 +42,23 @@ export class FormCreationPage extends BasePage {
   readonly deleteIcon: Locator;
   readonly settingsIcon: Locator;
   readonly dismissSurvey: Locator;
+  readonly legalComponentQuestionBox: Locator;
+  readonly previewButton: Locator;
+  readonly requiredToggle: Locator;
+
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
+  readonly getRoleLocator: (roleName: any, value: string) => Locator = (roleName: any, value: string) =>
+    this.page.getByRole(roleName as any, { name: value });
+  readonly threeDotsIcon: Locator;
+
+  readonly copyLink: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.createFormButton = this.page.getByRole('link', { name: 'Create form' });
-    this.dragAndDropArea = this.page.getByTestId('drag-placeholder-container');
+    //this.dragAndDropArea = this.page.getByTestId('drag-placeholder-container');
+    this.dragAndDropArea = this.page.locator('div[data-from-designer-canvas="true"]');
     this.titleAndDescriptionArea = this.page.getByRole('button', { name: 'Title & description' });
     this.shortText = this.page.getByRole('button', { name: 'Short text' });
     this.draftButton = this.page.getByRole('button', { name: 'Save draft' });
@@ -70,8 +80,8 @@ export class FormCreationPage extends BasePage {
     this.multiSelect = this.page.getByRole('button', { name: 'Multi select' });
     this.singleSelect = this.page.getByRole('button', { name: 'Single select' });
     this.dropDown = this.page.getByRole('button', { name: 'Dropdown' });
-    this.fileUpload = this.page.getByRole('button', { name: 'File upload' });
-    this.image = this.page.getByRole('button', { name: 'Image' });
+    this.fileUpload = this.page.getByRole('button', { name: 'Upload file' });
+    this.image = this.page.getByRole('button', { name: 'Upload image' });
     this.rating = this.page.getByRole('button', { name: 'Rating' });
     this.opinion = this.page.getByRole('button', { name: 'Opinion' });
     this.blockSection = this.page.getByRole('tab', { name: 'Blocks' });
@@ -79,9 +89,15 @@ export class FormCreationPage extends BasePage {
     this.descriptionTitleAndDescription = this.page.getByText('Add your form description here');
     this.copyIcon = this.page.getByRole('button', { name: 'Copy icon' });
     this.deleteIcon = this.page.getByRole('button', { name: 'Delete icon' });
-    this.settingsIcon = this.page.getByRole('button', { name: 'Default Properties icon' });
+    this.settingsIcon = this.page.getByLabel('Default Properties icon');
     this.getDashboardLocator = (value: string) => this.page.locator(`//h3[text()='${value}']`).locator('..');
     this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
+    this.getRoleLocator = (roleName: any, value: string) => this.page.getByRole(roleName, { name: value });
+    this.copyLink = this.page.getByText('Copy link');
+    this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
+    this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
+    this.previewButton = this.page.getByText('Preview');
+    this.requiredToggle = this.page.getByRole('switch', { name: 'Required' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -116,6 +132,32 @@ export class FormCreationPage extends BasePage {
       await this.verifier.verifyTheElementIsEnabled(tgtLocator);
 
       await dragAndDrop(this.page, srcLocator, tgtLocator);
+    });
+  }
+
+  async dragAndDropElementSecondary(
+    source: string | Locator,
+    target: string | Locator = this.dragAndDropArea
+  ): Promise<void> {
+    const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
+    const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
+    await test.step('Drag and drop element on Form creation page', async () => {
+      // Close survey popup if present
+      try {
+        if (await this.verifier.verifyTheElementIsVisible(this.dismissSurvey, { timeout: TIMEOUTS.VERY_SHORT })) {
+          await this.clickOnElement(this.dismissSurvey);
+        }
+      } catch {
+        // ignore if not present
+      }
+      const newTargetLocator = this.page.locator('#dragAndDropArea');
+      await srcLocator.scrollIntoViewIfNeeded();
+      await this.verifier.verifyTheElementIsVisible(srcLocator);
+      await this.verifier.verifyTheElementIsEnabled(srcLocator);
+      await this.verifier.verifyTheElementIsVisible(newTargetLocator);
+      await this.verifier.verifyTheElementIsEnabled(newTargetLocator);
+
+      await dragAndDrop(this.page, srcLocator, newTargetLocator);
     });
   }
 
@@ -168,12 +210,13 @@ export class FormCreationPage extends BasePage {
       case 'drop-down':
         console.log('drop down key:control coming here', key);
         return this.dropDown;
-      case 'File upload':
+      case 'upload file':
+      case 'Upload file':
       case 'file upload':
       case 'fileupload':
         console.log('file upload key:control coming here', key);
         return this.fileUpload;
-      case 'image':
+      case 'upload image':
         console.log('image key:control coming here', key);
         return this.image;
       case 'rating':
@@ -263,6 +306,7 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
     });
   }
+
   async verifyHeadingSectionIsVisible(): Promise<void> {
     await test.step('Verify heading section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.heading, { timeout: TIMEOUTS.MEDIUM });
@@ -514,11 +558,40 @@ export class FormCreationPage extends BasePage {
       formCreationConstants.FORM_DESCRIPTION = descriptionText;
     });
   }
+  async addQuestionIntoLegalComponent(questionText: string): Promise<void> {
+    await test.step('Add question into legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentQuestionBox, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.legalComponentQuestionBox);
+      await this.fillInElement(this.legalComponentQuestionBox, questionText);
+      formCreationConstants.LEGAL_QUESTION = questionText;
+    });
+  }
+  async makeComponentMandatory(): Promise<void> {
+    await test.step('Make component mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.requiredToggle, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.requiredToggle);
+    });
+  }
+
+  async makeAddressFieldsMandatory(message: string): Promise<void> {
+    await test.step(`Make ${message} field mandatory`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator('switch', message), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.getRoleLocator('switch', message));
+    });
+  }
 
   async clickOnCopyIcon(): Promise<void> {
     await test.step('Click on copy icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.copyIcon, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.copyIcon);
+    });
+  }
+  async clickOnPreviewButton(): Promise<void> {
+    await test.step('Click on preview button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.previewButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.previewButton);
     });
   }
   async clickOnDeleteIcon(): Promise<void> {
@@ -624,6 +697,27 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(componentNameLocator);
       await this.fillInElement(componentNameLocator, descriptionText);
       formCreationConstants.FORM_DESCRIPTION = descriptionText;
+    });
+  }
+  async clickOn(roleName: any, buttonName: string): Promise<void> {
+    await test.step(`Click on button: ${buttonName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.getRoleLocator(roleName, buttonName));
+    });
+  }
+  async verifyPublishedFormToastMessage(): Promise<void> {
+    await test.step('Verify published form toast message is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: 'Form published' }), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      test
+        .expect(
+          await this.toastMessages.filter({ hasText: 'Form published' }).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Form published toast message should be visible'
+        )
+        .toBe(true);
     });
   }
 }
