@@ -32,6 +32,7 @@ export const FEED_TEST_DATA = {
     EDITED_POST_TEXT: `This is a test post with appropriate content`,
     INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
+    REPLY_WITH_IMAGE: `Reply with image to comment`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,

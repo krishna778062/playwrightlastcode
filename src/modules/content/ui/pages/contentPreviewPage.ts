@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import {
   CreateQuestionComponent,
@@ -47,12 +47,14 @@ export interface IContentPreviewPageActions {
     filePath: string,
     mentionUserName?: string
   ) => Promise<string>;
+  addReplyToContentComment(replyText: string): Promise<void>;
   makeContentForEveryoneInOrganization: () => Promise<void>;
   clickOnMakeMustReadButton: () => Promise<void>;
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnFavouriteContentButton(): Promise<void>;
+  clickReplyEditorForPost(commentText: string): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -123,7 +125,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
-
+  readonly replyEditorForPost = (postText: string): Locator => {
+    return this.page.locator('._post_eonic_1').first().getByRole('button', { name: 'Leave a reply…' }).first();
+  };
+  readonly replyEditor = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+  readonly submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
   // Page components
   readonly promotePageModal: PromotePageModal;
   readonly mustReadModalComponent: MustReadModalComponent;
@@ -211,6 +217,23 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.verifier.verifyTheElementIsVisible(this.contentStatus(status), {
         assertionMessage: `Content should be in pending status`,
       });
+    });
+  }
+
+  async clickReplyEditorForPost(commentText: string): Promise<void> {
+    await test.step('Click on reply editor for post', async () => {
+      const replyEditor = this.replyEditorForPost(commentText);
+      await this.verifier.verifyTheElementIsVisible(replyEditor, {
+        assertionMessage: 'Reply editor should be visible for the post',
+      });
+      await this.clickOnElement(replyEditor);
+    });
+  }
+
+  async addReplyToContentComment(replyText: string): Promise<void> {
+    await test.step('Add reply to content comment', async () => {
+      await this.fillInElement(this.replyEditor, replyText);
+      await this.clickOnElement(this.submitReplyButton);
     });
   }
 

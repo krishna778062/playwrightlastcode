@@ -464,5 +464,202 @@ test.describe(
         await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(secondCommentText);
       }
     );
+
+    test(
+      'content Comments and Replies with Deletion - Verify comments and replies disappear after content deletion',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19567'],
+      },
+      async ({ appManagerFixture, standardUserFixture, standardUserApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can create comments with inline images and replies on content, validate visibility in feeds, and verify comments and replies disappear after content deletion',
+          zephyrTestId: 'CONT-19567',
+          storyId: 'CONT-19567',
+        });
+
+        let testSiteId: string = '';
+        let testContentId: string = '';
+        let testContentType: string = '';
+        let commentText: string = '';
+        let replyWithImageText: string = '';
+        let replyWithTextOnlyText: string = '';
+        let commentPostId: string = '';
+        const image1Path = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          'image1.jpg'
+        );
+
+        await test.step('Setup: Login as EndUser and navigate to All Employees site', async () => {
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+
+          testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+          const contentListResponse =
+            await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
+              siteId: testSiteId,
+              sortBy: 'publishedNewest',
+              size: 1,
+              status: 'published',
+            });
+
+          if (contentListResponse.result.listOfItems.length === 0) {
+            throw new Error('No published content found in "All Employees" site.');
+          }
+
+          const latestContent = contentListResponse.result.listOfItems[0];
+          testContentId = latestContent.contentId || latestContent.id;
+          testContentType = latestContent.type.toLowerCase();
+        });
+
+        // ==================== COMMENT CREATION WITH INLINE IMAGE ====================
+        await test.step('Create comment with inline image on content detail page', async () => {
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'site',
+            siteId: testSiteId,
+            contentId: testContentId,
+            withAttachment: false,
+            waitForSearchIndex: false,
+          });
+          commentText = feedTestData.text;
+
+          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+          const commentResult = await createFeedPostComponent.actions.createAndPost({
+            text: commentText,
+            attachments: {
+              files: [image1Path],
+            },
+          });
+          commentPostId = commentResult.postId || '';
+
+          // Verify comment is visible on content detail page
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== VERIFY COMMENT IN FEEDS ====================
+        await test.step('Verify comment appears in Home Feed and Site Feed', async () => {
+          // Verify comment on Home Feed
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const homeFeedPage = new FeedPage(standardUserFixture.page);
+          await homeFeedPage.verifyThePageIsLoaded();
+          await homeFeedPage.assertions.waitForPostToBeVisible(commentText);
+
+          // Verify comment on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Load site feed page' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== REPLY CREATION ====================
+        await test.step('Add replies to comment (one with image, one text-only)', async () => {
+          // Navigate back to content detail page
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page to add replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+
+          // Generate reply texts
+          replyWithImageText = FEED_TEST_DATA.POST_TEXT.REPLY_WITH_IMAGE;
+          replyWithTextOnlyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+          // Add first reply with image
+          await contentPreviewPage.actions.addReplyToCommentWithFile(replyWithImageText, commentPostId, image1Path);
+
+          // Verify first reply is visible
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithImageText);
+
+          // Add second reply with text only
+          await contentPreviewPage.actions.clickReplyEditorForPost(commentText);
+
+          await contentPreviewPage.actions.addReplyToContentComment(replyWithTextOnlyText);
+
+          // Verify second reply is visible
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithTextOnlyText);
+
+          // Reload page to ensure replies are indexed
+          await contentPreviewPage.reloadPage();
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithImageText);
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithTextOnlyText);
+        });
+
+        // ==================== VERIFY REPLIES IN FEEDS ====================
+        await test.step('Verify replies appear in Site Feed, Home Feed, and content detail page', async () => {
+          // First verify replies on content detail page (where they were created)
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Navigate to content detail page to verify replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithImageText);
+          await contentPreviewPage.assertions.verifyReplyIsVisible(replyWithTextOnlyText);
+
+          // Verify replies on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed to verify replies' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(commentText);
+
+          // Verify replies on Home Feed
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const homeFeedPage = new FeedPage(standardUserFixture.page);
+          await homeFeedPage.verifyThePageIsLoaded();
+          await homeFeedPage.assertions.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== CONTENT DELETION ====================
+        await test.step('Login as Admin and delete the content', async () => {
+          await appManagerFixture.contentManagementHelper.deleteContent(testSiteId, testContentId);
+        });
+
+        // ==================== VERIFICATION AFTER DELETION ====================
+        await test.step('Login as EndUser and verify comments and replies are NOT visible in feeds', async () => {
+          // Navigate to Home Feed and verify comment and replies are NOT visible
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const homeFeedPage = new FeedPage(standardUserFixture.page);
+          await homeFeedPage.verifyThePageIsLoaded();
+          await homeFeedPage.assertions.verifyPostIsNotVisible(commentText);
+
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed after deletion' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(commentText);
+        });
+      }
+    );
   }
 );
