@@ -1406,5 +1406,36 @@ test.describe(
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
+
+    test(
+      'verify app manager defined job postings tile UI, redirect URL(External job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28735',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings external job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, ExternalJobType);
+      }
+    );
   }
 );
