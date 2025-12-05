@@ -86,6 +86,7 @@ const commonAttachmentConfig = {
     '..',
     '..',
     '..',
+    '..',
     'test-data',
     'static-files',
     'images',
