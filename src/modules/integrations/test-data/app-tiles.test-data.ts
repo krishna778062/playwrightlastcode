@@ -213,6 +213,15 @@ export const GREENHOUSE_CREDS = {
 } as const;
 
 /**
+ * Data values for Greenhouse app tiles
+ */
+export const SERVICENOW_VALUES = {
+  TIME_PERIOD: 'Time Period',
+  DAYS_30: '30 days',
+  INCIDENT_VIEW_VALUE: 'Self Service',
+} as const;
+
+/**
  * Workday credentials and config for People data
  */
 export const WORKDAY_CREDS = {
@@ -223,14 +232,6 @@ export const WORKDAY_CREDS = {
   CLIENT_ID: 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl',
   CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
   REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
-} as const;
-/**
- * Data values for Greenhouse app tiles
- */
-export const SERVICENOW_VALUES = {
-  TIME_PERIOD: 'Time Period',
-  DAYS_30: '30 days',
-  INCIDENT_VIEW_VALUE: 'Self Service',
 } as const;
 
 /**
