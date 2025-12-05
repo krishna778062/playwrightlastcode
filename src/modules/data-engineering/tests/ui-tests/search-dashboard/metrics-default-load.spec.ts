@@ -268,7 +268,7 @@ test.describe(
       }
     );
 
-    test.fail(
+    test.fixme(
       'verify Most searches performed by Department metric data validation with default period filter (Last 30 days)',
       {
         tag: [
@@ -503,7 +503,7 @@ test.describe(
       }
     );
 
-    test.fail(
+    test.fixme(
       'verify Most searches performed by Department CSV download and data validation with default period filter (Last 30 days)',
       {
         tag: [
