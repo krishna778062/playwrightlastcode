@@ -155,6 +155,7 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickContentInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -792,6 +793,31 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsNotVisible(contentItem, {
         assertionMessage: `Content "${contentTitle}" should NOT be visible in Recently Published block`,
         timeout: 5000,
+      });
+    });
+  }
+
+  async clickContentInRecentlyPublishedBlock(contentTitle: string): Promise<void> {
+    await test.step(`Click on content "${contentTitle}" in Recently Published block and verify redirection`, async () => {
+      const contentItem = this.recentlyPublishedContentItem(contentTitle);
+      await this.verifier.verifyTheElementIsVisible(contentItem, {
+        assertionMessage: `Content "${contentTitle}" should be visible in Recently Published block`,
+      });
+
+      // Find the clickable link within the content item (could be the title link or the entire item)
+      const contentLink = contentItem.locator('a').first();
+      const linkVisible = await contentLink.isVisible().catch(() => false);
+
+      if (linkVisible) {
+        // Click the link and wait for navigation
+        await this.clickOnElement(contentLink);
+      } else {
+        // If no link found, click the content item itself
+        await this.clickOnElement(contentItem);
+      }
+
+      await this.page.waitForURL(new RegExp('/site/.*/page/'), {
+        timeout: 15000,
       });
     });
   }

@@ -57,6 +57,7 @@ export interface IContentPreviewPageAssertions {
   verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
   verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
   verifyUnpublishedContentToastMessage: (toastMessage: string) => Promise<void>;
+  verifyPublishedContentToasteMessage: (toastMessage: string) => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
@@ -269,6 +270,13 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await test.step('Verifying unpublished content toast message', async () => {
       await this.verifier.verifyTheElementIsVisible(this.successMessage(toastMessage), {
         assertionMessage: `Unpublished content toast message "${toastMessage}" should be visible`,
+      });
+    });
+  }
+  async verifyPublishedContentToasteMessage(toastMessage: string): Promise<void> {
+    await test.step('Verifying published content toast message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(toastMessage), {
+        assertionMessage: `Published content toast message "${toastMessage}" should be visible`,
       });
     });
   }

@@ -7,6 +7,8 @@ export const FEED_TEST_DATA = {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    PUBLISHED_CONTENT: "Published page successfully - it's published",
+    CONTENT_UNPUBLISHED: 'Unpublished content successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
