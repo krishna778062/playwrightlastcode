@@ -1436,6 +1436,7 @@ test.describe(
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, ExternalJobType);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }
