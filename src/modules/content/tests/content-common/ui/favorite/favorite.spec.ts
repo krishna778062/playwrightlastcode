@@ -16,7 +16,6 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage, ManageSitePage, ManageSitesComponent } from '@/src/modules/content/ui';
-import { ContentPreviewPage, ManageSitesComponent } from '@/src/modules/content/ui';
 import { FilesPreviewMenuActionButton } from '@/src/modules/content/ui/components/filesPreviewModalComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
