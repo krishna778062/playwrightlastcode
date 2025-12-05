@@ -495,19 +495,21 @@ test.describe('favorite', () => {
       });
       const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
 
-      // Create page, album, and event content
-      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
-        siteId: siteInfo.siteId,
-        contentInfo: { contentType: 'page', contentSubType: 'news' },
-      });
-      const albumInfo = await appManagerFixture.contentManagementHelper.createAlbum({
-        siteId: siteInfo.siteId,
-        imageName: 'beach.jpg',
-      });
-      const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
-        siteId: siteInfo.siteId,
-        contentInfo: { contentType: 'event' },
-      });
+      // Create page, album, and event content in parallel since they are independent API calls
+      const [pageInfo, albumInfo, eventInfo] = await Promise.all([
+        appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        }),
+        appManagerFixture.contentManagementHelper.createAlbum({
+          siteId: siteInfo.siteId,
+          imageName: 'beach.jpg',
+        }),
+        appManagerFixture.contentManagementHelper.createEvent({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'event' },
+        }),
+      ]);
 
       // Favorite page
       const contentPreviewPage = new ContentPreviewPage(
