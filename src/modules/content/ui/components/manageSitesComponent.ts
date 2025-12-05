@@ -32,6 +32,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly nothingToShowHereText: Locator;
   readonly searchSiteNameInSearchBar: Locator;
   readonly clickOnSearchBar: Locator;
   readonly firstSiteDropDownOption: Locator;
@@ -82,6 +83,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
     this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
     this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
     this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
@@ -102,7 +104,6 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
-    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
     this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
@@ -632,6 +633,14 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Verify follow button should be changed into unfollow', async () => {
       await this.verifier.verifyTheElementIsVisible(this.unfollowSiteButton, {
         assertionMessage: 'Follow button should be changed into unfollow',
+      });
+    });
+  }
+
+  async verifyNoSitesFoundAction(siteName: string): Promise<void> {
+    await test.step(`Verify no sites found for search term: ${siteName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
+        assertionMessage: `No sites found message should be visible when searching for: ${siteName}`,
       });
     });
   }
