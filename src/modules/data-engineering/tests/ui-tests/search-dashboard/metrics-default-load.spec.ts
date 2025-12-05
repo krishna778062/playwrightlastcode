@@ -349,7 +349,7 @@ test.describe(
       }
     );
 
-    test.fail(
+    test(
       'verify Search usage volume and click through rate CSV download and data validation with default period filter (Last 30 days)',
       {
         tag: [
