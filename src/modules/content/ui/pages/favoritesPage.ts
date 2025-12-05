@@ -231,6 +231,8 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
         }
       );
       await unfavoriteResponse.finished();
+      // Click the unfavorite button
+      await this.clickOnElement(unfavoriteButton);
 
       // Wait for the content item to be removed from the list (optional verification)
       await contentItem.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {

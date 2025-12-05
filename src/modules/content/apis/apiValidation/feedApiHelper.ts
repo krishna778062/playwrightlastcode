@@ -218,4 +218,15 @@ export class FeedApiHelper {
       }
     });
   }
+
+  /**
+   * Validates that feed response contains the expected site ID
+   * @param feedResponse - The feed response to validate
+   * @param expectedSiteId - The expected site ID
+   */
+  async validateFeedResponseSiteId(feedResponse: FeedPostResponse, expectedSiteId: string): Promise<void> {
+    await test.step('Validate feed response site ID', async () => {
+      expect(feedResponse.result.site?.siteId, 'Site ID should match').toBe(expectedSiteId);
+    });
+  }
 }
