@@ -6,6 +6,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import {
   FilesPreviewDeleteModal,
@@ -14,7 +15,7 @@ import {
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
-import { ContentPreviewPage, ManageSitesComponent } from '@/src/modules/content/ui';
+import { ContentPreviewPage, ManageSitePage, ManageSitesComponent } from '@/src/modules/content/ui';
 import { FilesPreviewMenuActionButton } from '@/src/modules/content/ui/components/filesPreviewModalComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { FavoritePage } from '@/src/modules/content/ui/pages/favoritePage';
@@ -592,6 +593,78 @@ test.describe('favorite', () => {
       );
       await contentPreviewPageEventForUnfavorite.loadPage();
       await contentPreviewPageEventForUnfavorite.assertions.verifyUserCanMarkAsFavoriteContent();
+    }
+  );
+  test(
+    'to verify the favourite and unfavourite files functionality',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26467'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'To verify the favourite and unfavourite files functionality',
+        zephyrTestId: '26467',
+        storyId: '26467',
+      });
+      const getListOfSitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
+      console.log('getListOfSitesResponse', getListOfSitesResponse);
+      const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
+      console.log('siteId', siteId);
+      const imagePath = FileUtil.getFilePath(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'test-data',
+        'static-files',
+        'images',
+        'image1.jpg'
+      );
+      const fileSize = FileUtil.getFileSize(imagePath);
+      const getSignedUploadUrlResponse =
+        await appManagerFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({
+          file_name: 'image1.jpg',
+          mime_type: 'image/jpeg',
+          size: fileSize,
+          uploadContext: 'site-files',
+          type: 'content',
+          siteId: siteId,
+        });
+      await appManagerFixture.contentManagementHelper.imageUploaderService.uploadFileToSignedUrl(
+        getSignedUploadUrlResponse.uploadUrl,
+        imagePath,
+        'image1.jpg'
+      );
+      const fileDetails = await appManagerFixture.contentManagementHelper.imageUploaderService.uploadIntranetFile(
+        siteId,
+        'image1.jpg',
+        imagePath,
+        'image/jpeg'
+      );
+      console.log('fileDetails', fileDetails);
+      const siteManager = new SiteManager(appManagerFixture.page, siteId);
+      await siteManager.loadSite();
+      const manageSitePage = new ManageSitePage(appManagerFixture.page);
+      await manageSitePage.actions.clickOnSiteTab(SitePageTab.FilesTab);
+      await manageSitePage.assertions.verifyFileIsPresentInTheSiteFilesList(fileDetails.fileInfo.title);
+      await manageSitePage.actions.clickOnFileOption(fileDetails.fileInfo.title);
+      await manageSitePage.actions.clickOnFileFavoriteButton();
+      const homePage = new NewHomePage(appManagerFixture.page);
+      await homePage.loadPage();
+      const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+      await manageSitesComponent.clickOnTheFavouriteTabsAction();
+      const favoritesPage = new FavoritesPage(appManagerFixture.page);
+      await favoritesPage.actions.clickOnFileTab();
+      await favoritesPage.assertions.verifyFileIsVisibleInFilesTab(fileDetails.fileInfo.title);
+      await favoritesPage.actions.unfavoriteFileByName(fileDetails.fileInfo.title);
+      const siteManagerAfterUnfavorite = new SiteManager(appManagerFixture.page, siteId);
+      await siteManagerAfterUnfavorite.loadSite();
+      const manageSitePageAfterUnfavorite = new ManageSitePage(appManagerFixture.page);
+      await manageSitePageAfterUnfavorite.actions.clickOnSiteTab(SitePageTab.FilesTab);
+      await manageSitePageAfterUnfavorite.assertions.verifyFileIsPresentInTheSiteFilesList(fileDetails.fileInfo.title);
+      await manageSitePageAfterUnfavorite.actions.clickOnFileOption(fileDetails.fileInfo.title);
+      await manageSitePageAfterUnfavorite.assertions.verifyFavoriteIsNotClicked();
     }
   );
 });

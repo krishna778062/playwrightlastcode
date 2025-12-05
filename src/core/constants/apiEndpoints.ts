@@ -100,6 +100,7 @@ export const API_ENDPOINTS = {
     createTopic: '/v1/content/topics',
     deleteTopics: '/v1/content/topics/bulk-delete',
     favourites: '/v1/content/sites/content/favorite',
+    fileFavourites: '/v1/content/files/favourite',
     contentListInSite: '/v1/content/sites/content/list',
     move: '/move',
     manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
