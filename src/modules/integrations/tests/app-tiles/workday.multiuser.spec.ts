@@ -9,9 +9,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { REDIRECT_URLS, WORKDAY_VALUES } from '../../test-data/app-tiles.test-data';
-
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+import { REDIRECT_URLS, WORKDAY_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
