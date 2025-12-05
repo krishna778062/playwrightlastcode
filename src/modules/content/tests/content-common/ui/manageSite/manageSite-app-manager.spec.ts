@@ -3,11 +3,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
-import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
+import { formatCreatedAtDateForManageContent, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
   BulkActionOptions,
+  CONTENT_VALIDATION_PERIOD_TIME,
+  ContentSortBy,
   ContentStatus,
   ManageContentOptions,
   ManageContentTags,
@@ -19,16 +21,19 @@ import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { PROFILE_TEST_DATA } from '@/src/modules/content/test-data/profile.test.data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
+import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -96,6 +101,7 @@ test.describe(
       manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       onboardingComponent = new OnboardingComponent(appManagerFixture.page);
       siteManagementHelper = appManagerFixture.siteManagementHelper;
+      manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
       manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
       manageContentPage = new ManageContentPage(appManagerFixture.page);
@@ -286,9 +292,37 @@ test.describe(
     );
 
     test(
+      'verify draft stamp and its options menu on content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20535'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify draft stamp and its options menu on content under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20535',
+          storyId: 'CONT-20535',
+        });
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const pageInfo = await appManagerFixture.contentManagementHelper.createDraftPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+
+        const manageSiteContentPage = new ManageContentPage(appManagerFixture.page);
+        await manageSiteContentPage.load();
+        await manageSiteContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageSiteContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+        await manageSiteContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageSiteContentPage.actions.hoverOnFirstDropDownOption();
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+      }
+    );
+
+    test(
       'verify Add to campaign option under Content tab in Manage Site',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20537'],
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -367,7 +401,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify Scheduled stamp and its options menu under-manage site content tab',
+          description: 'to verify the onboarding option in manage site content',
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
@@ -611,7 +645,7 @@ test.describe(
       },
       async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          description: 'to verify the bulk action from end user can activate the site',
+          description: 'to verify the bulk action from app manager can activate the site',
           zephyrTestId: 'CONT-26574',
           storyId: 'CONT-26574',
         });
@@ -971,6 +1005,291 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+      }
+    );
+    test(
+      'to verify the created and published dates of content in  Manage site content',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23980'],
+      },
+      async ({ appManagerApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the created and published dates of content in  Manage site content',
+          zephyrTestId: 'CONT-23980',
+          storyId: 'CONT-23980',
+        });
+
+        const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+          size: 1000,
+        });
+        const siteId = getSiteListResponse.result.listOfItems[0].siteId;
+        // Create page, event, and album in parallel since they are independent API calls
+        const [createPageInfo, createEventInfo, createAlbumInfo] = await Promise.all([
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: siteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createEvent({
+            siteId: siteId,
+            contentInfo: { contentType: 'event' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createAlbum({
+            siteId: siteId,
+            imageName: 'beach.jpg',
+          }),
+        ]);
+
+        // Get content list to retrieve createdAt dates for the created content
+        const contentListResponse =
+          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
+            sortBy: ContentSortBy.CREATED_NEWEST,
+            size: 1000,
+            filter: 'owned',
+            status: 'published',
+          });
+
+        // Find created content items and get their formatted createdAt dates
+        const pageItem = contentListResponse.result.listOfItems.find(
+          (item: any) => item.id === createPageInfo.contentId
+        );
+        const eventItem = contentListResponse.result.listOfItems.find(
+          (item: any) => item.id === createEventInfo.contentId
+        );
+        const albumItem = contentListResponse.result.listOfItems.find(
+          (item: any) => item.id === createAlbumInfo.contentId
+        );
+
+        if (!pageItem || !eventItem || !albumItem) {
+          throw new Error('Could not find created content items in content list');
+        }
+
+        const pageCreatedAtDate = formatCreatedAtDateForManageContent(pageItem.createdAt);
+        const eventCreatedAtDate = formatCreatedAtDateForManageContent(eventItem.createdAt);
+        const albumCreatedAtDate = formatCreatedAtDateForManageContent(albumItem.createdAt);
+
+        const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteId);
+        await manageSitePageAppManagerSite.loadPage();
+        await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
+        const manageContentPage = new ManageContentPage(appManagerFixture.page);
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
+        // Verify all three dates in parallel since they're already rendered on the page
+        await Promise.all([
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDate),
+        ]);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.actions.clickSortByButton();
+        const getContentListResponseOldest =
+          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
+            sortBy: ContentSortBy.CREATED_OLDEST,
+            size: 1000,
+            siteId: siteId,
+            filter: 'managing',
+            status: 'published',
+          });
+        console.log('getContentListResponseOldest', getContentListResponseOldest.result.listOfItems);
+        if (getContentListResponseOldest.result.listOfItems.length === 0) {
+          throw new Error('No content items found in oldest content list');
+        }
+        const oldestContentItem = getContentListResponseOldest.result.listOfItems[0];
+        const oldestContentCreatedAtDate = formatCreatedAtDateForManageContent(oldestContentItem.createdAt);
+        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(oldestContentCreatedAtDate);
+        // Get current user's peopleId - try from API first, fallback to page object
+        const currentUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const peopleId = currentUserInfo.user.peopleId || currentUserInfo.userId;
+        if (!peopleId) {
+          throw new Error('Could not get peopleId for current user');
+        }
+
+        console.log('Using peopleId:', peopleId);
+        const profileScreenPage = new ProfileScreenPage(appManagerFixture.page, peopleId);
+        await profileScreenPage.loadPage();
+        await profileScreenPage.actions.openEditTimezone();
+        // Generate random timezone value between 1 and 300 (inclusive)
+        await profileScreenPage.actions.selectTimezone(PROFILE_TEST_DATA.TIMEZONE.RANDOM_NUMBER.toString());
+        await profileScreenPage.actions.clickOnSaveTimezoneButton();
+
+        const getSiteListResponseAfterUpdate = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+          size: 1000,
+        });
+        const siteIdAfterUpdate = getSiteListResponseAfterUpdate.result.listOfItems[0].siteId;
+        // Create page, event, and album in parallel since they are independent API calls
+        const [createPageInfoAfterUpdate, createEventInfoAfterUpdate, createAlbumInfoAfterUpdate] = await Promise.all([
+          appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: siteIdAfterUpdate,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createEvent({
+            siteId: siteIdAfterUpdate,
+            contentInfo: { contentType: 'event' },
+          }),
+          appManagerApiFixture.contentManagementHelper.createAlbum({
+            siteId: siteIdAfterUpdate,
+            imageName: 'beach.jpg',
+          }),
+        ]);
+
+        // Get content list to retrieve createdAt dates for the created content
+        const contentListResponseAfterUpdate =
+          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
+            sortBy: ContentSortBy.CREATED_NEWEST,
+            size: 1000,
+            filter: 'owned',
+            status: 'published',
+          });
+
+        // Find created content items and get their formatted createdAt dates
+        const pageItemAfterUpdate = contentListResponseAfterUpdate.result.listOfItems.find(
+          (item: any) => item.id === createPageInfoAfterUpdate.contentId
+        );
+        const eventItemAfterUpdate = contentListResponseAfterUpdate.result.listOfItems.find(
+          (item: any) => item.id === createEventInfoAfterUpdate.contentId
+        );
+        const albumItemAfterUpdate = contentListResponseAfterUpdate.result.listOfItems.find(
+          (item: any) => item.id === createAlbumInfoAfterUpdate.contentId
+        );
+
+        if (!pageItemAfterUpdate || !eventItemAfterUpdate || !albumItemAfterUpdate) {
+          throw new Error('Could not find created content items in content list');
+        }
+
+        const pageCreatedAtDateAfterUpdate = formatCreatedAtDateForManageContent(pageItemAfterUpdate.createdAt);
+        const eventCreatedAtDateAfterUpdate = formatCreatedAtDateForManageContent(eventItemAfterUpdate.createdAt);
+        const albumCreatedAtDateAfterUpdate = formatCreatedAtDateForManageContent(albumItemAfterUpdate.createdAt);
+
+        const manageSitePageAppManagerSiteAfterUpdate = new ManageSiteSetUpPage(
+          appManagerFixture.page,
+          siteIdAfterUpdate
+        );
+        await manageSitePageAppManagerSite.loadPage();
+        await manageSitePageAppManagerSiteAfterUpdate.actions.clickOnInsideContentButton();
+        const manageContentPageAfterUpdate = new ManageContentPage(appManagerFixture.page);
+        await manageContentPageAfterUpdate.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.actions.clickSortByButton();
+        // Verify all three dates in parallel since they're already rendered on the page
+        await Promise.all([
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDateAfterUpdate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDateAfterUpdate),
+          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDateAfterUpdate),
+        ]);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.actions.clickSortByButton();
+        const getContentListResponseOldestAfterUpdate =
+          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
+            sortBy: ContentSortBy.CREATED_OLDEST,
+            size: 1000,
+            siteId: siteId,
+            filter: 'managing',
+            status: 'published',
+          });
+        console.log('getContentListResponseOldest', getContentListResponseOldest.result.listOfItems);
+        if (getContentListResponseOldest.result.listOfItems.length === 0) {
+          throw new Error('No content items found in oldest content list');
+        }
+        const oldestContentItemAfterUpdate = getContentListResponseOldestAfterUpdate.result.listOfItems[0];
+        const oldestContentCreatedAtDateAfterUpdate = formatCreatedAtDateForManageContent(
+          oldestContentItemAfterUpdate.createdAt
+        );
+        await manageContentPageAfterUpdate.assertions.verifyCreatedAtDateVisibleInManageContent(
+          oldestContentCreatedAtDateAfterUpdate
+        );
+        await profileScreenPage.loadPage();
+        await profileScreenPage.actions.openEditTimezone();
+        // select default timezone
+        await profileScreenPage.actions.selectTimezone('328');
+        await profileScreenPage.actions.clickOnSaveTimezoneButton();
+      }
+    );
+    test(
+      'verify user able to apply validate action on selected content under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_CONTENT, '@CONT-20539'],
+      },
+      async ({ appManagerFixture, standardUserApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify user able to apply validate action on selected content under Content tab in Manage Site',
+          customTags: [ContentSuiteTags.MANAGE_CONTENT],
+          zephyrTestId: 'CONT-20539',
+          storyId: 'CONT-20539',
+        });
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+        await governanceScreenPage.loadPage();
+        await governanceScreenPage.actions.selectContentValidationPeriodTime(
+          CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
+        );
+        const sitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          sortBy: 'alphabetical',
+          filter: 'active',
+        });
+
+        // Find a site where the standard user is owner and can manage
+        // The list response includes isOwner and canManage properties directly
+        const site = sitesResponse.result.listOfItems.find(
+          (site: any) => site.isActive === true && site.isOwner === true && site.canManage === true
+        );
+
+        if (!site) {
+          throw new Error('No site found where isOwner is true and canManage is true');
+        }
+
+        const siteId = site.siteId;
+        console.log(`Found site ${site.name} (${siteId}) where standard user is owner and can manage`);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
+        });
+        console.log('pageInfo', pageInfo);
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
+          siteId,
+          pageInfo.contentId,
+          MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
+        );
+        await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
+        await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
+          ManageContentTags.VALIDATION_REQUIRED
+        );
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.clickOnValidateButton();
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPageForStandardUser.actions.clickFilterButton();
+        await manageContentPageForStandardUser.actions.clickSortByButton();
+        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.assertions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(
+          ManageContentOptions.UNPUBLISH
+        );
+        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
       }
     );
   }

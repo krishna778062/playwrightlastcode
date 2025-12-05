@@ -17,7 +17,7 @@
 import { log } from '@core/utils/logger';
 
 export type TenantKey = 'primary' | 'contentSettings' | 'contentStudio' | 'contentAbac';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU';
 
 /**
  * Get caller function information for debugging
@@ -144,6 +144,21 @@ export const config = {
       endUserEmail: 'avista.chowdhury@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+3@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    uatEU: {
+      tenantName: 'Content Primary',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'shubham.garg@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'sonali.gupta@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+2@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'test-org-id',
@@ -299,15 +314,16 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test', 'prodEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod, prodEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
         `Example: TEST_ENV=test npm run test\n` +
-        `Example: TEST_ENV=prodEU npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatEU npm run test\n`
     );
   }
 

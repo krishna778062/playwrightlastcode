@@ -1,6 +1,7 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
+import { CarouselHelper } from '../apis/helpers/carouselHelper';
 import { SiteAudienceHelper } from '../apis/helpers/siteAudienceHelper';
 import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
 import { TileManagementHelper } from '../apis/helpers/tileManagementHelper';
@@ -26,6 +27,7 @@ export interface ApiFixture {
   identityManagementHelper: IdentityManagementHelper;
   socialCampaignHelper: SocialCampaignHelper;
   tileManagementHelper: TileManagementHelper;
+  carouselHelper: CarouselHelper;
   audienceManagementHelper: AudienceManagementHelper;
   siteAudienceHelper: SiteAudienceHelper;
   siteManagementService: SiteManagementService;
@@ -80,6 +82,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     getContentTenantConfigFromCache().apiBaseUrl
   );
   const socialCampaignHelper = new SocialCampaignHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const carouselHelper = new CarouselHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const audienceManagementHelper = new AudienceManagementHelper(
     apiContext,
     getContentTenantConfigFromCache().apiBaseUrl
@@ -96,10 +99,11 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     feedManagementHelper,
     identityManagementHelper,
     socialCampaignHelper,
+    tileManagementHelper,
+    carouselHelper,
     audienceManagementHelper,
     siteAudienceHelper,
     siteManagementService,
-    tileManagementHelper,
     feedManagerService,
   };
 }

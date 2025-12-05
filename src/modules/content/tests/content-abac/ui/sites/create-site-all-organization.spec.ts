@@ -1,5 +1,3 @@
-import { ManageSiteSetUpPage } from '../../../ui/pages/manageSiteSetUpPage';
-
 import { NewHomePage } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
@@ -11,6 +9,7 @@ import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-
 import { AddSiteScreenPage } from '@/src/modules/content/ui/pages/addSiteScreenPage';
 import { AudienceModalPage } from '@/src/modules/content/ui/pages/audienceModalPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturePage';
+import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 
 /**

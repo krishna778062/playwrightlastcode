@@ -50,6 +50,7 @@ export interface IActions {
   clickShowMoreButton: () => Promise<void>;
   selectPageOption: () => Promise<void>;
   verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnValidationViewAllButton: () => Promise<void>;
   clickOnMoveButton: () => Promise<void>;
   selectMoveApplyButton: () => Promise<void>;
   moveContentSearchBar: (siteName: string) => Promise<void>;
@@ -92,6 +93,7 @@ export interface IAssertions {
   scheduledTagVisibleInManageContent: () => Promise<void>;
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
+  verifyValidationRequiredIsVisible: () => Promise<void>;
   verifyAlreadySelectedOnboardingOptionVisible: (option: TagOption) => Promise<void>;
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
@@ -105,14 +107,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
-  static actions: any;
-
-  // Expose locators for unified verification
   readonly editButton: Locator;
   readonly deleteButton: Locator;
   readonly unpublishButton: Locator;
   readonly publishButton: Locator;
   readonly moveButton: Locator;
+  static actions: any;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
@@ -452,6 +452,18 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
+
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+  }
+
+  async verifyEditOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+  }
+  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+  }
+
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
@@ -466,6 +478,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
+  }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await this.manageContentComponent.verifyValidationRequiredIsVisible();
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await this.manageContentComponent.clickOnValidationViewAllButton();
   }
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);

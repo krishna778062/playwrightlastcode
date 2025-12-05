@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-export class HomeDashboardApiHelper {
+export class TileApiHelper {
   /**
    * Validates app governance configuration response
    * @param response - The API response from configureAppGovernance

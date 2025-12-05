@@ -128,4 +128,5 @@ export const PAGE_ENDPOINTS = {
   FORM_CREATION_PAGE: '/forms',
 
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
+  COMMS_PLANNER_PLANNER: '/comms-planner/planner',
 };

@@ -20,4 +20,8 @@ export class OptionMenuComponent extends BaseComponent {
   async clickOnOptionMenuButton(): Promise<void> {
     await this.clickOnElement(this.optionMenuDropdown);
   }
+
+  async verifyMustReadButtonIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.mustReadButton);
+  }
 }
