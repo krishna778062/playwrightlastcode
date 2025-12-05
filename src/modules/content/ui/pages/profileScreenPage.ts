@@ -142,7 +142,7 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
       await this.verifier.verifyTheElementIsVisible(this.saveButton, {
         assertionMessage: 'Save button should be visible',
       });
-      await this.clickOnElement(this.saveButton);
+      await this.clickByInjectingJavaScript(this.saveButton);
       await this.saveButton.waitFor({ state: 'hidden' }).catch(() => {});
     });
   }
