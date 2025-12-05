@@ -104,7 +104,10 @@ function extractTagStatistics(testResults) {
 
         const lastResult = results[results.length - 1]; // Get final result
         const hadFailure = results.some(r => FAILURE_STATUSES.includes(r.status));
-        const isKnownFailure = hasKnownFailureAnnotation(lastResult.annotations);
+
+        // Check for known failure in both test and lastResult annotations (consistent with extractKnownFailures)
+        const allAnnotations = [...(test.annotations || []), ...(lastResult?.annotations || [])];
+        const isKnownFailure = allAnnotations.some(a => a.type === 'known_failure');
 
         tagStats[tag].total++;
 
