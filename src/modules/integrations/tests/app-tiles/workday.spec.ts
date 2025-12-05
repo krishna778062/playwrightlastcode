@@ -1167,5 +1167,42 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday job postings app manager defined tile on home dashboard(Internal)',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26029',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
   }
 );
