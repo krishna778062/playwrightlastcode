@@ -261,6 +261,7 @@ test.describe('favorite', () => {
       '..',
       '..',
       '..',
+      '..',
       'test-data',
       'static-files',
       'video',
