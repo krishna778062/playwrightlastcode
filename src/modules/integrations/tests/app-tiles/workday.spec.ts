@@ -1260,8 +1260,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-26029',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27986, INT-21425',
+          storyId: 'INT-27948',
         });
 
         //Generate a random tile title
