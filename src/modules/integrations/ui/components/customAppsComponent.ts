@@ -699,20 +699,29 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async clickTypeFilter(): Promise<void> {
     await test.step('Click Type filter dropdown', async () => {
-      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
-      if (!isTypeFilterVisible) {
-        await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
-        await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
-      }
       await this.clickOnElement(this.typeFilterButton, { timeout: 10000 });
     });
   }
 
   /**
+   * Click Show next items button to reveal hidden filter buttons
+   */
+  async clickShowNextItems(): Promise<void> {
+    await test.step('Click Show next items button', async () => {
+      await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
+      await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
+    });
+  }
+
+  /**
    * Select a type filter option
+   * Note: For 'Custom' type, need to click 'Show next items' first to reveal the Type filter
    */
   async selectTypeFilter(type: 'Prebuilt' | 'Custom'): Promise<void> {
     await test.step(`Select type filter: ${type}`, async () => {
+      if (type === 'Custom') {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       const typeLabel = type === 'Prebuilt' ? this.typeFilterPrebuiltLabel : this.typeFilterCustomLabel;
       await this.clickOnElement(typeLabel, { timeout: 10000 });
@@ -722,9 +731,14 @@ export class CustomAppsComponent extends BaseComponent {
 
   /**
    * Clear the type filter
+   * Note: If Type filter is not visible, click 'Show next items' first
    */
   async clearTypeFilter(): Promise<void> {
     await test.step('Clear type filter', async () => {
+      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
+      if (!isTypeFilterVisible) {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       await this.clickOnElement(this.typeFilterClearButton, { timeout: 10000 });
     });

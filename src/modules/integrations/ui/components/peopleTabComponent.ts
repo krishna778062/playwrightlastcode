@@ -30,7 +30,7 @@ export class PeopleTabComponent extends BaseComponent {
     this.provisioningSourceDropdown = () => this.rootLocator.locator('#provisioningSource');
     this.syncingSourceDropdown = () => this.rootLocator.locator('#syncSource');
     this.bambooHRCheckbox = () => this.rootLocator.locator('#Merge_3_selected');
-    this.workdayCheckbox = () => this.rootLocator.locator('#Workday_selected');
+    this.workdayCheckbox = () => this.rootLocator.locator('input[type="checkbox"][id*="Workday"]');
     this.fieldLabel = (fieldName: string) => this.rootLocator.getByText(fieldName, { exact: true });
     this.fieldEditableCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'editable');
     this.fieldDisplayCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'display');
