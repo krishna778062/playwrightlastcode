@@ -29,7 +29,7 @@ export class OptionMenuComponent extends BaseComponent {
   }
   async clickOnRemoveFromSiteCarouselButton(): Promise<void> {
     await this.clickOnElement(this.removeFromSiteCarouselButton);
-
+  }
   async verifyMustReadButtonIsNotVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.mustReadButton);
   }

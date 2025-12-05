@@ -3,7 +3,6 @@ import { TestGroupType } from '@core/constants/testType';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
-import { getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { formatCreatedAtDateForManageContent, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
