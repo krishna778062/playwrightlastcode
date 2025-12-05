@@ -128,6 +128,21 @@ export class FeedApiHelper {
   }
 
   /**
+   * Validates that FeedResult contains files with required fields
+   * @param feedResult - The FeedResult to validate
+   */
+  async validateFeedResultFiles(feedResult: FeedResult): Promise<void> {
+    await test.step('Validate feed result contains files', async () => {
+      expect(feedResult.listOfFiles, 'listOfFiles should be an array').toBeInstanceOf(Array);
+      if (feedResult.listOfFiles.length > 0) {
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('fileId');
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('name');
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('provider');
+      }
+    });
+  }
+
+  /**
    * Validates that feed response contains links
    * @param feedResponse - The feed response to validate
    */
