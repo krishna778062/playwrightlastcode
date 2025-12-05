@@ -67,6 +67,8 @@ export interface ISiteDashboardAssertions {
   verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
   verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
   verifyTopPicksBlockIsVisible: () => Promise<void>;
   verifyPopularContentBlockIsVisible: () => Promise<void>;
   verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
@@ -472,5 +474,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async clickOnDismissButton(): Promise<void> {
     await this.clickOnElement(this.dismissButton);
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
 }

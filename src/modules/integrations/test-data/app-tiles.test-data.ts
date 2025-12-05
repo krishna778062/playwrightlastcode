@@ -18,6 +18,7 @@ export const CONNECTOR_IDS = {
   WORKDAY: 'af4ed833-9514-466d-a6a5-752f26456adf',
   SALESFORCE: '76108098-da7d-4030-b7c1-ef737e61e5a2',
   FRESHSERVICE: 'e780853b-1806-4f3f-918d-76e004b116a6',
+  SERVICENOW: '1c4cf4fa-ec30-48d5-926b-86e771d9c035',
 } as const;
 
 /**
@@ -42,9 +43,12 @@ export const TILE_IDS = {
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
   WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
   WORKDAY_APPLY_FOR_TIMEOFF: '61da175c-f777-4456-8512-715e7808b657',
+  WORKDAY_DISPLAY_JOB_POSTINGS: '1b290b55-cc07-4b24-a963-ab8177f8d8eb',
   DISPLAY_TABULAR_REPORT: 'fb9971dd-f266-4c7e-b07e-74726c4f834f',
   FRESHSERVICE_DISPLAY_TICKETS_SUBMITTED_BY_ME: '4c84479e-4460-419c-9765-1a6de4c34c9b',
   FRESHSERVICE_DISPLAY_UNASSIGNED_TICKETS: 'c4008107-200e-41d7-94a2-3b556d87e06f',
+  SERVICENOW_DISPLAY_RECENTLY_REPORTED_TICKETS: '5df8382e-ff9f-44d2-a5a9-c80ae22b02e7',
+  SERVICENOW_APPROVAL_REQUESTS: '255e7a1c-cd86-4b04-9b2d-a589f6b7f268',
 } as const;
 
 /**
@@ -118,6 +122,7 @@ export const REDIRECT_URLS = {
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
+  SERVICENOW: 'https://ven05143.service-now.com/',
 } as const;
 
 /**
@@ -216,4 +221,12 @@ export const WORKDAY_CREDS = {
   CLIENT_ID: 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl',
   CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
   REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
+} as const;
+/**
+ * Data values for Greenhouse app tiles
+ */
+export const SERVICENOW_VALUES = {
+  TIME_PERIOD: 'Time Period',
+  DAYS_30: '30 days',
+  INCIDENT_VIEW_VALUE: 'Self Service',
 } as const;

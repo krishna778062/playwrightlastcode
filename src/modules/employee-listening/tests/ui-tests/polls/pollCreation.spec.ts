@@ -2,7 +2,7 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { test } from '@/src/modules/employee-listening/fixtures/loginFixture';
-import { PollsHelper } from '@/src/modules/employee-listening/helpers';
+import { PollsHelper } from '@/src/modules/employee-listening/helpers/polls';
 import { AIPollCreationPage } from '@/src/modules/employee-listening/pages/polls/pollCreation';
 import { PollsListeningPage } from '@/src/modules/employee-listening/pages/polls/pollsListingPage';
 import { PollsSettingsPage } from '@/src/modules/employee-listening/pages/polls/pollsSettingsPage';
