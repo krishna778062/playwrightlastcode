@@ -302,7 +302,8 @@ jobs:
           if [ "$DURATION_MINUTES" -gt "$THRESHOLD_MINUTES" ]; then
             EXCEEDED_BY=$((DURATION_MINUTES - THRESHOLD_MINUTES))
             
-            DURATION_ALERT="⏱️ *Integrations Regression Duration Alert* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` exceeded the 2-hour threshold!\n\n📊 *Execution Summary:*\n• Total Duration: *${DURATION_HOURS}h ${REMAINING_MINUTES}m* (${DURATION_MINUTES} min)\n• Threshold: 120 min (2 hours)\n• Exceeded By: *${EXCEEDED_BY} minutes*\n\n📈 *Test Results:*\n• Total: ${{ env.TOTAL_TESTS }} | ✅ Passed: ${{ env.PASSED_TESTS }} | ❌ Failed: ${{ env.FAILED_TESTS }} | ⏭️ Skipped: ${{ env.SKIPPED_TESTS }}\n\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            # Threaded reply format - concise duration alert (test results already in main message)
+            DURATION_ALERT="⏱️ *Duration Alert* - \`${{ matrix.module }}\` exceeded 2-hour threshold by *${EXCEEDED_BY} min* (Total: ${DURATION_HOURS}h ${REMAINING_MINUTES}m)"
 
             echo "DURATION_ALERT: $DURATION_ALERT"
             

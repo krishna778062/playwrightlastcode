@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import {
   CreateFeedPostComponent,
@@ -155,6 +156,7 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickOnGiveRecognition(): Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
   hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
   verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
@@ -235,6 +237,7 @@ export interface IFeedAssertions {
   verifyShareModalIsVisible(): Promise<void>;
   verifyShareModalIsClosed: () => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifyRecognitionPostVisible: (message?: string) => Promise<void>;
   verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
   verifyCommentIconIsNotVisible: () => Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
@@ -1329,6 +1332,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async clickOnGiveRecognition(): Promise<void> {
+    await test.step('Click on Give Recognition button', async () => {
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await recognitionHub.clickOnGiveRecognition();
+    });
+  }
+
+  async verifyRecognitionPostVisible(message?: string): Promise<void> {
+    await test.step(`Verify recognition post is visible${message ? ` with message "${message}"` : ''}`, async () => {
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await recognitionHub.verifyRecognitionPostVisible(message);
+    });
   }
 
   async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {

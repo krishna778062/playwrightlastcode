@@ -30,6 +30,7 @@ export interface IHomeDashboardPageActions {
   setSitesTileLayout: (layout: 'list' | 'grid') => Promise<void>;
   clickingOnOnboardingTab: () => Promise<void>;
   isAddToHomeButtonDisabled: () => Promise<boolean>;
+  closeAddContentTileDialog: () => Promise<void>;
 }
 
 export interface IHomeDashboardPageAssertions {
@@ -43,6 +44,7 @@ export interface IHomeDashboardPageAssertions {
   verifyingMemberIconIsNotVisibleForSite: (siteName: string, tileName: string) => Promise<void>;
   verifyOnboardingTileIsVisible: () => Promise<void>;
   verifyAddToHomeButtonIsDisabled: () => Promise<void>;
+  verifyTileAlreadyAddedMessage: () => Promise<void>;
 }
 export class HomeDashboardPage extends BasePage implements IHomeDashboardPageActions, IHomeDashboardPageAssertions {
   addTileComponent: AddTileComponent;
@@ -56,6 +58,10 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   readonly doneButton: Locator = this.page.getByRole('button', { name: 'Done' });
   readonly addContentTileDialog: Locator = this.page.getByRole('dialog', { name: 'Add content tile' });
   readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
+  readonly closeDialogButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Close' });
+  readonly tileAlreadyAddedMessage: Locator = this.addContentTileDialog.getByText(
+    'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
+  );
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
@@ -212,6 +218,20 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   async verifyAddToHomeButtonIsDisabled(): Promise<void> {
     await test.step('Verify Add to home button is disabled', async () => {
       await this.verifier.verifyTheElementIsDisabled(this.addContentTileComponent.addToHomeButton);
+    });
+  }
+
+  async verifyTileAlreadyAddedMessage(): Promise<void> {
+    await test.step('Verify tile already added message is displayed in Add Tile Modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.tileAlreadyAddedMessage, {
+        assertionMessage: 'Tile already added message should be visible in Add Tile Modal',
+      });
+    });
+  }
+
+  async closeAddContentTileDialog(): Promise<void> {
+    await test.step('Close Add content tile dialog', async () => {
+      await this.clickOnElement(this.closeDialogButton);
     });
   }
 }

@@ -10,6 +10,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { FeedApiHelper } from '@/src/modules/content/apis/apiValidation/feedApiHelper';
 import {
+  buildAttachmentObject,
   buildFeedReplyText,
   buildFeedTextWithSiteMentions,
   buildFeedTextWithUserMentions,
@@ -155,7 +156,7 @@ test.describe(
         // Upload file first to get fileId for attachment
         let fileId: string | undefined;
         try {
-          const uploadResponse = await appManagerApiFixture.feedManagementHelper.feedManagementService.uploadImage(
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
@@ -253,7 +254,7 @@ test.describe(
         // Upload file first to get fileId for attachment (using appManagerApiFixture for upload)
         let fileId: string | undefined;
         try {
-          const uploadResponse = await standardUserApiFixture.feedManagementHelper.feedManagementService.uploadImage(
+          const uploadResponse = await standardUserApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
@@ -348,7 +349,7 @@ test.describe(
         const updatedText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?%^&* -updated';
         const { textJson, textHtml } = buildFeedReplyText(updatedText);
         // Note: updatePost returns FeedResult (responseBody.result) despite being typed as FeedPostResponse
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -356,7 +357,7 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
 
         // Validate the update response (updatePost returns FeedResult, not FeedPostResponse)
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -400,7 +401,7 @@ test.describe(
         //Edit Delete Text Feed Reply with Emojis Feed Post on Home Dashboard
         const updatedText = 'Test feed with emoji - Updated 😀';
         const { textJson, textHtml } = buildFeedReplyText(updatedText);
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -408,7 +409,7 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
 
         // Validate the update response (updatePost returns FeedResult, not FeedPostResponse)
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -540,7 +541,7 @@ test.describe(
         //Edit Delete Existing Topic Feed on Home Dashboard
         const updatedText = existingTopic.name + ' - Updated';
         const { textJson, textHtml } = buildFeedReplyText(updatedText);
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -548,7 +549,7 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
 
         //Delete Existing Topic Feed on Home Dashboard
@@ -607,7 +608,7 @@ test.describe(
         const { textJson, textHtml } = buildFeedTextWithUserMentions('', [
           { id: updateUserInfo.userId, label: updateUserInfo.fullName },
         ]);
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -615,7 +616,7 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
 
         // Validate the update response contains user mentions
         await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, [
@@ -675,7 +676,7 @@ test.describe(
         const { textJson, textHtml } = buildFeedTextWithSiteMentions('', [
           { id: updateSite.siteId, label: updateSite.name },
         ]);
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -683,7 +684,7 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
 
         // Validate the update response contains site mentions
         await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, [
@@ -728,7 +729,7 @@ test.describe(
         //Edit Delete Site Mention Feed on Home Dashboard
         const updatedText = 'Test feed with site mention - Updated';
         const { textJson, textHtml } = buildFeedReplyText(updatedText);
-        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
           {
             textJson,
@@ -736,8 +737,230 @@ test.describe(
             listOfAttachedFiles: [],
             ignoreToxic: false,
           }
-        )) as unknown as FeedResult;
+        );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Text Feed with html Tags Feed Post on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36045'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with HTML tags on home',
+          zephyrTestId: 'CONT-36045',
+          storyId: 'CONT-36045',
+        });
+
+        // Create feed with HTML tags (XSS protection test)
+        const htmlText = "<script>alert('XSS')</script>";
+        const { textJson: htmlTextJson, textHtml: htmlTextHtml } = buildFeedReplyText(htmlText);
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'public',
+          siteId: undefined,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        // Override text with HTML tags - HTML should be escaped
+        feedTestData.text = htmlText;
+        // Manually set textJson and textHtml for HTML tags
+        (feedTestData as any).textJson = htmlTextJson;
+        (feedTestData as any).textHtml = `<p>&lt;script&gt;alert(&apos;XSS&apos;)&lt;/script&gt;</p>`;
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        // HTML should be escaped in the response
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, htmlText);
+
+        //Edit Delete HTML Tags Feed on Home Dashboard
+        const updatedHtmlText = "<script>alert('XSS')</script> Updated";
+        const { textJson: updatedHtmlTextJson } = buildFeedReplyText(updatedHtmlText);
+        const updatedFeedResult = (await appManagerApiFixture.feedManagementHelper.feedManagementService.updatePost(
+          feedResponse.result?.feedId,
+          {
+            textJson: updatedHtmlTextJson,
+            textHtml: `<p>&lt;script&gt;alert(&apos;XSS&apos;)&lt;/script&gt; Updated</p>`,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        )) as unknown as FeedResult;
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedHtmlText);
+
+        //Delete HTML Tags Feed on Home Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Combination Feed on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36062'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with combination features on home',
+          zephyrTestId: 'CONT-36062',
+          storyId: 'CONT-36062',
+        });
+
+        // Get user and site info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available for mention');
+        }
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+
+        // Create combination feed with all features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Hello World',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteMention: { id: publicSite.siteId, label: publicSite.name },
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          topics:
+            availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: null,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        if (availableTopics.length > 0) {
+          await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        }
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+
+        //Edit Delete Combination Feed on Home Dashboard
+        const updatedText = 'Hello Nation';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Combination Feed on Home Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with File Attachment on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36055'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with file attachment on home',
+          zephyrTestId: 'CONT-36055',
+          storyId: 'CONT-36055',
+        });
+
+        // Upload file first to get fileId for attachment
+        let fileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for attachment', error);
+        }
+
+        if (!fileId) {
+          throw new Error('Failed to upload file for attachment');
+        }
+
+        // Create feed with file attachment
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Test feed with file attachment',
+          siteId: null,
+          withAttachment: true,
+          fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+          fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+          mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+          fileId: fileId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseFiles(feedResponse);
+
+        //Edit Delete File Attachment Feed on Home Dashboard
+        // Upload a new image for the update
+        let updatedFileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for update attachment', error);
+        }
+
+        const updatedText = 'Test feed with file attachment - Updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: updatedFileId ? [buildAttachmentObject(updatedFileId)] : [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+        if (updatedFileId) {
+          await feedApiHelper.validateFeedResultFiles(updatedFeedResult);
+        }
+
+        //Delete File Attachment Feed on Home Dashboard
         await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
     );
