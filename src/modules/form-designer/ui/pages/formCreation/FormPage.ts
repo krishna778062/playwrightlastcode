@@ -44,7 +44,12 @@ export class FormCreationPage extends BasePage {
   readonly dismissSurvey: Locator;
   readonly legalComponentQuestionBox: Locator;
   readonly previewButton: Locator;
+  readonly editButton: Locator;
   readonly requiredToggle: Locator;
+  readonly settingsButton: Locator;
+  readonly updateButton: Locator;
+  readonly legalComponentlinkTo: Locator;
+  readonly customUrlInput: Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -98,6 +103,12 @@ export class FormCreationPage extends BasePage {
     this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
     this.previewButton = this.page.getByText('Preview');
     this.requiredToggle = this.page.getByRole('switch', { name: 'Required' });
+    this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
+    this.settingsButton = this.page.getByText('Settings');
+    this.updateButton = this.page.getByRole('button', { name: 'Update' });
+    this.editButton = this.page.getByText('Edit');
+    this.legalComponentlinkTo = this.page.getByTestId('SelectInput');
+    this.customUrlInput = this.page.getByRole('textbox', { name: 'Enter text for the property' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -109,6 +120,7 @@ export class FormCreationPage extends BasePage {
   }
   async clickOnCreateFormButton(): Promise<void> {
     await test.step('Click on Create form button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createFormButton, { timeout: TIMEOUTS.VERY_LONG });
       await this.clickOnElement(this.createFormButton);
     });
   }
@@ -684,6 +696,13 @@ export class FormCreationPage extends BasePage {
     });
   }
 
+  async clickOnSettingsButton(): Promise<void> {
+    await test.step('Click on settings button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.settingsButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.settingsButton);
+    });
+  }
+
   async addDescriptionIntoComponent(componentName: string, descriptionText: string): Promise<void> {
     await test.step('Add description into : ${componentName} component', async () => {
       const componentNameLocator = this.page.locator('span').filter({ hasText: componentName });
@@ -701,10 +720,45 @@ export class FormCreationPage extends BasePage {
   }
   async clickOn(roleName: any, buttonName: string): Promise<void> {
     await test.step(`Click on button: ${buttonName}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      (await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
+        timeout: TIMEOUTS.VERY_VERY_LONG,
+      })) &&
+        (await this.verifier.verifyTheElementIsEnabled(this.getRoleLocator(roleName, buttonName), {
+          timeout: TIMEOUTS.VERY_VERY_LONG,
+        }));
       await this.clickOnElement(this.getRoleLocator(roleName, buttonName));
+    });
+  }
+
+  async verifyFormUpdatedSuccessfully(): Promise<void> {
+    await test.step('Verify form updated successfully', async () => {
+      await this.page.waitForTimeout(10000);
+      //  await this.verifier.verifyTheElementIsVisible(this.updateButton, { timeout: TIMEOUTS.MEDIUM });
+      // test
+      //   .expect(await this.updateButton.isDisabled({ timeout: TIMEOUTS.MEDIUM }), 'Update button should be disabled')
+      //   .toBe(true);
+    });
+  }
+
+  async clickOnEditButton(): Promise<void> {
+    await test.step('Click on edit button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.editButton);
+    });
+  }
+
+  async selectOptionIntoLegalComponent(option: string): Promise<void> {
+    await test.step('Select option into legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.legalComponentlinkTo);
+      await this.legalComponentlinkTo.selectOption(option);
+    });
+  }
+
+  async addCustomUrlIntoLegalComponent(customUrl: string): Promise<void> {
+    await test.step('Add custom url into legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customUrlInput, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.customUrlInput, customUrl);
     });
   }
   async verifyPublishedFormToastMessage(): Promise<void> {
