@@ -1,5 +1,6 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class OptionMenuComponent extends BaseComponent {
@@ -24,11 +25,37 @@ export class OptionMenuComponent extends BaseComponent {
   async clickOnOptionMenuButton(): Promise<void> {
     await this.clickOnElement(this.optionMenuDropdown);
   }
-  async clickOnRemoveFromHomeCarouselButton(): Promise<void> {
-    await this.clickOnElement(this.removeFromHomeCarouselButton);
+  async clickOnRemoveFromHomeCarouselButton(carouselItemId: string): Promise<void> {
+    await test.step('Click on remove from home carousel button and wait for API call', async () => {
+      const deleteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.removeFromHomeCarouselButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.deleteHomeCarouselItem(carouselItemId)) &&
+          response.request().method() === 'DELETE' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await deleteResponse.finished();
+    });
   }
-  async clickOnRemoveFromSiteCarouselButton(): Promise<void> {
-    await this.clickOnElement(this.removeFromSiteCarouselButton);
+
+  async clickOnRemoveFromSiteCarouselButton(siteId: string, carouselItemId: string): Promise<void> {
+    await test.step('Click on remove from site carousel button and wait for API call', async () => {
+      const deleteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.removeFromSiteCarouselButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.site.deleteCarouselItem(siteId, carouselItemId)) &&
+          response.url().includes('/carousel/items/') &&
+          response.request().method() === 'DELETE' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await deleteResponse.finished();
+    });
   }
   async verifyMustReadButtonIsNotVisible(): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.mustReadButton);

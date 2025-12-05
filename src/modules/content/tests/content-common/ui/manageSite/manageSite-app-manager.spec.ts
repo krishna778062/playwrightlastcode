@@ -1064,12 +1064,13 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
-        await appManagerApiFixture.contentManagementHelper.addSiteCarouselItem(
+        const addSiteCarouselItemResponse = await appManagerApiFixture.contentManagementHelper.addSiteCarouselItem(
           siteInfo.siteId,
           createPageInfo.contentId
         );
 
-        await appManagerApiFixture.contentManagementHelper.addContentIntoHomeCarousel(createPageInfo.contentId);
+        const addContentIntoHomeCarouselResponse =
+          await appManagerApiFixture.contentManagementHelper.addContentIntoHomeCarousel(createPageInfo.contentId);
         const contentDetails = new ContentPreviewPage(
           appManagerFixture.page,
           siteInfo.siteId,
@@ -1078,14 +1079,19 @@ test.describe(
         );
         await contentDetails.loadPage();
         await contentDetails.actions.clickOnOptionMenuButton();
-        await contentDetails.actions.clickOnRemoveFromHomeCarouselButton();
-        await contentDetails.actions.clickOnRemoveFromSiteCarouselButton();
+        await contentDetails.actions.clickOnRemoveFromHomeCarouselButton(
+          addContentIntoHomeCarouselResponse.result.carouselItemId
+        );
+        await contentDetails.actions.clickOnRemoveFromSiteCarouselButton(
+          siteInfo.siteId,
+          addSiteCarouselItemResponse.result.carouselItemId
+        );
         const homePage = new NewHomePage(appManagerFixture.page);
         await homePage.loadPage();
-        await homePage.assertions.verifyContentIsNotVisibleInHomeCarousel(createPageInfo.pageName);
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        await homePage.assertions.verifyContentIsNotVisibleInSiteCarousel(createPageInfo.pageName);
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
       }
     );
     test(

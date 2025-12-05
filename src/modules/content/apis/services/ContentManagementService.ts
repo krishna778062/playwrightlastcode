@@ -430,7 +430,7 @@ export class ContentManagementService implements IContentManagementServices {
   }
   async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
     return await test.step('Adding site carousel item via API post request', async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.site.siteCarouselItems(siteId), {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.addSiteCarouselItem(siteId), {
         data: {
           siteId: siteId,
           itemType: 'content',

@@ -71,7 +71,6 @@ export const API_ENDPOINTS = {
     listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
-    siteCarouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
     carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
