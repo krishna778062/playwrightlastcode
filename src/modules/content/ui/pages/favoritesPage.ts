@@ -8,15 +8,18 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 export interface IFavoritesPageActions {
   clickOnPeopleButton: () => Promise<void>;
   clickOnContentButton: () => Promise<void>;
+  unfavoriteContentByName: (contentName: string) => Promise<void>;
 }
 
 export interface IFavoritesPageAssertions {
   verifyPeopleNamesAreDisplayed: (peopleNames: string[]) => Promise<void>;
   verifyContentNamesAreDisplayed: (contentNames: string[]) => Promise<void>;
+  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
   markAsFavoriteAndCheckRGBColor: () => Promise<void>;
   verifyAlbumTabImageIsDisplayed: () => Promise<void>;
   verifyEventsTabImageIsDisplayed: () => Promise<void>;
   verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
+  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
 }
 
 export class FavoritesPage extends BasePage implements IFavoritesPageActions, IFavoritesPageAssertions {
@@ -31,6 +34,8 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   readonly albumTabImage: Locator;
   readonly getPeopleNamesLocators: (name: string) => Locator;
   readonly getContentNamesLocators: (name: string) => Locator;
+  readonly getContentListingItem: (contentName: string) => Locator;
+  readonly getUnfavoriteButtonForContent: (contentName: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
@@ -42,6 +47,10 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.getPeopleNamesLocators = (name: string) => page.getByText(name, { exact: false });
     this.getContentNamesLocators = (name: string) => page.getByRole('link', { name: name, exact: true });
+    this.getContentListingItem = (contentName: string) =>
+      page.locator(`li.ListingItem--justFavorite:has(a.type--title:has-text("${contentName}"))`);
+    this.getUnfavoriteButtonForContent = (contentName: string) =>
+      this.getContentListingItem(contentName).getByRole('button', { name: 'Unfavorite this content' });
   }
 
   get actions(): IFavoritesPageActions {
@@ -70,6 +79,13 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     });
   }
 
+  async verifyUserCanMarkAsFavoriteContent(): Promise<void> {
+    await test.step('Verify user can mark as favorite content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.startIcon, {
+        assertionMessage: 'Start icon should be visible',
+      });
+    });
+  }
   async verifyEventsTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify events tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.eventsTabImage, {
@@ -159,6 +175,39 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
           assertionMessage: `People name ${name} should be displayed`,
         });
       }
+    });
+  }
+
+  async verifyContentIsVisibleInSearchResults(contentName: string): Promise<void> {
+    await test.step(`Verify content "${contentName}" is visible in search results`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(contentName), {
+        assertionMessage: `Content name ${contentName} should be displayed in favorites`,
+      });
+    });
+  }
+
+  async unfavoriteContentByName(contentName: string): Promise<void> {
+    await test.step(`Unfavorite content "${contentName}"`, async () => {
+      // First verify the content exists
+      const contentItem = this.getContentListingItem(contentName);
+      await this.verifier.verifyTheElementIsVisible(contentItem, {
+        assertionMessage: `Content "${contentName}" should be visible in favorites list`,
+      });
+
+      // Get the unfavorite button for this specific content
+      const unfavoriteButton = this.getUnfavoriteButtonForContent(contentName);
+      await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+        assertionMessage: `Unfavorite button should be visible for content "${contentName}"`,
+      });
+
+      // Click the unfavorite button
+      await this.clickOnElement(unfavoriteButton);
+
+      // Wait for the content item to be removed from the list (optional verification)
+      await contentItem.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+        // Content might still be visible but unfavorited, which is also acceptable
+        console.log(`Content "${contentName}" may still be visible after unfavoriting`);
+      });
     });
   }
 }

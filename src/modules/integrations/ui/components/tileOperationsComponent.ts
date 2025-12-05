@@ -1016,6 +1016,35 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   }
 
   /**
+   * Verify Workday Job Postings metadata based on job type
+   */
+  async verifyWorkdayJobPostingsmetadata(tileTitle: string, jobType: string): Promise<void> {
+    await test.step(`Verify Workday Job Postings metadata for '${tileTitle}' (job type: ${jobType})`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      const row = tile.locator('[data-testid="container"]').first();
+      await expect(row, 'Job row should be visible').toBeVisible();
+
+      // Job ID pattern R-<digits>
+      const jobIdEl = row.getByText(/R-\d+/, { exact: false }).first();
+      await expect(jobIdEl, 'Job ID matching R-<digits> should be visible').toBeVisible();
+
+      // Title as heading level 3
+      await expect(row.getByRole('heading', { level: 3 }).first(), 'Job title should be visible').toBeVisible();
+
+      // Type External or Internal (only for All jobs)
+      if (/all\s+jobs/i.test(jobType)) {
+        await expect(row.getByText(/External|Internal/i).first(), 'Type should be External or Internal').toBeVisible();
+      }
+
+      // Posted n months/years ago
+      await expect(
+        row.getByText(/Posted\s+\d+\s+(month|months|year|years)\s+ago/i).first(),
+        "Posted text should be like 'Posted n month(s)/year(s) ago'"
+      ).toBeVisible();
+    });
+  }
+  /**
    * Set Up tile with field selection
    */
   async setUpTileDropdown(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
@@ -1181,6 +1210,25 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.getByText(this.lastUpdatedPattern).first()).toBeVisible();
       // Verify ticket ID pattern (e.g., #INC12345)
       await expect(tile.getByText(this.serviceNowTicketPattern).first()).toBeVisible();
+    });
+  }
+
+  /**
+   * Select radio option and enter text value
+   * @param fieldName - The field name to select the radio option from
+   * @param radioOption - The radio option to select
+   * @param textValue - The text value to enter
+   */
+  async selectRadioOptionAndTextInput(fieldName: string, radioOption: string, textValue: string): Promise<void> {
+    await test.step(`Select ${radioOption} for ${fieldName} and enter ${textValue}`, async () => {
+      // Select radio option
+      const field = this.group(fieldName);
+      const radio = field.getByLabel(radioOption);
+      await this.clickOnElement(radio);
+      // Find and fill the text input
+      const textInput = this.page.getByRole('textbox', { name: fieldName });
+      await textInput.waitFor({ state: 'visible' });
+      await textInput.fill(textValue);
     });
   }
 }
