@@ -1403,6 +1403,7 @@ test.describe(
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, InternalJobType);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }
