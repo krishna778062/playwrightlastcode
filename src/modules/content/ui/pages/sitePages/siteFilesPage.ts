@@ -33,10 +33,14 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
   readonly inputFilesSelector: string = `input[type="file"]`;
   readonly siteVideosTab: Locator = this.page.getByRole('link', { name: 'Site videos' });
   readonly boxFolderLocator = (folderName: string) => this.page.getByRole('link', { name: folderName });
-  readonly linkNewFolder: Locator = this.page.getByRole('button', { name: 'Link Box folder' });
-  readonly linkFolderDialog: Locator = this.page.getByRole('dialog', { name: 'Link Box folder' });
-  readonly linkFolderDialogInput: Locator = this.page.locator('#react-select-3-input');
-  readonly linkNewFolderButton: Locator = this.linkFolderDialog.getByLabel('Link Box folder');
+  readonly linkNewFolder = (folderName: string) =>
+    this.page.getByRole('button', { name: new RegExp(`^${folderName}$`, 'i') });
+  readonly linkFolderDialog = (folderName: string) =>
+    this.page.getByRole('dialog', { name: new RegExp(`^${folderName}$`, 'i') });
+  readonly linkFolderDialogInput: Locator = this.page
+    .locator('div')
+    .filter({ hasText: /^Please select a document library…$/ });
+  readonly linkNewFolderButton = (folderName: string) => this.linkFolderDialog(folderName).getByLabel(folderName);
   readonly shareOption: Locator = this.page.getByRole('button', { name: 'Share' });
 
   readonly getFileRowLocator = (fileName: string): Locator =>
@@ -219,13 +223,26 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
         console.log(`Box folder "${folderName}" found`);
         return;
       }
-      await this.verifier.verifyTheElementIsVisible(this.linkNewFolder);
-      await this.clickOnElement(this.linkNewFolder);
-      await this.verifier.verifyTheElementIsVisible(this.linkFolderDialog);
-      await this.fillInElement(this.linkFolderDialogInput, folderName);
-      await this.clickOnElement(this.page.getByText(folderName).first());
-      await this.clickOnElement(this.linkNewFolderButton);
-      console.log(`Box folder "${folderName}" linked`);
+      let linkFolderName = folderName;
+      if (folderName === 'Drive') {
+        linkFolderName = 'Link Google Drive';
+      }
+      if (folderName === 'AVISTA BOX FILES EDITOR') {
+        linkFolderName = 'Link Box folder';
+      }
+      console.log(`folderName ---> ${linkFolderName}`);
+      await this.verifier.verifyTheElementIsVisible(this.linkNewFolder(linkFolderName));
+      await this.clickOnElement(this.linkNewFolder(linkFolderName));
+      await this.verifier.verifyTheElementIsVisible(this.linkFolderDialog(linkFolderName));
+      const sharedDriveFolder = this.page.getByRole('radio', { name: 'Shared Drive (owned by the' });
+      if (await sharedDriveFolder.isVisible({ timeout: TIMEOUTS.VERY_VERY_SHORT })) {
+        await this.clickOnElement(sharedDriveFolder);
+      }
+      await this.clickOnElement(this.linkFolderDialogInput.nth(3));
+      //await this.fillInElement(this.linkFolderDialogInput.first(), folderName);
+      await this.clickOnElement(this.page.getByText(folderName, { exact: true }).first());
+      await this.clickOnElement(this.linkNewFolderButton(linkFolderName));
+      console.log(`Box folder "${linkFolderName}" linked`);
     });
   }
 
@@ -234,7 +251,9 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
       // Locate the file item
       const fileRow = this.getFileRowLocator(fileName);
 
-      await this.verifier.verifyTheElementIsVisible(fileRow);
+      await this.verifier.verifyTheElementIsVisible(fileRow, {
+        assertionMessage: `File row for file: ${fileName} should be visible`,
+      });
 
       const fileOptionsDropdown = this.getFileOptionsDropdownLocator(fileName);
 

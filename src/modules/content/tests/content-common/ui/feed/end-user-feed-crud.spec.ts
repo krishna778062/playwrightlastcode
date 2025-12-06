@@ -16,11 +16,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -1899,6 +1901,9 @@ test.describe(
         // Setup - Admin uploads file to public site
         const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+        await manageSitePage.actions.setExternalFilesProvider('Box files');
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
         await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
 
