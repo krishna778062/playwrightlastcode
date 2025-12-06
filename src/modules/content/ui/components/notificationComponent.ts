@@ -9,7 +9,9 @@ export interface INotificationComponentActions {
   clickOnViewAllNotifications: (options?: { stepInfo?: string }) => Promise<ActivityNotificationPage>;
 }
 
-export interface INotificationComponentAssertions {}
+export interface INotificationComponentAssertions {
+  verifyNotificationExists: (notificationText: string) => Promise<void>;
+}
 
 export class NotificationComponent
   extends BaseComponent
@@ -18,7 +20,7 @@ export class NotificationComponent
   readonly markAllAsReadButton: Locator;
   readonly getNotificationListItems: Locator;
   readonly viewAllNotificationsButton: Locator;
-
+  readonly notificationViewAllText: (text: string) => Locator;
   /**
    * Constructor for the NotificationComponent
    * @param page - The page to use for the NotificationComponent after click on bell icon from top nav bar
@@ -28,6 +30,7 @@ export class NotificationComponent
     this.markAllAsReadButton = this.page.getByRole('button', { name: 'Mark all as read' });
     this.getNotificationListItems = this.page.locator('[class*="Notification-body"]');
     this.viewAllNotificationsButton = this.page.getByRole('link', { name: 'View all' });
+    this.notificationViewAllText = (text: string) => this.page.getByText(text);
   }
 
   get actions(): INotificationComponentActions {
@@ -53,6 +56,13 @@ export class NotificationComponent
   async markAllAsRead(): Promise<void> {
     await test.step('Marking all notifications as read', async () => {
       await this.clickOnElement(this.markAllAsReadButton);
+    });
+  }
+  async verifyNotificationExists(notificationText: string): Promise<void> {
+    await test.step(`Verifying notification exists: ${notificationText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getNotificationListItems.getByText(notificationText), {
+        assertionMessage: `Notification with text "${notificationText}" should be visible`,
+      });
     });
   }
 
