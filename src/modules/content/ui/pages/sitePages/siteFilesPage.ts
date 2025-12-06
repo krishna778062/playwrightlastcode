@@ -21,6 +21,8 @@ export interface ISiteFilesPageAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
   verifyFileIsPresentInTheSiteFilesListAtIndex: (fileName: string, index: number) => Promise<void>;
+  verifyShareOptionIsVisible: (fileName: string) => Promise<void>;
+  verifyShareOptionIsNotVisible: (fileName: string) => Promise<void>;
 }
 
 /**
@@ -267,6 +269,24 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
   async clickShareOptionFromFileMenu(): Promise<void> {
     await test.step('Click Share option from file dropdown menu', async () => {
       await this.clickOnElement(this.shareOption);
+    });
+  }
+
+  async verifyShareOptionIsVisible(fileName: string): Promise<void> {
+    await this.hoverOverFileOptionsDropdown(fileName);
+
+    await this.verifier.verifyTheElementIsVisible(this.shareOption, {
+      assertionMessage: `Share option should be visible for file: ${fileName}`,
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  async verifyShareOptionIsNotVisible(fileName: string): Promise<void> {
+    await this.hoverOverFileOptionsDropdown(fileName);
+
+    await this.verifier.verifyTheElementIsNotVisible(this.shareOption, {
+      assertionMessage: `Share option should not be visible for file: ${fileName}`,
+      timeout: TIMEOUTS.MEDIUM,
     });
   }
 }

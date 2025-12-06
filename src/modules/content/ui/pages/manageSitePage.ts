@@ -60,11 +60,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
   readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
   // Target the option in the dropdown list, not the selected value
-  readonly providerOption = (providerName: string) => this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
+  readonly providerOption = (providerName: string) =>
+    this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
   // Locator for the currently selected value in the combobox
-  readonly selectedProviderValue = (provider: string) => this.page
-    .locator('div[class*="css-15bnrdl-singleValue"]')
-    .filter({ hasText: provider });
+  readonly selectedProviderValue = (provider: string) =>
+    this.page.locator('div[class*="css-15bnrdl-singleValue"]').filter({ hasText: provider });
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
 
@@ -213,8 +213,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       });
 
       // Check if Box files is already selected
-      const isBoxAlreadySelected = await this.selectedProviderValue(provider).isVisible().catch(() => false);
-
+      const isBoxAlreadySelected = await this.selectedProviderValue(provider)
+        .isVisible()
+        .catch(() => false);
 
       if (isBoxAlreadySelected) {
         console.log(`${provider} is already selected`);
@@ -241,10 +242,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
       const isDisconnectDialogVisible = await this.disconnectDialog.isVisible();
       if (isDisconnectDialogVisible) {
-        const disconnectButton = this.disconnectDialog.getByRole('button', { name: 'Disconnect' })
+        const disconnectButton = this.disconnectDialog.getByRole('button', { name: 'Disconnect' });
         await this.clickOnElement(disconnectButton);
       }
-        
     });
   }
   async clickDashboardAndFeedTab(): Promise<void> {

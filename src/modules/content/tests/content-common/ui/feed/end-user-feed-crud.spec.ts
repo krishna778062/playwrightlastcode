@@ -22,6 +22,7 @@ import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -2056,6 +2057,75 @@ test.describe(
         // Click Following button in reply and verify Follow button is visible
         await endUserFeedPage.actions.clickFollowingButtonOnHover(appManagerFullName);
         await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+      }
+    );
+
+    test(
+      'in Zeus verify share option is not visible for GDrive file when Feed is disabled',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-20080'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify share option is not visible for GDrive file when Feed is disabled',
+          zephyrTestId: 'CONT-20080',
+          storyId: 'CONT-20080',
+        });
+
+        const siteName = 'All Employees';
+        const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
+
+        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        try {
+          // Setup - Navigate to site dashboard and Files tab
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+          const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.actions.setExternalFilesProvider('Box files');
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+
+          const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.uploadBoxFileFolder(folderName);
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+
+          // Hover over OptionsMenu and verify Share option is NOT visibl
+          await siteFilesPage.assertions.verifyShareOptionIsNotVisible(fileName);
+
+          const governanceScreenPage2 = new GovernanceScreenPage(appManagerFixture.page);
+          await governanceScreenPage2.loadPage();
+          await governanceScreenPage2.verifyThePageIsLoaded();
+          await governanceScreenPage2.actions.selectTimelineFeedSettingsAsDefaultMode();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+
+          await siteFilesPage.assertions.verifyShareOptionIsVisible(fileName);
+        } finally {
+          const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+        }
       }
     );
   }
