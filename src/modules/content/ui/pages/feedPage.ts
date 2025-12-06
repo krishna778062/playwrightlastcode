@@ -157,6 +157,7 @@ export interface IFeedActions {
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
   clickContentInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
+  clickEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   clickOnGiveRecognition(): Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
   hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
@@ -201,6 +202,9 @@ export interface IFeedAssertions {
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
   verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
+  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
+  verifyEventVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
+  verifyEventNotVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
@@ -263,6 +267,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly newHireFeedBlocks: Locator;
   readonly recentlyPublishedBlock: Locator;
   readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
+  readonly upcomingEventsBlock: Locator;
+  readonly upcomingEventsContentItem: (eventTitle: string) => Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
@@ -286,6 +292,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
     this.recentlyPublishedContentItem = (contentTitle: string) =>
       this.recentlyPublishedBlock.filter({ hasText: contentTitle }).first();
+    this.upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming event' }).first();
+    this.upcomingEventsContentItem = (eventTitle: string) =>
+      this.upcomingEventsBlock.filter({ hasText: eventTitle }).first();
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
@@ -845,6 +854,53 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.page.waitForURL(new RegExp('/site/.*/page/'), {
         timeout: 15000,
       });
+    });
+  }
+
+  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
+    await test.step('Verify Upcoming Events smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
+        assertionMessage: 'Upcoming Events smart block should be visible',
+      });
+    });
+  }
+
+  async verifyEventVisibleInUpcomingEventsBlock(eventTitle: string): Promise<void> {
+    await test.step(`Verify event "${eventTitle}" is visible in Upcoming Events block`, async () => {
+      const eventItem = this.upcomingEventsContentItem(eventTitle);
+      await this.verifier.verifyTheElementIsVisible(eventItem, {
+        assertionMessage: `Event "${eventTitle}" should be visible in Upcoming Events block`,
+      });
+    });
+  }
+
+  async verifyEventNotVisibleInUpcomingEventsBlock(eventTitle: string): Promise<void> {
+    await test.step(`Verify event "${eventTitle}" is NOT visible in Upcoming Events block`, async () => {
+      const eventItem = this.upcomingEventsContentItem(eventTitle);
+      await this.verifier.verifyTheElementIsNotVisible(eventItem, {
+        assertionMessage: `Event "${eventTitle}" should NOT be visible in Upcoming Events block`,
+      });
+    });
+  }
+
+  async clickEventInUpcomingEventsBlock(eventTitle: string): Promise<void> {
+    await test.step(`Click on event "${eventTitle}" in Upcoming Events block and verify redirection`, async () => {
+      const eventItem = this.upcomingEventsContentItem(eventTitle);
+      await this.verifier.verifyTheElementIsVisible(eventItem, {
+        assertionMessage: `Event "${eventTitle}" should be visible in Upcoming Events block`,
+      });
+
+      // Find the clickable link within the event item (could be the title link or the entire item)
+      const eventLink = eventItem.locator('a').first();
+      const linkVisible = await eventLink.isVisible().catch(() => false);
+
+      if (linkVisible) {
+        // Click the link and wait for navigation
+        await this.clickOnElement(eventLink);
+      } else {
+        // If no link found, click the event item itself
+        await this.clickOnElement(eventItem);
+      }
     });
   }
 

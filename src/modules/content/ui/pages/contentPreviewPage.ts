@@ -8,6 +8,7 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { TIMEOUTS } from '@/src/core/constants';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
@@ -53,6 +54,8 @@ export interface IContentPreviewPageActions {
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnFavouriteContentButton(): Promise<void>;
+  deleteTheContent: () => Promise<void>;
+  skipPromotionDialogIfVisible(): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -99,6 +102,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
   readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
   readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
+  readonly confirmDeleteButton = this.page.getByRole('button', { name: 'Delete' }).last();
   readonly contentStatus = (status: string) =>
     this.page.locator('div.ContentAdminBar-status').filter({ hasText: status });
   readonly approveOrRejectButton = (action: string) => this.page.getByRole('button', { name: action });
@@ -124,6 +128,8 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly promotionEventDialog = this.page.getByRole('dialog', { name: 'Promote event' });
+  readonly skipPromotionEventDialogButton = this.promotionEventDialog.getByRole('button', { name: 'Skip this step' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -292,6 +298,27 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async publishingTheContent(): Promise<void> {
     await test.step('Publishing the content', async () => {
       await this.clickOnElement(this.publishButton);
+    });
+  }
+
+  async deleteTheContent(): Promise<void> {
+    await test.step('Delete the content', async () => {
+      await this.actions.clickOnOptionMenuButton();
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.clickOnElement(this.deleteButton);
+      await this.clickOnElement(this.confirmDeleteButton);
+    });
+  }
+
+  async skipPromotionDialogIfVisible(): Promise<void> {
+    await test.step('Skipping promotion dialog if visible', async () => {
+      const isPromotionDialogVisible = await this.verifier.isTheElementVisible(this.promotionEventDialog, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      if (isPromotionDialogVisible) {
+        console.log('Promotion dialog is visible, skipping it');
+        await this.clickOnElement(this.skipPromotionEventDialogButton);
+      }
     });
   }
   async verifyCommentOptionIsVisible(): Promise<void> {
