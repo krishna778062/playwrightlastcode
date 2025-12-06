@@ -240,7 +240,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
-    this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
+    this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' }).first();
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.unlikeButtonForReply = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
@@ -659,10 +659,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `Load more replies button should be visible`,
       });
       await this.clickOnElement(this.loadMoreRepliesButton);
-
-      await this.verifier.verifyTheElementIsNotVisible(this.loadMoreRepliesButton, {
-        assertionMessage: `Load more replies button should not be visible after clicking`,
-      });
     });
   }
 

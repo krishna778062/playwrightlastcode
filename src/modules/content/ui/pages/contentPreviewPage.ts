@@ -17,6 +17,7 @@ import { MustReadModalComponent } from '@/src/modules/content/ui/components/must
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
 export interface IContentPreviewPageActions {
+  clickLoadMoreRepliesButton(): Promise<void>;
   clickShareContentButton(): Promise<void>;
   handlePromotionPageStep: () => Promise<void>;
   clickOnApproveOrRejectButton: (action: string) => Promise<void>;
@@ -235,6 +236,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       await this.fillInElement(this.replyEditor, replyText);
       await this.clickOnElement(this.submitReplyButton);
     });
+  }
+
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
   }
 
   /**
