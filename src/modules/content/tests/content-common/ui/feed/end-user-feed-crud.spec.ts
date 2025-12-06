@@ -10,6 +10,7 @@ import { ShareComponent } from '@content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
+import { SiteFilesPage } from '@content/ui/pages/sitePages/siteFilesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
@@ -1872,6 +1873,121 @@ test.describe(
             inappropriatePostText,
             'Site Feed',
             publicSiteName
+          );
+        });
+      }
+    );
+
+    test(
+      'in Zeus verify user submits inappropriate content while sharing a file to home dashboard and site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28478'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User submits inappropriate content while Sharing a File to Home Dashboard and Site Dashboard',
+          zephyrTestId: 'CONT-28478',
+          storyId: 'CONT-28478',
+        });
+
+        // Inappropriate text to test
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+
+        const siteName = 'All Employees';
+
+        // Setup - Admin uploads file to public site
+        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+        await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+
+        const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+        await siteFilesPage.assertions.verifyThePageIsLoaded();
+        await siteFilesPage.actions.clickOnFilesFolder('Box files');
+        await siteFilesPage.actions.uploadBoxFileFolder('AVISTA BOX FILES EDITOR');
+        const fileName = 'V2.png';
+
+        // Helper function to test sharing file with inappropriate content warning (Cancel and Submit Anyway flows)
+        const testShareFileWithInappropriateContent = async (
+          userFixture: any,
+          siteId: string,
+          fileName: string,
+          inappropriateText: string,
+          postIn: 'Home Feed' | 'Site Feed',
+          siteName?: string
+        ) => {
+          const shareComponent = new ShareComponent(userFixture.page);
+          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+
+          const siteDashboardPage = new SiteDashboardPage(userFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+
+          const siteFilesPage = new SiteFilesPage(userFixture.page, siteId);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder('AVISTA BOX FILES EDITOR');
+          await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          await siteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await siteFilesPage.actions.clickShareOptionFromFileMenu();
+
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          if (postIn === 'Site Feed') {
+            await shareComponent.selectShareOptionAsSiteFeed();
+            if (siteName) {
+              await shareComponent.actions.enterSiteName(siteName);
+            }
+          }
+
+          await shareComponent.actions.clickShareButton();
+
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          await warningPopup.actions.clickCancel();
+
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+
+          await shareComponent.actions.enterShareDescription(inappropriateText);
+
+          await shareComponent.actions.clickShareButton();
+
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+
+          await warningPopup.actions.clickContinue();
+
+          await warningPopup.assertions.verifyWarningPopupClosed();
+        };
+
+        // Test Home Feed scenario
+        await test.step('Test Home Feed: Inappropriate content warning when sharing file', async () => {
+          await testShareFileWithInappropriateContent(
+            standardUserFixture,
+            publicSiteId,
+            fileName,
+            inappropriatePostText,
+            'Home Feed'
+          );
+        });
+
+        // Test Site Feed scenario
+        await test.step('Test Site Feed: Inappropriate content warning when sharing file', async () => {
+          await testShareFileWithInappropriateContent(
+            standardUserFixture,
+            publicSiteId,
+            fileName,
+            inappropriatePostText,
+            'Site Feed',
+            siteName
           );
         });
       }

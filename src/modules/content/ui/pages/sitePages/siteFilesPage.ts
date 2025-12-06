@@ -7,15 +7,46 @@ import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
+export interface ISiteFilesPageActions {
+  uploadBoxFileFolder: (folderName: string) => Promise<void>;
+  uploadFileViaSelectFromComputer: (filePath: string) => Promise<string>;
+  clickToOpenFileInFilesPreview: (fileNameWithExtension: string) => Promise<void>;
+  clickOnFilesFolder: (folderName: string) => Promise<void>;
+  clickSiteVideosTab: () => Promise<void>;
+  hoverOverFileOptionsDropdown: (fileName: string) => Promise<void>;
+  clickShareOptionFromFileMenu: () => Promise<void>;
+}
+
+export interface ISiteFilesPageAssertions {
+  verifyThePageIsLoaded: () => Promise<void>;
+  verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
+  verifyFileIsPresentInTheSiteFilesListAtIndex: (fileName: string, index: number) => Promise<void>;
+}
+
 /**
  * A Site has many pages.
  * This class is for managing the Site Files page.
  */
-export class SiteFilesPage extends BaseSitePage {
+export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions, ISiteFilesPageAssertions {
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
 
   readonly inputFilesSelector: string = `input[type="file"]`;
   readonly siteVideosTab: Locator = this.page.getByRole('link', { name: 'Site videos' });
+  readonly boxFolderLocator = (folderName: string) => this.page.getByRole('link', { name: folderName });
+  readonly linkNewFolder: Locator = this.page.getByRole('button', { name: 'Link Box folder' });
+  readonly linkFolderDialog: Locator = this.page.getByRole('dialog', { name: 'Link Box folder' });
+  readonly linkFolderDialogInput: Locator = this.page.locator('#react-select-3-input');
+  readonly linkNewFolderButton: Locator = this.linkFolderDialog.getByLabel('Link Box folder');
+  readonly shareOption: Locator = this.page.getByRole('button', { name: 'Share' });
+
+  readonly getFileRowLocator = (fileName: string): Locator =>
+    this.page
+      .locator('tr')
+      .filter({ has: this.page.locator(`a.directory-ownerName`, { hasText: fileName }) })
+      .first();
+
+  readonly getFileOptionsDropdownLocator = (fileName: string): Locator =>
+    this.getFileRowLocator(fileName).locator('button.OptionsMenu-iconContainer');
 
   get selectFromComputer(): Locator {
     return this.page.getByText('Drop media and files here or').locator('input[type="file"]');
@@ -36,6 +67,14 @@ export class SiteFilesPage extends BaseSitePage {
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
+  }
+
+  get actions(): ISiteFilesPageActions {
+    return this;
+  }
+
+  get assertions(): ISiteFilesPageAssertions {
+    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -163,6 +202,52 @@ export class SiteFilesPage extends BaseSitePage {
         // The upload will work in the main files area if videos tab is not available.
         console.log('Site videos tab not found. Proceeding with file upload in main files area.');
       }
+    });
+  }
+
+  async clickOnFilesFolder(folderName: string): Promise<void> {
+    await test.step(`Click on files folder: ${folderName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.boxFolderLocator(folderName));
+      await this.clickOnElement(this.boxFolderLocator(folderName));
+    });
+  }
+
+  async uploadBoxFileFolder(folderName: string): Promise<void> {
+    await test.step(`Upload Box file folder: ${folderName}`, async () => {
+      const boxFolder = await this.verifier.isTheElementVisible(this.boxFolderLocator(folderName));
+      if (boxFolder) {
+        console.log(`Box folder "${folderName}" found`);
+        return;
+      }
+      await this.verifier.verifyTheElementIsVisible(this.linkNewFolder);
+      await this.clickOnElement(this.linkNewFolder);
+      await this.verifier.verifyTheElementIsVisible(this.linkFolderDialog);
+      await this.fillInElement(this.linkFolderDialogInput, folderName);
+      await this.clickOnElement(this.page.getByText(folderName).first());
+      await this.clickOnElement(this.linkNewFolderButton);
+      console.log(`Box folder "${folderName}" linked`);
+    });
+  }
+
+  async hoverOverFileOptionsDropdown(fileName: string): Promise<void> {
+    await test.step(`Click dropdown options for file: ${fileName}`, async () => {
+      // Locate the file item
+      const fileRow = this.getFileRowLocator(fileName);
+
+      await this.verifier.verifyTheElementIsVisible(fileRow);
+
+      const fileOptionsDropdown = this.getFileOptionsDropdownLocator(fileName);
+
+      await this.hoverOverElementInJavaScript(fileOptionsDropdown);
+    });
+  }
+
+  /**
+   * Clicks the "Share" option from the file dropdown menu
+   */
+  async clickShareOptionFromFileMenu(): Promise<void> {
+    await test.step('Click Share option from file dropdown menu', async () => {
+      await this.clickOnElement(this.shareOption);
     });
   }
 }
