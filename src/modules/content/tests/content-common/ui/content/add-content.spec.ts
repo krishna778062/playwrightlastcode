@@ -89,6 +89,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -151,6 +152,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -210,6 +212,7 @@ test.describe(
         // Generate page data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -286,6 +289,7 @@ test.describe(
         // Generate page data using TestDataGenerator
         const imagePath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
