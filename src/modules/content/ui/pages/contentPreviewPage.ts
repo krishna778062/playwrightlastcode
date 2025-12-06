@@ -55,7 +55,7 @@ export interface IContentPreviewPageActions {
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnFavouriteContentButton(): Promise<void>;
   deleteTheContent: () => Promise<void>;
-  skipPromotionDialogIfVisible(): Promise<void>;
+  skipPromotionDialogIfVisible(contentType: string): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -128,8 +128,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
-  readonly promotionEventDialog = this.page.getByRole('dialog', { name: 'Promote event' });
-  readonly skipPromotionEventDialogButton = this.promotionEventDialog.getByRole('button', { name: 'Skip this step' });
+  readonly promotionEventDialog = (contentType: string) =>
+    this.page.getByRole('dialog', { name: `Promote ${contentType}` });
+  readonly skipPromotionEventDialogButton = (contentType: string) =>
+    this.promotionEventDialog(contentType).getByRole('button', { name: 'Skip this step' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -310,14 +312,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     });
   }
 
-  async skipPromotionDialogIfVisible(): Promise<void> {
+  async skipPromotionDialogIfVisible(contentType: string): Promise<void> {
     await test.step('Skipping promotion dialog if visible', async () => {
-      const isPromotionDialogVisible = await this.verifier.isTheElementVisible(this.promotionEventDialog, {
+      const isPromotionDialogVisible = await this.verifier.isTheElementVisible(this.promotionEventDialog(contentType), {
         timeout: TIMEOUTS.MEDIUM,
       });
       if (isPromotionDialogVisible) {
         console.log('Promotion dialog is visible, skipping it');
-        await this.clickOnElement(this.skipPromotionEventDialogButton);
+        await this.clickOnElement(this.skipPromotionEventDialogButton(contentType));
       }
     });
   }

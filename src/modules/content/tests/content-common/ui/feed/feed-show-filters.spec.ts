@@ -755,7 +755,7 @@ test.describe(
         await test.step('Unpublish content from option menu', async () => {
           await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/page/${pageContentId}`);
           await contentPreviewPage.verifyThePageIsLoaded();
-          await contentPreviewPage.actions.skipPromotionDialogIfVisible();
+          await contentPreviewPage.actions.skipPromotionDialogIfVisible('page');
           await contentPreviewPage.actions.clickOnOptionMenuButton();
           await contentPreviewPage.actions.unpublishingTheContent();
           await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
@@ -886,7 +886,7 @@ test.describe(
         // Unpublish event and verify it's not visible
         await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/event/${eventContentId}`);
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.skipPromotionDialogIfVisible();
+        await contentPreviewPage.actions.skipPromotionDialogIfVisible('event');
         await contentPreviewPage.actions.clickOnOptionMenuButton();
         await contentPreviewPage.actions.unpublishingTheContent();
         await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
