@@ -1379,7 +1379,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async removeSiteMention(siteName: string): Promise<void> {
     await this.createFeedPostComponent.removeSiteMention(siteName);
   }
-  
+
   async clickOnGiveRecognition(): Promise<void> {
     await test.step('Click on Give Recognition button', async () => {
       const recognitionHub = new RecognitionHubPage(this.page);
