@@ -1,4 +1,4 @@
-name: Auto Label New Release PR
+name: Auto Label New Release PR #dummy comment
 
 on:
   pull_request:
