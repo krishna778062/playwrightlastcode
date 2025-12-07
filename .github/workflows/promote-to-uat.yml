@@ -1,0 +1,122 @@
+name: Promote to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: 'Base version (leave empty to auto-detect from latest QA tag)'
+        required: false
+        type: string
+
+jobs:
+  promote-to-uat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: release
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Verify current stage
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          echo "Current stage: $STAGE"
+
+          if [ "$STAGE" == "uat" ]; then
+            echo "⚠️ Already in UAT stage. This will create an additional UAT tag."
+          fi
+
+      - name: Determine version and create UAT tag
+        id: tag
+        run: |
+          # Auto-detect base version from latest QA tag if not provided
+          if [ -n "${{ github.event.inputs.base_version }}" ]; then
+            BASE_VERSION="${{ github.event.inputs.base_version }}"
+            echo "Using provided base version: $BASE_VERSION"
+          else
+            LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            if [ -z "$LATEST_QA" ]; then
+              echo "❌ No QA tags found. Create QA tag first!"
+              exit 1
+            fi
+            BASE_VERSION=$(echo $LATEST_QA | grep -oP '^\d+\.\d+')
+            echo "Auto-detected base version from latest QA tag ($LATEST_QA): $BASE_VERSION"
+          fi
+
+          echo "Base version: $BASE_VERSION"
+
+          # Get latest UAT tag for this base version
+          LATEST_UAT=$(git tag -l "${BASE_VERSION}-uat.*" --sort=-v:refname | head -n1)
+
+          if [ -z "$LATEST_UAT" ]; then
+            # First UAT tag for this version
+            NEW_TAG="${BASE_VERSION}-uat.1"
+            IS_FIRST_UAT="true"
+            echo "🆕 First UAT tag for ${BASE_VERSION}: ${NEW_TAG}"
+          else
+            # Increment UAT number
+            UAT_NUM=$(echo $LATEST_UAT | grep -oP 'uat\.\K\d+')
+            NEW_UAT_NUM=$((UAT_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-uat.${NEW_UAT_NUM}"
+            IS_FIRST_UAT="false"
+            echo "📈 Incrementing: ${LATEST_UAT} → ${NEW_TAG}"
+          fi
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "is_first_uat=$IS_FIRST_UAT" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.tag.outputs.new_tag }}
+          git push origin ${{ steps.tag.outputs.new_tag }}
+          echo "✅ Tag created: ${{ steps.tag.outputs.new_tag }}"
+
+      - name: Update stage to UAT
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh variable set CURRENT_STAGE --body "uat"
+          echo "✅ CURRENT_STAGE updated to 'uat'"
+
+      - name: Summary
+        run: |
+          echo "================================"
+          echo "UAT PROMOTION COMPLETED"
+          echo "================================"
+          echo "Created tag: ${{ steps.tag.outputs.new_tag }}"
+          echo "Base version: ${{ steps.tag.outputs.base_version }}"
+          echo "Stage: UAT"
+          echo ""
+          echo "Next steps:"
+          echo "1. UAT cron will pick up this tag automatically"
+          echo "2. Future hotfixes will create UAT tags (not QA)"
+          echo "3. QA cron will stop running (stage != qa)"
+          echo "================================"
+
+    #   - name: Notify Slack
+    #     if: always()
+    #     run: |
+    #       if [ "${{ job.status }}" == "success" ]; then
+    #         if [ "${{ steps.tag.outputs.is_first_uat }}" == "true" ]; then
+    #           MESSAGE="✅ Promoted to UAT: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: UAT\n🎯 First UAT tag for version ${{ steps.tag.outputs.base_version }}\n\n**Changes:**\n• Future hotfixes will create UAT tags\n• QA cron will stop running\n• UAT cron will start running\n\nNext UAT regression will pick this up automatically."
+    #         else
+    #           MESSAGE="✅ New UAT Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: UAT\n🔧 Additional UAT tag created\n\nNext UAT regression will pick this up automatically."
+    #         fi
+
+    #         curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+    #           -H 'Content-Type: application/json' \
+    #           -d "{\"text\":\"$MESSAGE\"}"
+    #       else
+    #         curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+    #           -H 'Content-Type: application/json' \
+    #           -d '{"text":"❌ Failed to promote to UAT\nVersion: ${{ github.event.inputs.base_version || \"auto-detect\" }}"}'
+    #       fi
