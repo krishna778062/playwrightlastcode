@@ -151,9 +151,15 @@ export interface FeedPostResponse {
   delay: number;
 }
 
+/**
+ * Request payload for updating a feed post
+ */
 export interface UpdateFeedPostPayload {
-  text?: string;
-  attachments?: string[];
+  textJson: string;
+  textHtml: string;
+  listOfAttachedFiles: AttachedFile[];
+  ignoreToxic: boolean;
+  siteId?: string | null;
 }
 
 /**

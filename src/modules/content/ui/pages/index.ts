@@ -1,6 +1,7 @@
 export * from './activityNotificationPage';
 export * from './albumCreationPage';
 export * from './applicationsScreenPage';
+export * from './contentModerationQueuePage';
 export * from './contentPreviewPage';
 export * from './editPagePage';
 export * from './eventCreationPage';

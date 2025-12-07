@@ -17,7 +17,7 @@
  */
 
 export type TenantKey = 'primary' | 'secondary';
-export type EnvironmentKey = 'qa' | 'uat' | 'test';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'uatEU';
 
 export const mailosaurValues: {
   mailosaurApiKey: string;
@@ -127,6 +127,19 @@ export const config = {
       newUxEnabled: false,
       orgId: 'ae412585-2c97-435e-b587-8da6971045bd',
     },
+    uatEU: {
+      tenantName: 'Frontline Primary UAT EU',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'meenakshi.joshi@simpplr.com',
+      appManagerPassword: 'Simp@123',
+      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '43742c24-f120-4f3a-9982-a1e7dabc3dbe',
+    },
   },
   secondary: {
     qa: {
@@ -176,6 +189,21 @@ export const config = {
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
+    uatEU: {
+      tenantName: 'Frontline Secondary UAT',
+      frontendBaseUrl: 'https://frontline-automation-2.uat.simpplr.xyz',
+      apiBaseUrl: 'https://frontline-automation-2-api.uat.simpplr.xyz',
+      appManagerEmail: 'E001',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '51ff9037-4d7f-4f57-88be-6d8e3fd8a962',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
   },
   appConfig: {
     staticFolderPath: '',
@@ -188,13 +216,14 @@ export const config = {
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!['qa', 'uat', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +
         `Valid values are: qa, uat, test\n` +
         `Example: TEST_ENV=qa npm run test:module frontline\n` +
         `Example: TEST_ENV=uat npm run test:module frontline\n` +
-        `Example: TEST_ENV=test npm run test:module frontline\n`
+        `Example: TEST_ENV=test npm run test:module frontline\n` +
+        `Example: TEST_ENV=uatEU npm run test:module frontline\n`
     );
   }
 

@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import {
   CreateFeedPostComponent,
@@ -155,6 +156,15 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickOnGiveRecognition(): Promise<void>;
+  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
+  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
+  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
+  clickFollowButtonOnHover: (userName: string) => Promise<void>;
+  clickFollowingButtonOnHover: (userName: string) => Promise<void>;
+  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
+  clickOnSideToRemoveProfilePopover(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -187,6 +197,9 @@ export interface IFeedAssertions {
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
+  verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
+  verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
@@ -217,12 +230,21 @@ export interface IFeedAssertions {
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
+  verifyRemovedContentMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
   verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
   verifyShareModalIsVisible(): Promise<void>;
   verifyShareModalIsClosed: () => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifyRecognitionPostVisible: (message?: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
+  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
+  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
+  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
+  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -238,6 +260,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly sortByFilter: Locator;
   readonly celebrityFeedBlocks: Locator;
   readonly newHireFeedBlocks: Locator;
+  readonly recentlyPublishedBlock: Locator;
+  readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
@@ -258,6 +282,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.optionLocator = this.page.getByLabel('Show', { exact: true });
     this.celebrityFeedBlocks = this.page.locator('strong:has-text("celebration")');
     this.newHireFeedBlocks = this.page.locator('strong:has-text("new hire")');
+    this.recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
+    this.recentlyPublishedContentItem = (contentTitle: string) =>
+      this.recentlyPublishedBlock.filter({ hasText: contentTitle }).first();
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
@@ -658,7 +685,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     try {
       await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
-    } catch (error) {
+    } catch {
       await this.reloadPage();
       await this.createFeedPostComponent.verifyQuestionButtonIsNotVisible();
     }
@@ -757,6 +784,41 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
     await this.verifier.verifyTheElementIsNotVisible(this.newHireFeedBlocks, {
       assertionMessage: 'Smart feed blocks should not be visible',
+    });
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
+  }
+
+  async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
+    await test.step('Verify Recently Published smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.recentlyPublishedBlock, {
+        assertionMessage: 'Recently Published smart block should be visible',
+      });
+    });
+  }
+
+  async verifyContentVisibleInRecentlyPublishedBlock(contentTitle: string): Promise<void> {
+    await test.step(`Verify content "${contentTitle}" is visible in Recently Published block`, async () => {
+      const contentItem = this.recentlyPublishedContentItem(contentTitle);
+      await this.verifier.verifyTheElementIsVisible(contentItem, {
+        assertionMessage: `Content "${contentTitle}" should be visible in Recently Published block`,
+      });
+    });
+  }
+
+  async verifyContentNotVisibleInRecentlyPublishedBlock(contentTitle: string): Promise<void> {
+    await test.step(`Verify content "${contentTitle}" is NOT visible in Recently Published block`, async () => {
+      const contentItem = this.recentlyPublishedContentItem(contentTitle);
+      await this.verifier.verifyTheElementIsNotVisible(contentItem, {
+        assertionMessage: `Content "${contentTitle}" should NOT be visible in Recently Published block`,
+        timeout: 5000,
+      });
     });
   }
 
@@ -1218,6 +1280,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyDeletedPostMessage(postText);
   }
 
+  /**
+   * Verifies that a removed content message is displayed for a post that was removed due to inappropriate content
+   * @param postText - The text of the post to verify removed message for
+   */
+  async verifyRemovedContentMessage(postText: string): Promise<void> {
+    await test.step(`Verify removed content message for post: ${postText}`, async () => {
+      await this.listFeedComponent.verifyRemovedContentMessage(postText);
+    });
+  }
+
+  /**
+   * Verifies that a post cannot be interacted with (share, like, comment buttons are not visible)
+   * @param postText - The text of the post to verify interaction restrictions for
+   */
   async verifyPostCannotBeInteracted(postText: string): Promise<void> {
     await this.listFeedComponent.verifyPostCannotBeInteracted(postText);
   }
@@ -1256,5 +1332,51 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async clickOnGiveRecognition(): Promise<void> {
+    await test.step('Click on Give Recognition button', async () => {
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await recognitionHub.clickOnGiveRecognition();
+    });
+  }
+
+  async verifyRecognitionPostVisible(message?: string): Promise<void> {
+    await test.step(`Verify recognition post is visible${message ? ` with message "${message}"` : ''}`, async () => {
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await recognitionHub.verifyRecognitionPostVisible(message);
+    });
+  }
+
+  async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
+    await this.listFeedComponent.hoverOnProfileIconInPost(postText, userName);
+  }
+
+  async hoverOnProfileIconInReply(replyText: string, userName: string): Promise<void> {
+    await this.listFeedComponent.hoverOnProfileIconInReply(replyText, userName);
+  }
+
+  async verifyFollowButtonVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyFollowButtonVisible(userName);
+  }
+
+  async verifyFollowingButtonVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyFollowingButtonVisible(userName);
+  }
+
+  async clickFollowButtonOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.clickFollowButton(userName);
+  }
+
+  async clickFollowingButtonOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.clickFollowingButton(userName);
+  }
+
+  async verifyUserNameVisibleOnHover(userName: string): Promise<void> {
+    await this.listFeedComponent.verifyUserNameVisible(userName);
+  }
+
+  async clickOnSideToRemoveProfilePopover(): Promise<void> {
+    await this.listFeedComponent.clickOnSideToRemoveProfilePopover();
   }
 }

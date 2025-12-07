@@ -1,13 +1,28 @@
+import {
+  CF_DATE_META,
+  CF_DD_META,
+  CF_LABEL_META,
+  CF_NUMBER_META,
+  CF_TEXT_AREA_META,
+  CF_TEXT_META,
+  CustomField,
+} from '@modules/comms-planner/constants/customField';
+import { test } from '@modules/comms-planner/fixtures/loginFixture';
+import {
+  createCustomField,
+  deleteCustomField,
+  editCustomField,
+  toggleCustomFieldStatusInListing,
+  verifyCustomFieldInListing,
+} from '@modules/comms-planner/helpers/customField';
 import { CustomFieldsPage } from '@modules/comms-planner/pages/customizations/customFieldsPage';
 
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { test } from '@/src/modules/comms-planner/fixtures/loginFixture';
 
 test.describe('customizations - Custom field', () => {
   let customFieldsPage: CustomFieldsPage;
-  const DATE_NOW: number = new Date().getTime();
 
   test.beforeEach(async ({ appManagersPage }) => {
     customFieldsPage = new CustomFieldsPage(appManagersPage);
@@ -33,18 +48,15 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `Label | ${DATE_NOW}`,
-        options: [`option 1`, `option 2`, `option 3`],
-      };
+      const meta: CustomField = CF_LABEL_META.CREATE;
+      const editMeta: CustomField = CF_LABEL_META.EDIT;
 
-      // await customFieldsPage.filterCustomFieldListingByFieldType(`Label`);
-
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeLabel(meta.options);
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 
@@ -65,15 +77,15 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `Text - ${DATE_NOW}`,
-      };
+      const meta: CustomField = CF_TEXT_META.CREATE;
+      const editMeta: CustomField = CF_TEXT_META.EDIT;
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeText();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 
@@ -94,15 +106,15 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `TA - ${DATE_NOW}`,
-      };
+      const meta: CustomField = CF_TEXT_AREA_META.CREATE;
+      const editMeta: CustomField = CF_TEXT_AREA_META.EDIT;
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeTextArea();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 
@@ -123,15 +135,16 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `Num - ${DATE_NOW}`,
-      };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeNumber();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      const meta: CustomField = CF_NUMBER_META.CREATE;
+      const editMeta: CustomField = CF_NUMBER_META.EDIT;
+
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 
@@ -152,15 +165,16 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `Date - ${DATE_NOW}`,
-      };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeDate();
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      const meta: CustomField = CF_DATE_META.CREATE;
+      const editMeta: CustomField = CF_DATE_META.EDIT;
+
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 
@@ -181,16 +195,16 @@ test.describe('customizations - Custom field', () => {
         zephyrTestId: '',
         storyId: '',
       });
-      const meta = {
-        name: `DD - ${DATE_NOW}`,
-        options: [`option 1`, `option 2`, `option 3`],
-      };
 
-      await customFieldsPage.clickAddCustomFieldButton();
-      await customFieldsPage.verifyOpenedCustomFieldModal();
-      await customFieldsPage.addCustomFieldName(meta.name);
-      await customFieldsPage.selectCustomFieldTypeDD(meta.options);
-      await customFieldsPage.clickCreateCustomFieldModalButton();
+      const meta: CustomField = CF_DD_META.CREATE;
+      const editMeta: CustomField = CF_DD_META.EDIT;
+
+      await createCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, meta);
+      await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+      await editCustomField(customFieldsPage, meta);
+      await verifyCustomFieldInListing(customFieldsPage, editMeta);
+      await deleteCustomField(customFieldsPage, editMeta);
     }
   );
 });
