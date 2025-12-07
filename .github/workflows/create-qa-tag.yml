@@ -112,5 +112,30 @@ jobs:
             echo "📈 UAT hotfix: ${LATEST_UAT} → ${NEW_TAG}"
             
           else
-            # Currently in Q
+            # Currently in QA phase - increment QA tag
+            echo "🧪 QA phase active - creating QA tag"
+            
+            LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_QA" ]; then
+              echo "❌ No QA tags found!"
+              exit 1
+            fi
+            
+            BASE_VERSION=$(echo $LATEST_QA | grep -oP '^\d+\.\d+')
+            QA_NUM=$(echo $LATEST_QA | grep -oP 'qa\.\K\d+')
+            NEW_QA_NUM=$((QA_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-qa.${NEW_QA_NUM}"
+            RELEASE_TYPE="hotfix_qa"
+            echo "📈 QA hotfix: ${LATEST_QA} → ${NEW_TAG}"
           fi
+
+          echo ""
+          echo "================================"
+          echo "RESULT: $NEW_TAG"
+          echo "Type: $RELEASE_TYPE"
+          echo "================================"
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "stage=$STAGE" >> $GITHUB_OUTPUT
