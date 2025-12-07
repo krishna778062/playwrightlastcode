@@ -98,31 +98,30 @@ jobs:
             
             if [ -z "$LATEST_TAG" ]; then
               BASE_VERSION="25.01"
-              echo "First tag ever"
+              echo "First tag ever: $BASE_VERSION"
             else
               CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
               CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
               CURRENT_MONTH=$(echo $CURRENT_BASE | cut -d'.' -f2)
               
               echo "Current base: $CURRENT_BASE"
-              
-            # Increment month and handle year rollover
-              NEW_MONTH=$((10#$CURRENT_MONTH + 1))
-              NEW_YEAR=$((10#$CURRENT_YEAR))  # Ensure it's treated as decimal
-            
               echo "Debug: CURRENT_YEAR=$CURRENT_YEAR, CURRENT_MONTH=$CURRENT_MONTH"
+              
+              # Increment month and handle year rollover
+              NEW_MONTH=$((10#$CURRENT_MONTH + 1))
+              NEW_YEAR=$((10#$CURRENT_YEAR))
+              
               echo "Debug: NEW_MONTH=$NEW_MONTH (before rollover check)"
-            
-            if [ $NEW_MONTH -gt 12 ]; then
-              echo "Debug: Month > 12, rolling over to next year"
-              NEW_MONTH=1
-              NEW_YEAR=$((NEW_YEAR + 1))
-            fi
-            
-            echo "Debug: Final NEW_YEAR=$NEW_YEAR, NEW_MONTH=$NEW_MONTH"
-            
-            BASE_VERSION=$(printf "%02d.%02d" $NEW_YEAR $NEW_MONTH)
-            echo "Incrementing base: $CURRENT_BASE → $BASE_VERSION"
+              
+              if [ $NEW_MONTH -gt 12 ]; then
+                echo "Debug: Month > 12, rolling over to next year"
+                NEW_MONTH=1
+                NEW_YEAR=$((NEW_YEAR + 1))
+              fi
+              
+              echo "Debug: Final NEW_YEAR=$NEW_YEAR, NEW_MONTH=$NEW_MONTH"
+              
+              BASE_VERSION=$(printf "%02d.%02d" $NEW_YEAR $NEW_MONTH)
               echo "Incrementing base: $CURRENT_BASE → $BASE_VERSION"
             fi
             
