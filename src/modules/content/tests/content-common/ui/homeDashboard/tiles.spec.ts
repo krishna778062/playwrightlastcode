@@ -9,6 +9,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -135,14 +136,14 @@ test.describe('edit Topic', () => {
         storyId: 'CONT-22852',
       });
 
-      // Step 1: Configure home dashboard to app-manager controlled
+      // Configure home dashboard to app-manager controlled
       await test.step('Configure home dashboard to app-manager controlled', async () => {
         await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
           isHomeAppManagerControlled: true,
         });
       });
 
-      // Step 2: Get or create private and unlisted sites where end user is NOT a member
+      // Get or create private and unlisted sites where end user is NOT a member
       const [privateSiteResult, unlistedSiteResult] = await Promise.all([
         appManagerApiFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
           [users.endUser.email],
@@ -160,35 +161,37 @@ test.describe('edit Topic', () => {
       console.log(`Using private site: ${privateSiteName}`);
       console.log(`Using unlisted site: ${unlistedSiteName}`);
 
-      // Step 3: Navigate to Home tab
+      // Navigate to Home tab
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await homeDashboardPage.verifyThePageIsLoaded();
 
-      // Step 4: Click settings → Add tile
+      // Click settings → Add tile
       await homeDashboardPage.actions.clickOnEditDashboardButton();
       await homeDashboardPage.actions.clickOnAddTileButton();
 
-      // Step 5: Select "Sites & Categories" type → "Sites" tab
+      // Select "Sites & Categories" type → "Sites" tab
       await homeDashboardPage.actions.clickOnSitesCategoriesTileOption();
       await homeDashboardPage.actions.clickOnSitesTab();
 
-      // Step 6: Enter tile name
+      // Enter tile name
       const tileName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Sites Tile`;
       await homeDashboardPage.actions.setSitesTileTitle(tileName);
 
-      // Step 7: Add private and unlisted sites to tile
+      // Add private and unlisted sites to tile
       await homeDashboardPage.actions.addSiteToSitesTile(privateSiteName);
       await homeDashboardPage.actions.addSiteToSitesTile(unlistedSiteName);
 
-      // Step 8: Set layout as "List"
+      // Set layout as "List"
       await homeDashboardPage.actions.setSitesTileLayout('list');
 
-      // Step 9: Click "Add to home" button
+      // Click "Add to home" button
       await homeDashboardPage.actions.clickingOnAddToHomeButton();
-      await homeDashboardPage.assertions.verifyToastMessage('Added tile to dashboard successfully');
+      await homeDashboardPage.assertions.verifyToastMessage(
+        FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY
+      );
       await homeDashboardPage.actions.clickingOnDoneButton();
 
-      // Step 10: Verify tile is created on home dashboard
+      // Verify tile is created on home dashboard
       await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(tileName);
 
       // Get the tile ID for cleanup
@@ -198,7 +201,7 @@ test.describe('edit Topic', () => {
         createdTileId = createdTile.id;
       }
 
-      // Step 11: Login as End User and verify
+      // Login as End User and verify
       await test.step('Verify as End User', async () => {
         // Navigate to Home tab as end user
         await standardUserFixture.navigationHelper.clickOnHomeButton();

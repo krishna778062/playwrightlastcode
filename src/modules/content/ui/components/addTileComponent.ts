@@ -24,7 +24,8 @@ export class AddTileComponent extends BaseComponent {
   readonly siteOption: (siteName: string) => Locator;
   readonly layoutListRadio: Locator;
   readonly layoutGridRadio: Locator;
-
+  readonly searchInputField: Locator;
+  readonly addSiteDialog: Locator;
   constructor(page: Page) {
     super(page);
 
@@ -51,6 +52,10 @@ export class AddTileComponent extends BaseComponent {
     this.siteOption = (siteName: string) => page.locator(`div:has-text("${siteName}")`).first();
     this.layoutListRadio = page.getByRole('radio', { name: 'List' });
     this.layoutGridRadio = page.getByRole('radio', { name: 'Grid' });
+    this.searchInputField = page
+      .locator('input[placeholder*="Search"], input[role="combobox"], input[type="text"]')
+      .first();
+    this.addSiteDialog = page.getByRole('dialog', { name: 'Add sites & categories tile' });
   }
 
   async clickingOnAddContentTileOption(): Promise<void> {
@@ -172,12 +177,9 @@ export class AddTileComponent extends BaseComponent {
     await test.step(`Add site "${siteName}" to Sites tile`, async () => {
       // Click on the search input div to open the search dropdown
       await this.clickOnElement(this.sitesSearchInput);
-      const searchInputField = this.page
-        .locator('input[placeholder*="Search"], input[role="combobox"], input[type="text"]')
-        .first();
-      await searchInputField.clear();
-      await this.fillInElement(searchInputField, siteName);
-      const addSiteDialog = this.page.getByRole('dialog', { name: 'Add sites & categories tile' });
+      await this.searchInputField.clear();
+      await this.fillInElement(this.searchInputField, siteName);
+      const addSiteDialog = this.addSiteDialog;
       const siteOption = addSiteDialog
         .locator('a')
         .filter({ hasText: `${siteName}` })

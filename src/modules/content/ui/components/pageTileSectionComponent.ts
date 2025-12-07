@@ -7,6 +7,8 @@ export class PageTileSectionComponent extends BaseComponent {
   readonly ellipsisButton: Locator;
   readonly editTileButton: Locator;
   readonly baseActionUtil: BaseActionUtil;
+  readonly tileSection: (tileName: string) => Locator;
+  readonly getSiteLinkLocator: (siteName: string, tileName: string) => Locator;
   readonly removeTileButton: Locator;
   readonly getTileHeadingLocator: (tileName: string) => Locator;
   constructor(readonly page: Page) {
@@ -15,6 +17,10 @@ export class PageTileSectionComponent extends BaseComponent {
     this.ellipsisButton = page.locator('[type="button"][aria-label="Category option"]').first();
     this.editTileButton = page.getByRole('button', { name: 'Edit', exact: true });
     this.removeTileButton = page.getByRole('button', { name: 'Remove', exact: true });
+    this.tileSection = (tileName: string) =>
+      page.locator('aside.Tile').filter({ has: this.page.locator('header h2').filter({ hasText: tileName }) });
+    this.getSiteLinkLocator = (siteName: string, tileName: string) =>
+      this.tileSection(tileName).locator('a.type--title').filter({ hasText: siteName }).first();
     this.getTileHeadingLocator = (tileName: string) =>
       this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first();
   }
@@ -63,10 +69,7 @@ export class PageTileSectionComponent extends BaseComponent {
   async verifyingSiteIsVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
     await test.step(`Verify site "${siteName}" is visible in Sites tile "${tileName}"`, async () => {
       // Find the tile by header text, then find the site link within that tile
-      const tileSection = this.page
-        .locator('aside.Tile')
-        .filter({ has: this.page.locator('header h2').filter({ hasText: tileName }) });
-      const siteLink = tileSection.locator('a.type--title').filter({ hasText: siteName }).first();
+      const siteLink = this.getSiteLinkLocator(siteName, tileName);
       await this.verifier.verifyTheElementIsVisible(siteLink, {
         assertionMessage: `Site "${siteName}" should be visible in Sites tile "${tileName}"`,
       });
@@ -76,10 +79,7 @@ export class PageTileSectionComponent extends BaseComponent {
   async verifyingSiteIsNotVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
     await test.step(`Verify site "${siteName}" is NOT visible in Sites tile "${tileName}"`, async () => {
       // Find the tile by header text, then verify the site link is not visible within that tile
-      const tileSection = this.page
-        .locator('aside.Tile')
-        .filter({ has: this.page.locator('header h2').filter({ hasText: tileName }) });
-      const siteLink = tileSection.locator('a.type--title').filter({ hasText: siteName }).first();
+      const siteLink = this.getSiteLinkLocator(siteName, tileName);
       await this.verifier.verifyTheElementIsNotVisible(siteLink, {
         assertionMessage: `Site "${siteName}" should NOT be visible in Sites tile "${tileName}"`,
       });
@@ -89,14 +89,7 @@ export class PageTileSectionComponent extends BaseComponent {
   async verifyingMemberIconIsNotVisibleForSite(siteName: string, tileName: string): Promise<void> {
     await test.step(`Verify member icon is NOT visible for site "${siteName}" in Sites tile "${tileName}"`, async () => {
       // Find the tile by header text
-      const tileSection = this.page
-        .locator('aside.Tile')
-        .filter({ has: this.page.locator('header h2').filter({ hasText: tileName }) });
-      // Find the site item (li.ListingItem) that contains the site name
-      const siteItem = tileSection
-        .locator('li.ListingItem')
-        .filter({ has: this.page.locator('a.type--title').filter({ hasText: siteName }) });
-      // Look for the member icon button with aria-label containing "members"
+      const siteItem = this.getSiteLinkLocator(siteName, tileName).locator('li.ListingItem');
       const memberIconButton = siteItem.locator('button[aria-label*="members"]').first();
       await this.verifier.verifyTheElementIsNotVisible(memberIconButton, {
         assertionMessage: `Member icon should NOT be visible for site "${siteName}" in Sites tile "${tileName}"`,

@@ -89,7 +89,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
           assertionMessage: 'Home dashboard page should be visible',
         });
       } else {
-        const homeTextLocator = this.page.getByRole('heading', { name: /Home/i }).first();
+        const homeTextLocator = this.page.getByText('Home').first();
         await this.verifier.verifyTheElementIsVisible(homeTextLocator, {
           assertionMessage: 'Home dashboard page should be visible',
         });
@@ -113,15 +113,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async clickingOnAddToHomeButton(): Promise<void> {
     await test.step('Click on Add to home button', async () => {
-      // First ensure the dialog is still open
-      await this.addContentTileDialog.waitFor({ state: 'visible' });
-
-      await this.addToHomeButton.waitFor({ state: 'visible' });
-
-      await this.addToHomeButton.scrollIntoViewIfNeeded();
-
-      await this.addToHomeButton.waitFor({ state: 'attached' });
-
       try {
         await this.addToHomeButton.click({ timeout: 5000 });
       } catch {
