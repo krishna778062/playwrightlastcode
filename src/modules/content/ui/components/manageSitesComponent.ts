@@ -27,11 +27,13 @@ export class ManageSitesComponent extends BaseComponent {
   readonly clickOnTheMemberButtonInAboutTab: Locator;
   readonly clickOnAlreadyStarIcon: Locator;
   readonly clickOnTheMemberButton: Locator;
+  readonly clickOnAddAnotherButton: Locator;
   readonly clickOnLeaveButton: Locator;
   readonly clickOnInsideContentButton: Locator;
   readonly eventsTabImage: Locator;
   readonly albumTabImage: Locator;
   readonly pageTabImage: Locator;
+  readonly nothingToShowHereText: Locator;
   readonly searchSiteNameInSearchBar: Locator;
   readonly clickOnSearchBar: Locator;
   readonly firstSiteDropDownOption: Locator;
@@ -53,6 +55,7 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
+  readonly SubscriptionButton: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -76,11 +79,13 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
+    this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' });
     this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.pageTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
+    this.nothingToShowHereText = page.locator('p:has-text("Nothing to show here")');
     this.searchSiteNameInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
     this.clickOnSearchBar = page.locator('button[name="submitbutton"]');
     this.firstSiteDropDownOption = page.locator('[aria-label="Category option"]').nth(1);
@@ -101,9 +106,9 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentFilterDropdown = page.getByLabel('Content:');
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
-    this.clickOnUpdateCategoryButton = page.getByText('Update category', { exact: true });
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
     return this.page.locator(`[class="meta-link"]`).filter({ hasText: authorName }).first();
@@ -392,6 +397,12 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
+  async clickOnAddAnotherButtonAction(): Promise<void> {
+    await test.step('Click on the add another button', async () => {
+      await this.clickOnElement(this.clickOnAddAnotherButton);
+    });
+  }
+
   async clickOnLeaveButtonAction(): Promise<void> {
     await test.step('Click on the leave button', async () => {
       await this.clickOnElement(this.clickOnLeaveButton);
@@ -401,6 +412,12 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnInsideContentButtonAction(): Promise<void> {
     await test.step('Click on the manage content button', async () => {
       await this.clickOnElement(this.clickOnInsideContentButton);
+    });
+  }
+
+  async clickOnSubscriptionButtonAction(): Promise<void> {
+    await test.step('Click on the add subscription button', async () => {
+      await this.clickOnElement(this.SubscriptionButton);
     });
   }
 
@@ -624,6 +641,14 @@ export class ManageSitesComponent extends BaseComponent {
     await test.step('Verify follow button should be changed into unfollow', async () => {
       await this.verifier.verifyTheElementIsVisible(this.unfollowSiteButton, {
         assertionMessage: 'Follow button should be changed into unfollow',
+      });
+    });
+  }
+
+  async verifyNoSitesFoundAction(siteName: string): Promise<void> {
+    await test.step(`Verify no sites found for search term: ${siteName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.nothingToShowHereText, {
+        assertionMessage: `No sites found message should be visible when searching for: ${siteName}`,
       });
     });
   }

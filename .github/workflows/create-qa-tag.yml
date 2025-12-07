@@ -1,0 +1,141 @@
+name: Test Tag Logic v2 (with Stage)
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulate_type:
+        description: 'Simulate which scenario?'
+        required: true
+        type: choice
+        options:
+          - new_release # Simulates develop → release merge
+          - hotfix # Simulates direct push to release
+
+jobs:
+  test-tag-logic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: release
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Show current state
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          echo "================================"
+          echo "CURRENT STATE"
+          echo "================================"
+          echo "Current Stage: ${CURRENT_STAGE:-qa}"
+          echo ""
+          echo "Latest QA tags:"
+          git tag -l "*-qa.*" --sort=-v:refname | head -n 5 || echo "  (none)"
+          echo ""
+          echo "Latest UAT tags:"
+          git tag -l "*-uat.*" --sort=-v:refname | head -n 5 || echo "  (none)"
+          echo "================================"
+
+      - name: Simulate and create tag
+        id: tag
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          SIMULATE_TYPE="${{ github.event.inputs.simulate_type }}"
+          STAGE=${CURRENT_STAGE:-qa}
+
+          echo "Simulating: $SIMULATE_TYPE"
+          echo "Current Stage: $STAGE"
+          echo ""
+
+          # Check if this is a new release
+          IS_NEW_RELEASE=false
+          if [ "$SIMULATE_TYPE" == "new_release" ]; then
+            IS_NEW_RELEASE=true
+          fi
+
+          if [ "$IS_NEW_RELEASE" == "true" ]; then
+            # New release always starts with QA and increments base version
+            echo "🚀 New release detected - starting QA phase"
+            STAGE="qa"
+            
+            LATEST_TAG=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_TAG" ]; then
+              BASE_VERSION="25.01"
+              echo "First tag ever"
+            else
+              CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
+              CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
+              CURRENT_MONTH=$(echo $CURRENT_BASE | cut -d'.' -f2)
+              
+              echo "Current base: $CURRENT_BASE"
+              
+              NEW_MONTH=$((10#$CURRENT_MONTH + 1))
+              NEW_YEAR=$CURRENT_YEAR
+              
+              if [ $NEW_MONTH -gt 12 ]; then
+                NEW_MONTH=1
+                NEW_YEAR=$((CURRENT_YEAR + 1))
+              fi
+              
+              BASE_VERSION=$(printf "%02d.%02d" $NEW_YEAR $NEW_MONTH)
+              echo "Incrementing base: $CURRENT_BASE → $BASE_VERSION"
+            fi
+            
+            NEW_TAG="${BASE_VERSION}-qa.1"
+            RELEASE_TYPE="new_release"
+            echo "🔄 New release tag: ${NEW_TAG}"
+            
+          elif [ "$STAGE" == "uat" ]; then
+            # Currently in UAT phase - increment UAT tag
+            echo "📦 UAT phase active - creating UAT tag"
+            
+            LATEST_UAT=$(git tag -l "*-uat.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_UAT" ]; then
+              echo "❌ No UAT tags found!"
+              exit 1
+            fi
+            
+            BASE_VERSION=$(echo $LATEST_UAT | grep -oP '^\d+\.\d+')
+            UAT_NUM=$(echo $LATEST_UAT | grep -oP 'uat\.\K\d+')
+            NEW_UAT_NUM=$((UAT_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-uat.${NEW_UAT_NUM}"
+            RELEASE_TYPE="hotfix_uat"
+            echo "📈 UAT hotfix: ${LATEST_UAT} → ${NEW_TAG}"
+            
+          else
+            # Currently in QA phase - increment QA tag
+            echo "🧪 QA phase active - creating QA tag"
+            
+            LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_QA" ]; then
+              echo "❌ No QA tags found!"
+              exit 1
+            fi
+            
+            BASE_VERSION=$(echo $LATEST_QA | grep -oP '^\d+\.\d+')
+            QA_NUM=$(echo $LATEST_QA | grep -oP 'qa\.\K\d+')
+            NEW_QA_NUM=$((QA_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-qa.${NEW_QA_NUM}"
+            RELEASE_TYPE="hotfix_qa"
+            echo "📈 QA hotfix: ${LATEST_QA} → ${NEW_TAG}"
+          fi
+
+          echo ""
+          echo "================================"
+          echo "RESULT: $NEW_TAG"
+          echo "Type: $RELEASE_TYPE"
+          echo "================================"
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "stage=$STAGE" >> $GITHUB_OUTPUT

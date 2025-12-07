@@ -61,6 +61,14 @@ async function createFormApiFixture(apiContext: APIRequestContext): Promise<Form
 // Helper function to create UI-only fixtures
 async function createFormUiFixture(browser: any, _apiContext: APIRequestContext): Promise<FormUiFixture> {
   const context = await browser.newContext();
+  try {
+    // Allow reading/writing clipboard for copy link flows
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+      origin: new URL(envConfig.frontendBaseUrl).origin,
+    });
+  } catch (e) {
+    // Some browsers may not support clipboard permissions; proceed best-effort
+  }
   const page = await context.newPage();
 
   await LoginHelper.loginWithPassword(page, {
