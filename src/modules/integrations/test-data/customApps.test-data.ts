@@ -306,7 +306,7 @@ export const DEFAULT_APP_CONFIGS = {
 
   JIRA_BASIC_AUTH: {
     category: 'Other',
-    logoFile: 'favicon.png',
+    logoFile: 'jira.jpg',
     connectionType: 'App level',
     authType: 'Basic Auth',
     baseUrl: 'https://simpplr.atlassian.net',
@@ -316,7 +316,7 @@ export const DEFAULT_APP_CONFIGS = {
 
   TRELLO_API_TOKEN: {
     category: 'Other',
-    logoFile: 'favicon.png',
+    logoFile: 'trello.jpg',
     authType: 'API Token',
     baseUrl: 'https://api.trello.com',
     apiTokenLabel: 'API Token',
@@ -325,7 +325,7 @@ export const DEFAULT_APP_CONFIGS = {
 
   AUTH0_PKCE: {
     category: 'Other',
-    logoFile: 'favicon.png',
+    logoFile: 'sample.jpg',
     connectionType: 'User level',
     authType: 'OAuth 2.0',
     subAuthType: 'Auth Code with PKCE',
@@ -338,7 +338,7 @@ export const DEFAULT_APP_CONFIGS = {
 
   AIRTABLE_PKCE: {
     category: 'Other',
-    logoFile: 'favicon.png',
+    logoFile: 'sample.jpg',
     connectionType: 'App level & user level',
     authType: 'OAuth 2.0',
     subAuthType: 'Auth Code with PKCE',
