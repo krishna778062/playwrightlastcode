@@ -22,11 +22,24 @@ export const CREDENTIALS = {
   TRELLO: {
     API_TOKEN: 'test_api_token_value',
   },
+  SPOTIFY: {
+    CLIENT_ID: '9a6c6d1a9de64355a07ffaa16490c722',
+    CLIENT_SECRET: '9b307b58c2be4702a53fb3c7cceb2ace',
+  },
 } as const;
 
 const DEFAULT_APP_CONFIG = {
   CATEGORY: 'Other',
   LOGO_FILE: 'favicon.png',
+} as const;
+
+const TRELLO_API_TOKEN_CONFIG = {
+  DESCRIPTION: 'Trello Custom App',
+  CONNECTION_TYPE: 'App level',
+  AUTH_TYPE: 'API Token',
+  BASE_URL: 'https://api.trello.com',
+  API_TOKEN_LABEL: 'API Token',
+  AUTHORIZATION_HEADER: 'Authorization',
 } as const;
 
 const BOX_OAUTH_CONFIG = {
@@ -91,13 +104,15 @@ export const CUSTOM_APPS_TEST_DATA = {
 
   TRELLO_API_TOKEN_APP: {
     ...DEFAULT_APP_CONFIG,
+    ...TRELLO_API_TOKEN_CONFIG,
     NAME_PREFIX: 'TrelloAppLevel',
-    DESCRIPTION: 'Trello Custom App',
-    CONNECTION_TYPE: 'App level',
-    AUTH_TYPE: 'API Token',
-    BASE_URL: 'https://api.trello.com',
-    API_TOKEN_LABEL: 'API Token',
-    AUTHORIZATION_HEADER: 'Authorization',
+  },
+
+  TRELLO_APP_AND_USER_LEVEL: {
+    ...DEFAULT_APP_CONFIG,
+    ...TRELLO_API_TOKEN_CONFIG,
+    NAME_PREFIX: 'TrelloAppUserLevel',
+    CONNECTION_TYPE: 'App level & user level',
   },
 
   AUTH0_PKCE_PLAIN_APP: {
@@ -124,6 +139,47 @@ export const CUSTOM_APPS_TEST_DATA = {
     TOKEN_REQUEST_HEADERS: 'Content-Type: application/x-www-form-urlencoded',
   },
 
+  SPOTIFY_CLIENT_CREDENTIALS_APP: {
+    ...DEFAULT_APP_CONFIG,
+    ...CREDENTIALS.SPOTIFY,
+    NAME_PREFIX: 'Spotify',
+    DESCRIPTION: 'Spotify Custom App',
+    LOGO_FILE: 'Spotify.jpg',
+    CONNECTION_TYPE: 'App level',
+    AUTH_TYPE: 'OAuth 2.0',
+    SUB_AUTH_TYPE: 'Client Credentials',
+    TOKEN_URL: 'https://accounts.spotify.com/api/token',
+    BASE_URL: 'https://accounts.spotify.com',
+    TOKEN_REQUEST_HEADERS:
+      'Authorization:Basic OWE2YzZkMWE5ZGU2NDM1NWEwN2ZmYWExNjQ5MGM3MjI6OWIzMDdiNThjMmJlNDcwMmE1M2ZiM2M3Y2NlYjJhY2U=',
+    CLIENT_ID_LABEL: 'Client ID',
+    SECRET_KEY_LABEL: 'Secret key',
+  },
+
+  /**
+   * Prebuilt Apps
+   */
+  GREENHOUSE_PREBUILT_APP: {
+    NAME: 'Greenhouse',
+    DESCRIPTION: 'Greenhouse recruiting',
+    CATEGORY: 'Human resources',
+    CONNECTION_TYPE: 'App level',
+    AUTH_TYPE: 'API Token',
+    BASE_URL: 'https://harvest.greenhouse.io',
+    API_TOKEN_LABEL: 'API Token',
+    AUTHORIZATION_HEADER: 'Authorization',
+  },
+
+  AIRTABLE_PREBUILT_APP: {
+    NAME: 'Airtable',
+    DESCRIPTION: 'Airtable content management',
+    CATEGORY: 'Project management',
+    CONNECTION_TYPE: 'App level & user level',
+    AUTH_TYPE: 'OAuth 2.0',
+    SUB_AUTH_TYPE: 'Auth Code with PKCE',
+    CODE_CHALLENGE_METHOD: 'SHA-256',
+  },
+
   /**
    * Field Labels for OAuth form
    */
@@ -140,6 +196,8 @@ export const CUSTOM_APPS_TEST_DATA = {
     API_TOKEN: 'API Token',
     USERNAME_LABEL: 'Username label',
     PASSWORD_LABEL: 'Password label',
+    CLIENT_ID_LABEL: 'Client ID label',
+    SECRET_KEY_LABEL: 'Secret key label',
   },
 
   /**
@@ -223,5 +281,89 @@ export const CUSTOM_APPS_TEST_DATA = {
     PASSWORD_LABEL: 'authDetails.passwordLabel',
     API_TOKEN_LABEL: 'authDetails.apiTokenLabel',
     AUTHORIZATION_HEADER: 'authDetails.authorizationHeader',
+    CLIENT_ID_LABEL: 'authDetails.clientIdLabel',
+    SECRET_KEY_LABEL: 'authDetails.secretKeyLabel',
+    TOKEN_REQUEST_HEADERS: 'authDetails.tokenRequestHeaders',
+  },
+} as const;
+
+/**
+ * Default configurations for wrapper methods in CustomAppsIntegrationPage
+ * These provide default values that can be overridden when creating custom apps
+ */
+export const DEFAULT_APP_CONFIGS = {
+  BOX_OAUTH: {
+    category: 'Other',
+    logoFile: 'Jira_Custom_App.jpg',
+    authType: 'OAuth 2.0',
+    subAuthType: 'Auth Code',
+    clientId: BOX_OAUTH_CONFIG.CLIENT_ID,
+    clientSecret: BOX_OAUTH_CONFIG.CLIENT_SECRET,
+    authUrl: BOX_OAUTH_CONFIG.AUTH_URL,
+    tokenUrl: BOX_OAUTH_CONFIG.TOKEN_URL,
+    baseUrl: BOX_OAUTH_CONFIG.BASE_URL,
+  },
+
+  JIRA_BASIC_AUTH: {
+    category: 'Other',
+    logoFile: 'favicon.png',
+    connectionType: 'App level',
+    authType: 'Basic Auth',
+    baseUrl: 'https://simpplr.atlassian.net',
+    usernameLabel: 'Username',
+    passwordLabel: 'Password',
+  },
+
+  TRELLO_API_TOKEN: {
+    category: 'Other',
+    logoFile: 'favicon.png',
+    authType: 'API Token',
+    baseUrl: 'https://api.trello.com',
+    apiTokenLabel: 'API Token',
+    authorizationHeader: 'Authorization',
+  },
+
+  AUTH0_PKCE: {
+    category: 'Other',
+    logoFile: 'favicon.png',
+    connectionType: 'User level',
+    authType: 'OAuth 2.0',
+    subAuthType: 'Auth Code with PKCE',
+    clientId: AUTH0_OAUTH_CONFIG.CLIENT_ID,
+    clientSecret: AUTH0_OAUTH_CONFIG.CLIENT_SECRET,
+    authUrl: AUTH0_OAUTH_CONFIG.AUTH_URL,
+    tokenUrl: AUTH0_OAUTH_CONFIG.TOKEN_URL,
+    baseUrl: AUTH0_OAUTH_CONFIG.BASE_URL,
+  },
+
+  AIRTABLE_PKCE: {
+    category: 'Other',
+    logoFile: 'favicon.png',
+    connectionType: 'App level & user level',
+    authType: 'OAuth 2.0',
+    subAuthType: 'Auth Code with PKCE',
+    codeChallengeMethod: 'SHA-256',
+    clientId: '21b6baa1-399f-4d8c-aa64-b63bceee744b',
+    clientSecret: '6528332f1b2eab9c1b92cc5d9372f131bdae2d463d860e83995c6b48fbabb72a',
+    authUrl: 'https://airtable.com/oauth2/v1/authorize?scope=data.records:read',
+    tokenUrl: 'https://airtable.com/oauth2/v1/token',
+    baseUrl: 'https://api.airtable.com',
+    addHeadersForTokenUrl: true,
+    tokenRequestHeaders: 'Content-Type: application/x-www-form-urlencoded',
+  },
+
+  SPOTIFY_CLIENT_CREDENTIALS: {
+    category: 'Other',
+    logoFile: 'Spotify.jpg',
+    connectionType: 'App level',
+    authType: 'OAuth 2.0',
+    subAuthType: 'Client Credentials',
+    tokenUrl: 'https://accounts.spotify.com/api/token',
+    baseUrl: 'https://accounts.spotify.com',
+    clientIdLabel: 'Client ID',
+    secretKeyLabel: 'Secret key',
+    addHeadersForTokenUrl: true,
+    tokenRequestHeaders:
+      'Authorization:Basic OWE2YzZkMWE5ZGU2NDM1NWEwN2ZmYWExNjQ5MGM3MjI6OWIzMDdiNThjMmJlNDcwMmE1M2ZiM2M3Y2NlYjJhY2U=',
   },
 } as const;

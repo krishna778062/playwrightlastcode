@@ -97,4 +97,5 @@ export const MESSAGES = {
   CHECKLIST_ENABLE_APP: 'Enable the app',
   CUSTOM_APPS_EMPTY_STATE: 'Add your own apps to use them',
   NO_RESULTS_DESCRIPTION: 'Try adjusting search term or filters',
+  CONNECTION_DISCONNECTED_MESSAGE: 'Connection disconnected',
 } as const;
