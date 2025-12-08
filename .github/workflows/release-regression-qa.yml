@@ -1,4 +1,4 @@
-name: QA Daily Regression Tests (Release Testing)
+name: QA Release Regression Tests
 
 on:
   schedule:
@@ -54,5 +54,5 @@ jobs:
     with:
       environment: qa
       git_ref: ${{ needs.check-stage.outputs.qa_tag }}
-      slack_prefix: QA Daily Regression
+      slack_prefix: QA Regression
     secrets: inherit

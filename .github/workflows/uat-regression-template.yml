@@ -1,19 +1,12 @@
-name: Regression Tests (Reusable Template)
+name: UAT Regression (Reusable Template)
 
 on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment to run tests against (test, qa)'
-        required: true
-        type: string
-      git_ref:
-        description: 'Git ref to checkout (branch or tag)'
-        required: true
-        type: string
-      slack_prefix:
-        description: 'Prefix for Slack messages'
-        required: true
+        description: 'UAT environment name (e.g., uat, uat-us, uat-eu, uat-au)'
+        required: false
+        default: 'uat'
         type: string
 
 permissions:
@@ -22,7 +15,49 @@ permissions:
   pages: write
 
 jobs:
+  check-stage:
+    runs-on: [kubernetes]
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      uat_tag: ${{ steps.get-tag.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if UAT stage is active
+        id: check
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          if [ "$STAGE" == "uat" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "✅ UAT stage is active"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping (current stage: $STAGE)"
+          fi
+
+      - name: Get latest UAT tag
+        id: get-tag
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          TAG=$(git ls-remote --tags origin | \
+                grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
+                sort -V | tail -n1 | cut -d'/' -f3)
+
+          if [ -z "$TAG" ]; then
+            echo "tag=release" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "✅ Will test: $TAG"
+          fi
+
   regression-tests:
+    needs: check-stage
+    if: needs.check-stage.outputs.should_run == 'true'
     timeout-minutes: 200
     runs-on: [kubernetes]
     strategy:
@@ -56,14 +91,13 @@ jobs:
       - name: Display configuration
         run: |
           echo "🌍 Environment: ${{ inputs.environment }}"
-          echo "🔖 Git Ref: ${{ inputs.git_ref }}"
-          echo "📢 Slack Prefix: ${{ inputs.slack_prefix }}"
+          echo "🔖 Git Tag: ${{ needs.check-stage.outputs.uat_tag }}"
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.git_ref }}
+          ref: ${{ needs.check-stage.outputs.uat_tag }}
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -126,17 +160,21 @@ jobs:
       - name: Generate Tag Report
         if: always()
         run: |
+          # Generate tag report from existing test results
           npm run generate-tag-report
 
       - name: Upload Report to S3
         if: always()
         run: |
+          # Upload to timestamped folder
           echo "Uploading report to S3..."
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
 
+          # Update latest folder (overwrites existing files)
           echo "Updating latest folder..."
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
 
+          # Create index.html in module root to redirect to latest
           echo '<!DOCTYPE html>
           <html>
             <head>
@@ -150,11 +188,15 @@ jobs:
           aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
 
           echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_NAME}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
+          echo ""
           echo "📊 Test Report Links:"
           echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
           echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
           echo "🏷️ Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html"
 
+          # Store report links for Slack notification
           echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
           echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
           echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
@@ -177,13 +219,16 @@ jobs:
           MODULE_NAME: ${{ matrix.module }}
           IS_REGRESSION: true
         run: |
+          # Upload regression data to postgres
           echo "Uploading regression data to postgres..."
+          # set the env variable to set the meta data for the report
           REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
           echo "Regression data uploaded successfully to postgres"
 
       - name: Parse Test Results
         if: always()
         run: |
+          # Parse test results from test-results directory
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
             PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
@@ -191,6 +236,7 @@ jobs:
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
 
+            # Count known failures from annotations
             KNOWN_FAILED=$(node -e "
               const fs = require('fs');
               const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
@@ -207,6 +253,7 @@ jobs:
               console.log(knownFailed);
             ")
 
+            # Calculate actual failures (excluding known failures)
             ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
           else
             TOTAL_TESTS=0
@@ -226,30 +273,55 @@ jobs:
           echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
           echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
 
-          echo "Test Results: Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
+          echo "Test Results:"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
       - name: Send Slack Notification
         if: always()
         run: |
+          # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
-            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+            echo "MESSAGE: $MESSAGE"
+            # Send to Slack using curl
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
+          else
+            echo "No tests ran, skipping success notification"
           fi
 
       - name: Send Smart Slack Notifications
         if: always()
         run: |
+          # Check if tests were executed
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+
             if [ "$TOTAL_TESTS" -eq 0 ]; then
-              NO_TESTS_MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` found no tests. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
-              curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" $SLACK_WEBHOOK_URL
+              # No tests found
+              echo "No tests were found matching the criteria"
+              NO_TESTS_MESSAGE="⚠️ *UAT Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                $SLACK_WEBHOOK_URL
+            else
+              # Tests were found and executed (pass or fail)
+              echo "Tests were found: $TOTAL_TESTS"
+              # Success notification already sent in previous step, no additional notification needed
             fi
           else
-            FAILURE_MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` could not execute. Please check job details. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
-            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$FAILURE_MESSAGE\"}" $SLACK_WEBHOOK_URL
+            # No test results file - this means pipeline failed before tests could run
+            echo "No test results file found - pipeline likely failed"
+            FAILURE_MESSAGE="🚨 *UAT Regression Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` could not execute. Please check job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
           fi
