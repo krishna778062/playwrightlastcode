@@ -15,25 +15,28 @@ import {
   REDIRECT_URLS,
   TILE_IDS,
   WORKDAY_CREDS,
+  WORKDAY_VALUES,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
-const CreateAnotherRequest = 'Create another request';
-const Vacation = 'Vacation';
-const Wedding = 'Wedding';
-const AppName = 'Workday';
-const paystubsTileName = 'Display recent paystubs';
-const inboxTileName = 'Display inbox';
-const jobPostingsTileName = 'Display job postings';
-const AppManagerDefined = 'App manager defined';
-const SiteManagerDefined = 'Site manager defined';
-const PayslipListUrl = 'Payslip list URL';
-const InboxTasksReportUrl = 'Inbox tasks report URL';
-const JobType = 'Job type';
-const InternalJobType = 'Internal jobs';
-const ExternalJobType = 'External jobs';
-const AllJobType = 'All jobs';
-const InternalJobPostingsUrl = 'Example internal job URL';
+const {
+  CreateAnotherRequest,
+  Vacation,
+  Wedding,
+  AppName,
+  paystubsTileName,
+  inboxTileName,
+  jobPostingsTileName,
+  AppManagerDefined,
+  SiteManagerDefined,
+  PayslipListUrl,
+  InboxTasksReportUrl,
+  JobType,
+  InternalJobType,
+  ExternalJobType,
+  AllJobType,
+  InternalJobPostingsUrl,
+} = WORKDAY_VALUES;
 
 test.describe(
   'workday App Tiles Integration',
@@ -120,7 +123,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21416',
+          zephyrTestId: 'INT-21416, INT-21563',
           storyId: 'INT-20803',
         });
 
@@ -390,7 +393,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22836',
+          zephyrTestId: 'INT-22836, INT-22826',
           storyId: 'INT-21182',
         });
 
@@ -544,7 +547,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
+          zephyrTestId: 'INT-22734, INT-22735',
           storyId: 'INT-21590',
         });
 
@@ -1114,8 +1117,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21415',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-24332',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1144,8 +1147,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21416',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-21424',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1176,8 +1179,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-26029',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27984, INT-21427',
+          storyId: 'INT-27948',
         });
 
         //Generate a random tile title
@@ -1213,8 +1216,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27985, INT-21417',
+          storyId: 'INT-27948',
         });
 
         createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1257,8 +1260,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-26029',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27986, INT-21425',
+          storyId: 'INT-27948',
         });
 
         //Generate a random tile title
@@ -1298,8 +1301,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27987, INT-27528',
+          storyId: 'INT-27948',
         });
 
         createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1347,8 +1350,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28735',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27530, INT-24328, INT-24329, INT-24327',
+          storyId: 'INT-26724, INT-23622',
         });
 
         //Generate a random tile title
@@ -1382,8 +1385,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28735',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27529, INT-24329, INT-24326',
+          storyId: 'INT-27948, INT-23622',
         });
 
         //Generate a random tile title
@@ -1415,8 +1418,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-28735',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-22758, INT-24329, INT-22815',
+          storyId: 'INT-27948, INT-23622',
         });
 
         //Generate a random tile title
