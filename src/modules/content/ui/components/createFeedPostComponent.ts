@@ -32,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -442,6 +443,12 @@ export class CreateFeedPostComponent
           response.status() === 201,
         { timeout: 20_000 }
       );
+    });
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
+      await this.clickOnElement(this.postButton);
     });
   }
 

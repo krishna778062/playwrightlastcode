@@ -512,6 +512,7 @@ test.describe(
       await standardUserFixture.homePage.verifyThePageIsLoaded();
       // await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
       feedPage = new FeedPage(standardUserFixture.page);
       await feedPage.verifyThePageIsLoaded();
 
@@ -544,7 +545,7 @@ test.describe(
     });
 
     test(
-      'verify EndUser1 is able to like and unlike Feed post and Reply on Home-Global Feed',
+      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19556'],
       },
