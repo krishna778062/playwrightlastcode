@@ -10,8 +10,8 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 // import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
@@ -83,16 +83,7 @@ test.describe(
         );
 
         // Generate event data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
         const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
         // Create and publish the event

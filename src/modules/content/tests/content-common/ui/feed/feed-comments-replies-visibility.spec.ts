@@ -1,12 +1,12 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -334,17 +334,7 @@ test.describe(
         let testContentType: string = '';
         let firstCommentText: string = '';
         let secondCommentText: string = '';
-        const image1Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();

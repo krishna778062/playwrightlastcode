@@ -6,10 +6,10 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -82,30 +82,12 @@ const commonAttachmentConfig = {
   fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
   fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
   mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
-  ),
+  filePath: FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname),
 };
 
 // Updated image configuration for version update
 const updatedImageConfig = {
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.UPDATED_FEED_CONTENT.fileName
-  ),
+  filePath: FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname),
 };
 
 // Test data for different feed types

@@ -5,12 +5,12 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -47,17 +47,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24919',
       },
     ];
@@ -208,17 +198,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24907',
       },
     ];
