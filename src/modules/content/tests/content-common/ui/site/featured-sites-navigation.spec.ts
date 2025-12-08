@@ -1,9 +1,10 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SITE_TEST_DATA } from '@/src/modules/content/test-data/site.test-data';
 
 test.describe(
   '@featured-sites',
@@ -55,7 +56,7 @@ test.describe(
         await featuredSitePage.actions.clickDoneButton();
 
         // Step 2.1: Verify success toast message appears
-        await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+        await featuredSitePage.assertions.verifyToastMessage(SITE_TEST_DATA.TOAST_MESSAGES.ADDED_FEATURED_SITE);
 
         // Step 3: Verify sites are visible in featured dropdown
         await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSite.siteName]);
@@ -94,7 +95,7 @@ test.describe(
         for (const site of unFeaturedSites) {
           await featuredSitePage.actions.addSiteToFeatured(site.name);
           featureSites.push(site); // Add the entire site object to the array
-          await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+          await featuredSitePage.assertions.verifyToastMessage(SITE_TEST_DATA.TOAST_MESSAGES.ADDED_FEATURED_SITE);
           await featuredSitePage.assertions.verifyFeaturedSitesVisibleInModal(site.name);
         }
         await featuredSitePage.assertions.verifyFeaturedSitesIndex(unFeaturedSites);

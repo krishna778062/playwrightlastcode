@@ -10,6 +10,7 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
@@ -305,7 +306,7 @@ for (const testData of feedTestData) {
           }
 
           await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
-          await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
+          await appManagerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_NEW_VERSION);
           await appManagerFeedPage.assertions.verifyVersionNumber('2');
           await appManagerFeedPage.actions.clickOnCloseButton();
           //referesh the page
@@ -329,7 +330,7 @@ test.describe(
     let appManagerFeedPage: FeedPage;
     let createdFeedId: string;
     let siteId: string;
-    const siteName: string = 'All Employees';
+    const siteName: string = DEFAULT_PUBLIC_SITE_NAME;
     let contentId: string;
     let pageName: string;
     let siteDashboardPage: SiteDashboardPage;

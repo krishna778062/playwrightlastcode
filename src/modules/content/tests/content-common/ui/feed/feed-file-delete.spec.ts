@@ -282,7 +282,9 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
           await appManagerFeedPage.actions.clickShowMoreButton();
           await appManagerFeedPage.actions.clickDeleteButton();
-          await appManagerFeedPage.assertions.verifyToastMessageIsVisibleWithText('Deleted file successfully');
+          await appManagerFeedPage.assertions.verifyToastMessageIsVisibleWithText(
+            MANAGE_SITE_TEST_DATA.TOAST_MESSAGES.DELETED_FILE_SUCCESSFULLY
+          );
           //refresh the page
           await appManagerFeedPage.page.reload();
           await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();

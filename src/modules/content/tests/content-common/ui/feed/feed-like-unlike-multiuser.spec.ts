@@ -10,6 +10,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -68,7 +69,7 @@ test.describe(
     let createdPostId: string;
     let siteId: string;
     let contentId: string;
-    const siteName = 'All Employees';
+    const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach(
       'Setup test environment and create feed post',
@@ -84,7 +85,7 @@ test.describe(
         siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
         contentManagerFeedPage = new FeedPage(standardUserFixture.page);
 
-        // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+        // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
         siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
           accessType: SITE_TYPES.PUBLIC,
         });
@@ -119,7 +120,7 @@ test.describe(
             role: SitePermission.OWNER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -131,7 +132,7 @@ test.describe(
             role: SitePermission.MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -147,7 +148,7 @@ test.describe(
             role: SitePermission.CONTENT_MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(
             `Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`
           );
@@ -312,7 +313,7 @@ test.describe(
     let siteFeedPostText: string;
     let siteFeedReplyText: string;
     let siteFeedSiteId: string;
-    const siteFeedSiteName = 'All Employees';
+    const siteFeedSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -321,7 +322,7 @@ test.describe(
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
       */
-      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
       siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
         accessType: SITE_TYPES.PUBLIC,
       });
@@ -343,7 +344,7 @@ test.describe(
           role: SitePermission.OWNER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -355,7 +356,7 @@ test.describe(
           role: SitePermission.MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -367,7 +368,7 @@ test.describe(
           role: SitePermission.CONTENT_MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
       }
     });
