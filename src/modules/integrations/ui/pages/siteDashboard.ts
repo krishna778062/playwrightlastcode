@@ -754,7 +754,7 @@ export class SiteDashboard {
     await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
   }
   /**
-   * Complete workflow to add a ServiceNow tile with App Manager Defined settings and toggle on
+   * Complete workflow to add a tile with App Manager Defined settings and drop down selection and toggle on
    */
   async addAppManagerDefinedWithOptionsEnableToggle(
     tileTitle: string,
@@ -764,7 +764,7 @@ export class SiteDashboard {
     fieldName: string,
     fieldValue: string
   ): Promise<void> {
-    await this.addTileEnableToggle(tileTitle, 'ServiceNow', tileName, destination, {
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, {
       radioOptionsWithValues: [
         { fieldName: fieldName, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue },
       ],

@@ -962,7 +962,7 @@ export class HomeDashboard extends BasePage {
     await this.appTileComponent.clickEditDashboard();
   }
   /**
-   *Complete workflow to add a ServiceNow tile with App Manager Defined settings and toggle on
+   *Complete workflow to add a tile with App Manager Defined settings and drop down selection and toggle on
    */
   async addAppManagerDefinedWithOptionsEnableToggle(
     tileTitle: string,
@@ -972,7 +972,7 @@ export class HomeDashboard extends BasePage {
     fieldName: string,
     fieldValue: string
   ): Promise<void> {
-    await this.addTileEnableToggle(tileTitle, 'ServiceNow', tileName, destination, {
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, {
       radioOptionsWithValues: [
         { fieldName: fieldName, option: ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, value: fieldValue },
       ],
