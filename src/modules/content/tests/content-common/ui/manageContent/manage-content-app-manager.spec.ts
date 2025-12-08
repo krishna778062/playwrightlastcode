@@ -21,6 +21,7 @@ import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeature
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SitesPage } from '@/src/modules/content/ui/pages/sitesPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -662,6 +663,51 @@ test.describe(
           await manageContentPage.actions.clickOnSelectAllButton();
           await manageContentPage.actions.verifyAllContentsAreSelected(17);
         }
+      }
+    );
+    test(
+      'verify All Sites site category takes the user to respective category screen with list of Sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify All Sites site category takes the user to respective category screen with list of Sites',
+          zephyrTestId: 'CONT-26918',
+          storyId: 'CONT-26918',
+        });
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const sitesPage = new SitesPage(appManagerFixture.page, '');
+        await sitesPage.actions.clickOnCategoryTab();
+        const categoryList = await appManagerApiFixture.siteManagementHelper.getCategoryList();
+
+        // Find a category with exactly 1 site
+        const categoryWithOneSite = categoryList.result.listOfItems.find((item: any) => item.siteCount === 1);
+
+        if (!categoryWithOneSite) {
+          throw new Error('No category found with exactly 1 site');
+        }
+
+        // Get all sites and find the site in this category
+        const sitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites();
+        const siteInCategory = sitesResponse.result.listOfItems.find(
+          (site: any) => site.category?.categoryId === categoryWithOneSite.categoryId
+        );
+
+        if (!siteInCategory) {
+          throw new Error(`No site found in category: ${categoryWithOneSite.name}`);
+        }
+
+        const siteName = siteInCategory.name;
+        console.log('Category with 1 site:', categoryWithOneSite.name);
+        console.log('Site name:', siteName);
+
+        await sitesPage.actions.selectCategoryDropDown();
+        await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
+        await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
+        await sitesPage.actions.clickOnSiteName(siteName);
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
+        await siteDashboardPage.assertions.verifyThePageIsLoaded();
       }
     );
   }
