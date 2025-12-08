@@ -415,7 +415,7 @@ test.describe(
     });
 
     test(
-      'verify EndUser1 can favorite and unfavorite a feed post on Home Feed',
+      'verify user can favorite and unfavorite a feed post on Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19557'],
       },
