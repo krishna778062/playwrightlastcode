@@ -16,6 +16,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SITE_TEST_DATA } from '@/src/modules/content/test-data/sites-create.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
+import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
 
 interface Site {
   siteId: string;
@@ -37,6 +38,7 @@ export class SiteManagementHelper {
   private siteMembers: SiteMember[] = [];
   readonly siteManagementService: SiteManagementService;
   private contentManagementService: ContentManagementService;
+  private identityService: IdentityService;
 
   constructor(
     readonly apiRequestContext: APIRequestContext,
@@ -44,6 +46,7 @@ export class SiteManagementHelper {
   ) {
     this.siteManagementService = new SiteManagementService(apiRequestContext, baseUrl);
     this.contentManagementService = new ContentManagementService(apiRequestContext, baseUrl);
+    this.identityService = new IdentityService(apiRequestContext, baseUrl);
   }
 
   /**
@@ -542,6 +545,53 @@ export class SiteManagementHelper {
     };
 
     return await this.siteManagementService.getListOfSites(defaultOptions);
+  }
+
+  /**
+   * Gets a site with manage site option (isManager, isOwner, and isActive all true)
+   * @param sitesResponse - The response from getListOfSites
+   * @returns Promise containing siteId and siteName
+   */
+  async getSiteWithManageSiteOption(sitesResponse: any): Promise<{ siteId: string; siteName: string }> {
+    return await test.step('Getting site with manage site option', async () => {
+      const sites = sitesResponse.result?.listOfItems || [];
+
+      if (sites.length === 0) {
+        throw new Error('No sites found in the response');
+      }
+
+      for (const site of sites) {
+        try {
+          const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+          if (
+            siteDetails.result.isManager === true &&
+            siteDetails.result.isOwner === true &&
+            siteDetails.result.isActive === true
+          ) {
+            return {
+              siteId: siteDetails.result.siteId,
+              siteName: siteDetails.result.name || siteDetails.result.siteName,
+            };
+          }
+        } catch (error: any) {
+          // Skip sites that fail (deleted, invalid, or inaccessible) and continue to next site
+          console.log(`Skipping site ${site.siteId} due to error: ${error.message}`);
+          continue;
+        }
+      }
+
+      throw new Error('No site found with manage site option (isManager, isOwner, and isActive all true)');
+    });
+  }
+
+  /**
+   * Gets all users list
+   * @returns Promise containing the users list response with listOfItems
+   */
+  async getAllUsersList(): Promise<any> {
+    return await test.step('Getting all users list', async () => {
+      return await this.identityService.getListOfPeople();
+    });
   }
 
   async getMemberList(options?: {
@@ -1417,123 +1467,6 @@ export class SiteManagementHelper {
         siteId: createdSite.siteId,
         siteName: createdSite.siteName,
       };
-    });
-  }
-
-  /**
-   * Gets the list of carousel items for a site and removes them all
-   * @param siteId - The site ID to get carousel items from
-   * @returns Promise containing the number of items removed
-   */
-  async getAndRemoveAllCarouselItems(siteId: string): Promise<number> {
-    return await test.step(`Getting and removing all carousel items from site: ${siteId}`, async () => {
-      // Get the list of carousel items
-      const carouselResponse = await this.siteManagementService.getSiteCarouselItems(siteId);
-
-      if (!carouselResponse.result?.listOfItems?.length) {
-        log.debug(`No carousel items found for site ${siteId}`);
-        return 0;
-      }
-
-      const carouselItems = carouselResponse.result.listOfItems;
-      log.debug(`Found ${carouselItems.length} carousel items to remove`);
-
-      let removedCount = 0;
-
-      // Remove each carousel item
-      for (const item of carouselItems) {
-        try {
-          await this.siteManagementService.deleteSiteCarouselItem(siteId, item.carouselItemId);
-          log.debug(`Successfully removed carousel item: ${item.carouselItemId}`);
-          removedCount++;
-        } catch (error) {
-          log.error(`Failed to remove carousel item ${item.carouselItemId}`, error);
-          // Continue with other items even if one fails
-        }
-      }
-
-      log.debug(`Successfully removed ${removedCount} out of ${carouselItems.length} carousel items`);
-      return removedCount;
-    });
-  }
-
-  /**
-   * Gets the list of home carousel items and removes them all
-   * @returns Promise containing the number of items removed
-   */
-  async getAndRemoveAllHomeCarouselItems(): Promise<number> {
-    return await test.step('Getting and removing all home carousel items', async () => {
-      // Get the list of home carousel items
-      const carouselResponse = await this.siteManagementService.getHomeCarouselItems();
-
-      if (!carouselResponse.result?.listOfItems?.length) {
-        log.debug('No home carousel items found');
-        return 0;
-      }
-
-      const carouselItems = carouselResponse.result.listOfItems;
-      log.debug(`Found ${carouselItems.length} home carousel items to remove`);
-
-      let removedCount = 0;
-
-      // Remove each carousel item
-      for (const item of carouselItems) {
-        try {
-          await this.siteManagementService.deleteHomeCarouselItem(item.carouselItemId);
-          log.debug(`Successfully removed home carousel item: ${item.carouselItemId}`);
-          removedCount++;
-        } catch (error) {
-          log.error(`Failed to remove home carousel item ${item.carouselItemId}`, error);
-          // Continue with other items even if one fails
-        }
-      }
-
-      log.debug(`Successfully removed ${removedCount} out of ${carouselItems.length} home carousel items`);
-      return removedCount;
-    });
-  }
-
-  /**
-   * Gets the list of carousel items for a site
-   * @param siteId - The site ID to get carousel items from
-   * @returns Promise containing the carousel items list
-   */
-  async getSiteCarouselItems(siteId: string): Promise<any> {
-    return await test.step(`Getting carousel items for site: ${siteId}`, async () => {
-      return await this.siteManagementService.getSiteCarouselItems(siteId);
-    });
-  }
-
-  /**
-   * Gets the home carousel items list
-   * @returns Promise containing the home carousel items response
-   */
-  async getHomeCarouselItems(): Promise<any> {
-    return await test.step('Getting home carousel items', async () => {
-      return await this.siteManagementService.getHomeCarouselItems();
-    });
-  }
-
-  /**
-   * Removes a specific carousel item from a site
-   * @param siteId - The site ID containing the carousel item
-   * @param carouselItemId - The carousel item ID to remove
-   * @returns Promise containing the delete response
-   */
-  async removeCarouselItem(siteId: string, carouselItemId: string): Promise<any> {
-    return await test.step(`Removing carousel item ${carouselItemId} from site ${siteId}`, async () => {
-      return await this.siteManagementService.deleteSiteCarouselItem(siteId, carouselItemId);
-    });
-  }
-
-  /**
-   * Deletes a carousel item from the home dashboard
-   * @param carouselItemId - The carousel item ID to delete
-   * @returns Promise containing the delete response
-   */
-  async deleteHomeCarouselItem(carouselItemId: string): Promise<any> {
-    return await test.step(`Deleting home carousel item ${carouselItemId}`, async () => {
-      return await this.siteManagementService.deleteHomeCarouselItem(carouselItemId);
     });
   }
 

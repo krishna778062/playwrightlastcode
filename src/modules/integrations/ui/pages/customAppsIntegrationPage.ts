@@ -1,6 +1,6 @@
 import { MESSAGES } from '@integrations/constants/messageRepo';
 import { AIRTABLE_AUTH_DATA } from '@integrations/test-data/app-tiles.test-data';
-import { AppConnectorOptions, CustomAppsListComponent } from '@integrations-components/customAppsListComponent';
+import { AppConnectorOptions, CustomAppsComponent } from '@integrations-components/customAppsComponent';
 import { Locator, Page, test } from '@playwright/test';
 import { expect } from '@playwright/test';
 
@@ -26,7 +26,7 @@ export interface ConnectionFieldConfig {
 
 export class CustomAppsIntegrationPage extends BasePage {
   readonly resultListAppTilesItemCountLocator: Locator;
-  readonly customAppsListComponent: CustomAppsListComponent;
+  readonly customAppsComponent: CustomAppsComponent;
   readonly saveButton: Locator;
   readonly saveButtonSubmit: Locator;
   readonly usernameInput: Locator;
@@ -54,10 +54,20 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly alertMessage: Locator;
   readonly saveButtonByRole: Locator;
 
+  // Dialog locators
+  readonly dialogTitleHeading: Locator;
+  readonly dialogCancelButton: Locator;
+  readonly dialogDisconnectButton: Locator;
+
+  // PKCE and Token URL locators
+  readonly codeChallengeMethodDropdown: Locator;
+  readonly addHeadersForTokenUrlCheckbox: Locator;
+  readonly tokenRequestHeadersInput: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE);
     this.resultListAppTilesItemCountLocator = page.locator('div[class*="ConnectorsList_resultCount"]');
-    this.customAppsListComponent = new CustomAppsListComponent(page);
+    this.customAppsComponent = new CustomAppsComponent(page);
     this.saveButton = page.locator('button:has-text("Save")');
     this.saveButtonSubmit = page.locator('button[type="submit"]:has-text("Save")');
     this.usernameInput = page.locator('input[name="username"]');
@@ -72,8 +82,6 @@ export class CustomAppsIntegrationPage extends BasePage {
       `p:has-text("${MESSAGES.getAppConnectionUnavailableMessage('Expensify')}")`
     );
     this.apiTokenInput = page.locator('input[name="apiToken"]');
-
-    // Initialize new locators using Playwright's recommended patterns
     this.customAppsLink = page.getByRole('link', { name: 'Custom apps' });
     this.connectionHeading = page.getByRole('heading', { name: 'Connection' });
     this.disconnectAccountButton = page.getByRole('button', { name: 'Disconnect account' });
@@ -82,10 +90,34 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.setupChecklistButton = page.getByRole('button', { name: /setup checklist/i });
     this.dialog = page.getByRole('dialog');
     this.appDescriptionText = page.getByText(/App to integrate with|to support actions/i);
-
-    // Initialize verification locators
     this.alertMessage = page.getByRole('alert');
     this.saveButtonByRole = page.getByRole('button', { name: 'Save' });
+    this.dialogTitleHeading = this.dialog.locator('h2, h3, h4');
+    this.dialogCancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
+    this.dialogDisconnectButton = this.dialog.getByRole('button', { name: 'Disconnect account' });
+
+    // PKCE and Token URL locators
+    this.codeChallengeMethodDropdown = page.locator('select[name="authDetails.codeChallengeMethod"]');
+    this.addHeadersForTokenUrlCheckbox = page.getByRole('checkbox', { name: 'Add headers for Token URL' });
+    this.tokenRequestHeadersInput = page.locator(
+      'input[name="authDetails.tokenRequestHeaders"], textarea[name="authDetails.tokenRequestHeaders"]'
+    );
+  }
+
+  /**
+   * Get a button locator by its name/text
+   * @param buttonName - The name/text of the button (string or RegExp)
+   */
+  getButton(buttonName: string | RegExp): Locator {
+    return this.page.getByRole('button', { name: buttonName });
+  }
+
+  /**
+   * Get a link locator by its name/text
+   * @param linkName - The name/text of the link (string or RegExp)
+   */
+  getLink(linkName: string | RegExp): Locator {
+    return this.page.getByRole('link', { name: linkName });
   }
 
   // Helper methods for dynamic locators
@@ -100,6 +132,22 @@ export class CustomAppsIntegrationPage extends BasePage {
 
   getFieldInput(fieldLabel: string, fieldName: string): Locator {
     return this.page.getByLabel(fieldLabel, { exact: false }).or(this.page.locator(`input[name="${fieldName}"]`));
+  }
+
+  getStatusBadge(status: 'Enabled' | 'Disabled'): Locator {
+    return this.page.getByText(status, { exact: true }).first();
+  }
+
+  getFieldByName(fieldName: string): Locator {
+    return this.page.locator(`input[name="${fieldName}"], textarea[name="${fieldName}"]`);
+  }
+
+  getDropdownByName(selectName: string): Locator {
+    return this.page.locator(`select[name="${selectName}"]`);
+  }
+
+  getFieldByLabel(fieldLabel: string): Locator {
+    return this.page.getByText(fieldLabel, { exact: false }).first();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -144,30 +192,30 @@ export class CustomAppsIntegrationPage extends BasePage {
    * @returns void
    */
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
+    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async openConnectorOptions(service: string): Promise<void> {
-    return this.customAppsListComponent.openConnectorOptions(service);
+    return this.customAppsComponent.openConnectorOptions(service);
   }
 
   async searchAndSelectAppWithNameToPerformAction(appName: string, action: AppConnectorOptions): Promise<void> {
     await test.step('Search and select app with name', async () => {
-      await this.customAppsListComponent.searchForApp(appName);
-      await this.customAppsListComponent.verifyCountOfAppsInListIs(1);
-      await this.customAppsListComponent.clickOnAppConnector(appName);
-      await this.customAppsListComponent.selectConnectorOption(action);
+      await this.customAppsComponent.searchForApp(appName);
+      await this.customAppsComponent.verifyCountOfAppsInListIs(1);
+      await this.customAppsComponent.clickOnAppConnector(appName);
+      await this.customAppsComponent.selectConnectorOption(action);
       // Use the new generic dialog button method instead of confirmDelete
-      await this.customAppsListComponent.clickDialogButton(action, `Confirm ${action}`);
+      await this.customAppsComponent.clickDialogButton(action, `Confirm ${action}`);
     });
   }
 
   async disconnectApp(appName: string): Promise<void> {
     await test.step('Search and select app with name', async () => {
-      await this.customAppsListComponent.searchForApp(appName);
-      await this.customAppsListComponent.verifyCountOfAppsInListIs(1);
-      await this.customAppsListComponent.clickOnAppConnector(appName);
-      await this.customAppsListComponent.clickOnButtonWithName('Disconnect account');
+      await this.customAppsComponent.searchForApp(appName);
+      await this.customAppsComponent.verifyCountOfAppsInListIs(1);
+      await this.customAppsComponent.clickOnAppConnector(appName);
+      await this.customAppsComponent.clickOnButtonWithName('Disconnect account');
     });
   }
 
@@ -191,23 +239,23 @@ export class CustomAppsIntegrationPage extends BasePage {
 
   async searchAndSelectAppWithName(appName: string): Promise<void> {
     await test.step('Search and select app with name', async () => {
-      await this.customAppsListComponent.searchForApp(appName);
-      await this.customAppsListComponent.verifyCountOfAppsInListIs(1);
-      await this.customAppsListComponent.clickOnAppConnector(appName);
+      await this.customAppsComponent.searchForApp(appName);
+      await this.customAppsComponent.verifyCountOfAppsInListIs(1);
+      await this.customAppsComponent.clickOnAppConnector(appName);
     });
   }
 
   async addPrebuiltApp(appName: string) {
     await test.step(`Add prebuilt app of type ${appName}`, async () => {
-      await this.customAppsListComponent.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
-      await this.customAppsListComponent.searchForPrebuiltApp(appName);
-      await this.customAppsListComponent.clickAddPrebuilt(appName);
+      await this.customAppsComponent.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
+      await this.customAppsComponent.searchForPrebuiltApp(appName);
+      await this.customAppsComponent.clickAddPrebuilt(appName);
       await this.page.waitForURL(/new/);
     });
   }
 
   async clickSaveButton(): Promise<void> {
-    await this.customAppsListComponent.clickButton('Save');
+    await this.customAppsComponent.clickButton('Save');
     await expect(this.saveButton).toBeDisabled({ timeout: TIMEOUTS.SHORT });
   }
 
@@ -526,6 +574,556 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.apiTokenInput.fill(apiToken);
       await this.apiTokenInput.blur();
       await this.clickSaveButton();
+    });
+  }
+
+  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName}`;
+    await test.step(stepName, async () => {
+      // Try button first with name
+      try {
+        const button = this.getButton(buttonName);
+        await this.clickOnElement(button, { timeout });
+      } catch {
+        // If button not found, try as link with name
+        const link = this.getLink(buttonName);
+        await this.clickOnElement(link, { timeout });
+      }
+    });
+  }
+
+  /**
+   * Search for apps by entering text in the search field and pressing Enter
+   * @param searchTerm - The search term to enter
+   */
+  async searchForApps(searchTerm: string): Promise<void> {
+    return this.customAppsComponent.searchForApp(searchTerm);
+  }
+
+  /**
+   * Clear the search input field by clicking the clear/cross button
+   */
+  async clearSearch(): Promise<void> {
+    return this.customAppsComponent.clearSearch();
+  }
+
+  /**
+   * Verify the result count text matches the expected value
+   * @param expectedText - The expected text (e.g., "0 Apps", "1 Apps")
+   */
+  async verifyResultCountText(expectedText: string): Promise<void> {
+    return this.customAppsComponent.verifyResultCountText(expectedText);
+  }
+
+  /**
+   * Verify the "No results" heading is displayed
+   */
+  async verifyNoResultsHeadingIsDisplayed(): Promise<void> {
+    return this.customAppsComponent.verifyNoResultsHeadingIsDisplayed();
+  }
+
+  /**
+   * Verify the no results description is displayed
+   * @param expectedText - The expected description text
+   */
+  async verifyNoResultsDescriptionIsDisplayed(expectedText?: string): Promise<void> {
+    return this.customAppsComponent.verifyNoResultsDescriptionIsDisplayed(expectedText);
+  }
+
+  /**
+   * Verify that an app with the given name is displayed in the list
+   * @param appName - The name of the app to verify
+   */
+  async verifyAppIsDisplayedInList(appName: string): Promise<void> {
+    return this.customAppsComponent.verifyAppIsDisplayedInList(appName);
+  }
+  /**
+   * Select a status filter option
+   * @param status - The status to filter by ('Enabled' or 'Disabled')
+   */
+  async selectStatusFilter(status: 'Enabled' | 'Disabled'): Promise<void> {
+    return this.customAppsComponent.selectStatusFilter(status);
+  }
+
+  /**
+   * Clear the status filter
+   */
+  async clearStatusFilter(): Promise<void> {
+    return this.customAppsComponent.clearStatusFilter();
+  }
+
+  /**
+   * Select a type filter option
+   * @param type - The type to filter by ('Prebuilt' or 'Custom')
+   */
+  async selectTypeFilter(type: 'Prebuilt' | 'Custom'): Promise<void> {
+    return this.customAppsComponent.selectTypeFilter(type);
+  }
+
+  /**
+   * Clear the type filter
+   */
+  async clearTypeFilter(): Promise<void> {
+    return this.customAppsComponent.clearTypeFilter();
+  }
+  /**
+   * Select a sort by option
+   * @param sortBy - The sort by option ('Last used', 'Date created', or 'Name')
+   */
+  async selectSortBy(sortBy: 'Last used' | 'Date created' | 'Name'): Promise<void> {
+    return this.customAppsComponent.selectSortBy(sortBy);
+  }
+
+  /**
+   * Select a sort order option
+   * @param order - The sort order ('Newest first' or 'Oldest first')
+   */
+  async selectSortOrder(order: 'Newest first' | 'Oldest first'): Promise<void> {
+    return this.customAppsComponent.selectSortOrder(order);
+  }
+
+  /**
+   * Verify all visible apps have the expected status
+   * @param expectedStatus - Expected status ('Enabled' or 'Disabled')
+   */
+  async verifyAllAppsHaveStatus(expectedStatus: 'Enabled' | 'Disabled'): Promise<void> {
+    return this.customAppsComponent.verifyAllAppsHaveStatus(expectedStatus);
+  }
+
+  /**
+   * Verify all visible apps have the expected type
+   * @param expectedType - Expected type ('Prebuilt' or 'Custom')
+   */
+  async verifyAllAppsHaveType(expectedType: 'Prebuilt' | 'Custom'): Promise<void> {
+    return this.customAppsComponent.verifyAllAppsHaveType(expectedType);
+  }
+
+  /**
+   * Verify app status in the list
+   * @param appName - The name of the app
+   * @param expectedStatus - Expected status ('Enabled' or 'Disabled')
+   */
+  async verifyAppStatus(appName: string, expectedStatus: 'Enabled' | 'Disabled'): Promise<void> {
+    return this.customAppsComponent.verifyAppStatus(appName, expectedStatus);
+  }
+
+  /**
+   * Verify app type in the list
+   * @param appName - The name of the app
+   * @param expectedType - Expected type ('Prebuilt' or 'Custom')
+   */
+  async verifyAppType(appName: string, expectedType: 'Prebuilt' | 'Custom'): Promise<void> {
+    return this.customAppsComponent.verifyAppType(appName, expectedType);
+  }
+
+  /**
+   * Verify apps are sorted alphabetically A-Z
+   */
+  async verifyAppsSortedAlphabeticallyAZ(): Promise<void> {
+    return this.customAppsComponent.verifyAppsSortedAlphabeticallyAZ();
+  }
+
+  /**
+   * Verify apps are sorted alphabetically Z-A
+   */
+  async verifyAppsSortedAlphabeticallyZA(): Promise<void> {
+    return this.customAppsComponent.verifyAppsSortedAlphabeticallyZA();
+  }
+
+  /**
+   * Click on Add custom app dropdown and select an option
+   * @param option - The option to select ('Create your own app' or 'Add prebuilt app')
+   */
+  async clickAddCustomAppOption(option: string): Promise<void> {
+    return this.customAppsComponent.clickAddCustomAppOption(option);
+  }
+
+  /**
+   * Enter app name in the create custom app form
+   * @param name - The name of the app
+   */
+  async enterAppName(name: string): Promise<void> {
+    return this.customAppsComponent.enterAppName(name);
+  }
+
+  /**
+   * Enter app description in the create custom app form
+   * @param description - The description of the app
+   */
+  async enterAppDescription(description: string): Promise<void> {
+    return this.customAppsComponent.enterAppDescription(description);
+  }
+
+  /**
+   * Select app category from dropdown
+   * @param category - The category to select (e.g., 'Other', 'Calendar', 'CRM', etc.)
+   */
+  async selectAppCategory(category: string): Promise<void> {
+    return this.customAppsComponent.selectAppCategory(category);
+  }
+
+  /**
+   * Upload a logo file for the custom app
+   * @param filePath - The path to the file to upload
+   */
+  async uploadLogoFile(filePath: string): Promise<void> {
+    return this.customAppsComponent.uploadLogoFile(filePath);
+  }
+
+  /**
+   * Verify the uploaded logo file name is displayed
+   * @param fileName - The expected file name (without extension)
+   */
+  async verifyUploadedLogoFileName(fileName: string): Promise<void> {
+    return this.customAppsComponent.verifyUploadedLogoFileName(fileName);
+  }
+
+  /**
+   * Verify the uploaded logo image preview is displayed
+   */
+  async verifyUploadedLogoImagePreview(): Promise<void> {
+    return this.customAppsComponent.verifyUploadedLogoImagePreview();
+  }
+
+  /**
+   * Verify the uploaded logo file size is displayed
+   * @param expectedSize - The expected file size text (e.g., "JPG - 43.93KB")
+   */
+  async verifyUploadedLogoFileSize(expectedSize: string): Promise<void> {
+    return this.customAppsComponent.verifyUploadedLogoFileSize(expectedSize);
+  }
+
+  /**
+   * Verify the remove/delete logo button is displayed
+   */
+  async verifyRemoveLogoButtonIsDisplayed(): Promise<void> {
+    return this.customAppsComponent.verifyRemoveLogoButtonIsDisplayed();
+  }
+
+  /**
+   * Verify all uploaded logo details (image preview, file name, file size, delete button)
+   * @param fileName - The expected file name
+   * @param fileSize - The expected file size (e.g., "JPG - 43.93KB")
+   */
+  async verifyUploadedLogoDetails(fileName: string, fileSize: string): Promise<void> {
+    return this.customAppsComponent.verifyUploadedLogoDetails(fileName, fileSize);
+  }
+
+  /**
+   * Scroll the page by specified pixels
+   * @param pixels - Number of pixels to scroll
+   */
+  async scrollPageBy(pixels: number): Promise<void> {
+    return this.customAppsComponent.scrollPageBy(pixels);
+  }
+
+  /**
+   * Select connection type from dropdown
+   * @param connectionType - The connection type (e.g., 'App level', 'User level')
+   */
+  async selectConnectionType(connectionType: string): Promise<void> {
+    return this.customAppsComponent.selectConnectionType(connectionType);
+  }
+
+  /**
+   * Select auth type from dropdown
+   * @param authType - The auth type (e.g., 'OAuth 2.0', 'Basic Auth', 'API Key')
+   */
+  async selectAuthType(authType: string): Promise<void> {
+    return this.customAppsComponent.selectAuthType(authType);
+  }
+
+  /**
+   * Select sub auth type from dropdown
+   * @param subAuthType - The sub auth type (e.g., 'Auth Code', 'Client Credentials')
+   */
+  async selectSubAuthType(subAuthType: string): Promise<void> {
+    return this.customAppsComponent.selectSubAuthType(subAuthType);
+  }
+
+  /**
+   * Select code challenge method from dropdown (for PKCE)
+   * @param method - The code challenge method (e.g., 'Plain', 'SHA-256')
+   */
+  async selectCodeChallengeMethod(method: string): Promise<void> {
+    await test.step(`Select code challenge method: ${method}`, async () => {
+      await this.codeChallengeMethodDropdown.waitFor({ state: 'visible' });
+      await this.codeChallengeMethodDropdown.selectOption({ label: method });
+    });
+  }
+
+  /**
+   * Check the "Add headers for Token URL" checkbox
+   */
+  async checkAddHeadersForTokenUrl(): Promise<void> {
+    await test.step('Check "Add headers for Token URL" checkbox', async () => {
+      await this.addHeadersForTokenUrlCheckbox.waitFor({ state: 'visible' });
+      await this.addHeadersForTokenUrlCheckbox.check();
+    });
+  }
+
+  /**
+   * Enter token request headers value
+   * @param headers - The token request headers value
+   */
+  async enterTokenRequestHeaders(headers: string): Promise<void> {
+    await test.step(`Enter token request headers: ${headers}`, async () => {
+      await this.tokenRequestHeadersInput.waitFor({ state: 'visible' });
+      await this.tokenRequestHeadersInput.fill(headers);
+    });
+  }
+
+  /**
+   * Enter value in a textbox field by its label name
+   * @param fieldName - The label name of the field (e.g., 'Client ID*', 'Secret key*', 'Auth URL*')
+   * @param value - The value to enter
+   */
+  async enterFieldValue(fieldName: string, value: string): Promise<void> {
+    return this.customAppsComponent.enterFieldValue(fieldName, value);
+  }
+
+  /**
+   * Click Save button on custom app form
+   */
+  async clickSaveButtonOnForm(): Promise<void> {
+    return this.customAppsComponent.clickSaveButton();
+  }
+
+  /**
+   * Click Connect account button
+   */
+  async clickConnectAccountButton(): Promise<void> {
+    return this.customAppsComponent.clickConnectAccountButton();
+  }
+
+  /**
+   * Verify Disconnect account button is displayed
+   */
+  async verifyDisconnectAccountButtonIsDisplayed(): Promise<void> {
+    return this.customAppsComponent.verifyDisconnectAccountButtonIsDisplayed();
+  }
+
+  /**
+   * Verify text is displayed on the page
+   * @param text - The text to verify
+   */
+  async verifyTextIsDisplayed(text: string): Promise<void> {
+    return this.customAppsComponent.verifyTextIsDisplayed(text);
+  }
+
+  /**
+   * Verify checklist item is checked
+   * @param checklistText - The text of the checklist item
+   */
+  async verifyChecklistItemIsChecked(checklistText: string): Promise<void> {
+    return this.customAppsComponent.verifyChecklistItemIsChecked(checklistText);
+  }
+
+  /**
+   * Connect Box account by handling OAuth popup
+   * @param email - Box account email
+   * @param password - Box account password
+   */
+  async connectBoxAccount(email: string, password: string): Promise<void> {
+    return this.customAppsComponent.connectBoxAccount(email, password);
+  }
+
+  /**
+   * Verify app name is displayed in the header
+   * @param appName - The app name to verify
+   */
+  async verifyAppNameInHeader(appName: string): Promise<void> {
+    return this.customAppsComponent.verifyAppNameInHeader(appName);
+  }
+
+  /**
+   * Verify app description is displayed
+   * @param description - The description to verify
+   */
+  async verifyAppDescription(description: string): Promise<void> {
+    return this.customAppsComponent.verifyAppDescription(description);
+  }
+
+  /**
+   * Verify connection message is displayed
+   * @param appName - The app name in the message
+   */
+  async verifyConnectionMessage(appName: string): Promise<void> {
+    return this.customAppsComponent.verifyConnectionMessage(appName);
+  }
+
+  /**
+   * Verify toast message appears
+   */
+  async verifyToastMessage(message: string): Promise<void> {
+    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  /**
+   * Verify Edit button is displayed
+   */
+  async verifyEditButtonIsDisplayed(): Promise<void> {
+    await test.step('Verify Edit button is displayed', async () => {
+      await expect(this.editButton.first(), 'Expected Edit button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify status badge text (Enabled/Disabled)
+   * @param expectedStatus - The expected status text
+   */
+  async verifyStatusBadge(expectedStatus: 'Enabled' | 'Disabled'): Promise<void> {
+    await test.step(`Verify status badge shows "${expectedStatus}"`, async () => {
+      await expect(
+        this.getStatusBadge(expectedStatus),
+        `Expected status badge to show "${expectedStatus}"`
+      ).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify dialog title is displayed
+   * @param title - The expected dialog title
+   */
+  async verifyDialogTitle(title: string): Promise<void> {
+    await test.step(`Verify dialog title: "${title}"`, async () => {
+      await expect(
+        this.dialogTitleHeading.filter({ hasText: title }),
+        `Expected dialog title "${title}" to be visible`
+      ).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Cancel button in dialog
+   */
+  async clickCancelButton(): Promise<void> {
+    await test.step('Click Cancel button', async () => {
+      await expect(this.dialogCancelButton, 'Expected Cancel button to be visible').toBeVisible();
+      await this.dialogCancelButton.click();
+    });
+  }
+
+  /**
+   * Verify field is displayed with label
+   * @param fieldLabel - The field label to verify
+   */
+  async verifyFieldIsDisplayed(fieldLabel: string): Promise<void> {
+    await test.step(`Verify field "${fieldLabel}" is displayed`, async () => {
+      await expect(this.getFieldByLabel(fieldLabel), `Expected field "${fieldLabel}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Disconnect account button
+   */
+  async clickDisconnectAccountButton(): Promise<void> {
+    await test.step('Click Disconnect account button', async () => {
+      await expect(this.disconnectAccountButton, 'Expected Disconnect account button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+      await this.disconnectAccountButton.click();
+    });
+  }
+
+  /**
+   * Verify checklist item is unchecked (incomplete)
+   * @param checklistText - The text of the checklist item
+   */
+  async verifyChecklistItemIsUnchecked(checklistText: string): Promise<void> {
+    await test.step(`Verify checklist item is unchecked: "${checklistText}"`, async () => {
+      await this.verifySetupStepIsIncomplete(checklistText);
+    });
+  }
+
+  /**
+   * Verify Save button is displayed
+   */
+  async verifySaveButtonIsDisplayed(): Promise<void> {
+    await test.step('Verify Save button is displayed', async () => {
+      await expect(this.saveButton, 'Expected Save button to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Click Disconnect account button in dialog
+   */
+  async clickDisconnectAccountInDialog(): Promise<void> {
+    await test.step('Click Disconnect account button in dialog', async () => {
+      await expect(
+        this.dialogDisconnectButton,
+        'Expected Disconnect account button in dialog to be visible'
+      ).toBeVisible();
+      await this.dialogDisconnectButton.click();
+    });
+  }
+
+  /**
+   * Click Edit option from three dots menu
+   */
+  async clickEditFromMenu(): Promise<void> {
+    await test.step('Click Edit from connector options menu', async () => {
+      await this.customAppsComponent.selectConnectorOption(AppConnectorOptions.Edit);
+    });
+  }
+
+  /**
+   * Verify a text field is enabled
+   * @param fieldName - The name attribute of the field
+   */
+  async verifyFieldIsEnabled(fieldName: string): Promise<void> {
+    await test.step(`Verify field "${fieldName}" is enabled`, async () => {
+      await expect(this.getFieldByName(fieldName), `Expected field "${fieldName}" to be enabled`).toBeEnabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a text field is disabled
+   * @param fieldName - The name attribute of the field
+   */
+  async verifyFieldIsDisabled(fieldName: string): Promise<void> {
+    await test.step(`Verify field "${fieldName}" is disabled`, async () => {
+      await expect(this.getFieldByName(fieldName), `Expected field "${fieldName}" to be disabled`).toBeDisabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a dropdown/select is enabled
+   * @param selectName - The name attribute of the select
+   */
+  async verifyDropdownIsEnabled(selectName: string): Promise<void> {
+    await test.step(`Verify dropdown "${selectName}" is enabled`, async () => {
+      await expect(this.getDropdownByName(selectName), `Expected dropdown "${selectName}" to be enabled`).toBeEnabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify a dropdown/select is disabled
+   * @param selectName - The name attribute of the select
+   */
+  async verifyDropdownIsDisabled(selectName: string): Promise<void> {
+    await test.step(`Verify dropdown "${selectName}" is disabled`, async () => {
+      await expect(this.getDropdownByName(selectName), `Expected dropdown "${selectName}" to be disabled`).toBeDisabled(
+        {
+          timeout: TIMEOUTS.SHORT,
+        }
+      );
     });
   }
 }
