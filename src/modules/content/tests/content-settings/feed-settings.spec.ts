@@ -441,6 +441,7 @@ test.describe(
 
         // Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
         await feedPage.assertions.verifyPostIsNotVisible(homeFeedTestData.text);
@@ -651,6 +652,7 @@ test.describe(
 
         // Navigate to home page and click Global Feed
         await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
@@ -660,6 +662,8 @@ test.describe(
         await feedPage.assertions.validatePostText(commentText);
 
         await feedPage.assertions.verifyReactionButtonIsVisible();
+
+        await feedPage.actions.unlikeFeedPost(commentText);
 
         // Navigate back to content preview page
         contentPreviewPage = new ContentPreviewPage(
