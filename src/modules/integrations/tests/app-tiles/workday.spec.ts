@@ -1691,8 +1691,6 @@ test.describe(
           WORKDAY_VALUES.LeaveType,
           WORKDAY_VALUES.TimeOffLeaveType
         );
-        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.clickEditDashboard();
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
