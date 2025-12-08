@@ -8,6 +8,9 @@ export interface CustomField {
 
 const DATE_NOW: string = Date.now().toString().slice(-6);
 
+export const MAX_CUSTOM_FIELD_NAME_LENGTH = 20;
+export const CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS = `Custom Field Name More Than ${MAX_CUSTOM_FIELD_NAME_LENGTH} Characters`;
+
 export const CF_LABEL_META = {
   CREATE: {
     name: `Label | ${DATE_NOW}`,

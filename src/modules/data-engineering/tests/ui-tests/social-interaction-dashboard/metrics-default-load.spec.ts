@@ -56,7 +56,13 @@ test.describe(
     test(
       'verify Reaction/Like metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@reactions-or-likes'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@reactions-or-likes',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -82,7 +88,13 @@ test.describe(
     test(
       'verify Feed posts and comments metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@feed-posts-and-comments'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@feed-posts-and-comments',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -110,7 +122,7 @@ test.describe(
     test(
       'verify Replies metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
@@ -136,7 +148,7 @@ test.describe(
     test(
       'verify Shares metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@shares'],
       },
       async () => {
         tagTest(test.info(), {
@@ -162,7 +174,7 @@ test.describe(
     test(
       'verify Favorites metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@favorites'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@favorites'],
       },
       async () => {
         tagTest(test.info(), {
@@ -189,7 +201,13 @@ test.describe(
     test(
       'verify social campaign shares tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@social-campaign-shares'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@social-campaign-shares',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -216,7 +234,13 @@ test.describe(
     test(
       'verify Least engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@least-engaged-by-department'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@least-engaged-by-department',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -243,7 +267,13 @@ test.describe(
     test(
       'verify Least engaged by Department CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@least-engaged-by-department-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@least-engaged-by-department-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -270,7 +300,13 @@ test.describe(
     test(
       'verify Most engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@most-engaged-by-department'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@most-engaged-by-department',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -297,7 +333,13 @@ test.describe(
     test(
       'verify Most engaged by Department CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@most-engaged-by-department-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@most-engaged-by-department-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -324,7 +366,13 @@ test.describe(
     test(
       'verify Participant engagement activity chart data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@participant-engagement-activity'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@participant-engagement-activity',
+        ],
       },
       async () => {
         tagTest(test.info(), {

@@ -1,10 +1,10 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { tagTest } from '@core/utils/testDecorator';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { formatCreatedAtDateForManageContent, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { tagTest } from '@/src/core/utils/testDecorator';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import {
   BulkActionOptions,
@@ -22,7 +22,9 @@ import { contentTestFixture as test, users } from '@/src/modules/content/fixture
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { PROFILE_TEST_DATA } from '@/src/modules/content/test-data/profile.test.data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ManageSitesComponent, OnboardingComponent } from '@/src/modules/content/ui/components';
+import { AddPeopleInSiteComponent } from '@/src/modules/content/ui/components/addPeopleInSiteComponent';
 import { AddToCampaignComponent } from '@/src/modules/content/ui/components/addToCampaignComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditSitePage } from '@/src/modules/content/ui/pages/editSitePage';
@@ -341,7 +343,7 @@ test.describe(
         if (!campaignName) {
           throw new Error('Campaign has neither title nor message');
         }
-        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
         const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -360,7 +362,9 @@ test.describe(
         await addToCampaignComponent.clickOnAddToCampaignInput();
         await addToCampaignComponent.typeInAddToCampaignInput(campaignName);
         await addToCampaignComponent.clickOnSaveButton();
-        await manageContentPage.verifyToastMessageIsVisibleWithText('Added content to campaign');
+        await manageContentPage.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.TOAST_MESSAGES.ADDED_CONTENT_TO_CAMPAIGN
+        );
       }
     );
 
@@ -405,7 +409,7 @@ test.describe(
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -826,6 +830,93 @@ test.describe(
       }
     );
     test(
+      'to verify add another button in manage site people tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23554'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify add another button in manage site people tab',
+          zephyrTestId: 'CONT-23554',
+          storyId: 'CONT-23554',
+        });
+        const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+          size: 1000,
+        });
+        const newSite =
+          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+        console.log('newSite', newSite);
+        const siteId = newSite.siteId;
+        const getUserList = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
+        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
+        const memberNames = getMemBerList.result.listOfItems.map((member: any) => member.name);
+        const allUserNames = getUserList.result.listOfItems.map((user: any) =>
+          `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        );
+        const nonMemberNames = allUserNames.filter((userName: string) => !memberNames.includes(userName));
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, newSite.siteId);
+        await siteDashboardPage.loadPage();
+        const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
+        const addPeopleInSiteComponent = new AddPeopleInSiteComponent(appManagerFixture.page);
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSitesComponent.clickOnPeppleTabAction();
+        await manageSitesComponent.clickOnAddAnotherButtonAction();
+
+        if (nonMemberNames.length === 0) {
+          throw new Error('No non-member users found to add to the site');
+        }
+
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
+        await addPeopleInSiteComponent.clickOnAddButton(siteId);
+        await manageSitesComponent.clickOnAddAnotherButtonAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
+      }
+    );
+    test(
+      'verify rejected content functionality under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify rejected content functionality under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20533',
+          storyId: 'CONT-20533',
+        });
+
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
+        if (!siteListResponse || siteListResponse.length === 0) {
+          throw new Error('No sites found in siteListResponse');
+        }
+        // Loop through sites to find one where standard user is NOT a member, owner, or manager
+        const newsiteInfo =
+          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        console.log('pageInfo', pageInfo);
+        await appManagerApiFixture.siteManagementHelper.rejectContent(
+          newsiteInfo.siteId, // Use the same site where the content was created
+          pageInfo.contentId,
+          'This is not good'
+        );
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+      }
+    );
+    test(
       'to verify the favourite content filters',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26264'],
@@ -964,49 +1055,7 @@ test.describe(
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
       }
     );
-    test(
-      'verify rejected content functionality under Content tab in Manage Site',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
-      },
-      async ({ appManagerApiFixture, standardUserApiFixture, appManagerFixture }) => {
-        tagTest(test.info(), {
-          description: 'Verify rejected content functionality under Content tab in Manage Site',
-          zephyrTestId: 'CONT-20533',
-          storyId: 'CONT-20533',
-        });
 
-        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
-        if (!siteListResponse || siteListResponse.length === 0) {
-          throw new Error('No sites found in siteListResponse');
-        }
-        // Loop through sites to find one where standard user is NOT a member, owner, or manager
-        const newsiteInfo =
-          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
-        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
-          siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
-          contentInfo: { contentType: 'page', contentSubType: 'news' },
-        });
-        console.log('pageInfo', pageInfo);
-        await appManagerApiFixture.siteManagementHelper.rejectContent(
-          newsiteInfo.siteId, // Use the same site where the content was created
-          pageInfo.contentId,
-          'This is not good'
-        );
-        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
-        await siteDetailsPage.loadPage();
-        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
-        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
-        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
-        await siteDetailsPage.actions.clickOnContentTab();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
-      }
-    );
     test(
       'to verify the created and published dates of content in  Manage site content',
       {

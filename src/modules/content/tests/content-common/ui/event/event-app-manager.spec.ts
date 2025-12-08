@@ -10,13 +10,14 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+// import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { CreateComponent } from '@/src/modules/content/ui/components/createComponent';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
-// import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
   ContentTestSuite.EVENT_APP_MANAGER,
@@ -82,16 +83,7 @@ test.describe(
         );
 
         // Generate event data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
         const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
         // Create and publish the event
@@ -126,12 +118,13 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await sideNavBarComponent.clickOnCreateButton();
         await createComponent.selectContentTypeAndCreateContent(ContentType.EVENT);
-        await addContentModal.selectSiteFromDropdown('All Employees');
+        await addContentModal.selectSiteFromDropdown(DEFAULT_PUBLIC_SITE_NAME);
         await addContentModal.clickAddButton();
         await eventCreationPage.assertions.verifyLanguageDropdown();
 
         // creating event through API
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
         const eventName = CONTENT_TEST_DATA.DEFAULT_EVENT_CONTENT.title;
         const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
           siteId: allEmployeesSiteId,
@@ -146,7 +139,7 @@ test.describe(
         });
 
         console.log(
-          `Created event via API: ${eventName} with ID: ${eventInfo.contentId} in All Employees site: ${allEmployeesSiteId}`
+          `Created event via API: ${eventName} with ID: ${eventInfo.contentId} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
 
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();

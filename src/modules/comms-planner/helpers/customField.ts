@@ -31,6 +31,9 @@ export const editCustomField = async (customFieldsPage: CustomFieldsPage, meta: 
 
   await customFieldsPage.verifyOpenedCustomFieldEditModal();
 
+  await customFieldsPage.verifyMaxCharacterCustomFieldNameValidation('edit');
+  await customFieldsPage.verifyEmptyCustomFieldNameValidation('edit');
+
   let editMeta: CustomField = CF_LABEL_META.EDIT;
 
   switch (meta.type) {
@@ -82,7 +85,11 @@ export const toggleCustomFieldStatusInListing = async (customFieldsPage: CustomF
 export const createCustomField = async (customFieldsPage: CustomFieldsPage, meta: CustomField) => {
   await customFieldsPage.clickAddCustomFieldButton();
   await customFieldsPage.verifyOpenedCustomFieldModal();
+  await customFieldsPage.verifyMaxCharacterCustomFieldNameValidation('create');
+  await customFieldsPage.verifyEmptyCustomFieldNameValidation('create');
   await customFieldsPage.addCustomFieldName(meta.name);
+
+  await customFieldsPage.verifyEmptyCustomFieldTypeValidation('create');
 
   switch (meta.type) {
     case CUSTOM_FIELD_TYPES.LABEL:

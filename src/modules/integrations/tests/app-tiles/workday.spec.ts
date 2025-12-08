@@ -15,19 +15,28 @@ import {
   REDIRECT_URLS,
   TILE_IDS,
   WORKDAY_CREDS,
+  WORKDAY_VALUES,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 
-const CreateAnotherRequest = 'Create another request';
-const Vacation = 'Vacation';
-const Wedding = 'Wedding';
-const AppName = 'Workday';
-const paystubsTileName = 'Display recent paystubs';
-const inboxTileName = 'Display inbox';
-const AppManagerDefined = 'App manager defined';
-const SiteManagerDefined = 'Site manager defined';
-const PayslipListUrl = 'Payslip list URL';
-const InboxTasksReportUrl = 'Inbox tasks report URL';
+const {
+  CreateAnotherRequest,
+  Vacation,
+  Wedding,
+  AppName,
+  paystubsTileName,
+  inboxTileName,
+  jobPostingsTileName,
+  AppManagerDefined,
+  SiteManagerDefined,
+  PayslipListUrl,
+  InboxTasksReportUrl,
+  JobType,
+  InternalJobType,
+  ExternalJobType,
+  AllJobType,
+  InternalJobPostingsUrl,
+} = WORKDAY_VALUES;
 
 test.describe(
   'workday App Tiles Integration',
@@ -61,6 +70,7 @@ test.describe(
         });
         const peopleTab = new PeopleTabPage(appManagerFixture.page);
         await peopleTab.navigateToPeopleDataPage();
+        await peopleTab.verifyNavigatedToPeoplePage();
         await peopleTab.deselectWorkdayIfChecked();
         await peopleTab.configureWorkdayCredentials({
           username: WORKDAY_CREDS.USERNAME,
@@ -113,7 +123,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21416',
+          zephyrTestId: 'INT-21416, INT-21563',
           storyId: 'INT-20803',
         });
 
@@ -194,7 +204,7 @@ test.describe(
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.isTilePresent(createdTileTitle);
-        //verify events UI
+        //verify pending learning courses tile data
         await siteDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
         createdTileTitle = undefined;
       }
@@ -211,6 +221,7 @@ test.describe(
           zephyrTestId: 'INT-27858',
           storyId: 'INT-26436',
         });
+
         createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add, verify
@@ -382,7 +393,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22836',
+          zephyrTestId: 'INT-22836, INT-22826',
           storyId: 'INT-21182',
         });
 
@@ -536,7 +547,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22734',
+          zephyrTestId: 'INT-22734, INT-22735',
           storyId: 'INT-21590',
         });
 
@@ -754,7 +765,6 @@ test.describe(
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.PAYSLIP_LIST_URL);
-        createdTileTitle = undefined;
       }
     );
 
@@ -950,7 +960,6 @@ test.describe(
         await homeDashboard.isTilePresent(createdTileTitle);
         //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
-        createdTileTitle = undefined;
       }
     );
 
@@ -1097,26 +1106,19 @@ test.describe(
         //verify personalize button behaviour
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.INBOX_REPORT_URL);
-        createdTileTitle = undefined;
       }
     );
 
     test(
       'verify app manager is able to create, edit and remove default display job postings workday apptile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayjobpostings',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21415',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-24332',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1140,19 +1142,13 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove default display job postings workday apptile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayjobpostings',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21416',
-          storyId: 'INT-21591',
+          zephyrTestId: 'INT-21424',
+          storyId: 'INT-23622',
         });
 
         createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1172,6 +1168,278 @@ test.describe(
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday job postings app manager defined tile on home dashboard(Internal)',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27984, INT-21427',
+          storyId: 'INT-27948',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday job postings site manager defined tile on site dashboard(External)',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27985, INT-21417',
+          storyId: 'INT-27948',
+        });
+
+        createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTileWithSiteManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday job postings user defined tile on home dashboard(External)',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27986, INT-21425',
+          storyId: 'INT-27948',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithUserDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          JobType,
+          InternalJobPostingsUrl
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        // Personalize: select Job type and enter Example internal job URL, then Save
+        await homeDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.clickEditDashboard();
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday job postings user defined tile on site dashboard(Internal)',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27987, INT-27528',
+          storyId: 'INT-27948',
+        });
+
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTileWithUserDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          JobType,
+          InternalJobPostingsUrl
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(All job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27530, INT-24328, INT-24329, INT-24327',
+          storyId: 'INT-26724, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings all job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          AllJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        // Verify tile metadata, show more behaviour and redirect URL
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, AllJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(Internal job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27529, INT-24329, INT-24326',
+          storyId: 'INT-27948, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings internal job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, InternalJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(External job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22758, INT-24329, INT-22815',
+          storyId: 'INT-27948, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings external job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, ExternalJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
   }
