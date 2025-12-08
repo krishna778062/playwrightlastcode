@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { FeedPostResponse, FeedResult } from '@core/types/feed.type';
+import { CreateFeedPostPayload } from '@core/types/feed.type';
 
 export class FeedApiHelper {
   /**
@@ -227,6 +228,80 @@ export class FeedApiHelper {
   async validateFeedResponseSiteId(feedResponse: FeedPostResponse, expectedSiteId: string): Promise<void> {
     await test.step('Validate feed response site ID', async () => {
       expect(feedResponse.result.site?.siteId, 'Site ID should match').toBe(expectedSiteId);
+    });
+  }
+
+  /**
+   * Validates that attempting to delete an already deleted feed throws an appropriate error
+   * @param deleteOperation - A function that performs the delete operation (should throw an error)
+   */
+  async validateDeleteAlreadyDeletedFeedError(deleteOperation: () => Promise<void>): Promise<void> {
+    await test.step('Validate error when deleting already deleted feed', async () => {
+      try {
+        await deleteOperation();
+        throw new Error('Expected feed deletion to fail for already deleted feed, but it succeeded');
+      } catch (error: any) {
+        // Verify error response - should be 404 or similar
+        if (error.message && (error.message.includes('404') || error.message.includes('not found'))) {
+          // Expected error
+          return;
+        }
+        // Re-throw if it's a different error
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Validates that attempting to create a feed with blank text throws an appropriate error
+   * @param createFeedOperation - A function that performs the create feed operation with blank payload (should throw an error)
+   */
+  async validateCreateBlankFeedError(
+    createFeedOperation: (payload: CreateFeedPostPayload) => Promise<any>
+  ): Promise<void> {
+    await test.step('Validate error when creating feed with blank text', async () => {
+      try {
+        // Create feed with blank payload from test data (cast to mutable type)
+        const blankPayload: CreateFeedPostPayload = {
+          ...FEED_TEST_DATA.BLANK_FEED_PAYLOAD,
+          listOfAttachedFiles: [...FEED_TEST_DATA.BLANK_FEED_PAYLOAD.listOfAttachedFiles],
+        };
+        const response = await createFeedOperation(blankPayload);
+        // If creation succeeds, check if the response indicates an error
+        if (response.status === 'error' || response.status === 'failure') {
+          // Expected error response
+          return;
+        }
+        // If it succeeded, that's unexpected - the API should reject empty feeds
+        throw new Error('Expected feed creation to fail with blank text, but it succeeded');
+      } catch (error: any) {
+        // Verify error response - check for various possible error messages
+        const errorMessage = error.message || '';
+        const errorLower = errorMessage.toLowerCase();
+        if (
+          errorLower.includes('empty') ||
+          errorLower.includes('cannot be empty') ||
+          errorLower.includes('required') ||
+          errorLower.includes('400') ||
+          errorLower.includes('validation') ||
+          errorLower.includes('invalid')
+        ) {
+          // Expected error - feed creation failed as expected
+          return;
+        }
+        // If error doesn't match expected patterns, check if it's a 400/422 status
+        if (errorMessage.includes('Status: 400') || errorMessage.includes('Status: 422')) {
+          // Expected validation error
+          return;
+        }
+        // Check for error response body with status error or failure
+        if (error.responseBody && (error.responseBody.status === 'error' || error.responseBody.status === 'failure')) {
+          // Expected error response
+          return;
+        }
+        // Re-throw if it's a different error
+        throw error;
+      }
     });
   }
 }

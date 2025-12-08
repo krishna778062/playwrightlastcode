@@ -78,4 +78,15 @@ export const FEED_TEST_DATA = {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
   },
+  BLANK_FEED_PAYLOAD: {
+    textJson:
+      '{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":""}]}]}',
+    textHtml: '<p></p>',
+    scope: 'public',
+    siteId: null,
+    listOfAttachedFiles: [],
+    ignoreToxic: false,
+    type: 'post',
+    variant: 'standard',
+  },
 } as const;
