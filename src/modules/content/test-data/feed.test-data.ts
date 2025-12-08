@@ -9,6 +9,7 @@ export const FEED_TEST_DATA = {
     CONTENT_UNPUBLISHED: 'Unpublished content successfully',
     ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -77,5 +78,10 @@ export const FEED_TEST_DATA = {
   PLACEHOLDER_TEXT: {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
+  EVENT_SMART_FEED: {
+    SITE_NAME: 'All Employees',
+    EVENT_LOCATION: 'GGN',
+    TIMEZONE_ID_ASIA_KOLKATA: 328,
   },
 } as const;
