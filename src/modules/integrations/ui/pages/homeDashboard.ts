@@ -971,7 +971,7 @@ export class HomeDashboard extends BasePage {
     await this.appTileComponent.clickEditDashboard();
   }
   /**
-   * Complete workflow to add a Greenhouse tile with App Manager Defined settings and toggle on
+   *Complete workflow to add a tile with App Manager Defined settings and drop down selection and toggle on
    */
   async addAppManagerDefinedWithOptionsEnableToggle(
     tileTitle: string,
@@ -979,13 +979,12 @@ export class HomeDashboard extends BasePage {
     tileName: string,
     destination: string,
     fieldName: string,
-    fieldValue: string,
-    fieldName2: string,
-    fieldValue2: string
+    fieldValue: string
   ): Promise<void> {
-    await this.addTileEnableToggle(tileTitle, 'Greenhouse', tileName, destination, {
-      radioOptionsWithValues: [{ fieldName: fieldName, option: 'App Manager Defined', value: fieldValue }],
-      fields: [{ name: fieldName2, value: fieldValue2 }],
+    await this.addTileEnableToggle(tileTitle, appName, tileName, destination, {
+      radioOptionsWithValues: [
+        { fieldName: fieldName, option: ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, value: fieldValue },
+      ],
     });
   }
 
@@ -1131,5 +1130,35 @@ export class HomeDashboard extends BasePage {
   }
   async setUpTileTextbox(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await this.tileOperationsComponent.setUpTileTextbox(tileTitle, fieldName, fieldValue);
+  }
+  /**
+   * Verify Service Now Approval tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowApprovalContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyServiceNowApprovalContentStructure(tileTitle);
+  }
+  /**
+   * Complete workflow to create a ticket from a Service Now tile
+   */
+  async createTicketFromTile(
+    tileTitle: string,
+    category: string,
+    categoryValue: string,
+    subcategory: string,
+    subcategoryValue: string
+  ): Promise<void> {
+    await this.appTileComponent.clickButton('Create ticket');
+    await this.selectDropdownValue('Category', categoryValue);
+    await this.selectDropdownValue('Subcategory', subcategoryValue);
+    await this.appTileComponent.clickButton('Create');
+    await this.verifyToastMessage(MESSAGES.CREATE_TICKET_SUCCESS_MESSAGE);
+  }
+  /**
+   * Verify Service Now Created Ticket tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowCreatedTicketStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyServiceNowCreatedTicketStructure(tileTitle);
   }
 }
