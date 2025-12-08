@@ -16,6 +16,10 @@ export class CalendarPage extends BasePage {
    */
   readonly createActivityModalTitle: Locator;
   readonly customFieldsCreateActivityModalTitle: Locator;
+  readonly createActivityModalName: Locator;
+  readonly createActivityModalDescription: Locator;
+  readonly createActivityModalCancelButton: Locator;
+  readonly createActivityModalCreateButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.COMMS_PLANNER_PLANNER);
@@ -31,6 +35,10 @@ export class CalendarPage extends BasePage {
      */
     this.createActivityModalTitle = this.page.getByRole('heading', { name: 'Create new activity' });
     this.customFieldsCreateActivityModalTitle = this.page.getByRole('heading', { name: 'Custom fields' });
+    this.createActivityModalName = this.page.locator('input[name="title"]');
+    this.createActivityModalDescription = this.page.locator('textarea[placeholder="Add context or internal notes"]');
+    this.createActivityModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
+    this.createActivityModalCreateButton = this.page.getByRole('button', { name: 'Create new activity' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -50,10 +58,49 @@ export class CalendarPage extends BasePage {
     });
   }
 
+  async addActivityName(name: string): Promise<void> {
+    await test.step('Add activity name', async () => {
+      await this.fillInElement(this.createActivityModalName, name, {
+        stepInfo: `Fill in activity name "${name}"`,
+      });
+    });
+  }
+
+  async addActivityDescription(description: string): Promise<void> {
+    await test.step('Add activity description', async () => {
+      await this.fillInElement(this.createActivityModalDescription, description, {
+        stepInfo: `Fill in activity description "${description}"`,
+      });
+    });
+  }
+
+  async clickCancelActivityModalButton(): Promise<void> {
+    await test.step('Click on "Cancel" button of activity modal', async () => {
+      await this.clickOnElement(this.createActivityModalCancelButton, {
+        stepInfo: 'Click "Cancel" button of create activity modal',
+      });
+    });
+  }
+
   async verifyOpenedActivityModal(): Promise<void> {
     await test.step('Verify | Create activity modal is open', async () => {
       await this.verifier.verifyTheElementIsVisible(this.createActivityModalTitle, {
         assertionMessage: 'Create new activity modal title should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.createActivityModalName, {
+        assertionMessage: 'Create new activity input should be visible in create activity modal',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.createActivityModalCancelButton, {
+        assertionMessage: 'Create new activity button should be visible in create activity modal',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.createActivityModalCreateButton, {
+        assertionMessage: "Create new activity's cancel button should be visible in create activity modal",
         timeout: TIMEOUTS.MEDIUM,
       });
     });

@@ -38,6 +38,7 @@ export class RecognitionHubPage extends BasePage {
   readonly deleteRecognitionDialogBoxCancelButton: Locator;
   readonly deletedRecognitionPostNotAvailable: Locator;
   readonly deletedRecognitionPostDeletedMessage: Locator;
+  readonly recognitionFirstPost: Locator;
 
   /**
    * This is a Recognition Hub class that contains locators and methods for the Recognition Hub page.
@@ -53,6 +54,7 @@ export class RecognitionHubPage extends BasePage {
     this.deleteRecognitionDialogBoxDescriptionText = this.deleteRecognitionDialogBoxContainer.locator(
       'p[class*="Typography-module__paragraph"]'
     );
+    this.recognitionFirstPost = page.locator('.Recognition_panelInner--TcQfa');
     this.deleteRecognitionWithRevokePoints = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsyes"]');
     this.deleteRecognitionOnly = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsno"]');
     this.deleteRecognitionNote = this.deleteRecognitionDialogBoxContainer.locator(
@@ -335,6 +337,20 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Click Share button on the first recognition post
+   */
+  async clickShareButtonOnFirstRecognition(): Promise<void> {
+    await test.step('Click Share button on first recognition post', async () => {
+      const recognitionPost = this.recognitionFirstPost.first();
+      const shareButton = recognitionPost.getByRole('button', { name: 'Share this recognition' });
+      await this.verifier.verifyTheElementIsVisible(shareButton, {
+        assertionMessage: 'Share button should be visible on recognition post',
+      });
+      await this.clickOnElement(shareButton, { stepInfo: 'Clicking Share button on recognition post' });
+    });
+  }
+
+  /**
    * Mock the wallet points
    */
   async mockTheWalletPoints(pointsToGive: number, pointsToSpend: number, redeemedPoint: number): Promise<void> {
@@ -504,7 +520,7 @@ export class RecognitionHubPage extends BasePage {
   async verifyRecognitionPostVisible(message?: string): Promise<void> {
     await test.step(`Verify recognition post is visible with message "${message}"`, async () => {
       // Wait for recognition post to be visible
-      const recognitionPosts = this.page.locator('.Recognition_panelInner--TcQfa').first();
+      const recognitionPosts = this.recognitionFirstPost.first();
 
       await this.verifier.verifyTheElementIsVisible(recognitionPosts, {
         assertionMessage: 'Recognition post should be visible on Recognition dashboard',
