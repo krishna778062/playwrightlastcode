@@ -1280,7 +1280,7 @@ test.describe(
         //Generate a random tile title
         createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
         // Create via UI with App manager defined and enter URL, then add to home
-        await homeDashboard.addTileWithUserDefinedDropdownAndText(
+        await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
           AppName,
           jobPostingsTileName,
@@ -1326,7 +1326,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
-        await siteDashboard.addTileWithUserDefinedDropdownAndText(
+        await siteDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
           AppName,
           jobPostingsTileName,
@@ -1469,15 +1469,15 @@ test.describe(
         });
 
         createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
-
+        //add, edit, verify
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
           TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
           CONNECTOR_IDS.WORKDAY
         );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
-        //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
         await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
@@ -1512,6 +1512,8 @@ test.describe(
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
@@ -1524,7 +1526,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off Balance app manager defined tile on home dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
@@ -1549,6 +1551,7 @@ test.describe(
         );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
         await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
@@ -1558,9 +1561,9 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off Balance site manager defined tile on site dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off site manager defined tile on site dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
@@ -1585,11 +1588,98 @@ test.describe(
         );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
         createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22904, INT-22738',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.clickEditDashboard();
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22904, INT-22738',
+          storyId: 'INT-21590',
+        });
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.clickEditDashboard();
         await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
