@@ -96,8 +96,8 @@ jobs:
             LATEST_TAG=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
             
             if [ -z "$LATEST_TAG" ]; then
-              BASE_VERSION="25.01"
-              echo "First tag ever: $BASE_VERSION"
+            BASE_VERSION=$(date +%y.%m)  # Changed from "25.01"
+            echo "First tag ever: $BASE_VERSION"
             else
               CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
               CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
