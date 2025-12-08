@@ -140,6 +140,241 @@ test.describe(
     );
 
     test(
+      'verify user can create, edit and delete a feed post with file attachment on site feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19544'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can create, edit and delete a feed post with file attachment on site feed',
+          zephyrTestId: 'CONT-19544',
+          storyId: 'CONT-19544',
+        });
+
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Navigate to Site Dashboard as
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.verifyThePageIsLoaded();
+
+        // Click on Feed link
+        await siteDashboardPage.actions.clickOnFeedLink();
+
+        // Create Feed Post with Attachment
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        // Click "Share your thoughts or questions" button
+        await siteDashboardPage.actions.clickShareThoughtsButton();
+
+        // Get the createFeedPostComponent from siteDashboardPage
+        const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+
+        // Upload file "image1.jpg"
+        const imagePath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.ATTACHMENTS.IMAGE
+        );
+
+        // Post the feed with attachment (createAndPost handles text and file upload internally)
+        const postResult = await createFeedPostComponent.actions.createAndPost({
+          text: initialPostText,
+          attachments: {
+            files: [imagePath],
+          },
+        });
+
+        // Store created post text and postId for cleanup
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Verify post successfully created
+        await siteDashboardPage.assertions.validatePostText(postResult.postText);
+
+        // Verify timestamp displayed
+        const feedPageForSite = new FeedPage(standardUserFixture.page);
+        await feedPageForSite.getPostTimestamp(postResult.postText);
+
+        // Verify inline image preview visible
+        await feedPageForSite.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+
+        // Edit Feed Post
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // Open option menu (three dots)
+        await siteDashboardPage.actions.clickOnOptionsMenu(createdPostText);
+
+        // Click Edit
+        await createFeedPostComponent.clickEditOption();
+
+        // Verify editor opens
+        await createFeedPostComponent.assertions.verifyEditorVisible();
+
+        // Verify file restrictions: User must NOT be able to remove files
+        // Verify attached file count is still 1 (cannot remove files)
+        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+        // Update text
+        await createFeedPostComponent.actions.updatePostText(updatedPostText);
+
+        // Click Update
+        await createFeedPostComponent.actions.clickUpdateButton();
+
+        // Verify updated content appears
+        await siteDashboardPage.assertions.validatePostText(updatedPostText);
+
+        // Delete Feed Post
+        // Open option menu
+        await siteDashboardPage.actions.clickOnOptionsMenu(updatedPostText);
+
+        // Click Delete
+        await siteDashboardPage.listFeedComponent.actions.clickDeleteOption();
+
+        // Confirm Delete
+        await siteDashboardPage.listFeedComponent.actions.confirmDelete();
+
+        // Verify feed post is removed
+        await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
+        createdPostId = '';
+        createdPostText = '';
+      }
+    );
+
+    test(
+      'verify user can create, edit and delete a feed post with file attachment on content feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can create, edit and delete a feed post with file attachment on content feed',
+          zephyrTestId: 'CONT-19540',
+          storyId: 'CONT-19540',
+        });
+
+        // Get "All Employees" site ID
+        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+
+        // Create a page in "All Employees" site for testing
+        const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+          siteId: allEmployeesSiteId,
+          contentInfo: {
+            contentType: 'page',
+            contentSubType: 'news',
+          },
+          options: {
+            waitForSearchIndex: false,
+          },
+        });
+        const contentId = pageInfo.contentId;
+        const contentType = 'page';
+
+        // Navigate to Content Preview Page
+        const contentPreviewPage = new ContentPreviewPage(
+          standardUserFixture.page,
+          allEmployeesSiteId,
+          contentId,
+          contentType
+        );
+        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        await contentPreviewPage.verifyThePageIsLoaded();
+
+        // Verify comment option is visible
+        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+        // Create Feed Post (Comment) with Attachment
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        // Click "Share your thoughts or question" button
+        await contentPreviewPage.actions.clickShareThoughtsButton();
+
+        // Get the createFeedPostComponent from contentPreviewPage
+        const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
+
+        // Upload file "favicon.png"
+        const faviconPath = FileUtil.getFilePath(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'images',
+          FEED_TEST_DATA.ATTACHMENTS.FAVICON
+        );
+
+        // Post the feed with attachment (createAndPost handles text and file upload internally)
+        const postResult = await createFeedPostComponent.actions.createAndPost({
+          text: initialPostText,
+          attachments: {
+            files: [faviconPath],
+          },
+        });
+
+        // Store created post text and postId for cleanup
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Verify comment successfully created
+        await contentPreviewPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+        // Verify timestamp displayed
+        const listFeedComponent = contentPreviewPage['listFeedComponent'];
+        await listFeedComponent.assertions.getPostTimestamp(postResult.postText);
+
+        // Verify inline image preview visible
+        const feedPageForContent = new FeedPage(standardUserFixture.page);
+        await feedPageForContent.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+
+        // Edit Feed Post
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // Open option menu (three dots)
+        await listFeedComponent.actions.openPostOptionsMenu(createdPostText);
+
+        // Click Edit
+        await createFeedPostComponent.clickEditOption();
+
+        // Verify editor opens
+        await createFeedPostComponent.assertions.verifyEditorVisible();
+
+        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+        // Update text
+        await createFeedPostComponent.actions.updatePostText(updatedPostText);
+
+        // Click Update
+        await createFeedPostComponent.actions.clickUpdateButton();
+
+        // Verify updated content appears
+        await contentPreviewPage.assertions.waitForPostToBeVisible(updatedPostText);
+
+        // Delete Feed Post
+        // Open option menu
+        await listFeedComponent.actions.openPostOptionsMenu(updatedPostText);
+
+        // Click Delete
+        await listFeedComponent.actions.clickDeleteOption();
+
+        // Confirm Delete
+        await listFeedComponent.actions.confirmDelete();
+
+        // Verify feed post is removed
+        await contentPreviewPage.assertions.verifyPostIsNotVisible(updatedPostText);
+        createdPostId = '';
+        createdPostText = '';
+      }
+    );
+
+    test(
       'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-24150'],
@@ -1066,7 +1301,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -1429,7 +1664,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
