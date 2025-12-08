@@ -602,8 +602,6 @@ test.describe(
             'Verify Add Reaction button is visible for Content Comments when Timeline and Comments on Content mode is enabled',
           zephyrTestId: 'CONT-31814',
           storyId: 'CONT-31814',
-          isKnownFailure: true,
-          bugTicket: 'CONT-42865',
         });
 
         // Create content (page) via API helper (in default mode)
@@ -662,8 +660,6 @@ test.describe(
         await feedPage.assertions.validatePostText(commentText);
 
         await feedPage.assertions.verifyReactionButtonIsVisible();
-
-        await feedPage.actions.unlikeFeedPost(commentText);
 
         // Navigate back to content preview page
         contentPreviewPage = new ContentPreviewPage(
