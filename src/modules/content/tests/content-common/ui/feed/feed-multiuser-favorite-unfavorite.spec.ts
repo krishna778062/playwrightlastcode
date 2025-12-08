@@ -417,13 +417,13 @@ test.describe(
     });
 
     test(
-      'verify user can favorite and unfavorite a feed post on Home Feed',
+      'verify standard user can favorite and unfavorite a feed post on Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19557'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'In Zeus, verify user is able to favorite and unfavorite a Feed post on Home Feed',
+          description: 'In Zeus, verify standard user is able to favorite and unfavorite a Feed post on Home Feed',
           zephyrTestId: 'CONT-19557',
           storyId: 'CONT-19557',
         });
