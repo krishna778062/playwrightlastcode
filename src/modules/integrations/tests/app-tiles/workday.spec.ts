@@ -104,7 +104,7 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
           CONNECTOR_IDS.WORKDAY
         );
-
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -171,6 +171,7 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
           CONNECTOR_IDS.WORKDAY
         );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         //verify events UI and redirects
         await homeDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
@@ -213,7 +214,7 @@ test.describe(
     test(
       'verify show more behaviour for display pending learning courses workday apptile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -270,7 +271,7 @@ test.describe(
     test(
       'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -341,6 +342,7 @@ test.describe(
           TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
           CONNECTOR_IDS.WORKDAY
         );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
