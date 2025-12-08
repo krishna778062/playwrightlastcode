@@ -1442,5 +1442,35 @@ test.describe(
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
       }
     );
+
+    test(
+      'verify app manager is able to create, edit and remove default display time off balance workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27531',
+          storyId: 'INT-23622',
+        });
+
+        createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
+          CONNECTOR_IDS.WORKDAY
+        );
+
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
   }
 );
