@@ -703,7 +703,7 @@ export class SiteDashboard {
     fieldName: string,
     fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+    await this.addTile(tileTitle, appName, tileName, destination, {
       radioOptionsWithValues: [
         { fieldName: fieldName, option: ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED, value: fieldValue },
       ],
