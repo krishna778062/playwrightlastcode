@@ -374,7 +374,12 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
-        await siteDashboard.addTile(createdTileTitle, 'Workday', 'Apply for Time Off', UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.applyTimeOffTile,
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -532,6 +537,7 @@ test.describe(
           UI_ACTIONS.ADD_TO_HOME
         );
         //add, edit, verify
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -1469,7 +1475,7 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
           CONNECTOR_IDS.WORKDAY
         );
-
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -1532,6 +1538,7 @@ test.describe(
         //Generate a random tile title
         createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
 
+        //add, edit, verify
         await homeDashboard.addAppManagerDefinedWithOptions(
           createdTileTitle,
           AppName,
@@ -1540,7 +1547,7 @@ test.describe(
           WORKDAY_VALUES.LeaveType,
           WORKDAY_VALUES.TimeOffLeaveType
         );
-        //add, edit, verify
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
