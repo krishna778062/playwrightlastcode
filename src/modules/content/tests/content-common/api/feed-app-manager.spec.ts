@@ -1207,13 +1207,13 @@ test.describe(
     test(
       'app Manager Add Edit Delete Feed with Emojis on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36067'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36046'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'API Validation of App manager Feed creation with emojis on public site',
-          zephyrTestId: 'CONT-36067',
-          storyId: 'CONT-36067',
+          zephyrTestId: 'CONT-36046',
+          storyId: 'CONT-36046',
         });
 
         // Get or create a public site
@@ -1354,6 +1354,1731 @@ test.describe(
         }
 
         //Delete Feed with File Attachment on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Special Characters on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42936'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with special characters on private site',
+          zephyrTestId: 'CONT-42936',
+          storyId: 'CONT-42936',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Generate feed test data with special characters
+        const specialCharsText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: privateSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        // Override text with special characters
+        feedTestData.text = specialCharsText;
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with Special Characters on Private Site Dashboard
+        const updatedText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?%^&* -updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Special Characters on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Special Characters on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42935'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with special characters on unlisted site',
+          zephyrTestId: 'CONT-42935',
+          storyId: 'CONT-42935',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Generate feed test data with special characters
+        const specialCharsText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: unlistedSite.siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        // Override text with special characters
+        feedTestData.text = specialCharsText;
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with Special Characters on Unlisted Site Dashboard
+        const updatedText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?%^&* -updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Special Characters on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Emojis on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42934'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with emojis on private site',
+          zephyrTestId: 'CONT-42934',
+          storyId: 'CONT-42934',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Create feed with emojis
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Created a feed post with Emoji',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteId: privateSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with Emojis on Private Site Dashboard
+        const updatedText = 'Updated feed with emoji 😅';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Emojis on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Emojis on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42933'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with emojis on unlisted site',
+          zephyrTestId: 'CONT-42933',
+          storyId: 'CONT-42933',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Create feed with emojis
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Created a feed post with Emoji',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with Emojis on Unlisted Site Dashboard
+        const updatedText = 'Updated feed with emoji 😅';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Emojis on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with File Attachment on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42932'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with file attachment on private site',
+          zephyrTestId: 'CONT-42932',
+          storyId: 'CONT-42932',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Upload file first to get fileId for attachment
+        let fileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for attachment', error);
+        }
+
+        if (!fileId) {
+          throw new Error('Failed to upload file for attachment');
+        }
+
+        // Create feed with file attachment
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with file attachment on private site',
+          siteId: privateSite.siteId,
+          withAttachment: true,
+          fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+          fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+          mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+          fileId: fileId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseFiles(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with File Attachment on Private Site Dashboard
+        // Upload a new image for the update
+        let updatedFileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for update attachment', error);
+        }
+
+        const updatedText = 'Test feed with file attachment on private site - Updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: updatedFileId ? [buildAttachmentObject(updatedFileId)] : [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+        if (updatedFileId) {
+          await feedApiHelper.validateFeedResultFiles(updatedFeedResult);
+        }
+
+        //Delete Feed with File Attachment on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with File Attachment on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42931'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with file attachment on unlisted site',
+          zephyrTestId: 'CONT-42931',
+          storyId: 'CONT-42931',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Upload file first to get fileId for attachment
+        let fileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for attachment', error);
+        }
+
+        if (!fileId) {
+          throw new Error('Failed to upload file for attachment');
+        }
+
+        // Create feed with file attachment
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with file attachment on unlisted site',
+          siteId: unlistedSite.siteId,
+          withAttachment: true,
+          fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+          fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+          mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+          fileId: fileId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseFiles(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with File Attachment on Unlisted Site Dashboard
+        // Upload a new image for the update
+        let updatedFileId: string | undefined;
+        try {
+          const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+          );
+          updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
+        } catch (error) {
+          log.warn('Could not upload file for update attachment', error);
+        }
+
+        const updatedText = 'Test feed with file attachment on unlisted site - Updated';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: updatedFileId ? [buildAttachmentObject(updatedFileId)] : [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+        if (updatedFileId) {
+          await feedApiHelper.validateFeedResultFiles(updatedFeedResult);
+        }
+
+        //Delete Feed with File Attachment on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Topics on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36052'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with topics on public site',
+          zephyrTestId: 'CONT-36052',
+          storyId: 'CONT-36052',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Get topic list
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        if (availableTopics.length === 0) {
+          throw new Error('No topics available');
+        }
+
+        // Create feed with existing topic
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with topic on public site',
+          topics: [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }],
+          siteId: publicSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with Topics on Public Site Dashboard
+        const updatedText = 'Updated feed with topic';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText, {
+          topics: [{ id: availableTopics[0].topic_id, name: availableTopics[0].name }],
+        });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Topics on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with User Mentions on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36058'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with user mentions on public site',
+          zephyrTestId: 'CONT-36058',
+          storyId: 'CONT-36058',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Get user info for mention
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Create feed with user mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with user mention on public site',
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          siteId: publicSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with User Mentions on Public Site Dashboard
+        // Use the same user for update (or get app manager if different user needed)
+        const userMentions = [{ id: userInfo.userId, label: userInfo.fullName }];
+        const { textJson, textHtml } = buildFeedReplyText('', { userMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, userMentions);
+
+        //Delete Feed with User Mentions on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Site Mentions on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36054'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with site mentions on public site',
+          zephyrTestId: 'CONT-36054',
+          storyId: 'CONT-36054',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+
+        // Create feed with site mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with site mention on public site',
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          siteId: publicSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with Site Mentions on Public Site Dashboard
+        const siteMentions = [{ id: mentionedSite.siteId, label: mentionedSite.name }];
+        const { textJson, textHtml } = buildFeedReplyText('', { siteMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, siteMentions);
+
+        //Delete Feed with Site Mentions on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Embedded URL on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-36078'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with embedded URL on public site',
+          zephyrTestId: 'CONT-36078',
+          storyId: 'CONT-36078',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Create feed with embedded URL
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with embedded URL on public site',
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: publicSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Feed with Embedded URL on Public Site Dashboard
+        const updatedText = 'Updated feed with embedded URL';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Embedded URL on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Combination Feed on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-37705'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with combination features on public site',
+          zephyrTestId: 'CONT-42938',
+          storyId: 'CONT-42938',
+        });
+
+        // Get or create a public site
+        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!publicSite) {
+          throw new Error('No public site available');
+        }
+
+        // Get user and site info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+
+        // Create combination feed with all features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Hello World',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          topics:
+            availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: publicSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        if (availableTopics.length > 0) {
+          await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        }
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+
+        //Edit Delete Combination Feed on Public Site Dashboard
+        const updatedText = 'Hello Nation';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Combination Feed on Public Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Topics on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42589'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with topics on private site',
+          zephyrTestId: 'CONT-42589',
+          storyId: 'CONT-42589',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Get topic list
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        if (availableTopics.length === 0) {
+          throw new Error('No topics available');
+        }
+
+        // Create feed with existing topic
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with topic on private site',
+          topics: [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }],
+          siteId: privateSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with Topics on Private Site Dashboard
+        const updatedText = 'Updated feed with topic';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText, {
+          topics: [{ id: availableTopics[0].topic_id, name: availableTopics[0].name }],
+        });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Topics on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Topics on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-37704'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with topics on unlisted site',
+          zephyrTestId: 'CONT-42588',
+          storyId: 'CONT-42588',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Get topic list
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        if (availableTopics.length === 0) {
+          throw new Error('No topics available');
+        }
+
+        // Create feed with existing topic
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with topic on unlisted site',
+          topics: [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }],
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with Topics on Unlisted Site Dashboard
+        const updatedText = 'Updated feed with topic';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText, {
+          topics: [{ id: availableTopics[0].topic_id, name: availableTopics[0].name }],
+        });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Topics on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with User Mentions on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-33867'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with user mentions on private site',
+          zephyrTestId: 'CONT-33867',
+          storyId: 'CONT-33867',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Get user info for mention
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Create feed with user mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with user mention on private site',
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          siteId: privateSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with User Mentions on Private Site Dashboard
+        const userMentions = [{ id: userInfo.userId, label: userInfo.fullName }];
+        const { textJson, textHtml } = buildFeedReplyText('', { userMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, userMentions);
+
+        //Delete Feed with User Mentions on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with User Mentions on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-33864'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with user mentions on unlisted site',
+          zephyrTestId: 'CONT-33864',
+          storyId: 'CONT-33864',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Get user info for mention
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Create feed with user mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with user mention on unlisted site',
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with User Mentions on Unlisted Site Dashboard
+        const userMentions = [{ id: userInfo.userId, label: userInfo.fullName }];
+        const { textJson, textHtml } = buildFeedReplyText('', { userMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, userMentions);
+
+        //Delete Feed with User Mentions on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Site Mentions on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-33863'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with site mentions on private site',
+          zephyrTestId: 'CONT-33863',
+          storyId: 'CONT-33863',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+
+        // Create feed with site mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with site mention on private site',
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          siteId: privateSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with Site Mentions on Private Site Dashboard
+        const siteMentions = [{ id: mentionedSite.siteId, label: mentionedSite.name }];
+        const { textJson, textHtml } = buildFeedReplyText('', { siteMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, siteMentions);
+
+        //Delete Feed with Site Mentions on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Site Mentions on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-25969'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with site mentions on unlisted site',
+          zephyrTestId: 'CONT-25969',
+          storyId: 'CONT-25969',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+
+        // Create feed with site mention
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with site mention on unlisted site',
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with Site Mentions on Unlisted Site Dashboard
+        const siteMentions = [{ id: mentionedSite.siteId, label: mentionedSite.name }];
+        const { textJson, textHtml } = buildFeedReplyText('', { siteMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, siteMentions);
+
+        //Delete Feed with Site Mentions on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Embedded URL on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CCONT-42606'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with embedded URL on private site',
+          zephyrTestId: 'CONT-42606',
+          storyId: 'CONT-42606',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Create feed with embedded URL
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with embedded URL on private site',
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: privateSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Feed with Embedded URL on Private Site Dashboard
+        const updatedText = 'Updated feed with embedded URL';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Embedded URL on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Embedded URL on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42604'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with embedded URL on unlisted site',
+          zephyrTestId: 'CONT-42604',
+          storyId: 'CONT-42604',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Create feed with embedded URL
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with embedded URL on unlisted site',
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Feed with Embedded URL on Unlisted Site Dashboard
+        const updatedText = 'Updated feed with embedded URL';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Embedded URL on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Combination Feed on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42605'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with combination features on private site',
+          zephyrTestId: 'CONT-42605',
+          storyId: 'CONT-42605',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Get user and site info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          // Try unlisted site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        }
+        if (!mentionedSite || mentionedSite.siteId === privateSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+
+        // Create combination feed with all features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Hello World',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          topics:
+            availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: privateSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        if (availableTopics.length > 0) {
+          await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        }
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Delete Combination Feed on Private Site Dashboard
+        const updatedText = 'Hello Nation';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Combination Feed on Private Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Combination Feed on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42594'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with combination features on unlisted site',
+          zephyrTestId: 'CONT-42594',
+          storyId: 'CONT-42594',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Get user and site info for mentions
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        // Get another site for mention (try different access types if same access type returns same site)
+        let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try public site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          // Try private site
+          mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        }
+        if (!mentionedSite || mentionedSite.siteId === unlistedSite.siteId) {
+          throw new Error('No additional site available for mention');
+        }
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+
+        // Create combination feed with all features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Hello World',
+          emoji: { name: 'grin', emoji: '😀' },
+          siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
+          userMention: { id: userInfo.userId, label: userInfo.fullName },
+          topics:
+            availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
+          linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
+          siteId: unlistedSite.siteId,
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+        if (availableTopics.length > 0) {
+          await feedApiHelper.validateFeedResponseTopics(feedResponse);
+        }
+        await feedApiHelper.validateFeedResponseLinks(feedResponse);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Delete Combination Feed on Unlisted Site Dashboard
+        const updatedText = 'Hello Nation';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText);
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Combination Feed on Unlisted Site Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Multiple Topics on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-33856'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with multiple topics on home dashboard',
+          zephyrTestId: 'CONT-33856',
+          storyId: 'CONT-33856',
+        });
+
+        // Get topic list
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result?.listOfItems || [];
+        if (availableTopics.length < 2) {
+          throw new Error('At least 2 topics required for this test');
+        }
+
+        // Create feed with multiple topics
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Test feed with multiple topics',
+          topics: [
+            { id: availableTopics[0].topic_id, label: availableTopics[0].name },
+            { id: availableTopics[1].topic_id, label: availableTopics[1].name },
+          ],
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseTopics(feedResponse);
+
+        //Edit Delete Feed with Multiple Topics on Home Dashboard
+        const updatedText = 'Updated feed with multiple topics';
+        const { textJson, textHtml } = buildFeedReplyText(updatedText, {
+          topics: [
+            { id: availableTopics[0].topic_id, name: availableTopics[0].name },
+            { id: availableTopics[1].topic_id, name: availableTopics[1].name },
+          ],
+        });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
+
+        //Delete Feed with Multiple Topics on Home Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Multiple User Mentions on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-26614'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with multiple user mentions on home dashboard',
+          zephyrTestId: 'CONT-26614',
+          storyId: 'CONT-26614',
+        });
+
+        // Get user info for mentions
+        const user1 = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const user2 = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
+
+        // Create feed with multiple user mentions
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Test feed with multiple user mentions',
+          userMention: { id: user1.userId, label: user1.fullName },
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+
+        //Edit Delete Feed with Multiple User Mentions on Home Dashboard
+        const userMentions = [
+          { id: user1.userId, label: user1.fullName },
+          { id: user2.userId, label: user2.fullName },
+        ];
+        const { textJson, textHtml } = buildFeedReplyText('', { userMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, userMentions);
+
+        //Delete Feed with Multiple User Mentions on Home Dashboard
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager Add Edit Delete Feed with Multiple Site Mentions on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-20935'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with multiple site mentions on home dashboard',
+          zephyrTestId: 'CONT-20935',
+          storyId: 'CONT-20935',
+        });
+
+        // Get sites for mentions
+        const site1 = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        const site2 = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!site1 || !site2) {
+          throw new Error('At least 2 sites required for this test');
+        }
+
+        // Create feed with multiple site mentions
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Test feed with multiple site mentions',
+          siteMention: { id: site1.siteId, label: site1.name },
+        });
+
+        // Get app manager info for validation
+        const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        const feedApiHelper = new FeedApiHelper();
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(
+          feedResponse,
+          appManagerInfo.userId,
+          appManagerInfo.fullName
+        );
+        await feedApiHelper.validateFeedResponseMentions(feedResponse);
+
+        //Edit Delete Feed with Multiple Site Mentions on Home Dashboard
+        const siteMentions = [
+          { id: site1.siteId, label: site1.name },
+          { id: site2.siteId, label: site2.name },
+        ];
+        const { textJson, textHtml } = buildFeedReplyText('', { siteMentions });
+        const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson,
+            textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, siteMentions);
+
+        //Delete Feed with Multiple Site Mentions on Home Dashboard
         await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
     );
