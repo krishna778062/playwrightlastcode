@@ -699,8 +699,6 @@ test.describe(
         }
 
         const siteName = siteInCategory.name;
-        console.log('Category with 1 site:', categoryWithOneSite.name);
-        console.log('Site name:', siteName);
 
         await sitesPage.actions.selectCategoryDropDown();
         await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
