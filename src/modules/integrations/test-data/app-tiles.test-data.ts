@@ -248,6 +248,7 @@ export const WORKDAY_VALUES = {
   paystubsTileName: 'Display recent paystubs',
   inboxTileName: 'Display inbox',
   jobPostingsTileName: 'Display job postings',
+  timeOffBalanceTileName: 'Display time off balance',
   AppManagerDefined: 'App manager defined',
   SiteManagerDefined: 'Site manager defined',
   PayslipListUrl: 'Payslip list URL',
