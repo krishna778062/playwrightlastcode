@@ -1,6 +1,6 @@
 name: Auto Label New Release PR
 
-on:
+on: #dummy comment
   pull_request:
     types: [opened, reopened]
     branches:
