@@ -14,6 +14,8 @@ import {
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage, ManageSitesComponent } from '@/src/modules/content/ui';
 import { FilesPreviewMenuActionButton } from '@/src/modules/content/ui/components/filesPreviewModalComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
@@ -339,7 +341,7 @@ test.describe('favorite', () => {
         storyId: 'CONT-26283',
       });
 
-      const testSiteName = 'All Employees';
+      const testSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
       // Get the actual file name (in case we used a fallback file)
       const actualFileName = videoFilePath ? path.basename(videoFilePath) : videoFileName;
@@ -357,7 +359,7 @@ test.describe('favorite', () => {
         // Navigate to Sites from side nav (assuming "Site option from user drop down" refers to side nav)
         await sideNavBarComponent.clickOnSites();
 
-        // Get site ID for "All Employees" site
+        // Get site ID for DEFAULT_PUBLIC_SITE_NAME site
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(testSiteName);
         const siteManager = new SiteManager(appManagerFixture.page, siteId);
         await siteManager.loadSite();
@@ -478,7 +480,9 @@ test.describe('favorite', () => {
         await siteFilesPage.filesPreviewModalComponent.confirmDeleteOrCancelFromDeleteFileModal(
           FilesPreviewDeleteModal.Delete
         );
-        await siteFilesPage.filesPreviewModalComponent.verifyToastMessageIsVisibleWithText('Deleted file successfully');
+        await siteFilesPage.filesPreviewModalComponent.verifyToastMessageIsVisibleWithText(
+          MANAGE_SITE_TEST_DATA.TOAST_MESSAGES.DELETED_FILE_SUCCESSFULLY
+        );
       });
     }
   );

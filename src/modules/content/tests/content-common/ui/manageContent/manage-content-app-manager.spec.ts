@@ -9,6 +9,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
@@ -395,8 +396,9 @@ test.describe(
           zephyrTestId: 'CONT-33591',
           storyId: 'CONT-33591',
         });
-        // Get the "All Employees" site ID for API page creation
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Use test data for page name
         const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
@@ -416,7 +418,7 @@ test.describe(
         });
 
         console.log(
-          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in All Employees site: ${allEmployeesSiteId}`
+          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
@@ -428,7 +430,7 @@ test.describe(
         await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.searchForSite('All Employees');
+        await manageSitePage.actions.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.clickOnContentTab();
         await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
@@ -631,7 +633,9 @@ test.describe(
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.verifyToastMessageIsVisibleWithText('Moved 1 item successfully');
+        await manageContentPage.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.TOAST_MESSAGES.MOVED_ITEM_SUCCESSFULLY
+        );
       }
     );
 

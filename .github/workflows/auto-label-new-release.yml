@@ -45,5 +45,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '🚀 **New Release Detected**\n\nThis PR is from the `develop` branch and will create a new release with an incremented base version.\n\n✅ Label `new-release` has been automatically added.\n\n**What happens when merged:**\n- Base version will increment (e.g., 25.12 → 25.13)\n- New QA tag will be created (e.g., 25.13-qa.1)\n- Stage will reset to QA'
+              body: '🚀 **New Release Detected**\n\nThis PR is from the `develop` branch and will create a new release with an incremented base version.\n\n✅ Label `new-release` has been automatically added.\n\n**What happens when merged:**\n- Base version will increment sequentially (e.g., 25.11 → 25.12 → 26.01)\n- New QA tag will be created (e.g., 26.01-qa.1)\n- Stage will reset to QA\n\n**Note:** Version increments by month. If current version is month 12, it will roll over to next year (e.g., 25.12 → 26.01).'
             })

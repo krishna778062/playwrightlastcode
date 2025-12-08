@@ -9,6 +9,9 @@ export const FEED_TEST_DATA = {
     CONTENT_UNPUBLISHED: 'Unpublished content successfully',
     ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
+    ADDED_NEW_VERSION: 'Added new version successfully',
+    DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -77,5 +80,20 @@ export const FEED_TEST_DATA = {
   PLACEHOLDER_TEXT: {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
+  EVENT_SMART_FEED: {
+    EVENT_LOCATION: 'GGN',
+    TIMEZONE_ID_ASIA_KOLKATA: 328,
+  },
+  BLANK_FEED_PAYLOAD: {
+    textJson:
+      '{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":""}]}]}',
+    textHtml: '<p></p>',
+    scope: 'public',
+    siteId: null,
+    listOfAttachedFiles: [],
+    ignoreToxic: false,
+    type: 'post',
+    variant: 'standard',
   },
 } as const;
