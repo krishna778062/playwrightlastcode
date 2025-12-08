@@ -17,15 +17,14 @@ import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
-import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -1042,48 +1041,52 @@ test.describe(
       }
     );
 
-    test(
-      'verify warning popup appears when inappropriate content is submitted in Feed post or Comment',
+    test.describe(
+      'inappropriate content warning tests',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },
-      async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify warning popup appears when inappropriate content is submitted in Feed post or Comment for all roles',
-          zephyrTestId: 'CONT-28090',
-          storyId: 'CONT-28090',
-        });
-
-        // Inappropriate words to test
+      () => {
+        // Shared setup variables
+        let publicSiteId: string;
+        let pageContent: any;
+        let endUserInfo: any;
+        let siteManagerInfo: any;
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
 
-        // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          waitForSearchIndex: false,
-        });
-        const publicSiteId = publicSite.siteId;
+        test.beforeEach('Setup test data', async ({ appManagerApiFixture, appManagerFixture }) => {
+          // Get site
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          });
+          publicSiteId = publicSite.siteId;
 
-        const [endUserInfo, siteManagerInfo, pageContent] = await Promise.all([
-          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
-          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
-          appManagerApiFixture.contentManagementHelper.createPage({
+          // Get user info and create page in parallel
+          const [endUser, siteManager, page] = await Promise.all([
+            appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+            appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+            appManagerApiFixture.contentManagementHelper.createPage({
+              siteId: publicSiteId,
+              contentInfo: { contentType: 'page', contentSubType: 'news' },
+              options: { waitForSearchIndex: false },
+            }),
+          ]);
+          endUserInfo = endUser;
+          siteManagerInfo = siteManager;
+          pageContent = page;
+
+          // Pre-assign Site Manager role (needed for CONT-42996)
+          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
             siteId: publicSiteId,
-            contentInfo: { contentType: 'page', contentSubType: 'news' },
-            options: { waitForSearchIndex: false },
-          }),
-        ]);
+            userId: siteManagerInfo.userId,
+            role: SitePermission.MANAGER,
+          });
 
-        // Pre-assign Site Manager role (needed for Group 1-3 parallel tests)
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: siteManagerInfo.userId,
-          role: SitePermission.MANAGER,
+          // Set feed posting permission
+          const manageSitePage = new ManageSitePage(appManagerFixture.page);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.actions.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
         });
-
-        const manageSitePage = new ManageSitePage(appManagerFixture.page);
-        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
-        await manageSitePage.actions.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
 
         // Helper function to test Home Dashboard inappropriate content warning
         const testHomeDashboardWarning = async (userFixture: any, inappropriateText: string) => {
@@ -1170,64 +1173,136 @@ test.describe(
           await warningPopup.actions.clickCancel();
         };
 
-        // Group 1: Home Dashboard Tests - All users in parallel
-        await Promise.all([
-          testHomeDashboardWarning(appManagerFixture, inappropriatePostText),
-          testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
-          testHomeDashboardWarning(siteManagerFixture, inappropriatePostText),
-        ]);
+        test(
+          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+          },
+          async ({ appManagerFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description:
+                'Verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+              zephyrTestId: 'CONT-28090',
+              storyId: 'CONT-28090',
+            });
 
-        // Group 2: Site Dashboard Tests - All users in parallel
-        await Promise.all([
-          testSiteDashboardWarning(appManagerFixture, publicSiteId, inappropriatePostText),
-          testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
-          testSiteDashboardWarning(siteManagerFixture, publicSiteId, inappropriatePostText),
-        ]);
+            // Group 1: Home Dashboard Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testHomeDashboardWarning(appManagerFixture, inappropriatePostText),
+              testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
+            ]);
 
-        // Group 3: Content Page Tests - All users in parallel
-        await Promise.all([
-          testContentPageWarning(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          testContentPageWarning(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-        ]);
+            // Group 2: Site Dashboard Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testSiteDashboardWarning(appManagerFixture, publicSiteId, inappropriatePostText),
+              testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
+            ]);
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
-        // Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
+            // Group 3: Content Page Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testContentPageWarning(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+              testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+            ]);
+          }
+        );
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996'],
+          },
+          async ({ appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description:
+                'Verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+              zephyrTestId: 'CONT-42996',
+              storyId: 'CONT-42996',
+            });
 
-        // Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.MEMBER,
-        });
+            // Assign Site Content Manager role
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.CONTENT_MANAGER,
+            });
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+            // Group 1: Home Dashboard Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testHomeDashboardWarning(siteManagerFixture, inappropriatePostText),
+              testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
+            ]);
 
-        // Site Owner
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.OWNER,
-        });
+            // Group 2: Site Dashboard Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testSiteDashboardWarning(siteManagerFixture, publicSiteId, inappropriatePostText),
+              testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
+            ]);
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+            // Group 3: Content Page Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testContentPageWarning(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+              testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+            ]);
+          }
+        );
 
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Member',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997'],
+          },
+          async ({ appManagerApiFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify warning popup appears when inappropriate content is submitted for Site Member',
+              zephyrTestId: 'CONT-42997',
+              storyId: 'CONT-42997',
+            });
+
+            // Test Member role - Sequential context testing
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.MEMBER,
+            });
+
+            await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+            await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+            await testContentPageWarning(
+              standardUserFixture,
+              publicSiteId,
+              pageContent.contentId,
+              inappropriatePostText
+            );
+          }
+        );
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Owner',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999'],
+          },
+          async ({ appManagerApiFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify warning popup appears when inappropriate content is submitted for Site Owner',
+              zephyrTestId: 'CONT-42999',
+              storyId: 'CONT-42999',
+            });
+
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.OWNER,
+            });
+
+            await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+            await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+            await testContentPageWarning(
+              standardUserFixture,
+              publicSiteId,
+              pageContent.contentId,
+              inappropriatePostText
+            );
+          }
+        );
       }
     );
 
