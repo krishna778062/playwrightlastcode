@@ -6,7 +6,10 @@ export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
+    CONTENT_UNPUBLISHED: 'Unpublished content successfully',
+    ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -28,6 +31,7 @@ export const FEED_TEST_DATA = {
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
     EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
   },
   TIMEOUTS: {
@@ -74,5 +78,10 @@ export const FEED_TEST_DATA = {
   PLACEHOLDER_TEXT: {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
+  EVENT_SMART_FEED: {
+    SITE_NAME: 'All Employees',
+    EVENT_LOCATION: 'GGN',
+    TIMEZONE_ID_ASIA_KOLKATA: 328,
   },
 } as const;

@@ -63,6 +63,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -70,6 +71,7 @@ test.describe(
         );
         const image3Path = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -83,6 +85,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -90,6 +93,7 @@ test.describe(
         );
         const image786Path = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -103,6 +107,7 @@ test.describe(
           '..',
           '..',
           '..',
+          '..',
           'test-data',
           'static-files',
           'images',
@@ -110,6 +115,7 @@ test.describe(
         );
         const ratioTextPath = FileUtil.getFilePath(
           __dirname,
+          '..',
           '..',
           '..',
           '..',
@@ -148,9 +154,10 @@ test.describe(
 
         await test.step('Attempt to drag and drop another file', async () => {
           await feedPage.actions.addFileToPost(image1Path);
-          await feedPage.actions.waitForFileToAppear();
 
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
+
+          await feedPage.actions.waitForFileToAppear();
 
           // Verify still only 10 files
           await feedPage.assertions.verifyAttachedFileCount(10);
