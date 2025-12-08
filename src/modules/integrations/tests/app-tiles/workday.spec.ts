@@ -104,7 +104,6 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
           CONNECTOR_IDS.WORKDAY
         );
-
         //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -213,7 +212,7 @@ test.describe(
     test(
       'verify show more behaviour for display pending learning courses workday apptile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -270,7 +269,7 @@ test.describe(
     test(
       'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -372,7 +371,12 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
-        await siteDashboard.addTile(createdTileTitle, 'Workday', 'Apply for Time Off', UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.applyTimeOffTile,
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -530,6 +534,7 @@ test.describe(
           UI_ACTIONS.ADD_TO_HOME
         );
         //add, edit, verify
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -1158,7 +1163,12 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         //add, edit, verify
-        await siteDashboard.addTile(createdTileTitle, 'Workday', 'Display job postings', UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_SITE
+        );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
@@ -1267,7 +1277,7 @@ test.describe(
         //Generate a random tile title
         createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
         // Create via UI with App manager defined and enter URL, then add to home
-        await homeDashboard.addTileWithUserDefinedDropdownAndText(
+        await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
           AppName,
           jobPostingsTileName,
@@ -1313,7 +1323,7 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add, edit, and remove tile
-        await siteDashboard.addTileWithUserDefinedDropdownAndText(
+        await siteDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
           AppName,
           jobPostingsTileName,
@@ -1440,6 +1450,253 @@ test.describe(
         await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, ExternalJobType);
         await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
         await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove default display time off balance workday apptile on home dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayleave',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27531',
+          storyId: 'INT-23622',
+        });
+
+        createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        //add, edit, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify site manager is able to create, edit and remove default display time off balance workday apptile on site dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayleave',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27532',
+          storyId: 'INT-23622',
+        });
+
+        createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, edit, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayleave',
+        ],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27533',
+          storyId: 'INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off site manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27534',
+          storyId: 'INT-23622',
+        });
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance site ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on home dashboard',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayleave',
+        ],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22904, INT-22738',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.clickEditDashboard();
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22904, INT-22738',
+          storyId: 'INT-21590',
+        });
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
       }
     );
   }

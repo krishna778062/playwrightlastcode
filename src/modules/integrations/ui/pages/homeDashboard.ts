@@ -345,16 +345,24 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Complete workflow to add an app tile with single field personalize option
+   * Complete workflow to add an app tile with User defined personalize option(s).
+   * fieldName is required; fieldName2 is optional.
    */
   async addTilewithPersonalizeSingleField(
     tileTitle: string,
     appName: string,
     tileName: string,
-    fieldName: string
+    fieldName: string,
+    fieldName2?: string
   ): Promise<void> {
+    const radioOptions: Array<{ fieldName: string; option: string }> = [
+      { fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED },
+    ];
+    if (fieldName2) {
+      radioOptions.push({ fieldName: fieldName2, option: ORGANIZATION_SETTINGS.USER_DEFINED });
+    }
     await this.addTile(tileTitle, appName, tileName, UI_ACTIONS.ADD_TO_HOME, {
-      radioOptions: [{ fieldName, option: ORGANIZATION_SETTINGS.USER_DEFINED }],
+      radioOptions,
     });
   }
 
@@ -549,6 +557,7 @@ export class HomeDashboard extends BasePage {
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
+
   /**
    * Complete workflow to add an app tile with app manager defined and enable "Make user editable" before submitting
    */
@@ -864,7 +873,7 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Complete workflow to add a ServiceNow tile with App Manager Defined settings
+   * Complete workflow to add a tile with App Manager Defined dropdown settings
    */
   async addAppManagerDefinedWithOptions(
     tileTitle: string,
@@ -874,7 +883,7 @@ export class HomeDashboard extends BasePage {
     fieldName: string,
     fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+    await this.addTile(tileTitle, appName, tileName, destination, {
       radioOptionsWithValues: [
         { fieldName: fieldName, option: ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, value: fieldValue },
       ],
@@ -1060,7 +1069,7 @@ export class HomeDashboard extends BasePage {
     await this.tileOperationsComponent.verifyServiceNowTileContentStructure(tileTitle);
   }
   /**
-   * Complete workflow to add a ServiceNow tile with Dropdown
+   * Complete workflow to add a tile with Dropdown(without app manager defined settings)
    */
   async addTileWithDropdownField(
     tileTitle: string,
@@ -1098,39 +1107,21 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Complete workflow to add an app tile with User defined radio for both a dropdown and a text field,
-   * then click Add to home.
-   */
-  async addTileWithUserDefinedDropdownAndText(
-    tileTitle: string,
-    appName: string,
-    tileName: string,
-    dropdownFieldName: string,
-    textFieldName: string
-  ): Promise<void> {
-    await test.step(`Add ${appName} tile with User defined dropdown and text: ${tileTitle}`, async () => {
-      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
-      // Select User defined for both fields, do not choose/enter any values
-      await this.selectRadioOption(dropdownFieldName, ORGANIZATION_SETTINGS.USER_DEFINED);
-      await this.selectRadioOption(textFieldName, ORGANIZATION_SETTINGS.USER_DEFINED);
-      await this.appTileComponent.submitTileToHomeOrDashboard(UI_ACTIONS.ADD_TO_HOME);
-    });
-  }
-
-  /**
-   * Open Personalize for a tile, select a dropdown value and enter a text field, then Save
+   * Open Personalize for a tile, select a dropdown value and enter a text field(optional), then Save
    */
   async personalizeDropdownAndText(
     tileTitle: string,
     dropdownFieldName: string,
     dropdownValue: string,
-    textFieldName: string,
-    textValue: string
+    textFieldName?: string,
+    textValue?: string
   ): Promise<void> {
     await test.step(`Personalize '${tileTitle}' with dropdown and text`, async () => {
       await this.appTileComponent.openPersonalizeOptions(tileTitle);
       await this.selectFromDropdown(dropdownFieldName, dropdownValue);
-      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+      if (textFieldName !== undefined && textValue !== undefined) {
+        await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+      }
       await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }
