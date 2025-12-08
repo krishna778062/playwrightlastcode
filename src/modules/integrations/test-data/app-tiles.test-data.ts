@@ -44,6 +44,7 @@ export const TILE_IDS = {
   WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
   WORKDAY_APPLY_FOR_TIMEOFF: '61da175c-f777-4456-8512-715e7808b657',
   WORKDAY_DISPLAY_JOB_POSTINGS: '1b290b55-cc07-4b24-a963-ab8177f8d8eb',
+  WORKDAY_DISPLAY_TIME_OFF_BALANCE: '3418ba10-1e32-46b2-8b51-aeada4b89958',
   DISPLAY_TABULAR_REPORT: 'fb9971dd-f266-4c7e-b07e-74726c4f834f',
   FRESHSERVICE_DISPLAY_TICKETS_SUBMITTED_BY_ME: '4c84479e-4460-419c-9765-1a6de4c34c9b',
   FRESHSERVICE_DISPLAY_UNASSIGNED_TICKETS: 'c4008107-200e-41d7-94a2-3b556d87e06f',
@@ -114,7 +115,7 @@ export const REDIRECT_URLS = {
   DOCEBO: 'https://simpplr.docebosaas.com/',
   ASANA: 'https://app.asana.com/',
   GREENHOUSE: 'https://job-boards.greenhouse.io/',
-  WORKDAY: 'https://impl.wd12.myworkday.com/',
+  WORKDAY: 'https://impl-identity.wd12.myworkday.com/',
   WORKDAY_INBOX_TASKS_REPORT:
     'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
@@ -219,6 +220,8 @@ export const SERVICENOW_VALUES = {
   TIME_PERIOD: 'Time Period',
   DAYS_30: '30 days',
   INCIDENT_VIEW_VALUE: 'Self Service',
+  CATEGORY_VALUE: 'Software',
+  SUBCATEGORY_VALUE: 'Email',
 } as const;
 
 /**
@@ -247,6 +250,7 @@ export const WORKDAY_VALUES = {
   paystubsTileName: 'Display recent paystubs',
   inboxTileName: 'Display inbox',
   jobPostingsTileName: 'Display job postings',
+  timeOffBalanceTileName: 'Display time off balance',
   AppManagerDefined: 'App manager defined',
   SiteManagerDefined: 'Site manager defined',
   PayslipListUrl: 'Payslip list URL',
@@ -256,4 +260,8 @@ export const WORKDAY_VALUES = {
   ExternalJobType: 'External jobs',
   AllJobType: 'All jobs',
   InternalJobPostingsUrl: 'Example internal job URL',
+  LeaveType: 'Leave type',
+  TimeOffLeaveType: 'Time off',
+  LeaveOfAbsenceLeaveType: 'Leave of absence',
+  AllLeaveType: 'All',
 } as const;
