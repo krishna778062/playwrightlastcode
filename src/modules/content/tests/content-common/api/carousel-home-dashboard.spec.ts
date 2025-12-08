@@ -6,6 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { CarouselApiHelper } from '@/src/modules/content/apis/apiValidation/carouselApiHelper';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -130,7 +131,7 @@ test.describe(
         );
 
         // Get existing site for event creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event content
         const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
@@ -192,7 +193,7 @@ test.describe(
         );
 
         // Get existing site for album creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create album content
         const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
