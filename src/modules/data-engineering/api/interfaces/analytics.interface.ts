@@ -103,3 +103,25 @@ export interface GetBatchRunDetailsResponse {
   data: BatchRunDetail[];
   metadata: BatchRunMetadata;
 }
+
+// Content Engagement
+export interface ContentEngagementData {
+  total_reactions: number;
+  total_comments: number;
+  total_replies: number;
+  total_shares: number;
+  total_favorites: number;
+}
+
+export interface ContentEngagementMetadata {
+  tenantId: string;
+  contentId: string;
+  isRestricted: boolean;
+  timestamp: string;
+}
+
+export interface GetContentEngagementResponse {
+  success: boolean;
+  data: ContentEngagementData;
+  metadata: ContentEngagementMetadata;
+}
