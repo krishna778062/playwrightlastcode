@@ -882,7 +882,7 @@ test.describe(
     );
 
     test(
-      'verify app manager able to create forms using date and time components as mandatory fields and participate',
+      'verify app manager able to create forms using date and time component as mandatory field and participate',
       {
         tag: [
           TestPriority.P1,
@@ -894,9 +894,9 @@ test.describe(
       },
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
-          description: 'Verify app manager able to create forms using date and time components and participate',
-          zephyrTestId: 'ELF-136',
-          storyId: 'ELF-136',
+          description: 'Verify app manager able to create forms using date and time component and participate',
+          zephyrTestId: 'ELF-111',
+          storyId: 'ELF-111',
         });
 
         const formCreationPage = new FormCreationPage(appManagerPage);
@@ -1059,7 +1059,7 @@ test.describe(
     );
 
     test(
-      'verify app manager able to create forms using legal with custom url component as mandatory field and participate',
+      'verify app manager able to fill responses on preview screen same as participation page  for legal with custom url component',
       {
         tag: [
           TestPriority.P1,
@@ -1072,9 +1072,9 @@ test.describe(
       async ({ appManagerPage }) => {
         tagTest(test.info(), {
           description:
-            'Verify app manager able to create forms using legal with custom url components as mandatory field and participate',
-          zephyrTestId: 'ELF-894',
-          storyId: 'ELF-894',
+            'Verify app manager able to fill responses on preview screen same as participation page  for legal with custom url component',
+          zephyrTestId: 'ELF-962',
+          storyId: 'ELF-962',
         });
 
         const formCreationPage = new FormCreationPage(appManagerPage);
@@ -1155,6 +1155,171 @@ test.describe(
         // await formCreationPage.addPopupTextIntoLegalComponent('Automation Test - Legal Description');
         //await formCreationPage.clickOnPreviewButton();
         //click on legal question on preview screen
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using multi select component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using multi select component as mandatory field and participate',
+          zephyrTestId: 'ELF-159',
+          storyId: 'ELF-159',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('multi select');
+        await formCreationPage.addHeadingIntoComponent('multi select', 'Automation Test - multi select Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.verifyMultiSelectFieldIsMandatory(
+          'Automation Test - Multi select Description',
+          'Monthly'
+        );
+        await formParticipationPage.fillResponseIntoMultiSelectField('Weekly');
+        await formParticipationPage.fillResponseIntoMultiSelectField('Monthly');
+        await formParticipationPage.fillResponseIntoMultiSelectField('Yearly');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using dropdown component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using dropdown component as mandatory field and participate',
+          zephyrTestId: 'ELF-169',
+          storyId: 'ELF-169',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('dropdown');
+        await formCreationPage.addHeadingIntoComponent('dropdown', 'Automation Test - dropdown Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.fillResponseIntoDropdownField('Yearly');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'verify app manager not able to remove option if there is only one option available in dropdown',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager not able to remove option if there is only one option available in dropdown',
+          zephyrTestId: 'ELF-165',
+          storyId: 'ELF-165',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('dropdown');
+        await formCreationPage.addHeadingIntoComponent('dropdown', 'Automation Test - dropdown Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.deleteDefaultOptionFromDropdownComponent();
+        await formCreationPage.deleteDefaultOptionFromDropdownComponent();
+        await formCreationPage.deleteDefaultOptionFromDropdownComponent();
+        await formCreationPage.verifyLastOptionIsDisabledInDropdownComponent();
+      }
+    );
+
+    test(
+      'verify all options present into setting for upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify all options present into setting for upload image component',
+          zephyrTestId: 'ELF-170',
+          storyId: 'ELF-170',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.verifyOptionsIntoSettingForUploadImageComponent('Required');
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.verifyOptionsIntoSettingForUploadImageComponent('This is a required field');
+        await formCreationPage.verifyOptionsIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.verifyOptionsIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.verifyOptionsIntoSettingForUploadImageComponent('Maximum size');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('All');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Image');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Video');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('File');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('CSV');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Image and file');
+        await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Image and video');
       }
     );
   }

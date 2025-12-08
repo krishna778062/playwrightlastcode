@@ -50,6 +50,8 @@ export class FormCreationPage extends BasePage {
   readonly updateButton: Locator;
   readonly legalComponentlinkTo: Locator;
   readonly customUrlInput: Locator;
+  readonly dropdownOptionCrossIcon: Locator;
+  readonly genericGetByTextLocator: (text: string) => Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -109,6 +111,8 @@ export class FormCreationPage extends BasePage {
     this.editButton = this.page.getByText('Edit');
     this.legalComponentlinkTo = this.page.getByTestId('SelectInput');
     this.customUrlInput = this.page.getByRole('textbox', { name: 'Enter text for the property' });
+    this.dropdownOptionCrossIcon = this.page.getByRole('button', { name: 'Delete option icon' }).first();
+    this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -761,6 +765,49 @@ export class FormCreationPage extends BasePage {
       await this.fillInElement(this.customUrlInput, customUrl);
     });
   }
+
+  async deleteDefaultOptionFromDropdownComponent(): Promise<void> {
+    await test.step('Delete default option from dropdown component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dropdownOptionCrossIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.dropdownOptionCrossIcon);
+    });
+  }
+  async verifyOptionsIntoSettingForUploadImageComponent(option: string): Promise<void> {
+    await test.step('Verify option: ${option} into setting for upload image component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(option).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${option} option should be visible`
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyLastOptionIsDisabledInDropdownComponent(): Promise<void> {
+    await test.step('Verify last option is disabled in dropdown component', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.dropdownOptionCrossIcon, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.dropdownOptionCrossIcon.isDisabled({ timeout: TIMEOUTS.MEDIUM }),
+          'Last option should be disabled'
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyDropdownOptionIntoUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Verify option: ${option} into upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      // const firstOption = this.legalComponentlinkTo.locator('option').first();
+      // await this.verifier.verifyTheElementIsVisible(firstOption, { timeout: TIMEOUTS.MEDIUM });
+      // const labels = (await this.legalComponentlinkTo.locator('option').allTextContents()).map(t => t.trim());
+      const labels = await this.legalComponentlinkTo.locator('option').allTextContents();
+      console.log('labels : ', labels);
+      test.expect(labels.includes(option), `${option} option should be visible`).toBe(true);
+    });
+  }
+
   async verifyPublishedFormToastMessage(): Promise<void> {
     await test.step('Verify published form toast message is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: 'Form published' }), {

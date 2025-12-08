@@ -33,7 +33,10 @@ export class FormParticipationPage extends BasePage {
   readonly dateResponse: (dateValue: string) => Locator;
   readonly timeResponse: (timeValue: string) => Locator;
   readonly datecomponent: Locator;
+  readonly datecomponent1: Locator;
+  readonly timecomponent1: Locator;
   readonly timecomponent: Locator;
+  readonly timeOption: (timeValue: string) => Locator;
   readonly mandatoryFieldError: (heading: string) => Locator;
   readonly mandatoryFieldErrorNew: (heading: string) => Locator;
   readonly mandatoryFieldErrorAddress: (heading: string, message: string) => Locator;
@@ -47,6 +50,8 @@ export class FormParticipationPage extends BasePage {
   readonly fileUploadResponsePreview: (fileName: string) => Locator;
   readonly multiSelectResponseFirstOption: Locator;
   readonly multiSelectResponseOptions: (index: number) => Locator;
+  readonly genericGetByTextLocator: (text: string) => Locator;
+  readonly mandatoryFieldError2: (heading: string) => Locator;
 
   readonly submitButton: Locator;
 
@@ -76,12 +81,19 @@ export class FormParticipationPage extends BasePage {
       this.page.getByRole('checkbox', { name: `${legalValue}`, exact: true });
     this.dateResponse = (dateValue: string) => this.page.getByRole('button', { name: `Today, ${dateValue}` });
     this.timeResponse = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
-    this.datecomponent = this.page.getByRole('button', { name: 'Select date and time Date' });
+    this.datecomponent1 = this.page.getByRole('button', { name: 'Select date and time Date' });
+    this.datecomponent = this.page.locator("//button//span[text()='Select date...']");
+    this.timecomponent1 = this.page.locator('input[type="time"]');
     this.timecomponent = this.page.getByRole('combobox', { name: 'hh:mm' });
-    this.mandatoryFieldError = (heading: string) =>
+    this.timeOption = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
+    this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
+    this.mandatoryFieldError2 = (heading: string) =>
       this.page.locator(
         `//span[normalize-space()='${heading}']/../../following::div[text()='This is a required field']`
       );
+
+    this.mandatoryFieldError = (heading: string) =>
+      this.page.locator(`//span[text()='${heading}']/../../following::div[text()='This is a required field']`);
     this.mandatoryFieldErrorNew = (heading: string) =>
       this.page.locator(`//span[normalize-space()='${heading}']/../../following::p[text()='This is a required field']`);
     this.submitButton = this.page.getByRole('button', { name: 'Submit' });
@@ -283,7 +295,7 @@ export class FormParticipationPage extends BasePage {
     await test.step('Fill response into time field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.timecomponent, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.timecomponent);
-      await this.clickOnElement(this.timeResponse(response));
+      await this.clickOnElement(this.timeOption(response));
     });
   }
   async verifyTimeFieldIsNotVisibleOnPreviewScreen(): Promise<void> {
@@ -395,6 +407,59 @@ export class FormParticipationPage extends BasePage {
         .toBe(true);
     });
   }
+
+  async verifyMultiSelectFieldIsMandatory1(heading: string, response: string): Promise<void> {
+    await test.step('Verify multi select field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.multiSelectResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.multiSelectResponse(response).blur();
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+    test
+      .expect(
+        await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
+  async verifyMultiSelectFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify multi select field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.multiSelectResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.multiSelectResponse(response).blur();
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator('This is a required field'), {
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    test
+      .expect(
+        await this.genericGetByTextLocator('This is a required field').isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
+  async verifyDropdownFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify dropdown field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dropdownComponent, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.dropdownComponent);
+      await this.clickOnElement(this.dropdownResponse(response));
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+    test
+      .expect(
+        await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
   async verifyAddressField1IsMandatory(heading: string, message: string): Promise<void> {
     await test.step(`Verify ${message} field is mandatory`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.addressLine1Response, { timeout: TIMEOUTS.MEDIUM });
