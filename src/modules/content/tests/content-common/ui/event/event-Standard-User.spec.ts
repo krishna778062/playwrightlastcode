@@ -2,7 +2,6 @@ import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
@@ -13,9 +12,10 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { getPastDate, getUpcomingDate } from '@/src/modules/content/utils/dateHelper';
 
 test.describe(
@@ -123,16 +123,7 @@ test.describe(
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator
-          const imagePath = FileUtil.getFilePath(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            'test-data',
-            'static-files',
-            'images',
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-          );
+          const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
           const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
           // Create and submit the event
@@ -205,15 +196,14 @@ test.describe(
           storyId: 'CONT-19572',
         });
 
-        // Search existing site "All Employees"
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(
-          FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME
-        );
+        // Search existing site DEFAULT_PUBLIC_SITE_NAME
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create an event with upcoming date (valid upcoming event)
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT,
-          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
+          { siteName: DEFAULT_PUBLIC_SITE_NAME }
         )) as EventCreationPage;
 
         const upcomingEventTitle = `Upcoming Event ${Date.now()}`;
@@ -255,7 +245,7 @@ test.describe(
         // Create another event with past date
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.EVENT,
-          { siteName: FEED_TEST_DATA.EVENT_SMART_FEED.SITE_NAME }
+          { siteName: DEFAULT_PUBLIC_SITE_NAME }
         )) as EventCreationPage;
 
         const pastEventTitle = `Past Event ${Date.now()}`;

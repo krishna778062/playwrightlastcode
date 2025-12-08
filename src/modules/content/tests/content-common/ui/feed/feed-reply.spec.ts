@@ -3,12 +3,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -280,28 +280,8 @@ for (const testData of feedTestData) {
             });
 
             // Get file paths for test images
-            const image1Path = FileUtil.getFilePath(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              '..',
-              'test-data',
-              'static-files',
-              'images',
-              FEED_TEST_DATA.ATTACHMENTS.IMAGE
-            );
-            const faviconPath = FileUtil.getFilePath(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              '..',
-              'test-data',
-              'static-files',
-              'images',
-              FEED_TEST_DATA.ATTACHMENTS.FAVICON
-            );
+            const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+            const faviconPath = FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname);
 
             // Generate unique reply text
             const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
@@ -416,17 +396,7 @@ for (const testData of feedTestData) {
             const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
 
             // Get file path for sample.xlsx
-            const documentPath = FileUtil.getFilePath(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              '..',
-              'test-data',
-              'static-files',
-              'excel',
-              FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
-            );
+            const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
 
             // Post the feed with attachment (createAndPost handles text and file upload internally)
             const postResult = await createFeedPostComponent.actions.createAndPost({

@@ -15,11 +15,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -88,28 +89,8 @@ test.describe(
         // Note: Post can also be created via API using:
         // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
         await feedPage.actions.clickShareThoughtsButton();
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.ATTACHMENTS.IMAGE
-        );
-        const documentPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'excel',
-          FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
         const postResult = await feedPage.actions.createAndPost({
           text: initialPostText,
           attachments: {
@@ -151,7 +132,8 @@ test.describe(
           storyId: 'CONT-19544',
         });
 
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Navigate to Site Dashboard as
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
@@ -171,17 +153,7 @@ test.describe(
         const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
 
         // Upload file "image1.jpg"
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.ATTACHMENTS.IMAGE
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         // Post the feed with attachment (createAndPost handles text and file upload internally)
         const postResult = await createFeedPostComponent.actions.createAndPost({
@@ -259,10 +231,11 @@ test.describe(
           storyId: 'CONT-19540',
         });
 
-        // Get "All Employees" site ID
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
-        // Create a page in "All Employees" site for testing
+        // Create a page in DEFAULT_PUBLIC_SITE_NAME site for testing
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
           siteId: allEmployeesSiteId,
           contentInfo: {
@@ -299,17 +272,7 @@ test.describe(
         const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
 
         // Upload file "favicon.png"
-        const faviconPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.ATTACHMENTS.FAVICON
-        );
+        const faviconPath = FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname);
 
         // Post the feed with attachment (createAndPost handles text and file upload internally)
         const postResult = await createFeedPostComponent.actions.createAndPost({
@@ -964,7 +927,7 @@ test.describe(
         await shareComponent.actions.clickShareButton();
 
         // Verify success message "Shared Feed post successfully."
-        await siteOwnerFeedPage.assertions.verifyToastMessage('Shared post successfully');
+        await siteOwnerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
 
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.reloadPage();
@@ -2199,16 +2162,7 @@ test.describe(
 
           await adminFeedPage.actions.enterFeedPostText(postText);
 
-          const documentPath = FileUtil.getFilePath(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            'test-data',
-            'static-files',
-            'excel',
-            FEED_TEST_DATA.ATTACHMENTS.DOCUMENT
-          );
+          const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
           const postResult = await adminFeedPage.actions.createAndPost({
             text: postText,
             attachments: {
