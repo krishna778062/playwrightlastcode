@@ -219,6 +219,8 @@ export const SERVICENOW_VALUES = {
   TIME_PERIOD: 'Time Period',
   DAYS_30: '30 days',
   INCIDENT_VIEW_VALUE: 'Self Service',
+  CATEGORY_VALUE: 'Software',
+  SUBCATEGORY_VALUE: 'Email',
 } as const;
 
 /**
