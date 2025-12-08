@@ -5,12 +5,13 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -46,16 +47,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24919',
       },
     ];
@@ -187,7 +179,7 @@ test.describe(
   () => {
     let createdPostText: string;
     let siteId: string;
-    const siteName = 'All Employees';
+    const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
     // Test data for data-driven testing
     const favoriteTestData = [
@@ -206,16 +198,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24907',
       },
     ];
@@ -228,7 +211,7 @@ test.describe(
       });
       */
 
-      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
       siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
         accessType: SITE_TYPES.PUBLIC,
       });
@@ -248,7 +231,7 @@ test.describe(
           role: SitePermission.OWNER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -260,7 +243,7 @@ test.describe(
           role: SitePermission.MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -272,7 +255,7 @@ test.describe(
           role: SitePermission.CONTENT_MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
       }
     });

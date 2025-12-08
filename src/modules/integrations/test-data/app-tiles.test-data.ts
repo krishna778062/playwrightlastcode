@@ -118,10 +118,13 @@ export const REDIRECT_URLS = {
   WORKDAY_INBOX_TASKS_REPORT:
     'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
+  WORKDAY_JOB_POSTINGS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/inst/9925$1420/rel-task/2998$16774.htmld',
+  WORKDAY_EXTERNAL_JOB_POSTINGS: 'https://simpplr-dpt1.impl-wd12.myworkdayjobs.com/External',
   FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
+  SERVICENOW: 'https://ven05143.service-now.com/',
 } as const;
 
 /**
@@ -210,6 +213,17 @@ export const GREENHOUSE_CREDS = {
 } as const;
 
 /**
+ * Data values for Greenhouse app tiles
+ */
+export const SERVICENOW_VALUES = {
+  TIME_PERIOD: 'Time Period',
+  DAYS_30: '30 days',
+  INCIDENT_VIEW_VALUE: 'Self Service',
+  CATEGORY_VALUE: 'Software',
+  SUBCATEGORY_VALUE: 'Email',
+} as const;
+
+/**
  * Workday credentials and config for People data
  */
 export const WORKDAY_CREDS = {
@@ -221,10 +235,27 @@ export const WORKDAY_CREDS = {
   CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
   REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
 } as const;
+
 /**
- * Data values for Greenhouse app tiles
+ * Workday labels and values used across tests
  */
-export const SERVICENOW_VALUES = {
-  TIME_PERIOD: 'Time Period',
-  DAYS_30: '30 days',
+export const WORKDAY_VALUES = {
+  CreateAnotherRequest: 'Create another request',
+  Vacation: 'Vacation',
+  Wedding: 'Wedding',
+  AppName: 'Workday',
+  pendingLearningCoursesTile: 'Display pending learning courses',
+  applyTimeOffTile: 'Apply for time off',
+  paystubsTileName: 'Display recent paystubs',
+  inboxTileName: 'Display inbox',
+  jobPostingsTileName: 'Display job postings',
+  AppManagerDefined: 'App manager defined',
+  SiteManagerDefined: 'Site manager defined',
+  PayslipListUrl: 'Payslip list URL',
+  InboxTasksReportUrl: 'Inbox tasks report URL',
+  JobType: 'Job type',
+  InternalJobType: 'Internal jobs',
+  ExternalJobType: 'External jobs',
+  AllJobType: 'All jobs',
+  InternalJobPostingsUrl: 'Example internal job URL',
 } as const;

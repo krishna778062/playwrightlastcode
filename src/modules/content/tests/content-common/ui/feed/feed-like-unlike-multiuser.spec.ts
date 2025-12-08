@@ -10,6 +10,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -68,7 +69,7 @@ test.describe(
     let createdPostId: string;
     let siteId: string;
     let contentId: string;
-    const siteName = 'All Employees';
+    const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach(
       'Setup test environment and create feed post',
@@ -84,7 +85,7 @@ test.describe(
         siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
         contentManagerFeedPage = new FeedPage(standardUserFixture.page);
 
-        // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+        // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
         siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
           accessType: SITE_TYPES.PUBLIC,
         });
@@ -119,7 +120,7 @@ test.describe(
             role: SitePermission.OWNER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -131,7 +132,7 @@ test.describe(
             role: SitePermission.MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -147,7 +148,7 @@ test.describe(
             role: SitePermission.CONTENT_MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(
             `Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`
           );
@@ -312,7 +313,7 @@ test.describe(
     let siteFeedPostText: string;
     let siteFeedReplyText: string;
     let siteFeedSiteId: string;
-    const siteFeedSiteName = 'All Employees';
+    const siteFeedSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -321,7 +322,7 @@ test.describe(
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
       */
-      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
       siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
         accessType: SITE_TYPES.PUBLIC,
       });
@@ -343,7 +344,7 @@ test.describe(
           role: SitePermission.OWNER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -355,7 +356,7 @@ test.describe(
           role: SitePermission.MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -367,7 +368,7 @@ test.describe(
           role: SitePermission.CONTENT_MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
       }
     });
@@ -490,6 +491,93 @@ test.describe(
             });
           })(),
         ]);
+      }
+    );
+  }
+);
+
+test.describe(
+  'feed Post Like/Unlike Tests - Home Feed',
+  {
+    tag: [ContentTestSuite.FEED_STANDARD_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdReplyText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach('Setup test environment and create feed post', async ({ standardUserFixture }) => {
+      // Navigate to Home → Global Feed
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      // await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+
+      // Generate unique post text with timestamp for idempotent test runs
+      const timestamp = Date.now();
+      const postText = `${FEED_TEST_DATA.POST_TEXT.INITIAL} - ${timestamp}`;
+      createdPostText = postText;
+      createdReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+      // Click "Share your thoughts or question" button
+      await feedPage.actions.clickShareThoughtsButton();
+
+      // Create a post and send it to the editor
+      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      createdPostId = postResult.postId || '';
+
+      // Wait for post to be visible
+      await feedPage.assertions.waitForPostToBeVisible(postText);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
+      if (createdPostId) {
+        try {
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.warn(`Failed to delete feed post: ${error}`);
+        }
+        createdPostId = '';
+      }
+    });
+
+    test(
+      'verify EndUser1 is able to like and unlike Feed post and Reply on Home-Global Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19556'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify EndUser1 is able to like and unlike Feed post and Reply on Home-Global Feed',
+          zephyrTestId: 'CONT-19556',
+          storyId: 'CONT-19556',
+        });
+
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Like the post → verify like succeeded and count incremented & visual state changed
+        await test.step('Like the feed post and verify like count incremented', async () => {
+          await feedPage.actions.likeFeedPost(createdPostText);
+          await feedPage.assertions.verifyLikeCountOnPost(createdPostText);
+        });
+
+        await feedPage.actions.unlikeFeedPost(createdPostText);
+
+        await feedPage.actions.addReplyToPost(createdReplyText, createdPostId);
+        await feedPage.assertions.verifyReplyIsVisible(createdReplyText);
+
+        // Like the reply → verify reply like count incremented and state updated
+        await test.step('Like the reply and verify like count incremented', async () => {
+          await feedPage.actions.likeFeedReply(createdReplyText);
+          await feedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+        });
+
+        await feedPage.actions.unlikeFeedReply(createdReplyText);
+
+        await feedPage.actions.deletePost(createdPostText);
+        await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
       }
     );
   }

@@ -8,6 +8,8 @@ import { FeedPage } from '../../ui/pages/feedPage';
 import { GovernanceScreenPage } from '../../ui/pages/governanceScreenPage';
 import { ManageApplicationPage } from '../../ui/pages/manageApplicationPage';
 
+import { SETTINGS_TEST_DATA } from '@/src/modules/content/test-data/settings.test-data';
+
 test.describe(
   `question and Answer settings verification`,
   {
@@ -42,7 +44,9 @@ test.describe(
         await manageApplicationPage.loadPage();
         await manageApplicationPage.actions.disableQuestionAndAnswerFeature();
         await manageApplicationPage.actions.clickOnSave();
-        await manageApplicationPage.assertions.verifyToastMessage('Saved changes successfully');
+        await manageApplicationPage.assertions.verifyToastMessage(
+          SETTINGS_TEST_DATA.TOAST_MESSAGES.SAVED_CHANGES_SUCCESSFULLY
+        );
         await appManagerFixture.navigationHelper.clickOnHomeButton();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
@@ -52,7 +56,9 @@ test.describe(
         await manageApplicationPage.loadPage();
         await manageApplicationPage.actions.enableQuestionAndAnswerFeature();
         await manageApplicationPage.actions.clickOnSave();
-        await manageApplicationPage.assertions.verifyToastMessage('Saved changes successfully');
+        await manageApplicationPage.assertions.verifyToastMessage(
+          SETTINGS_TEST_DATA.TOAST_MESSAGES.SAVED_CHANGES_SUCCESSFULLY
+        );
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
