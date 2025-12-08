@@ -5,6 +5,7 @@ import { AppsManagementService } from '@/src/core/api/services/AppsManagementSer
 import { LinkManagementService } from '@/src/core/api/services/LinkManagementService';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
@@ -109,6 +110,7 @@ export const searchTestFixtures = test.extend<
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: SearchApiFixture;
     standardUserApiFixture: SearchApiFixture;
+    siteManagerApiFixture: SearchApiFixture;
 
     // UI-only fixtures - browser and page components
     appManagerUiFixture: SearchUiFixture;
@@ -123,10 +125,13 @@ export const searchTestFixtures = test.extend<
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
     standardUserApiContext: APIRequestContext;
+    siteManagerApiContext: APIRequestContext;
     siteManagementHelper: SiteManagementHelper;
     publicSite: { siteName: string; siteId: string };
     privateSite: { siteName: string; siteId: string };
     unlistedSite: { siteName: string; siteId: string };
+    privateSiteWithEndUserMember: { siteName: string; siteId: string };
+    unlistedSiteWithEndUserMember: { siteName: string; siteId: string };
   }
 >({
   // Worker-scoped API context - shared across all tests in worker
@@ -148,6 +153,19 @@ export const searchTestFixtures = test.extend<
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().endUserEmail || '',
         password: getEnvConfig().endUserPassword || '',
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  // Worker-scoped site manager API context - shared across all tests in worker
+  siteManagerApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+        email: getEnvConfig().siteManagerEmail || '',
+        password: getEnvConfig().siteManagerPassword || '',
       });
       await use(context);
       await context.dispose();
@@ -264,6 +282,98 @@ export const searchTestFixtures = test.extend<
     { scope: 'worker' },
   ],
 
+  // Worker-scoped private site with end user as member - one site per worker to reduce unnecessary site creation
+  privateSiteWithEndUserMember: [
+    async ({ siteManagementHelper }, use, workerInfo) => {
+      console.log(`🔧 Creating privateSiteWithEndUserMember fixture for worker ${workerInfo.workerIndex}`);
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Private_WithMember_${randomNum}`;
+      const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+      const endUserEmail = getEnvConfig().endUserEmail || '';
+
+      // Create private site using existing SiteManagementHelper
+      const privateSite = await siteManagementHelper.createPrivateSite({
+        siteName: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
+        waitForSearchIndex: true,
+      });
+
+      // Add end user as a member to the site
+      try {
+        await siteManagementHelper.makeUserSiteMembership(
+          privateSite.siteId,
+          endUserEmail,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        console.log(`Successfully added ${endUserEmail} as member to private site ${privateSite.siteName}`);
+      } catch (error) {
+        console.warn(`Failed to add ${endUserEmail} as member to private site ${privateSite.siteName}:`, error);
+      }
+
+      console.log(
+        `✅ Created privateSiteWithEndUserMember: ${privateSite.siteName} with ID: ${privateSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
+      );
+
+      await use({ siteName: privateSite.siteName, siteId: privateSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Private site with end user member cleanup will be handled by siteManagementHelper fixture for site: ${privateSite.siteName} with ID: ${privateSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
+
+  // Worker-scoped unlisted site with end user as member - one site per worker to reduce unnecessary site creation
+  unlistedSiteWithEndUserMember: [
+    async ({ siteManagementHelper }, use, workerInfo) => {
+      console.log(`🔧 Creating unlistedSiteWithEndUserMember fixture for worker ${workerInfo.workerIndex}`);
+      const randomNum = Math.floor(Math.random() * 1000000 + 1);
+      const siteName = `Unlisted_WithMember_${randomNum}`;
+      const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+      const endUserEmail = getEnvConfig().endUserEmail || '';
+
+      // Create unlisted site using existing SiteManagementHelper
+      const unlistedSite = await siteManagementHelper.createUnlistedSite({
+        siteName: siteName,
+        category: {
+          categoryId: category.categoryId,
+          name: category.name,
+        },
+        waitForSearchIndex: true,
+      });
+
+      // Add end user as a member to the site
+      try {
+        await siteManagementHelper.makeUserSiteMembership(
+          unlistedSite.siteId,
+          endUserEmail,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        console.log(`Successfully added ${endUserEmail} as member to unlisted site ${unlistedSite.siteName}`);
+      } catch (error) {
+        console.warn(`Failed to add ${endUserEmail} as member to unlisted site ${unlistedSite.siteName}:`, error);
+      }
+
+      console.log(
+        `✅ Created unlistedSiteWithEndUserMember: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId} for worker ${workerInfo.workerIndex} using existing SiteManagementHelper`
+      );
+
+      await use({ siteName: unlistedSite.siteName, siteId: unlistedSite.siteId });
+
+      // Note: Cleanup is handled by the siteManagementHelper fixture
+      console.log(
+        `🧹 Unlisted site with end user member cleanup will be handled by siteManagementHelper fixture for site: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId}`
+      );
+    },
+    { scope: 'worker' },
+  ],
+
   // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
   appManagerApiFixture: [
     async ({ appManagerApiContext, siteManagementHelper }, use) => {
@@ -300,6 +410,26 @@ export const searchTestFixtures = test.extend<
         await fixture.tileManagementHelper.cleanup();
       } catch (error) {
         console.warn('Standard user API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  siteManagerApiFixture: [
+    async ({ siteManagerApiContext, siteManagementHelper }, use) => {
+      const fixture = await createSearchApiFixture(siteManagerApiContext);
+      // Use the worker-scoped siteManagementHelper so sites created by fixtures are tracked
+      fixture.siteManagementHelper = siteManagementHelper;
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        // Note: siteManagementHelper cleanup is handled by worker-scoped fixture at worker shutdown
+        // Sites are shared across tests, so we don't clean them up after each test
+        await fixture.feedManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+      } catch (error) {
+        console.warn('Site manager API fixture cleanup failed:', error);
       }
     },
     { scope: 'test' },

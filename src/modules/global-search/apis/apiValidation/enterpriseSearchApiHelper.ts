@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
+import { SEARCH_RESULT_ITEM } from '@/src/modules/global-search/constants/siteTypes';
+import { SearchApiFixture } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
+
 /**
  * Helper class for validating enterprise search API responses
  * Provides methods to validate search response structure and content
@@ -70,9 +74,11 @@ export class EnterpriseSearchApiHelper {
     objectType: string = 'site'
   ): Promise<void> {
     await test.step(`Validate site "${siteName}" is NOT found in search results`, async () => {
-      const listOfItems = searchResponse.data.list_items;
+      // Safety check: handle empty, undefined, or null list_items
+      const listOfItems = searchResponse.data?.list_items || [];
       let siteFound = false;
 
+      // If list_items is empty, forEach won't execute and siteFound remains false (correct behavior)
       listOfItems.forEach((item: any) => {
         if (item.item?.title?.includes(siteName) && item.item.object_type === objectType) {
           siteFound = true;
@@ -80,6 +86,91 @@ export class EnterpriseSearchApiHelper {
       });
 
       expect(siteFound, `Site "${siteName}" should NOT be found in the search response`).toBe(false);
+    });
+  }
+
+  /**
+   * Searches and validates a site for multiple users in parallel
+   * @param users - Array of user fixtures with their types
+   * @param site - The site to search for (siteName and siteId)
+   * @param expectedAccessType - The expected access type (e.g., "public", "private")
+   */
+  async searchAndValidateSiteForUsers(
+    users: Array<{ fixture: SearchApiFixture; userType: string }>,
+    site: { siteName: string; siteId: string },
+    expectedAccessType: string
+  ): Promise<void> {
+    await test.step(`Search and validate site "${site.siteName}" for ${users.length} user(s)`, async () => {
+      // Perform searches for all users in parallel
+      const searchPromises = users.map(({ fixture }) =>
+        fixture.enterpriseSearchService.search(site.siteName, {
+          pageSize: 10,
+          exactMatch: false,
+          callerContext: 'global_search',
+        })
+      );
+
+      const searchResponses = await Promise.all(searchPromises);
+
+      // Validate all responses in parallel
+      const validationPromises = searchResponses.map(response =>
+        this.validateSearchResponseBasic(response).then(() =>
+          this.validateSiteInSearchResults(
+            response,
+            site.siteName,
+            SEARCH_RESULT_ITEM.CATEGORY,
+            expectedAccessType,
+            'site'
+          )
+        )
+      );
+
+      await Promise.all(validationPromises);
+    });
+  }
+
+  /**
+   * Deactivates a site and validates that multiple users cannot search for it
+   * @param adminFixture - Admin user fixture to deactivate the site
+   * @param users - Array of user fixtures to search after deactivation
+   * @param site - The site to deactivate and search for (siteName and siteId)
+   */
+  async deactivateSiteAndValidateNotSearchableForUsers(
+    adminFixture: SearchApiFixture,
+    users: Array<{ fixture: SearchApiFixture; userType: string }>,
+    site: { siteName: string; siteId: string }
+  ): Promise<void> {
+    await test.step(`Deactivate site "${site.siteName}" and validate it's not searchable for ${users.length} user(s)`, async () => {
+      // Deactivate the site using admin user
+      await adminFixture.siteManagementHelper.siteManagementService.deactivateSite(site.siteId);
+      console.log(`Deactivated site: ${site.siteName} with ID: ${site.siteId}`);
+
+      // Wait for the site to disappear from search index (polling similar to creation)
+      await EnterpriseSearchHelper.waitForResultToDisappearInApiResponse({
+        apiClient: adminFixture.siteManagementHelper.siteManagementService.httpClient,
+        searchTerm: site.siteName,
+        objectType: 'site',
+      });
+
+      // Perform searches for all users in parallel
+      const searchPromises = users.map(({ fixture }) =>
+        fixture.enterpriseSearchService.search(site.siteName, {
+          pageSize: 10,
+          exactMatch: false,
+          callerContext: 'global_search',
+        })
+      );
+
+      const searchResponses = await Promise.all(searchPromises);
+
+      // Validate all responses in parallel - site should NOT be found
+      const validationPromises = searchResponses.map(response =>
+        this.validateSearchResponseBasic(response).then(() =>
+          this.validateSiteNotInSearchResults(response, site.siteName, 'site')
+        )
+      );
+
+      await Promise.all(validationPromises);
     });
   }
 }
