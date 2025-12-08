@@ -9,6 +9,7 @@ import { FeedManagementService } from '@/src/modules/content/apis/services/FeedM
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPostApiResponse } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -205,11 +206,11 @@ test.describe(
 
         let replyText: string = '';
 
-        // Get "All Employees" site ID
-        const siteName = 'All Employees';
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
-        // Phase 1: EndUser Creates Site Feed Post on "All Employees" site
+        // Phase 1: EndUser Creates Site Feed Post on DEFAULT_PUBLIC_SITE_NAME site
         // Navigate to site dashboard
         const siteDashboard = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
@@ -307,8 +308,8 @@ test.describe(
         const appManagerData = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
         const appManagerFullName = appManagerData.fullName;
 
-        // Get "All Employees" site ID
-        const siteName = 'All Employees';
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
         // Phase 1: Admin Creates Site Feed Post with Mention + Attachment
