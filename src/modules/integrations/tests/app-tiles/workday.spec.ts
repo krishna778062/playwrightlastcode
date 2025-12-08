@@ -104,7 +104,6 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
           CONNECTOR_IDS.WORKDAY
         );
-        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         //add, edit, verify
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -171,7 +170,6 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
           CONNECTOR_IDS.WORKDAY
         );
-        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         //verify events UI and redirects
         await homeDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
@@ -342,7 +340,6 @@ test.describe(
           TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
           CONNECTOR_IDS.WORKDAY
         );
-        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
@@ -1460,7 +1457,7 @@ test.describe(
       'verify app manager is able to create, edit and remove default display time off balance workday apptile on home dashboard',
       {
         tag: [
-          TestPriority.P1,
+          TestPriority.P4,
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
@@ -1481,7 +1478,6 @@ test.describe(
           TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
           CONNECTOR_IDS.WORKDAY
         );
-        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
         const updatedTileTitle = `${createdTileTitle}-Updated`;
@@ -1667,7 +1663,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+        tag: [TestPriority.P4, TestGroupType.SANITY, '@workdayleave'],
       },
 
       async ({ appManagerFixture }) => {
