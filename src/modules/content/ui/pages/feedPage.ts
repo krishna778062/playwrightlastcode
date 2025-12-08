@@ -166,6 +166,7 @@ export interface IFeedActions {
   clickFollowingButtonOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
+  clickPostWithoutWaitingForResponse(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -767,6 +768,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
    */
   async clickPostButton(): Promise<void> {
     await this.createFeedPostComponent.clickPostButton();
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await this.createFeedPostComponent.clickPostWithoutWaitingForResponse();
   }
 
   /**
