@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { ContentTestSuite } from '@content/constants/testSuite';
@@ -909,17 +910,40 @@ test.describe(
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
 
-        // Get Site Owner (siteManager) user info
-        const siteOwnerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.siteManager.email
+        // Get or create a private site where Site Owner is the owner
+        const siteManagerprivateSites = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: SITE_TYPES.PRIVATE,
+        });
+
+        const standardUserPrivateSites = await standardUserFixture.siteManagementHelper.getListOfSites({
+          filter: SITE_TYPES.PRIVATE,
+        });
+
+        const standardUserSiteIds = new Set(
+          standardUserPrivateSites.result.listOfItems.map((site: any) => site.siteId)
         );
 
-        // Get or create a private site where Site Owner is the owner
-        const privateSiteDetails = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
-          siteOwnerInfo.userId,
-          SITE_TYPES.PRIVATE
+        const privateSiteDetails = siteManagerprivateSites.result.listOfItems.find(
+          (site: any) => site.isActive === true && !standardUserSiteIds.has(site.siteId)
         );
-        const privateSiteName = privateSiteDetails.siteName;
+
+        let privateSiteId = privateSiteDetails?.siteId;
+        let privateSiteName = privateSiteDetails?.name;
+
+        if (!privateSiteDetails) {
+          console.log(
+            'No private site found where Site Owner is the owner and standard user is not a member, Hence creating a new private site'
+          );
+        } else {
+          const siteName = `Private Site ${faker.company.name()}`;
+          const privateSiteDetailsResponse = await appManagerApiFixture.siteManagementHelper.createSite({
+            siteName: siteName,
+            accessType: SITE_TYPES.PRIVATE,
+            waitForSearchIndex: false,
+          });
+          privateSiteId = privateSiteDetailsResponse.siteId;
+          privateSiteName = privateSiteDetailsResponse.siteName;
+        }
         console.log(`Using private site: ${privateSiteName}`);
 
         // Create a Feed post on "Private Site" from Home Dashboard
@@ -931,7 +955,7 @@ test.describe(
         await adminFeedPage.actions.selectShareOptionAsSiteFeed();
 
         // Enter private site name
-        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName);
+        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName || '');
 
         // Post the feed
         const postResult = await adminFeedPage.actions.createAndPost({
@@ -943,7 +967,7 @@ test.describe(
         // Wait for post to be visible
         await adminFeedPage.assertions.waitForPostToBeVisible(postText);
 
-        const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteDetails.siteId);
+        const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId || '');
         await siteOwnerDashboardPage.loadPage({ stepInfo: 'Load private site dashboard page' });
         await siteOwnerDashboardPage.actions.clickOnFeedLink();
         await siteOwnerDashboardPage.navigateToTab(SitePageTab.FeedTab);
