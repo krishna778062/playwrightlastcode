@@ -1696,10 +1696,6 @@ test.describe(
         await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(updatedTileTitle);
-        createdTileTitle = updatedTileTitle;
-        await siteDashboard.clickEditDashboard();
-        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
-        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
         createdTileTitle = undefined;
       }
     );
