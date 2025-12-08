@@ -1457,7 +1457,7 @@ test.describe(
       'verify app manager is able to create, edit and remove default display time off balance workday apptile on home dashboard',
       {
         tag: [
-          TestPriority.P4,
+          TestPriority.P1,
           TestGroupType.SANITY,
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.HEALTH_CHECK,
@@ -1663,7 +1663,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, '@workdayleave'],
+        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
       },
 
       async ({ appManagerFixture }) => {
