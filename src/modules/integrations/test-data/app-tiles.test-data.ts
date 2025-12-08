@@ -258,4 +258,8 @@ export const WORKDAY_VALUES = {
   ExternalJobType: 'External jobs',
   AllJobType: 'All jobs',
   InternalJobPostingsUrl: 'Example internal job URL',
+  LeaveType: 'Leave type',
+  TimeOffLeaveType: 'Time off',
+  LeaveOfAbsenceLeaveType: 'Leave of absence',
+  AllLeaveType: 'All',
 } as const;

@@ -1514,5 +1514,38 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off Balance app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27533',
+          storyId: 'INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
   }
 );

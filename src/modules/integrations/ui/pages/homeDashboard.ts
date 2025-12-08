@@ -864,7 +864,7 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Complete workflow to add a ServiceNow tile with App Manager Defined settings
+   * Complete workflow to add a tile with App Manager Defined dropdown settings
    */
   async addAppManagerDefinedWithOptions(
     tileTitle: string,
@@ -874,7 +874,7 @@ export class HomeDashboard extends BasePage {
     fieldName: string,
     fieldValue: string
   ): Promise<void> {
-    await this.addTile(tileTitle, 'ServiceNow', tileName, destination, {
+    await this.addTile(tileTitle, appName, tileName, destination, {
       radioOptionsWithValues: [
         { fieldName: fieldName, option: ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, value: fieldValue },
       ],
@@ -1061,7 +1061,7 @@ export class HomeDashboard extends BasePage {
     await this.tileOperationsComponent.verifyServiceNowTileContentStructure(tileTitle);
   }
   /**
-   * Complete workflow to add a ServiceNow tile with Dropdown
+   * Complete workflow to add a tile with Dropdown(without app manager defined settings)
    */
   async addTileWithDropdownField(
     tileTitle: string,
