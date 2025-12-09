@@ -1,38 +1,32 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+
+import { Modules } from './src/core/constants/modules';
+import { TEST_RESULTS_DIR } from './src/core/constants/paths';
+import { loadEnvVariablesForGivenModule } from './src/core/utils/envLoader';
+
 import { Environments } from '@/src/core/constants/environments';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariables } from './src/core/utils/envLoader';
-import { TEST_RESULTS_DIR } from './src/core/constants/paths';
 
-//load all env variables from .env file
-loadEnvVariables((process.env.TEST_ENV as Environments) || Environments.QA);
+//load all env variables from .env file for given module
+loadEnvVariablesForGivenModule(
+  (process.env.TEST_ENV as Environments) || Environments.QA,
+  process.env.MODULE_NAME || Modules.PLATFORMS
+);
 
 export default defineConfig({
-  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   timeout: TIMEOUTS.VERY_LONG,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : 2,
-  reporter: [['html', { open: 'never' }], ['json', { outputFile: `${TEST_RESULTS_DIR}/test-results.json` }]],
-  outputDir: TEST_RESULTS_DIR,
+  workers: process.env.CI ? 2 : 4,
   use: {
-    trace: 'on',
-    baseURL: process.env.FRONTEND_BASE_URL,
-    actionTimeout: TIMEOUTS.MEDIUM,
-    navigationTimeout: TIMEOUTS.MEDIUM,
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
+    trace: process.env.CI ? 'retain-on-failure' : 'on',
+    screenshot: process.env.CI ? 'only-on-failure' : 'on',
+    headless: process.env.CI ? true : true,
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        headless: process.env.CI ? true : false,
-        permissions: ['camera', 'microphone'],
-        launchOptions: {
-          args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
-        },
-      },
-      //add the video and audio permission to the browser
-    },
+  reporter: [
+    ['html', { open: process.env.CI ? 'never' : 'on-failure' }],
+    ['json', { outputFile: `${TEST_RESULTS_DIR}/test-results.json` }],
   ],
 });

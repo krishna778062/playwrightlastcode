@@ -1,0 +1,22 @@
+# ServiceNow hibernates after inactivity.
+# This workflow pings it every 4 hours to keep it awake.
+name: ServiceNow Keep-Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: [kubernetes]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure script is executable
+        run: chmod +x src/core/utils/servicenow_keepalive.sh
+
+      - name: Ping ServiceNow
+        env:
+          SERVICENOW_USER: ${{ secrets.SERVICENOW_USER }}
+          SERVICENOW_PASS: ${{ secrets.SERVICENOW_PASS }}
+        run: bash src/core/utils/servicenow_keepalive.sh

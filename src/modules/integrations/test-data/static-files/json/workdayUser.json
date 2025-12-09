@@ -1,0 +1,34 @@
+{
+  "Report_Entry": [
+    {
+      "EmployeeID": "100",
+      "FirstName": "Saurav",
+      "LastName": "LastName",
+      "Role": "CEO",
+      "HireDate": "2011-06-06",
+      "AboutMe": "Nice bio coming soon.",
+      "BirthDate": "1978-08-12",
+      "BusinessTitle": "CEO",
+      "ManagerID": "",
+      "Manager": "",
+      "Department": "Corporate",
+      "Division": "Corporate",
+      "WorkAddressFormattedLine1": "1650 Castro Street",
+      "WorkAddressFormattedLine2": "Suite 221",
+      "WorkAddressCity": "Mountain View",
+      "WorkAddressStateProvince": "California",
+      "WorkAddressPostalCode": "94041",
+      "WorkAddressCountry": "United States of America",
+      "PrimaryWorkEmail": "simpplr.dev+ryan.taylor@gmail.com",
+      "PublicWorkPhones": "9565550401",
+      "PublicWorkMobilePhones": "9565550501",
+      "CompanyName": "GoodCo Inc.",
+      "Extension": "101",
+      "Fax": "8765550700",
+      "Language": "French",
+      "Timezone": "Europe/London",
+      "License": "Corporate",
+      "CustomField": "CustomValue"
+    }
+  ]
+}

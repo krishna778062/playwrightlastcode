@@ -5,9 +5,44 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
-# VS Code
-.vscode/
+# VS Code (keep workspace settings, ignore user-specific)
+.vscode/settings.json.bak
+.vscode/launch.json.bak
+videos/
 
-# Test Reports
+# Test Reports # dummy comment 1
 report.xml
 report.json
+
+# App Configurations
+/config/*.env
+!/config/*.env.example
+
+# Calendar Integration Secrets (sensitive data)
+src/modules/*/env/googleCalendarSecrets.env
+src/modules/*/env/outlookCalendarSecrets.env
+githubSecrets.json
+
+# Development artifacts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+*.lcov
+
+
+# ESLint cache
+.eslintcache
+
+# TypeScript cache
+*.tsbuildinfo
+.idea/
+
+downloads/
+
+# all debug csv and log files
+*.csv
+*.log

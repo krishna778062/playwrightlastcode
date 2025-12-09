@@ -1,0 +1,3 @@
+site_name,url,invalid_column
+example1.com,https://example1.com,data1
+example2.com,https://example2.com,data2

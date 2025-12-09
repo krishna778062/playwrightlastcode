@@ -1,0 +1,1 @@
+TRUNCATE TABLE test_executions RESTART IDENTITY;

@@ -1,0 +1,11 @@
+import baseConfig from '../../../playwright.base.config';
+import { defineConfig } from '@playwright/test';
+import path from 'path';
+
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
+
+export default defineConfig({
+  ...baseConfig,
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', '{{MODULE_NAME}}', 'tests'),
+  // Add {{MODULE_NAME}}-specific overrides here
+}); 

@@ -1,0 +1,20 @@
+Issue key,Issue id,Summary
+SAWS-10643,109673,Verify that app manager should not be able to internally integrate the tenant after a successful integration through Okta or Google SSO
+SAWS-10569,109369,Verify that user's role should be 'End User' after first time log in into Simpplr
+SAWS-10568,109368,Verify that datas of new user in Google admin should be added in simpplr post successful login  
+SAWS-10567,109367,Verify that datas of existing users in Google admin should be added in simpplr on successful login
+SAWS-10566,109366,Verify that app manager is able to integrate the tenant with Google SSO
+SAWS-10565,109365,Verify that Google SSO option is available to access for app manager
+SAWS-10550,109320,Verify the validation for number of license of a google SSO integrated tenant
+SAWS-10548,109305,Verify that newly added user should be able to login into Simpplr
+SAWS-10546,109292,Verify that newly added user in Google admin should be displayed to app manager in Simpplr after successful login
+SAWS-10545,109291,Verify that existing users of Google admin should be able to log in Simpplr
+SAWS-10532,109190,Verify that the existing users of Google admin should be visible to app manager in Simpplr on successful login
+SAWS-10327,108673,Verify adding a user in simpplr which is not active
+SAWS-10325,108664,Verify user's login in simpplr after being deleted from google tenant
+SAWS-10237,108405,Verify that users added by the App Manager through Google SSO should be able to login successfully
+SAWS-10236,108404,"Verify that Users which are not added to Simpplr by App Manager should receive an error message ""User does not exist"""
+SAWS-10234,108399,"Verify that App Manager is able to add users through ""Add New User"" feature after Google SSO integration"
+SAWS-10233,108397,Verify that tenant without Google SSO integration should be able to access all the intended features without any issues
+SAWS-10228,108301,Verify that App Manager is able to login successfully through Google SSO
+SAWS-10227,108295,Verify that Single SSO is active through either Okta or Google at a time

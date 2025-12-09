@@ -1,11 +1,10 @@
-import { User } from '@core/types/user.type';
-import { Roles } from '@core/constants/roles';
-import { AppManagerApiClient } from '@/src/core/api/clients/appManagerApiClient';
-import { TestDataBuilderUsingAPI } from '@/src/core/utils/testDataBuilder';
-import { ChatGroupTestDataBuilder } from '../builders';
+import { APIRequestContext } from '@playwright/test';
 
-export interface ChatTestUser extends User {
-  userId: string;
+import { ChatGroupTestDataBuilder } from '@chat/test-data-builders/ChatGroupTestDataBuilder';
+import { Roles } from '@core/constants/roles';
+import { TestUser } from '@core/types/test.types';
+
+export interface ChatTestUser extends TestUser {
   chatUserId: string;
 }
 
@@ -15,11 +14,13 @@ export interface ChatTestSetupConfig {
   };
   groupName?: string;
   password?: string;
+  createGroup?: boolean;
+  recordVideo?: boolean;
 }
 
 export interface ChatTestSetupResult {
   users: ChatTestUser[];
   groupName: string;
-  appManagerApiClient: AppManagerApiClient;
+  appManagerApiRequestContext: APIRequestContext;
   testDataBuilder: ChatGroupTestDataBuilder;
 }

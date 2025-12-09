@@ -1,0 +1,240 @@
+import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
+
+import { LoginHelper } from '@core/helpers/loginHelper';
+import { getEnvConfig } from '@core/utils/getEnvConfig';
+import { MultiUserChatTestHelper } from '@modules/chat/helpers/multiUserChatTestHelper';
+
+import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { StaticUsers } from '@/src/core/types';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
+
+export interface StaticUsersConfig {
+  user1: StaticUsers;
+  user2: StaticUsers;
+}
+
+// Default users (fallback to environment variables)
+export const defaultDualUsers: StaticUsersConfig = {
+  user1: {
+    email: process.env.END_USER_USERNAME || '',
+    password: process.env.END_USER_PASSWORD || '',
+    fullName: process.env.END_USER_PROFILENAME || '',
+  },
+  user2: {
+    email: process.env.END_USER2_USERNAME || '',
+    password: process.env.END_USER2_PASSWORD || '',
+    fullName: process.env.END_USER2_PROFILENAME || '',
+  },
+};
+
+/**
+ * Creates a dual user chat test fixture with custom user configurations
+ *
+ * @param userConfig - Optional custom user configuration. If not provided, uses default users from environment variables
+ * @returns Playwright test fixture configured for dual user chat testing
+ */
+export function createDualUserChatFixture(userConfig?: StaticUsersConfig) {
+  const testUsers = userConfig || defaultDualUsers;
+
+  return test.extend<
+    {
+      // User 1 (End User) fixtures
+      user1Context: BrowserContext;
+      user1HomePage: NewHomePage;
+      user1Page: Page;
+      user1ChatPage: ChatAppPage;
+      user1UINavigationHelper: NavigationHelper;
+
+      // User 2 (End User) fixtures
+      user2Context: BrowserContext;
+      user2HomePage: NewHomePage;
+      user2Page: Page;
+      user2ChatPage: ChatAppPage;
+      user2UINavigationHelper: NavigationHelper;
+      // Multi-user test helper
+      multiUserChatTestHelper: MultiUserChatTestHelper;
+
+      // Parallel login result
+      loggedInHomePages: Array<{ homePage: NewHomePage; page: Page }>;
+
+      // Parallel chat page navigation result
+      chatPages: { user1ChatPage: ChatAppPage; user2ChatPage: ChatAppPage };
+    },
+    {
+      appManagerApiContext: APIRequestContext;
+    }
+  >({
+    appManagerApiContext: [
+      async ({}, use) => {
+        const appManagerApiContext = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
+          email: getEnvConfig().appManagerEmail,
+          password: getEnvConfig().appManagerPassword,
+        });
+        await use(appManagerApiContext);
+        await appManagerApiContext.dispose();
+      },
+      { scope: 'worker' },
+    ],
+
+    multiUserChatTestHelper: [
+      async ({ browser }, use) => {
+        console.log(
+          `INFO: Setting up MultiUserChatTestHelper for parallel context creation: ${testUsers.user1.fullName}, ${testUsers.user2.fullName}`
+        );
+        const helper = new MultiUserChatTestHelper(browser, true);
+
+        // Create contexts for users in parallel using the helper
+        await helper.createContextsForUsers(Object.values(testUsers));
+
+        await use(helper);
+
+        // Cleanup
+        await helper.cleanup();
+      },
+      { scope: 'test' },
+    ],
+
+    // Parallel login for both users
+    loggedInHomePages: [
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Logging in both users in parallel => Worker ${workerInfo.workerIndex}`);
+
+        // Login both users simultaneously using Promise.all
+        const loginPromises = Object.values(testUsers).map(async (user, index) => {
+          const userContext = multiUserChatTestHelper.getContextForUser(user.email);
+          const page = await userContext.context.newPage();
+
+          console.log(`INFO: Starting parallel login for ${user.fullName}`);
+          const homePage = await LoginHelper.loginWithPassword(page, {
+            email: user.email,
+            password: testUsers[index === 0 ? 'user1' : 'user2'].password,
+          });
+
+          await homePage.verifyThePageIsLoaded();
+          console.log(`SUCCESS: ${user.fullName} logged in successfully`);
+
+          return { homePage, page };
+        });
+
+        // Wait for both users to login simultaneously
+        const loggedInHomePages = await Promise.all(loginPromises);
+
+        await use(loggedInHomePages);
+
+        // Cleanup pages
+        await Promise.all(loggedInHomePages.map(({ page }) => page.close()));
+      },
+      { scope: 'test' },
+    ],
+
+    // User 1 (End User) Setup
+    user1Context: [
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Getting User 1 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers.user1.email);
+        await use(userContext.context);
+      },
+      { scope: 'test' },
+    ],
+
+    user1HomePage: [
+      async ({ loggedInHomePages }, use, workerInfo) => {
+        console.log(`INFO: Getting User 1 HomePage from parallel login => Worker ${workerInfo.workerIndex}`);
+        const user1HomePageData = loggedInHomePages[0];
+        await use(user1HomePageData.homePage);
+      },
+      { scope: 'test' },
+    ],
+
+    user1Page: [
+      async ({ loggedInHomePages }, use) => {
+        const user1PageData = loggedInHomePages[0];
+        await use(user1PageData.page);
+      },
+      { scope: 'test' },
+    ],
+    user1UINavigationHelper: [
+      async ({ user1HomePage }, use, _workerInfo) => {
+        const user1UINavigationHelper = new NavigationHelper(user1HomePage.page);
+        await use(user1UINavigationHelper);
+      },
+      { scope: 'test' },
+    ],
+
+    // User 2 (End User) Setup
+    user2Context: [
+      async ({ multiUserChatTestHelper }, use, workerInfo) => {
+        console.log(`INFO: Getting User 2 context from MultiUserChatTestHelper => Worker ${workerInfo.workerIndex}`);
+        const userContext = multiUserChatTestHelper.getContextForUser(testUsers.user2.email);
+        await use(userContext.context);
+      },
+      { scope: 'test' },
+    ],
+
+    user2HomePage: [
+      async ({ loggedInHomePages }, use, workerInfo) => {
+        console.log(`INFO: Getting User 2 HomePage from parallel login => Worker ${workerInfo.workerIndex}`);
+        const user2HomePageData = loggedInHomePages[1];
+        await use(user2HomePageData.homePage);
+      },
+      { scope: 'test' },
+    ],
+
+    user2Page: [
+      async ({ loggedInHomePages }, use) => {
+        const user2PageData = loggedInHomePages[1];
+        await use(user2PageData.page);
+      },
+      { scope: 'test' },
+    ],
+
+    user2UINavigationHelper: [
+      async ({ user2HomePage }, use, _workerInfo) => {
+        const user2UINavigationHelper = new NavigationHelper(user2HomePage.page);
+        await use(user2UINavigationHelper);
+      },
+      { scope: 'test' },
+    ],
+
+    // Parallel chat page navigation for both users
+    chatPages: [
+      async ({ user1UINavigationHelper, user2UINavigationHelper }, use) => {
+        console.log(`INFO: Navigating to chat pages in parallel for both users`);
+
+        // Navigate to chat pages simultaneously using Promise.all
+        const chatPagePromises = [
+          user1UINavigationHelper.navigateToChatPageViaTopNavBar(),
+          user2UINavigationHelper.navigateToChatPageViaTopNavBar(),
+        ];
+
+        const [user1ChatPage, user2ChatPage] = await Promise.all(chatPagePromises);
+        console.log(`SUCCESS: Both users navigated to chat pages in parallel`);
+
+        await use({ user1ChatPage, user2ChatPage });
+      },
+      { scope: 'test' },
+    ],
+
+    user1ChatPage: [
+      async ({ chatPages }, use) => {
+        await use(chatPages.user1ChatPage);
+      },
+      { scope: 'test' },
+    ],
+
+    user2ChatPage: [
+      async ({ chatPages }, use) => {
+        await use(chatPages.user2ChatPage);
+      },
+      { scope: 'test' },
+    ],
+  });
+}
+
+// Default dual user chat fixture using environment variables
+export const dualUserChatFixture = createDualUserChatFixture();
+
+// Export the test object for convenience
+export { test };

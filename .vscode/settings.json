@@ -1,14 +1,37 @@
 {
-  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
   },
-  "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 1000,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "typescript.preferences.organizeImportsCollation": "unicode",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "eslint.validate": ["javascript", "typescript"],
+  "eslint.workingDirectories": ["./src"],
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/test-results": false,
+    "**/playwright-report": false
   },
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "typescript.preferences.importModuleSpecifier": "relative"
-} 
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/test-results": true,
+    "**/playwright-report": true,
+    "**/*.log": true
+  },
+  "typescript.suggest.autoImports": true,
+  "typescript.suggest.includeCompletionsForModuleExports": true,
+  "playwright.reuseBrowser": false,
+  "playwright.showTrace": false,
+  "emmet.includeLanguages": {
+    "typescript": "html"
+  },
+  "cSpell.words": [
+    "domcontentloaded"
+  ]
+}
