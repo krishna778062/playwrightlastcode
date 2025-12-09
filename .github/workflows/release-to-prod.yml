@@ -1,0 +1,114 @@
+name: Promote to Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: [kubernetes]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect release version
+        id: version
+        run: |
+          # Auto-detect version from latest UAT tag
+          LATEST_UAT=$(git tag -l "*-uat.*" --sort=-v:refname | head -n1)
+
+          if [ -z "$LATEST_UAT" ]; then
+            echo "⚠️ No UAT tag found - will note as 'untagged' in notification"
+            VERSION="untagged"
+          else
+            VERSION=$(echo $LATEST_UAT | grep -oP '^\d+\.\d+')
+            echo "✅ Detected release version: $VERSION (from $LATEST_UAT)"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "uat_tag=$LATEST_UAT" >> $GITHUB_OUTPUT
+
+      - name: Merge release to main
+        run: |
+          git fetch origin main
+          git fetch origin release
+          git checkout main
+          git merge origin/release --no-ff -m "Promote release to production"
+          git push origin main
+          echo "✅ Merged release → main"
+
+      - name: Set stage to production
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          gh variable set CURRENT_STAGE --body "production"
+          echo "✅ Stage set to 'production'"
+
+      - name: Create backport PR
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          git fetch origin develop
+          git checkout -b backport/prod-to-develop origin/develop
+
+          if git merge origin/main --no-ff -m "Backport production to develop"; then
+            git push origin backport/prod-to-develop
+            
+            gh pr create \
+              --base develop \
+              --head backport/prod-to-develop \
+              --title "Backport: Production to develop" \
+              --body "**Final Production Backport**
+
+            Syncs develop with production release.
+
+            **Release Version:** ${{ steps.version.outputs.version }}
+            **UAT Tag:** ${{ steps.version.outputs.uat_tag }}
+
+            **Action:** Review and merge to complete release cycle."
+            
+            echo "✅ Backport PR created"
+          else
+            echo "❌ Conflicts detected"
+            git merge --abort
+            git push origin backport/prod-to-develop
+            
+            gh pr create \
+              --base develop \
+              --head backport/prod-to-develop \
+              --title "[CONFLICTS] Backport: Production to develop" \
+              --body "Manual resolution needed."
+          fi
+
+      - name: Notify Slack
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+
+          MESSAGE=":rocket: *Release Promoted to Production*
+
+          *Version:* $VERSION
+          *UAT Tag:* ${UAT_TAG:-N/A}
+          *Stage:* Production
+
+          *What changed:*
+            • Merged release → main
+            • Stage set to \`production\`
+            • PROD/QA/UAT will now test \`main\` HEAD until next release
+            • Merge your hotfixes/test case stability PRs to main
+
+          *Next steps:*
+            • Merge backport PR to develop
+            • Start next release when ready
+
+
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
