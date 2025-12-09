@@ -89,6 +89,7 @@ export interface IFeedActions {
   clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
+  clickCopyLinkOption: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
@@ -144,6 +145,7 @@ export interface IFeedActions {
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
+  clickUsernameInReactionModal: (username: string) => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -156,6 +158,9 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
+  addSiteName(siteName: string): Promise<void>;
+  removeSiteMention(siteName: string): Promise<void>;
   clickOnGiveRecognition(): Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
   hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
@@ -165,6 +170,7 @@ export interface IFeedActions {
   clickFollowingButtonOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
+  clickPostWithoutWaitingForResponse(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -200,6 +206,8 @@ export interface IFeedAssertions {
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
   verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
+  verifyEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
+  verifyEventNotInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
   verifyAttachedFileCount: (count: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
@@ -246,6 +254,8 @@ export interface IFeedAssertions {
   verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
   verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
+  verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
+  verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -263,6 +273,8 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly newHireFeedBlocks: Locator;
   readonly recentlyPublishedBlock: Locator;
   readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
+  readonly upcomingEventsBlock: Locator;
+  readonly upcomingEventsBlockText: (eventTitle: string) => Locator;
   readonly commentIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
@@ -286,6 +298,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
     this.recentlyPublishedContentItem = (contentTitle: string) =>
       this.recentlyPublishedBlock.filter({ hasText: contentTitle }).first();
+    this.upcomingEventsBlock = this.page.getByText('Upcoming event').first();
+    this.upcomingEventsBlockText = (eventTitle: string) =>
+      this.upcomingEventsBlock.filter({ hasText: eventTitle }).first();
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
@@ -760,6 +775,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.createFeedPostComponent.clickPostButton();
   }
 
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await this.createFeedPostComponent.clickPostWithoutWaitingForResponse();
+  }
+
   /**
    * Verifies that the Question button is visible in the post editor
    */
@@ -823,6 +842,40 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
+  /**
+   * Verifies that an event appears in the Upcoming Events Smart Feed block
+   * @param eventTitle - The title of the event to verify
+   */
+  async verifyEventInUpcomingEventsBlock(eventTitle: string): Promise<void> {
+    await test.step(`Verify event "${eventTitle}" appears in Upcoming Events block`, async () => {
+      // First verify the Upcoming Events block is visible
+      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
+        assertionMessage: 'Upcoming Events block should be visible',
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlockText(eventTitle), {
+        assertionMessage: `Event "${eventTitle}" should appear in Upcoming Events block`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that an event does not appear in the Upcoming Events Smart Feed block
+   * @param eventTitle - The title of the event to verify
+   */
+  async verifyEventNotInUpcomingEventsBlock(eventTitle: string): Promise<void> {
+    await test.step(`Verify event "${eventTitle}" does not appear in Upcoming Events block`, async () => {
+      // Check if Upcoming Events block exists
+      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
+        assertionMessage: 'Upcoming Events block should be visible',
+      });
+
+      await this.verifier.verifyTheElementIsNotVisible(this.upcomingEventsBlockText(eventTitle), {
+        assertionMessage: `Event "${eventTitle}" should not appear in Upcoming Events block`,
+      });
+    });
+  }
+
   async clickOnCommentIcon(): Promise<void> {
     await test.step('Click on comment icon', async () => {
       await this.clickOnElement(this.commentIcon);
@@ -861,6 +914,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickEditOption(): Promise<void> {
     await this.createFeedPostComponent.clickEditOption();
+  }
+
+  async clickCopyLinkOption(): Promise<void> {
+    await this.listFeedComponent.clickCopyLinkOption();
   }
 
   async createPost(text: string): Promise<void> {
@@ -1273,6 +1330,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.closeReactionModal();
   }
 
+  async clickUsernameInReactionModal(username: string): Promise<void> {
+    await this.listFeedComponent.clickUsernameInReactionModal(username);
+  }
+
   async clickShareIconOnPost(postText: string): Promise<void> {
     await this.listFeedComponent.clickShareIcon(postText);
   }
@@ -1335,8 +1396,59 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
+  async verifyOnlyCopyLinkOptionVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyOnlyCopyLinkOptionVisible(postText);
+  }
+
+  async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyReplyOptionsMenuNotVisible(replyText);
+  }
+
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void> {
+    await test.step(`Click site mention @${siteName} in post and verify navigation`, async () => {
+      // Get the post container
+      const postContainer = this.listFeedComponent.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post ${postText} should be visible`,
+      });
+
+      // Find the site mention link within the post
+      // Site mentions are rendered as links with data-type="site" and href="/site/{siteId}"
+      const siteMentionLink = postContainer.getByRole('link', { name: `@${siteName}` });
+
+      // Verify the link is visible
+      await this.verifier.verifyTheElementIsVisible(siteMentionLink, {
+        assertionMessage: `Site mention @${siteName} should be visible in post`,
+      });
+
+      // Click the site mention link
+      await this.clickOnElement(siteMentionLink);
+
+      // Verify navigation to the site page
+      await this.verifyNavigationToSite(siteId);
+    });
+  }
+
+  async verifyNavigationToSite(siteId: string): Promise<void> {
+    await test.step(`Verify navigation to site ${siteId}`, async () => {
+      // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
+      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: TIMEOUTS.MEDIUM });
+
+      // Verify the page has loaded
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async addSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.addSiteName(siteName);
+  }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.removeSiteMention(siteName);
   }
 
   async clickOnGiveRecognition(): Promise<void> {

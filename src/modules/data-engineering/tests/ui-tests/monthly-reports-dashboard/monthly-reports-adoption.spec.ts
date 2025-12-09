@@ -42,7 +42,15 @@ test.describe(
 
     test(
       'verify Monthly Reports Adoption Dashboard tabular data validation',
-      { tag: [TestPriority.P0, TestGroupType.SMOKE, '@monthly-reports-adoption-metric', TestCaseType.TABULAR_METRIC] },
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          '@monthly-reports-adoption-metric',
+          TestCaseType.TABULAR_METRIC,
+        ],
+      },
       async () => {
         tagTest(test.info(), {
           description: 'TS To verify the answer of Monthly reports Adoption Dashboard',
@@ -69,6 +77,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.CSV_VALIDATION,
           '@monthly-reports-adoption-csv',
           TestCaseType.CSV_VALIDATION,

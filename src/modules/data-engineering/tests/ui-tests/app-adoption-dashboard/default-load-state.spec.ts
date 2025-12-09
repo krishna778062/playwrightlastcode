@@ -67,7 +67,13 @@ test.describe(
     test(
       'verify impact of applied filters on the total users metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@total-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -90,7 +96,13 @@ test.describe(
     test(
       'verify impact of applied filters on the logged in users metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@logged-in-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@logged-in-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -119,7 +131,13 @@ test.describe(
     test(
       'verify impact of applied filters on the contributors and participants metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@logged-in-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@logged-in-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -148,7 +166,13 @@ test.describe(
     test(
       'verify impact of applied filters on the app web page views metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@app-web-page-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@app-web-page-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -171,7 +195,13 @@ test.describe(
     test(
       'verify impact of applied filter on adoption leaders  metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@adoption-leaders-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@adoption-leaders-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -203,7 +233,13 @@ test.describe(
     test(
       'verify impact of applied filter on user engagement breakdown metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.PIE_CHART, '@user-engagement-breakdown-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@user-engagement-breakdown-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -249,7 +285,13 @@ test.describe(
     test(
       'verify impact of applied filter on adoption rate - user logins metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@adoption-rate-user-logins-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@adoption-rate-user-logins-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -280,6 +322,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.BAR_CHART,
           '@adoption-rate-user-login-frequency-distribution-metric',
         ],
