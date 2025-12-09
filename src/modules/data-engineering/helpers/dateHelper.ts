@@ -65,15 +65,16 @@ export class DateHelper {
       };
     }
 
-    // Handle static periods (Last X days/months, Year to date)
-    const currentDate = DateHelper.getCurrentUTCDate();
+    let currentDate = DateHelper.getCurrentUTCDate();
+    currentDate = this.toUtcMidnight(currentDate);
     let startDate: Date;
 
     // Handle "Last X days" - use subDays for precise day calculation
     const daysMatch = period.match(/Last (\d+) days?/i);
     if (daysMatch) {
       const days = parseInt(daysMatch[1], 10);
-      startDate = subDays(currentDate, days - 1); // e.g., "Last 7 days" means 6 days ago to today
+      startDate = subDays(currentDate, days - 1);
+      startDate = this.toUtcMidnight(startDate);
     }
     // Handle "Last X months" - use subMonths for accurate month calculation
     else if (period.match(/Last (\d+) months?/i)) {
@@ -96,6 +97,11 @@ export class DateHelper {
       startDate: `${format(startDate, 'yyyy-MM-dd')} 00:00:00`,
       endDate: `${format(currentDate, 'yyyy-MM-dd')} 23:59:59`,
     };
+  }
+
+  static parseIsoAsUTC(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
   }
 
   /**
@@ -267,5 +273,9 @@ export class DateHelper {
     const endFormatted = format(endDate, "dd MMM yyyy 'at' 23:59 '(UTC)'");
 
     return `From: ${startFormatted} To: ${endFormatted}`;
+  }
+
+  private static toUtcMidnight(d: Date): Date {
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   }
 }

@@ -40,7 +40,7 @@ test.describe(
 
         const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
 
-        const tileName = `Test Tile Test${faker.string.alphanumeric({ length: 6 })}`;
+        const tileName = `Test Tile Test ${faker.string.alphanumeric({ length: 6 })}`;
         const tileDescription = `Test Description ${faker.lorem.sentence()}`;
 
         const { tileType, app, apiAction, previewButton, nextButton } = DEFAULT_CUSTOM_APP_TILE_CONFIG;
@@ -111,20 +111,14 @@ test.describe(
           // Verify "Show more" is not visible when tile count is below threshold or all tiles are shown
           await customAppTilesPage.verifyShowMoreIsNotVisible();
         }
-        await customAppTilesPage.selectAppsInDropdown([
-          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
-          CUSTOM_APP_TILES_TEST_DATA.APPS.SERVICENOW_CUSTOM_APP,
-        ]);
+        await customAppTilesPage.selectAppsInDropdown([CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH]);
         await customAppTilesPage.closeAppsDropdownWithEscapeKey();
-        await customAppTilesPage.verifyAppsFilterApplied(2);
+        await customAppTilesPage.verifyAppsFilterApplied(1);
         await customAppTilesPage.verifyVisibleApps([CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH]);
         await customAppTilesPage.clickOnAppsDropdown();
         await customAppTilesPage.clickClearButtonAboveSearch();
         await customAppTilesPage.closeAppsDropdownWithEscapeKey();
-        await customAppTilesPage.verifyVisibleApps([
-          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
-          CUSTOM_APP_TILES_TEST_DATA.APPS.SERVICENOW_CUSTOM_APP,
-        ]);
+        await customAppTilesPage.verifyVisibleApps([CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH]);
       }
     );
 

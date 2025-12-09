@@ -3,6 +3,7 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
+import { SubscriptionComponent } from '@/src/modules/content/ui/components/subscriptionComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export interface IManageSiteSetUpActions {
@@ -16,10 +17,19 @@ export interface IManageSiteSetUpActions {
   clickOnTheMemberButtonInAboutTab: () => Promise<void>;
   clickOnTheAboutTab: () => Promise<void>;
   clickOnTheManageSiteButton: () => Promise<void>;
+  clickOnThePeopleTab: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
   clickOnInsideContentButton: () => Promise<void>;
+  // Follow/Unfollow methods
+  clickOnAboutTabAction: () => Promise<void>;
+  clickOnTheFollowersTabButtonInAboutTab: () => Promise<void>;
+  clickOnFollowButton: () => Promise<void>;
+  clickOnFollowSiteButton: () => Promise<void>;
+  clickOnFollowingButton: () => Promise<void>;
+  clickOnUnfollowSiteButton: () => Promise<void>;
+  clickOnRequestMembershipButton: () => Promise<string>;
   // New methods from develop
   clickOnUpdateCategory: () => Promise<void>;
   clickOnCancelOption: () => Promise<void>;
@@ -27,6 +37,7 @@ export interface IManageSiteSetUpActions {
   updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
   searchForSite: (siteName: string) => Promise<void>;
   selectSite: () => Promise<void>;
+  clickOnSubscriptionButton: () => Promise<void>;
 }
 
 export interface IManageSiteSetUpAssertions {
@@ -45,6 +56,15 @@ export interface IManageSiteSetUpAssertions {
   verifyPageTabImageIsDisplayed: () => Promise<void>;
   verifyThePageIsLoaded: () => Promise<void>;
   verifySitesNamesAreDisplayed: (siteNames: string | string[]) => Promise<void>;
+  searchSiteNameInSearchBar: (siteName: string) => Promise<void>;
+  // Follow/Unfollow assertions
+  checkMembersNameShouldBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
+  checkMembersNameShouldNotBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
+  verifyFollowButtonShouldBeChangedIntoFollowing: () => Promise<void>;
+  verifyUnfollowButtonShouldBeChangedIntoFollowButton: () => Promise<void>;
+  verifyMemberButtonShouldBeVisible: () => Promise<void>;
+  verifyMemberNameAndSiteOwnerStatus: (membersName: string) => Promise<void>;
+  verifyAddSubscriptionPageIsLoaded: () => Promise<void>;
 }
 
 export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
@@ -58,11 +78,13 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
+  private subscriptionComponent: SubscriptionComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+    this.subscriptionComponent = new SubscriptionComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -96,6 +118,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.checkAuthorNameIsDisplayed(authorName);
   }
 
+  async clickOnThePeopleTab(): Promise<void> {
+    await this.manageSitesComponent.clickOnThePeopleTabAction();
+  }
   async clickOnTheManageSiteButton(): Promise<void> {
     await this.manageSitesComponent.clickOnTheManageSiteButtonAction();
   }
@@ -168,6 +193,35 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.clickOnInsideContentButtonAction();
   }
 
+  // Follow/Unfollow actions
+  async clickOnAboutTabAction(): Promise<void> {
+    await this.manageSitesComponent.clickOnAboutTabAction();
+  }
+
+  async clickOnTheFollowersTabButtonInAboutTab(): Promise<void> {
+    await this.manageSitesComponent.clickOnTheFollowersTabButtonInAboutTabAction();
+  }
+
+  async clickOnFollowButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnFollowButtonAction();
+  }
+
+  async clickOnFollowSiteButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnFollowSiteButtonAction();
+  }
+
+  async clickOnFollowingButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnFollowingButtonAction();
+  }
+
+  async clickOnUnfollowSiteButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnUnfollowSiteButtonAction();
+  }
+
+  async clickOnRequestMembershipButton(): Promise<string> {
+    return await this.manageSitesComponent.clickOnRequestMembershipButtonAction();
+  }
+
   async verifyEventsTabImageIsDisplayed(): Promise<void> {
     await this.manageSitesComponent.verifyEventsTabImageIsDisplayed();
   }
@@ -188,6 +242,9 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
   async clickOnCancelOption(): Promise<void> {
     await this.updateSiteCategoryComponent.clickOnCancelOption();
   }
+  async searchSiteNameInSearchBar(siteName: string): Promise<void> {
+    await this.manageSitesComponent.searchSiteNameInSearchBarAction(siteName);
+  }
 
   async clickOnSites(): Promise<void> {
     await this.manageSitesComponent.clickOnSiteAction();
@@ -201,6 +258,12 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.manageSitesComponent.searchEventInSearchBarAction(siteName);
   }
 
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
+      assertionMessage: 'Site name should be displayed on manage site page',
+    });
+  }
+
   async verifySitesNamesAreDisplayed(siteNames: string | string[]): Promise<void> {
     // Handle both single site name and array of site names
     const namesArray = Array.isArray(siteNames) ? siteNames : [siteNames];
@@ -208,6 +271,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     let index = 0;
     while (index < namesArray.length) {
       const siteName = namesArray[index];
+      await this.searchSiteNameInSearchBar(siteName);
       await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(siteName), {
         assertionMessage: 'Site name should be displayed on manage site page',
       });
@@ -221,5 +285,40 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
       await this.page.keyboard.press('Tab');
       await this.page.keyboard.press('Enter');
     });
+  }
+
+  // Follow/Unfollow assertions
+  async checkMembersNameShouldBeVisibleInFollowersTab(membersName: string): Promise<void> {
+    await this.manageSitesComponent.checkMembersNameShouldBeVisibleInFollowersTab(membersName);
+  }
+
+  async checkMembersNameShouldNotBeVisibleInFollowersTab(membersName: string): Promise<void> {
+    await this.manageSitesComponent.checkMembersNameShouldNotBeVisibleInFollowersTab(membersName);
+  }
+
+  async verifyFollowButtonShouldBeChangedIntoFollowing(): Promise<void> {
+    await this.manageSitesComponent.verifyFollowButtonShouldBeChangedIntoFollowing();
+  }
+
+  async verifyUnfollowButtonShouldBeChangedIntoFollowButton(): Promise<void> {
+    await this.manageSitesComponent.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
+  }
+
+  async verifyMemberButtonShouldBeVisible(): Promise<void> {
+    await this.manageSitesComponent.verifyMemberButtonShouldBeVisible();
+  }
+
+  async verifyMemberNameAndSiteOwnerStatus(membersName: string): Promise<void> {
+    await this.manageSitesComponent.verifyMemberNameAndSiteOwnerStatus(membersName);
+  }
+
+  // Subscription actions
+  async clickOnSubscriptionButton(): Promise<void> {
+    await this.manageSitesComponent.clickOnSubscriptionButtonAction();
+  }
+
+  // Subscription assertions
+  async verifyAddSubscriptionPageIsLoaded(): Promise<void> {
+    await this.subscriptionComponent.assertions.verifyAddSubscriptionPageIsLoaded();
   }
 }

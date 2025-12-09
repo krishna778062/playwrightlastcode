@@ -48,11 +48,11 @@ export class ManageUsersFilter extends BaseComponent {
    */
   async checkValue(attributeName: string, valueName: string) {
     const searchBox = this.searchInputBox(attributeName);
-    if (await this.verifier.isTheElementVisible(searchBox)) {
+    if (await this.verifier.isTheElementVisible(searchBox, { timeout: 5_000 })) {
       await this.fillInElement(searchBox, valueName);
     }
-    await expect(this.checkBox(valueName)).toBeVisible();
-    if (!(await this.checkBox(valueName).isChecked())) {
+    await expect(this.checkBox(valueName)).toBeVisible({ timeout: 5_000 });
+    if (!(await this.checkBox(valueName).isChecked({ timeout: 5_000 }))) {
       await this.clickOnElement(this.checkBox(valueName));
     }
   }
@@ -64,11 +64,11 @@ export class ManageUsersFilter extends BaseComponent {
    */
   async unCheckValue(attributeName: string, valueName: string) {
     const searchBox = this.searchInputBox(attributeName);
-    if (await this.verifier.isTheElementVisible(searchBox)) {
+    if (await this.verifier.isTheElementVisible(searchBox, { timeout: 5_000 })) {
       await this.fillInElement(searchBox, valueName);
     }
-    await expect(this.checkBox(valueName)).toBeVisible();
-    if (await this.checkBox(valueName).isChecked()) {
+    await expect(this.checkBox(valueName)).toBeVisible({ timeout: 5_000 });
+    if (await this.checkBox(valueName).isChecked({ timeout: 5_000 })) {
       await this.clickOnElement(this.checkBox(valueName));
     }
   }

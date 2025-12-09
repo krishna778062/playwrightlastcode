@@ -1,8 +1,9 @@
 import { FrameLocator, Page } from '@playwright/test';
 
+import { PeopleDashboardTabularMetricsComponent } from './basePeopleDashboardTabularMetricsComponent';
+
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
-import { TabluarMetricsComponent } from '@/src/modules/data-engineering/ui/components/tabluarMetricsComponent';
 import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
 
 export enum ProfileViewsColumns {
@@ -10,7 +11,7 @@ export enum ProfileViewsColumns {
   PROFILE_VIEWS = 'Profile views',
 }
 
-export class ProfileViews extends TabluarMetricsComponent {
+export class ProfileViews extends PeopleDashboardTabularMetricsComponent {
   constructor(page: Page, iframe: FrameLocator) {
     super(page, iframe, PEOPLE_METRICS.PROFILE_VIEWS.title);
   }
@@ -37,6 +38,7 @@ export class ProfileViews extends TabluarMetricsComponent {
   async downloadAndValidateProfileViewsCSV(
     snowflakeData: Array<{
       Name: string;
+      Email: string;
       'Profile views': number;
     }>,
     selectedPeriod: PeriodFilterTimeRange,
@@ -67,8 +69,12 @@ export class ProfileViews extends TabluarMetricsComponent {
         transformations: {
           headerMapping: {
             Name: 'Name',
+            Email: 'Email',
             Count: 'Profile views',
           },
+          // Use composite key (Name + Email) for matching since names can be duplicate
+          // This ensures we match the correct user when multiple users have the same name
+          keyFields: ['Name', 'Email'],
         },
       };
 

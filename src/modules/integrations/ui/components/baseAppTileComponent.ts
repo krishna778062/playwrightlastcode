@@ -610,6 +610,20 @@ export class BaseAppTileComponent extends BaseComponent {
       await this.clickOnElement(personalizeBtn, { timeout: 30_000 });
     });
   }
+  /**
+   * Open personalize for a tile and verify heading and field label is visible
+   */
+  async openPersonalizeAndVerify(tileTitle: string, fieldLabel: string): Promise<void> {
+    await test.step(`Open personalize and verify dialog for '${tileTitle}'`, async () => {
+      await this.openPersonalizeOptions(tileTitle);
+      const safeTitle = tileTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const dialogName = new RegExp(`^Personalize\\s+${safeTitle}\\s+tile$`, 'i');
+      const dialog = this.page.getByRole('dialog', { name: dialogName });
+      await expect(dialog).toBeVisible({ timeout: 5_000 });
+      await expect(dialog.getByLabel(fieldLabel)).toBeVisible({ timeout: 5_000 });
+      await this.clickButton('Cancel', 'Close personalize dialog');
+    });
+  }
 
   async configurePersonalizeSortBy(sortBy: string): Promise<void> {
     await test.step(`Configure personalize sort by: ${sortBy}`, async () => {

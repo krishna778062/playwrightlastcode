@@ -7,12 +7,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { mailosaurValues } from '../../config/frontlineConfig';
+import { ProfilePage } from '../../pages/profilePage';
 
 import { Roles } from '@/src/core/constants/roles';
 import { USER_STATUS } from '@/src/core/constants/status';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { PropertiesFile } from '@/src/core/utils/propertiesFile';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
@@ -395,8 +397,8 @@ test.describe(
       async ({ page }) => {
         tagTest(test.info(), {
           description: 'Verify user reaches to Home page, when click on skip for now from force add contact page',
-          zephyrTestId: 'FL-435',
-          storyId: 'FL-435',
+          zephyrTestId: 'FL-879',
+          storyId: 'FL-879',
         });
 
         const userDetails = loadUserDetails();
@@ -557,6 +559,132 @@ test.describe(
         });
         const homePage = new NewHomePage(page);
         await homePage.verifyThePageIsLoaded();
+      }
+    );
+  }
+);
+
+test.describe(
+  'feature: Profile login with otp cases',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP, FrontlineFeatureTags.LWO_PROFILE],
+  },
+  () => {
+    test.beforeAll(async ({ appManagerApiContext, config }) => {
+      await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
+        'employee_number',
+        'email',
+      ]);
+    });
+
+    test.afterAll(async ({ appManagerApiContext, config, lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailAndMobile(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userDetails.endUserId,
+        USER_STATUS.INACTIVE
+      );
+    });
+
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteMobileOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+
+    test(
+      'scenario: Verify user can add mobile number from profile page contact edit when LWO is disabled',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, lwoUserManagementService, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can add mobile number from profile page contact edit when LWO is disabled',
+          zephyrTestId: 'FL-1006',
+          storyId: 'FL-1006',
+        });
+
+        try {
+          await lwoUserManagementService.disableLoginWithOtp();
+        } catch (error) {
+          throw error;
+        }
+
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersToSystemWithGivenEmail(
+          1,
+          Roles.END_USER,
+          'Simpplr@2025',
+          mailosaurValues.mailosaurEmail
+        );
+
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.setProperty('endUserEmail', endUser[0].email);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+        // Navigate to profile page
+        const topNavBar = new TopNavBarComponent(page);
+        await topNavBar.openViewProfile();
+
+        // Add mobile number from contact edit
+        const profilePage = new ProfilePage(page);
+        await profilePage.verifyThePageIsLoaded();
+        await profilePage.addMobileNumberFromContactEdit(mailosaurValues.mailosaurPhone);
+      }
+    );
+
+    test(
+      'scenario: Verify user can add mobile number from profile page and verify with OTP when LWO is enabled',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, lwoUserManagementService, otpUtils }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can add mobile number from profile page and verify with OTP when LWO is enabled',
+          zephyrTestId: 'FL-1007',
+          storyId: 'FL-1007',
+        });
+
+        try {
+          await lwoUserManagementService.setLWOSetting('optional');
+        } catch (error) {
+          throw error;
+        }
+
+        const userDetails = loadUserDetails();
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmail,
+          password: userDetails.endUserPassword,
+        });
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.skipVerificationPage();
+
+        const topNavBar = new TopNavBarComponent(page);
+        await topNavBar.openViewProfile();
+
+        const profilePage = new ProfilePage(page);
+        await profilePage.verifyThePageIsLoaded();
+        await profilePage.addMobileNumberAndVerifyWithOtp(mailosaurValues.mailosaurPhone, otpUtils);
       }
     );
   }

@@ -88,4 +88,147 @@ export class TileManagementService {
       },
     });
   }
+
+  /**
+   * Create a home dashboard tile via API
+   * @param tilePayload - The tile payload
+   * @returns Promise with the tile creation response
+   */
+  async createHomeDashboardTile(tilePayload: {
+    siteId?: string | null;
+    dashboardId: string;
+    tile: {
+      title?: string | null;
+      options?: any;
+      pushToAllHomeDashboards?: boolean;
+      items?: any[];
+      type: string;
+      variant: string;
+    };
+    isNewTiptap?: boolean;
+  }): Promise<any> {
+    const response = await this.httpClient.post(API_ENDPOINTS.tile.create, {
+      data: tilePayload,
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseBody = await response.json();
+    if (!response.ok() || responseBody.status !== 'success') {
+      const errorMessage = responseBody.message || responseBody.error || JSON.stringify(responseBody);
+      throw new Error(`Failed to create home dashboard tile. Status: ${response.status()}, Error: ${errorMessage}`);
+    }
+
+    return responseBody;
+  }
+
+  /**
+   * List tiles for a dashboard
+   * @param dashboardId - The dashboard ID ('home' or 'site')
+   * @param siteId - Optional site ID (null for home dashboard)
+   * @returns Promise with the tiles list response
+   */
+  async listTiles(dashboardId: string, siteId?: string | null): Promise<any> {
+    const payload: any = {
+      dashboardId,
+    };
+    if (siteId !== undefined) {
+      payload.siteId = siteId;
+    }
+
+    const response = await this.httpClient.post(API_ENDPOINTS.integrations.contentTilesList, {
+      data: payload,
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseBody = await response.json();
+    if (!response.ok() || responseBody.status !== 'success') {
+      throw new Error(`Failed to list tiles. Status: ${response.status()}`);
+    }
+
+    return responseBody;
+  }
+
+  /**
+   * Create a site dashboard tile via API
+   * @param siteId - The site ID
+   * @param tilePayload - The tile payload
+   * @returns Promise with the tile creation response
+   */
+  async createSiteDashboardTile(
+    siteId: string,
+    tilePayload: {
+      siteId?: string | null;
+      dashboardId: string;
+      tile: {
+        title?: string | null;
+        options?: any;
+        pushToAllHomeDashboards?: boolean;
+        items?: any[];
+        type: string;
+        variant: string;
+      };
+      isNewTiptap?: boolean;
+    }
+  ): Promise<any> {
+    const response = await this.httpClient.post(API_ENDPOINTS.tile.siteCreate(siteId), {
+      data: tilePayload,
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const responseBody = await response.json();
+    if (!response.ok() || responseBody.status !== 'success') {
+      const errorMessage = responseBody.message || responseBody.error || JSON.stringify(responseBody);
+      throw new Error(`Failed to create site dashboard tile. Status: ${response.status()}, Error: ${errorMessage}`);
+    }
+
+    return responseBody;
+  }
+
+  /**
+   * Delete a home dashboard tile via API
+   * @param tileId - The tile ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteHomeDashboardTile(tileId: string): Promise<APIResponse> {
+    return await this.httpClient.delete(`${API_ENDPOINTS.tile.create}/${tileId}`, {
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  /**
+   * Delete a site dashboard tile via API
+   * @param siteId - The site ID
+   * @param tileId - The tile ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteSiteDashboardTile(siteId: string, tileId: string): Promise<APIResponse> {
+    return await this.httpClient.delete(`${API_ENDPOINTS.tile.siteCreate(siteId)}/${tileId}`, {
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+  }
 }

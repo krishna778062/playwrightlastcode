@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TestOptions } from '@core/types/test.types';
 import { BasePage } from '@core/ui/pages/basePage';
 
 import { FooterComponent } from '../components/footerComponent';
@@ -46,6 +47,7 @@ export class NewHomePage extends BasePage {
   readonly addTileComponent: AddTileComponent;
   readonly tileListComponent: (tileTitle: string) => Locator;
   readonly socialCampaignNameInTileList: (socialCampaignName: string) => Locator;
+  readonly peopleButton: Locator;
   readonly carouselItemText: (text: string) => Locator;
   private carouselComponent: CarouselComponent;
 
@@ -62,6 +64,7 @@ export class NewHomePage extends BasePage {
       page.getByRole('button', { name: socialCampaignName }).first();
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
+    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
   }
 
   get actions(): INewHomePageActions {
@@ -77,6 +80,12 @@ export class NewHomePage extends BasePage {
       await expect(this.page.locator('h1'), "Expected to find 'Home' in the page title").toContainText('Home', {
         timeout: 35_000,
       });
+    });
+  }
+
+  async clickOnPeople(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on People`, async () => {
+      await this.clickOnElement(this.peopleButton);
     });
   }
 

@@ -19,3 +19,6 @@ export const SITE_TEST_DATA: siteTestCase[] = [
     category: SITE_TYPES.CATEGORY,
   },
 ];
+
+// Default public site name used across all tests
+export const DEFAULT_PUBLIC_SITE_NAME = 'All Employees';

@@ -227,10 +227,12 @@ export const PeopleSql = {
    * Profile Views Query Template
    * Returns all users with viewed profiles in the period
    * Column aliases match UI table headers exactly
+   * Includes Email for CSV validation to handle duplicate names
    */
   PROFILE_VIEWS: `
     select
       max(u.full_name) as "Name",
+      max(u.email) as "Email",
       count(distinct i.code) as "Profile views"
     from simpplr_common_tenant.udl.vw_user_as_is u
     inner join simpplr_common_tenant.udl.vw_interaction i

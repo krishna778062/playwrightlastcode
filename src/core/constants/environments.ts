@@ -5,4 +5,5 @@ export enum Environments {
   PROD_EU = 'prodEU',
   TEST = 'test',
   UAT = 'uat',
+  UAT_EU = 'uatEU',
 }

@@ -80,6 +80,15 @@ export class IdentityManagementHelper {
   }
 
   /**
+   * Gets the list of people (alias for getListOfPeople)
+   * @param searchTerm - Optional search term to filter by
+   * @returns The people list response
+   */
+  async getPeopleList(searchTerm?: string) {
+    return await this.identityService.getListOfPeople(searchTerm);
+  }
+
+  /**
    * Gets complete user information by email address (optimized single API call)
    * @param email - The email address to search for
    * @returns Promise<{userId: string, fullName: string, user: Person}> - Complete user info

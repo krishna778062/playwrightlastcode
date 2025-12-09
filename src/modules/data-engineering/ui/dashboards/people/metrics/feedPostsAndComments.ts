@@ -1,8 +1,9 @@
 import { FrameLocator, Page } from '@playwright/test';
 
+import { PeopleDashboardTabularMetricsComponent } from './basePeopleDashboardTabularMetricsComponent';
+
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
-import { TabluarMetricsComponent } from '@/src/modules/data-engineering/ui/components/tabluarMetricsComponent';
 import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
 
 export enum FeedPostsAndCommentsColumns {
@@ -10,7 +11,7 @@ export enum FeedPostsAndCommentsColumns {
   POSTS_AND_COMMENTS = 'Post and comment',
 }
 
-export class FeedPostsAndComments extends TabluarMetricsComponent {
+export class FeedPostsAndComments extends PeopleDashboardTabularMetricsComponent {
   constructor(page: Page, iframe: FrameLocator) {
     super(page, iframe, PEOPLE_METRICS.FEED_POSTS_AND_COMMENTS.title);
   }

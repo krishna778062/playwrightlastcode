@@ -50,6 +50,16 @@ export class LWOUserManagementService {
     });
   }
 
+  async disableLoginWithOtp() {
+    await test.step(`Disable Login with OTP`, async () => {
+      const payload: any = { loginWithOtpEnabled: false };
+      const response = await this.httpClient.put(API_ENDPOINTS.appConfig.appConfig + '/app.security.lwo', {
+        data: payload,
+      });
+      expect(response.status()).toBe(200);
+    });
+  }
+
   async deleteMobileOnly(userID: string, empID: string, firstName: string, lastName: string) {
     const payload = {
       personal_info: {

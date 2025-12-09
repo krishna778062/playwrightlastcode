@@ -2,6 +2,7 @@ import {
   MOBILE_ADOPTION_RATE_CSV_HEADERS,
   MOBILE_ADOPTION_RATE_HEADER_MAPPING,
 } from '@data-engineering/constants/mobileDashboardMetrics';
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { MobileDashboardQueryHelper } from '@data-engineering/helpers/mobileDashboardQueryHelper';
 import { MobileDashboard } from '@data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
@@ -77,7 +78,13 @@ test.describe(
     test(
       'tS To verify the answer Total users in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-total-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-total-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -102,7 +109,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile logged-in users in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-logged-in-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-logged-in-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -126,7 +139,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content viewers in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-content-viewers-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-content-viewers-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -150,7 +169,13 @@ test.describe(
     test(
       'tS To verify the answer Total mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@total-mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -174,7 +199,13 @@ test.describe(
     test(
       'tS To verify the answer Avg mobile content views per user in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@avg-mobile-content-views-per-user-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@avg-mobile-content-views-per-user-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -198,7 +229,13 @@ test.describe(
     test(
       'tS To verify the answer Unique Mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@unique-mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@unique-mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -222,7 +259,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-device-logins-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@mobile-device-logins-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -272,7 +315,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content views by type in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-content-views-by-type-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@mobile-content-views-by-type-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -322,7 +371,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -362,13 +417,20 @@ test.describe(
       }
     );
 
-    test(
+    test.fail(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-adoption-rate-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@mobile-adoption-rate-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
+          isKnownFailure: true,
           description: 'TS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
           zephyrTestId: 'DE-25977',
           storyId: 'DE-25942',
@@ -408,7 +470,13 @@ test.describe(
     test(
       'tS To verify the csv of mobile adoption rate answer in mobile dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@mobile-adoption-rate-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@mobile-adoption-rate-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {

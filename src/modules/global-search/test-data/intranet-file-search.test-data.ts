@@ -25,6 +25,7 @@ export const INTRANET_FILE_SEARCH_TEST_DATA = {
       originalFileName: 'File.pptx',
       mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       label: 'Microsoft PowerPoint',
+      typeFilter: 'Presentation',
     },
     {
       type: 'pdf',
@@ -32,6 +33,7 @@ export const INTRANET_FILE_SEARCH_TEST_DATA = {
       originalFileName: 'FilePdf.pdf',
       mimeType: 'application/pdf',
       label: 'PDF',
+      typeFilter: 'Document File',
     },
     {
       type: 'docx',
@@ -39,6 +41,7 @@ export const INTRANET_FILE_SEARCH_TEST_DATA = {
       originalFileName: 'File.docx',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       label: 'Word Document',
+      typeFilter: 'Document File',
     },
     {
       type: 'csv',
@@ -46,6 +49,7 @@ export const INTRANET_FILE_SEARCH_TEST_DATA = {
       originalFileName: 'File.csv',
       mimeType: 'text/csv',
       label: 'CSV',
+      typeFilter: 'Spreadsheet',
     },
   ],
 };

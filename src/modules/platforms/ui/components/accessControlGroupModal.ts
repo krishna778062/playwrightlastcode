@@ -1,4 +1,11 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
+
+import {
+  ACG_EDIT_ASSETS,
+  ACG_ERROR_MESSAGES_DESCRIPTION,
+  ACG_ERROR_MESSAGES_TITLE,
+  ACG_TOOLTIPS,
+} from '../../constants/acg';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -13,8 +20,11 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private duplicateTargetAudienceErrorMessageDescriptionText: string =
     'You cannot have duplicate access control groups. Edit the target audience to proceed or abandon creating this access control group.';
   private closeButton: Locator;
+  private cancelButton: Locator;
   private duplicateTargetAudienceErrorMessageHeading: Locator;
   private duplicateTargetAudienceErrorMessageDescription: Locator;
+  private editSummaryScreenAssetButtons: Locator;
+  private summaryScreenAssetButtons: (buttonName: string) => Locator;
   private featureSection: Locator;
   private targetAudienceSection: Locator;
   private backButton: Locator;
@@ -36,6 +46,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     this.duplicateTargetAudienceErrorMessageDescription = this.acgDialog
       .locator('[class*="Panel-module__panel"] p')
       .filter({ hasText: this.duplicateTargetAudienceErrorMessageDescriptionText });
+    this.editSummaryScreenAssetButtons = this.acgDialog.locator('[class*="TooltipOnHover-module__hoverContainer"]');
+    this.summaryScreenAssetButtons = (buttonName: string) => this.acgDialog.getByRole('button', { name: buttonName });
+    this.cancelButton = this.acgDialog.getByRole('button', { name: 'Cancel' });
     this.featureSection = this.acgDialog.locator('[class*="Spacing-module__divider"]').filter({ hasText: 'Feature' });
     this.targetAudienceSection = this.acgDialog
       .locator('[class*="Spacing-module__divider"]')
@@ -55,7 +68,15 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    * Clicks the close button on the access control group modal
    */
   async clickCloseButton(): Promise<void> {
-    await this.clickOnElement(this.closeButton);
+    await test.step('Click on Cross (X) button', async () => {
+      await this.clickOnElement(this.closeButton);
+    });
+  }
+
+  async clickOnCancelButton(): Promise<void> {
+    await test.step('Click on Cancel button', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
   }
 
   /**
@@ -84,6 +105,103 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .filter({ hasText: audienceName })
       .getByRole('button', { name: 'Remove audience' });
     await this.clickOnElement(removeButtonElement);
+  }
+
+  /**
+   * Verifies the default control group only managers and admins can be modified error message is visible
+   */
+  async verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedErrorMessage(
+    accessControlType: string
+  ): Promise<void> {
+    const errorMessageTitleCommonLocator = this.acgDialog.locator('[class*="Panel-module__panel"] span');
+    const errorMessageDescriptionCommonLocator = this.acgDialog.locator('[class*="Panel-module__panel"] p');
+    const errorMessageTitle =
+      accessControlType == 'RBAC'
+        ? errorMessageTitleCommonLocator.filter({ hasText: ACG_ERROR_MESSAGES_TITLE.RBAC })
+        : errorMessageTitleCommonLocator.filter({ hasText: ACG_ERROR_MESSAGES_TITLE.ABAC });
+    await expect(errorMessageTitle).toBeVisible();
+    const errorMessageDescription =
+      accessControlType == 'RBAC'
+        ? errorMessageDescriptionCommonLocator.filter({
+            hasText: ACG_ERROR_MESSAGES_DESCRIPTION.RBAC,
+          })
+        : errorMessageDescriptionCommonLocator.filter({
+            hasText: ACG_ERROR_MESSAGES_DESCRIPTION.ABAC,
+          });
+    await expect(errorMessageDescription).toBeVisible();
+  }
+
+  /**
+   * Verifies the default control group only managers and admins can be modified tooltip is visible
+   */
+  async verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedTooltip(accessControlType: string): Promise<void> {
+    await this.hoverOverButtonAndVerifyTooltip(ACG_EDIT_ASSETS.FEATURE, accessControlType);
+    await this.hoverOverButtonAndVerifyTooltip(ACG_EDIT_ASSETS.TARGET_AUDIENCE, accessControlType);
+  }
+
+  /**
+   * Verifies the tooltip message for the button
+   * @param buttonName - Name of the button for which the tooltip message need to be verified
+   * @param message - Message to be displayed on the tooltip
+   */
+  async verifyTooltipForButton(buttonName: string, message: string): Promise<void> {
+    await this.hoverOverButtonAndVerifyTooltip(buttonName, message);
+  }
+
+  /**
+   * Hovers cursor over a button and verify the tooltip is visible
+   * @param buttonName - The name of the button to hover over and verify the tooltip for
+   * @param message - The message to be displayed on the tooltip
+   */
+  async hoverOverButtonAndVerifyTooltip(buttonName: string, message: string) {
+    // Complete mapping (message → tooltip text)
+    const tooltipMap: Record<string, string> = {
+      RBAC: ACG_TOOLTIPS.RBAC,
+      ABAC: ACG_TOOLTIPS.ABAC,
+      FEATURE_CANNOT_BE_EDITED: ACG_TOOLTIPS.FEATURE_CANNOT_BE_EDITED,
+    };
+
+    const tooltipText = tooltipMap[message];
+
+    const buttonLocator = this.editSummaryScreenAssetButtons.filter({
+      has: this.page.getByRole('button', {
+        name: buttonName,
+        exact: true,
+      }),
+    });
+
+    const tooltipLocator = buttonLocator.getByRole('tooltip', {
+      name: tooltipText,
+      exact: true,
+    });
+
+    await test.step(`Hover over the "${buttonName}" button`, async () => {
+      await buttonLocator.hover({ force: true });
+    });
+
+    await test.step(`Verify tooltip: "${tooltipText}" is visible`, async () => {
+      await expect(tooltipLocator).toBeVisible();
+    });
+  }
+
+  /**
+   * Verifies the title of the access control group modal
+   * @param title - The title of the access control group modal
+   */
+  async verifyTitleOfModal(title: string): Promise<void> {
+    await expect(this.acgDialog.locator('h2').filter({ hasText: title })).toBeVisible();
+  }
+
+  async verifySummaryScreenAssetButtonIsEnabled(buttonName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsEnabled(this.summaryScreenAssetButtons(buttonName), {
+      assertionMessage: `expecting ${buttonName} button to be enabled`,
+    });
+  }
+
+  async verifySummaryScreenAssetButtonIsDisabled(buttonName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsDisabled(this.summaryScreenAssetButtons(buttonName), {
+      assertionMessage: `expecting ${buttonName} button to be disabled`,
+    });
   }
 
   /**

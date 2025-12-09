@@ -32,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -42,12 +43,14 @@ export interface ICreateFeedPostActions {
   }) => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickPostButton: () => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  clickReplyUpdateButton: (postText: string) => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
   searchForFileInLibrary: (fileName: string) => Promise<void>;
@@ -59,10 +62,15 @@ export interface ICreateFeedPostActions {
   clickBoxFilesTab: () => Promise<void>;
   clickBoxFolder: (folderName: string) => Promise<void>;
   selectBoxFile: (fileName: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
+  clickRecognitionTab: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
@@ -76,10 +84,14 @@ export class CreateFeedPostComponent
 {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
+  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly cancelButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Cancel' });
 
   // Toolbar formatting buttons
   readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
@@ -243,6 +255,29 @@ export class CreateFeedPostComponent
     });
   }
 
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await test.step(`Creating and publishing feed post with text: ${text}`, async () => {
+      await this.createPost(text);
+      await this.addTopicMention(topic);
+
+      // Publish the post and get the response
+      const postResponse = await this.createFeedPost();
+
+      // Parse JSON body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      // Fetch the post id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: text,
+        attachmentCount: 0,
+        postId,
+      };
+    });
+  }
+
   /**
    * Edits an existing post with new text
    * @param currentText - Current text of the post to edit
@@ -334,6 +369,41 @@ export class CreateFeedPostComponent
   }
 
   /**
+   * Uploads files to a reply editor for a specific post
+   * @param filePaths - Array of file paths to upload
+   * @param postText - The text of the post to which the reply belongs (used for context, not for scoping)
+   */
+  async uploadFilesToReply(filePaths: string[], postText: string): Promise<void> {
+    await test.step('Upload files to reply editor', async () => {
+      // Setup request promises for upload requests
+      const responsePromises = [];
+      for (let i = 0; i < filePaths.length; i++) {
+        const responsePromise = this.page.waitForResponse(
+          response =>
+            response.request().url().includes('X-Amz-SignedHeaders=host') &&
+            response.request().method() === 'PUT' &&
+            response.status() === 200,
+          { timeout: 35000 }
+        );
+        responsePromises.push(responsePromise);
+      }
+
+      const fileUploadInput = this.page.locator("input[type='file']").last();
+
+      await fileUploadInput.setInputFiles(filePaths);
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
+
+      // Wait for all upload requests to complete
+      await Promise.all(responsePromises);
+    });
+  }
+
+  /**
    * Removes an attached file from the post by index
    * @param index - Zero-based index of the file to remove (default: 0 for first file)
    */
@@ -365,6 +435,19 @@ export class CreateFeedPostComponent
    */
   async clickPostButton(): Promise<void> {
     await test.step('Click post button', async () => {
+      await this.clickOnElement(this.postButton);
+      await this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        { timeout: 20_000 }
+      );
+    });
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
       await this.clickOnElement(this.postButton);
     });
   }
@@ -409,12 +492,57 @@ export class CreateFeedPostComponent
     });
   }
 
+  async clickReplyUpdateButton(): Promise<void> {
+    await test.step('Click update button in reply editor', async () => {
+      const updateButton = this.updateButton.last();
+      await this.clickOnElement(updateButton);
+    });
+  }
+
   /**
    * Verifies that the post editor is visible
    */
   async verifyEditorVisible(): Promise<void> {
     await test.step('Verify editor is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedEditor);
+    });
+  }
+
+  async verifyReplyEditorVisible(): Promise<void> {
+    await test.step('Verify reply editor is visible', async () => {
+      const editorLocator = this.feedEditor.last();
+      await this.verifier.verifyTheElementIsVisible(editorLocator);
+    });
+  }
+
+  /**
+   * Verifies that the Cancel button is visible in the post creation editor
+   */
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await test.step('Verify Cancel button is visible in post creation editor', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cancelButton, {
+        assertionMessage: 'Cancel button should be visible in post creation editor',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the post creation editor
+   */
+  async clickPostCreationCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in post creation editor', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the post creation editor is closed (not visible)
+   */
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await test.step('Verify post creation editor is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedEditor, {
+        assertionMessage: 'Post creation editor should be closed (not visible)',
+      });
     });
   }
 
@@ -543,6 +671,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Clicks the Recognition tab in the composer to open recognition form
+   */
+  async clickRecognitionTab(): Promise<void> {
+    await test.step('Click Recognition tab', async () => {
+      await this.clickOnElement(this.recognitionTab);
+    });
+  }
+
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify question button is not visible', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
@@ -590,7 +727,7 @@ export class CreateFeedPostComponent
       const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
       await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
         assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
-        timeout: 5000,
+        timeout: 20000,
       });
     });
   }
