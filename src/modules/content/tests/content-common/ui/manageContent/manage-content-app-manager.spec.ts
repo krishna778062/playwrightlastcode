@@ -726,6 +726,9 @@ test.describe(
           newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[2].name),
           newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[3].name),
         ]);
+      }
+    );
+    test(
       'verify All Sites site category takes the user to respective category screen with list of Sites',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
@@ -764,8 +767,8 @@ test.describe(
         await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
         await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
         await sitesPage.actions.clickOnSiteName(siteName);
-        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
-        await siteDashboardPage.assertions.verifyThePageIsLoaded();
+        const siteDashboardPageInstance = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
+        await siteDashboardPageInstance.assertions.verifyThePageIsLoaded();
       }
     );
   }
