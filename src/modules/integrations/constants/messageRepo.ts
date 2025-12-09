@@ -98,4 +98,5 @@ export const MESSAGES = {
   CUSTOM_APPS_EMPTY_STATE: 'Add your own apps to use them',
   NO_RESULTS_DESCRIPTION: 'Try adjusting search term or filters',
   CONNECTION_DISCONNECTED_MESSAGE: 'Connection disconnected',
+  CREATE_TICKET_SUCCESS_MESSAGE: 'Your ticket has been created successfully',
 } as const;
