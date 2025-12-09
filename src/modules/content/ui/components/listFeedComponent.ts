@@ -5,7 +5,110 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
-export class ListFeedComponent extends BaseComponent {
+export interface IListFeedComponentActions {
+  openPostOptionsMenu: (postText: string) => Promise<void>;
+  clickDeleteOption: () => Promise<void>;
+  clickReportPostOption: () => Promise<void>;
+  clickReportReplyOption: () => Promise<void>;
+  confirmDelete: () => Promise<void>;
+  clickInlineImagePreview: (postText: string) => Promise<void>;
+  closeImagePreview: () => Promise<void>;
+  markPostAsFavourite: () => Promise<void>;
+  removePostFromFavourite: (postText: string) => Promise<void>;
+  clickInfoIcon: (fileId: string) => Promise<void>;
+  addReplyToPost: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
+  addReplyToPostWithInappropriateContent: (
+    replyText: string,
+    postId: string,
+    mentionUserName?: string
+  ) => Promise<string>;
+  submitReplyAndGetResponse: () => Promise<{ feedId: string }>;
+  clickReplyShowMoreButton: () => Promise<void>;
+  clickLoadMoreRepliesButton: () => Promise<void>;
+  clickEditButton: () => Promise<void>;
+  clickOnInfoIcon: (fileId: string) => Promise<void>;
+  clickPostTimestamp: (postText: string) => Promise<void>;
+  clickShareOnComment: () => Promise<void>;
+  clickShareOnPost: (postText: string) => Promise<void>;
+  clickShareButtonForPost: (postText: string) => Promise<void>;
+  clickViewPostLink: () => Promise<void>;
+  openReplyOptionsMenu: (replyText: string) => Promise<void>;
+  clickReplyEditOption: () => Promise<void>;
+  clickReplyDeleteOption: () => Promise<void>;
+  clickShareIcon: (postText: string) => Promise<void>;
+  likeFeedPost: (postText: string) => Promise<void>;
+  unlikeFeedPost: (postText: string) => Promise<void>;
+  likeFeedReply: (replyText: string) => Promise<void>;
+  unlikeFeedReply: (replyText: string) => Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
+  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
+  verifyReactionButtonTextContent: (postText: string, reactionName: string) => Promise<void>;
+  clickReactionCountButton: (postText: string) => Promise<void>;
+  closeReactionModal: () => Promise<void>;
+  clickViewPostLinkInShareModal: () => Promise<void>;
+  clickViewPostLinkInPostDetailPage: () => Promise<void>;
+  clickOnReplyButton: (postText: string) => Promise<void>;
+  clickCancelButton: (postText: string) => Promise<void>;
+  openReplyEditorForPost: (postText: string) => Promise<void>;
+}
+
+export interface IListFeedComponentAssertions {
+  getPostTimestamp: (postText: string) => Promise<string>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
+  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
+  verifyPostIsNotVisible: (expectedText: string) => Promise<void>;
+  verifyInlineImagePreviewVisible: () => Promise<void>;
+  verifyPostIsFavorited: (postText: string) => Promise<void>;
+  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
+  validatePostNotVisible: (postText: string) => Promise<void>;
+  verifyImageButtonIsNotVisible: () => Promise<void>;
+  verifyReplyIsVisible: (replyText: string) => Promise<void>;
+  verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
+  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
+  verifyPostsIFollow: () => Promise<void>;
+  verifySortByRecentActivity: () => Promise<void>;
+  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
+  getVisibleReplyCount: (postText: string) => Promise<number>;
+  verifyReplyCount: (postText: string, expectedCount: number) => Promise<void>;
+  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
+  verifyShareModalIsVisible: () => Promise<void>;
+  verifyShareModalIsClosed: () => Promise<void>;
+  verifyVideoControls: (postText: string) => Promise<void>;
+  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsNotVisible: () => Promise<void>;
+  verifyReactionButtonIsVisible: () => Promise<void>;
+  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineMode: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineModeOnContentPage: () => Promise<void>;
+  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
+  verifyReactionModalIsVisible: () => Promise<void>;
+  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
+  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
+  verifyDeletedPostMessage: (postText: string) => Promise<void>;
+  verifyRemovedContentMessage: (postText: string) => Promise<void>;
+  verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
+  verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
+  verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
+  verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
+  verifyReplyTimestamp: (replyText: string) => Promise<void>;
+  verifyBoxLogoOnReplyAttachment: (replyText: string) => Promise<void>;
+  verifyCancelButtonVisible: (postText: string) => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
+  verifyReplyEditorClosed: (postText: string) => Promise<void>;
+  verifyLikeCountOnPost: (postText: string) => Promise<void>;
+  verifyLikeCountOnReply: (replyText: string) => Promise<void>;
+  verifyPostIsAtTop: (postText: string) => Promise<void>;
+}
+
+export class ListFeedComponent
+  extends BaseComponent
+  implements IListFeedComponentActions, IListFeedComponentAssertions
+{
   // Post options section
   readonly deleteButton: Locator;
   readonly deleteConfirmDialog: Locator;
@@ -20,6 +123,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly unlikeButtonForReply: Locator;
   readonly siteImageLocator: Locator;
   readonly editButton: Locator;
+  readonly copyLinkButton: Locator;
   readonly replyButton: Locator;
   readonly replyCancelButton: Locator;
   readonly replyInput: Locator;
@@ -202,7 +306,7 @@ export class ListFeedComponent extends BaseComponent {
 
   readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
     this.page
-      .locator('._reply_1ii4b_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
+      .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
       .first();
 
   readonly getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
@@ -223,6 +327,7 @@ export class ListFeedComponent extends BaseComponent {
     this.editButton = this.page.locator("div:text('Edit')");
     this.reportPostOption = this.page.getByRole('menuitem', { name: 'Report post' });
     this.reportReplyOption = this.page.getByText('Report reply');
+    this.copyLinkButton = this.page.locator("div:text('Copy link')");
     this.deleteConfirmDialog = this.page.locator('div[role="dialog"]');
     this.deleteConfirmButton = this.page.getByRole('button', { name: 'Delete' });
     this.closeButton = this.page.locator("button[class*='closeBtn']");
@@ -263,6 +368,14 @@ export class ListFeedComponent extends BaseComponent {
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
+  }
+
+  get actions(): IListFeedComponentActions {
+    return this;
+  }
+
+  get assertions(): IListFeedComponentAssertions {
+    return this;
   }
 
   /**
@@ -331,6 +444,53 @@ export class ListFeedComponent extends BaseComponent {
   async confirmDelete(): Promise<void> {
     await test.step('Confirm delete', async () => {
       await this.clickOnElement(this.deleteConfirmButton);
+    });
+  }
+
+  async clickCopyLinkOption(): Promise<void> {
+    await test.step('Click Copy link option', async () => {
+      await this.clickByInjectingJavaScript(this.copyLinkButton);
+    });
+  }
+
+  async verifyOnlyCopyLinkOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify only Copy link option is visible for post: ${postText}`, async () => {
+      // Verify Copy link is visible
+      await this.verifier.verifyTheElementIsVisible(this.copyLinkButton, {
+        assertionMessage: `Copy link option should be visible for post "${postText}"`,
+      });
+
+      // Verify Edit button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should not be visible for post "${postText}"`,
+      });
+
+      // Verify Delete button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
+        assertionMessage: `Delete option should not be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
+    await test.step(`Verify reply options menu is not visible for reply: ${replyText}`, async () => {
+      const replyOptionsMenu = this.getReplyOptionsMenuLocator(replyText);
+      await this.verifier.verifyTheElementIsVisible(replyOptionsMenu, {
+        assertionMessage: `Reply options menu should be visible for reply "${replyText}"`,
+      });
+      await this.verifier.verifyTheElementIsNotVisible(this.copyLinkButton, {
+        assertionMessage: `Copy link option should not be visible for reply "${replyText}"`,
+      });
+
+      // Verify Edit button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should not be visible for reply "${replyText}"`,
+      });
+
+      // Verify Delete button is not visible
+      await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
+        assertionMessage: `Delete option should not be visible for reply "${replyText}"`,
+      });
     });
   }
 

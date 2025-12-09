@@ -8,6 +8,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { DEFAULT_APP_CONFIGS } from '@/src/modules/integrations/test-data/customApps.test-data';
 
 export enum CustomAppType {
   CREATE_OWN_APP = 'Create your own app',
@@ -22,6 +23,33 @@ export interface ConnectionFieldConfig {
   fieldLabel: string;
   expectedValue?: string;
   isDisabled?: boolean;
+}
+
+/**
+ * Interface for custom app creation configuration
+ */
+export interface CustomAppConfig {
+  appName: string;
+  description: string;
+  category: string;
+  logoFile: string;
+  connectionType: string;
+  authType: string;
+  subAuthType?: string;
+  codeChallengeMethod?: string;
+  clientId?: string;
+  clientSecret?: string;
+  authUrl?: string;
+  tokenUrl?: string;
+  baseUrl?: string;
+  apiTokenLabel?: string;
+  authorizationHeader?: string;
+  usernameLabel?: string;
+  passwordLabel?: string;
+  clientIdLabel?: string;
+  secretKeyLabel?: string;
+  tokenRequestHeaders?: string;
+  addHeadersForTokenUrl?: boolean;
 }
 
 export class CustomAppsIntegrationPage extends BasePage {
@@ -39,8 +67,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly stepContainer: Locator;
   readonly tileUnavailableMessage: Locator;
   readonly apiTokenInput: Locator;
-
-  // New locators for app settings verification
   readonly customAppsLink: Locator;
   readonly connectionHeading: Locator;
   readonly disconnectAccountButton: Locator;
@@ -49,20 +75,16 @@ export class CustomAppsIntegrationPage extends BasePage {
   readonly setupChecklistButton: Locator;
   readonly dialog: Locator;
   readonly appDescriptionText: Locator;
-
-  // Verification locators
   readonly alertMessage: Locator;
   readonly saveButtonByRole: Locator;
-
-  // Dialog locators
   readonly dialogTitleHeading: Locator;
   readonly dialogCancelButton: Locator;
   readonly dialogDisconnectButton: Locator;
-
-  // PKCE and Token URL locators
   readonly codeChallengeMethodDropdown: Locator;
   readonly addHeadersForTokenUrlCheckbox: Locator;
   readonly tokenRequestHeadersInput: Locator;
+  readonly clientIdInput: Locator;
+  readonly secretKeyInput: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CUSTOM_APPS_INTEGRATION_PAGE);
@@ -95,13 +117,13 @@ export class CustomAppsIntegrationPage extends BasePage {
     this.dialogTitleHeading = this.dialog.locator('h2, h3, h4');
     this.dialogCancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
     this.dialogDisconnectButton = this.dialog.getByRole('button', { name: 'Disconnect account' });
-
-    // PKCE and Token URL locators
     this.codeChallengeMethodDropdown = page.locator('select[name="authDetails.codeChallengeMethod"]');
     this.addHeadersForTokenUrlCheckbox = page.getByRole('checkbox', { name: 'Add headers for Token URL' });
     this.tokenRequestHeadersInput = page.locator(
       'input[name="authDetails.tokenRequestHeaders"], textarea[name="authDetails.tokenRequestHeaders"]'
     );
+    this.clientIdInput = page.getByRole('textbox', { name: 'Client ID' });
+    this.secretKeyInput = page.getByRole('textbox', { name: 'Secret key' });
   }
 
   /**
@@ -270,6 +292,24 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.passwordInput.waitFor({ state: 'visible' });
       await this.passwordInput.fill(userSecret);
       await this.passwordInput.blur();
+      await this.saveButton.waitFor({ state: 'visible' });
+      await this.clickSaveButton();
+    });
+  }
+
+  /**
+   * Fill Client ID and Secret key fields for Client Credentials OAuth flow
+   * @param clientId - The Client ID value
+   * @param secretKey - The Secret key value
+   */
+  async enterClientCredentials(clientId: string, secretKey: string): Promise<void> {
+    await test.step(`Enter client credentials: clientId=${clientId}`, async () => {
+      await this.clientIdInput.waitFor({ state: 'visible' });
+      await this.clientIdInput.fill(clientId);
+      await this.clientIdInput.blur();
+      await this.secretKeyInput.waitFor({ state: 'visible' });
+      await this.secretKeyInput.fill(secretKey);
+      await this.secretKeyInput.blur();
       await this.saveButton.waitFor({ state: 'visible' });
       await this.clickSaveButton();
     });
@@ -683,6 +723,30 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Verify the sort dropdown label
+   * @param expectedLabel - The expected label text (e.g., 'Sort: Date created')
+   */
+  async verifySortDropdownLabel(expectedLabel: string): Promise<void> {
+    return this.customAppsComponent.verifySortDropdownLabel(expectedLabel);
+  }
+
+  /**
+   * Verify app is not at the top of the list
+   * @param appName - The app name to verify
+   */
+  async verifyAppIsNotFirst(appName: string): Promise<void> {
+    return this.customAppsComponent.verifyAppIsNotFirst(appName);
+  }
+
+  /**
+   * Verify app is at the top of the list
+   * @param appName - The app name to verify
+   */
+  async verifyAppIsFirst(appName: string): Promise<void> {
+    return this.customAppsComponent.verifyAppIsFirst(appName);
+  }
+
+  /**
    * Verify all visible apps have the expected status
    * @param expectedStatus - Expected status ('Enabled' or 'Disabled')
    */
@@ -839,6 +903,14 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async selectSubAuthType(subAuthType: string): Promise<void> {
     return this.customAppsComponent.selectSubAuthType(subAuthType);
+  }
+
+  /**
+   * Verify that a sub auth type option is disabled in the dropdown
+   * @param optionLabel - The label of the option to verify (e.g., 'Client Credentials')
+   */
+  async verifySubAuthTypeOptionIsDisabled(optionLabel: string): Promise<void> {
+    return this.customAppsComponent.verifySubAuthTypeOptionIsDisabled(optionLabel);
   }
 
   /**
@@ -1056,6 +1128,39 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Verify Save button is disabled
+   */
+  async verifySaveButtonIsDisabled(): Promise<void> {
+    await test.step('Verify Save button is disabled', async () => {
+      await expect(this.saveButtonByRole, 'Expected Save button to be disabled').toBeDisabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify Cancel button is displayed in dialog
+   */
+  async verifyCancelButtonIsDisplayedInDialog(): Promise<void> {
+    await test.step('Verify Cancel button is displayed in dialog', async () => {
+      await expect(this.dialogCancelButton, 'Expected Cancel button in dialog to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify Disconnect button is displayed in dialog
+   */
+  async verifyDisconnectButtonIsDisplayedInDialog(): Promise<void> {
+    await test.step('Verify Disconnect button is displayed in dialog', async () => {
+      await expect(this.dialogDisconnectButton, 'Expected Disconnect button in dialog to be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
    * Click Disconnect account button in dialog
    */
   async clickDisconnectAccountInDialog(): Promise<void> {
@@ -1124,6 +1229,407 @@ export class CustomAppsIntegrationPage extends BasePage {
           timeout: TIMEOUTS.SHORT,
         }
       );
+    });
+  }
+
+  /**
+   * Create a custom app with the provided configuration
+   * This is a wrapper method that encapsulates all steps for creating a custom app
+   * @param config - The custom app configuration
+   */
+  async createCustomApp(config: CustomAppConfig): Promise<void> {
+    await test.step(`Create custom app: ${config.appName}`, async () => {
+      await this.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+      await this.enterAppName(config.appName);
+      await this.enterAppDescription(config.description);
+      await this.selectAppCategory(config.category);
+      await this.uploadLogoFile(config.logoFile);
+      await this.selectConnectionType(config.connectionType);
+      await this.selectAuthType(config.authType);
+
+      if (config.subAuthType) {
+        await this.selectSubAuthType(config.subAuthType);
+      }
+
+      if (config.codeChallengeMethod) {
+        await this.selectCodeChallengeMethod(config.codeChallengeMethod);
+      }
+
+      // Fill OAuth fields if provided
+      if (config.clientId) {
+        await this.enterFieldValue('Client ID', config.clientId);
+      }
+      if (config.clientSecret) {
+        await this.enterFieldValue('Secret key', config.clientSecret);
+      }
+      if (config.authUrl) {
+        await this.enterFieldValue('Auth URL', config.authUrl);
+      }
+      if (config.tokenUrl) {
+        await this.enterFieldValue('Token URL', config.tokenUrl);
+      }
+
+      // Handle token request headers if needed
+      if (config.addHeadersForTokenUrl && config.tokenRequestHeaders) {
+        await this.scrollPageBy(200);
+        await this.checkAddHeadersForTokenUrl();
+        await this.enterTokenRequestHeaders(config.tokenRequestHeaders);
+      }
+
+      if (config.baseUrl) {
+        await this.scrollPageBy(200);
+        await this.enterFieldValue('Base URL', config.baseUrl);
+      }
+
+      // Fill API Token fields if provided
+      if (config.apiTokenLabel) {
+        await this.enterFieldValue('API token label', config.apiTokenLabel);
+      }
+      if (config.authorizationHeader) {
+        await this.enterFieldValue('Authorization header', config.authorizationHeader);
+      }
+
+      // Fill Basic Auth fields if provided
+      if (config.usernameLabel) {
+        await this.enterFieldValue('Username label', config.usernameLabel);
+      }
+      if (config.passwordLabel) {
+        await this.enterFieldValue('Password label', config.passwordLabel);
+      }
+
+      // Fill Client Credentials fields if provided
+      if (config.clientIdLabel) {
+        await this.enterFieldValue('Client ID label', config.clientIdLabel);
+      }
+      if (config.secretKeyLabel) {
+        await this.enterFieldValue('Secret key label', config.secretKeyLabel);
+      }
+
+      await this.scrollPageBy(200);
+      await this.waitBeforeSave();
+      await this.clickButton('Save');
+    });
+  }
+
+  /**
+   * Wait before saving form to allow UI to settle
+   * @internal
+   */
+  private async waitBeforeSave(): Promise<void> {
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+  }
+
+  /**
+   * Create a Box OAuth custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param connectionType - The connection type ('App level', 'User level', or 'App level & user level')
+   * @param boxConfig - Optional Box OAuth configuration overrides
+   */
+  async createBoxOAuthApp(
+    appName: string,
+    appDescription: string,
+    connectionType: string,
+    boxConfig?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      connectionType,
+      ...DEFAULT_APP_CONFIGS.BOX_OAUTH,
+      ...boxConfig,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Create a Jira Basic Auth custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param jiraConfig - Optional Jira configuration overrides
+   */
+  async createJiraBasicAuthApp(
+    appName: string,
+    appDescription: string,
+    jiraConfig?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      ...DEFAULT_APP_CONFIGS.JIRA_BASIC_AUTH,
+      ...jiraConfig,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Create a Trello API Token custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param connectionType - The connection type ('App level' or 'App level & user level')
+   * @param trelloConfig - Optional Trello configuration overrides
+   */
+  async createTrelloApiTokenApp(
+    appName: string,
+    appDescription: string,
+    connectionType: string = 'App level',
+    trelloConfig?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      connectionType,
+      ...DEFAULT_APP_CONFIGS.TRELLO_API_TOKEN,
+      ...trelloConfig,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Create an Auth0 PKCE custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param codeChallengeMethod - The code challenge method ('Plain' or 'SHA-256')
+   * @param auth0Config - Optional Auth0 configuration overrides
+   */
+  async createAuth0PkceApp(
+    appName: string,
+    appDescription: string,
+    codeChallengeMethod: string = 'Plain',
+    auth0Config?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      codeChallengeMethod,
+      ...DEFAULT_APP_CONFIGS.AUTH0_PKCE,
+      ...auth0Config,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Create an Airtable PKCE SHA-256 custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param airtableConfig - Optional Airtable configuration overrides
+   */
+  async createAirtablePkceApp(
+    appName: string,
+    appDescription: string,
+    airtableConfig?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      ...DEFAULT_APP_CONFIGS.AIRTABLE_PKCE,
+      ...airtableConfig,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Create a Spotify Client Credentials custom app
+   * @param appName - The app name
+   * @param appDescription - The app description
+   * @param spotifyConfig - Optional Spotify configuration overrides
+   */
+  async createSpotifyClientCredentialsApp(
+    appName: string,
+    appDescription: string,
+    spotifyConfig?: Partial<CustomAppConfig>
+  ): Promise<void> {
+    const config: CustomAppConfig = {
+      appName,
+      description: appDescription,
+      ...DEFAULT_APP_CONFIGS.SPOTIFY_CLIENT_CREDENTIALS,
+      ...spotifyConfig,
+    };
+    await this.createCustomApp(config);
+  }
+
+  /**
+   * Enable a custom app from the connector options menu
+   */
+  async enableApp(): Promise<void> {
+    await test.step('Enable custom app', async () => {
+      await this.customAppsComponent.selectConnectorOption(AppConnectorOptions.Enable);
+      await this.customAppsComponent.clickDialogButton('Enable', 'Confirm enable');
+    });
+  }
+
+  /**
+   * Disable a custom app from the connector options menu
+   */
+  async disableApp(): Promise<void> {
+    await test.step('Disable custom app', async () => {
+      await this.customAppsComponent.selectConnectorOption(AppConnectorOptions.Disable);
+      await this.customAppsComponent.clickDialogButton('Disable', 'Confirm disable');
+    });
+  }
+
+  /**
+   * Delete a custom app from the connector options menu
+   */
+  async deleteApp(): Promise<void> {
+    await test.step('Delete custom app', async () => {
+      await this.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
+      await this.customAppsComponent.clickDialogButton('Delete', 'Confirm delete');
+    });
+  }
+
+  /**
+   * Connect Box account and verify connection
+   * @param email - Box account email
+   * @param password - Box account password
+   * @param appName - The app name for verification
+   */
+  async connectBoxAccountAndVerify(email: string, password: string, appName: string): Promise<void> {
+    await test.step(`Connect Box account for ${appName}`, async () => {
+      await this.connectBoxAccount(email, password);
+      await this.verifyAppNameInHeader(appName);
+      await this.verifyDisconnectAccountButtonIsDisplayed();
+      await this.verifyChecklistItemIsChecked('Connect the app-level account');
+    });
+  }
+
+  /**
+   * Connect API Token and verify connection
+   * @param apiToken - The API token value
+   */
+  async connectApiTokenAndVerify(apiToken: string): Promise<void> {
+    await test.step('Connect API Token and verify', async () => {
+      await this.enterAPIToken(apiToken);
+      await this.verifyDisconnectAccountButtonIsDisplayed();
+      await this.verifyEditButtonIsDisplayed();
+    });
+  }
+
+  /**
+   * Connect Basic Auth credentials and verify connection
+   * @param username - The username
+   * @param password - The password
+   */
+  async connectBasicAuthAndVerify(username: string, password: string): Promise<void> {
+    await test.step('Connect Basic Auth and verify', async () => {
+      await this.enterCredentials(username, password);
+      await this.verifyDisconnectAccountButtonIsDisplayed();
+      await this.verifyChecklistItemIsChecked('Connect the app-level account');
+    });
+  }
+
+  /**
+   * Connect Client Credentials and verify connection
+   * @param clientId - The client ID
+   * @param secretKey - The secret key
+   */
+  async connectClientCredentialsAndVerify(clientId: string, secretKey: string): Promise<void> {
+    await test.step('Connect Client Credentials and verify', async () => {
+      await this.enterClientCredentials(clientId, secretKey);
+      await this.verifyDisconnectAccountButtonIsDisplayed();
+      await this.verifyChecklistItemIsChecked('Connect the app-level account');
+    });
+  }
+
+  /**
+   * Navigate to Custom Apps list page
+   */
+  async navigateToCustomAppsList(): Promise<void> {
+    await test.step('Navigate to Custom Apps list', async () => {
+      await this.clickButton('Custom apps');
+    });
+  }
+
+  /**
+   * Search and open an app from the list
+   * @param appName - The app name to search and open
+   */
+  async searchAndOpenApp(appName: string): Promise<void> {
+    await test.step(`Search and open app: ${appName}`, async () => {
+      await this.searchForApps(appName);
+      await this.customAppsComponent.clickOnAppConnector(appName);
+    });
+  }
+
+  /**
+   * Enable app and verify status
+   * @param appName - The app name for verification messages
+   */
+  async enableAppAndVerify(appName: string): Promise<void> {
+    await test.step(`Enable app and verify: ${appName}`, async () => {
+      await this.enableApp();
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(appName));
+      await this.verifyStatusBadge('Enabled');
+    });
+  }
+
+  /**
+   * Disable app and verify status
+   * @param appName - The app name for verification messages
+   */
+  async disableAppAndVerify(appName: string): Promise<void> {
+    await test.step(`Disable app and verify: ${appName}`, async () => {
+      await this.disableApp();
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisabledMessage(appName));
+      await this.verifyStatusBadge('Disabled');
+    });
+  }
+
+  /**
+   * Delete app and verify deletion
+   * @param appName - The app name for verification messages
+   */
+  async deleteAppAndVerify(appName: string): Promise<void> {
+    await test.step(`Delete app and verify: ${appName}`, async () => {
+      await this.deleteApp();
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(appName));
+    });
+  }
+
+  /**
+   * Verify edit form fields are enabled/disabled based on connection state
+   * @param fieldsToVerify - Object containing arrays of field names
+   */
+  async verifyEditFormFieldStates(fieldsToVerify: {
+    enabledFields?: string[];
+    disabledFields?: string[];
+    enabledDropdowns?: string[];
+    disabledDropdowns?: string[];
+  }): Promise<void> {
+    await test.step('Verify edit form field states', async () => {
+      if (fieldsToVerify.enabledFields) {
+        for (const field of fieldsToVerify.enabledFields) {
+          await this.verifyFieldIsEnabled(field);
+        }
+      }
+      if (fieldsToVerify.disabledFields) {
+        for (const field of fieldsToVerify.disabledFields) {
+          await this.verifyFieldIsDisabled(field);
+        }
+      }
+      if (fieldsToVerify.enabledDropdowns) {
+        for (const dropdown of fieldsToVerify.enabledDropdowns) {
+          await this.verifyDropdownIsEnabled(dropdown);
+        }
+      }
+      if (fieldsToVerify.disabledDropdowns) {
+        for (const dropdown of fieldsToVerify.disabledDropdowns) {
+          await this.verifyDropdownIsDisabled(dropdown);
+        }
+      }
+    });
+  }
+
+  /**
+   * Disconnect account from dialog and verify
+   * @param appName - The app name for verification
+   */
+  async disconnectAccountAndVerify(appName: string): Promise<void> {
+    await test.step(`Disconnect account for ${appName}`, async () => {
+      await this.clickDisconnectAccountButton();
+      await this.verifyDialogTitle(MESSAGES.DISCONNECT_CUSTOM_APP_DIALOG_TITLE);
+      await this.clickDisconnectAccountInDialog();
+      await this.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(appName));
     });
   }
 }

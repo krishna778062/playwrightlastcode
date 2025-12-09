@@ -185,14 +185,13 @@ test.describe(
       }
     );
 
-    test.fail(
+    test(
       'verify Most Popular sites metric data validation with custom period filter applied (Custom Date Range)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-most-popular-metric'],
       },
       async () => {
         tagTest(test.info(), {
-          isKnownFailure: true,
           description:
             'To verify the answer of Most Popular sites in Sites dashboard with custom period filter applied',
           zephyrTestId: 'DE-26383',
