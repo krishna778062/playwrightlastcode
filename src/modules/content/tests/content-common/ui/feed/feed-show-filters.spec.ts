@@ -477,8 +477,7 @@ test.describe(
         console.log('Created contents:', contents.map(c => `${c.type}: ${c.title}`).join(', '));
 
         // Verify Admin can see all 3 contents in Recently Published block
-        await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
         await adminFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -492,8 +491,7 @@ test.describe(
 
         // Verify End User (non-member) cannot see the contents (only if user is not already a member)
         if (!isEndUserMember) {
-          await standardUserFixture.homePage.loadPage();
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.verifyThePageIsLoaded();
           await endUserFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -525,9 +523,8 @@ test.describe(
         }
 
         // Verify End User (member) can now see all 3 contents
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
         const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await endUserMemberFeedPage.verifyThePageIsLoaded();
         await endUserMemberFeedPage.actions.clickOnShowOption('Posts I follow');
 
