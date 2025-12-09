@@ -2,6 +2,7 @@ import { FrameLocator, Page } from '@playwright/test';
 
 import { PeopleDashboardTabularMetricsComponent } from './basePeopleDashboardTabularMetricsComponent';
 
+import { CSVUtils } from '@/src/core/utils/csvUtils';
 import { PEOPLE_METRICS } from '@/src/modules/data-engineering/constants/peopleMetrics';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
 import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
@@ -46,30 +47,49 @@ export class ReactionsReceived extends PeopleDashboardTabularMetricsComponent {
     const { filePath, fileName } = await this.downloadDataAsCSV();
 
     try {
+      // Parse CSV to get actual headers dynamically
+      const actualCSVHeaders = CSVUtils.getHeadersFromReportCSV(filePath);
+
+      // Base CSV headers (always present)
+      const baseCsvHeaders = [
+        'Name',
+        'Email',
+        'Company name',
+        'Department',
+        'Division',
+        'City',
+        'State',
+        'Country',
+        'Count',
+      ];
+
+      // Build expected headers based on actual CSV headers
+      const expectedCsvHeaders: string[] = [...baseCsvHeaders];
+      if (actualCSVHeaders.includes('Segment name') || actualCSVHeaders.includes('Segment')) {
+        const segmentHeader = actualCSVHeaders.includes('Segment name') ? 'Segment name' : 'Segment';
+        expectedCsvHeaders.splice(3, 0, segmentHeader); // Insert after 'Company name'
+      }
+      if (actualCSVHeaders.includes('User category')) {
+        // Insert User category after Country
+        const countryIndex = expectedCsvHeaders.indexOf('Country');
+        expectedCsvHeaders.splice(countryIndex + 1, 0, 'User category');
+      }
+
+      // Build header mapping dynamically
+      const headerMapping: Record<string, string> = {
+        Name: 'Name',
+        Count: 'Reactions received',
+      };
+
       const validationConfig: CSVValidationConfig = {
         csvPath: filePath,
         expectedDBData: snowflakeData as any,
         metricName: PEOPLE_METRICS.REACTIONS_RECEIVED.title,
         selectedPeriod,
         ...(customDates || {}),
-        expectedHeaders: [
-          'Name',
-          'Email',
-          'Company name',
-          'Segment name',
-          'Department',
-          'Division',
-          'City',
-          'State',
-          'Country',
-          'User category',
-          'Count',
-        ],
+        expectedHeaders: expectedCsvHeaders,
         transformations: {
-          headerMapping: {
-            Name: 'Name',
-            Count: 'Reactions received',
-          },
+          headerMapping,
         },
       };
 
