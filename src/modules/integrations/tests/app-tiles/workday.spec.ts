@@ -1629,8 +1629,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22904, INT-22738',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27508, INT-27507',
+          storyId: 'INT-26724',
         });
 
         // Use homeDashboard from fixture
@@ -1669,8 +1669,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-22904, INT-22738',
-          storyId: 'INT-21590',
+          zephyrTestId: 'INT-27512, INT-27513',
+          storyId: 'INT-26724',
         });
 
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
