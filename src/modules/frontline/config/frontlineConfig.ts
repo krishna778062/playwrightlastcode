@@ -221,7 +221,7 @@ export const config = {
       tenantName: 'Frontline Secondary PROD US',
       frontendBaseUrl: 'https://frontline-automation.app.simpplr.com',
       apiBaseUrl: 'https://frontline-automation-api.app.simpplr.com',
-      appManagerEmail: 'rakesh.yadav@simmplr.com',
+      appManagerEmail: '1473',
       appManagerPassword: 'Test@123',
       endUserEmail: 'meenakshi.joshi@simpplr.com',
       endUserPassword: 'Simp@123',
