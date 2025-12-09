@@ -14,6 +14,7 @@ import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engine
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { MonthlyReportsDashboard } from '@/src/modules/data-engineering/ui/dashboards/monthly-reports/monthlyReportsDashboard';
+import { OverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards/overview/overviewDashboard';
 import { PeopleDashboard } from '@/src/modules/data-engineering/ui/dashboards/people/peopleDashboard';
 import { SearchDashboard } from '@/src/modules/data-engineering/ui/dashboards/search/searchDashboard';
 import { SitesDashboard } from '@/src/modules/data-engineering/ui/dashboards/sites/sitesDashboard';
@@ -345,6 +346,46 @@ export async function setupSitesDashboardForTest(
       sitesDashboard,
       snowflakeHelper,
       sitesDashboardQueryHelper,
+    };
+  });
+}
+
+/**
+ * Sets up Overview Dashboard for testing
+ */
+export async function setupOverviewDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  overviewDashboard: OverviewDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  appAdoptionQueryHelper: AppAdoptionDashboardQueryHelper;
+}> {
+  return await test.step('Setup Overview Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create app adoption query helper (reused for overview dashboard)
+    const orgId = process.env.ORG_ID || '';
+    if (!orgId) {
+      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
+    }
+    const appAdoptionQueryHelper = new AppAdoptionDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create overview dashboard
+    const overviewDashboard = new OverviewDashboard(page);
+    await overviewDashboard.loadPage();
+
+    console.log('Overview Dashboard loaded successfully');
+
+    return {
+      page,
+      overviewDashboard,
+      snowflakeHelper,
+      appAdoptionQueryHelper,
     };
   });
 }
