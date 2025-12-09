@@ -306,7 +306,7 @@ export class ListFeedComponent
 
   readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
     this.page
-      .locator('._reply_1ii4b_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
+      .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
       .first();
 
   readonly getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
