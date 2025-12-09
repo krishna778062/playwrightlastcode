@@ -1,5 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
@@ -21,6 +22,7 @@ export interface IManageSiteActions {
   clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
   clickOnShowMoreButtonAction: () => Promise<void>;
+  clickOnFileFavoriteButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -31,6 +33,7 @@ export interface IManageSiteAssertions {
   verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
+  verifyFavoriteIsNotClicked: () => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
@@ -39,6 +42,7 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly siteList = this.page.locator('.type--title').first();
   readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
+  readonly fileFavoriteButton = this.page.getByTestId('favorite-button');
   readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
     // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
     const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
@@ -198,7 +202,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   async clickOnShowMoreButtonAction(): Promise<void> {
     await this.clickOnElement(this.showMoreButton);
   }
-
+  async verifyFavoriteIsNotClicked(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.fileFavoriteButton, {
+      assertionMessage: 'Favorite button should not be clicked',
+    });
+  }
   /**
    * Sets the External Files provider (e.g., "Box files")
    * @param provider - The name of the storage provider (e.g., "Box files")
@@ -250,6 +258,21 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       }
       // Wait for feed permissions section to be visible (radio buttons)
       await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible' });
+    });
+  }
+  async clickOnFileFavoriteButton(): Promise<void> {
+    await test.step('Click on file favorite button', async () => {
+      const favoriteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.fileFavoriteButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.fileFavourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await favoriteResponse.finished();
     });
   }
 

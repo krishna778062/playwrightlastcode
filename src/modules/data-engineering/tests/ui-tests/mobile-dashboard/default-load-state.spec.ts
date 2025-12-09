@@ -417,7 +417,7 @@ test.describe(
       }
     );
 
-    test.fail(
+    test(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
         tag: [
