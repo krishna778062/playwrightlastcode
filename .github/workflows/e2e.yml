@@ -22,7 +22,7 @@ on:
           - 'de-api'
           - 'frontline'
           - 'recognition'
-          - 'privateRecognition'
+          - 'only-peer-to-peer'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
