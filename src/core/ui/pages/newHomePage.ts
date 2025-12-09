@@ -36,6 +36,7 @@ export interface INewHomePageAssertions {
   verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifyContentIsNotVisibleInCarousel: (contentName: string) => Promise<void>;
   verifyRecentlyVisitedSiteIsDisplayed: (siteName: string) => Promise<void>;
 }
 
@@ -51,6 +52,8 @@ export class NewHomePage extends BasePage {
   readonly peopleButton: Locator;
   readonly carouselItemText: (text: string) => Locator;
   private carouselComponent: CarouselComponent;
+  readonly CarouseText: (text: string) => Locator;
+
   readonly recentlyVisitedSite: (siteName: string) => Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
@@ -66,6 +69,7 @@ export class NewHomePage extends BasePage {
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.CarouseText = (text: string) => page.getByRole('link', { name: text, exact: true });
     this.recentlyVisitedSite = (siteName: string) => page.getByRole('menuitem', { name: siteName });
   }
 
@@ -154,6 +158,13 @@ export class NewHomePage extends BasePage {
       await this.verifier.verifyTheElementIsNotVisible(this.socialCampaignNameInTileList(socialCampaignName), {
         timeout: 20000,
         assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+  async verifyContentIsNotVisibleInCarousel(contentName: string): Promise<void> {
+    await test.step('Verifying content is not visible in home carousel', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.CarouseText(contentName), {
+        assertionMessage: `Content '${contentName}' should be not visible in home carousel`,
       });
     });
   }

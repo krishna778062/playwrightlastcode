@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { formatCreatedAtDateForManageContent, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
@@ -16,7 +17,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -947,11 +947,7 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
         const makeContentMustReadResponse = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
-          createPageInfo.contentId,
-          {
-            audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
-            duration: MustReadDuration.NINETY_DAYS,
-          }
+          createPageInfo.contentId
         );
         console.log('makeContentMustReadResponse', makeContentMustReadResponse);
         const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
@@ -1010,6 +1006,52 @@ test.describe(
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
+      }
+    );
+    test(
+      'verify user should be able to add and remove content from carousel on clicking three dot menu options',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29906'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the carousel item functionality',
+          zephyrTestId: 'CONT-29906',
+          storyId: 'CONT-29906',
+        });
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const addSiteCarouselItemResponse = await appManagerApiFixture.contentManagementHelper.addSiteCarouselItem(
+          siteInfo.siteId,
+          createPageInfo.contentId
+        );
+
+        const addContentIntoHomeCarouselResponse =
+          await appManagerApiFixture.contentManagementHelper.addContentIntoHomeCarousel(createPageInfo.contentId);
+        const contentDetails = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createPageInfo.contentId,
+          'page'
+        );
+        await contentDetails.loadPage();
+        await contentDetails.actions.clickOnOptionMenuButton();
+        await contentDetails.actions.clickOnRemoveFromHomeCarouselButton(
+          addContentIntoHomeCarouselResponse.result.carouselItemId
+        );
+        await contentDetails.actions.clickOnRemoveFromSiteCarouselButton(
+          siteInfo.siteId,
+          addSiteCarouselItemResponse.result.carouselItemId
+        );
+        const homePage = new NewHomePage(appManagerFixture.page);
+        await homePage.loadPage();
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+        await siteDashboardPage.loadPage();
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
       }
     );
 
