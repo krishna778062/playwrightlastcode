@@ -306,6 +306,17 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      return await this.contentManagementService.addContentIntoHomeCarousel(contentId);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      return await this.contentManagementService.addSiteCarouselItem(siteId, contentId);
+    });
+  }
+
   /**
    * Creates a new page in an existing site
    * @param siteId - The ID of the existing site
