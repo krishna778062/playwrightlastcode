@@ -112,6 +112,7 @@ export const SYNCING = {
   OPTION_NONE: 'None',
   UKG_PRO: 'UKG Pro',
   UKG_PRO_SYNCING: 'UkgPro',
+  GOOGLE_WORKSPACE_SYNCING: 'Google Workspace',
   USERNAME: 'username',
   PASSWORD: 'password',
   BASE_URL: 'baseUrl',
@@ -140,39 +141,7 @@ export const SYNCING = {
   DIVISION: 'division',
   DEPARTMENT: 'department',
   VALIDATION_QUESTION_VALUE: 'Department',
-} as const;
-
-export const AZURE_SYNCING = {
-  USER_EMAIL: 'usersyncWithEmail@smplrdev.onmicrosoft.com',
-  USER_MOBILE: 'usersyncWithMobile@smplrdev.onmicrosoft.com',
-  USER_PHONE: 'usersyncwithphone@smplrdev.onmicrosoft.com',
-  USER_EMPLOYEE_NUMBER: 'usersyncwithemployee@smplrdev.onmicrosoft.com',
-  EMPLOYEE_NUMBER_WITH_BLANK_EMAIL: '404010',
-  USER_PHONE_WITH_BLANK_EMAIL: '9900990011',
-  USER_MOBILE_WITH_BLANK_EMAIL: '8800880011',
-  FIRSTNAME_WITH_BLANK_EMAIL: 'AzureWithoutEmailSync',
-  USER_PHONE_FIRSTNAME: 'AzurePhoneSync',
-  USER_FIRSTNAME: 'AzureEmailSync',
-  USER_FIRSTNAME_MOBILE: 'AzurMobileSync',
-  USER_FIRSTNAME_EMPLOYEE_NUMBER: 'AzureEmployeeSync',
-  MICROSOFT_ENTRA_ID_OPTION: 'Microsoft Entra ID',
   SELECT_ALL_FIELDS_CHECKBOX_ID: 'selectAllFields_azure_are_all_synced',
-  FIELD_LABELS: {
-    FIRST_NAME: 'First name',
-    LAST_NAME: 'Last name',
-    MOBILE_PHONE: 'Mobile phone',
-    PHONE: 'Phone',
-    JOB_TITLE: 'Job title',
-    DEPARTMENT: 'Department',
-    COMPANY_NAME: 'Company name',
-    ADDRESS_1: 'Address 1',
-    CITY: 'City',
-    STATE_PROVINCE: 'State/Province',
-    ZIP_CODE: 'Zip code',
-    COUNTRY: 'Country',
-    EMPLOYEE_NUMBER: 'Employee number',
-  },
-
   COMMON_SYNC_FIELDS: [
     'First name',
     'Last name',
@@ -195,9 +164,45 @@ export const AZURE_SYNCING = {
   },
 } as const;
 
-/**
- * Adding links inside add links feature
- */
+export const AZURE_SYNCING = {
+  USER_EMAIL: 'usersyncWithEmail@smplrdev.onmicrosoft.com',
+  USER_MOBILE: 'usersyncWithMobile@smplrdev.onmicrosoft.com',
+  USER_PHONE: 'usersyncwithphone@smplrdev.onmicrosoft.com',
+  USER_EMPLOYEE_NUMBER: 'usersyncwithemployee@smplrdev.onmicrosoft.com',
+  EMPLOYEE_NUMBER_WITH_BLANK_EMAIL: '404010',
+  USER_PHONE_WITH_BLANK_EMAIL: '9900990011',
+  USER_MOBILE_WITH_BLANK_EMAIL: '8800880011',
+  FIRSTNAME_WITH_BLANK_EMAIL: 'AzureWithoutEmailSync',
+  USER_PHONE_FIRSTNAME: 'AzurePhoneSync',
+  USER_FIRSTNAME: 'AzureEmailSync',
+  USER_FIRSTNAME_MOBILE: 'AzurMobileSync',
+  USER_FIRSTNAME_EMPLOYEE_NUMBER: 'AzureEmployeeSync',
+  MICROSOFT_ENTRA_ID_OPTION: 'Microsoft Entra ID',
+  FIELD_LABELS: {
+    FIRST_NAME: 'First name',
+    LAST_NAME: 'Last name',
+    MOBILE_PHONE: 'Mobile phone',
+    PHONE: 'Phone',
+    JOB_TITLE: 'Job title',
+    DEPARTMENT: 'Department',
+    COMPANY_NAME: 'Company name',
+    ADDRESS_1: 'Address 1',
+    CITY: 'City',
+    STATE_PROVINCE: 'State/Province',
+    ZIP_CODE: 'Zip code',
+    COUNTRY: 'Country',
+    EMPLOYEE_NUMBER: 'Employee number',
+  },
+} as const;
+
+export const GOOGLE_SYNCING = {
+  USER_EMAIL: 'usersyncWithEmail@vivekmoosani.space',
+  USER_FIRSTNAME: 'AutomationUserEmailSync',
+  USER_MOBILE: '9898989898',
+  USER_PHONE: '8978978978',
+  USER_EMPLOYEE_NUMBER: 'E121212',
+} as const;
+
 export const links = [
   { url: 'https://www.google.com/', label: 'Google' },
   { url: 'https://www.youtube.com/', label: 'YouTube' },
