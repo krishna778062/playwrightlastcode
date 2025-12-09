@@ -46,14 +46,16 @@ export class LoginWithOtpPage extends BasePage {
   // OTP flow specific locators (not in LoginPage)
   readonly useOtpButton: Locator;
   readonly letsGetStartedHeading: Locator;
-  readonly emailOption: Locator;
   readonly sendOtpButton: Locator;
   readonly verificationCodeMessage: Locator;
+  readonly verificationCodeMessageMobile: Locator;
   readonly enterOtpTextbox: Locator;
   readonly verifyOtpButton: Locator;
+  readonly selectOTPType: (otpType: string) => Promise<string[]>;
 
   constructor(page: Page) {
     super(page);
+    this.selectOTPType = (otpType: string) => page.getByTestId('SelectInput').selectOption(`${otpType}`);
     this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
     this.emailInput = page.getByRole('textbox', { name: 'Email ID' });
     this.optionalHeading = page.getByRole('heading', { name: 'Optional' });
@@ -99,9 +101,9 @@ export class LoginWithOtpPage extends BasePage {
     this.dontShowThisAgainModalCloseButton = this.dontShowThisAgainModal.getByRole('button', { name: 'Close' });
     this.useOtpButton = page.getByRole('button', { name: 'Use OTP' });
     this.letsGetStartedHeading = page.getByRole('heading', { name: "Let's get started..." });
-    this.emailOption = page.getByText('Email');
     this.sendOtpButton = page.getByRole('button', { name: 'Send OTP' });
     this.verificationCodeMessage = page.getByText('A verification code has been sent to your email');
+    this.verificationCodeMessageMobile = page.getByText('A verification code has been sent to your mobile');
     this.enterOtpTextbox = page.getByRole('textbox', { name: 'Enter OTP' });
     this.verifyOtpButton = page.getByRole('button', { name: 'Verify OTP' });
   }
@@ -410,17 +412,19 @@ export class LoginWithOtpPage extends BasePage {
     });
   }
 
-  private async verifyOtpSentConfirmation(options?: { timeout?: number }): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.verificationCodeMessage, {
+  private async verifyOtpSentConfirmation(otpType: 'email' | 'mobile', options?: { timeout?: number }): Promise<void> {
+    const verificationMessage = otpType === 'email' ? this.verificationCodeMessage : this.verificationCodeMessageMobile;
+    const expectedText =
+      otpType === 'email'
+        ? 'A verification code has been sent to your email'
+        : 'A verification code has been sent to your mobile';
+
+    await this.verifier.verifyTheElementIsVisible(verificationMessage, {
       timeout: options?.timeout || TIMEOUTS.MEDIUM,
     });
-    await this.verifier.verifyElementHasText(
-      this.verificationCodeMessage,
-      'A verification code has been sent to your email',
-      {
-        timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      }
-    );
+    await this.verifier.verifyElementHasText(verificationMessage, expectedText, {
+      timeout: options?.timeout || TIMEOUTS.MEDIUM,
+    });
     await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, {
       timeout: options?.timeout || TIMEOUTS.MEDIUM,
     });
@@ -435,15 +439,16 @@ export class LoginWithOtpPage extends BasePage {
 
   async performLoginWithOtp(
     loginPage: LoginPage,
-    email: string,
+    loginIdentifier: string,
     otpUtils: OTPUtils,
-    otpEmail: string,
+    otpDestination: string,
+    otpType: 'email' | 'mobile',
     options?: { timeout?: number }
   ): Promise<void> {
-    await test.step(`Logging in with email ${email} using OTP`, async () => {
-      // Navigate to login page and enter email in username input field
+    await test.step(`Logging in with ${loginIdentifier} using ${otpType} OTP`, async () => {
+      // Navigate to login page and enter login identifier in username input field
       await this.verifyLoginPageElements(loginPage);
-      await this.fillInElement(loginPage.usernameInput, email);
+      await this.fillInElement(loginPage.usernameInput, loginIdentifier);
       await this.clickOnElement(loginPage.continueButton);
 
       // Wait for authenticate page and validate Use OTP button is visible
@@ -453,21 +458,20 @@ export class LoginWithOtpPage extends BasePage {
       await this.clickOnElement(this.useOtpButton);
       await this.verifyLetsGetStartedHeading(options);
 
-      // Click Email option and validate send OTP button is visible
-      await this.verifier.verifyTheElementIsVisible(this.emailOption);
-      await this.clickOnElement(this.emailOption);
-      await this.verifier.verifyTheElementIsVisible(this.sendOtpButton, {
-        timeout: options?.timeout || TIMEOUTS.MEDIUM,
-      });
+      // Select the OTP type from dropdown
+      await this.selectOTPType(otpType);
 
       // Click Send OTP and validate verification messages and OTP input field is visible
       await this.clickOnElement(this.sendOtpButton);
-      await this.verifyOtpSentConfirmation(options);
+      await this.verifyOtpSentConfirmation(otpType, options);
 
-      // Get and enter OTP in enter OTP textbox
+      // Get and enter OTP based on the selected type
       await this.page.waitForTimeout(8000); // Wait for OTP to be sent
-      const otpValue = await otpUtils.getOTPFromEmail(otpEmail);
-      console.log(`Email OTP → ${otpValue}`);
+      const otpValue =
+        otpType === 'email'
+          ? await otpUtils.getOTPFromEmail(otpDestination)
+          : await otpUtils.getOTPFromSMS(otpDestination);
+      console.log(`${otpType.charAt(0).toUpperCase() + otpType.slice(1)} OTP → ${otpValue}`);
       await this.fillInElement(this.enterOtpTextbox, otpValue);
       await this.verifyVerifyOtpButton();
 

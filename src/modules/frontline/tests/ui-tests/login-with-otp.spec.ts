@@ -382,18 +382,18 @@ test.describe(
 
         const userDetails = loadUserDetails();
         const loginPage = new LoginPage(page);
+
         const loginWithOtpPage = new LoginWithOtpPage(page);
 
-        // Navigate to login page
         await loginPage.loadPage({ stepInfo: 'Loading login page' });
         await loginPage.verifyThePageIsLoaded();
 
-        // Perform login with OTP
         await loginWithOtpPage.performLoginWithOtp(
           loginPage,
           userDetails.endUserEmail,
           otpUtils,
-          mailosaurValues.mailosaurEmail
+          mailosaurValues.mailosaurEmail,
+          'email'
         );
 
         // Add mobile number based on identifiers
