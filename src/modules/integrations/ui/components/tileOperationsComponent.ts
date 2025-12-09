@@ -102,6 +102,11 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly salesforceHasEvents: Locator;
   readonly salesforceViewCompleteReportLink: Locator;
   readonly serviceNowTicketPattern: RegExp;
+  readonly serviceNowApprovalTicketPattern: RegExp;
+  readonly serviceNowApprovalButton: Locator;
+  readonly serviceNowRejectButton: Locator;
+  readonly serviceNowCreatedTicketMessage: Locator;
+  readonly serviceNowCreateAnotherTicketButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -136,6 +141,10 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.courseStatus = page.locator('span', { hasText: /In progress|Completed|Enrolled/ });
     this.courseType = page.locator('span', { hasText: /E-learning|Classroom/ });
     this.greenhouseImage = page.locator('img[src*="greenhouse"]');
+    this.serviceNowApprovalButton = page.locator('//button[@aria-label="Approve"]');
+    this.serviceNowRejectButton = page.locator('//button[@aria-label="Reject"]');
+    this.serviceNowCreatedTicketMessage = page.locator('p:has-text("Created ticket. Ticket ID")');
+    this.serviceNowCreateAnotherTicketButton = page.locator('//button[text()="Create another ticket"]');
     // Regex patterns for text matching
     this.prNumberPattern = /^#\d+/;
     this.createdAgoPattern = /^Created\s+.*\s+ago$/;
@@ -197,6 +206,7 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.salesforceHasEvents = page.getByText('Has Events');
     this.salesforceViewCompleteReportLink = page.getByRole('link', { name: /View complete report/ });
     this.serviceNowTicketPattern = /^INC\d+$/;
+    this.serviceNowApprovalTicketPattern = /^REQ\d+$/;
 
     // Workday: patterns for lessons count and registered date line
     this.lessonsPattern = /^\d+\s+Lessons?$/;
@@ -1229,6 +1239,42 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       const textInput = this.page.getByRole('textbox', { name: fieldName });
       await textInput.waitFor({ state: 'visible' });
       await textInput.fill(textValue);
+    });
+  }
+  /**
+   * Verify Service Now Approval tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowApprovalContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Service Now Approval tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Service Now Approval tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Service Now tile').toBeGreaterThan(0);
+      // Verify ticket ID pattern (e.g., #INC12345)
+      await expect(tile.getByText(this.serviceNowApprovalTicketPattern).first()).toBeVisible();
+      // Verify approval button is visible
+      await expect(tile.locator(this.serviceNowApprovalButton).first()).toBeVisible();
+      // Verify reject button is visible
+      await expect(tile.locator(this.serviceNowRejectButton).first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Service Now Created Ticket tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyServiceNowCreatedTicketStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Service Now Created Ticket tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Service Now Created Ticket tile '${tileTitle}' should be visible`).toBeVisible({
+        timeout: 10_000,
+      });
+      // Verify created ticket message is visible
+      await expect(tile.locator(this.serviceNowCreatedTicketMessage).first()).toBeVisible();
+      // Verify create another ticket button is visible
+      await expect(tile.locator(this.serviceNowCreateAnotherTicketButton).first()).toBeVisible();
     });
   }
 }

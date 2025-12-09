@@ -1,4 +1,4 @@
-name: Content Regression Tests
+name: Content Regression Tests (Test Environment)
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
@@ -95,7 +95,10 @@ jobs:
       CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop #always develop HEAD
 
       - name: Create Calendar Secrets JSON
         run: |

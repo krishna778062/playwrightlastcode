@@ -123,7 +123,7 @@ export const config = {
     prodEU: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://content-ui.eu.simpplr.com',
-      apiBaseUrl: 'https://content-ui.eu.simpplr.com',
+      apiBaseUrl: 'https://content-ui-api.eu.simpplr.com',
       appManagerEmail: 'diksha.gaur@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'avista.chowdhury@simpplr.com',
@@ -138,7 +138,7 @@ export const config = {
     prodUS: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://cont-ui.app.simpplr.com',
-      apiBaseUrl: 'https://cont-ui.app.simpplr.com',
+      apiBaseUrl: 'https://cont-ui-api.app.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'avista.chowdhury@simpplr.com',
