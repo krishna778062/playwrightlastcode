@@ -8,7 +8,7 @@ import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
 
-initializeRecognitionConfig('onlyP2PRecognition');
+initializeRecognitionConfig('onlyPeerToPeer');
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
 export default defineConfig({

@@ -1,4 +1,4 @@
-export type TenantKey = 'primary' | 'onlyP2PRecognition';
+export type TenantKey = 'primary' | 'onlyPeerToPeer';
 export type EnvironmentKey = 'qa' | 'test';
 
 /**
@@ -97,7 +97,7 @@ export const config = {
       newUxEnabled: true,
     },
   },
-  onlyP2PRecognition: {
+  onlyPeerToPeer: {
     qa: {
       tenantName: 'Recognition P2P QA',
       frontendBaseUrl: 'https://reco-peer-only-automation.qa.simpplr.xyz/',

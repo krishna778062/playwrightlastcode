@@ -27,7 +27,7 @@ jobs:
             reward,
             reward-settings,
             recognition,
-            onlyPeerRecognition,
+            only-peer-to-peer,
             content-abac,
             frontline,
             content-settings,
