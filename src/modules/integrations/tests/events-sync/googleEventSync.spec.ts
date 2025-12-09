@@ -37,7 +37,12 @@ import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/cont
 test.describe(
   'event Sync Integration Tests',
   {
-    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsFeatureTags.EVENT_SYNC, IntegrationsSuiteTags.PHOENIX],
+    tag: [
+      IntegrationsSuiteTags.BATCH2,
+      IntegrationsSuiteTags.INTEGRATIONS,
+      IntegrationsFeatureTags.EVENT_SYNC,
+      IntegrationsSuiteTags.PHOENIX,
+    ],
   },
   () => {
     test(

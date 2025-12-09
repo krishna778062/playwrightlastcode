@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { log } from '@/src/core/utils/logger';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -43,13 +44,14 @@ test.describe(
     test.beforeEach(
       'Setup test environment and data creation',
       async ({ siteManagerFixture, appManagerApiContext, appManagerApiFixture, standardUserFixture }) => {
-        // Configure app governance settings and enable timeline comment post(feed)
-        try {
-          await siteManagerFixture.feedManagementHelper.configureAppGovernance({
+        //Enable feed mode - Skip in production environments as governance changes are restricted
+        const currentEnv = process.env.TEST_ENV;
+        if (currentEnv !== 'prodUS' && currentEnv !== 'prodEU') {
+          await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
             feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
           });
-        } catch (error) {
-          console.warn('Failed to configure app governance, continuing with test:', error);
+        } else {
+          log.info(`Skipping governance configuration for production environment: ${currentEnv}`);
         }
 
         // Initialize identity management helper with app manager context (needed for user info access)

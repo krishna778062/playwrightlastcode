@@ -648,4 +648,43 @@ export class ContentManagementService implements IContentManagementServices {
       return await this.httpClient.parseResponse<ContentListResponse>(response);
     });
   }
+
+  /**
+   * Creates a page template
+   * @param templateData - Template creation payload
+   * @returns Promise with the template creation response
+   */
+  async createTemplate(templateData: {
+    siteId: string;
+    name: string;
+    title: string;
+    subType: string;
+    language: string;
+    category: { id: string; name: string };
+    body: {
+      type: string;
+      content: Array<{
+        type: string;
+        attrs?: Record<string, any>;
+        content?: Array<{ type: string; text?: string; [key: string]: any }>;
+        [key: string]: any;
+      }>;
+    };
+    imgLayout?: string;
+    listOfTopics?: Array<{ id: string; name: string }>;
+  }): Promise<any> {
+    return await test.step(`Creating page template: ${templateData.name}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.createTemplate, {
+        data: templateData,
+      });
+      const json = await response.json();
+      if (json.status !== 'success') {
+        throw new Error(
+          `Failed to create template. Status: ${json.status}, Message: ${json.message || 'Unknown error'}`
+        );
+      }
+      log.debug(`Successfully created template: ${templateData.name} with ID: ${json.result?.id || 'unknown'}`);
+      return json;
+    });
+  }
 }
