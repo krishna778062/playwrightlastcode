@@ -9,6 +9,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
@@ -21,6 +22,7 @@ import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeature
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SitesPage } from '@/src/modules/content/ui/pages/sitesPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -395,8 +397,9 @@ test.describe(
           zephyrTestId: 'CONT-33591',
           storyId: 'CONT-33591',
         });
-        // Get the "All Employees" site ID for API page creation
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Use test data for page name
         const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
@@ -416,7 +419,7 @@ test.describe(
         });
 
         console.log(
-          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in All Employees site: ${allEmployeesSiteId}`
+          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
@@ -428,7 +431,7 @@ test.describe(
         await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.searchForSite('All Employees');
+        await manageSitePage.actions.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.clickOnContentTab();
         await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
@@ -631,7 +634,9 @@ test.describe(
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.verifyToastMessageIsVisibleWithText('Moved 1 item successfully');
+        await manageContentPage.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.TOAST_MESSAGES.MOVED_ITEM_SUCCESSFULLY
+        );
       }
     );
 
@@ -662,6 +667,49 @@ test.describe(
           await manageContentPage.actions.clickOnSelectAllButton();
           await manageContentPage.actions.verifyAllContentsAreSelected(17);
         }
+      }
+    );
+    test(
+      'verify All Sites site category takes the user to respective category screen with list of Sites',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify All Sites site category takes the user to respective category screen with list of Sites',
+          zephyrTestId: 'CONT-26918',
+          storyId: 'CONT-26918',
+        });
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const sitesPage = new SitesPage(appManagerFixture.page, '');
+        await sitesPage.actions.clickOnCategoryTab();
+        const categoryList = await appManagerApiFixture.siteManagementHelper.getCategoryList();
+
+        // Find a category with exactly 1 site
+        const categoryWithOneSite = categoryList.result.listOfItems.find((item: any) => item.siteCount === 1);
+
+        if (!categoryWithOneSite) {
+          throw new Error('No category found with exactly 1 site');
+        }
+
+        // Get all sites and find the site in this category
+        const sitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites();
+        const siteInCategory = sitesResponse.result.listOfItems.find(
+          (site: any) => site.category?.categoryId === categoryWithOneSite.categoryId
+        );
+
+        if (!siteInCategory) {
+          throw new Error(`No site found in category: ${categoryWithOneSite.name}`);
+        }
+
+        const siteName = siteInCategory.name;
+
+        await sitesPage.actions.selectCategoryDropDown();
+        await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
+        await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
+        await sitesPage.actions.clickOnSiteName(siteName);
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
+        await siteDashboardPage.assertions.verifyThePageIsLoaded();
       }
     );
   }

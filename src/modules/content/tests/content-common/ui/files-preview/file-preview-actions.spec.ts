@@ -13,6 +13,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 
 test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES_PREVIEW}`, () => {
@@ -23,7 +24,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
     deleteByUI?: boolean;
   };
   let siteFilesPage: SiteFilesPage;
-  const testSiteName = `All Employees`;
+  const testSiteName = DEFAULT_PUBLIC_SITE_NAME;
   test.beforeEach('Setup : Navigating to Site Files page', async ({ appManagerFixture }) => {
     // Create random file copy
     const originalFilePath = `src/modules/content/test-data/static-files/documents/FilesPreview_BEHAVE_DOC_1_PDF.pdf`;
