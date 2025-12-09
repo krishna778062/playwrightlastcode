@@ -1,7 +1,10 @@
 import {
   CommentsMetrics,
+  ContentReferralSourcesMetrics,
   CurrentlyPublishedMetrics,
   FavoritesMetrics,
+  KnowledgePagesMetrics,
+  ReactionsMetrics,
   RepliesMetrics,
   SharesMetrics,
   TotalContentPublishedMetrics,
@@ -25,6 +28,9 @@ export class ContentDashboard extends BaseAnalyticsDashboardPage {
   readonly repliesMetric: RepliesMetrics;
   readonly sharesMetric: SharesMetrics;
   readonly favoritesMetric: FavoritesMetrics;
+  readonly reactionsMetric: ReactionsMetrics;
+  readonly knowledgePagesMetric: KnowledgePagesMetrics;
+  readonly contentReferralSourcesMetric: ContentReferralSourcesMetrics;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.CONTENT_DASHBOARD);
@@ -37,6 +43,9 @@ export class ContentDashboard extends BaseAnalyticsDashboardPage {
     this.repliesMetric = new RepliesMetrics(page, this.thoughtSpotIframe);
     this.sharesMetric = new SharesMetrics(page, this.thoughtSpotIframe);
     this.favoritesMetric = new FavoritesMetrics(page, this.thoughtSpotIframe);
+    this.reactionsMetric = new ReactionsMetrics(page, this.thoughtSpotIframe);
+    this.knowledgePagesMetric = new KnowledgePagesMetrics(page, this.thoughtSpotIframe);
+    this.contentReferralSourcesMetric = new ContentReferralSourcesMetrics(page, this.thoughtSpotIframe);
   }
 
   /**

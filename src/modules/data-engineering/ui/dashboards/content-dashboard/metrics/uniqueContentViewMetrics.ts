@@ -1,9 +1,9 @@
 import { FrameLocator, Page } from '@playwright/test';
 
-import { HeroMetricsComponent } from '../../../components/heroMetricsComponent';
+import { BenchmarkMetricComponent } from '../../../components/benchmarkMetricComponent';
 
-export class UniqueContentViewMetrics extends HeroMetricsComponent {
+export class UniqueContentViewMetrics extends BenchmarkMetricComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
-    super(page, thoughtSpotIframe, 'Unique content view');
+    super(page, thoughtSpotIframe, 'Unique content views');
   }
 }

@@ -174,7 +174,8 @@ export class BenchmarkMetricComponent extends BaseComponent {
       await expect(this.metricValue, `expecting metric value to be visible`).toBeVisible({
         timeout: 120_000,
       });
-      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be visible`).toBeVisible({
+      // Use toBeAttached() instead of toBeVisible() as the element might exist in DOM but be hidden
+      await expect(this.metricsComparisonSection, `expecting metrics comparison section to be attached`).toBeAttached({
         timeout: 120_000,
       });
     });

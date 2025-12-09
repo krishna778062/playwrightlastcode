@@ -85,8 +85,8 @@ test.describe(
         // UI validation
         const totalContentViewsMetric = testEnvironment.contentDashboard.totalContentViewsMetric;
         await totalContentViewsMetric.verifyMetricIsLoaded();
-        // since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
-        await totalContentViewsMetric.verifyMetricValue(expectedMetricValue);
+        // Verify the absolute value (the metric shows just a number, not a percentage)
+        await totalContentViewsMetric.verifyAbsoluteMetricValueIs(expectedMetricValue.toString());
       }
     );
 
@@ -139,8 +139,8 @@ test.describe(
         // UI validation
         const uniqueContentViewMetric = testEnvironment.contentDashboard.uniqueContentViewMetric;
         await uniqueContentViewMetric.verifyMetricIsLoaded();
-        // since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
-        await uniqueContentViewMetric.verifyMetricValue(expectedMetricValue);
+        // Verify the absolute value (the metric shows just a number, not a percentage)
+        await uniqueContentViewMetric.verifyAbsoluteMetricValueIs(expectedMetricValue.toString());
       }
     );
 
@@ -309,6 +309,118 @@ test.describe(
         await favoritesMetric.verifyMetricIsLoaded();
         // Verify the metric value (HeroMetricsComponent accepts number or string)
         await favoritesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Reactions metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Reactions in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getReactionsDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const reactionsMetric = testEnvironment.contentDashboard.reactionsMetric;
+        await reactionsMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await reactionsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Knowledge pages metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@knowledge-pages'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Knowledge pages in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getKnowledgePagesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const knowledgePagesMetric = testEnvironment.contentDashboard.knowledgePagesMetric;
+        await knowledgePagesMetric.verifyMetricIsLoaded();
+        // Verify the metric value (HeroMetricsComponent accepts number or string)
+        await knowledgePagesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Content referral sources metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-referral-sources'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Content referral sources in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric data from snowflake with default period (Last 30 days)
+        const expectedMetricData = await contentDashboardQueryHelper.getContentReferralSourcesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const contentReferralSourcesMetric = testEnvironment.contentDashboard.contentReferralSourcesMetric;
+        await contentReferralSourcesMetric.verifyDataIsLoaded();
+        await contentReferralSourcesMetric.scrollToComponent();
+        await contentReferralSourcesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricData);
+      }
+    );
+
+    test(
+      'verify Content referral sources CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-referral-sources-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the CSV download and validation of Content referral sources in Content dashboard with default filter',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        const { contentDashboardQueryHelper } = testEnvironment;
+
+        // Get expected metric data from snowflake with default period (Last 30 days)
+        const expectedMetricData = await contentDashboardQueryHelper.getContentReferralSourcesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // CSV validation
+        const contentReferralSourcesMetric = testEnvironment.contentDashboard.contentReferralSourcesMetric;
+        await contentReferralSourcesMetric.verifyDataIsLoaded();
+        await contentReferralSourcesMetric.scrollToComponent();
+        await contentReferralSourcesMetric.downloadAndValidateContentReferralSourcesCSV(
+          expectedMetricData,
+          testFiltersConfig.timePeriod
+        );
       }
     );
   }

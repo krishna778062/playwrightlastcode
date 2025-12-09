@@ -1,8 +1,8 @@
 import { FrameLocator, Page } from '@playwright/test';
 
-import { HeroMetricsComponent } from '../../../components/heroMetricsComponent';
+import { BenchmarkMetricComponent } from '../../../components/benchmarkMetricComponent';
 
-export class TotalContentViewsMetrics extends HeroMetricsComponent {
+export class TotalContentViewsMetrics extends BenchmarkMetricComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
     super(page, thoughtSpotIframe, 'Total content views');
   }

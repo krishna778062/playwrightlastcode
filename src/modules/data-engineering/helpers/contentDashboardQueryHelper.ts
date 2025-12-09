@@ -214,4 +214,48 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     return await this.getHeroMetricDataFromDB(query);
   }
+
+  /**
+   * Gets reactions count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Reactions count
+   */
+  async getReactionsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.REACTIONS,
+      filterBy,
+    });
+
+    // Replace userJoin placeholder
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+
+    return await this.getHeroMetricDataFromDB(query);
+  }
+
+  /**
+   * Gets knowledge pages count from database with filters.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<number> - Knowledge pages count
+   */
+  async getKnowledgePagesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.KNOWLEDGE_PAGES,
+      filterBy,
+    });
+
+    return await this.getHeroMetricDataFromDB(finalQuery);
+  }
+
+  /**
+   * Gets content referral sources data from database with filters.
+   * @param filterBy - Filter options including time period
+   * @returns Promise<any[]> - Content referral sources data records
+   */
+  async getContentReferralSourcesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.CONTENT_REFERRAL_SOURCES,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
 }

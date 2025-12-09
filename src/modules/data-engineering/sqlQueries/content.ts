@@ -51,11 +51,16 @@ export const ContentSql = {
        AND i.content_code = c.code
       JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_content_type_as_is ct
         ON c.content_type_code = ct.code
+      LEFT JOIN SIMPPLR_COMMON_TENANT.udl.user as u 
+        ON i.interacted_by_user_code = u.code
       {userJoin}
     WHERE i.tenant_code = '{tenantCode}'
       AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
       AND i.interaction_type_code = 'IT001'
       AND LOWER(ct.description) IN ('album', 'blog post', 'event', 'page')
+      AND i.is_deleted = false
+      AND i.interaction_entity_code = 'ET003'
+      AND (i.CONTENT_CODE NOT IN ('N/A') OR i.CONTENT_CODE IS NOT NULL)
       AND i.interaction_content_post_first_publish = 'true'
       {locationFilter}
       {departmentFilter}
@@ -145,7 +150,7 @@ export const ContentSql = {
    * Returns count of replies on content with filters applied
    */
   REPLIES: `
-    select count(INTERACTED_BY_USER_CODE) as views 
+    select count(i.code) as views 
     from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
     inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
     inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
@@ -153,12 +158,11 @@ export const ContentSql = {
     where ct.code in ('CT001','CT002','CT003','CT004')
       and i.interaction_type_code = 'IT007'
       and i.interaction_entity_code = 'ET003'
-      and i.is_system_feed = 'false'
+      and i.is_system_feed = false
       and i.interaction_datetime between '{startDate}' AND '{endDate}'
       and c.tenant_code = '{tenantCode}'
-      and i.is_deleted = 'False'
-      and i.interaction_content_post_first_publish = 'True'
-      and i.data_source_code = 'DS002'
+      and i.is_deleted = false
+      and i.interaction_content_post_first_publish = true
       {locationFilter}
       {departmentFilter}
       {segmentFilter}
@@ -216,5 +220,78 @@ export const ContentSql = {
       {segmentFilter}
       {userCategoryFilter}
       {companyNameFilter}
+  `,
+
+  /**
+   * Reactions Query Template
+   * Returns count of reactions on content with filters applied
+   */
+  REACTIONS: `
+    select count(i.code) as count
+    from SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
+      on c.code = i.content_code
+      AND c.tenant_code = i.tenant_code
+    {userJoin}
+    where i.tenant_code = '{tenantCode}'
+      and i.interaction_datetime between '{startDate}' AND '{endDate}'
+      and i.interaction_type_code = 'IT002'
+      and c.content_type_code in ('CT001','CT002','CT003','CT004')
+      and i.interaction_content_post_first_publish = 'true'
+      and i.is_deleted = false
+      and i.is_system_feed = false
+      and i.interaction_entity_code = 'ET003'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
+
+  /**
+   * Knowledge Pages Query Template
+   * Returns count of distinct published knowledge pages
+   */
+  KNOWLEDGE_PAGES: `
+    select count(distinct case when cm.content_status='Published'
+    then c.code end) as published
+    from SIMPPLR_COMMON_TENANT.udl.content as c 
+    inner join SIMPPLR_COMMON_TENANT.udl.content_measures as cm 
+      on c.code = cm.content_code
+    where c.tenant_code = '{tenantCode}'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+  `,
+
+  /**
+   * Content Referral Sources Query Template
+   * Returns referral sources with content items, referrals, and average referrals per content item
+   */
+  CONTENT_REFERRAL_SOURCES: `
+    SELECT 
+      u.description AS DESCRIPTION,
+      COUNT(DISTINCT c.code) AS CONTENT_ITEMS, 
+      COUNT(i.code) AS REFERRALS,
+      ROUND(
+        CAST(COUNT(i.code) AS NUMBER(18,9)) / 
+        NULLIF(CAST(COUNT(DISTINCT c.code) AS NUMBER(18,9)), 0),
+        2
+      ) AS AVG_REF
+    FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c 
+      ON c.code = i.content_code 
+    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_utm_source_as_is u 
+      ON i.utm_source_code = u.code
+    WHERE 
+      i.tenant_code = '{tenantCode}' 
+      AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+      AND c.content_type_code IN ('CT001','CT002','CT003','CT004') 
+      AND i.interaction_content_post_first_publish = 'true'
+      AND i.INTERACTION_TYPE_CODE = 'IT001' 
+    GROUP BY u.description 
+    ORDER BY COUNT(i.code) DESC
   `,
 };

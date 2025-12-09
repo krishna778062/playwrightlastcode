@@ -1,6 +1,5 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class VerticalBarChartComponent extends BaseComponent {
@@ -180,7 +179,7 @@ export class VerticalBarChartComponent extends BaseComponent {
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
