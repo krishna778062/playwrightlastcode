@@ -1467,8 +1467,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27531',
-          storyId: 'INT-23622',
+          zephyrTestId: 'INT-21051, INT-14001',
+          storyId: 'INT-20791',
         });
 
         createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1502,8 +1502,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27532',
-          storyId: 'INT-23622',
+          zephyrTestId: 'INT-21442, INT-21041',
+          storyId: 'INT-20791',
         });
 
         createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -1547,8 +1547,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27533',
-          storyId: 'INT-23622',
+          zephyrTestId: 'INT-27510, INT-21570',
+          storyId: 'INT-26724',
         });
 
         //Generate a random tile title
@@ -1582,8 +1582,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27534',
-          storyId: 'INT-23622',
+          zephyrTestId: 'INT-27514, INT-21046',
+          storyId: 'INT-26724',
         });
         const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
         const createdSite = await siteManagementHelper.createPublicSite({ category });
