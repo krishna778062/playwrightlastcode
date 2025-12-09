@@ -142,8 +142,8 @@ export const config = {
     },
     prodUS: {
       tenantName: 'Frontline Primary PROD US',
-      frontendBaseUrl: 'https://ping-automation.app.simpplr.com/',
-      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com/',
+      frontendBaseUrl: 'https://ping-automation.app.simpplr.com',
+      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com',
       appManagerEmail: 'rakesh.yadav@simpplr.com',
       appManagerPassword: 'Test@123',
       endUserEmail: 'meenakshi.joshi+1@simpplr.com',
