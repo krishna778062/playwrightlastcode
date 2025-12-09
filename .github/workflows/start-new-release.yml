@@ -21,8 +21,8 @@ jobs:
           git fetch origin main
           git fetch origin release
 
-          # Check if release is behind main
-          BEHIND=$(git rev-list --count release..origin/main)
+          # Check if release is behind main (use origin/ prefix for remote refs)
+          BEHIND=$(git rev-list --count origin/release..origin/main)
 
           if [ "$BEHIND" -gt 0 ]; then
             echo "sync_status=behind" >> $GITHUB_OUTPUT
@@ -88,8 +88,8 @@ jobs:
 
           git fetch origin develop
 
-          # Check if there are changes to merge
-          COMMITS=$(git rev-list --count release..origin/develop)
+          # Check if there are changes to merge (use origin/ prefix for remote refs)
+          COMMITS=$(git rev-list --count origin/release..origin/develop)
 
           if [ "$COMMITS" -eq 0 ]; then
             echo "⚠️ No new commits in develop to merge"
