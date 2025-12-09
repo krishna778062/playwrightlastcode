@@ -28,22 +28,22 @@ test.describe(
     test.beforeEach(async ({ appManagerApiFixture }) => {
       //Initialize feedApiHelper
       feedApiHelper = new FeedApiHelper();
-      //Enable feed mode
-      await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-      });
+      //Enable feed mode - Skip in production environments as governance changes are restricted
+      const currentEnv = process.env.TEST_ENV;
+      if (currentEnv !== 'prodUS' && currentEnv !== 'prodEU') {
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
+      } else {
+        log.info(`Skipping governance configuration for production environment: ${currentEnv}`);
+      }
     });
-    test.afterEach(async ({ appManagerApiFixture, standardUserApiFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup if needed
       try {
         await appManagerApiFixture.feedManagementHelper.cleanup();
       } catch (error) {
-        log.warn('Feed cleanup failed', error);
-      }
-      try {
-        await standardUserApiFixture.feedManagementHelper.cleanup();
-      } catch (error) {
-        log.warn('Feed cleanup failed', error);
+        log.warn('App manager feed cleanup failed', error);
       }
     });
 
