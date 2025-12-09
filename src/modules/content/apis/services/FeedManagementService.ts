@@ -1120,7 +1120,9 @@ export class FeedManagementService implements IFeedManagementOperations {
       if (currentConfig.isExpertiseCreateAppManagerControlled !== undefined)
         currentGovernanceSettings.isExpertiseCreateAppManagerControlled =
           currentConfig.isExpertiseCreateAppManagerControlled;
-      if (currentConfig.feedMode !== undefined) currentGovernanceSettings.feedMode = currentConfig.feedMode;
+      // Only use current feedMode if not explicitly provided in settings
+      if (currentConfig.feedMode !== undefined && settings.feedMode === undefined)
+        currentGovernanceSettings.feedMode = currentConfig.feedMode;
       if (currentConfig.autoGovValidationPeriod !== undefined)
         currentGovernanceSettings.autoGovValidationPeriod = currentConfig.autoGovValidationPeriod;
       if (currentConfig.autoGovernanceEnabled !== undefined)
@@ -1170,12 +1172,13 @@ export class FeedManagementService implements IFeedManagementOperations {
         currentGovernanceSettings.takeLegalAcknowledgement = currentConfig.takeLegalAcknowledgement;
 
       // Default values (used when current config doesn't have these fields)
+      // Note: htmlTileEnabled default changed to true to match production requirements
       const defaultSettings = {
         isExpertiseAppManagerControlled: true,
-        isHomeAppManagerControlled: true,
+        isHomeAppManagerControlled: false, // Changed to false to match production
         isSiteAppManagerControlled: false,
         isExpertiseCreateAppManagerControlled: true,
-        feedMode: feedMode,
+        feedMode: settings.feedMode || feedMode, // Use settings.feedMode if provided, otherwise use parameter
         autoGovValidationPeriod: 12,
         autoGovernanceEnabled: true,
         contentSubmissionsEnabled: true,
@@ -1185,7 +1188,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         isSiteCarouselEnabled: true,
         allowFileUpload: 'all',
         siteFilePermission: 'sameAsAllUsers',
-        htmlTileEnabled: false,
+        htmlTileEnabled: true, // Changed to true to match production requirements
         isNativeVideoAutoPlayEnabled: true,
         allowFileShareWithPublicLink: false,
         enablePersonalizedContentEmails: false,
@@ -1210,10 +1213,13 @@ export class FeedManagementService implements IFeedManagementOperations {
       };
 
       // Merge: current config -> defaults -> provided settings (provided settings take precedence)
+      // Ensure feedMode from settings parameter or settings object takes precedence
       const finalSettings = {
         ...defaultSettings,
         ...currentGovernanceSettings,
         ...settings,
+        // Explicitly set feedMode: use settings.feedMode if provided, otherwise use parameter, otherwise current, otherwise default
+        feedMode: settings.feedMode || feedMode || currentGovernanceSettings.feedMode || defaultSettings.feedMode,
         // Ensure nested objects are properly merged
         privacyPolicy: {
           ...defaultSettings.privacyPolicy,
@@ -1229,7 +1235,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         sitesToUploadFiles:
           settings.sitesToUploadFiles !== undefined
             ? settings.sitesToUploadFiles
-            : currentGovernanceSettings.sitesToUploadFiles.length > 0
+            : currentGovernanceSettings.sitesToUploadFiles?.length > 0
               ? currentGovernanceSettings.sitesToUploadFiles
               : defaultSettings.sitesToUploadFiles,
       };
