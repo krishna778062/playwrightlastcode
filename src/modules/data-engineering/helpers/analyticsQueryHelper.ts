@@ -118,16 +118,6 @@ export class AnalyticsQueryHelper {
     const query = CommonSql.CONTENT_DATA.replace('{tenantCode}', this.tenantCode)
       .replace('{isRestricted}', String(isRestricted))
       .replace('{siteType}', siteType);
-    console.log('Query:', query);
     return await this.snowflakeHelper.execute<ContentDataResult>(query);
-  }
-
-  /**
-   * Gets a random site type from the available options
-   * @returns A random site type
-   */
-  static getRandomSiteType(): SiteType {
-    const siteTypes: SiteType[] = ['Public', 'Private', 'Unlisted'];
-    return siteTypes[Math.floor(Math.random() * siteTypes.length)];
   }
 }
