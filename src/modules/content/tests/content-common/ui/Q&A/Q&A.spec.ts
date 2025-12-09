@@ -5,6 +5,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -79,7 +80,7 @@ test.describe(
           storyId: 'CONT-33540',
         });
 
-        const siteName = 'All Employees';
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
