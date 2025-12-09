@@ -17,6 +17,7 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { TestFileHelper } from '@/src/modules/content/tests/utils/testFileHelper';
 import { ContentPreviewPage, ManageSitePage, ManageSitesComponent } from '@/src/modules/content/ui';
 import { FilesPreviewMenuActionButton } from '@/src/modules/content/ui/components/filesPreviewModalComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
@@ -614,21 +615,12 @@ test.describe('favorite', () => {
       console.log('getListOfSitesResponse', getListOfSitesResponse);
       const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
       console.log('siteId', siteId);
-      const imagePath = FileUtil.getFilePath(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        '..',
-        'test-data',
-        'static-files',
-        'images',
-        'image1.jpg'
-      );
+      const imageFileName = FEED_TEST_DATA.ATTACHMENTS.IMAGE;
+      const imagePath = TestFileHelper.getTestDataFilePath(imageFileName, __dirname);
       const fileSize = FileUtil.getFileSize(imagePath);
       const getSignedUploadUrlResponse =
         await appManagerFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({
-          file_name: 'image1.jpg',
+          file_name: imageFileName,
           mime_type: 'image/jpeg',
           size: fileSize,
           uploadContext: 'site-files',
@@ -638,11 +630,11 @@ test.describe('favorite', () => {
       await appManagerFixture.contentManagementHelper.imageUploaderService.uploadFileToSignedUrl(
         getSignedUploadUrlResponse.uploadUrl,
         imagePath,
-        'image1.jpg'
+        imageFileName
       );
       const fileDetails = await appManagerFixture.contentManagementHelper.imageUploaderService.uploadIntranetFile(
         siteId,
-        'image1.jpg',
+        imageFileName,
         imagePath,
         'image/jpeg'
       );
