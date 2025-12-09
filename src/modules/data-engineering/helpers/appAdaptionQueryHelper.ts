@@ -8,6 +8,8 @@ import { DateHelper } from './dateHelper';
 import { BaseAnalyticsQueryHelper, FilterOptions, SnowflakeHelper } from '.';
 
 export interface AppWebPageViewsData {
+  webPageProduct: string;
+  webPageFeature: string;
   webPageGroup: string;
   totalPeople: number;
   pageViewCount: number;
@@ -365,9 +367,9 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     // Replace all placeholders in the base query
     let query = baseQuery
-      .replace('{tenantCode}', filterBy.tenantCode)
-      .replace('{startDate}', dateReplacements.startDate)
-      .replace('{endDate}', dateReplacements.endDate)
+      .replace(/{tenantCode}/g, filterBy.tenantCode)
+      .replace(/{startDate}/g, dateReplacements.startDate)
+      .replace(/{endDate}/g, dateReplacements.endDate)
       .replace('{locationFilter}', this.addLocationFilter(filterBy.locations))
       .replace('{departmentFilter}', this.addDepartmentFilter(filterBy.departments))
       .replace('{segmentFilter}', this.addSegmentFilter(filterBy.segments))
@@ -391,10 +393,12 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    */
   private transformAppWebPageViewsResults(rawResults: any[]): AppWebPageViewsData[] {
     return rawResults.map(result => ({
-      webPageGroup: result['Web page group'],
+      webPageProduct: result['Product'],
+      webPageFeature: result['Page feature'],
+      webPageGroup: result['Page group'],
       totalPeople: Number(result['Total people']),
       pageViewCount: Number(result['Page view count']),
-      percentageContributionToTotalPageViews: Number(result['Percentage contribution to total page views']),
+      percentageContributionToTotalPageViews: result['Percentage contribution to total page views'],
     }));
   }
 

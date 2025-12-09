@@ -1,0 +1,197 @@
+name: Promote to Production (Release to Production)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect release version
+        id: version
+        run: |
+          # Auto-detect version from latest UAT tag
+          LATEST_UAT=$(git tag -l "*-uat.*" --sort=-v:refname | head -n1)
+
+          if [ -z "$LATEST_UAT" ]; then
+            echo "⚠️ No UAT tag found"
+            VERSION="untagged"
+            UAT_TAG="N/A"
+          else
+            VERSION=$(echo $LATEST_UAT | grep -oP '^\d+\.\d+')
+            UAT_TAG="$LATEST_UAT"
+            echo "✅ Detected release version: $VERSION (from $LATEST_UAT)"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "uat_tag=$UAT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Merge release to main
+        run: |
+          echo "========================================"
+          echo "Step 1: Promoting release to production"
+          echo "========================================"
+
+          git fetch origin main
+          git fetch origin release
+          git checkout main
+          git merge origin/release --no-ff -m "Promote release ${{ steps.version.outputs.version }} to production"
+          git push origin main
+
+          echo "✅ Merged release → main"
+
+      - name: Set stage to production
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          echo "========================================"
+          echo "Step 2: Setting stage to production"
+          echo "========================================"
+
+          gh variable set CURRENT_STAGE --body "production"
+          echo "✅ CURRENT_STAGE set to 'production'"
+          echo ""
+          echo "What this means:"
+          echo "  • QA cron will now test main HEAD"
+          echo "  • UAT cron will now test main HEAD"
+          echo "  • Production monitors will test main HEAD"
+          echo "  • All environments testing latest stable code"
+
+      - name: Create backport PR to develop
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          echo "========================================"
+          echo "Step 3: Creating backport PR to develop"
+          echo "========================================"
+
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+
+          git fetch origin develop
+          BACKPORT_BRANCH="backport/prod-${VERSION}-to-develop"
+          git checkout -b $BACKPORT_BRANCH origin/develop
+
+          if git merge origin/main --no-ff -m "Backport production release $VERSION to develop"; then
+            git push origin $BACKPORT_BRANCH
+            
+            gh pr create \
+              --base develop \
+              --head $BACKPORT_BRANCH \
+              --title "Backport: Production release $VERSION" \
+              --body "**Final Production Backport**
+
+            This PR syncs develop with the production release.
+
+            **Release Version:** $VERSION
+            **UAT Tag:** $UAT_TAG
+
+            **What's included:**
+            All changes from the release branch that were promoted to production.
+
+            **Action Required:**
+            Review and merge to complete the release cycle and keep develop in sync with production."
+            
+            echo "✅ Backport PR created successfully"
+          else
+            echo "⚠️ Merge conflicts detected - creating PR for manual resolution"
+            git merge --abort
+            git push origin $BACKPORT_BRANCH
+            
+            gh pr create \
+              --base develop \
+              --head $BACKPORT_BRANCH \
+              --title "[CONFLICTS] Backport: Production release $VERSION" \
+              --body "**Final Production Backport - CONFLICTS DETECTED**
+
+            This PR has merge conflicts that need manual resolution.
+
+            **Release Version:** $VERSION
+            **UAT Tag:** $UAT_TAG
+            **Branch:** \`$BACKPORT_BRANCH\`
+
+            **Action Required:**
+            1. Check out the branch: \`git checkout $BACKPORT_BRANCH\`
+            2. Resolve merge conflicts
+            3. Commit and push changes
+            4. Review and merge this PR"
+            
+            echo "⚠️ Backport PR created with conflict warning"
+          fi
+
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+
+          echo ""
+          echo "========================================"
+          echo "✅ PRODUCTION PROMOTION COMPLETED"
+          echo "========================================"
+          echo ""
+          echo "Release Version: $VERSION"
+          echo "UAT Tag: $UAT_TAG"
+          echo "Stage: production"
+          echo ""
+          echo "What happened:"
+          echo "  ✓ Merged release → main"
+          echo "  ✓ Set CURRENT_STAGE = production"
+          echo "  ✓ Created backport PR to develop"
+          echo ""
+          echo "Next steps:"
+          echo "  1. Review and merge backport PR"
+          echo "  2. All environments now test main HEAD"
+          echo "  3. Ready to start next release when needed"
+          echo ""
+          echo "========================================"
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+
+          if [ "${{ job.status }}" == "success" ]; then
+            MESSAGE=":rocket: *Release Promoted to Production*
+
+          *Version:* $VERSION
+          *UAT Tag:* $UAT_TAG
+          *Stage:* Production
+
+          *What changed:*
+            • Merged release → main
+            • Stage set to \`production\`
+            • QA/UAT now test \`main\` HEAD
+            • Production monitors active
+
+          *Next steps:*
+            • Review and merge backport PR to develop
+            • All environments testing latest stable code
+            • Ready to start next release
+
+          _Production promotion successful!_ :tada:"
+          else
+            MESSAGE=":x: *Production Promotion Failed*
+
+          *Version:* $VERSION
+
+          Check workflow logs for details:
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
