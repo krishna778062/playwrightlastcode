@@ -69,6 +69,9 @@ test.describe('calendar', () => {
         await calendarPage.addActivityName(activity.title);
         await calendarPage.addActivityDescription(activity.description);
 
+        await calendarPage.selectContentType(activity.content.type);
+        await calendarPage.clickOnConnectToContentButton();
+
         /**
          * Remove later!
          */

@@ -13,6 +13,7 @@ export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
   /**
    * Override hover method to add visibility wait before hovering
    * (This chart needs explicit wait, base class doesn't wait)
+   * Uses force: true to bypass SVG pointer event interception for small/low-opacity segments
    */
   async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
     const chartLabel = this.getChartLabelLocatorWithLabelAsOverride(label);
@@ -23,6 +24,8 @@ export class MobileContentViewsByTypeMetric extends BaseMobilePieChartMetric {
       stepInfo: `Wait for chart label "${label}" to be visible for hover`,
     });
 
-    await chartLabel.hover();
+    // Use force: true to bypass SVG pointer event interception
+    // Highcharts renders small segments with low opacity and the SVG root can intercept pointer events
+    await chartLabel.hover({ force: true });
   }
 }
