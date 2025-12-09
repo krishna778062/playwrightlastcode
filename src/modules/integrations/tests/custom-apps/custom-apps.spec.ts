@@ -1395,5 +1395,257 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify user is able to Disconnect account of Auth type - OAuth 2.0 Client Credentials',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29720',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const spotifyApp = CUSTOM_APPS_TEST_DATA.SPOTIFY_CLIENT_CREDENTIALS_APP;
+        const fieldLabels = CUSTOM_APPS_TEST_DATA.FIELD_LABELS;
+        const appName = `${spotifyApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.createSpotifyClientCredentialsApp(appName, spotifyApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyFieldIsDisplayed(fieldLabels.CLIENT_ID);
+        await customAppsPage.connectClientCredentialsAndVerify(
+          CREDENTIALS.SPOTIFY.CLIENT_ID,
+          CREDENTIALS.SPOTIFY.CLIENT_SECRET
+        );
+
+        await customAppsPage.clickDisconnectAccountButton();
+        await customAppsPage.verifyDialogTitle(MESSAGES.DISCONNECT_CUSTOM_APP_DIALOG_TITLE);
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.getAppDisconnectingConfirmationMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.DISCONNECT_WARNING_MESSAGE);
+        await customAppsPage.clickDisconnectAccountInDialog();
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
+        await customAppsPage.verifyFieldIsDisplayed(fieldLabels.CLIENT_ID);
+        await customAppsPage.verifySaveButtonIsDisplayed();
+      }
+    );
+
+    test(
+      'verify all fields are editable when connection is disabled - OAuth 2.0 Client Credentials',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29721',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const spotifyApp = CUSTOM_APPS_TEST_DATA.SPOTIFY_CLIENT_CREDENTIALS_APP;
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
+        const appName = `${spotifyApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.createSpotifyClientCredentialsApp(appName, spotifyApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.searchAndOpenApp(appName);
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        await customAppsPage.clickEditFromMenu();
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.NAME, formFields.DESCRIPTION],
+          enabledDropdowns: [formFields.CATEGORY],
+        });
+
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
+        await customAppsPage.scrollPageBy(300);
+
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledDropdowns: [formFields.CONNECTION_TYPE, formFields.AUTH_TYPE, formFields.SUB_AUTH_TYPE],
+        });
+
+        await customAppsPage.scrollPageBy(300);
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.TOKEN_URL, formFields.BASE_URL],
+        });
+
+        await customAppsPage.clickButton('Save');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.ACCOUNT_CONNECTION_MESSAGE(appName));
+      }
+    );
+
+    test(
+      'verify all fields are editable when connection is disabled - OAuth 2.0 PKCE',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29722',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
+        const appName = `Auth0 Custom Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Auth0 Custom App Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        await customAppsPage.createAuth0PkceApp(appName, appDescription, 'Plain');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.searchAndOpenApp(appName);
+
+        await customAppsPage.clickEditFromMenu();
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.NAME, formFields.DESCRIPTION],
+          enabledDropdowns: [formFields.CATEGORY],
+        });
+
+        await customAppsPage.selectAppCategory(CUSTOM_APPS_TEST_DATA.CATEGORIES.SUPPORT_TICKETING);
+        await customAppsPage.scrollPageBy(300);
+
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.BASE_URL],
+          enabledDropdowns: [formFields.CONNECTION_TYPE, formFields.AUTH_TYPE],
+        });
+
+        await customAppsPage.scrollPageBy(300);
+
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.CLIENT_ID, formFields.AUTH_URL, formFields.TOKEN_URL],
+          enabledDropdowns: [formFields.SUB_AUTH_TYPE],
+        });
+
+        await customAppsPage.clickButton('Save');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.getUserLevelConnectionMessage(appName));
+      }
+    );
+
+    test(
+      'verify user is able to Disconnect account of Auth type - OAuth 2.0 Auth Code',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29723',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Box Custom Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Box Custom App Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        await customAppsPage.createBoxOAuthApp(appName, appDescription, 'App level');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.connectBoxAccount(CREDENTIALS.BOX.EMAIL, CREDENTIALS.BOX.PASSWORD);
+        await customAppsPage.verifyDisconnectAccountButtonIsDisplayed();
+        await customAppsPage.verifyChecklistItemIsChecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        await customAppsPage.clickDisconnectAccountButton();
+        await customAppsPage.verifyDialogTitle(MESSAGES.DISCONNECT_CUSTOM_APP_DIALOG_TITLE);
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.getAppDisconnectingConfirmationMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.DISCONNECT_WARNING_MESSAGE);
+        await customAppsPage.clickDisconnectAccountInDialog();
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
+        await customAppsPage.customAppsComponent.verifyTextIsDisplayed('Connect account');
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+      }
+    );
+
+    test(
+      'verify user is able to create a custom app with OAuth2 PKCE - App level connection',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29724',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Auth0 PKCE App Level ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Auth0 PKCE App Level Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        await customAppsPage.createAuth0PkceApp(appName, appDescription, 'Plain', {
+          connectionType: 'App level',
+        });
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.ACCOUNT_CONNECTION_MESSAGE(appName));
+        await customAppsPage.customAppsComponent.verifyTextIsDisplayed('Connect account');
+        await customAppsPage.verifyStatusBadge('Disabled');
+      }
+    );
+
+    test(
+      'verify user is able to create a custom app with OAuth2 PKCE SHA-256 - User level connection',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29725',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Auth0 PKCE SHA256 ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Auth0 PKCE SHA-256 User Level Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        await customAppsPage.createAuth0PkceApp(appName, appDescription, 'SHA-256', {
+          connectionType: 'User level',
+        });
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.getUserLevelConnectionMessage(appName));
+        await customAppsPage.verifyStatusBadge('Disabled');
+      }
+    );
+
+    test(
+      'verify Edit button shows edit form and allows editing name and description',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29437',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const formFields = CUSTOM_APPS_TEST_DATA.FORM_FIELD_NAMES;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        const updatedAppName = `Updated ${appName}`;
+        const updatedDescription = `Updated description ${faker.lorem.sentence()}`;
+        createdAppName = updatedAppName;
+
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        await customAppsPage.clickEditFromMenu();
+        await customAppsPage.verifyEditFormFieldStates({
+          enabledFields: [formFields.NAME, formFields.DESCRIPTION],
+        });
+
+        // Update name and description
+        await customAppsPage.enterAppName(updatedAppName);
+        await customAppsPage.enterAppDescription(updatedDescription);
+        await customAppsPage.scrollPageBy(500);
+        await customAppsPage.clickButton('Save');
+
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(updatedAppName));
+        await customAppsPage.verifyAppNameInHeader(updatedAppName);
+        await customAppsPage.verifyTextIsDisplayed(updatedDescription);
+      }
+    );
   }
 );
