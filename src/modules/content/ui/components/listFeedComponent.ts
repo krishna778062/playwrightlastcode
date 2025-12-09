@@ -1514,6 +1514,15 @@ export class ListFeedComponent
     });
   }
 
+  async verifyShareIconIsVisible(postText: string): Promise<void> {
+    await test.step(`Verify share icon is visible for post/comment: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
+        assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
+      });
+    });
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {

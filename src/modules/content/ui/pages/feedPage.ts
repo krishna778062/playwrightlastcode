@@ -231,6 +231,7 @@ export interface IFeedAssertions {
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
@@ -1271,6 +1272,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyShareButtonIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyShareIconIsVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyShareIconIsVisible(postText);
   }
 
   async verifyReactionButtonIsNotVisible(): Promise<void> {
