@@ -1,0 +1,218 @@
+name: Promote to Production (Release to Production)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect release version
+        id: version
+        run: |
+          # Auto-detect version from latest UAT tag
+          LATEST_UAT=$(git tag -l "*-uat.*" --sort=-v:refname | head -n1)
+
+          if [ -z "$LATEST_UAT" ]; then
+            echo "⚠️ No UAT tag found"
+            VERSION="untagged"
+            UAT_TAG="N/A"
+          else
+            VERSION=$(echo $LATEST_UAT | grep -oP '^\d+\.\d+')
+            UAT_TAG="$LATEST_UAT"
+            echo "✅ Detected release version: $VERSION (from $LATEST_UAT)"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "uat_tag=$UAT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Merge release to main
+        run: |
+          echo "========================================"
+          echo "Step 1: Promoting release to production"
+          echo "========================================"
+
+          git fetch origin main
+          git fetch origin release
+          git checkout main
+          git merge origin/release --no-ff -m "Promote release ${{ steps.version.outputs.version }} to production"
+          git push origin main
+
+          echo "✅ Merged release → main"
+
+      - name: Set stage to production
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          echo "========================================"
+          echo "Step 2: Setting stage to production"
+          echo "========================================"
+
+          gh variable set CURRENT_STAGE --body "production"
+          echo "✅ CURRENT_STAGE set to 'production'"
+          echo ""
+          echo "What this means:"
+          echo "  • QA cron will now test main HEAD"
+          echo "  • UAT cron will now test main HEAD"
+          echo "  • Production monitors will test main HEAD"
+          echo "  • All environments testing latest stable code"
+
+      - name: Create/Update sync PR to develop (if needed)
+        id: backport
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          echo "========================================"
+          echo "Step 3: Check if sync to develop is needed"
+          echo "========================================"
+
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+
+          git fetch origin develop
+          git fetch origin main
+
+          # Check if develop is already in sync with main
+          DIFF_COUNT=$(git rev-list --count origin/develop..origin/main)
+
+          if [ "$DIFF_COUNT" -eq 0 ]; then
+            echo "✅ develop is already in sync with main - no sync needed"
+            echo "backport_needed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found $DIFF_COUNT commits to sync from main to develop"
+          echo "backport_needed=true" >> $GITHUB_OUTPUT
+
+          # Check if sync PR [main → develop] already exists
+          EXISTING_PR=$(gh pr list \
+            --base develop \
+            --head main \
+            --state open \
+            --json number,url \
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null null" ]; then
+            # Sync PR already exists - add comment
+            PR_NUMBER=$(echo "$EXISTING_PR" | cut -d' ' -f1)
+            PR_URL=$(echo "$EXISTING_PR" | cut -d' ' -f2)
+            
+            echo "✅ Found existing sync PR [main → develop]: #$PR_NUMBER"
+            
+            COMMENT_BODY=$(cat <<EOF
+          ### 🚀 Production Release Promoted
+
+          **Version:** $VERSION
+          **UAT Tag:** $UAT_TAG
+          **Commits to sync:** $DIFF_COUNT
+
+          This sync PR now includes the production release. Please review and merge.
+          EOF
+            )
+            gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+            
+            echo "backport_pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            echo "backport_status=existing" >> $GITHUB_OUTPUT
+            echo "✅ Added comment to existing sync PR #$PR_NUMBER"
+          else
+            # Create new sync PR (direct main → develop)
+            echo "📝 Creating new sync PR [main → develop]"
+            
+            PR_BODY=$(cat <<EOF
+          ## 🚨 Sync: main → develop
+
+          This PR syncs \`develop\` with production (\`main\`).
+
+          ### 📋 Production Release:
+
+          | Version | UAT Tag | Commits |
+          |---------|---------|---------|
+          | $VERSION | $UAT_TAG | $DIFF_COUNT |
+
+          ### Why this exists:
+          - Production release $VERSION was promoted
+          - This PR ensures \`develop\` stays in sync with production
+
+          ⚠️ **Important:** Merge this PR to complete the release cycle.
+          EOF
+            )
+
+            BACKPORT_PR_URL=$(gh pr create \
+              --base develop \
+              --head main \
+              --title "🚨 Sync: main → develop (Production Release $VERSION)" \
+              --body "$PR_BODY")
+            
+            echo "backport_pr_url=$BACKPORT_PR_URL" >> $GITHUB_OUTPUT
+            echo "backport_status=created" >> $GITHUB_OUTPUT
+            echo "✅ Created sync PR: $BACKPORT_PR_URL"
+          fi
+
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+          BACKPORT_NEEDED="${{ steps.backport.outputs.backport_needed }}"
+
+          echo ""
+          echo "========================================"
+          echo "✅ PRODUCTION PROMOTION COMPLETED"
+          echo "========================================"
+          echo ""
+          echo "Release Version: $VERSION"
+          echo "UAT Tag: $UAT_TAG"
+          echo "Stage: production"
+          echo ""
+          echo "What happened:"
+          echo "  ✓ Merged release → main"
+          echo "  ✓ Set CURRENT_STAGE = production"
+          if [ "$BACKPORT_NEEDED" == "true" ]; then
+            echo "  ✓ Sync PR [main → develop] created/updated"
+          else
+            echo "  ✓ develop already in sync (no sync needed)"
+          fi
+          echo ""
+          echo "========================================"
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+          BACKPORT_NEEDED="${{ steps.backport.outputs.backport_needed }}"
+          BACKPORT_PR_URL="${{ steps.backport.outputs.backport_pr_url }}"
+          BACKPORT_STATUS="${{ steps.backport.outputs.backport_status }}"
+
+          if [ "${{ job.status }}" == "success" ]; then
+            # Build sync info
+            if [ "$BACKPORT_NEEDED" == "true" ]; then
+              if [ "$BACKPORT_STATUS" == "existing" ]; then
+                SYNC_INFO="<${BACKPORT_PR_URL}|Sync PR [main → develop]> updated"
+              else
+                SYNC_INFO="<${BACKPORT_PR_URL}|Sync PR [main → develop]> created"
+              fi
+            else
+              SYNC_INFO="develop already in sync ✓"
+            fi
+
+            MESSAGE=":rocket: *Production Release: ${VERSION}*\n\n• release → main merged\n• Stage: \`production\`\n• UAT Tag: \`${UAT_TAG}\`\n• Sync: ${SYNC_INFO}\n\n_All environments now testing main HEAD._"
+          else
+            MESSAGE=":x: *Production Promotion Failed*\n\nVersion: ${VERSION}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+          fi
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"

@@ -1,6 +1,7 @@
 import { APIRequestContext } from '@playwright/test';
 
 import { Audience, AudienceRule, CreateAudienceRequest, CreateAudienceResponse } from '@core/types/audience.types';
+import { log } from '@core/utils/logger';
 
 import { AudienceManagementService } from '@/src/modules/content/apis/services/AudienceManagementService';
 
@@ -130,7 +131,7 @@ export class AudienceManagementHelper {
    * @returns Promise<CreateAudienceResponse>
    */
   async createAudience(request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
-    console.log('createAudience request', JSON.stringify(request));
+    log.debug('createAudience request', { request: JSON.stringify(request) });
     return await this.audienceManagementService.createAudience(request);
   }
 
@@ -152,7 +153,7 @@ export class AudienceManagementHelper {
   async deleteAudience(audienceId: string): Promise<void> {
     // Note: This would need to be implemented in AudienceManagementService
     // For now, we'll just log that cleanup is needed
-    console.log(`Audience ${audienceId} cleanup needed - delete method not implemented yet`);
+    log.debug(`Audience ${audienceId} cleanup needed - delete method not implemented yet`);
   }
 
   /**
@@ -167,7 +168,7 @@ export class AudienceManagementHelper {
   }> {
     const response = await this.audienceManagementService.getAudienceList();
 
-    console.log('response', JSON.stringify(response.result.listOfItems));
+    log.debug('response', { response: JSON.stringify(response.result.listOfItems) });
     const audience = response.result.listOfItems.find(
       audience =>
         audience.description !== null &&
@@ -176,8 +177,8 @@ export class AudienceManagementHelper {
         audience.audienceCount > 0
     );
 
-    console.log('audience', JSON.stringify(audience));
-    console.log('audience description', JSON.stringify(audience?.description));
+    log.debug('audience', { audience: JSON.stringify(audience) });
+    log.debug('audience description', { description: JSON.stringify(audience?.description) });
     if (!audience) {
       //create audience with description
       const newAudience = await this.createAudience({

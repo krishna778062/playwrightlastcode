@@ -52,8 +52,12 @@ export class SideNavBarComponent extends BaseComponent {
   readonly homeNavMenu: Locator;
   readonly manageNavMenu: Locator;
 
+  //content moderation section
+  readonly clickOnContentModeration: Locator;
+
   constructor(page: Page) {
     super(page);
+    this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
     this.createSection = page.getByRole('button', { name: 'Create', exact: true });
     this.feedLink = page.locator('p', { hasText: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');

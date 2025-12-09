@@ -8,7 +8,7 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
 import { AZURE_SYNCING, SYNCING, WORKDAY_SYNC } from '@/src/modules/integrations/test-data/gamma-data-file';
-import { AzureSyncingPage } from '@/src/modules/integrations/ui/pages/azureSyncPage';
+import { SyncingPage } from '@/src/modules/integrations/ui/pages/syncingPage';
 
 test.describe(
   'azure syncing',
@@ -16,10 +16,10 @@ test.describe(
     tag: [IntegrationsSuiteTags.GAMMA, GammaIntegrationsFeatureTags.AZURE_SYNC],
   },
   () => {
-    let azureSyncing: AzureSyncingPage;
+    let azureSyncing: SyncingPage;
 
     test.beforeEach(async ({ appManagerPage }) => {
-      azureSyncing = new AzureSyncingPage(appManagerPage);
+      azureSyncing = new SyncingPage(appManagerPage);
       await azureSyncing.loadPage();
       await azureSyncing.verifyThePageIsLoaded();
     });
@@ -72,8 +72,8 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
-        await azureSyncing.checkSyncCheckboxesForMultipleFields(AZURE_SYNCING.COMMON_SYNC_FIELDS);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.checkSyncCheckboxesForMultipleFields(SYNCING.COMMON_SYNC_FIELDS);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
         await azureSyncing.verifyErrorMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
         await azureSyncing.clickOnTab(WORKDAY_SYNC.SETUP_TAB);
@@ -85,7 +85,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_EMAIL);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_FIRSTNAME);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -123,9 +123,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -139,7 +139,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_MOBILE);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_FIRSTNAME_MOBILE);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -179,9 +179,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -195,7 +195,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_PHONE);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_PHONE_FIRSTNAME);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -234,9 +234,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -250,7 +250,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_EMPLOYEE_NUMBER);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.USER_FIRSTNAME_EMPLOYEE_NUMBER);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -289,9 +289,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -305,7 +305,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.EMPLOYEE_NUMBER_WITH_BLANK_EMAIL);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.FIRSTNAME_WITH_BLANK_EMAIL);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -345,9 +345,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -361,7 +361,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_PHONE_WITH_BLANK_EMAIL);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.FIRSTNAME_WITH_BLANK_EMAIL);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
 
@@ -399,9 +399,9 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(AZURE_SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
-          ...AZURE_SYNCING.COMMON_SYNC_FIELDS,
+          ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,
         ]);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
@@ -415,7 +415,7 @@ test.describe(
         await azureSyncing.searchForUser(AZURE_SYNCING.USER_MOBILE_WITH_BLANK_EMAIL);
         await azureSyncing.verifyFirstnameAndClickMoreButton(AZURE_SYNCING.FIRSTNAME_WITH_BLANK_EMAIL);
         await azureSyncing.clickDropdownMenuItem(SYNCING.EDIT_USER);
-        await azureSyncing.verifyAllExpectedSyncedValues(AZURE_SYNCING.EXPECTED_SYNCED_VALUES);
+        await azureSyncing.verifyAllExpectedSyncedValues(SYNCING.EXPECTED_SYNCED_VALUES);
       }
     );
   }

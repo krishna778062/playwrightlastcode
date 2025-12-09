@@ -49,6 +49,7 @@ export class OnboardingComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.tagVisibleUnderFavoritesTab(option));
     });
   }
+
   async verifyAlreadySelectedOnboardingOptionVisible(option: TagOption): Promise<void> {
     await test.step(`Verify already selected onboarding option is visible: ${option}`, async () => {
       await this.selectOnboardingRadioButton(option).isChecked();
@@ -70,7 +71,6 @@ export class OnboardingComponent extends BaseComponent {
   async verifyTagShouldNotBeVisibleOnContent(option: TagOption): Promise<void> {
     await test.step(`Verify tag should not be visible on content: ${option}`, async () => {
       const textContent = await this.contentOuterDiv.textContent();
-      console.log('textContent', textContent);
       if (textContent?.includes(option)) {
         await this.verifier.verifyTheElementIsNotVisible(this.verifyTabVisible(option));
       }

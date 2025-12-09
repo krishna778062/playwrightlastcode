@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { log } from '@core/utils/logger';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -82,7 +83,6 @@ export class ContentManagementHelper {
     }
 
     // No content found, get a site from site service and create a page
-    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
     // Get sites filtered by access type
     const sitesResponse = await this.siteManagementService.getListOfSites({
@@ -529,6 +529,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located
@@ -538,13 +541,10 @@ export class ContentManagementHelper {
     if (contentId && siteId) {
       try {
         await this.contentManagementService.deleteContent(siteId, contentId);
-        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
       } catch (error) {
-        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        log.error(`Failed to delete content ${contentId} from site ${siteId}`, error);
         throw error;
       }
-    } else {
-      console.log('No content ID or site ID provided for deletion');
     }
   }
 
@@ -883,5 +883,142 @@ export class ContentManagementHelper {
 
       return json;
     });
+  }
+
+  /**
+   * Creates a page template
+   * @param templateData - Template creation payload
+   * @returns Promise with the template creation response
+   */
+  async createTemplate(templateData: {
+    siteId: string;
+    name: string;
+    title: string;
+    subType: string;
+    language: string;
+    category: { id: string; name: string };
+    body: {
+      type: string;
+      content: Array<{
+        type: string;
+        attrs?: Record<string, any>;
+        content?: Array<{ type: string; text?: string; [key: string]: any }>;
+        [key: string]: any;
+      }>;
+    };
+    imgLayout?: string;
+    listOfTopics?: Array<{ id: string; name: string }>;
+  }): Promise<any> {
+    return await test.step(`Creating page template via API: ${templateData.name}`, async () => {
+      return await this.contentManagementService.createTemplate(templateData);
+    });
+  }
+
+  /**
+   * Creates a page template with simplified parameters
+   * Handles category retrieval, topic mapping, and body structure building internally
+   * @param params - Parameters for template creation
+   * @param params.siteId - The site ID where the template will be created
+   * @param params.options - Optional configuration for template creation
+   * @param params.options.name - Template name (default: 'Testing 1')
+   * @param params.options.title - Template title (default: 'Testing-1')
+   * @param params.options.subType - Template sub type (default: 'knowledge')
+   * @param params.options.language - Template language (default: 'en-US')
+   * @param params.options.text - Template text content (will be wrapped in ProseMirror structure)
+   * @param params.options.body - Template body content (ProseMirror format) - if provided, text will be ignored
+   * @param params.options.imgLayout - Image layout (default: 'wide')
+   * @param params.options.listOfTopics - Array of topic names to include (will be mapped to IDs)
+   * @returns Promise with the template creation response
+   */
+  async createPageTemplate(params: {
+    siteId: string;
+    options?: {
+      name?: string;
+      title?: string;
+      subType?: string;
+      language?: string;
+      text?: string;
+      body?: {
+        type: string;
+        content: Array<{
+          type: string;
+          attrs?: Record<string, any>;
+          content?: Array<{ type: string; text?: string; [key: string]: any }>;
+          [key: string]: any;
+        }>;
+      };
+      imgLayout?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    // Build body structure - use provided body or build from text
+    let body;
+    if (options.body) {
+      body = options.body;
+    } else {
+      const textContent = options.text || 'Default template content';
+      body = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            attrs: {
+              indentation: 0,
+              textAlign: 'left',
+              className: '',
+              'data-sw-sid': null,
+            },
+            content: [
+              {
+                type: 'text',
+                text: textContent,
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Build template data
+    const templateData = {
+      siteId,
+      name: options.name || `Template ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+      title: options.title || `Template-${faker.company.buzzAdjective()}-${faker.company.buzzNoun()}`,
+      subType: options.subType || 'knowledge',
+      language: options.language || 'en-US',
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      body,
+      imgLayout: options.imgLayout || 'wide',
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+    };
+
+    const templateResult = await this.createTemplate(templateData);
+    const templateId = templateResult.result?.id;
+
+    // Track template for cleanup
+    if (templateId) {
+      this.content.push({ siteId, contentId: templateId });
+    }
+
+    return templateResult;
   }
 }

@@ -1,0 +1,222 @@
+name: Auto Create Tag (QA/UAT)
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - release
+
+jobs:
+  create-tag:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: release
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect release type (dual check)
+        id: detect
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          IS_NEW_RELEASE=false
+          DETECTION_METHOD=""
+
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "Triggered by PR merge"
+            
+            # Method 1: Check for 'new-release' label (primary)
+            LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+            echo "PR Labels: $LABELS"
+            
+            if echo "$LABELS" | grep -q "new-release"; then
+              IS_NEW_RELEASE=true
+              DETECTION_METHOD="label"
+              echo "✅ New release detected via 'new-release' label"
+            else
+              # Method 2: Check source branch (fallback)
+              SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+              echo "Source branch: $SOURCE_BRANCH"
+              
+              if [ "$SOURCE_BRANCH" == "develop" ]; then
+                IS_NEW_RELEASE=true
+                DETECTION_METHOD="source_branch"
+                echo "✅ New release detected via source branch (develop)"
+                echo "⚠️ Note: 'new-release' label was missing but detected from branch"
+              else
+                echo "🔧 Hotfix detected (PR from $SOURCE_BRANCH, no new-release label)"
+              fi
+            fi
+            
+          else
+            # Direct push to release branch (no PR)
+            echo "Triggered by direct push to release"
+            
+            # Check commit message
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            if [[ "$COMMIT_MSG" == *"Merge branch 'develop'"* ]] || [[ "$COMMIT_MSG" == *"Merge branch \"develop\""* ]]; then
+              IS_NEW_RELEASE=true
+              DETECTION_METHOD="commit_message"
+              echo "✅ New release detected via commit message"
+            else
+              echo "🔧 Hotfix detected (direct push, not from develop)"
+            fi
+          fi
+
+          echo "is_new_release=$IS_NEW_RELEASE" >> $GITHUB_OUTPUT
+          echo "detection_method=$DETECTION_METHOD" >> $GITHUB_OUTPUT
+          echo "current_stage=$STAGE" >> $GITHUB_OUTPUT
+
+      - name: Determine tag version
+        id: tag
+        env:
+          IS_NEW_RELEASE: ${{ steps.detect.outputs.is_new_release }}
+          CURRENT_STAGE: ${{ steps.detect.outputs.current_stage }}
+        run: |
+          STAGE=$CURRENT_STAGE
+          SHOULD_UPDATE_STAGE="false"
+
+          if [ "$IS_NEW_RELEASE" == "true" ]; then
+            # New release - increment base version
+            echo "🚀 Processing new release - resetting to QA phase"
+            STAGE="qa"
+            SHOULD_UPDATE_STAGE="true"
+            
+            LATEST_TAG=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_TAG" ]; then
+            BASE_VERSION=$(date +%y.%m)  # Changed from "25.01"
+            echo "First tag ever: $BASE_VERSION"
+            else
+              CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
+              CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
+              CURRENT_MONTH=$(echo $CURRENT_BASE | cut -d'.' -f2)
+              
+              echo "Current base: $CURRENT_BASE"
+              echo "Debug: CURRENT_YEAR=$CURRENT_YEAR, CURRENT_MONTH=$CURRENT_MONTH"
+              
+              # Increment month and handle year rollover
+              NEW_MONTH=$((10#$CURRENT_MONTH + 1))
+              NEW_YEAR=$((10#$CURRENT_YEAR))
+              
+              echo "Debug: NEW_MONTH=$NEW_MONTH (before rollover check)"
+              
+              if [ $NEW_MONTH -gt 12 ]; then
+                echo "Debug: Month > 12, rolling over to next year"
+                NEW_MONTH=1
+                NEW_YEAR=$((NEW_YEAR + 1))
+              fi
+              
+              echo "Debug: Final NEW_YEAR=$NEW_YEAR, NEW_MONTH=$NEW_MONTH"
+              
+              BASE_VERSION=$(printf "%02d.%02d" $NEW_YEAR $NEW_MONTH)
+              echo "Incrementing base: $CURRENT_BASE → $BASE_VERSION"
+            fi
+            
+            NEW_TAG="${BASE_VERSION}-qa.1"
+            RELEASE_TYPE="new_release"
+            echo "🔄 New release tag: ${NEW_TAG}"
+            
+          elif [ "$STAGE" == "uat" ]; then
+            # UAT hotfix
+            echo "📦 UAT phase active - creating UAT hotfix tag"
+            
+            LATEST_UAT=$(git tag -l "*-uat.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_UAT" ]; then
+              echo "❌ No UAT tags found! Please promote to UAT first."
+              exit 1
+            fi
+            
+            BASE_VERSION=$(echo $LATEST_UAT | grep -oP '^\d+\.\d+')
+            UAT_NUM=$(echo $LATEST_UAT | grep -oP 'uat\.\K\d+')
+            NEW_UAT_NUM=$((UAT_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-uat.${NEW_UAT_NUM}"
+            RELEASE_TYPE="hotfix_uat"
+            echo "📈 UAT hotfix: ${LATEST_UAT} → ${NEW_TAG}"
+            
+          else
+            # QA hotfix
+            echo "🧪 QA phase active - creating QA hotfix tag"
+            
+            LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+            
+            if [ -z "$LATEST_QA" ]; then
+              echo "❌ No QA tags found! Please start a new release first."
+              exit 1
+            fi
+            
+            BASE_VERSION=$(echo $LATEST_QA | grep -oP '^\d+\.\d+')
+            QA_NUM=$(echo $LATEST_QA | grep -oP 'qa\.\K\d+')
+            NEW_QA_NUM=$((QA_NUM + 1))
+            NEW_TAG="${BASE_VERSION}-qa.${NEW_QA_NUM}"
+            RELEASE_TYPE="hotfix_qa"
+            echo "📈 QA hotfix: ${LATEST_QA} → ${NEW_TAG}"
+          fi
+
+          echo ""
+          echo "================================"
+          echo "RESULT: $NEW_TAG"
+          echo "Type: $RELEASE_TYPE"
+          echo "Stage: $STAGE"
+          echo "================================"
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "stage=$STAGE" >> $GITHUB_OUTPUT
+          echo "should_update_stage=$SHOULD_UPDATE_STAGE" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.tag.outputs.new_tag }}
+          git push origin ${{ steps.tag.outputs.new_tag }}
+          echo "✅ Tag created: ${{ steps.tag.outputs.new_tag }}"
+
+      - name: Update stage variable (if needed)
+        if: steps.tag.outputs.should_update_stage == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          gh variable set CURRENT_STAGE --body "qa"
+          echo "✅ CURRENT_STAGE reset to 'qa'"
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            DETECTION_INFO=""
+            if [ "${{ steps.detect.outputs.detection_method }}" == "label" ]; then
+              DETECTION_INFO="(detected via label)"
+            elif [ "${{ steps.detect.outputs.detection_method }}" == "source_branch" ]; then
+              DETECTION_INFO="(detected via source branch)"
+            elif [ "${{ steps.detect.outputs.detection_method }}" == "commit_message" ]; then
+              DETECTION_INFO="(detected via commit message)"
+            fi
+
+            if [ "${{ steps.tag.outputs.release_type }}" == "new_release" ]; then
+              MESSAGE="🚀 New Release Started: \`${{ steps.tag.outputs.new_tag }}\` $DETECTION_INFO\n📍 Stage: QA\n🔄 Merged develop → release"
+            elif [ "${{ steps.tag.outputs.release_type }}" == "hotfix_uat" ]; then
+              MESSAGE="🔧 UAT Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: UAT"
+            else
+              MESSAGE="🔧 QA Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: QA"
+            fi
+
+            curl -X POST $SLACK_WEBHOOK_URL \
+              -H 'Content-Type: application/json' \
+              -d "{\"text\":\"$MESSAGE\n\nNext cron will pick this up automatically.\"}"
+          else
+            curl -X POST $SLACK_WEBHOOK_URL \
+              -H 'Content-Type: application/json' \
+              -d '{"text":"❌ Failed to create tag on release branch"}'
+          fi
