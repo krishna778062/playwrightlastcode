@@ -78,7 +78,13 @@ test.describe(
     test(
       'tS To verify the answer Total users in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@mobile-total-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-total-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -103,7 +109,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile logged-in users in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@mobile-logged-in-users-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-logged-in-users-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -127,7 +139,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content viewers in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@mobile-content-viewers-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@mobile-content-viewers-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -151,7 +169,13 @@ test.describe(
     test(
       'tS To verify the answer Total mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@total-mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -178,6 +202,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.HERO_METRIC,
           '@avg-mobile-content-views-per-user-metric',
         ],
@@ -204,7 +229,13 @@ test.describe(
     test(
       'tS To verify the answer Unique Mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@unique-mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@unique-mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -228,7 +259,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.PIE_CHART, '@mobile-device-logins-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@mobile-device-logins-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -278,7 +315,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content views by type in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.PIE_CHART, '@mobile-content-views-by-type-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@mobile-content-views-by-type-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -328,7 +371,13 @@ test.describe(
     test(
       'tS To verify the answer Mobile content views in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@mobile-content-views-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@mobile-content-views-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -368,10 +417,16 @@ test.describe(
       }
     );
 
-    test.fail(
+    test(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@mobile-adoption-rate-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@mobile-adoption-rate-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -415,7 +470,13 @@ test.describe(
     test(
       'tS To verify the csv of mobile adoption rate answer in mobile dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@mobile-adoption-rate-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@mobile-adoption-rate-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {

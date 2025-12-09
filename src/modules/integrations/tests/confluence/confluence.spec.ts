@@ -14,6 +14,7 @@ test.describe(
   'confluence test cases',
   {
     tag: [
+      IntegrationsSuiteTags.BATCH2,
       IntegrationsSuiteTags.INTEGRATIONS,
       IntegrationsSuiteTags.PHOENIX,
       IntegrationsSuiteTags.CONFLUENCE,
@@ -208,6 +209,16 @@ test.describe(
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        //check if confluence is connected at app level
+        const isConfluenceConnectedAtAppLevel =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceConnectedAtAppLevel) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
@@ -230,6 +241,16 @@ test.describe(
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        //check if confluence is connected at app level
+        const isConfluenceConnectedAtAppLevel =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceConnectedAtAppLevel) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
@@ -251,7 +272,18 @@ test.describe(
           zephyrTestId: ['INT-11031', 'INT-11010', '11034'],
         });
 
+        //check if confluence is connected at app level
         const supportAndTicketingPage = new SupportAndTicketingPage(appManagerFixture.page);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        const isConfluenceConnectedAtAppLevel =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceConnectedAtAppLevel) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
