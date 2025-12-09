@@ -180,9 +180,9 @@ jobs:
           IS_NEW="${{ steps.pr_info.outputs.is_new }}"
 
           if [ "$IS_NEW" == "true" ]; then
-            MESSAGE="🔄 *Sync PR Created: release → develop*\n\n*Triggered by:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_A new sync PR has been created. Review and merge to keep develop in sync._"
+            MESSAGE="🔄 *Sync PR Created [release → develop]*\n\n*Triggered by:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_A new sync PR has been created. Review and merge to keep develop in sync._"
           else
-            MESSAGE="📥 *Changes Added to Sync PR*\n\n*New changes from:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_The sync PR description has been updated with the new changes._"
+            MESSAGE="📥 *Changes Added to Sync PR [release → develop]*\n\n*New changes from:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_The sync PR description has been updated with the new changes._"
           fi
 
           curl -X POST $SLACK_WEBHOOK_URL \

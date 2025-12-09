@@ -268,13 +268,13 @@ jobs:
           # Build sync PR links
           SYNC_LINKS=""
           if [ -n "$RELEASE_PR_URL" ]; then
-            SYNC_LINKS="${SYNC_LINKS}\n  • <${RELEASE_PR_URL}|main → release (#${RELEASE_PR_NUMBER})>"
+            SYNC_LINKS="${SYNC_LINKS}\n  • <${RELEASE_PR_URL}|[main → release] #${RELEASE_PR_NUMBER}>"
           fi
           if [ -n "$DEVELOP_PR_URL" ]; then
-            SYNC_LINKS="${SYNC_LINKS}\n  • <${DEVELOP_PR_URL}|main → develop (#${DEVELOP_PR_NUMBER})>"
+            SYNC_LINKS="${SYNC_LINKS}\n  • <${DEVELOP_PR_URL}|[main → develop] #${DEVELOP_PR_NUMBER}>"
           fi
 
-          MESSAGE="🚨 *Production Hotfix Backport*\n\n*Hotfix PR:* <${PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n\n*Sync PRs updated:*${SYNC_LINKS}\n\n_Sync PR descriptions have been updated. Please review and merge to keep branches in sync._"
+          MESSAGE="🚨 *Production Hotfix Backport*\n\n*Hotfix PR:* <${PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n\n*Sync PRs updated:*${SYNC_LINKS}\n\n_Please review and merge sync PRs to keep branches in sync with production._"
 
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \
