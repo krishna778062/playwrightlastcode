@@ -3,18 +3,16 @@ import { PageContentType } from '@content/constants/pageContentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentFeatureTags, ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
-import { PROJECT_ROOT } from '@core/constants/paths';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { NewHomePage } from '@/src/core';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 test.describe(
   `page Creation by Application Manager`,
@@ -86,16 +84,7 @@ test.describe(
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          PROJECT_ROOT,
-          'src',
-          'modules',
-          'content',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
@@ -148,16 +137,7 @@ test.describe(
         pageCreationPage = await siteDashboardPage.navigateToPageCreation();
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          PROJECT_ROOT,
-          'src',
-          'modules',
-          'content',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'uncategorized');
 
         // Use the new wrapper method to create and publish the page

@@ -6,6 +6,10 @@ export const MANAGE_CONTENT_TEST_DATA = {
   UPDATED_PAGE_NAME: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page Updated`,
   PAST_YEAR_DATE: getPastDate(),
   UPDATED_ONBOARDING_STATUS: 'Updated onboarding status',
+  TOAST_MESSAGES: {
+    ADDED_CONTENT_TO_CAMPAIGN: 'Added content to campaign',
+    MOVED_ITEM_SUCCESSFULLY: 'Moved 1 item successfully',
+  },
 };
 
 function getPastDate() {
