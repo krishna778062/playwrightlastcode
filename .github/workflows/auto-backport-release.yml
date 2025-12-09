@@ -65,6 +65,7 @@ jobs:
           echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
 
       - name: Create backport PR
+        id: create_pr
         if: steps.backport.outputs.success == 'true'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
@@ -90,22 +91,25 @@ jobs:
 
           **Note:** This PR was created automatically by the backport workflow."
 
-          gh pr create \
+          BACKPORT_PR_URL=$(gh pr create \
             --base develop \
             --head $BRANCH \
             --title "Backport: $PR_TITLE" \
             --body "$BODY" \
-            --assignee $PR_AUTHOR
+            --assignee $PR_AUTHOR)
 
-          echo "✅ Backport PR created successfully"
+          echo "backport_pr_url=$BACKPORT_PR_URL" >> $GITHUB_OUTPUT
+          echo "✅ Backport PR created: $BACKPORT_PR_URL"
 
       - name: Notify Slack on success
         if: steps.backport.outputs.success == 'true'
         run: |
           PR_NUMBER="${{ steps.backport.outputs.pr_number }}"
           PR_TITLE="${{ steps.backport.outputs.pr_title }}"
+          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
+          BACKPORT_PR_URL="${{ steps.create_pr.outputs.backport_pr_url }}"
 
-          MESSAGE="✅ Backport PR Created\n\nOriginal PR: #${PR_NUMBER} - ${PR_TITLE}\n\nA backport PR has been automatically created for develop branch.\n\nPlease review and merge if applicable."
+          MESSAGE="✅ *Backport PR Created*\n\n*Original PR:* <${ORIGINAL_PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n\n*Backport PR:* <${BACKPORT_PR_URL}|View PR>\n\n_Please review and merge if applicable._"
 
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \
@@ -116,8 +120,9 @@ jobs:
         run: |
           PR_NUMBER="${{ steps.backport.outputs.pr_number }}"
           PR_TITLE="${{ steps.backport.outputs.pr_title }}"
+          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
 
-          MESSAGE="⚠️ Backport Failed - Manual Intervention Needed\n\nOriginal PR: #${PR_NUMBER} - ${PR_TITLE}\n\nReason: Cherry-pick conflicts detected\n\nAction Required:\n1. Manually create a branch from develop\n2. Cherry-pick or manually apply changes\n3. Resolve conflicts\n4. Create PR to develop"
+          MESSAGE="⚠️ *Backport Failed - Manual Intervention Needed*\n\n*Original PR:* <${ORIGINAL_PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n\n*Reason:* Cherry-pick conflicts detected\n\n*Action Required:*\n1. Manually create a branch from develop\n2. Cherry-pick or manually apply changes\n3. Resolve conflicts\n4. Create PR to develop"
 
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \

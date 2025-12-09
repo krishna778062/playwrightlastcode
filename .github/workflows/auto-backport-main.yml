@@ -83,6 +83,7 @@ jobs:
           fi
 
       - name: Create PRs
+        id: create_prs
         if: steps.check.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
@@ -93,7 +94,7 @@ jobs:
 
           # PR to release
           if [ "${{ steps.backport_release.outputs.success }}" == "true" ]; then
-            gh pr create \
+            RELEASE_PR_URL=$(gh pr create \
               --base release \
               --head backport/main-${PR_NUMBER}-to-release \
               --title "Backport (main): $PR_TITLE" \
@@ -104,14 +105,15 @@ jobs:
             **Original PR:** #${PR_NUMBER}
             **Original Author:** @${PR_AUTHOR}
 
-            This keeps the release branch in sync with production."
+            This keeps the release branch in sync with production.")
             
-            echo "✅ Backport PR to release created"
+            echo "release_pr_url=$RELEASE_PR_URL" >> $GITHUB_OUTPUT
+            echo "✅ Backport PR to release created: $RELEASE_PR_URL"
           fi
 
           # PR to develop
           if [ "${{ steps.backport_develop.outputs.success }}" == "true" ]; then
-            gh pr create \
+            DEVELOP_PR_URL=$(gh pr create \
               --base develop \
               --head backport/main-${PR_NUMBER}-to-develop \
               --title "Backport (main): $PR_TITLE" \
@@ -120,9 +122,10 @@ jobs:
             Backports production hotfix #${PR_NUMBER} to develop branch.
 
             **Original PR:** #${PR_NUMBER}
-            **Original Author:** @${PR_AUTHOR}"
+            **Original Author:** @${PR_AUTHOR}")
             
-            echo "✅ Backport PR to develop created"
+            echo "develop_pr_url=$DEVELOP_PR_URL" >> $GITHUB_OUTPUT
+            echo "✅ Backport PR to develop created: $DEVELOP_PR_URL"
           fi
 
       - name: Notify Slack
@@ -130,8 +133,11 @@ jobs:
         run: |
           PR_NUMBER="${{ steps.backport_release.outputs.pr_number }}"
           PR_TITLE="${{ steps.backport_release.outputs.pr_title }}"
+          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
           RELEASE_SUCCESS="${{ steps.backport_release.outputs.success }}"
           DEVELOP_SUCCESS="${{ steps.backport_develop.outputs.success }}"
+          RELEASE_PR_URL="${{ steps.create_prs.outputs.release_pr_url }}"
+          DEVELOP_PR_URL="${{ steps.create_prs.outputs.develop_pr_url }}"
 
           if [ "$RELEASE_SUCCESS" == "true" ] && [ "$DEVELOP_SUCCESS" == "true" ]; then
             STATUS="✅ Backport PRs created for both branches"
@@ -139,16 +145,20 @@ jobs:
             STATUS="⚠️ Some backports had conflicts - manual resolution needed"
           fi
 
-          MESSAGE=":arrows_counterclockwise: *Production Hotfix Backport*
+          # Build backport links
+          BACKPORT_LINKS=""
+          if [ -n "$RELEASE_PR_URL" ]; then
+            BACKPORT_LINKS="${BACKPORT_LINKS}\n  • <${RELEASE_PR_URL}|release branch>"
+          elif [ "$RELEASE_SUCCESS" == "false" ]; then
+            BACKPORT_LINKS="${BACKPORT_LINKS}\n  • release branch _(conflicts - manual fix needed)_"
+          fi
+          if [ -n "$DEVELOP_PR_URL" ]; then
+            BACKPORT_LINKS="${BACKPORT_LINKS}\n  • <${DEVELOP_PR_URL}|develop branch>"
+          elif [ "$DEVELOP_SUCCESS" == "false" ]; then
+            BACKPORT_LINKS="${BACKPORT_LINKS}\n  • develop branch _(conflicts - manual fix needed)_"
+          fi
 
-          *Original PR:* #${PR_NUMBER} - ${PR_TITLE}
-          *Status:* ${STATUS}
-
-          Backport PRs created for:
-            • release branch
-            • develop branch
-
-          _Please review and merge to keep branches in sync._"
+          MESSAGE=":arrows_counterclockwise: *Production Hotfix Backport*\n\n*Original PR:* <${ORIGINAL_PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n*Status:* ${STATUS}\n\n*Backport PRs:*${BACKPORT_LINKS}\n\n_Please review and merge to keep branches in sync._"
 
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \
