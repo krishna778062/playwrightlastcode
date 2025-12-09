@@ -1,5 +1,5 @@
 export type TenantKey = 'primary' | 'onlyPeerToPeer';
-export type EnvironmentKey = 'qa' | 'test';
+export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'prodUS' | 'prodEU';
 
 /**
  * Get caller function information for debugging
@@ -97,6 +97,36 @@ export const config = {
       newUxEnabled: true,
     },
   },
+  uat: {
+    tenantName: 'Recognition Primary',
+    frontendBaseUrl: 'https://reco.uat.simpplr.xyz',
+    apiBaseUrl: 'https://reco-api.uat.simpplr.xyz',
+    appManagerEmail: 'vishvajeet.singh@simpplr.com',
+    appManagerPassword: 'Simpplr@123',
+    endUserEmail: 'aishma.gupta@simpplr.com',
+    endUserPassword: 'Simpplr@123',
+    newUxEnabled: true,
+  },
+  prodUS: {
+    tenantName: 'Recognition Primary',
+    frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+    apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
+    appManagerEmail: 'aishma.gupta+1@simpplr.com',
+    appManagerPassword: 'Simpplr1234',
+    endUserEmail: 'aishma.gupta@simpplr.com',
+    endUserPassword: 'Simpplr@123',
+    newUxEnabled: true,
+  },
+  prodEU: {
+    tenantName: 'Recognition Primary',
+    frontendBaseUrl: 'https://zeus.eu.simpplr.com',
+    apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+    appManagerEmail: 'aishma.gupta@simpplr.com',
+    appManagerPassword: 'Simpplr@12345',
+    endUserEmail: 'aishma.gupta+2@simpplr.com',
+    endUserPassword: 'Simpplr@12345',
+    newUxEnabled: true,
+  },
   onlyPeerToPeer: {
     test: {
       tenantName: 'Recognition P2P Primary',
@@ -139,13 +169,14 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test'].includes(testEnv)) {
+  if (!['qa', 'test', 'uat', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
         `Example: TEST_ENV=test npm run test\n`
     );
   }
