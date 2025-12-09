@@ -54,9 +54,9 @@ jobs:
             --head main \
             --state open \
             --json number,url \
-            --jq '.[0] | "\(.number) \(.url)"' 2>/dev/null || echo "")
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
 
-          if [ -n "$RELEASE_PR" ]; then
+          if [ -n "$RELEASE_PR" ] && [ "$RELEASE_PR" != "null null" ]; then
             echo "release_exists=true" >> $GITHUB_OUTPUT
             echo "release_pr_number=$(echo "$RELEASE_PR" | cut -d' ' -f1)" >> $GITHUB_OUTPUT
             echo "release_pr_url=$(echo "$RELEASE_PR" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
@@ -72,9 +72,9 @@ jobs:
             --head main \
             --state open \
             --json number,url \
-            --jq '.[0] | "\(.number) \(.url)"' 2>/dev/null || echo "")
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
 
-          if [ -n "$DEVELOP_PR" ]; then
+          if [ -n "$DEVELOP_PR" ] && [ "$DEVELOP_PR" != "null null" ]; then
             echo "develop_exists=true" >> $GITHUB_OUTPUT
             echo "develop_pr_number=$(echo "$DEVELOP_PR" | cut -d' ' -f1)" >> $GITHUB_OUTPUT
             echo "develop_pr_url=$(echo "$DEVELOP_PR" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
