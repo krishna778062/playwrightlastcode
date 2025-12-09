@@ -6,4 +6,3 @@ export interface CarouselItemResponse {
 export interface CarouselItemResult {
   carouselItemId: string;
 }
-
