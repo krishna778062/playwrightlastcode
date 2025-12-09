@@ -13,6 +13,7 @@ import { log } from '@core/utils/logger';
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
+import { CarouselItemResponse } from '@/src/modules/content/apis/types/carouselItemResponse';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 
 const defaultBaseContentPayload = {
@@ -425,7 +426,7 @@ export class ContentManagementService implements IContentManagementServices {
           },
         },
       });
-      return await this.httpClient.parseResponse<any>(response);
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
     });
   }
   async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
@@ -439,7 +440,7 @@ export class ContentManagementService implements IContentManagementServices {
           },
         },
       });
-      return await this.httpClient.parseResponse<any>(response);
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
     });
   }
   async makeContentMustRead(
@@ -459,7 +460,7 @@ export class ContentManagementService implements IContentManagementServices {
           duration: options.duration || MustReadDuration.NINETY_DAYS,
         },
       });
-      return await this.httpClient.parseResponse<any>(response);
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
     });
   }
 
