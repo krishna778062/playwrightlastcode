@@ -5,6 +5,8 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { TestFileHelper } from '@/src/modules/content/tests/utils/testFileHelper';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { SiteManager } from '@/src/modules/content/ui/managers/siteManager';
 import { FavoritesPage } from '@/src/modules/content/ui/pages/favoritesPage';
@@ -33,21 +35,12 @@ test.describe('favorite', () => {
         console.log('getListOfSitesResponse', getListOfSitesResponse);
         const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
         console.log('siteId', siteId);
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const imageFileName = FEED_TEST_DATA.ATTACHMENTS.IMAGE;
+        const imagePath = TestFileHelper.getTestDataFilePath(imageFileName, __dirname);
         const fileSize = FileUtil.getFileSize(imagePath);
         const getSignedUploadUrlResponse =
           await standardUserFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({
-            file_name: 'image1.jpg',
+            file_name: imageFileName,
             mime_type: 'image/jpeg',
             size: fileSize,
             uploadContext: 'site-files',
@@ -57,11 +50,11 @@ test.describe('favorite', () => {
         await standardUserFixture.contentManagementHelper.imageUploaderService.uploadFileToSignedUrl(
           getSignedUploadUrlResponse.uploadUrl,
           imagePath,
-          'image1.jpg'
+          imageFileName
         );
         const fileDetails = await standardUserFixture.contentManagementHelper.imageUploaderService.uploadIntranetFile(
           siteId,
-          'image1.jpg',
+          imageFileName,
           imagePath,
           'image/jpeg'
         );
