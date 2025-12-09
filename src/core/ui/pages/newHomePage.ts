@@ -37,6 +37,7 @@ export interface INewHomePageAssertions {
   verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
   verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
   verifyContentIsNotVisibleInCarousel: (contentName: string) => Promise<void>;
+  verifyRecentlyVisitedSiteIsDisplayed: (siteName: string) => Promise<void>;
 }
 
 export class NewHomePage extends BasePage {
@@ -53,6 +54,7 @@ export class NewHomePage extends BasePage {
   private carouselComponent: CarouselComponent;
   readonly CarouseText: (text: string) => Locator;
 
+  readonly recentlyVisitedSite: (siteName: string) => Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.footerComponent = new FooterComponent(page);
@@ -68,6 +70,7 @@ export class NewHomePage extends BasePage {
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
     this.CarouseText = (text: string) => page.getByRole('link', { name: text, exact: true });
+    this.recentlyVisitedSite = (siteName: string) => page.getByRole('menuitem', { name: siteName });
   }
 
   get actions(): INewHomePageActions {
@@ -192,6 +195,9 @@ export class NewHomePage extends BasePage {
 
   async clickDoneButton(): Promise<void> {
     return this.carouselComponent.clickDoneButton();
+  }
+  async verifyRecentlyVisitedSiteIsDisplayed(siteName: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.recentlyVisitedSite(siteName));
   }
 
   async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
