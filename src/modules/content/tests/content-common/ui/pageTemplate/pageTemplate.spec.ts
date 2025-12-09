@@ -16,20 +16,11 @@ test.describe(
     tag: [ContentTestSuite.PAGE_APP_MANAGER, ContentSuiteTags.PAGE_CREATION],
   },
   () => {
-    let siteIdToPublishPage: string;
-    let publishedPageId: string;
-
     test.beforeEach(async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ appManagerFixture }) => {
-      const contentManagementHelper = appManagerFixture.contentManagementHelper;
-      if (publishedPageId && siteIdToPublishPage) {
-        await contentManagementHelper.deleteContent(siteIdToPublishPage, publishedPageId);
-        console.log('Cleanup completed for page template:', publishedPageId);
-      }
-    });
+    test.afterEach(async ({}) => {});
 
     test(
       'verify user should be able to add and edit page template created with more than 3 lakhs character within the editor',
