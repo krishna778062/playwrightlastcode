@@ -35,7 +35,6 @@ export class ActivityNotificationPage
         .locator('a.Notification.u-inset-focus-visible')
         .filter({ hasText: notificationText })
         .first();
-      this.page.locator('a div').filter({ hasText: notificationText });
     this.notificationByMention = (notificationText: string) =>
       this.page.getByRole('link', { name: `Notification: MENTIONS_ME_IN_POST - ${notificationText}` });
   }
