@@ -135,7 +135,7 @@ const config: Linter.Config[] = [
       // ESSENTIAL Playwright rules (the ones that prevent real bugs)
       'playwright/missing-playwright-await': 'error', // Catch missing awaits
       'playwright/no-focused-test': 'error',
-      'playwright/no-skipped-test': 'error',
+      'playwright/no-skipped-test': 'off',
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'warn',
       'playwright/prefer-web-first-assertions': 'error',

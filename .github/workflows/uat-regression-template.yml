@@ -19,40 +19,46 @@ jobs:
     runs-on: [kubernetes]
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
-      uat_tag: ${{ steps.get-tag.outputs.tag }}
+      checkout_ref: ${{ steps.check.outputs.checkout_ref }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check if UAT stage is active
+      - name: Determine checkout ref for UAT regression tests
         id: check
         env:
           CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
         run: |
           STAGE=${CURRENT_STAGE:-qa}
-          if [ "$STAGE" == "uat" ]; then
+          echo "Current stage: $STAGE"
+
+          if [ "$STAGE" == "production" ]; then
+            # Release completed - use main HEAD
             echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "✅ UAT stage is active"
+            echo "checkout_ref=main" >> $GITHUB_OUTPUT
+            echo "✅ Production stage - will test main HEAD"
+            
+          elif [ "$STAGE" == "uat" ]; then
+            # Active release - use latest UAT tag
+            TAG=$(git ls-remote --tags origin | \
+                  grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
+                  sort -V | tail -n1 | cut -d'/' -f3)
+            
+            if [ -z "$TAG" ]; then
+              echo "should_run=false" >> $GITHUB_OUTPUT
+              echo "⏭️ No UAT tags found - skipping"
+            else
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "checkout_ref=$TAG" >> $GITHUB_OUTPUT
+              echo "✅ UAT stage - will test tag: $TAG"
+            fi
+            
           else
+            # QA stage - skip UAT tests
             echo "should_run=false" >> $GITHUB_OUTPUT
             echo "⏭️ Skipping (current stage: $STAGE)"
-          fi
-
-      - name: Get latest UAT tag
-        id: get-tag
-        if: steps.check.outputs.should_run == 'true'
-        run: |
-          TAG=$(git ls-remote --tags origin | \
-                grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
-                sort -V | tail -n1 | cut -d'/' -f3)
-
-          if [ -z "$TAG" ]; then
-            echo "tag=release" >> $GITHUB_OUTPUT
-          else
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "✅ Will test: $TAG"
           fi
 
   regression-tests:
@@ -91,13 +97,13 @@ jobs:
       - name: Display configuration
         run: |
           echo "🌍 Environment: ${{ inputs.environment }}"
-          echo "🔖 Git Tag: ${{ needs.check-stage.outputs.uat_tag }}"
+          echo "🔖 Git Ref: ${{ needs.check-stage.outputs.checkout_ref }}"
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.check-stage.outputs.uat_tag }}
+          ref: ${{ needs.check-stage.outputs.checkout_ref }}
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -283,9 +289,9 @@ jobs:
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
@@ -306,7 +312,7 @@ jobs:
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *UAT Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              NO_TESTS_MESSAGE="⚠️ *UAT Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
               echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
@@ -319,7 +325,7 @@ jobs:
           else
             # No test results file - this means pipeline failed before tests could run
             echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *UAT Regression Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` could not execute. Please check job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            FAILURE_MESSAGE="🚨 *UAT Regression Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) could not execute. Please check job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$FAILURE_MESSAGE\"}" \

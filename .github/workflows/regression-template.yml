@@ -233,9 +233,9 @@ jobs:
         run: |
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
             curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
           fi
@@ -246,10 +246,10 @@ jobs:
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
             if [ "$TOTAL_TESTS" -eq 0 ]; then
-              NO_TESTS_MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` found no tests. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              NO_TESTS_MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`) found no tests. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
               curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" $SLACK_WEBHOOK_URL
             fi
           else
-            FAILURE_MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` could not execute. Please check job details. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            FAILURE_MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`) could not execute. Please check job details. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$FAILURE_MESSAGE\"}" $SLACK_WEBHOOK_URL
           fi

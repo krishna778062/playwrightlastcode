@@ -13,6 +13,8 @@ test.describe(
     tag: [ContentTestSuite.PAGE_APP_MANAGER, ContentSuiteTags.PAGE_CREATION],
   },
   () => {
+    test.skip(process.env.TEST_ENV !== 'test', 'Content Studio tests are only supported in test environment');
+
     let pageCreationPage: ContentStudioPageCreationPage;
     test.beforeEach('Setting up the test environment for page creation', async ({ appManagerFixture }) => {
       await appManagerFixture.homePage.verifyThePageIsLoaded();
