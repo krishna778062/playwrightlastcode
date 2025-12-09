@@ -54,6 +54,7 @@ export interface IContentPreviewPageActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickOnFavouriteContentButton(): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -84,6 +85,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentIsNotAMustRead: () => Promise<void>;
   verifyMustReadButtonIsNotVisible: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -356,6 +358,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         }
       );
       await publishResponse.finished();
+    });
+  }
+
+  async verifyUserCanMarkAsFavoriteContent(): Promise<void> {
+    await test.step('Verify user can mark content as favorite', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.favouriteContentButton, {
+        assertionMessage: 'Favorite button should be visible, indicating content can be marked as favorite',
+      });
     });
   }
 
