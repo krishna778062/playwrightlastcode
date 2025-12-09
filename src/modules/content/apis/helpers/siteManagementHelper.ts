@@ -433,6 +433,12 @@ export class SiteManagementHelper {
     return this.sites.length;
   }
 
+  async getCategoryList(options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting list of categories via API', async () => {
+      return await this.siteManagementService.getListOfCategories(options);
+    });
+  }
+
   async getRandomCategoryId(): Promise<{ categoryId: string; name: string }> {
     const categoryResponse = await this.siteManagementService.getListOfCategories();
     const categoryList = categoryResponse.result.listOfItems;

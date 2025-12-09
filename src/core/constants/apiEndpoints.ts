@@ -107,6 +107,7 @@ export const API_ENDPOINTS = {
     addHomeCarouselItem: '/v1/content/carousel/items',
     deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
     onboarding: '/onboarding',
+    createTemplate: '/content-template/v2/templates',
   },
 
   fileUpload: {
