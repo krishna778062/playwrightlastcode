@@ -31,6 +31,7 @@ export interface IConfluenceAssertions {
   verifyCustomKnowledgeBaseNameIsRequired: () => Promise<void>;
   verifySearchSpaceSelectionIsRequired: () => Promise<void>;
   isConfluenceServiceAccountConnected: () => Promise<boolean>;
+  isConfluenceIntegrationCheckboxChecked: () => Promise<boolean>;
   verifyServiceNowReconnectButtonIsVisible: (isVisible: boolean) => Promise<void>;
   verifyConfluenceReconnectButtonIsVisible: (isVisible: boolean) => Promise<void>;
   verifyConfluenceChangeUserButtonIsVisible: (isVisible: boolean) => Promise<void>;
@@ -99,7 +100,9 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
     );
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
     this.connectServiceNowAccountButton = page.locator('button:has-text("Connect service account")').first();
-    this.connectConfluenceServiceAccountButton = page.locator('button:has-text("Connect service account")').nth(1);
+    this.connectConfluenceServiceAccountButton = page.locator(
+      'xpath=//div[@data-testid="field-Add site"]//parent::div//button[text()="Connect service account"]'
+    );
 
     this.serviceNowConnectServiceAccountButton = page.locator(
       'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Connect service account")]'
@@ -189,6 +192,16 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
 
   async connectConfluenceServiceAccount(): Promise<void> {
     await test.step('Connect confluence service account', async () => {
+      // Check if the checkbox is checked
+      const isChecked = await this.assertions.isConfluenceIntegrationCheckboxChecked();
+
+      if (!isChecked) {
+        await test.step('Check Confluence integration checkbox', async () => {
+          await this.confluenceCheckbox.click();
+          await this.page.waitForLoadState('domcontentloaded');
+        });
+      }
+
       await this.confluenceUrlInput.fill(this.confluenceUrl);
       // click save button if enabled
       if (await this.saveButton.isEnabled()) {
@@ -257,6 +270,13 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   async isConfluenceServiceAccountConnected(): Promise<boolean> {
     return await test.step('Verify confluence service account is connected', async () => {
       return await this.confluenceChangeuserButton.isVisible();
+    });
+  }
+
+  async isConfluenceIntegrationCheckboxChecked(): Promise<boolean> {
+    return await test.step('Check if Confluence integration checkbox is checked', async () => {
+      await this.confluenceCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
+      return await this.confluenceCheckbox.isChecked();
     });
   }
 

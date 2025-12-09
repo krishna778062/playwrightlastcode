@@ -1,4 +1,4 @@
-name: Content Regression Tests
+name: Content Regression Tests (Test Environment)
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
@@ -80,14 +80,25 @@ jobs:
   content-test-and-upload:
     timeout-minutes: 300
     runs-on: [kubernetes]
+    # Use matrix strategy for scheduled runs to execute both UI and API tests
+    strategy:
+      matrix:
+        # Always include both UI and API in matrix
+        # For scheduled runs: both will execute
+        # For manual runs: only the selected one will execute (other will be skipped at step level)
+        test_category: [ui, api]
+      fail-fast: false
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}
+      MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}
       E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
       CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop #always develop HEAD
 
       - name: Create Calendar Secrets JSON
         run: |
@@ -112,6 +123,9 @@ jobs:
 
       - name: Run Content tests
         id: run-tests
+        # For manual runs, only execute if the matrix test_category matches the input
+        # For scheduled runs, always execute (both UI and API)
+        if: github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui')
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
@@ -119,7 +133,7 @@ jobs:
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
           MODULE="${{ inputs.module_name || 'content' }}"
-          TEST_CATEGORY="${{ inputs.test_category || 'ui' }}"
+          TEST_CATEGORY="${{ matrix.test_category }}"
           ALL_TAGS=()
 
           # Add @api tag if API tests are selected
@@ -215,7 +229,7 @@ jobs:
           fi
 
       - name: Upload test report to github artifact backup
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         uses: actions/upload-artifact@v4
         with:
           name: content-test-report
@@ -238,17 +252,17 @@ jobs:
           echo "Timestamp set to: $TIMESTAMP"
 
       - name: Generate HTML Report
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           npm run generate-report:custom test-results/test-results.json
 
       - name: Generate Tag Report
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           npm run generate-tag-report
 
       - name: Upload Report to S3
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           # Upload to timestamped folder
           echo "Uploading report to S3..."
@@ -288,7 +302,7 @@ jobs:
           echo "TIMESTAMPED_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
 
       - name: Parse Test Results
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           # Parse test results from test-results directory
           if [ -f "test-results/test-results.json" ]; then
@@ -339,7 +353,7 @@ jobs:
           echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
       - name: Send Slack Notification
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
@@ -347,11 +361,11 @@ jobs:
             # Prepare Slack message with hyperlinks
             BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
             ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE=" 📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
 
             # Send to Slack using curl
@@ -365,7 +379,7 @@ jobs:
           fi
 
       - name: Send Smart Slack Notifications
-        if: always()
+        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
         run: |
           WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
            # Check if tests were executed
@@ -377,7 +391,7 @@ jobs:
                echo "No tests were found matching the criteria"
                BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
                ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
                NO_TESTS_MESSAGE="⚠️ *No Content Tests Found* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
               # Send to Slack using curl
@@ -396,7 +410,7 @@ jobs:
              echo "No test results file found - pipeline likely failed"
              BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
              ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
              FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content Regression Automation Suite Pipeline Failed* - \`${MODULE_NAME}\` module pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
              # Send to Slack using curl
