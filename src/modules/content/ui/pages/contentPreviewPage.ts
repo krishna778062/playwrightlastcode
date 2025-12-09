@@ -52,6 +52,7 @@ export interface IContentPreviewPageActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickOnFavouriteContentButton(): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -73,7 +74,7 @@ export interface IContentPreviewPageAssertions {
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyContentShareButtonIsNotVisible: () => Promise<void>;
+  verifyContentShareButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
@@ -82,6 +83,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentIsNotAMustRead: () => Promise<void>;
   verifyMustReadButtonIsNotVisible: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
 }
 
 export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
@@ -357,6 +359,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     });
   }
 
+  async verifyUserCanMarkAsFavoriteContent(): Promise<void> {
+    await test.step('Verify user can mark content as favorite', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.favouriteContentButton, {
+        assertionMessage: 'Favorite button should be visible, indicating content can be marked as favorite',
+      });
+    });
+  }
+
   /**
    * Verifies that the Must Read modal is not visible
    */
@@ -513,10 +523,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   /**
    * Verifies that the share button is not visible on comments
    */
-  async verifyContentShareButtonIsNotVisible(): Promise<void> {
-    await test.step('Verify share button is not visible for Content Page', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.contentSharePostButton, {
-        assertionMessage: 'Share button should not be visible on Content Page when timeline mode is enabled',
+  async verifyContentShareButtonIsVisible(): Promise<void> {
+    await test.step('Verify share button is visible for Content Page', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentSharePostButton, {
+        assertionMessage: 'Share button should be visible on Content Page when timeline mode is enabled',
         timeout: 10000,
       });
     });

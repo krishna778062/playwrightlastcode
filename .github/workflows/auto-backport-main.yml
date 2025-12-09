@@ -1,0 +1,155 @@
+name: Auto Backport from Main to Release and Develop
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  backport:
+    if: github.event.pull_request.merged == true
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check if this is a release promotion
+        id: check
+        run: |
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          if [ "$SOURCE_BRANCH" == "release" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ This is release promotion, not hotfix - skipping backport"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ This is a hotfix - will backport to release and develop"
+          fi
+
+      - name: Backport to release
+        if: steps.check.outputs.skip == 'false'
+        id: backport_release
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+
+          BACKPORT_BRANCH="backport/main-${PR_NUMBER}-to-release"
+          git fetch origin release
+          git checkout -b $BACKPORT_BRANCH origin/release
+
+          if git cherry-pick -m 1 $MERGE_COMMIT; then
+            git push origin $BACKPORT_BRANCH
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "branch=$BACKPORT_BRANCH" >> $GITHUB_OUTPUT
+          else
+            git cherry-pick --abort
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+
+      - name: Backport to develop
+        if: steps.check.outputs.skip == 'false'
+        id: backport_develop
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+
+          BACKPORT_BRANCH="backport/main-${PR_NUMBER}-to-develop"
+          git fetch origin develop
+          git checkout -b $BACKPORT_BRANCH origin/develop
+
+          if git cherry-pick -m 1 $MERGE_COMMIT; then
+            git push origin $BACKPORT_BRANCH
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            git cherry-pick --abort
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PRs
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.backport_release.outputs.pr_number }}"
+          PR_TITLE="${{ steps.backport_release.outputs.pr_title }}"
+          PR_AUTHOR="${{ steps.backport_release.outputs.pr_author }}"
+
+          # PR to release
+          if [ "${{ steps.backport_release.outputs.success }}" == "true" ]; then
+            gh pr create \
+              --base release \
+              --head backport/main-${PR_NUMBER}-to-release \
+              --title "Backport (main): $PR_TITLE" \
+              --body "**Production Hotfix Backport**
+
+            Backports production hotfix #${PR_NUMBER} to release branch.
+
+            **Original PR:** #${PR_NUMBER}
+            **Original Author:** @${PR_AUTHOR}
+
+            This keeps the release branch in sync with production."
+            
+            echo "✅ Backport PR to release created"
+          fi
+
+          # PR to develop
+          if [ "${{ steps.backport_develop.outputs.success }}" == "true" ]; then
+            gh pr create \
+              --base develop \
+              --head backport/main-${PR_NUMBER}-to-develop \
+              --title "Backport (main): $PR_TITLE" \
+              --body "**Production Hotfix Backport**
+
+            Backports production hotfix #${PR_NUMBER} to develop branch.
+
+            **Original PR:** #${PR_NUMBER}
+            **Original Author:** @${PR_AUTHOR}"
+            
+            echo "✅ Backport PR to develop created"
+          fi
+
+      - name: Notify Slack
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          PR_NUMBER="${{ steps.backport_release.outputs.pr_number }}"
+          PR_TITLE="${{ steps.backport_release.outputs.pr_title }}"
+          RELEASE_SUCCESS="${{ steps.backport_release.outputs.success }}"
+          DEVELOP_SUCCESS="${{ steps.backport_develop.outputs.success }}"
+
+          if [ "$RELEASE_SUCCESS" == "true" ] && [ "$DEVELOP_SUCCESS" == "true" ]; then
+            STATUS="✅ Backport PRs created for both branches"
+          elif [ "$RELEASE_SUCCESS" == "false" ] || [ "$DEVELOP_SUCCESS" == "false" ]; then
+            STATUS="⚠️ Some backports had conflicts - manual resolution needed"
+          fi
+
+          MESSAGE=":arrows_counterclockwise: *Production Hotfix Backport*
+
+          *Original PR:* #${PR_NUMBER} - ${PR_TITLE}
+          *Status:* ${STATUS}
+
+          Backport PRs created for:
+            • release branch
+            • develop branch
+
+          _Please review and merge to keep branches in sync._"
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
