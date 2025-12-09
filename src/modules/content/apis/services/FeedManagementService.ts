@@ -1175,7 +1175,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       // Note: htmlTileEnabled default changed to true to match production requirements
       const defaultSettings = {
         isExpertiseAppManagerControlled: true,
-        isHomeAppManagerControlled: false, // Changed to false to match production
+        isHomeAppManagerControlled: true,
         isSiteAppManagerControlled: false,
         isExpertiseCreateAppManagerControlled: true,
         feedMode: settings.feedMode || feedMode, // Use settings.feedMode if provided, otherwise use parameter
