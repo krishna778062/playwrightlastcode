@@ -17,8 +17,7 @@ on:
           - 'integrations-workday'
           - 'integrations-okta'
           - 'integrations-azuresso'
-          - 'integrations-batch1'
-          - 'integrations-batch2'
+          - 'integrations-primary'
           - 'de'
           - 'de-api'
           - 'frontline'
@@ -58,7 +57,6 @@ on:
           - 'dev'
           - 'prodUS'
           - 'prodEU'
-          - 'prodCA'
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'

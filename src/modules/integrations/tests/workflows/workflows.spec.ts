@@ -21,6 +21,7 @@ test.describe(
       await workflowsPage.assertions.verifyThePageIsLoaded();
     });
 
+    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(
       'verify navigation to workflows page',
       {

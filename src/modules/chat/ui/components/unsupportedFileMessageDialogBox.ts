@@ -7,7 +7,6 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export class UnsupportedFileMessageDialogBox extends BaseComponent {
   readonly okButtonOfUnsupportedFileMessageDialogBox: Locator;
   readonly cancelButtonOfUnsupportedFileMessageDialogBox: Locator;
-  readonly unsupportedFileTostMessage: Locator;
   constructor(
     page: Page,
     readonly rootLocator: Locator
@@ -19,7 +18,6 @@ export class UnsupportedFileMessageDialogBox extends BaseComponent {
     this.cancelButtonOfUnsupportedFileMessageDialogBox = this.rootLocator.getByRole('button', {
       name: 'Close',
     });
-    this.unsupportedFileTostMessage = this.page.locator("//p[text()='File unsupported']").first();
   }
 
   /**
@@ -68,15 +66,6 @@ export class UnsupportedFileMessageDialogBox extends BaseComponent {
     await test.step(options?.stepInfo ?? `Verifying the unsupported file message is not visible`, async () => {
       await expect(this.rootLocator, `expecting unsupported file message to be not visible`).not.toBeVisible({
         timeout: options?.timeout ?? TIMEOUTS.DEFAULT,
-      });
-    });
-  }
-
-  async verifyTheUnsupportedFileTostMessageIsVisible(options?: { stepInfo?: string; timeout?: number }) {
-    await test.step(options?.stepInfo ?? `Verifying the unsupported file toast message is visible`, async () => {
-      await this.verifier.isTheElementVisible(this.unsupportedFileTostMessage, {
-        timeout: options?.timeout ?? TIMEOUTS.DEFAULT,
-        assertionMessage: `expecting unsupported file toast message to be visible`,
       });
     });
   }

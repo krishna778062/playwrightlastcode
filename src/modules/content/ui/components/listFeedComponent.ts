@@ -1217,16 +1217,6 @@ export class ListFeedComponent
     });
   }
 
-  async clickReplyOnContentComment(commentText: string): Promise<void> {
-    await test.step(`Click reply on content comment: ${commentText}`, async () => {
-      const replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
-      await this.verifier.verifyTheElementIsVisible(replyButton, {
-        assertionMessage: 'Reply button should be visible for the post',
-      });
-      await replyButton.click();
-    });
-  }
-
   async verifyCancelButtonVisible(postText: string): Promise<void> {
     await test.step(`Verify Cancel button is visible for reply editor on post: ${postText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyCancelButton.first(), {
@@ -1524,15 +1514,6 @@ export class ListFeedComponent
     });
   }
 
-  async verifyShareIconIsVisible(postText: string): Promise<void> {
-    await test.step(`Verify share icon is visible for post/comment: ${postText}`, async () => {
-      await this.waitForPostToBeVisible(postText);
-      await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
-        assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
-      });
-    });
-  }
-
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
@@ -1545,6 +1526,10 @@ export class ListFeedComponent
     await test.step('Verify reaction button is visible on feed post', async () => {
       await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
         assertionMessage: 'Reaction button should be visible on feed post',
+      });
+      await this.clickOnElement(this.likeButton.first());
+      await this.verifier.verifyTheElementIsVisible(this.unlikeButton.first(), {
+        assertionMessage: 'Remove your reaction button should be visible on feed post',
       });
     });
   }
@@ -1562,9 +1547,9 @@ export class ListFeedComponent
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
-    const sortByButtonLocator = this.page.getByText('Sort by').first();
+    const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
     await test.step('Verify the page is loaded with timeline mode', async () => {
-      await this.verifier.verifyTheElementIsVisible(sortByButtonLocator, {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
         assertionMessage: 'Show button should be visible on feed post',
       });
     });
@@ -1734,16 +1719,6 @@ export class ListFeedComponent
       await this.verifier.verifyTheElementIsNotVisible(closeButton, {
         assertionMessage: 'Close button should not be visible in reaction modal',
       });
-    });
-  }
-
-  async clickUsernameInReactionModal(username: string): Promise<void> {
-    await test.step(`Click on username "${username}" in reaction modal`, async () => {
-      const userLink = this.reactionModal.getByRole('link', { name: username }).first();
-      await this.verifier.verifyTheElementIsVisible(userLink, {
-        assertionMessage: `User "${username}" should be visible in reaction modal`,
-      });
-      await this.clickOnElement(userLink);
     });
   }
 

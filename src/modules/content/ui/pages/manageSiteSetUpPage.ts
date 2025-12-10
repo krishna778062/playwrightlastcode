@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -19,7 +19,6 @@ export interface IManageSiteSetUpActions {
   clickOnTheManageSiteButton: () => Promise<void>;
   clickOnThePeopleTab: () => Promise<void>;
   clickOnThePageCategoryButton: () => Promise<void>;
-  clickOnThePageTemplateTab: () => Promise<void>;
   searchEventInSearchBar: (eventName: string) => Promise<void>;
   clickOntheMemberButton: () => Promise<void>;
   clickOnInsideContentButton: () => Promise<void>;
@@ -39,8 +38,6 @@ export interface IManageSiteSetUpActions {
   searchForSite: (siteName: string) => Promise<void>;
   selectSite: () => Promise<void>;
   clickOnSubscriptionButton: () => Promise<void>;
-  clickThreeDotsMenuForTemplate: (templateName: string) => Promise<void>;
-  clickOnEditButton: () => Promise<void>;
 }
 
 export interface IManageSiteSetUpAssertions {
@@ -78,9 +75,6 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
   readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
   readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
   readonly siteNameLocator = (siteName: string) => this.page.getByText(siteName, { exact: true });
-  readonly templateRowLocator = (templateName: string) =>
-    this.page.locator(`[data-testid^="dataGridRow-"]`).filter({ hasText: templateName }).first();
-  readonly threeDotsButtonInRow = (row: Locator) => row.getByRole('button', { name: 'Show more' });
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
@@ -122,21 +116,6 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   async checkAuthorNameIsDisplayed(authorName: string | undefined): Promise<void> {
     await this.manageSitesComponent.checkAuthorNameIsDisplayed(authorName);
-  }
-  async clickOnThePageTemplateTab(): Promise<void> {
-    await this.manageSitesComponent.clickOnThePageTemplateTabAction();
-  }
-
-  async clickOnEditButton(): Promise<void> {
-    await this.manageSitesComponent.clickOnEditButtonAction();
-  }
-  async clickThreeDotsMenuForTemplate(templateName: string): Promise<void> {
-    await test.step(`Click three dots menu for template: ${templateName}`, async () => {
-      const templateRow = this.templateRowLocator(templateName);
-      const threeDotsButton = this.threeDotsButtonInRow(templateRow);
-      await this.verifier.waitUntilElementIsVisible(threeDotsButton);
-      await this.clickOnElement(threeDotsButton);
-    });
   }
 
   async clickOnThePeopleTab(): Promise<void> {

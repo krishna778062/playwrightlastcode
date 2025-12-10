@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'azuresso' | 'workday' | 'okta';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU' | 'prodCA';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU';
 
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
@@ -147,23 +147,6 @@ export const config = {
       UAT_END_ALTERNATE: 'E12098',
       UAT_END_ALTERNATE_PHONE: '76543',
       NEW_UX_ENABLED: false,
-      IGNORE_TLS: 1,
-      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
-    },
-    prodCA: {
-      tenantName: 'Primary Tenant',
-      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
-      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
-      appManagerEmail: 'srikant.g@simpplr.com',
-      appManagerPassword: 'Simpplr@123',
-      endUserEmail: 'srikant.g+enduser@simpplr.com',
-      endUserPassword: 'Simpplr@12345',
-      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
-      QA_MANAGER_PASSWORD: 'Simpplr@123',
-      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
-      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
-      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
-      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
       TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },

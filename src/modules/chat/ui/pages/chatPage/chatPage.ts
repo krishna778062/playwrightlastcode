@@ -75,7 +75,6 @@ export interface IChatAssertions {
   verifyMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyEditedMessageIsVisible: (message: string, options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
   verifyUnsupportedFileHandling: (options?: { stepInfo?: string }) => Promise<void>;
-  verifyUnsupportedFileTostMessageIsVisible: (options?: { stepInfo?: string }) => Promise<void>;
   verifyIncomingCallIsReceivedFromCallerInGroupChat: (
     groupName: string,
     callType: 'audio' | 'video',
@@ -717,19 +716,6 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       //verify the unsupported file message is not visible
       await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileMessageIsNotVisible({
         stepInfo: `User 1 Verifying the unsupported file message is not visible`,
-      });
-      //verify the attachment is not visible
-      await this.getConversationWindowComponent().getChatEditorComponent().verifyTheAttachmentIsNotVisible({
-        stepInfo: `User 1 Verifying the attachment is not visible on the message editor now`,
-        timeout: 10_000,
-      });
-    });
-  }
-
-  public async verifyUnsupportedFileTostMessageIsVisible(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Verifying unsupported file toast message is visible`, async () => {
-      await this.getUnsupportedFileMessageDialogBoxComponent().verifyTheUnsupportedFileTostMessageIsVisible({
-        stepInfo: `User 1 Verifying the unsupported file toast message is visible`,
       });
       //verify the attachment is not visible
       await this.getConversationWindowComponent().getChatEditorComponent().verifyTheAttachmentIsNotVisible({

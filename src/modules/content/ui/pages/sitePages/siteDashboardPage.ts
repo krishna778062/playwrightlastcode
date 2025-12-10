@@ -69,11 +69,6 @@ export interface ISiteDashboardAssertions {
   verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
   verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
   verifyCommentIconIsNotVisible: () => Promise<void>;
-  verifyTopPicksBlockIsVisible: () => Promise<void>;
-  verifyPopularContentBlockIsVisible: () => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
-  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
-  verifyCelebrationBlockIsVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -413,51 +408,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
-  }
-
-  async verifyTopPicksBlockIsVisible(): Promise<void> {
-    await test.step('Verify Top picks smart block is visible on site feed', async () => {
-      const topPicksBlock = this.page.locator('section', { hasText: 'Top picks' }).first();
-      await this.verifier.verifyTheElementIsVisible(topPicksBlock, {
-        assertionMessage: 'Top picks smart block should be visible',
-      });
-    });
-  }
-
-  async verifyPopularContentBlockIsVisible(): Promise<void> {
-    await test.step('Verify Popular content smart block is visible on site feed', async () => {
-      const popularContentBlock = this.page.locator('section', { hasText: 'Popular content' }).first();
-      await this.verifier.verifyTheElementIsVisible(popularContentBlock, {
-        assertionMessage: 'Popular content smart block should be visible',
-      });
-    });
-  }
-
-  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
-    await test.step('Verify Upcoming events smart block is visible on site feed', async () => {
-      const upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming event' }).first();
-      await this.verifier.verifyTheElementIsVisible(upcomingEventsBlock, {
-        assertionMessage: 'Upcoming events smart block should be visible',
-      });
-    });
-  }
-
-  async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
-    await test.step('Verify Recently published smart block is visible on site feed', async () => {
-      const recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
-      await this.verifier.verifyTheElementIsVisible(recentlyPublishedBlock, {
-        assertionMessage: 'Recently published smart block should be visible',
-      });
-    });
-  }
-
-  async verifyCelebrationBlockIsVisible(): Promise<void> {
-    await test.step('Verify Celebration smart block is visible on site feed', async () => {
-      const celebrationBlock = this.page.locator('strong:has-text("celebration")');
-      await this.verifier.verifyTheElementIsVisible(celebrationBlock, {
-        assertionMessage: 'Celebration smart block should be visible',
-      });
-    });
   }
 
   async verifyPostCreationCancelButtonVisible(): Promise<void> {

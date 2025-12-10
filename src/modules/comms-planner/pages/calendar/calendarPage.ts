@@ -18,11 +18,6 @@ export class CalendarPage extends BasePage {
   readonly customFieldsCreateActivityModalTitle: Locator;
   readonly createActivityModalName: Locator;
   readonly createActivityModalDescription: Locator;
-  readonly createActivityContentTypeSelect: Locator;
-  readonly createActivityContentTypeSelectMenu: (menuId: string) => Locator;
-  readonly createActivitySelectContentButton: Locator;
-  readonly createActivityContentSelectMenu: (menuId: string) => Locator;
-
   readonly createActivityModalCancelButton: Locator;
   readonly createActivityModalCreateButton: Locator;
 
@@ -42,15 +37,6 @@ export class CalendarPage extends BasePage {
     this.customFieldsCreateActivityModalTitle = this.page.getByRole('heading', { name: 'Custom fields' });
     this.createActivityModalName = this.page.locator('input[name="title"]');
     this.createActivityModalDescription = this.page.locator('textarea[placeholder="Add context or internal notes"]');
-
-    this.createActivityContentTypeSelect = this.page.getByTestId('activity-form-field-contentType').getByRole('button');
-    this.createActivityContentTypeSelectMenu = (menuId: string) =>
-      this.page.locator(`div[role="menu"][aria-labelledby="${menuId}"]`);
-
-    this.createActivitySelectContentButton = this.page.getByTestId('activity-form-field-connectContent');
-    this.createActivityContentSelectMenu = (menuId: string) =>
-      this.page.locator(`div[role="menu"][aria-labelledby="${menuId}"]`);
-
     this.createActivityModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
     this.createActivityModalCreateButton = this.page.getByRole('button', { name: 'Create new activity' });
   }
@@ -126,39 +112,6 @@ export class CalendarPage extends BasePage {
         assertionMessage: 'Custom fields title should be visible in create activity modal',
         timeout: TIMEOUTS.MEDIUM,
       });
-    });
-  }
-
-  async selectContentType(type: string): Promise<void> {
-    await test.step(`Select content type "${type}"`, async () => {
-      const createActivityContentTypeSelectId = await this.createActivityContentTypeSelect.getAttribute('id');
-      await this.clickOnElement(this.createActivityContentTypeSelect, {
-        stepInfo: `Select activity's content type "${type}"`,
-      });
-
-      const activityContentTypeSelectMenu = this.createActivityContentTypeSelectMenu(
-        createActivityContentTypeSelectId || ``
-      );
-
-      await this.verifier.verifyTheElementIsVisible(activityContentTypeSelectMenu, {
-        assertionMessage: 'Menu should be shown when content type select is clicked',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-
-      const activityContentTypeSelectMenuItem = activityContentTypeSelectMenu.getByRole('menuitem', {
-        name: type,
-        exact: true,
-      });
-      await activityContentTypeSelectMenuItem.click();
-    });
-  }
-
-  async clickOnConnectToContentButton(): Promise<void> {
-    await test.step('Select content type', async () => {
-      await this.clickOnElement(this.createActivitySelectContentButton, {
-        stepInfo: `Click on "Connect content" button to select content`,
-      });
-      await this.page.keyboard.press('Escape');
     });
   }
 }
