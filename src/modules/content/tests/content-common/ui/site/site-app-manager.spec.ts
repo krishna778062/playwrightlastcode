@@ -174,5 +174,57 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
       }
     );
+    test(
+      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22692'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+          zephyrTestId: 'CONT-22692',
+          storyId: 'CONT-22692',
+        });
+
+        // Get list of unlisted sites for app manager
+        const appManagerSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'unlisted',
+          size: 1000,
+        });
+
+        // Get list of unlisted sites for standard user
+        const standardUserSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'unlisted',
+          size: 1000,
+        });
+
+        // Create a set of site IDs that standard user has access to
+        const standardUserSiteIds = new Set(
+          standardUserSitesResponse.result.listOfItems.map((site: any) => site.siteId)
+        );
+
+        // Find a site that app manager has access to but standard user doesn't
+        const appManagerSiteInfo = appManagerSitesResponse.result.listOfItems.find(
+          (site: any) => site.isActive === true && !standardUserSiteIds.has(site.siteId)
+        );
+
+        if (!appManagerSiteInfo) {
+          throw new Error('No unlisted site found where app manager has access but standard user does not have access');
+        }
+
+        const appManagerSiteName = appManagerSiteInfo.name;
+        console.log(
+          `Found site: ${appManagerSiteName} (${appManagerSiteInfo.siteId}) - App manager has access, standard user does not`
+        );
+
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnSitesCard();
+        const manageSiteStandardUserSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, '');
+        const manageSitePageForStandardUser = new ManageSitePage(standardUserFixture.page);
+        await manageSiteStandardUserSetUpPage.actions.searchForSite(appManagerSiteName);
+        await manageSitePageForStandardUser.assertions.verifyNoSitesFound(appManagerSiteName);
+      }
+    );
   }
 );

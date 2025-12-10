@@ -5,12 +5,13 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -46,17 +47,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24919',
       },
     ];
@@ -188,7 +179,7 @@ test.describe(
   () => {
     let createdPostText: string;
     let siteId: string;
-    const siteName = 'All Employees';
+    const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
     // Test data for data-driven testing
     const favoriteTestData = [
@@ -207,17 +198,7 @@ test.describe(
         fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
         fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
         mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-        filePath: FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName
-        ),
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
         storyId: 'CONT-24907',
       },
     ];
@@ -230,7 +211,7 @@ test.describe(
       });
       */
 
-      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
       siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
         accessType: SITE_TYPES.PUBLIC,
       });
@@ -250,7 +231,7 @@ test.describe(
           role: SitePermission.OWNER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -262,7 +243,7 @@ test.describe(
           role: SitePermission.MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -274,7 +255,7 @@ test.describe(
           role: SitePermission.CONTENT_MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
       }
     });
@@ -382,5 +363,98 @@ test.describe(
         }
       );
     }
+  }
+);
+
+test.describe(
+  'home Feed Post Favorite/Unfavorite Tests',
+  {
+    tag: [ContentTestSuite.FEED_MULTI_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach(async ({ standardUserFixture }) => {
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+    });
+
+    test.afterEach(async ({ appManagerFixture }) => {
+      if (createdPostId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.log('Failed to cleanup feed via API:', error);
+        }
+        createdPostId = '';
+      } else {
+        console.log('No feed was published or feed already deleted, hence skipping the deletion');
+      }
+    });
+
+    test(
+      'verify standard user can favorite and unfavorite a feed post on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19557'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'In Zeus, verify standard user is able to favorite and unfavorite a Feed post on Home Feed',
+          zephyrTestId: 'CONT-19557',
+          storyId: 'CONT-19557',
+        });
+
+        await test.step('Create a global post', async () => {
+          await feedPage.actions.clickShareThoughtsButton();
+
+          createdPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+          await feedPage.actions.enterFeedPostText(createdPostText);
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: createdPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+
+          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+        });
+
+        await test.step('Get the count of feed as favorite', async () => {
+          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+        });
+
+        await test.step('Click on favourite icon on feed', async () => {
+          await feedPage.actions.markPostAsFavourite();
+        });
+
+        await test.step('Verify the status of feed after favorite', async () => {
+          await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+        });
+
+        await test.step('Click on favourite icon on feed post to untag', async () => {
+          await feedPage.actions.removePostFromFavourite(createdPostText);
+        });
+
+        await test.step('Verify the status of feed after unFavorite', async () => {
+          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+        });
+
+        await test.step('Click on option menu three dot, click Delete, verify confirmation, and delete', async () => {
+          await feedPage.actions.deletePost(createdPostText);
+        });
+
+        await test.step('Verify feed post is deleted without edit', async () => {
+          await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
+          createdPostId = '';
+          createdPostText = '';
+        });
+      }
+    );
   }
 );

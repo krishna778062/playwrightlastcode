@@ -1,6 +1,10 @@
 import test, { expect, Locator, Page } from '@playwright/test';
 
 import { DEFAULT_LOCATIONS } from '@modules/comms-planner/constants/constant';
+import {
+  CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS,
+  MAX_CUSTOM_FIELD_NAME_LENGTH,
+} from '@modules/comms-planner/constants/customField';
 
 import { PAGE_ENDPOINTS } from '@/src/core';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -47,6 +51,9 @@ export class CustomFieldsPage extends BasePage {
   readonly customFieldCreateConfirmationTooltip: Locator;
 
   readonly customFieldNameInput: Locator;
+  readonly customFieldNameMaxCharLimitExceededErrorLabel: Locator;
+  readonly customFieldNameEmptyErrorLabel: Locator;
+  readonly customFieldTypeEmptyErrorLabel: Locator;
   readonly customFieldType: Locator;
   readonly customFieldLocation: Locator;
   readonly customFieldTypeOptions: Locator;
@@ -163,7 +170,10 @@ export class CustomFieldsPage extends BasePage {
     this.customFieldCreateConfirmationTooltip = this.page.getByText('Custom field definition created successfully.');
 
     this.customFieldNameInput = this.page.locator('input[name="fieldName"]');
+    this.customFieldNameMaxCharLimitExceededErrorLabel = this.page.locator(`label[for="field-name"] ~ p`);
+    this.customFieldNameEmptyErrorLabel = this.page.locator(`label[for="field-name"] ~ p`);
     this.customFieldType = this.page.getByRole('button', { name: 'Select type' });
+    this.customFieldTypeEmptyErrorLabel = this.page.locator(`label[for="field-type"] ~ p`);
     this.customFieldLocation = this.page.getByRole('button', { name: 'Add Field To Location' });
     this.customFieldTypeOptions = this.page.getByRole('menu');
 
@@ -252,6 +262,63 @@ export class CustomFieldsPage extends BasePage {
       await this.fillInElement(this.customFieldNameInput, name, {
         stepInfo: `Fill in custom field name "${name}"`,
       });
+    });
+  }
+
+  async verifyMaxCharacterCustomFieldNameValidation(context: string): Promise<void> {
+    await test.step(`Add custom field name with more than ${MAX_CUSTOM_FIELD_NAME_LENGTH} characters`, async () => {
+      await this.fillInElement(this.customFieldNameInput, CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS, {
+        stepInfo: `Should throw an error when custom field name is more than ${MAX_CUSTOM_FIELD_NAME_LENGTH} characters`,
+      });
+
+      context === 'create'
+        ? await this.clickCreateCustomFieldModalButton()
+        : await this.clickEditCustomFieldModalSaveButton();
+
+      await this.verifier.verifyTheElementIsVisible(this.customFieldNameMaxCharLimitExceededErrorLabel, {
+        assertionMessage: `Custom field name max character limit error label should be visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyElementHasText(
+        this.customFieldNameEmptyErrorLabel,
+        `Must not exceed ${MAX_CUSTOM_FIELD_NAME_LENGTH} characters`
+      );
+    });
+  }
+
+  async verifyEmptyCustomFieldNameValidation(context: string): Promise<void> {
+    await test.step(`Empty custom field name validation`, async () => {
+      await this.fillInElement(this.customFieldNameInput, ``, {
+        stepInfo: `Should throw an error when custom field name is empty`,
+      });
+
+      context === 'create'
+        ? await this.clickCreateCustomFieldModalButton()
+        : await this.clickEditCustomFieldModalSaveButton();
+
+      await this.verifier.verifyTheElementIsVisible(this.customFieldNameEmptyErrorLabel, {
+        assertionMessage: `Custom field name empty error label should be visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.verifier.verifyElementHasText(this.customFieldNameEmptyErrorLabel, `This field is required`);
+    });
+  }
+
+  async verifyEmptyCustomFieldTypeValidation(context: string): Promise<void> {
+    await test.step(`Empty custom field type validation`, async () => {
+      /**
+       * Assuming the default custom field type is EMPTY
+       */
+      context === 'create'
+        ? await this.clickCreateCustomFieldModalButton()
+        : await this.clickEditCustomFieldModalSaveButton();
+
+      await this.verifier.verifyTheElementIsVisible(this.customFieldTypeEmptyErrorLabel, {
+        assertionMessage: `Custom field type empty error label should be visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.verifier.verifyElementHasText(this.customFieldTypeEmptyErrorLabel, `This field is required`);
     });
   }
 

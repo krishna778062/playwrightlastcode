@@ -11,8 +11,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
+import { SYNCING } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { UKG_CREDS } from '@/src/modules/integrations/test-data/gamma-data-file';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
+import { UkgSyncPage } from '@/src/modules/integrations/ui/pages/ukgSyncPage';
 
 test.describe(
   'uKG Pro App Tiles Multi-user Tests',
@@ -35,6 +38,36 @@ test.describe(
         createdTileTitle = undefined;
       }
     });
+
+    multiUserTileFixture(
+      'connect UKG Pro to the account',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ adminPage }) => {
+        const ukgSyncPage = new UkgSyncPage(adminPage);
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: ['INT-21130'],
+        });
+
+        // Navigate to the UKG sync page
+        await ukgSyncPage.loadPage();
+        await ukgSyncPage.verifyThePageIsLoaded();
+
+        // Check UKG Pro checkbox and fill connection details
+        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.addUkgConnectionDetails(
+          SYNCING.UKG_PRO,
+          UKG_CREDS.USERNAME,
+          UKG_CREDS.PASSWORD,
+          UKG_CREDS.BASE_URL,
+          UKG_CREDS.KEY
+        );
+        // Save the connection
+        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
+        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+      }
+    );
 
     multiUserTileFixture(
       'multi-user tile management for UKG Pro Display Recent Paystubs app tile - Admin creates, EndUser verifies, Admin deletes',

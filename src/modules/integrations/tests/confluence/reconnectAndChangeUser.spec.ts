@@ -14,6 +14,7 @@ test.describe(
   'confluence test cases',
   {
     tag: [
+      IntegrationsSuiteTags.BATCH2,
       IntegrationsSuiteTags.INTEGRATIONS,
       IntegrationsSuiteTags.PHOENIX,
       IntegrationsSuiteTags.CONFLUENCE,
@@ -41,6 +42,16 @@ test.describe(
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(adminPage);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        //check if confluence is connected at app level
+        const isConfluenceConnectedAtAppLevel =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceConnectedAtAppLevel) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();

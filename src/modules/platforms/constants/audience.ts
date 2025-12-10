@@ -77,3 +77,25 @@ export const METHOD_NAMES = {
   FILL_COUNTRY_OPERATOR_VALUE: 'fillCountryOperatorValue',
   FILL_DATE_OPERATOR_VALUE: 'fillDateOperatorValue',
 } as const;
+
+export const AUDIENCE_BUILDER_FILTERS = {
+  ATTRIBUTES: 'Attributes',
+  CREATED_BY: 'Created by',
+  CREATED_DATE: 'Created date',
+} as const;
+
+export const AUDIENCE_BUILDER_FILTER_OPTIONS = {
+  LAST_30_DAYS: 'Last 30 days',
+  LAST_90_DAYS: 'Last 90 days',
+  LAST_12_MONTHS: 'Last 12 months',
+  CUSTOM: 'Custom',
+  CITY: 'City',
+  BUSINESS_UNIT: 'Business unit',
+} as const;
+
+export const AUDIENCE_BUILDER_BUTTONS = {
+  VIEW_RESULTS: 'View results',
+  RESET: 'Reset',
+  RESET_ALL: 'Reset all',
+  CLEAR: 'Clear',
+} as const;
