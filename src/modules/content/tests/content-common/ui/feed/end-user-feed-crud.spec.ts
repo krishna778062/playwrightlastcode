@@ -25,6 +25,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -2299,7 +2300,7 @@ test.describe(
       }
     );
 
-    test(          
+    test(
       'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24122'],
@@ -2576,11 +2577,10 @@ test.describe(
           await governanceScreenPage.verifyThePageIsLoaded();
           await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
         }
-        });
       }
     );
 
-    test(        
+    test(
       "in Zeus verify end user able to see Copy link option on other users' post",
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19568'],
@@ -2591,6 +2591,8 @@ test.describe(
           zephyrTestId: 'CONT-19568',
           storyId: 'CONT-19568',
         });
+        let createdPostText: string = '';
+        let createdPostId: string = '';
 
         await test.step('Login as Admin and create global post with file attachment', async () => {
           await appManagerFixture.homePage.verifyThePageIsLoaded();
