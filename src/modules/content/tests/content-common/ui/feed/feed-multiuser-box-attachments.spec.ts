@@ -11,11 +11,11 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
-import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   '@FeedPost - Site Roles Box File Attachments',
