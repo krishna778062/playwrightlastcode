@@ -133,7 +133,7 @@ export const config = {
       apiBaseUrl: 'https://chatmod-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'arvind.singh@simpplr.com',
       appManagerPassword: '_Simp_1234',
-      endUserEmail: 'reen+1@bie7v7vm.mailosaur.net',
+      endUserEmail: 'green+1@bie7v7vm.mailosaur.net',
       endUserPassword: '_Simp_1234',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
