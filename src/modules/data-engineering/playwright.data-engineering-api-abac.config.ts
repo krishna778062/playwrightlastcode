@@ -1,10 +1,11 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load data-engineering env FIRST with override to prevent base config from using wrong values
+// Load ABAC-specific env file based on TEST_ENV
+// This config loads {envName}-abac.env instead of {envName}.env
 const envName = process.env.TEST_ENV || 'test';
 dotenv.config({
-  path: path.resolve(__dirname, `env/${envName}.env`),
+  path: path.resolve(__dirname, `env/${envName}-abac.env`),
   override: true,
 });
 
@@ -18,10 +19,9 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 export default defineConfig({
   ...baseConfig,
   timeout: TIMEOUTS.VERY_LONG,
-  name: 'Data Engineering API Automation',
+  name: 'Data Engineering API ABAC Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'data-engineering', 'tests', 'api-tests'),
-  testMatch: '**/*.spec.ts',
-  testIgnore: '**/*-abac.spec.ts',
+  testMatch: '**/*-abac.spec.ts',
   use: {
     ...baseConfig.use,
     baseURL: process.env.API_BASE_URL,
@@ -30,7 +30,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'data-engineering-api',
+      name: 'data-engineering-api-abac',
       use: {
         ...devices['Desktop Chrome'],
         headless: true,

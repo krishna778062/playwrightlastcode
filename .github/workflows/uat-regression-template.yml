@@ -75,6 +75,8 @@ jobs:
             global-search,
             content,
             de,
+            de-api,
+            de-api-abac,
             reward,
             reward-settings,
             recognition,

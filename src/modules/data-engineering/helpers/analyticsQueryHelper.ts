@@ -120,4 +120,14 @@ export class AnalyticsQueryHelper {
       .replace('{siteType}', siteType);
     return await this.snowflakeHelper.execute<ContentDataResult>(query);
   }
+
+  /**
+   * Fetches blog post data from Snowflake
+   * @param tenantCode - The tenant code
+   * @returns Promise with blog post content data results
+   */
+  async getBlogDataFromDB(tenantCode: any): Promise<ContentDataResult[]> {
+    const query = CommonSql.BLOG_DATA.replace('{tenantCode}', tenantCode);
+    return await this.snowflakeHelper.execute<ContentDataResult>(query);
+  }
 }
