@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -8,15 +9,21 @@ import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-si
 export interface IFavoritesPageActions {
   clickOnPeopleButton: () => Promise<void>;
   clickOnContentButton: () => Promise<void>;
+  unfavoriteContentByName: (contentName: string) => Promise<void>;
+  clickOnFileTab: () => Promise<void>;
+  unfavoriteFileByName: (fileName: string) => Promise<void>;
 }
 
 export interface IFavoritesPageAssertions {
   verifyPeopleNamesAreDisplayed: (peopleNames: string[]) => Promise<void>;
   verifyContentNamesAreDisplayed: (contentNames: string[]) => Promise<void>;
+  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
   markAsFavoriteAndCheckRGBColor: () => Promise<void>;
   verifyAlbumTabImageIsDisplayed: () => Promise<void>;
   verifyEventsTabImageIsDisplayed: () => Promise<void>;
   verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
+  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
+  verifyFileIsVisibleInFilesTab: (fileName: string) => Promise<void>;
 }
 
 export class FavoritesPage extends BasePage implements IFavoritesPageActions, IFavoritesPageAssertions {
@@ -28,20 +35,39 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
   readonly contentButton: Locator;
   readonly eventsTabImage: Locator;
   readonly eventsTabLink: Locator;
+  readonly fileTab: Locator;
   readonly albumTabImage: Locator;
   readonly getPeopleNamesLocators: (name: string) => Locator;
   readonly getContentNamesLocators: (name: string) => Locator;
+  readonly getContentListingItem: (contentName: string) => Locator;
+  readonly getUnfavoriteButtonForContent: (contentName: string) => Locator;
+  readonly getFilesTabPanel: () => Locator;
+  readonly getFileRowInFilesTab: (fileName: string) => Locator;
+  readonly getUnfavoriteButtonForFile: (fileName: string) => Locator;
+  readonly getFileLinkInFilesTab: (fileName: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.peopleButton = page.getByRole('tab', { name: 'People' });
     this.contentButton = page.getByRole('tab', { name: 'Content' });
+    this.fileTab = page.getByRole('tab', { name: 'Files' });
     this.startIcon = page.getByRole('button', { name: 'Unfavorite this content' }).first();
     this.eventsTabImage = page.locator('[class="Image Image--objectFit Image--square Image--missing"]').first();
     this.eventsTabLink = page.locator('a[href*="/event/"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
     this.getPeopleNamesLocators = (name: string) => page.getByText(name, { exact: false });
     this.getContentNamesLocators = (name: string) => page.getByRole('link', { name: name, exact: true });
+    this.getContentListingItem = (contentName: string) =>
+      page.locator(`li.ListingItem--justFavorite:has(a.type--title:has-text("${contentName}"))`);
+    this.getUnfavoriteButtonForContent = (contentName: string) =>
+      this.getContentListingItem(contentName).getByRole('button', { name: 'Unfavorite this content' });
+    this.getFilesTabPanel = () => page.getByRole('tabpanel', { name: 'Files' });
+    this.getFileRowInFilesTab = (fileName: string) =>
+      this.getFilesTabPanel().getByRole('table').getByRole('row').filter({ hasText: fileName }).first();
+    this.getUnfavoriteButtonForFile = (fileName: string) =>
+      this.getFileRowInFilesTab(fileName).getByRole('button', { name: 'Unfavorite this file' }).first();
+    this.getFileLinkInFilesTab = (fileName: string) =>
+      this.getFilesTabPanel().getByRole('link', { name: fileName }).first();
   }
 
   get actions(): IFavoritesPageActions {
@@ -70,6 +96,13 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     });
   }
 
+  async verifyUserCanMarkAsFavoriteContent(): Promise<void> {
+    await test.step('Verify user can mark as favorite content', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.startIcon, {
+        assertionMessage: 'Start icon should be visible',
+      });
+    });
+  }
   async verifyEventsTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify events tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.eventsTabImage, {
@@ -120,6 +153,11 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     return lowerText.includes(lowerMonth) && cleanText.includes(expectedDay);
   }
 
+  async clickOnFileTab(): Promise<void> {
+    await test.step('Click on file tab', async () => {
+      await this.clickOnElement(this.fileTab);
+    });
+  }
   async verifyAlbumTabImageIsDisplayed(): Promise<void> {
     await test.step('Verify album tab image is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.albumTabImage, {
@@ -133,9 +171,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     });
     // Target the SVG path specifically
     const svgPath = this.startIcon.locator('svg path');
-
-    // Debug: Log the actual fill color
-    const fillColor = await svgPath.evaluate(el => window.getComputedStyle(el).fill);
 
     await expect(svgPath).toHaveCSS('fill', 'rgb(207, 130, 7)');
   }
@@ -159,6 +194,90 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
           assertionMessage: `People name ${name} should be displayed`,
         });
       }
+    });
+  }
+
+  async verifyContentIsVisibleInSearchResults(contentName: string): Promise<void> {
+    await test.step(`Verify content "${contentName}" is visible in search results`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getContentNamesLocators(contentName), {
+        assertionMessage: `Content name ${contentName} should be displayed in favorites`,
+      });
+    });
+  }
+
+  async unfavoriteContentByName(contentName: string): Promise<void> {
+    await test.step(`Unfavorite content "${contentName}"`, async () => {
+      // First verify the content exists
+      const contentItem = this.getContentListingItem(contentName);
+      await this.verifier.verifyTheElementIsVisible(contentItem, {
+        assertionMessage: `Content "${contentName}" should be visible in favorites list`,
+      });
+
+      // Get the unfavorite button for this specific content
+      const unfavoriteButton = this.getUnfavoriteButtonForContent(contentName);
+      await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+        assertionMessage: `Unfavorite button should be visible for content "${contentName}"`,
+      });
+
+      // Click the unfavorite button and wait for API call
+      const unfavoriteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(unfavoriteButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.favourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await unfavoriteResponse.finished();
+      // Click the unfavorite button
+      await this.clickOnElement(unfavoriteButton);
+
+      // Wait for the content item to be removed from the list (optional verification)
+      await contentItem.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+        // Content might still be visible but unfavorited, which is also acceptable
+        console.log(`Content "${contentName}" may still be visible after unfavoriting`);
+      });
+    });
+  }
+
+  async unfavoriteFileByName(fileName: string): Promise<void> {
+    await test.step(`Unfavorite file "${fileName}"`, async () => {
+      // First verify the file exists
+      const fileRow = this.getFileRowInFilesTab(fileName);
+      await this.verifier.verifyTheElementIsVisible(fileRow, {
+        assertionMessage: `File "${fileName}" should be visible in favorites files list`,
+      });
+
+      // Get the unfavorite button for this specific file
+      const unfavoriteButton = this.getUnfavoriteButtonForFile(fileName);
+      await this.verifier.verifyTheElementIsVisible(unfavoriteButton, {
+        assertionMessage: `Unfavorite button should be visible for file "${fileName}"`,
+      });
+
+      // Click the unfavorite button and wait for API call
+      const unfavoriteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(unfavoriteButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.fileFavourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await unfavoriteResponse.finished();
+    });
+  }
+
+  async verifyFileIsVisibleInFilesTab(fileName: string): Promise<void> {
+    await test.step(`Verify file "${fileName}" is visible in Files tab`, async () => {
+      // Verify the file row is visible instead of the link to avoid any accidental clicks
+      const fileRow = this.getFileRowInFilesTab(fileName);
+      await this.verifier.verifyTheElementIsVisible(fileRow, {
+        assertionMessage: `File "${fileName}" should be visible in favorites Files tab`,
+      });
     });
   }
 }

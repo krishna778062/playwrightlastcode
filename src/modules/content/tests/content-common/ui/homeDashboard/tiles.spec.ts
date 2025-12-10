@@ -8,6 +8,8 @@ import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
@@ -46,12 +48,13 @@ test.describe('edit Topic', () => {
       const tileName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Tile`;
       await homeDashboardPage.actions.namingTheTile(tileName);
       await homeDashboardPage.actions.clickingOnAddToHomeButton();
-      await homeDashboardPage.assertions.verifyToastMessage('Added tile to dashboard successfully');
+      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD);
       await homeDashboardPage.actions.clickingOnDoneButton();
       await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(tileName);
 
-      // Get the "All Employees" site ID for API page creation
-      const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+      // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
+      const allEmployeesSiteId =
+        await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate random page name using faker
       const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
@@ -95,12 +98,12 @@ test.describe('edit Topic', () => {
       await homeDashboardPage.assertions.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
       await homeDashboardPage.actions.clickOnEditDashboardButton();
       await homeDashboardPage.actions.clickingOnEditTileButton(tileName);
-      await homeDashboardPage.actions.selectingSiteRadioButton('All Employees');
+      await homeDashboardPage.actions.selectingSiteRadioButton(DEFAULT_PUBLIC_SITE_NAME);
       await homeDashboardPage.actions.selectingShowcaseRadioButton();
       await homeDashboardPage.actions.clickingOnSaveButton();
-      await homeDashboardPage.assertions.verifyToastMessage('Edited dashboard tile successfully');
+      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.EDITED_DASHBOARD_TILE);
       await homeDashboardPage.actions.clickingOnRemoveTileButton(tileName);
-      await homeDashboardPage.assertions.verifyToastMessage('Removed tile from dashboard successfully');
+      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.REMOVED_TILE_FROM_DASHBOARD);
       await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(tileName);
     }
   );

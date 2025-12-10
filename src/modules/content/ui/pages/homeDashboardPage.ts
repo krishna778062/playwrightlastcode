@@ -7,6 +7,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { AddContentTileComponent } from '@/src/modules/content/ui/components/addContentTileComponent';
 import { AddTileComponent } from '@/src/modules/content/ui/components/addTileComponent';
+import { OnboardingComponent } from '@/src/modules/content/ui/components/onboardingComponent';
 import { PageTileSectionComponent } from '@/src/modules/content/ui/components/pageTileSectionComponent';
 import { dragAndDrop } from '@/src/modules/form-designer/utils/dragAndDropUtil';
 
@@ -24,6 +25,9 @@ export interface IHomeDashboardPageActions {
   selectingShowcaseRadioButton: () => Promise<void>;
   clickingOnSaveButton: () => Promise<void>;
   clickingOnRemoveTileButton: (tileName: string) => Promise<void>;
+  clickingOnOnboardingTab: () => Promise<void>;
+  isAddToHomeButtonDisabled: () => Promise<boolean>;
+  closeAddContentTileDialog: () => Promise<void>;
   addTextHtmlLinksTile: (description: string, tileTitle: string) => Promise<void>;
   addSitesCategoryTile: (siteName: string, tileTitle: string) => Promise<void>;
   reorderTiles: (sourceTileTitle: string, targetTileTitle: string) => Promise<void>;
@@ -36,11 +40,15 @@ export interface IHomeDashboardPageAssertions {
   verifyingCreatedPageIsVisibleInTile: (pageName: string) => Promise<void>;
   verifyingCreatedPageIsNotVisibleInTile: (pageName: string) => Promise<void>;
   verifyingThePageTileSectionIsNotVisible: (tileName: string) => Promise<void>;
+  verifyOnboardingTileIsVisible: () => Promise<void>;
+  verifyAddToHomeButtonIsDisabled: () => Promise<void>;
+  verifyTileAlreadyAddedMessage: () => Promise<void>;
   verifyTileOrder: (tileTitles: string[]) => Promise<void>;
 }
 export class HomeDashboardPage extends BasePage implements IHomeDashboardPageActions, IHomeDashboardPageAssertions {
   addTileComponent: AddTileComponent;
   addContentTileComponent: AddContentTileComponent;
+  onboardingComponent: OnboardingComponent;
   baseActionUtil: BaseActionUtil;
   pageTileSectionComponent: PageTileSectionComponent;
 
@@ -48,6 +56,10 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   readonly addTileButton: Locator = this.page.getByRole('button', { name: 'Add tile' });
   readonly doneButton: Locator = this.page.getByRole('button', { name: 'Done' });
   readonly addContentTileDialog: Locator = this.page.getByRole('dialog', { name: 'Add content tile' });
+  readonly closeDialogButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Close' });
+  readonly tileAlreadyAddedMessage: Locator = this.addContentTileDialog.getByText(
+    'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
+  );
   readonly tileDialog: (tileTitle: string) => Locator = (tileTitle: string) =>
     this.page.getByRole('dialog', { name: `${tileTitle}` });
   readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
@@ -58,6 +70,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
     this.addTileComponent = new AddTileComponent(page);
     this.addContentTileComponent = new AddContentTileComponent(page);
+    this.onboardingComponent = new OnboardingComponent(page);
     this.baseActionUtil = new BaseActionUtil(page);
     this.pageTileSectionComponent = new PageTileSectionComponent(page);
   }
@@ -71,14 +84,23 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await test.step('Verify topic details page is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.page.getByText('Home'), {
-        assertionMessage: 'Topic details page should be visible',
-      });
+    await test.step('Verify home dashboard page is loaded', async () => {
+      const isEditButtonVisible = await this.verifier.isTheElementVisible(this.editDashboardButton);
+
+      if (isEditButtonVisible) {
+        await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
+          assertionMessage: 'Home dashboard page should be visible',
+        });
+      } else {
+        const homeTextLocator = this.page.getByRole('heading', { name: /Home/i }).first();
+        await this.verifier.verifyTheElementIsVisible(homeTextLocator, {
+          assertionMessage: 'Home dashboard page should be visible',
+        });
+      }
     });
   }
   async clickOnEditDashboardButton(): Promise<void> {
-    await this.clickOnElement(this.editDashboardButton);
+    await this.clickByInjectingJavaScript(this.editDashboardButton);
   }
   async clickOnAddTileButton(): Promise<void> {
     await this.clickOnElement(this.addTileButton);
@@ -102,7 +124,10 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(toastMessage);
   }
   async clickingOnDoneButton(): Promise<void> {
-    await this.clickOnElement(this.doneButton);
+    await test.step('Click on Done button', async () => {
+      await this.clickOnElement(this.doneButton);
+      await this.addContentTileDialog.waitFor({ state: 'hidden' });
+    });
   }
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
     await this.pageTileSectionComponent.verifyingThePageTileSectionIsVisible(tileName);
@@ -133,6 +158,47 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async clickingOnRemoveTileButton(tileName: string): Promise<void> {
     await this.pageTileSectionComponent.clickingOnRemoveTileButton(tileName);
+  }
+  async clickingOnOnboardingTab(): Promise<void> {
+    await test.step('Click on Onboarding tab', async () => {
+      await this.clickOnElement(this.onboardingComponent.onboardingTab);
+      await this.verifier.waitUntilElementIsVisible(this.addContentTileComponent.addToHomeButton, {
+        stepInfo: 'Wait for Add to home button to be visible after clicking Onboarding tab',
+      });
+    });
+  }
+  async verifyOnboardingTileIsVisible(): Promise<void> {
+    await test.step('Verify onboarding tile is visible on home dashboard', async () => {
+      const onboardingTileHeading = this.page.getByRole('heading', { name: /Onboarding/i }).first();
+      await this.verifier.waitUntilElementIsVisible(onboardingTileHeading, {
+        stepInfo: 'Wait for onboarding tile to appear on dashboard',
+      });
+    });
+  }
+  async isAddToHomeButtonDisabled(): Promise<boolean> {
+    return await test.step('Check if Add to home button is disabled', async () => {
+      return await this.addContentTileComponent.addToHomeButton.isDisabled();
+    });
+  }
+
+  async verifyAddToHomeButtonIsDisabled(): Promise<void> {
+    await test.step('Verify Add to home button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.addContentTileComponent.addToHomeButton);
+    });
+  }
+
+  async verifyTileAlreadyAddedMessage(): Promise<void> {
+    await test.step('Verify tile already added message is displayed in Add Tile Modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.tileAlreadyAddedMessage, {
+        assertionMessage: 'Tile already added message should be visible in Add Tile Modal',
+      });
+    });
+  }
+
+  async closeAddContentTileDialog(): Promise<void> {
+    await test.step('Close Add content tile dialog', async () => {
+      await this.clickOnElement(this.closeDialogButton);
+    });
   }
 
   async addTextHtmlLinksTile(description: string, tileTitle: string): Promise<void> {
