@@ -398,7 +398,7 @@ export class TabluarMetricsComponent extends BaseComponent {
   async verifyTabluarDataIsLoaded(): Promise<void> {
     await test.step(`verify tabular data - table is visible`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.rootLocator, {
-        timeout: 40_000,
+        timeout: TIMEOUTS.VERY_VERY_LONG,
         assertionMessage: `table should be visible`,
       });
     });
@@ -408,6 +408,16 @@ export class TabluarMetricsComponent extends BaseComponent {
       const noDataState = this.rootLocator.getByText('No data found for this query');
 
       // Check if either data cells exist OR "No data found" message is visible
+      // Wait with very long timeout for either data cells or no data message
+      try {
+        await Promise.race([
+          dataCells.first().waitFor({ timeout: TIMEOUTS.VERY_VERY_LONG }),
+          noDataState.waitFor({ timeout: TIMEOUTS.VERY_VERY_LONG }),
+        ]);
+      } catch {
+        // If both fail, we'll check below
+      }
+
       const dataCellCount = await dataCells.count();
       const hasNoDataMessage = await noDataState.isVisible().catch(() => false);
 

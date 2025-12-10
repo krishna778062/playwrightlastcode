@@ -7,6 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { TileApiHelper } from '@/src/modules/content/apis/apiValidation/tileApiHelper';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 
 test.describe(
@@ -181,15 +182,15 @@ test.describe(
           isHomeAppManagerControlled: true,
         });
 
-        const [publicSite, privateSite, unlistedSite] = await Promise.all([
-          appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public'),
+        const [publicSiteId, privateSite, unlistedSite] = await Promise.all([
+          appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME),
           appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private'),
           appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted'),
         ]);
 
         const tilePayload = TILE_TEST_DATA.SITES_TILE({
           title: TestDataGenerator.generateRandomString('SitesTile'),
-          items: [publicSite.siteId, privateSite.siteId, unlistedSite.siteId],
+          items: [publicSiteId, privateSite.siteId, unlistedSite.siteId],
           layout: 'list',
           pushToAllHomeDashboards: false,
         });

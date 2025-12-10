@@ -37,4 +37,7 @@ export const MANAGE_SITE_TEST_DATA = {
     },
   },
   UPDATED_SITE_NAME: `Updated Test Site ${faker.person.firstName()}`,
+  TOAST_MESSAGES: {
+    DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
+  },
 };

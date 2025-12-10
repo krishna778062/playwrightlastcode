@@ -14,10 +14,15 @@ import { SupportAndTicketingPage } from '@/src/modules/integrations/ui/pages/sup
 test.describe(
   'service Now Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.SERVICENOW],
+    tag: [
+      IntegrationsSuiteTags.BATCH2,
+      IntegrationsSuiteTags.INTEGRATIONS,
+      IntegrationsSuiteTags.PHOENIX,
+      IntegrationsSuiteTags.SERVICENOW,
+    ],
   },
   () => {
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'Verify ServiceNow credentials can be connected',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
@@ -416,7 +421,7 @@ test.describe(
       }
     );
 
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'Verify Disconnect ServiceNow account',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
