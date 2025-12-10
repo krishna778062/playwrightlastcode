@@ -1514,6 +1514,15 @@ export class ListFeedComponent
     });
   }
 
+  async verifyShareIconIsVisible(postText: string): Promise<void> {
+    await test.step(`Verify share icon is visible for post/comment: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
+        assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
+      });
+    });
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
@@ -1719,6 +1728,16 @@ export class ListFeedComponent
       await this.verifier.verifyTheElementIsNotVisible(closeButton, {
         assertionMessage: 'Close button should not be visible in reaction modal',
       });
+    });
+  }
+
+  async clickUsernameInReactionModal(username: string): Promise<void> {
+    await test.step(`Click on username "${username}" in reaction modal`, async () => {
+      const userLink = this.reactionModal.getByRole('link', { name: username }).first();
+      await this.verifier.verifyTheElementIsVisible(userLink, {
+        assertionMessage: `User "${username}" should be visible in reaction modal`,
+      });
+      await this.clickOnElement(userLink);
     });
   }
 
