@@ -1,4 +1,4 @@
-import { APIRequestContext, test } from '@playwright/test';
+import { APIRequestContext, expect, test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
@@ -130,7 +130,8 @@ export class ImageUploaderService implements IImageUploaderService {
   }
 
   /**
-   * Gets file details from content files API after upload
+   * Gets file details from content files API after upload with retry mechanism.
+   * Retries at increasing intervals (20s, 30s, 40s, 50s) until file details are available.
    * @param fileId - The file ID from upload response
    * @param siteId - The site ID
    * @returns File details including owner name
@@ -152,21 +153,30 @@ export class ImageUploaderService implements IImageUploaderService {
         site_id: siteId,
       };
 
-      const response = await this.httpClient.post(API_ENDPOINTS.content.files, {
-        data: payload,
-      });
+      let fileInfo: any;
 
-      if (response.status() !== 201) {
-        throw new Error(`Failed to get file details. Status: ${response.status()}`);
-      }
+      await expect(
+        async () => {
+          const response = await this.httpClient.post(API_ENDPOINTS.content.files, {
+            data: payload,
+          });
 
-      const responseData = await response.json();
+          if (response.status() !== 201) {
+            throw new Error(`Failed to get file details. Status: ${response.status()}`);
+          }
 
-      if (responseData.status !== 'success' || !responseData.result?.listOfFiles?.length) {
-        throw new Error('Invalid response from content files API');
-      }
+          const responseData = await response.json();
 
-      const fileInfo = responseData.result.listOfFiles[0];
+          if (responseData.status !== 'success' || !responseData.result?.listOfFiles?.length) {
+            throw new Error('Invalid response from content files API');
+          }
+
+          fileInfo = responseData.result.listOfFiles[0];
+        },
+        {
+          message: `File details for fileId ${fileId} to appear in API response`,
+        }
+      ).toPass({ intervals: [30000, 50000, 70000], timeout: 80_000 });
 
       return {
         fileInfo: fileInfo,
