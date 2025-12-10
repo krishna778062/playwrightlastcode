@@ -91,6 +91,7 @@ export default defineConfig<Options>({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests'),
   testIgnore: ['**/api-tests/**', '**/azureSync.spec.ts', '**/workday_Sync.spec.ts'],
+  grepInvert: /@integrations-batch2/,
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
   expect: {
