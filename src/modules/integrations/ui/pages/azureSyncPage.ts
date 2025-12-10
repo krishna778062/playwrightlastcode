@@ -2,16 +2,16 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SyncingComponent } from '@/src/modules/integrations/ui/components/syncingComponent';
+import { AzureSyncingComponent } from '@/src/modules/integrations/ui/components/azureSyncComponent';
 
-export class SyncingPage extends BasePage {
-  readonly azureSyncingComponent: SyncingComponent;
+export class AzureSyncingPage extends BasePage {
+  readonly azureSyncingComponent: AzureSyncingComponent;
   readonly scheduledSources: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
     this.scheduledSources = page.getByRole('heading', { name: 'Scheduled sources' });
-    this.azureSyncingComponent = new SyncingComponent(page);
+    this.azureSyncingComponent = new AzureSyncingComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

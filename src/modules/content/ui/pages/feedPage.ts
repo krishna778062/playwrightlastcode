@@ -58,7 +58,6 @@ export interface IFeedActions {
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
-  clickReplyOnContentComment: (commentText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
@@ -146,7 +145,6 @@ export interface IFeedActions {
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
-  clickUsernameInReactionModal: (username: string) => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -206,14 +204,9 @@ export interface IFeedAssertions {
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
-  verifyUserDisplayedInCelebrationBlock: (userName: string) => Promise<void>;
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
   verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
-  verifyTopPicksBlockIsVisible: () => Promise<void>;
-  verifyPopularContentBlockIsVisible: () => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
-  verifyCelebrationBlockIsVisible: () => Promise<void>;
   verifyEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyEventNotInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyEventVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
@@ -241,11 +234,9 @@ export interface IFeedAssertions {
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
-  verifyCommentIconIsVisible: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
@@ -281,18 +272,13 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
   readonly celebrityFeedBlocks: Locator;
-  readonly celebrationBlockUserName: (userName: string) => Locator;
   readonly newHireFeedBlocks: Locator;
   readonly recentlyPublishedBlock: Locator;
   readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
-  readonly topPicksBlock: Locator;
-  readonly popularContentBlock: Locator;
   readonly upcomingEventsBlock: Locator;
-  readonly celebrationBlock: Locator;
   readonly upcomingEventsBlockText: (eventTitle: string) => Locator;
   readonly upcomingEventsContentItem: (eventTitle: string) => Locator;
   readonly commentIcon: Locator;
-  readonly allCommentsIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
 
@@ -327,8 +313,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
-    this.celebrationBlockUserName = (userName: string) =>
-      this.page.locator('div').filter({ hasText: `Birthday${userName}` });
   }
 
   get actions(): IFeedActions {
@@ -555,10 +539,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async openReplyEditorForPost(postText: string): Promise<void> {
     await this.listFeedComponent.openReplyEditorForPost(postText);
-  }
-
-  async clickReplyOnContentComment(commentText: string): Promise<void> {
-    await this.listFeedComponent.clickReplyOnContentComment(commentText);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
@@ -836,20 +816,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  async verifyUserDisplayedInCelebrationBlock(userName: string): Promise<void> {
-    await test.step(`Verify user "${userName}" is displayed in Celebration smart feed block`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.celebrityFeedBlocks, {
-        assertionMessage: 'Celebration smart feed block should be visible',
-      });
-
-      // Verify the user name link is visible within the celebration block
-      const userNameLink = this.celebrationBlockUserName(userName);
-      await this.verifier.verifyTheElementIsVisible(userNameLink.nth(1), {
-        assertionMessage: `User "${userName}" should be visible in Celebration smart feed block`,
-      });
-    });
-  }
-
   async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
     await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
   }
@@ -881,38 +847,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsNotVisible(contentItem, {
         assertionMessage: `Content "${contentTitle}" should NOT be visible in Recently Published block`,
         timeout: 5000,
-      });
-    });
-  }
-
-  async verifyTopPicksBlockIsVisible(): Promise<void> {
-    await test.step('Verify Top picks smart block is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.topPicksBlock, {
-        assertionMessage: 'Top picks smart block should be visible',
-      });
-    });
-  }
-
-  async verifyPopularContentBlockIsVisible(): Promise<void> {
-    await test.step('Verify Popular content smart block is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.popularContentBlock, {
-        assertionMessage: 'Popular content smart block should be visible',
-      });
-    });
-  }
-
-  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
-    await test.step('Verify Upcoming events smart block is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
-        assertionMessage: 'Upcoming events smart block should be visible',
-      });
-    });
-  }
-
-  async verifyCelebrationBlockIsVisible(): Promise<void> {
-    await test.step('Verify Celebration smart block is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.celebrationBlock, {
-        assertionMessage: 'Celebration smart block should be visible',
       });
     });
   }
@@ -1413,10 +1347,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyShareButtonIsNotVisible();
   }
 
-  async verifyShareIconIsVisible(postText: string): Promise<void> {
-    await this.listFeedComponent.verifyShareIconIsVisible(postText);
-  }
-
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsNotVisible();
   }
@@ -1427,14 +1357,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
-  }
-
-  async verifyCommentIconIsVisible(): Promise<void> {
-    await test.step('Verify Comment icon is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.allCommentsIcon.first(), {
-        assertionMessage: 'Comment icon should be visible',
-      });
-    });
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
@@ -1475,10 +1397,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async closeReactionModal(): Promise<void> {
     await this.listFeedComponent.closeReactionModal();
-  }
-
-  async clickUsernameInReactionModal(username: string): Promise<void> {
-    await this.listFeedComponent.clickUsernameInReactionModal(username);
   }
 
   async clickShareIconOnPost(postText: string): Promise<void> {
@@ -1553,49 +1471,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
-  }
-
-  async clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void> {
-    await test.step(`Click site mention @${siteName} in post and verify navigation`, async () => {
-      // Get the post container
-      const postContainer = this.listFeedComponent.postTextLocator(postText);
-      await this.verifier.verifyTheElementIsVisible(postContainer, {
-        assertionMessage: `Post ${postText} should be visible`,
-      });
-
-      // Find the site mention link within the post
-      // Site mentions are rendered as links with data-type="site" and href="/site/{siteId}"
-      const siteMentionLink = postContainer.getByRole('link', { name: `@${siteName}` });
-
-      // Verify the link is visible
-      await this.verifier.verifyTheElementIsVisible(siteMentionLink, {
-        assertionMessage: `Site mention @${siteName} should be visible in post`,
-      });
-
-      // Click the site mention link
-      await this.clickOnElement(siteMentionLink);
-
-      // Verify navigation to the site page
-      await this.verifyNavigationToSite(siteId);
-    });
-  }
-
-  async verifyNavigationToSite(siteId: string): Promise<void> {
-    await test.step(`Verify navigation to site ${siteId}`, async () => {
-      // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
-      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: TIMEOUTS.MEDIUM });
-
-      // Verify the page has loaded
-      await this.page.waitForLoadState('domcontentloaded');
-    });
-  }
-
-  async addSiteName(siteName: string): Promise<void> {
-    await this.createFeedPostComponent.addSiteName(siteName);
-  }
-
-  async removeSiteMention(siteName: string): Promise<void> {
-    await this.createFeedPostComponent.removeSiteMention(siteName);
   }
 
   async clickOnGiveRecognition(): Promise<void> {

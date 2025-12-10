@@ -20,7 +20,7 @@ let createdAppName: string | null = null;
 test.describe(
   'custom apps management',
   {
-    tag: [IntegrationsSuiteTags.BATCH2, IntegrationsSuiteTags.CUSTOM_APPS, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.CUSTOM_APPS, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {

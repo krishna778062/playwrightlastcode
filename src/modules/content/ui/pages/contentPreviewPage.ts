@@ -32,8 +32,6 @@ export interface IContentPreviewPageActions {
   editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
   clickOnOptionMenuButton: () => Promise<void>;
   clickOnMustReadButton: () => Promise<void>;
-  clickOnRemoveFromHomeCarouselButton: (carouselItemId: string) => Promise<void>;
-  clickOnRemoveFromSiteCarouselButton: (siteId: string, carouselItemId: string) => Promise<void>;
   clickOnMustReadModalCancelButton: () => Promise<void>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
   verifyCancelButtonVisible: (postText: string) => Promise<void>;
@@ -80,7 +78,6 @@ export interface IContentPreviewPageAssertions {
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyContentShareButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
@@ -442,14 +439,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     await this.optionMenuComponent.clickOnOptionMenuButton();
   }
 
-  async clickOnRemoveFromHomeCarouselButton(carouselItemId: string): Promise<void> {
-    await this.optionMenuComponent.clickOnRemoveFromHomeCarouselButton(carouselItemId);
-  }
-
-  async clickOnRemoveFromSiteCarouselButton(siteId: string, carouselItemId: string): Promise<void> {
-    await this.optionMenuComponent.clickOnRemoveFromSiteCarouselButton(siteId, carouselItemId);
-  }
-
   /**
    * Gets the count of visible comments on content detail page
    * @returns Promise<number> - Count of visible comments
@@ -566,10 +555,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         assertionMessage: 'Share button should not be visible on content detail page',
       });
     });
-  }
-
-  async verifyShareIconIsVisible(postText: string): Promise<void> {
-    await this.listFeedComponent.verifyShareIconIsVisible(postText);
   }
 
   /**

@@ -19,6 +19,7 @@ test.describe('manage recurring awards', () => {
         TestGroupType.REGRESSION,
         TestGroupType.SANITY,
         TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -45,6 +46,7 @@ test.describe('manage recurring awards', () => {
         TestGroupType.REGRESSION,
         TestGroupType.SANITY,
         TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {

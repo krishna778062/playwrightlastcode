@@ -12,8 +12,8 @@ export interface CustomFieldConfig {
 
 const DATE_NOW: string = Date.now().toString().slice(-6);
 
-export const MAX_CUSTOM_FIELD_NAME_LENGTH = 100;
-export const CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS = 'a'.repeat(101);
+export const MAX_CUSTOM_FIELD_NAME_LENGTH = 20;
+export const CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS = `Custom Field Name More Than ${MAX_CUSTOM_FIELD_NAME_LENGTH} Characters`;
 
 export const CUSTOM_FIELD_META: Map<
   string,

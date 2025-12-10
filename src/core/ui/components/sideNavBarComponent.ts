@@ -120,7 +120,7 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('side navbar: clicking Global Feed button on side navbar', async () => {
-      if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
+      if (await this.verifier.isTheElementVisible(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);

@@ -2,7 +2,6 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { log } from '@/src/core/utils/logger';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
@@ -19,15 +18,10 @@ test.describe(
     let feedPage: FeedPage;
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
-      //Enable feed mode - Skip in production environments as governance changes are restricted
-      const currentEnv = process.env.TEST_ENV;
-      if (currentEnv !== 'prodUS' && currentEnv !== 'prodEU') {
-        await appManagerFixture.feedManagementHelper.configureAppGovernance({
-          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-        });
-      } else {
-        log.info(`Skipping governance configuration for production environment: ${currentEnv}`);
-      }
+      // Configure app governance settings and enable timeline comment post(feed)
+      await appManagerFixture.feedManagementHelper.configureAppGovernance({
+        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+      });
 
       // Verify home page is loaded
       await appManagerFixture.homePage.verifyThePageIsLoaded();
