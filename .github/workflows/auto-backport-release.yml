@@ -13,16 +13,22 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
-      - name: Check if this is a main sync
+      - name: Check if backport is needed
         id: check_source
         run: |
           SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          # Skip if PR is from main (already backported via auto-backport-main)
           if [ "$SOURCE_BRANCH" == "main" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "⏭️ This is main → release sync - skipping (already backported to develop via auto-backport-main)"
+          # Skip if PR is from develop (those changes already exist in develop)
+          elif [ "$SOURCE_BRANCH" == "develop" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - PR is from develop branch (no backport needed)"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "✅ Source branch: $SOURCE_BRANCH - will proceed with backport"
+            echo "✅ PR is from '$SOURCE_BRANCH' - will proceed with backport"
           fi
 
       - name: Checkout repository
