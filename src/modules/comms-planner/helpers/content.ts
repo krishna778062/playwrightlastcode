@@ -13,11 +13,11 @@ export const create = async (appManagerApiFixture: CommsPlannerApiFixture, activ
   const commonOptions = { contentDescription: description };
 
   switch (type) {
-    case 'page':
+    case 'Page':
       return contentManagementHelper.createPage({
         siteId,
         contentInfo: {
-          contentType: type,
+          contentType: type.toLowerCase(),
           contentSubType: subType || '',
         },
         options: {
@@ -26,7 +26,7 @@ export const create = async (appManagerApiFixture: CommsPlannerApiFixture, activ
         },
       });
 
-    case 'album':
+    case 'Album':
       return contentManagementHelper.createAlbum({
         siteId,
         imageName: 'beach.jpg',
@@ -36,11 +36,11 @@ export const create = async (appManagerApiFixture: CommsPlannerApiFixture, activ
         },
       });
 
-    case 'event':
+    case 'Event':
       return contentManagementHelper.createEvent({
         siteId,
         contentInfo: {
-          contentType: 'event',
+          contentType: type.toLowerCase(),
         },
         options: {
           ...commonOptions,
