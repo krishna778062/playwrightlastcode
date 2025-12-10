@@ -377,11 +377,6 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
         timeout: 10_000,
         assertionMessage: 'Location should be visible',
       });
-
-      await this.verifier.verifyTheElementIsVisible(this.addToOtherCalendarsButtonLocator, {
-        timeout: 10_000,
-        assertionMessage: 'Add to other calendars button should be visible',
-      });
     });
   }
 

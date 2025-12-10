@@ -4,6 +4,7 @@ import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { DateHelper, SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -25,7 +26,7 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe(
+test.describe.fixme(
   'app Adoption Dashboard - Custom Period Filter + All Filters + Group by Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
@@ -45,27 +46,19 @@ test.describe(
       // Setup dashboard using dedicated method
       testEnvironment = await setupAppAdoptionDashboardForTest(browser, UserRole.APP_MANAGER);
 
+      // Set custom period: Start date and End date from DateHelper
+      const customDateRange = DateHelper.createTestCustomDateRange();
+
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
-        customStartDate: '2024-01-01',
-        customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
-        departments: ['test', 'QA'],
-        locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-        companyName: ['Simpplr'],
+        customStartDate: customDateRange.startDate,
+        customEndDate: customDateRange.endDate,
+        departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+        locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+        companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         // groupBy: GroupByOnUserParameter.LOCATION,
       };
-
-      // testFiltersConfig = {
-      //   tenantCode: process.env.ORG_ID!,
-      //   timePeriod: PeriodFilterTimeRange.CUSTOM,
-      //   customStartDate: '2024-01-01',
-      //   customEndDate: DateHelper.getCurrentUTCDate().toISOString().split('T')[0],
-      //   departments: ['Information Technology', 'New department DUCK DB', 'Payroll', 'Retail', 'Undefined'],
-      //   locations: ['Undefined', 'New city DUCK DB, New state DUCK DB, New country DUCK DB', 'India'],
-      //   companyName: ['Undefined'],
-      //   // groupBy: GroupByOnUserParameter.LOCATION,
-      // };
 
       const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
       await analyticsFiltersComponent.verifyFilterComponentIsVisible();

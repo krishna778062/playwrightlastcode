@@ -1,5 +1,6 @@
 import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
 import { TestCaseType } from '@data-engineering/constants/testCaseType';
+import { TEST_FILTER_VALUES } from '@data-engineering/constants/testFilterValues';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -48,9 +49,9 @@ test.describe(
       testFiltersConfig = {
         tenantCode: process.env.ORG_ID!,
         timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
-        segments: ['New segment DUCK DB'],
-        departments: ['New department DUCK DB'],
-        locations: ['New city DUCK DB, New state DUCK DB, New country DUCK DB'],
+        segments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.SEGMENTS],
+        departments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.DEPARTMENTS],
+        locations: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.LOCATIONS],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.socialInteractionDashboard;

@@ -15,6 +15,8 @@ export interface IActions {
   clickOnFirstContentButton: () => Promise<void>;
   clickOnSelectActionDropdown: () => Promise<void>;
   clickOnUnpublishButton: () => Promise<void>;
+  clickOnUnpublishButtonFromDropDown: () => Promise<void>;
+  selectUnpublishButtonFromBulkActions: () => Promise<void>;
   clickOnApplyButton: () => Promise<void>;
   clickOnPublishButton: () => Promise<void>;
   clickFilterButton: () => Promise<void>;
@@ -41,12 +43,14 @@ export interface IActions {
   verifyContentDetailsVisibility: (pageName: string) => Promise<void>;
   selectTheStatusFilter: (status: string) => Promise<void>;
   clickOnSelectAllButton: () => Promise<void>;
+  selectContentByNumberOfItems: (numberOfItems: number) => Promise<void>;
   applyButtonShouldBeDisabled: () => Promise<void>;
   selectEditedNewestOption: () => Promise<void>;
   selectEditedOldestOption: () => Promise<void>;
   clickShowMoreButton: () => Promise<void>;
   selectPageOption: () => Promise<void>;
   verifyTagVisibleInManageContent: (tag: ManageContentTags) => Promise<void>;
+  clickOnValidationViewAllButton: () => Promise<void>;
   clickOnMoveButton: () => Promise<void>;
   selectMoveApplyButton: () => Promise<void>;
   moveContentSearchBar: (siteName: string) => Promise<void>;
@@ -63,7 +67,6 @@ export interface IActions {
   clickDeleteModalConfirmButton: () => Promise<void>;
   clickSiteSearchBar: (siteName: string) => Promise<void>;
   selectSiteSearchBarOption: () => Promise<void>;
-  selectCreateNewestPublishedOption: () => Promise<void>;
   getAllContentNames: () => Promise<string[]>;
   verifyAddToCampaignOptionShouldNotBeVisibleInManageContent: () => Promise<void>;
   clickOnContentEditButton: () => Promise<void>;
@@ -90,6 +93,7 @@ export interface IAssertions {
   scheduledTagVisibleInManageContent: () => Promise<void>;
   verifyManageContentListItemCount: (expectedCount: number) => Promise<void>;
   checkValidateOptionInBulkActions: () => Promise<void>;
+  verifyValidationRequiredIsVisible: () => Promise<void>;
   verifyAlreadySelectedOnboardingOptionVisible: (option: TagOption) => Promise<void>;
   verifyTagIsVisibleOnContent: (option: TagOption) => Promise<void>;
   verifyTagShouldNotBeVisibleOnContent: (option: TagOption) => Promise<void>;
@@ -103,14 +107,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
-  static actions: any;
-
-  // Expose locators for unified verification
   readonly editButton: Locator;
   readonly deleteButton: Locator;
   readonly unpublishButton: Locator;
   readonly publishButton: Locator;
   readonly moveButton: Locator;
+  static actions: any;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
@@ -169,9 +171,15 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnSelectActionDropdown(): Promise<void> {
     await this.manageContentComponent.selectActionDropdown();
   }
+  async selectUnpublishButtonFromBulkActions(): Promise<void> {
+    await this.manageContentComponent.selectUnpublishButtonFromBulkActions();
+  }
 
   async clickOnUnpublishButton(): Promise<void> {
     await this.manageContentComponent.selectUnpublishButton();
+  }
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await this.manageContentComponent.clickOnUnpublishButtonFromDropDown();
   }
 
   async clickOnApplyButton(): Promise<void> {
@@ -211,6 +219,9 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
 
   async clickOnSelectAllButton(): Promise<void> {
     await this.manageContentComponent.selectSelectAllButton();
+  }
+  async selectContentByNumberOfItems(numberOfItems: number): Promise<void> {
+    await this.manageContentComponent.selectContentByNumberOfItems(numberOfItems);
   }
   async verifyTagIsVisibleOnContentUnderFavoritesTab(option: TagOption): Promise<void> {
     await this.manageContentComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(option);
@@ -256,9 +267,7 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async selectCreatedNewestOption(): Promise<void> {
     await this.manageContentComponent.selectCreatedNewestOption();
   }
-  async selectCreateNewestPublishedOption(): Promise<void> {
-    await this.manageContentComponent.selectCreateNewestPublishedOptionByText();
-  }
+
   async selectTheStatusFilter(status: string): Promise<void> {
     await this.manageContentComponent.selectTheStatusFilter(status);
   }
@@ -357,13 +366,10 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async checkValidateOptionInBulkActions(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
-    console.log('clicking on checkbox');
     await this.clickOnElement(this.clickOnBulkOptions);
-    console.log('clicking on bulk options');
     await this.verifier.verifyTheElementIsVisible(this.validateOption, {
       assertionMessage: 'Validate option should be visible in bulk actions',
     });
-    console.log('validate option should be visible in bulk actions');
   }
   async openContentDetailsPage(): Promise<void> {
     await this.clickOnElement(this.clickingOnCheckbox);
@@ -446,6 +452,18 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   async clickOnOnboardingOption(): Promise<void> {
     await this.manageContentComponent.clickOnOnboardingOption();
   }
+
+  async verifyDraftTagVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+  }
+
+  async verifyEditOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+  }
+  async verifyDeleteOptionVisibleInManageContent(): Promise<void> {
+    await this.manageContentComponent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+  }
+
   async clickOnContentEditButton(): Promise<void> {
     await this.manageContentComponent.clickOnContentEditButton();
   }
@@ -460,6 +478,12 @@ export class ManageContentPage extends BasePage implements IActions, IAssertions
   }
   async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreSelected(expectedCount);
+  }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await this.manageContentComponent.verifyValidationRequiredIsVisible();
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await this.manageContentComponent.clickOnValidationViewAllButton();
   }
   async verifyAllContentsAreDeleted(deletedContentNames: string[]): Promise<void> {
     await this.manageContentComponent.verifyAllContentsAreDeleted(deletedContentNames);

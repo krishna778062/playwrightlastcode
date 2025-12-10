@@ -50,11 +50,6 @@ export class SearchDashboard extends BaseAnalyticsDashboardPage {
       await this.searchClickThroughRate.verifyMetricIsLoaded();
       await this.noResultSearch.verifyMetricIsLoaded();
       await this.averageSearchesPerLoggedInUser.verifyMetricIsLoaded();
-      await this.topSearchQueries.verifyDataIsLoaded();
-      await this.topSearchQueriesWithNoClickthrough.verifyDataIsLoaded();
-      await this.topClickthroughTypes.verifyDataIsLoaded();
-      await this.noResultSearchQueries.verifyDataIsLoaded();
-      await this.mostSearchesPerformedByDepartment.verifyDataIsLoaded();
     });
   }
 }

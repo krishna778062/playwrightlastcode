@@ -1,4 +1,4 @@
-import { CustomAppsListComponent } from '@integrations-components/customAppsListComponent';
+import { CustomAppsComponent } from '@integrations-components/customAppsComponent';
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -75,12 +75,15 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   readonly disconnectButtons: Locator;
   readonly connectButtons: Locator;
   readonly acceptButton: Locator;
-  readonly customAppsListComponent: CustomAppsListComponent;
+  readonly customAppsComponent: CustomAppsComponent;
   readonly connectConfluenceButton: Locator;
   readonly serviceNowUserName: Locator;
   readonly serviceNowPassword: Locator;
   readonly serviceNowLoginButton: Locator;
   readonly allowAccessButton: Locator;
+  readonly auth0UsernameInput: Locator;
+  readonly auth0PasswordInput: Locator;
+  readonly auth0ContinueButton: Locator;
   private cachedUserId?: string;
 
   constructor(page: Page) {
@@ -96,13 +99,16 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
     this.connectedStatusIndicators = page.locator('ConnectedServices-module');
     this.disconnectButtons = page.locator('button[aria-label*="Disconnect"]');
     this.connectButtons = page.locator('button[aria-label*="Connect"]');
-    this.customAppsListComponent = new CustomAppsListComponent(page);
+    this.customAppsComponent = new CustomAppsComponent(page);
     this.acceptButton = page.locator('button[type="submit"]');
     this.connectConfluenceButton = page.locator('button[aria-label="Connect your Atlassian Confluence account"]');
     this.serviceNowUserName = page.locator('#user_name');
     this.serviceNowPassword = page.locator('#user_password');
     this.serviceNowLoginButton = page.locator('[id="sysverb_login"]');
     this.allowAccessButton = page.locator('[name="oauth_auth_check_action"]').nth(1);
+    this.auth0UsernameInput = page.locator('input[name="username"], input[type="email"]').first();
+    this.auth0PasswordInput = page.locator('input[name="password"], input[type="password"]').first();
+    this.auth0ContinueButton = page.locator('button[type="submit"], button:has-text("Continue")').first();
   }
 
   get actions(): IExternalAppsActions {
@@ -118,6 +124,20 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
    */
   getExternalIntegrationItem(provider: ExternalAppProvider): Locator {
     return this.page.locator(`xpath=//*[text()="${provider}"]`);
+  }
+
+  /**
+   * Get custom app element locator by app name
+   */
+  getCustomAppElement(appName: string): Locator {
+    return this.page.locator(`xpath=//*[text()="${appName}"]`);
+  }
+
+  /**
+   * Get custom app button locator (Connect/Disconnect account)
+   */
+  getCustomAppButton(appName: string, buttonText: string): Locator {
+    return this.page.locator(`li:has(h3:has-text("${appName}")) button:has-text("${buttonText}")`);
   }
 
   /**
@@ -160,7 +180,7 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   }
 
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
-    return this.customAppsListComponent.verifyToastMessageIsVisibleWithText(message);
+    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   /**
@@ -205,6 +225,93 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
       await this.verifier.verifyTheElementIsVisible(connectButton, {
         timeout: 5_000,
         assertionMessage: `Verifying that ${provider} has connect button`,
+      });
+    });
+  }
+
+  /**
+   * Verify a custom app is visible in External Apps page
+   * @param appName - The name of the custom app
+   */
+  async verifyCustomAppIsVisible(appName: string): Promise<void> {
+    await test.step(`Verify custom app "${appName}" is visible in External Apps`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getCustomAppElement(appName), {
+        timeout: 10_000,
+        assertionMessage: `Verifying that custom app "${appName}" is visible in External Apps page`,
+      });
+    });
+  }
+
+  /**
+   * Verify text is displayed on the page
+   * @param text - The text to verify
+   */
+  async verifyTextIsDisplayed(text: string): Promise<void> {
+    await test.step(`Verify text "${text}" is displayed`, async () => {
+      const textElement = this.page.locator(`text=${text}`).first();
+      await this.verifier.verifyTheElementIsVisible(textElement, {
+        timeout: 10_000,
+        assertionMessage: `Verifying that text "${text}" is visible on the page`,
+      });
+    });
+  }
+
+  /**
+   * Click Connect account button for a custom app
+   * @param appName - The name of the custom app
+   */
+  async clickConnectAccountForCustomApp(appName: string): Promise<void> {
+    await test.step(`Click Connect account for custom app "${appName}"`, async () => {
+      const connectButton = this.getCustomAppButton(appName, 'Connect account');
+      await connectButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await connectButton.click();
+    });
+  }
+
+  /**
+   * Click Disconnect account button for a custom app
+   * @param appName - The name of the custom app
+   */
+  async clickDisconnectAccountForCustomApp(appName: string): Promise<void> {
+    await test.step(`Click Disconnect account for custom app "${appName}"`, async () => {
+      const disconnectButton = this.getCustomAppButton(appName, 'Disconnect account');
+      await disconnectButton.waitFor({ state: 'visible', timeout: 10_000 });
+      await disconnectButton.click();
+    });
+  }
+
+  /**
+   * Connect Auth0 account with credentials
+   * @param username - The Auth0 username/email
+   * @param password - The Auth0 password
+   */
+  async connectAuth0Account(username: string, password: string): Promise<void> {
+    await test.step('Connect Auth0 account with credentials', async () => {
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
+
+      await this.auth0UsernameInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.auth0UsernameInput.fill(username);
+
+      await this.auth0PasswordInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.auth0PasswordInput.fill(password);
+
+      await this.auth0ContinueButton.waitFor({ state: 'visible', timeout: 5_000 });
+      await this.auth0ContinueButton.click();
+
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Verify custom app button state (Connect account or Disconnect account)
+   * @param appName - The name of the custom app
+   * @param expectedButtonText - Expected button text ('Connect account' or 'Disconnect account')
+   */
+  async verifyCustomAppButtonState(appName: string, expectedButtonText: string): Promise<void> {
+    await test.step(`Verify "${appName}" has "${expectedButtonText}" button`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getCustomAppButton(appName, expectedButtonText), {
+        timeout: 10_000,
+        assertionMessage: `Verifying that "${appName}" has "${expectedButtonText}" button`,
       });
     });
   }

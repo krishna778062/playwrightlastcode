@@ -36,6 +36,7 @@ export interface ISiteDashboardActions {
   verifyPostCreationCancelButtonVisible: () => Promise<void>;
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
+  clickOnDismissButton: () => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -66,6 +67,13 @@ export interface ISiteDashboardAssertions {
   verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
   verifyTimestampFormat: (postText: string) => Promise<void>;
   verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
+  verifyTopPicksBlockIsVisible: () => Promise<void>;
+  verifyPopularContentBlockIsVisible: () => Promise<void>;
+  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
+  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
+  verifyCelebrationBlockIsVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -73,6 +81,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
   readonly siteLink: (siteName: string) => Locator;
+  readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
   readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
   readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
@@ -81,6 +90,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.page.getByRole('button', { name: socialCampaignName }).first();
   readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
   readonly shareThoughtsButton: Locator;
+  readonly dismissButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
@@ -102,11 +112,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
-    this.feedLink = this.page.locator('a#dashboard:has-text("eed")');
+    this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
+    this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -172,7 +184,11 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async clickOnFeedLink(): Promise<void> {
     await test.step('Click on feed link', async () => {
-      await this.clickOnElement(this.feedLink);
+      if (await this.dashboardFeedLink.isVisible()) {
+        await this.clickOnElement(this.dashboardFeedLink);
+      } else {
+        await this.clickOnElement(this.feedLink);
+      }
     });
   }
 
@@ -399,6 +415,51 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await this.listFeedComponent.verifyTimestampFormat(postText);
   }
 
+  async verifyTopPicksBlockIsVisible(): Promise<void> {
+    await test.step('Verify Top picks smart block is visible on site feed', async () => {
+      const topPicksBlock = this.page.locator('section', { hasText: 'Top picks' }).first();
+      await this.verifier.verifyTheElementIsVisible(topPicksBlock, {
+        assertionMessage: 'Top picks smart block should be visible',
+      });
+    });
+  }
+
+  async verifyPopularContentBlockIsVisible(): Promise<void> {
+    await test.step('Verify Popular content smart block is visible on site feed', async () => {
+      const popularContentBlock = this.page.locator('section', { hasText: 'Popular content' }).first();
+      await this.verifier.verifyTheElementIsVisible(popularContentBlock, {
+        assertionMessage: 'Popular content smart block should be visible',
+      });
+    });
+  }
+
+  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
+    await test.step('Verify Upcoming events smart block is visible on site feed', async () => {
+      const upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming event' }).first();
+      await this.verifier.verifyTheElementIsVisible(upcomingEventsBlock, {
+        assertionMessage: 'Upcoming events smart block should be visible',
+      });
+    });
+  }
+
+  async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
+    await test.step('Verify Recently published smart block is visible on site feed', async () => {
+      const recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
+      await this.verifier.verifyTheElementIsVisible(recentlyPublishedBlock, {
+        assertionMessage: 'Recently published smart block should be visible',
+      });
+    });
+  }
+
+  async verifyCelebrationBlockIsVisible(): Promise<void> {
+    await test.step('Verify Celebration smart block is visible on site feed', async () => {
+      const celebrationBlock = this.page.locator('strong:has-text("celebration")');
+      await this.verifier.verifyTheElementIsVisible(celebrationBlock, {
+        assertionMessage: 'Celebration smart block should be visible',
+      });
+    });
+  }
+
   async verifyPostCreationCancelButtonVisible(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
   }
@@ -409,5 +470,17 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyPostCreationEditorClosed(): Promise<void> {
     await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickOnDismissButton(): Promise<void> {
+    await this.clickOnElement(this.dismissButton);
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
 }

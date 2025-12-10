@@ -94,6 +94,14 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
     VALID_RECIPIENTS: [SocialCampaignRecipient.EVERYONE, SocialCampaignRecipient.AUDIENCE],
   },
 
+  // Toast messages
+  TOAST_MESSAGES: {
+    CREATED_SUCCESSFULLY: 'Created social campaign successfully',
+    EXPIRED_SUCCESSFULLY: 'Expired social campaign successfully',
+    DELETED_SUCCESSFULLY: 'Deleted social campaign successfully',
+    SHARED_SUCCESSFULLY: 'Shared social campaign successfully',
+  },
+
   // Error messages
   ERROR_MESSAGES: {
     INVALID_URL: 'Invalid URL format',

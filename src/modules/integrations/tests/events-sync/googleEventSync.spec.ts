@@ -1022,7 +1022,12 @@ test.describe(
           throw new Error(`Event not found in Google Calendar for end user: ${eventTitle}`);
         }
 
-        await endUserCalendarHelper.rsvpToEvent('primary', endUserEventSyncResult.event.id, endUserEmail, 'accepted');
+        await endUserCalendarHelper.rsvpToEvent(
+          'primary',
+          endUserEventSyncResult.event.id,
+          'craig.gordon@simpplr.dev',
+          'accepted'
+        );
 
         // Create second browser context for end user
         const endUserContext = await browser.newContext();
@@ -1059,6 +1064,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
+        test.fail(); // Mark as expected to fail - known failure (Bug: INT-27330)
         test.setTimeout(360000);
         tagTest(test.info(), {
           isKnownFailure: true,
@@ -1169,7 +1175,6 @@ test.describe(
       }
     );
 
-    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(
       'author of the Event disconnects Google Calendar and Verify Event is removed from Google Calendar for both Author and End User and Reconnect Google Calendar and Verify Event is synced back to Google Calendar for both Author and End User',
       {
@@ -1380,14 +1385,12 @@ test.describe(
         await eventDetailPage.assertions.verifyEventTitle(eventTitle);
 
         const appManagerName: string = 'Neha Manas';
-        console.log('App manager name:', appManagerName);
 
         // Change author to app manager
         await eventDetailPage.changeEventAuthor(appManagerName);
 
         // Wait for author change to sync to Google Calendar
         await appManagerFixture.page.waitForTimeout(5000);
-        console.log('Author change to app manager completed');
 
         // Step 5: Verify author change in Google Calendar
         // Note: After author change, the event organizer in Google Calendar should be the app manager
@@ -1403,7 +1406,6 @@ test.describe(
   }
 );
 
-// eslint-disable-next-line playwright/no-skipped-test
 test.describe.skip(
   'google Calendar App Level Disconnect Tests',
   {
@@ -1639,7 +1641,6 @@ test.describe.skip(
   }
 );
 
-// eslint-disable-next-line playwright/no-skipped-test
 test.describe.skip(
   'google Calendar Domain Removal Tests',
   {
