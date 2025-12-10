@@ -476,20 +476,10 @@ test.describe(
         let replyWithImageText: string = '';
         let replyWithTextOnlyText: string = '';
         let commentPostId: string = '';
-        const image1Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         await test.step('Setup: Get site and content', async () => {
-          testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+          testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
           const contentListResponse =
             await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
@@ -500,7 +490,7 @@ test.describe(
             });
 
           if (contentListResponse.result.listOfItems.length === 0) {
-            throw new Error('No published content found in "All Employees" site.');
+            throw new Error(`No published content found in "${DEFAULT_PUBLIC_SITE_NAME}" site.`);
           }
 
           const latestContent = contentListResponse.result.listOfItems[0];
