@@ -76,6 +76,7 @@ export interface IContentPreviewPageAssertions {
   verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyContentShareButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
@@ -528,6 +529,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         assertionMessage: 'Share button should not be visible on content detail page',
       });
     });
+  }
+
+  async verifyShareIconIsVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyShareIconIsVisible(postText);
   }
 
   /**
