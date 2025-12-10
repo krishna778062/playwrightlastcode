@@ -145,6 +145,7 @@ export interface IFeedActions {
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
   closeReactionModal: () => Promise<void>;
+  clickUsernameInReactionModal: (username: string) => Promise<void>;
   fillShareDialogWithMentionsAndTopics: (params: {
     shareMessage: string;
     userNames?: string[];
@@ -157,6 +158,9 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
+  addSiteName(siteName: string): Promise<void>;
+  removeSiteMention(siteName: string): Promise<void>;
   clickOnGiveRecognition(): Promise<void>;
   hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
   hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
@@ -227,6 +231,7 @@ export interface IFeedAssertions {
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
@@ -1269,6 +1274,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyShareButtonIsNotVisible();
   }
 
+  async verifyShareIconIsVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyShareIconIsVisible(postText);
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsNotVisible();
   }
@@ -1319,6 +1328,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async closeReactionModal(): Promise<void> {
     await this.listFeedComponent.closeReactionModal();
+  }
+
+  async clickUsernameInReactionModal(username: string): Promise<void> {
+    await this.listFeedComponent.clickUsernameInReactionModal(username);
   }
 
   async clickShareIconOnPost(postText: string): Promise<void> {
@@ -1393,6 +1406,49 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void> {
+    await test.step(`Click site mention @${siteName} in post and verify navigation`, async () => {
+      // Get the post container
+      const postContainer = this.listFeedComponent.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post ${postText} should be visible`,
+      });
+
+      // Find the site mention link within the post
+      // Site mentions are rendered as links with data-type="site" and href="/site/{siteId}"
+      const siteMentionLink = postContainer.getByRole('link', { name: `@${siteName}` });
+
+      // Verify the link is visible
+      await this.verifier.verifyTheElementIsVisible(siteMentionLink, {
+        assertionMessage: `Site mention @${siteName} should be visible in post`,
+      });
+
+      // Click the site mention link
+      await this.clickOnElement(siteMentionLink);
+
+      // Verify navigation to the site page
+      await this.verifyNavigationToSite(siteId);
+    });
+  }
+
+  async verifyNavigationToSite(siteId: string): Promise<void> {
+    await test.step(`Verify navigation to site ${siteId}`, async () => {
+      // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
+      await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: TIMEOUTS.MEDIUM });
+
+      // Verify the page has loaded
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async addSiteName(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.addSiteName(siteName);
+  }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await this.createFeedPostComponent.removeSiteMention(siteName);
   }
 
   async clickOnGiveRecognition(): Promise<void> {
