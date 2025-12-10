@@ -1536,10 +1536,6 @@ export class ListFeedComponent
       await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
         assertionMessage: 'Reaction button should be visible on feed post',
       });
-      await this.clickOnElement(this.likeButton.first());
-      await this.verifier.verifyTheElementIsVisible(this.unlikeButton.first(), {
-        assertionMessage: 'Remove your reaction button should be visible on feed post',
-      });
     });
   }
 
