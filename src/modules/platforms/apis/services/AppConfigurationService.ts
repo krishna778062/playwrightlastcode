@@ -55,7 +55,7 @@ export class AppConfigurationService {
         isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
         isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
         calendarOffice365Enabled: currentConfig.result.calendarOffice365Enabled,
-        calendarOffice365Url: currentConfig.result.calendarOffice365Url,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url ?? '',
         isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
         isQuestionAnswerEnabled: currentConfig.result.isQuestionAnswerEnabled,
         isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,

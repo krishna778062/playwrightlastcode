@@ -136,6 +136,13 @@ export class ImageUploaderService implements IImageUploaderService {
    * @param siteId - The site ID
    * @returns File details including owner name
    */
+  /**
+   * Gets file details from content files API after upload with retry mechanism.
+   * Polls at intervals (10s, 20s, 30s, 40s, 50s, 60s) until file details are available.
+   * @param fileId - The file ID from upload response
+   * @param siteId - The site ID
+   * @returns File details including owner name
+   */
   private async getIntranetFileDetails(
     fileId: string,
     siteId: string
@@ -143,20 +150,20 @@ export class ImageUploaderService implements IImageUploaderService {
     fileInfo: any;
   }> {
     return await test.step(`Getting file details for fileId: ${fileId}`, async () => {
-      const payload = {
-        file_id: [
-          {
-            file_id: fileId,
-            provider: 'intranet',
-          },
-        ],
-        site_id: siteId,
-      };
-
       let fileInfo: any;
 
       await expect(
         async () => {
+          const payload = {
+            file_id: [
+              {
+                file_id: fileId,
+                provider: 'intranet',
+              },
+            ],
+            site_id: siteId,
+          };
+
           const response = await this.httpClient.post(API_ENDPOINTS.content.files, {
             data: payload,
           });
@@ -176,7 +183,7 @@ export class ImageUploaderService implements IImageUploaderService {
         {
           message: `File details for fileId ${fileId} to appear in API response`,
         }
-      ).toPass({ intervals: [30000, 50000, 70000], timeout: 80_000 });
+      ).toPass({ intervals: [20000, 45000, 70000], timeout: 80_000 });
 
       return {
         fileInfo: fileInfo,

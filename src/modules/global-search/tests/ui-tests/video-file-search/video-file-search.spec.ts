@@ -55,6 +55,11 @@ for (const fileType of testData.fileTypes) {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
+            isKnownFailure: true,
+            bugTicket: 'CONT-43091',
+            bugReportedDate: '2025-12-10',
+            knownFailurePriority: 'High',
+            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
 
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
@@ -81,6 +86,11 @@ for (const fileType of testData.fileTypes) {
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19543',
+            isKnownFailure: true,
+            bugTicket: 'CONT-43091',
+            bugReportedDate: '2025-12-10',
+            knownFailurePriority: 'High',
+            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
           // Search for the video file
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
@@ -132,6 +142,11 @@ for (const fileType of testData.fileTypes) {
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19659',
+            isKnownFailure: true,
+            bugTicket: 'CONT-43091',
+            bugReportedDate: '2025-12-10',
+            knownFailurePriority: 'High',
+            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
 
           /** Type in search input */
@@ -172,6 +187,11 @@ test.describe(
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-17761',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43091',
+          bugReportedDate: '2025-12-10',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
         });
 
         const captionSearchData = testData.captionSearch;
