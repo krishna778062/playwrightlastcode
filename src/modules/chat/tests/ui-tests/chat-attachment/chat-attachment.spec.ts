@@ -66,6 +66,30 @@ test.describe(
     );
 
     test(
+      'verify sending unsupported svg files format',
+      {
+        tag: [TestPriority.P0],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage.actions.addAttachment(
+          'src/modules/chat/test-data/static-files/unsupportedFiles/svg-viewer.svg',
+          {
+            stepInfo: `User 1 sending attachment to ${user2Name} which is not supported`,
+            isItValidFile: false,
+          }
+        );
+        await user1ChatPage.assertions.verifyUnsupportedFileTostMessageIsVisible({
+          stepInfo: `User 1 Verifying the unsupported file toast message is visible`,
+        });
+      }
+    );
+
+    test(
       'verify sending a file larger than 100 MB',
       {
         tag: [TestPriority.P0],
