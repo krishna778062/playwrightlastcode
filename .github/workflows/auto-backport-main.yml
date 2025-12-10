@@ -1,0 +1,281 @@
+name: Auto Backport from Main to Release and Develop
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  backport:
+    if: github.event.pull_request.merged == true
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Check if this is a release promotion
+        id: check
+        run: |
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          if [ "$SOURCE_BRANCH" == "release" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ This is release promotion, not hotfix - skipping backport"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ This is a hotfix - will backport to release and develop"
+          fi
+
+      - name: Set PR info
+        if: steps.check.outputs.skip == 'false'
+        id: pr_info
+        run: |
+          echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "url=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
+          echo "author=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%b %d, %Y')" >> $GITHUB_OUTPUT
+
+      - name: Check for existing sync PRs
+        if: steps.check.outputs.skip == 'false'
+        id: check_prs
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          # Check for main → release sync PR
+          RELEASE_PR=$(gh pr list \
+            --base release \
+            --head main \
+            --state open \
+            --json number,url \
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
+
+          if [ -n "$RELEASE_PR" ] && [ "$RELEASE_PR" != "null null" ]; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+            echo "release_pr_number=$(echo "$RELEASE_PR" | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+            echo "release_pr_url=$(echo "$RELEASE_PR" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+            echo "✅ Found existing main→release sync PR"
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+            echo "📝 No existing main→release sync PR"
+          fi
+
+          # Check for main → develop sync PR
+          DEVELOP_PR=$(gh pr list \
+            --base develop \
+            --head main \
+            --state open \
+            --json number,url \
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
+
+          if [ -n "$DEVELOP_PR" ] && [ "$DEVELOP_PR" != "null null" ]; then
+            echo "develop_exists=true" >> $GITHUB_OUTPUT
+            echo "develop_pr_number=$(echo "$DEVELOP_PR" | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+            echo "develop_pr_url=$(echo "$DEVELOP_PR" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+            echo "✅ Found existing main→develop sync PR"
+          else
+            echo "develop_exists=false" >> $GITHUB_OUTPUT
+            echo "📝 No existing main→develop sync PR"
+          fi
+
+      - name: Create/Update sync PR for release
+        if: steps.check.outputs.skip == 'false'
+        id: sync_release
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          git fetch origin main release
+
+          DIFF_COUNT=$(git rev-list --count origin/release..origin/main)
+
+          if [ "$DIFF_COUNT" -eq 0 ]; then
+            echo "⏭️ No differences between main and release"
+            echo "pr_url=${{ steps.check_prs.outputs.release_pr_url }}" >> $GITHUB_OUTPUT
+            echo "pr_number=${{ steps.check_prs.outputs.release_pr_number }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PR_NUMBER="${{ steps.pr_info.outputs.number }}"
+          PR_TITLE="${{ steps.pr_info.outputs.title }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+          PR_AUTHOR="${{ steps.pr_info.outputs.author }}"
+          CURRENT_DATE="${{ steps.pr_info.outputs.date }}"
+
+          if [ "${{ steps.check_prs.outputs.release_exists }}" == "true" ]; then
+            # Update existing PR body
+            SYNC_PR_NUMBER="${{ steps.check_prs.outputs.release_pr_number }}"
+            
+            CURRENT_BODY=$(gh pr view $SYNC_PR_NUMBER --json body --jq '.body')
+            NEW_ROW="| [#${PR_NUMBER}](${PR_URL}) | ${PR_TITLE} | @${PR_AUTHOR} | ${CURRENT_DATE} |"
+            
+            UPDATED_BODY=$(echo "$CURRENT_BODY" | awk -v new_row="$NEW_ROW" '
+              /^\|-+\|-+\|-+\|-+\|$/ { print; print new_row; next }
+              { print }
+            ')
+            
+            gh pr edit $SYNC_PR_NUMBER --body "$UPDATED_BODY"
+            
+            COMMENT_BODY=$(cat <<EOF
+          ### 🚨 Hotfix Added
+
+          **From PR:** [#${PR_NUMBER} - ${PR_TITLE}](${PR_URL})
+          **Author:** @${PR_AUTHOR}
+
+          _The PR description has been updated with this hotfix._
+          EOF
+            )
+            gh pr comment $SYNC_PR_NUMBER --body "$COMMENT_BODY"
+
+            echo "pr_url=${{ steps.check_prs.outputs.release_pr_url }}" >> $GITHUB_OUTPUT
+            echo "pr_number=$SYNC_PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "is_new=false" >> $GITHUB_OUTPUT
+          else
+            # Create new sync PR body
+            PR_BODY=$(cat <<EOF
+          ## 🚨 Sync: main → release
+
+          This PR syncs production hotfixes from \`main\` back to \`release\`.
+
+          ### 📋 Hotfixes Included:
+
+          | PR | Title | Author | Added |
+          |----|-------|--------|-------|
+          | [#${PR_NUMBER}](${PR_URL}) | ${PR_TITLE} | @${PR_AUTHOR} | ${CURRENT_DATE} |
+
+          ### Why this exists:
+          - Hotfixes are merged directly to \`main\` (production)
+          - This PR ensures \`release\` stays in sync with production
+
+          ⚠️ **Important:** Merge this PR to keep release branch in sync with production.
+          EOF
+            )
+
+            SYNC_PR_URL=$(gh pr create \
+              --base release \
+              --head main \
+              --title "🚨 Sync: main → release (Production Hotfixes)" \
+              --body "$PR_BODY")
+
+            SYNC_PR_NUMBER=$(echo "$SYNC_PR_URL" | grep -oP '\d+$')
+            echo "pr_url=$SYNC_PR_URL" >> $GITHUB_OUTPUT
+            echo "pr_number=$SYNC_PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "is_new=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create/Update sync PR for develop
+        if: steps.check.outputs.skip == 'false'
+        id: sync_develop
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          git fetch origin main develop
+
+          DIFF_COUNT=$(git rev-list --count origin/develop..origin/main)
+
+          if [ "$DIFF_COUNT" -eq 0 ]; then
+            echo "⏭️ No differences between main and develop"
+            echo "pr_url=${{ steps.check_prs.outputs.develop_pr_url }}" >> $GITHUB_OUTPUT
+            echo "pr_number=${{ steps.check_prs.outputs.develop_pr_number }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PR_NUMBER="${{ steps.pr_info.outputs.number }}"
+          PR_TITLE="${{ steps.pr_info.outputs.title }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+          PR_AUTHOR="${{ steps.pr_info.outputs.author }}"
+          CURRENT_DATE="${{ steps.pr_info.outputs.date }}"
+
+          if [ "${{ steps.check_prs.outputs.develop_exists }}" == "true" ]; then
+            # Update existing PR body
+            SYNC_PR_NUMBER="${{ steps.check_prs.outputs.develop_pr_number }}"
+            
+            CURRENT_BODY=$(gh pr view $SYNC_PR_NUMBER --json body --jq '.body')
+            NEW_ROW="| [#${PR_NUMBER}](${PR_URL}) | ${PR_TITLE} | @${PR_AUTHOR} | ${CURRENT_DATE} |"
+            
+            UPDATED_BODY=$(echo "$CURRENT_BODY" | awk -v new_row="$NEW_ROW" '
+              /^\|-+\|-+\|-+\|-+\|$/ { print; print new_row; next }
+              { print }
+            ')
+            
+            gh pr edit $SYNC_PR_NUMBER --body "$UPDATED_BODY"
+            
+            COMMENT_BODY=$(cat <<EOF
+          ### 🚨 Hotfix Added
+
+          **From PR:** [#${PR_NUMBER} - ${PR_TITLE}](${PR_URL})
+          **Author:** @${PR_AUTHOR}
+
+          _The PR description has been updated with this hotfix._
+          EOF
+            )
+            gh pr comment $SYNC_PR_NUMBER --body "$COMMENT_BODY"
+
+            echo "pr_url=${{ steps.check_prs.outputs.develop_pr_url }}" >> $GITHUB_OUTPUT
+            echo "pr_number=$SYNC_PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "is_new=false" >> $GITHUB_OUTPUT
+          else
+            # Create new sync PR body
+            PR_BODY=$(cat <<EOF
+          ## 🚨 Sync: main → develop
+
+          This PR syncs production hotfixes from \`main\` back to \`develop\`.
+
+          ### 📋 Hotfixes Included:
+
+          | PR | Title | Author | Added |
+          |----|-------|--------|-------|
+          | [#${PR_NUMBER}](${PR_URL}) | ${PR_TITLE} | @${PR_AUTHOR} | ${CURRENT_DATE} |
+
+          ### Why this exists:
+          - Hotfixes are merged directly to \`main\` (production)
+          - This PR ensures \`develop\` stays in sync with production
+
+          ⚠️ **Important:** Merge this PR to keep develop branch in sync with production.
+          EOF
+            )
+
+            SYNC_PR_URL=$(gh pr create \
+              --base develop \
+              --head main \
+              --title "🚨 Sync: main → develop (Production Hotfixes)" \
+              --body "$PR_BODY")
+
+            SYNC_PR_NUMBER=$(echo "$SYNC_PR_URL" | grep -oP '\d+$')
+            echo "pr_url=$SYNC_PR_URL" >> $GITHUB_OUTPUT
+            echo "pr_number=$SYNC_PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "is_new=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          PR_NUMBER="${{ steps.pr_info.outputs.number }}"
+          PR_TITLE="${{ steps.pr_info.outputs.title }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+
+          RELEASE_PR_URL="${{ steps.sync_release.outputs.pr_url }}"
+          RELEASE_PR_NUMBER="${{ steps.sync_release.outputs.pr_number }}"
+
+          DEVELOP_PR_URL="${{ steps.sync_develop.outputs.pr_url }}"
+          DEVELOP_PR_NUMBER="${{ steps.sync_develop.outputs.pr_number }}"
+
+          # Build sync PR links
+          SYNC_LINKS=""
+          if [ -n "$RELEASE_PR_URL" ]; then
+            SYNC_LINKS="${SYNC_LINKS}\n  • <${RELEASE_PR_URL}|[main → release] #${RELEASE_PR_NUMBER}>"
+          fi
+          if [ -n "$DEVELOP_PR_URL" ]; then
+            SYNC_LINKS="${SYNC_LINKS}\n  • <${DEVELOP_PR_URL}|[main → develop] #${DEVELOP_PR_NUMBER}>"
+          fi
+
+          MESSAGE="🚨 *Production Hotfix Backport*\n\n*Hotfix PR:* <${PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n\n*Sync PRs updated:*${SYNC_LINKS}\n\n_Please review and merge sync PRs to keep branches in sync with production._"
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
