@@ -27,7 +27,6 @@ jobs:
             content,
             de,
             reward,
-            reward-settings,
             recognition,
             only-peer-to-peer,
             content-abac,
