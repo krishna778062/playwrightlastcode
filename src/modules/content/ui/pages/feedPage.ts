@@ -58,6 +58,7 @@ export interface IFeedActions {
   clickOnInfoIconOnImage: () => Promise<void>;
   clickOnEditVersionButton: () => Promise<void>;
   openReplyEditorForPost: (postText: string) => Promise<void>;
+  clickReplyOnContentComment: (commentText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
@@ -205,9 +206,14 @@ export interface IFeedAssertions {
   verifyFeedSectionIsVisible: () => Promise<void>;
   verifyFeedSectionIsNotVisible: () => Promise<void>;
   verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
+  verifyUserDisplayedInCelebrationBlock: (userName: string) => Promise<void>;
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
   verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
+  verifyTopPicksBlockIsVisible: () => Promise<void>;
+  verifyPopularContentBlockIsVisible: () => Promise<void>;
+  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
+  verifyCelebrationBlockIsVisible: () => Promise<void>;
   verifyEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyEventNotInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
@@ -240,6 +246,7 @@ export interface IFeedAssertions {
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyCommentIconIsVisible: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
@@ -275,13 +282,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
   readonly celebrityFeedBlocks: Locator;
+  readonly celebrationBlockUserName: (userName: string) => Locator;
   readonly newHireFeedBlocks: Locator;
   readonly recentlyPublishedBlock: Locator;
   readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
+  readonly topPicksBlock: Locator;
+  readonly popularContentBlock: Locator;
   readonly upcomingEventsBlock: Locator;
+  readonly celebrationBlock: Locator;
   readonly upcomingEventsBlockText: (eventTitle: string) => Locator;
   readonly upcomingEventsContentItem: (eventTitle: string) => Locator;
   readonly commentIcon: Locator;
+  readonly allCommentsIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
 
@@ -309,9 +321,15 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming event' }).first();
     this.upcomingEventsContentItem = (eventTitle: string) =>
       this.upcomingEventsBlock.filter({ hasText: eventTitle }).first();
+    this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
+    this.allCommentsIcon = this.page.getByRole('link', { name: 'All comments' });
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
+    this.celebrationBlockUserName = (userName: string) =>
+      this.page.locator('div').filter({ hasText: `Birthday${userName}` });
   }
 
   get actions(): IFeedActions {
@@ -538,6 +556,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async openReplyEditorForPost(postText: string): Promise<void> {
     await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async clickReplyOnContentComment(commentText: string): Promise<void> {
+    await this.listFeedComponent.clickReplyOnContentComment(commentText);
   }
 
   async verifyReplyIsVisible(replyText: string): Promise<void> {
@@ -815,6 +837,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
+  async verifyUserDisplayedInCelebrationBlock(userName: string): Promise<void> {
+    await test.step(`Verify user "${userName}" is displayed in Celebration smart feed block`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.celebrityFeedBlocks, {
+        assertionMessage: 'Celebration smart feed block should be visible',
+      });
+
+      // Verify the user name link is visible within the celebration block
+      const userNameLink = this.celebrationBlockUserName(userName);
+      await this.verifier.verifyTheElementIsVisible(userNameLink.nth(1), {
+        assertionMessage: `User "${userName}" should be visible in Celebration smart feed block`,
+      });
+    });
+  }
+
   async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
     await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
   }
@@ -846,6 +882,38 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifier.verifyTheElementIsNotVisible(contentItem, {
         assertionMessage: `Content "${contentTitle}" should NOT be visible in Recently Published block`,
         timeout: 5000,
+      });
+    });
+  }
+
+  async verifyTopPicksBlockIsVisible(): Promise<void> {
+    await test.step('Verify Top picks smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.topPicksBlock, {
+        assertionMessage: 'Top picks smart block should be visible',
+      });
+    });
+  }
+
+  async verifyPopularContentBlockIsVisible(): Promise<void> {
+    await test.step('Verify Popular content smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.popularContentBlock, {
+        assertionMessage: 'Popular content smart block should be visible',
+      });
+    });
+  }
+
+  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
+    await test.step('Verify Upcoming events smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
+        assertionMessage: 'Upcoming events smart block should be visible',
+      });
+    });
+  }
+
+  async verifyCelebrationBlockIsVisible(): Promise<void> {
+    await test.step('Verify Celebration smart block is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.celebrationBlock, {
+        assertionMessage: 'Celebration smart block should be visible',
       });
     });
   }
@@ -1368,6 +1436,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyCommentIconIsVisible(): Promise<void> {
+    await test.step('Verify Comment icon is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.allCommentsIcon.first(), {
+        assertionMessage: 'Comment icon should be visible',
+      });
+    });
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
