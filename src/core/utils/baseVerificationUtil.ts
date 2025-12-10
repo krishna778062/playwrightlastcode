@@ -44,6 +44,24 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
+        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+      });
+      return true;
+    } catch {
+      //if we want we can take screenshot here
+      return false;
+    }
+  }
+
+  async isTheElementVisibleWithLessTimeout(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
         timeout: options?.timeout || TIMEOUTS.VERY_SHORT,
       });
       return true;

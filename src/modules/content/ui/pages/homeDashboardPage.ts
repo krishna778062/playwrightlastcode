@@ -74,7 +74,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
-      const isEditButtonVisible = await this.verifier.isTheElementVisible(this.editDashboardButton);
+      const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);
 
       if (isEditButtonVisible) {
         await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
