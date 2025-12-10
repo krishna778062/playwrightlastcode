@@ -15,6 +15,7 @@ import {
   buildFeedTextWithSiteMentions,
   buildFeedTextWithUserMentions,
 } from '@/src/modules/content/apis/services/FeedManagementService';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   '@FeedAPI',
@@ -22,23 +23,27 @@ test.describe(
     tag: [ContentTestSuite.API],
   },
   () => {
+    let feedApiHelper: FeedApiHelper;
+
     test.beforeEach(async ({ appManagerApiFixture }) => {
-      //Enable feed mode
-      await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
-        feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
-      });
+      //Initialize feedApiHelper
+      feedApiHelper = new FeedApiHelper();
+      //Enable feed mode - Skip in production environments as governance changes are restricted
+      const currentEnv = process.env.TEST_ENV;
+      if (currentEnv !== 'prodUS' && currentEnv !== 'prodEU') {
+        await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
+        });
+      } else {
+        log.info(`Skipping governance configuration for production environment: ${currentEnv}`);
+      }
     });
-    test.afterEach(async ({ appManagerApiFixture, standardUserApiFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup if needed
       try {
         await appManagerApiFixture.feedManagementHelper.cleanup();
       } catch (error) {
-        log.warn('Feed cleanup failed', error);
-      }
-      try {
-        await standardUserApiFixture.feedManagementHelper.cleanup();
-      } catch (error) {
-        log.warn('Feed cleanup failed', error);
+        log.warn('App manager feed cleanup failed', error);
       }
     });
 
@@ -69,7 +74,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
@@ -105,7 +109,6 @@ test.describe(
         const feedResponse = await standardUserApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
@@ -145,9 +148,10 @@ test.describe(
         // Get a public site for site mention (optional)
         let siteMention;
         try {
-          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-          if (publicSite) {
-            siteMention = { id: publicSite.siteId, label: publicSite.name };
+          const publicSiteId =
+            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          if (publicSiteId) {
+            siteMention = { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME };
           }
         } catch (error) {
           log.warn('Could not get public site for mention', error);
@@ -198,7 +202,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
@@ -243,9 +246,10 @@ test.describe(
         // Get a public site for site mention (optional)
         let siteMention;
         try {
-          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-          if (publicSite) {
-            siteMention = { id: publicSite.siteId, label: publicSite.name };
+          const publicSiteId =
+            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          if (publicSiteId) {
+            siteMention = { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME };
           }
         } catch (error) {
           log.warn('Could not get public site for mention', error);
@@ -296,7 +300,6 @@ test.describe(
         const feedResponse = await standardUserApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseCreatedAt(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
@@ -340,7 +343,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
@@ -394,7 +396,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
 
@@ -450,7 +451,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
@@ -533,7 +533,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
@@ -589,7 +588,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -641,8 +639,9 @@ test.describe(
         });
 
         // Get public site for mention
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available for mention');
         }
 
@@ -650,7 +649,7 @@ test.describe(
         const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
           scope: 'public',
           baseText: 'Test feed with site mention',
-          siteMention: { id: publicSite.siteId, label: publicSite.name },
+          siteMention: { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME },
           siteId: null,
         });
 
@@ -661,20 +660,20 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseMentions(feedResponse);
 
         // Get public site for mention
-        const updateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!updateSite) {
+        const updateSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!updateSiteId) {
           throw new Error('No public site available for mention');
         }
 
         // Build update payload with site mentions
         const { textJson, textHtml } = buildFeedTextWithSiteMentions('', [
-          { id: updateSite.siteId, label: updateSite.name },
+          { id: updateSiteId, label: DEFAULT_PUBLIC_SITE_NAME },
         ]);
         const updatedFeedResult = await appManagerApiFixture.feedManagementHelper.updateFeed(
           feedResponse.result?.feedId,
@@ -688,7 +687,7 @@ test.describe(
 
         // Validate the update response contains site mentions
         await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, [
-          { id: updateSite.siteId, label: updateSite.name },
+          { id: updateSiteId, label: DEFAULT_PUBLIC_SITE_NAME },
         ]);
         await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
@@ -721,7 +720,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseLinks(feedResponse);
@@ -777,7 +775,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         // HTML should be escaped in the response
@@ -816,8 +813,9 @@ test.describe(
 
         // Get user and site info for mentions
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available for mention');
         }
         const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
@@ -828,7 +826,7 @@ test.describe(
           scope: 'public',
           baseText: 'Hello World',
           emoji: { name: 'grin', emoji: '😀' },
-          siteMention: { id: publicSite.siteId, label: publicSite.name },
+          siteMention: { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME },
           userMention: { id: userInfo.userId, label: userInfo.fullName },
           topics:
             availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
@@ -845,7 +843,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -925,7 +922,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseFiles(feedResponse);
@@ -978,15 +974,16 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
         // Generate feed test data for site
         const feedTestData = TestDataGenerator.generateFeed({
           scope: 'site',
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
           withAttachment: false,
           waitForSearchIndex: false,
         });
@@ -998,11 +995,10 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Text Feed on Public Site Dashboard
         const updatedText = 'Updated text feed on public site';
@@ -1014,7 +1010,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -1057,7 +1053,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
@@ -1116,7 +1111,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, feedTestData.text);
@@ -1155,8 +1149,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -1164,7 +1159,7 @@ test.describe(
         const specialCharsText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
         const feedTestData = TestDataGenerator.generateFeed({
           scope: 'site',
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
           withAttachment: false,
           waitForSearchIndex: false,
         });
@@ -1178,11 +1173,10 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with Special Characters on Public Site Dashboard
         const updatedText = 'Test with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?%^&* -updated';
@@ -1194,7 +1188,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -1217,8 +1211,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -1227,7 +1222,7 @@ test.describe(
           scope: 'site',
           baseText: 'Created a feed post with Emoji',
           emoji: { name: 'grin', emoji: '😀' },
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get user info for validation
@@ -1237,10 +1232,9 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with Emojis on Public Site Dashboard
         const updatedText = 'Updated feed with emoji 😅';
@@ -1252,7 +1246,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -1275,8 +1269,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -1301,7 +1296,7 @@ test.describe(
         const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
           scope: 'site',
           baseText: 'Test feed with file attachment on public site',
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
           withAttachment: true,
           fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
           fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
@@ -1316,11 +1311,10 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseFiles(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with File Attachment on Public Site Dashboard
         // Upload a new image for the update
@@ -1345,7 +1339,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: updatedFileId ? [buildAttachmentObject(updatedFileId)] : [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -1394,7 +1388,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
@@ -1456,7 +1449,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTextJson(feedResponse, specialCharsText);
@@ -1515,7 +1507,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
@@ -1573,7 +1564,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
@@ -1652,7 +1642,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseFiles(feedResponse);
@@ -1748,7 +1737,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseFiles(feedResponse);
@@ -1803,8 +1791,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -1820,7 +1809,7 @@ test.describe(
           scope: 'site',
           baseText: 'Test feed with topic on public site',
           topics: [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }],
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get user info for validation
@@ -1830,11 +1819,10 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with Topics on Public Site Dashboard
         const updatedText = 'Updated feed with topic';
@@ -1848,7 +1836,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -1871,8 +1859,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -1884,7 +1873,7 @@ test.describe(
           scope: 'site',
           baseText: 'Test feed with user mention on public site',
           userMention: { id: userInfo.userId, label: userInfo.fullName },
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get app manager info for validation
@@ -1896,7 +1885,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -1904,7 +1892,7 @@ test.describe(
           appManagerInfo.fullName
         );
         await feedApiHelper.validateFeedResponseMentions(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with User Mentions on Public Site Dashboard
         // Use the same user for update (or get app manager if different user needed)
@@ -1917,7 +1905,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponseUserMentions(updatedFeedResult, userMentions);
@@ -1940,22 +1928,23 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
         // Get another site for mention (try different access types if same access type returns same site)
         let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           // Try private site
           mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
         }
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           // Try unlisted site
           mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
         }
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           throw new Error('No additional site available for mention');
         }
 
@@ -1964,7 +1953,7 @@ test.describe(
           scope: 'site',
           baseText: 'Test feed with site mention on public site',
           siteMention: { id: mentionedSite.siteId, label: mentionedSite.name },
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get app manager info for validation
@@ -1976,7 +1965,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -1984,7 +1972,7 @@ test.describe(
           appManagerInfo.fullName
         );
         await feedApiHelper.validateFeedResponseMentions(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with Site Mentions on Public Site Dashboard
         const siteMentions = [{ id: mentionedSite.siteId, label: mentionedSite.name }];
@@ -1996,7 +1984,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponseSiteMentions(updatedFeedResult, siteMentions);
@@ -2019,8 +2007,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -2029,7 +2018,7 @@ test.describe(
           scope: 'site',
           baseText: 'Test feed with embedded URL on public site',
           linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get user info for validation
@@ -2039,11 +2028,10 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseLinks(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Feed with Embedded URL on Public Site Dashboard
         const updatedText = 'Updated feed with embedded URL';
@@ -2055,7 +2043,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -2078,8 +2066,9 @@ test.describe(
         });
 
         // Get or create a public site
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!publicSite) {
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
           throw new Error('No public site available');
         }
 
@@ -2087,15 +2076,15 @@ test.describe(
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         // Get another site for mention (try different access types if same access type returns same site)
         let mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           // Try private site
           mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
         }
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           // Try unlisted site
           mentionedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
         }
-        if (!mentionedSite || mentionedSite.siteId === publicSite.siteId) {
+        if (!mentionedSite || mentionedSite.siteId === publicSiteId) {
           throw new Error('No additional site available for mention');
         }
         const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
@@ -2111,7 +2100,7 @@ test.describe(
           topics:
             availableTopics.length > 0 ? [{ id: availableTopics[0].topic_id, label: availableTopics[0].name }] : [],
           linkUrl: FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL,
-          siteId: publicSite.siteId,
+          siteId: publicSiteId,
         });
 
         // Get app manager info for validation
@@ -2123,7 +2112,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2135,7 +2123,7 @@ test.describe(
           await feedApiHelper.validateFeedResponseTopics(feedResponse);
         }
         await feedApiHelper.validateFeedResponseLinks(feedResponse);
-        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSite.siteId);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
 
         //Edit Delete Combination Feed on Public Site Dashboard
         const updatedText = 'Hello Nation';
@@ -2147,7 +2135,7 @@ test.describe(
             textHtml,
             listOfAttachedFiles: [],
             ignoreToxic: false,
-            siteId: publicSite.siteId,
+            siteId: publicSiteId,
           }
         );
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
@@ -2197,7 +2185,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
@@ -2265,7 +2252,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
@@ -2331,7 +2317,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2399,7 +2384,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2478,7 +2462,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2557,7 +2540,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2620,7 +2602,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseLinks(feedResponse);
@@ -2679,7 +2660,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseLinks(feedResponse);
@@ -2763,7 +2743,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2855,7 +2834,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -2925,7 +2903,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
         await feedApiHelper.validateFeedResponseTopics(feedResponse);
@@ -2986,7 +2963,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -3030,9 +3006,9 @@ test.describe(
         });
 
         // Get sites for mentions
-        const site1 = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('public');
+        const site1Id = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
         const site2 = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
-        if (!site1 || !site2) {
+        if (!site1Id || !site2) {
           throw new Error('At least 2 sites required for this test');
         }
 
@@ -3040,7 +3016,7 @@ test.describe(
         const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
           scope: 'public',
           baseText: 'Test feed with multiple site mentions',
-          siteMention: { id: site1.siteId, label: site1.name },
+          siteMention: { id: site1Id, label: DEFAULT_PUBLIC_SITE_NAME },
         });
 
         // Get app manager info for validation
@@ -3052,7 +3028,6 @@ test.describe(
         const feedResponse = await appManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
 
         // Validate the Feed response
-        const feedApiHelper = new FeedApiHelper();
         await feedApiHelper.validateFeedResponseBasic(feedResponse);
         await feedApiHelper.validateFeedResponseAuthoredBy(
           feedResponse,
@@ -3063,7 +3038,7 @@ test.describe(
 
         //Edit Delete Feed with Multiple Site Mentions on Home Dashboard
         const siteMentions = [
-          { id: site1.siteId, label: site1.name },
+          { id: site1Id, label: DEFAULT_PUBLIC_SITE_NAME },
           { id: site2.siteId, label: site2.name },
         ];
         const { textJson, textHtml } = buildFeedReplyText('', { siteMentions });
@@ -3080,6 +3055,59 @@ test.describe(
 
         //Delete Feed with Multiple Site Mentions on Home Dashboard
         await appManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'app Manager should fail to create blank Feed Post on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42983'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed creation with blank text should fail',
+          zephyrTestId: 'CONT-42983',
+          storyId: 'CONT-42983',
+        });
+
+        // Try to create feed with empty text - should fail
+        await feedApiHelper.validateCreateBlankFeedError(async payload => {
+          return await appManagerApiFixture.feedManagementHelper.feedManagementService.createFeed(payload);
+        });
+      }
+    );
+
+    test(
+      'app Manager should fail to delete already deleted Feed Post on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-42982'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of App manager Feed deletion of already deleted feed should fail',
+          zephyrTestId: 'CONT-42982',
+          storyId: 'CONT-42982',
+        });
+
+        // Create a feed first
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'public',
+        });
+
+        const feedResponse = await appManagerApiFixture.feedManagementHelper.createFeed(feedTestData);
+        const feedId = feedResponse.result?.feedId;
+
+        if (!feedId) {
+          throw new Error('Failed to create feed for deletion test');
+        }
+
+        // Delete the feed
+        await appManagerApiFixture.feedManagementHelper.deleteFeed(feedId);
+
+        // Try to delete again - should fail
+        await feedApiHelper.validateDeleteAlreadyDeletedFeedError(async () => {
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(feedId);
+        });
       }
     );
   }

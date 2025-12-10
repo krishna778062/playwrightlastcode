@@ -1,0 +1,61 @@
+name: QA Release Regression Tests
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-stage:
+    runs-on: [kubernetes]
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      checkout_ref: ${{ steps.check.outputs.checkout_ref }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine checkout ref for QA regression tests
+        id: check
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          echo "Current stage: $CURRENT_STAGE"
+          if [ "$STAGE" == "production" ]; then
+            # Release completed - use main HEAD
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "checkout_ref=main" >> $GITHUB_OUTPUT
+            echo "✅ Production stage - will test main HEAD"
+
+          elif [ "$STAGE" == "qa" ]; then
+            # Active release - use latest QA tag
+            TAG=$(git ls-remote --tags origin | \
+                  grep -o 'refs/tags/.*-qa\.[0-9]*$' | \
+                  sort -V | tail -n1 | cut -d'/' -f3)
+            
+            if [ -z "$TAG" ]; then
+              echo "should_run=false" >> $GITHUB_OUTPUT
+              echo "⏭️ No QA tags found - skipping"
+            else
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "checkout_ref=$TAG" >> $GITHUB_OUTPUT
+              echo "✅ QA stage - will test tag: $TAG"
+            fi
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping (current stage: $STAGE)"
+          fi
+
+  regression:
+    needs: check-stage
+    if: needs.check-stage.outputs.should_run == 'true'
+    uses: ./.github/workflows/regression-template.yml
+    with:
+      environment: qa
+      git_ref: ${{ needs.check-stage.outputs.checkout_ref }}
+      slack_prefix: QA Regression
+    secrets: inherit

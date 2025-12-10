@@ -326,7 +326,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
       day: string;
     };
   }) {
-    await test.step('Selecting the from date ${customStartDate.year}-${customStartDate.month}-${customStartDate.day}', async () => {
+    await test.step(`Selecting the from date ${customStartDate.year}-${customStartDate.month}-${customStartDate.day}`, async () => {
       await this.clickOnElement(this.fromDateInput, {
         stepInfo: 'Click on from date input to open calendar picker',
       });
@@ -354,12 +354,51 @@ export class AnalyticsFiltersComponent extends BaseComponent {
       //select month (convert numeric to abbreviation)
       await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customEndDate.month));
 
+      // Wait a bit for month selection to apply
+      await this.page.waitForTimeout(300);
+
       //select year
       await this.yearPicker.selectOption(customEndDate.year);
 
-      //select day
-      await this.dayPicker(customEndDate.day).click();
+      // Wait a bit for year selection to apply
+      await this.page.waitForTimeout(300);
+
+      //select day - use force click to ensure it's clicked
+      const dayLocator = this.dayPicker(customEndDate.day);
+      await dayLocator.scrollIntoViewIfNeeded();
+      await dayLocator.click({ force: true });
+
+      // Wait for the click to register
+      await this.page.waitForTimeout(500);
     });
+
+    // Wait for calendar picker to close and date to be applied
+    await this.waitUntilCalendarPickerIsHidden();
+
+    // Additional wait to ensure date is applied to the input field
+    await this.page.waitForTimeout(1000);
+
+    // Verify end date is set, retry if not
+    const endDateText = await this.toDateInput.textContent();
+    if (endDateText?.includes('Select date') || !endDateText || endDateText.trim() === '') {
+      await this.clickOnElement(this.toDateInput, {
+        stepInfo: 'Retry: Click on to date input to open calendar picker',
+      });
+      await this.waitUntilCalendarPickerIsVisible();
+
+      await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customEndDate.month));
+      await this.page.waitForTimeout(300);
+      await this.yearPicker.selectOption(customEndDate.year);
+      await this.page.waitForTimeout(300);
+
+      const dayLocator = this.dayPicker(customEndDate.day);
+      await dayLocator.scrollIntoViewIfNeeded();
+      await dayLocator.click({ force: true });
+      await this.page.waitForTimeout(500);
+
+      await this.waitUntilCalendarPickerIsHidden();
+      await this.page.waitForTimeout(1000);
+    }
   }
 
   /**
