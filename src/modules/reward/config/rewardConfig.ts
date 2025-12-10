@@ -1,5 +1,5 @@
 export type TenantKey = 'primary' | 'rewardSettings';
-export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU';
+export type EnvironmentKey = 'dev' | 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS' | 'prodEU' | 'prodCA';
 
 /**
  * Get caller function information for debugging
@@ -129,6 +129,42 @@ export const config = {
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Reco Standard User',
       endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodEU: {
+      tenantName: 'Reward Prod-EU Primary',
+      frontendBaseUrl: 'https://zeus.eu.simpplr.com',
+      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodUS: {
+      tenantName: 'Reward Prod-US Primary',
+      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta@simpplr.com',
+      endUserName: 'Aishma enduser',
+      endUserUserId: 'f0d7c666-aa81-4813-95f8-220bdd7d5a8e',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
