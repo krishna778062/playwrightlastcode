@@ -216,7 +216,6 @@ export interface IFeedAssertions {
   verifyCelebrationBlockIsVisible: () => Promise<void>;
   verifyEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyEventNotInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
   verifyEventVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyEventNotVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
   verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
@@ -973,14 +972,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
       await this.page.waitForURL(new RegExp('/site/.*/page/'), {
         timeout: 15000,
-      });
-    });
-  }
-
-  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
-    await test.step('Verify Upcoming Events smart block is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.upcomingEventsBlock, {
-        assertionMessage: 'Upcoming Events smart block should be visible',
       });
     });
   }
