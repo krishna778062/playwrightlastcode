@@ -14,6 +14,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
@@ -22,6 +23,7 @@ import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface FeedResponse {
@@ -870,6 +872,214 @@ test.describe(
 
         // Verify comment icon on the detail page is not visible
         await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
+      }
+    );
+
+    test(
+      'verify Timeline and content comments governance setting on Home Feed, Site Feed, and Content Feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19577'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Timeline and content comments option governance setting on Home Feed, Site Feed, and Content Feed',
+          zephyrTestId: 'CONT-19577',
+          storyId: 'CONT-19577',
+        });
+
+        let commentText: string = '';
+        let commentPostId: string = '';
+        let siteId: string = '';
+        let contentId: string = '';
+        let createdContentSiteId: string = '';
+        let replyText: string = '';
+        let eventId: string = '';
+
+        await test.step('Create a page on site, create an event, update user DOB, and make a comment on the page', async () => {
+          // Get a public site
+          const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          siteId = siteDetails.siteId;
+          createdContentSiteId = siteId;
+
+          // Create an event on the site for "Upcoming events" block
+          const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
+            siteId: siteId,
+            contentInfo: {
+              contentType: 'event',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          eventId = eventInfo.contentId;
+          console.log(`Created event via API: ${eventId} in site: ${siteId}`);
+
+          // Update user's date of birth for celebration block
+          const today = new Date();
+          const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
+
+          const appManagerUserId = await appManagerFixture.page.evaluate(() => {
+            return (window as any).Simpplr?.CurrentUser?.uid;
+          });
+
+          if (appManagerUserId) {
+            // Set birth month and day (using current month and tomorrow's day)
+            const birthMonth = today.getMonth() + 1;
+            const birthDay = today.getDate() + 1;
+
+            await appManagerTopNavBarComponent.openViewProfile({
+              stepInfo: 'Opening app manager view profile from profile icon',
+            });
+
+            const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
+            await appManagerProfileScreenPage.actions.clickEditAbout();
+            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.actions.saveProfileChanges();
+          }
+
+          // Create a page on the site
+          const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+            siteId: createdContentSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'knowledge',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          contentId = pageInfo.contentId;
+
+          // Navigate to content preview page and create a comment
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            createdContentSiteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Click Share your thoughts button and create a comment
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+          commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          const commentResponse = await createFeedPostComponent.actions.createAndPost({ text: commentText });
+          commentPostId = commentResponse.postId as string;
+
+          // Verify comment is created
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        });
+        await test.step('Set feed setting as timeline and commentsOnContent', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
+        });
+
+        await test.step('Home Feed: Verify governance setting, smart blocks, comment visibility, and reply functionality', async () => {
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify "Share your thoughts" is NOT displayed
+          await feedPage.assertions.verifyFeedSectionIsNotVisible();
+
+          // Verify smart feed blocks are displayed
+          await feedPage.assertions.verifyTopPicksBlockIsVisible();
+          await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
+          await feedPage.assertions.verifyCelebrationBlockIsVisible();
+
+          // Verify the created comment is displayed
+          await feedPage.assertions.validatePostText(commentText);
+
+          // Click on Reply button of the comment (this should redirect to post detail page)
+
+          await feedPage.actions.clickReplyOnContentComment(commentText);
+
+          await feedPage.assertions.validatePostText(commentText);
+
+          await feedPage.actions.openReplyEditorForPost(commentText);
+
+          // Create a reply
+          replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+          await feedPage.actions.addReplyToPost(replyText, commentPostId);
+
+          // Verify reply is visible
+          await feedPage.assertions.verifyReplyIsVisible(replyText);
+        });
+
+        await test.step('Site Feed: Verify governance setting, smart blocks, comment visibility, and reply functionality', async () => {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify "Share your thoughts" is NOT displayed
+          await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+
+          // Verify smart feed blocks are displayed
+          await siteDashboardPage.assertions.verifyPopularContentBlockIsVisible();
+          await siteDashboardPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+          await siteDashboardPage.assertions.verifyUpcomingEventsBlockIsVisible();
+          await siteDashboardPage.assertions.verifyCelebrationBlockIsVisible();
+
+          // Verify the created comment is displayed
+          const siteFeedPage = new FeedPage(appManagerFixture.page);
+          await siteFeedPage.assertions.validatePostText(commentText);
+
+          // Click on Reply button of the comment (this should redirect to post detail page)
+          await siteFeedPage.actions.clickReplyOnContentComment(commentText);
+
+          await siteFeedPage.assertions.validatePostText(commentText);
+
+          // Click on "Leave a reply" button on the detail page
+          await siteFeedPage.actions.openReplyEditorForPost(commentText);
+
+          // Create a reply
+          const siteReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+          await siteFeedPage.actions.addReplyToPost(siteReplyText, commentPostId);
+
+          // Verify reply is visible
+          await siteFeedPage.assertions.verifyReplyIsVisible(siteReplyText);
+        });
+
+        await test.step('Content Feed: Verify Share Your Thoughts is visible and user can create feed post', async () => {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            createdContentSiteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+          const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          await createFeedPostComponent.actions.createPost(commentText);
+          await createFeedPostComponent.actions.clickPostButton();
+
+          // Verify the feed post is created
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        });
+
+        // Cleanup
+        if (commentPostId) {
+          try {
+            await appManagerFixture.feedManagementHelper.deleteFeed(commentPostId);
+          } catch (error) {
+            console.log('Failed to cleanup comment post:', error);
+          }
+        }
+        if (eventId && createdContentSiteId) {
+          try {
+            await appManagerFixture.contentManagementHelper.deleteContent(createdContentSiteId, eventId);
+          } catch (error) {
+            console.log('Failed to cleanup event:', error);
+          }
+        }
       }
     );
   }
