@@ -25,7 +25,6 @@ jobs:
             content,
             de,
             reward,
-            reward-settings,
             recognition,
             privateRecognition,
             content-abac,
