@@ -4,7 +4,7 @@ export const ContentSql = {
    * Returns count of content views with filters applied
    */
   TOTAL_CONTENT_VIEWS: `
-    select count(i.code) as count 
+    select TO_CHAR(count(i.code), '999,999,999') as count 
     from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
     inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
     {userJoin}
@@ -38,11 +38,11 @@ export const ContentSql = {
    */
   UNIQUE_CONTENT_VIEW: `
     SELECT 
-        COUNT(DISTINCT 
+        TO_CHAR(COUNT(DISTINCT 
             i.interacted_by_user_code || '_' || 
             i.content_code || '_' || 
             CAST(i.interaction_datetime AS DATE)
-        ) AS user_content_day_count
+        ), '999,999,999') AS user_content_day_count
     FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i
       LEFT JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_interaction_type_as_is it
         ON i.interaction_type_code = it.code
@@ -293,5 +293,134 @@ export const ContentSql = {
       AND i.INTERACTION_TYPE_CODE = 'IT001' 
     GROUP BY u.description 
     ORDER BY COUNT(i.code) DESC
+  `,
+
+  /**
+   * Content Published by Type Query Template
+   * Returns count of content published grouped by content type with percentage
+   */
+  CONTENT_PUBLISHED_BY_TYPE: `
+    SELECT
+      c.content_type_code AS CONTENT_TYPE_CODE,
+      COUNT(c.code) AS COUNT,
+      ROUND(
+        (COUNT(c.code) * 100.0) / NULLIF(SUM(COUNT(c.code)) OVER (), 0),
+        2
+      ) AS PERCENTAGE
+    FROM
+      SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
+    WHERE
+      c.content_first_published_date BETWEEN '{startDate}' AND '{endDate}'
+      AND c.content_type_code IN ('CT001','CT002','CT003','CT004')
+      AND c.tenant_code = '{tenantCode}'
+    GROUP BY c.content_type_code
+    ORDER BY COUNT(c.code) DESC
+  `,
+
+  VIEWS_BY_TYPE: `
+    WITH content_agg AS (
+      SELECT
+        CASE 
+          WHEN c.content_type_code = 'CT002' THEN 'Page'
+          WHEN c.content_type_code = 'CT003' THEN 'Event'
+          WHEN c.content_type_code = 'CT004' THEN 'Album'
+          WHEN c.content_type_code = 'CT001' THEN 'Blog Post'
+        END AS content_type,
+        COUNT(*) AS total_views,
+        COUNT(
+          DISTINCT 
+            i.interacted_by_user_code || '_' ||
+            i.content_code || '_' ||
+            CAST(i.interaction_datetime AS DATE)
+        ) AS unique_views,
+        COUNT(DISTINCT c.code) AS total_published_content
+      FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+      INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
+        ON c.code = i.content_code
+        AND c.tenant_code = i.tenant_code
+      {userJoin}
+      WHERE i.tenant_code = '{tenantCode}'
+        AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+        AND i.interaction_type_code = 'IT001'
+        AND c.content_type_code IN ('CT001','CT002','CT003','CT004')
+        AND i.interaction_content_post_first_publish = 'true'
+        AND i.is_deleted = FALSE
+        AND i.is_system_feed = FALSE
+        AND c.is_deleted = FALSE
+        AND i.interaction_entity_code = 'ET003'
+        AND (i.content_code NOT IN ('N/A') OR i.content_code IS NOT NULL)
+        {locationFilter}
+        {departmentFilter}
+        {segmentFilter}
+        {userCategoryFilter}
+        {companyNameFilter}
+      GROUP BY c.content_type_code
+    ),
+    total_views_sum AS (
+      SELECT SUM(total_views) AS total_views_all
+      FROM content_agg
+    )
+    SELECT
+      ca.content_type AS CONTENT_TYPE,
+      ca.total_views AS TOTAL_CONTENT_VIEWS,
+      ca.unique_views AS UNIQUE_VIEWS,
+      ca.total_published_content AS TOTAL_CONTENT,
+      ROUND(ca.total_views * 100.0 / NULLIF(tv.total_views_all, 0), 2) AS VIEWS_CONTRIBUTION,
+      ROUND(ca.total_views * 1.0 / NULLIF(ca.total_published_content, 0), 2) AS AVERAGE_CONTENT_VIEWS
+    FROM content_agg ca
+    CROSS JOIN total_views_sum tv
+    ORDER BY ca.content_type
+  `,
+
+  ENGAGEMENT_GRAPH: `
+    WITH date_series AS (
+      SELECT 
+        DATEADD(day, seq4(), '{startDate}') AS date
+      FROM TABLE(generator(rowcount => 1000))
+      WHERE DATEADD(day, seq4(), '{startDate}') <= '{endDate}'
+    ),
+    interaction_data AS (
+      SELECT 
+        DATE(interaction_datetime) AS date,
+        COUNT(CASE WHEN interaction_type_code = 'IT002' AND interaction_entity_code = 'ET003' THEN interacted_by_user_code END) AS likes,
+        COUNT(
+          CASE WHEN 
+            ((interaction_type_code = 'IT004' AND is_system_feed = 'false')
+            OR (interaction_type_code = 'IT008' AND is_system_feed = 'false'))
+            AND interaction_entity_code = 'ET003'
+          THEN interacted_by_user_code END
+        ) AS comment,
+        COUNT(CASE WHEN interaction_type_code = 'IT007' AND interaction_entity_code = 'ET004' THEN interacted_by_user_code END) AS replies,
+        COUNT(CASE WHEN interaction_type_code = 'IT003' AND interaction_entity_code = 'ET003' THEN interacted_by_user_code END) AS share,
+        COUNT(CASE WHEN interaction_type_code = 'IT006' AND interaction_entity_code = 'ET003' THEN interacted_by_user_code END) AS favorite
+      FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction AS i
+      LEFT JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is AS c
+        ON c.code = i.content_code
+      WHERE 
+        (i.content_code NOT IN ('N/A') OR i.content_code IS NULL)
+        AND c.content_type_code IN ('CT001', 'CT002', 'CT003', 'CT004')
+        AND interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+        AND c.tenant_code = '{tenantCode}'
+        AND i.tenant_code = '{tenantCode}'
+        AND i.is_deleted = FALSE
+        AND i.interaction_content_post_first_publish = 'true'
+        {locationFilter}
+        {departmentFilter}
+        {segmentFilter}
+        {userCategoryFilter}
+        {companyNameFilter}
+      GROUP BY 1
+    )
+    SELECT 
+      TO_DATE(d.date) AS DATE,
+      COALESCE(i.likes, 0) AS LIKES,
+      COALESCE(i.comment, 0) AS COMMENT,
+      COALESCE(i.replies, 0) AS REPLIES,
+      COALESCE(i.share, 0) AS SHARE,
+      COALESCE(i.favorite, 0) AS FAVORITE
+    FROM date_series d
+    LEFT JOIN interaction_data i 
+      ON d.date = i.date
+    ORDER BY d.date
   `,
 };

@@ -1,6 +1,8 @@
 export * from './commentsMetrics';
+export * from './contentPublishedMetrics';
 export * from './contentReferralSourcesMetrics';
 export * from './currentlyPublishedMetrics';
+export * from './engagementGraphMetrics';
 export * from './favoritesMetrics';
 export * from './knowledgePagesMetrics';
 export * from './reactionsMetrics';
@@ -10,3 +12,4 @@ export * from './totalContentPublishedMetrics';
 export * from './totalContentViewsMetrics';
 export * from './uniqueContentViewMetrics';
 export * from './usersWhoViewedContentMetrics';
+export * from './viewsByTypeMetrics';

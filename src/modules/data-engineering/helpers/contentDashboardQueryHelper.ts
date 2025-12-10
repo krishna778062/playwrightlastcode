@@ -8,6 +8,13 @@ export interface CurrentlyPublishedData {
   contentCount: number;
 }
 
+export interface ContentPublishedByTypeData {
+  contentTypeCode: string;
+  contentTypeName: string;
+  count: number;
+  percentage: number;
+}
+
 export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   constructor(snowflakeHelper: SnowflakeHelper, orgId: string) {
     super(snowflakeHelper, orgId);
@@ -33,9 +40,9 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   /**
    * Gets total content views data from database with filters.
    * @param filterBy - Filter options including time period and user filters
-   * @returns Promise<number> - Total content views count
+   * @returns Promise<string> - Total content views count (formatted with commas)
    */
-  async getTotalContentViewsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+  async getTotalContentViewsDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<string> {
     let query = await this.transformQueryWithFilters({
       baseQuery: ContentSql.TOTAL_CONTENT_VIEWS,
       filterBy,
@@ -44,7 +51,9 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     // Replace userJoin placeholder
     query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
 
-    return await this.getHeroMetricDataFromDB(query);
+    const results = await this.executeQuery(query);
+    // Query returns formatted string with commas, so return as string
+    return results[0]?.COUNT?.trim() || '0';
   }
 
   /**
@@ -63,9 +72,9 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   /**
    * Gets unique content view data from database with filters.
    * @param filterBy - Filter options including time period and user filters
-   * @returns Promise<number> - Unique content view count
+   * @returns Promise<string> - Unique content view count (formatted with commas)
    */
-  async getUniqueContentViewDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+  async getUniqueContentViewDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<string> {
     let query = await this.transformQueryWithFilters({
       baseQuery: ContentSql.UNIQUE_CONTENT_VIEW,
       filterBy,
@@ -74,7 +83,9 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     // Replace userJoin placeholder
     query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
 
-    return await this.getHeroMetricDataFromDB(query);
+    const results = await this.executeQuery(query);
+    // Query returns formatted string with commas, so return as string
+    return results[0]?.USER_CONTENT_DAY_COUNT?.trim() || '0';
   }
 
   /**
@@ -254,6 +265,76 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   async getContentReferralSourcesDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<any[]> {
     const finalQuery = await this.transformQueryWithFilters({
       baseQuery: ContentSql.CONTENT_REFERRAL_SOURCES,
+      filterBy,
+    });
+    return await this.executeQuery(finalQuery);
+  }
+
+  /**
+   * Gets content published by type data from database with filters.
+   * @param filterBy - Filter options including time period
+   * @returns Promise<ContentPublishedByTypeData[]> - Array of content type and count
+   */
+  async getContentPublishedByTypeDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<ContentPublishedByTypeData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.CONTENT_PUBLISHED_BY_TYPE,
+      filterBy,
+    });
+
+    const results = await this.executeQuery(finalQuery);
+
+    return results.map((row: any) => ({
+      contentTypeCode: row.CONTENT_TYPE_CODE,
+      contentTypeName: this.mapContentTypeCodeToName(row.CONTENT_TYPE_CODE),
+      count: Number(row.COUNT),
+      percentage: Number(row.PERCENTAGE),
+    }));
+  }
+
+  /**
+   * Gets views by type data from database with filters.
+   * @param filterBy - Filter options including time period
+   * @returns Promise<ViewsByTypeData[]> - Array of views by content type
+   */
+  async getViewsByTypeDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<
+    Array<{
+      CONTENT_TYPE: string;
+      TOTAL_CONTENT_VIEWS: number;
+      UNIQUE_VIEWS: number;
+      TOTAL_CONTENT: number;
+      VIEWS_CONTRIBUTION: number;
+      AVERAGE_CONTENT_VIEWS: number;
+    }>
+  > {
+    let query = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.VIEWS_BY_TYPE,
+      filterBy,
+    });
+    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
+    return await this.executeQuery(query);
+  }
+
+  /**
+   * Gets engagement graph data from database with filters.
+   * @param filterBy - Filter options including time period
+   * @returns Promise<EngagementGraphData[]> - Array of engagement data by date
+   */
+  async getEngagementGraphDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<
+    Array<{
+      DATE: string;
+      LIKES: number;
+      COMMENT: number;
+      REPLIES: number;
+      SHARE: number;
+      FAVORITE: number;
+    }>
+  > {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: ContentSql.ENGAGEMENT_GRAPH,
       filterBy,
     });
     return await this.executeQuery(finalQuery);

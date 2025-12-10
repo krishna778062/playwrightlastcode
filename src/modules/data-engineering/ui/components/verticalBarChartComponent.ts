@@ -14,6 +14,8 @@ export class VerticalBarChartComponent extends BaseComponent {
 
   readonly toolTipContainer: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
+  readonly downloadCSVButton: Locator;
+
   constructor(
     page: Page,
     readonly thoughtSpotIframe: FrameLocator,
@@ -39,6 +41,9 @@ export class VerticalBarChartComponent extends BaseComponent {
       .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
+
+    // Download CSV button
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
   }
 
   /**
@@ -210,6 +215,30 @@ export class VerticalBarChartComponent extends BaseComponent {
           `Value shown in tool tip for key text ${keyText} should be ${expectedValue}`
         ).toHaveText(expectedValue.toString());
       }
+    });
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv for ${this.metricTitle}`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: 10_000,
+          assertionMessage: `Download csv button should be visible for ${this.metricTitle}`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file for ${this.metricTitle}` });
     });
   }
 }

@@ -203,7 +203,12 @@ export class BenchmarkMetricComponent extends BaseComponent {
     await test.step(`Verify absolute metric value is ${expectedValue} - for metric ${this.metricTitle}`, async () => {
       await expect(async () => {
         const actualValue = await this.getAbsoluteMetricValue();
-        expect(actualValue, `Absolute metric value should be ${expectedValue}`).toBe(expectedValue);
+        // Normalize values by removing commas for comparison
+        const normalizedActual = actualValue.replace(/,/g, '');
+        const normalizedExpected = expectedValue.replace(/,/g, '');
+        expect(normalizedActual, `Absolute metric value should be ${expectedValue} (actual: ${actualValue})`).toBe(
+          normalizedExpected
+        );
       }, `Polling for the metric value to be loaded and matches the expected value "${expectedValue}" for metric ${this.metricTitle}`).toPass(
         { timeout: 20_000 }
       );
