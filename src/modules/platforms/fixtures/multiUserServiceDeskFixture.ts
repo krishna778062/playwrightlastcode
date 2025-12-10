@@ -2,111 +2,77 @@ import { BrowserContext, Page, test } from '@playwright/test';
 
 import { LoginPage } from '@core/ui/pages/loginPage';
 
+/**
+ * Helper function to get environment variable with error handling
+ */
+function getEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} not set in environment variables`);
+  return value;
+}
+
+/**
+ * Helper function to create a logged-in page for a given user
+ */
+async function createLoggedInPage(ctx: BrowserContext, usernameEnv: string): Promise<Page> {
+  const serviceDeskUrl = getEnv('SERVICE_DESK_URL');
+  const username = getEnv(usernameEnv);
+  const password = getEnv('SERVICE_DESK_PASSWORD');
+
+  const page = await ctx.newPage();
+  await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
+
+  const loginPage = new LoginPage(page);
+  await loginPage.performLoginWithPassword(username, password);
+  await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
+
+  console.log(`Logged in: ${username}`);
+  return page;
+}
+
 export const multiUserServiceDeskFixture = test.extend<{
-  // Admin browser context + page
   adminBrowserContext: BrowserContext;
   adminServiceDeskPage: Page;
-  // Support team member browser context + page
+
   supportTeamBrowserContext: BrowserContext;
   supportTeamPage: Page;
-  // End user browser context + page
+
   endUserBrowserContext: BrowserContext;
   endUserPage: Page;
 }>({
-  // Admin context
-  adminBrowserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
+  adminBrowserContext: async ({ browser }, use) => {
+    const ctx = await browser.newContext();
+    await use(ctx);
+    await ctx.close();
+  },
 
-  adminServiceDeskPage: [
-    async ({ adminBrowserContext }, use) => {
-      const page = await adminBrowserContext.newPage();
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
+  adminServiceDeskPage: async ({ adminBrowserContext }, use) => {
+    const page = await createLoggedInPage(adminBrowserContext, 'SERVICE_DESK_USERNAME');
+    await use(page);
+    await page.close();
+  },
 
-      console.log(`Logging in admin user: ${process.env.SERVICE_DESK_USERNAME}`);
-      // Navigate to Service Desk login page and perform login without using LoginHelper
-      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
-      const loginPage = new LoginPage(page);
-      await loginPage.performLoginWithPassword(process.env.SERVICE_DESK_USERNAME!, process.env.SERVICE_DESK_PASSWORD!);
-      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
-      console.log('Admin user logged in successfully');
+  supportTeamBrowserContext: async ({ browser }, use) => {
+    const ctx = await browser.newContext();
+    await use(ctx);
+    await ctx.close();
+  },
 
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
+  supportTeamPage: async ({ supportTeamBrowserContext }, use) => {
+    const page = await createLoggedInPage(supportTeamBrowserContext, 'SUPPORT_TEAM_MEMBER');
+    await use(page);
+    await page.close();
+  },
 
-  supportTeamBrowserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
+  endUserBrowserContext: async ({ browser }, use) => {
+    const ctx = await browser.newContext();
+    await use(ctx);
+    await ctx.close();
+  },
 
-  // Support team page (logged in as SUPPORT_TEAM_MEMBER)
-  supportTeamPage: [
-    async ({ supportTeamBrowserContext }, use) => {
-      const page = await supportTeamBrowserContext.newPage();
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-
-      console.log(`Logging in support team member: ${process.env.SUPPORT_TEAM_MEMBER}`);
-      // Navigate to Service Desk login page and perform login without using LoginHelper
-      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
-      const loginPage = new LoginPage(page);
-      await loginPage.performLoginWithPassword(process.env.SUPPORT_TEAM_MEMBER!, process.env.SERVICE_DESK_PASSWORD!);
-      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
-      console.log('Support team member logged in successfully');
-
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
-
-  // End user
-  endUserBrowserContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      await use(context);
-      await context.close();
-    },
-    { scope: 'test' },
-  ],
-
-  // End user page (logged in as END_USER)
-  endUserPage: [
-    async ({ endUserBrowserContext }, use) => {
-      const page = await endUserBrowserContext.newPage();
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('SERVICE_DESK_URL not configured in environment variables');
-      }
-
-      console.log(`Logging in end user: ${process.env.END_USER}`);
-      // Navigate to Service Desk login page and perform login without using LoginHelper
-      await page.goto(`${serviceDeskUrl}/login`, { waitUntil: 'domcontentloaded' });
-      const loginPage = new LoginPage(page);
-      await loginPage.performLoginWithPassword(process.env.END_USER!, process.env.SERVICE_DESK_PASSWORD!);
-      await page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' });
-      console.log('End user logged in successfully');
-
-      await use(page);
-      await page.close();
-    },
-    { scope: 'test' },
-  ],
+  endUserPage: async ({ endUserBrowserContext }, use) => {
+    const page = await createLoggedInPage(endUserBrowserContext, 'END_USER');
+    await use(page);
+    await page.close();
+  },
 });
