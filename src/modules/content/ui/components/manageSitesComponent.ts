@@ -56,11 +56,13 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
   readonly SubscriptionButton: Locator;
-
+  readonly pageTemplateTab: Locator;
+  readonly editTemplateButton: Locator;
   constructor(readonly page: Page) {
     super(page);
     this.clickOnSite = page.getByRole('cell', { name: 'Name' });
     this.coverImage = page.locator('.SiteHeader-image:has(img[src])');
+    this.editTemplateButton = page.getByRole('menuitem', { name: 'Edit' });
     this.contentTab = page.getByRole('tab', { name: 'Content' });
     this.eventsTab = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.searchEventInSearchBar = page.getByRole('textbox', { name: 'Search sites…' });
@@ -70,6 +72,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.memberButton = page.getByRole('button', { name: 'Member' });
     this.clickOnPageCategory = page.getByRole('tab', { name: 'Page categories' });
     this.checkTheError = page.locator('p', { hasText: 'Duplicate page category name' });
+    this.pageTemplateTab = page.getByRole('tab', { name: 'Page templates' });
     this.clickOnAboutTab = page.getByRole('tab', { name: 'About' });
     this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
     this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
@@ -209,7 +212,16 @@ export class ManageSitesComponent extends BaseComponent {
       });
     });
   }
-
+  async clickOnThePageTemplateTabAction(): Promise<void> {
+    await test.step('Click on the page template tab', async () => {
+      await this.clickOnElement(this.pageTemplateTab);
+    });
+  }
+  async clickOnEditButtonAction(): Promise<void> {
+    await test.step('Click on the edit button', async () => {
+      await this.clickOnElement(this.editTemplateButton);
+    });
+  }
   async clickOnTheManageSiteButtonAction(): Promise<void> {
     await test.step('Click on the manage site button', async () => {
       await this.clickOnElement(this.clickOnTheManageSiteButton);
