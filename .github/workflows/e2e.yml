@@ -57,6 +57,7 @@ on:
           - 'dev'
           - 'prodUS'
           - 'prodEU'
+          - 'prodCA'
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'

@@ -19,7 +19,6 @@ test.describe('manage recognition', () => {
         RecognitionFeatureTags.ONLY_P2P_RECOGNITION,
         TestPriority.P0,
         TestGroupType.SMOKE,
-        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {

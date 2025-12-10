@@ -18,7 +18,6 @@ test.describe('default setting for custom recurring award', () => {
         RecognitionFeatureTags.CUSTOM_NOMINATION,
         TestPriority.P2,
         TestGroupType.SANITY,
-        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -45,7 +44,6 @@ test.describe('default setting for custom recurring award', () => {
         RecognitionFeatureTags.CUSTOM_NOMINATION,
         TestPriority.P2,
         TestGroupType.SANITY,
-        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {

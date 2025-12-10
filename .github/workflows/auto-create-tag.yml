@@ -149,6 +149,12 @@ jobs:
             RELEASE_TYPE="new_release"
             echo "🔄 New release tag: ${NEW_TAG}"
             
+          elif [ "$STAGE" == "production" ]; then
+            echo "⏭️ Stage is 'production' - skipping tag creation"
+            echo "Backports during production stage should not create tags"
+            echo "Tags are only created during active release cycles (QA/UAT)"
+            exit 0  # Exit successfully without creating tag
+
           elif [ "$STAGE" == "uat" ]; then
             # UAT hotfix
             echo "📦 UAT phase active - creating UAT hotfix tag"
@@ -167,14 +173,14 @@ jobs:
             RELEASE_TYPE="hotfix_uat"
             echo "📈 UAT hotfix: ${LATEST_UAT} → ${NEW_TAG}"
             
-          else
+          elif [ "$STAGE" == "qa" ]; then
             # QA hotfix
-            echo "🧪 QA phase active - creating QA hotfix tag"
+            echo "🧪 QA phase - creating QA hotfix tag"
             
             LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
             
             if [ -z "$LATEST_QA" ]; then
-              echo "❌ No QA tags found! Please start a new release first."
+              echo "❌ No QA tags found!"
               exit 1
             fi
             
@@ -183,7 +189,12 @@ jobs:
             NEW_QA_NUM=$((QA_NUM + 1))
             NEW_TAG="${BASE_VERSION}-qa.${NEW_QA_NUM}"
             RELEASE_TYPE="hotfix_qa"
-            echo "📈 QA hotfix: ${LATEST_QA} → ${NEW_TAG}"
+            
+          else
+            # Unknown stage
+            echo "❌ Unknown stage: $STAGE"
+            echo "Valid stages: qa, uat, production"
+            exit 1
           fi
 
           echo ""
