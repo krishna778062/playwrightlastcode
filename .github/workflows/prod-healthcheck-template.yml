@@ -77,7 +77,7 @@ jobs:
       - name: Run healthcheck tests
         run: |
           echo "Running @healthcheck tests for ${{ matrix.module }} module on ${{ inputs.environment }}..."
-          npm run test:${{ matrix.module }} -- --grep="@healthcheck" --workers=3
+          TEST_ENV=${{ inputs.environment }} npm run test:${{ matrix.module }} -- --grep="@healthcheck" --workers=3
 
       - name: Upload test report to github artifact backup
         if: always()

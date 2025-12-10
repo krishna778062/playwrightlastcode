@@ -181,7 +181,6 @@ export const SitesSql = {
     )
     WHERE total_popularity > 0
     ORDER BY total_popularity DESC
-    LIMIT 5
   `,
 
   /**
@@ -210,28 +209,29 @@ export const SitesSql = {
             ) AS total_popularity
         FROM (
             SELECT 
-                i.current_site_code AS site_code,
+                s.code AS site_code,
                 s.site_name,
                 s.site_type_code,
                 COUNT(DISTINCT CASE 
-                    WHEN interaction_type_code = 'IT001' THEN i.id 
+                    WHEN i.interaction_type_code = 'IT001' THEN i.id 
                 END) AS total_views,
                 COUNT(CASE 
-                    WHEN interaction_type_code = 'IT002' THEN i.id 
+                    WHEN i.interaction_type_code = 'IT002' THEN i.id 
                 END) AS total_likes,
                 COUNT(CASE 
-                    WHEN interaction_type_code IN ('IT004', 'IT008') THEN i.id 
+                    WHEN i.interaction_type_code IN ('IT004', 'IT008') THEN i.id 
                 END) AS total_comments,
                 COUNT(CASE 
-                    WHEN interaction_type_code = 'IT007' THEN i.id 
+                    WHEN i.interaction_type_code = 'IT007' THEN i.id 
                 END) AS total_replies,
                 COUNT(CASE 
-                    WHEN interaction_type_code = 'IT003' THEN i.id 
+                    WHEN i.interaction_type_code = 'IT003' THEN i.id 
                 END) AS total_shares,
                 COUNT(CASE 
-                    WHEN interaction_type_code = 'IT006' THEN i.id 
+                    WHEN i.interaction_type_code = 'IT006' THEN i.id 
                 END) AS total_favourites
-            FROM (
+            FROM SIMPPLR_COMMON_TENANT.UDL.VW_SITE_AS_IS AS s
+            LEFT JOIN (
                 SELECT 
                     *,
                     CASE 
@@ -239,29 +239,27 @@ export const SitesSql = {
                         ELSE interaction_content_post_first_publish 
                     END AS interaction_content_post_publish
                 FROM SIMPPLR_COMMON_TENANT.UDL.vw_interaction
+                WHERE 
+                    is_deleted = FALSE
+                    AND current_site_code NOT IN ('N/A')
+                    AND is_system_feed = FALSE
+                    AND interaction_datetime >= '{startDate}'
+                    AND interaction_datetime < '{endDate}'
             ) AS i
-            LEFT JOIN SIMPPLR_COMMON_TENANT.UDL.VW_SITE_AS_IS AS s
                 ON i.current_site_code = s.code 
-                AND s.tenant_code = i.tenant_code
+                AND i.tenant_code = s.tenant_code
+                AND (i.interaction_content_post_publish IN (TRUE, 'N/A') OR i.interaction_content_post_publish IS NULL)
             WHERE 
                 s.tenant_code = '{tenantCode}'
                 AND s.overall_is_site_active = TRUE
                 AND s.site_type_code IN ('STT001', 'STT002', 'STT003')
-                AND i.is_deleted = FALSE
-                AND i.current_site_code NOT IN ('N/A')
-                AND i.interaction_content_post_publish IN (TRUE, 'N/A')
-                AND i.is_system_feed = FALSE
-                AND i.interaction_datetime >= '{startDate}'
-                AND i.interaction_datetime < '{endDate}'
             GROUP BY 
-                i.current_site_code, 
+                s.code, 
                 s.site_name, 
                 s.site_type_code
         )
     )
-    WHERE total_popularity > 0
     ORDER BY total_popularity ASC, site_name ASC
-    LIMIT 15
   `,
 
   /**
