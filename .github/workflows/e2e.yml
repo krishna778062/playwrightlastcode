@@ -21,6 +21,7 @@ on:
           - 'integrations-batch2'
           - 'de'
           - 'de-api'
+          - 'de-api-abac'
           - 'frontline'
           - 'recognition'
           - 'only-peer-to-peer'
