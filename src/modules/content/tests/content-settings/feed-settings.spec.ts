@@ -441,6 +441,7 @@ test.describe(
 
         // Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
         await feedPage.assertions.verifyPostIsNotVisible(homeFeedTestData.text);
@@ -601,8 +602,6 @@ test.describe(
             'Verify Add Reaction button is visible for Content Comments when Timeline and Comments on Content mode is enabled',
           zephyrTestId: 'CONT-31814',
           storyId: 'CONT-31814',
-          isKnownFailure: true,
-          bugTicket: 'CONT-42865',
         });
 
         // Create content (page) via API helper (in default mode)
@@ -651,6 +650,7 @@ test.describe(
 
         // Navigate to home page and click Global Feed
         await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
