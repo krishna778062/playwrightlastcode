@@ -15,6 +15,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { LoginPage } from '@/src/core/ui/pages/loginPage';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { PropertiesFile } from '@/src/core/utils/propertiesFile';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
@@ -380,11 +381,22 @@ test.describe(
         prop.store(null);
 
         const userDetails = loadUserDetails();
-        await LoginHelper.loginWithPassword(page, {
-          email: userDetails.endUserEmail,
-          password: userDetails.endUserPassword,
-        });
+        const loginPage = new LoginPage(page);
+
         const loginWithOtpPage = new LoginWithOtpPage(page);
+
+        await loginPage.loadPage({ stepInfo: 'Loading login page' });
+        await loginPage.verifyThePageIsLoaded();
+
+        await loginWithOtpPage.performLoginWithOtp(
+          loginPage,
+          userDetails.endUserEmail,
+          otpUtils,
+          mailosaurValues.mailosaurEmail,
+          'email'
+        );
+
+        // Add mobile number based on identifiers
         await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );
@@ -658,14 +670,8 @@ test.describe(
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, lwoUserManagementService, otpUtils }) => {
-        test.fail(); // Mark as expected to fail - known failure (Bug: FL-1297)
         tagTest(test.info(), {
-          isKnownFailure: true,
-          bugTicket: 'FL-1297', // bug ticket from Jira
-          bugReportedDate: '2025-12-02', // Date when the bug was reported
-          knownFailurePriority: 'Low', // Medium priority known failure (Eg: High, Medium, Low)
-          knownFailureNote:
-            'Continue button doesnt work after giving correct OTP on profile edit ,using login with OTP feature.', // description of the known failure
+          description: 'Verify user can add mobile number from profile page and verify with OTP when LWO is enabled',
           zephyrTestId: 'FL-1007',
           storyId: 'FL-1007',
         });

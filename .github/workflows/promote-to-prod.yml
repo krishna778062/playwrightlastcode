@@ -70,72 +70,102 @@ jobs:
           echo "  • Production monitors will test main HEAD"
           echo "  • All environments testing latest stable code"
 
-      - name: Create backport PR to develop
+      - name: Create/Update sync PR to develop (if needed)
+        id: backport
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
           echo "========================================"
-          echo "Step 3: Creating backport PR to develop"
+          echo "Step 3: Check if sync to develop is needed"
           echo "========================================"
 
           VERSION="${{ steps.version.outputs.version }}"
           UAT_TAG="${{ steps.version.outputs.uat_tag }}"
 
           git fetch origin develop
-          BACKPORT_BRANCH="backport/prod-${VERSION}-to-develop"
-          git checkout -b $BACKPORT_BRANCH origin/develop
+          git fetch origin main
 
-          if git merge origin/main --no-ff -m "Backport production release $VERSION to develop"; then
-            git push origin $BACKPORT_BRANCH
+          # Check if develop is already in sync with main
+          DIFF_COUNT=$(git rev-list --count origin/develop..origin/main)
+
+          if [ "$DIFF_COUNT" -eq 0 ]; then
+            echo "✅ develop is already in sync with main - no sync needed"
+            echo "backport_needed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found $DIFF_COUNT commits to sync from main to develop"
+          echo "backport_needed=true" >> $GITHUB_OUTPUT
+
+          # Check if sync PR [main → develop] already exists
+          EXISTING_PR=$(gh pr list \
+            --base develop \
+            --head main \
+            --state open \
+            --json number,url \
+            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null null" ]; then
+            # Sync PR already exists - add comment
+            PR_NUMBER=$(echo "$EXISTING_PR" | cut -d' ' -f1)
+            PR_URL=$(echo "$EXISTING_PR" | cut -d' ' -f2)
             
-            gh pr create \
-              --base develop \
-              --head $BACKPORT_BRANCH \
-              --title "Backport: Production release $VERSION" \
-              --body "**Final Production Backport**
-
-            This PR syncs develop with the production release.
-
-            **Release Version:** $VERSION
-            **UAT Tag:** $UAT_TAG
-
-            **What's included:**
-            All changes from the release branch that were promoted to production.
-
-            **Action Required:**
-            Review and merge to complete the release cycle and keep develop in sync with production."
+            echo "✅ Found existing sync PR [main → develop]: #$PR_NUMBER"
             
-            echo "✅ Backport PR created successfully"
+            COMMENT_BODY=$(cat <<EOF
+          ### 🚀 Production Release Promoted
+
+          **Version:** $VERSION
+          **UAT Tag:** $UAT_TAG
+          **Commits to sync:** $DIFF_COUNT
+
+          This sync PR now includes the production release. Please review and merge.
+          EOF
+            )
+            gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+            
+            echo "backport_pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            echo "backport_status=existing" >> $GITHUB_OUTPUT
+            echo "✅ Added comment to existing sync PR #$PR_NUMBER"
           else
-            echo "⚠️ Merge conflicts detected - creating PR for manual resolution"
-            git merge --abort
-            git push origin $BACKPORT_BRANCH
+            # Create new sync PR (direct main → develop)
+            echo "📝 Creating new sync PR [main → develop]"
             
-            gh pr create \
+            PR_BODY=$(cat <<EOF
+          ## 🚨 Sync: main → develop
+
+          This PR syncs \`develop\` with production (\`main\`).
+
+          ### 📋 Production Release:
+
+          | Version | UAT Tag | Commits |
+          |---------|---------|---------|
+          | $VERSION | $UAT_TAG | $DIFF_COUNT |
+
+          ### Why this exists:
+          - Production release $VERSION was promoted
+          - This PR ensures \`develop\` stays in sync with production
+
+          ⚠️ **Important:** Merge this PR to complete the release cycle.
+          EOF
+            )
+
+            BACKPORT_PR_URL=$(gh pr create \
               --base develop \
-              --head $BACKPORT_BRANCH \
-              --title "[CONFLICTS] Backport: Production release $VERSION" \
-              --body "**Final Production Backport - CONFLICTS DETECTED**
-
-            This PR has merge conflicts that need manual resolution.
-
-            **Release Version:** $VERSION
-            **UAT Tag:** $UAT_TAG
-            **Branch:** \`$BACKPORT_BRANCH\`
-
-            **Action Required:**
-            1. Check out the branch: \`git checkout $BACKPORT_BRANCH\`
-            2. Resolve merge conflicts
-            3. Commit and push changes
-            4. Review and merge this PR"
+              --head main \
+              --title "🚨 Sync: main → develop (Production Release $VERSION)" \
+              --body "$PR_BODY")
             
-            echo "⚠️ Backport PR created with conflict warning"
+            echo "backport_pr_url=$BACKPORT_PR_URL" >> $GITHUB_OUTPUT
+            echo "backport_status=created" >> $GITHUB_OUTPUT
+            echo "✅ Created sync PR: $BACKPORT_PR_URL"
           fi
 
       - name: Summary
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+          BACKPORT_NEEDED="${{ steps.backport.outputs.backport_needed }}"
 
           echo ""
           echo "========================================"
@@ -149,12 +179,11 @@ jobs:
           echo "What happened:"
           echo "  ✓ Merged release → main"
           echo "  ✓ Set CURRENT_STAGE = production"
-          echo "  ✓ Created backport PR to develop"
-          echo ""
-          echo "Next steps:"
-          echo "  1. Review and merge backport PR"
-          echo "  2. All environments now test main HEAD"
-          echo "  3. Ready to start next release when needed"
+          if [ "$BACKPORT_NEEDED" == "true" ]; then
+            echo "  ✓ Sync PR [main → develop] created/updated"
+          else
+            echo "  ✓ develop already in sync (no sync needed)"
+          fi
           echo ""
           echo "========================================"
 
@@ -163,33 +192,25 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           UAT_TAG="${{ steps.version.outputs.uat_tag }}"
+          BACKPORT_NEEDED="${{ steps.backport.outputs.backport_needed }}"
+          BACKPORT_PR_URL="${{ steps.backport.outputs.backport_pr_url }}"
+          BACKPORT_STATUS="${{ steps.backport.outputs.backport_status }}"
 
           if [ "${{ job.status }}" == "success" ]; then
-            MESSAGE=":rocket: *Release Promoted to Production*
+            # Build sync info
+            if [ "$BACKPORT_NEEDED" == "true" ]; then
+              if [ "$BACKPORT_STATUS" == "existing" ]; then
+                SYNC_INFO="<${BACKPORT_PR_URL}|Sync PR [main → develop]> updated"
+              else
+                SYNC_INFO="<${BACKPORT_PR_URL}|Sync PR [main → develop]> created"
+              fi
+            else
+              SYNC_INFO="develop already in sync ✓"
+            fi
 
-          *Version:* $VERSION
-          *UAT Tag:* $UAT_TAG
-          *Stage:* Production
-
-          *What changed:*
-            • Merged release → main
-            • Stage set to \`production\`
-            • QA/UAT now test \`main\` HEAD
-            • Production monitors active
-
-          *Next steps:*
-            • Review and merge backport PR to develop
-            • All environments testing latest stable code
-            • Ready to start next release
-
-          _Production promotion successful!_ :tada:"
+            MESSAGE=":rocket: *Production Release: ${VERSION}*\n\n• release → main merged\n• Stage: \`production\`\n• UAT Tag: \`${UAT_TAG}\`\n• Sync: ${SYNC_INFO}\n\n_All environments now testing main HEAD._"
           else
-            MESSAGE=":x: *Production Promotion Failed*
-
-          *Version:* $VERSION
-
-          Check workflow logs for details:
-          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            MESSAGE=":x: *Production Promotion Failed*\n\nVersion: ${VERSION}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
           fi
 
           curl -X POST $SLACK_WEBHOOK_URL \
