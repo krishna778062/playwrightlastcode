@@ -8,22 +8,22 @@ export class PageTileSectionComponent extends BaseComponent {
   readonly editTileButton: Locator;
   readonly baseActionUtil: BaseActionUtil;
   readonly removeTileButton: Locator;
-  readonly getTileHeadingLocator: (tileName: string) => Locator;
   readonly removeTileConfirmationDialog: Locator;
   readonly removeTileConfirmationButton: Locator;
   readonly getThreeDotsButtonForTile: (tileTitle: string) => Locator;
+  readonly getTileHeadingLocator: (tileName: string) => Locator;
   constructor(readonly page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
     this.ellipsisButton = page.locator('[type="button"][aria-label="Category option"]').first();
     this.editTileButton = page.getByRole('button', { name: 'Edit', exact: true });
     this.removeTileButton = page.getByRole('button', { name: 'Remove', exact: true });
-    this.getTileHeadingLocator = (tileName: string) =>
-      this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first();
     this.getThreeDotsButtonForTile = (tileTitle: string) =>
       this.page.locator(`div[class*="Tile-optionsContainer"]`).first();
     this.removeTileConfirmationDialog = page.getByRole('dialog', { name: 'Remove tile' });
     this.removeTileConfirmationButton = this.removeTileConfirmationDialog.getByRole('button', { name: 'Remove' });
+    this.getTileHeadingLocator = (tileName: string) =>
+      this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first();
   }
 
   async verifyingThePageTileSectionIsVisible(tileName: string): Promise<void> {
