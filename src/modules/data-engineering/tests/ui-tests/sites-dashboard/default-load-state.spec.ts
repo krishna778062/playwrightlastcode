@@ -63,7 +63,13 @@ test.describe(
     test(
       'tS To verify the answer Total sites in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@sites-total-sites-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@sites-total-sites-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -90,7 +96,13 @@ test.describe(
     test(
       'tS To verify the answer Site created in last 90 days in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@sites-new-sites-last-90-days-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@sites-new-sites-last-90-days-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -117,7 +129,13 @@ test.describe(
     test(
       'tS To verify the answer Featured sites in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@sites-featured-sites-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@sites-featured-sites-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -144,7 +162,13 @@ test.describe(
     test(
       'tS To verify the answer Total managers in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@sites-total-managers-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@sites-total-managers-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -171,7 +195,13 @@ test.describe(
     test(
       'tS To verify the answer Total sites distribution in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.PIE_CHART, '@sites-total-sites-distribution-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@sites-total-sites-distribution-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -218,6 +248,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.BAR_CHART,
           '@sites-total-sites-distribution-last-90-days-metric',
         ],
@@ -258,7 +289,13 @@ test.describe(
     test(
       'tS To verify the answer Most Popular in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-most-popular-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@sites-most-popular-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -289,7 +326,13 @@ test.describe(
     test(
       'tS To verify the answer Least Popular in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-least-popular-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@sites-least-popular-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -323,6 +366,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.TABULAR_METRIC,
           '@sites-most-published-content-metric',
         ],
@@ -359,6 +403,7 @@ test.describe(
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
           TestCaseType.TABULAR_METRIC,
           '@sites-least-published-content-metric',
         ],
@@ -392,7 +437,13 @@ test.describe(
     test(
       'tS To verify the CSV Most Popular in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-most-popular-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-most-popular-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -415,7 +466,13 @@ test.describe(
     test(
       'tS To verify the CSV Least Popular in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-least-popular-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-least-popular-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -438,7 +495,13 @@ test.describe(
     test(
       'tS To verify the CSV Most published content in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-most-published-content-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-most-published-content-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -461,7 +524,13 @@ test.describe(
     test(
       'tS To verify the CSV Least published content in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-least-published-content-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-least-published-content-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -484,7 +553,13 @@ test.describe(
     test(
       'tS To verify the answer Low activity sites in Sites Dashboard',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-low-activity-sites-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@sites-low-activity-sites-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {

@@ -1,10 +1,13 @@
-name: Daily Regression Tests
+name: UAT Regression (Reusable Template)
 
 on:
-  schedule:
-    # Run daily at 2 AM UTC (adjust timezone as needed)
-    - cron: '0 2 * * *'
-  workflow_dispatch: # allows manual triggering for testing
+  workflow_call:
+    inputs:
+      environment:
+        description: 'UAT environment name (e.g., uat, uat-us, uat-eu, uat-au)'
+        required: false
+        default: 'uat'
+        type: string
 
 permissions:
   contents: read
@@ -12,8 +15,56 @@ permissions:
   pages: write
 
 jobs:
+  check-stage:
+    runs-on: [kubernetes]
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      checkout_ref: ${{ steps.check.outputs.checkout_ref }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine checkout ref for UAT regression tests
+        id: check
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          echo "Current stage: $STAGE"
+
+          if [ "$STAGE" == "production" ]; then
+            # Release completed - use main HEAD
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "checkout_ref=main" >> $GITHUB_OUTPUT
+            echo "✅ Production stage - will test main HEAD"
+            
+          elif [ "$STAGE" == "uat" ]; then
+            # Active release - use latest UAT tag
+            TAG=$(git ls-remote --tags origin | \
+                  grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
+                  sort -V | tail -n1 | cut -d'/' -f3)
+            
+            if [ -z "$TAG" ]; then
+              echo "should_run=false" >> $GITHUB_OUTPUT
+              echo "⏭️ No UAT tags found - skipping"
+            else
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "checkout_ref=$TAG" >> $GITHUB_OUTPUT
+              echo "✅ UAT stage - will test tag: $TAG"
+            fi
+            
+          else
+            # QA stage - skip UAT tests
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping (current stage: $STAGE)"
+          fi
+
   regression-tests:
-    timeout-minutes: 120
+    needs: check-stage
+    if: needs.check-stage.outputs.should_run == 'true'
+    timeout-minutes: 200
     runs-on: [kubernetes]
     strategy:
       fail-fast: false
@@ -37,14 +88,22 @@ jobs:
             form-designer,
             comms-planner,
           ] # de is short for data-engineering
-        environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
+      TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
+      - name: Display configuration
+        run: |
+          echo "🌍 Environment: ${{ inputs.environment }}"
+          echo "🔖 Git Ref: ${{ needs.check-stage.outputs.checkout_ref }}"
+
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.check-stage.outputs.checkout_ref }}
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -63,8 +122,6 @@ jobs:
           sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
       - name: Run regression tests
-        env:
-          TEST_ENV: ${{ matrix.environment }}
         run: |
           if [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
@@ -80,7 +137,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-${{ matrix.module }}-${{ matrix.environment }}
+          name: test-report-${{ matrix.module }}-${{ inputs.environment }}
           path: |
             playwright-report
             test-results
@@ -165,7 +222,6 @@ jobs:
           PG_DB_USER: ${{secrets.PG_DB_USER}}
           PG_DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
           TEAM_NAME: core
-          TEST_ENV: ${{ matrix.environment }}
           MODULE_NAME: ${{ matrix.module }}
           IS_REGRESSION: true
         run: |
@@ -233,9 +289,9 @@ jobs:
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
@@ -256,7 +312,7 @@ jobs:
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              NO_TESTS_MESSAGE="⚠️ *UAT Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
               echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
@@ -269,7 +325,7 @@ jobs:
           else
             # No test results file - this means pipeline failed before tests could run
             echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            FAILURE_MESSAGE="🚨 *UAT Regression Pipeline Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) could not execute. Please check job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
