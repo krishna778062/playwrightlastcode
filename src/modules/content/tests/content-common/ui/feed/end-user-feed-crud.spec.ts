@@ -2415,17 +2415,7 @@ test.describe(
 
         await feedPage.actions.enterFeedPostText(postText);
 
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         await feedPage.actions.uploadFiles([imagePath]);
 
         await feedPage.actions.selectShareOptionAsSiteFeed();
