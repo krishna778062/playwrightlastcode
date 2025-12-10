@@ -1217,6 +1217,16 @@ export class ListFeedComponent
     });
   }
 
+  async clickReplyOnContentComment(commentText: string): Promise<void> {
+    await test.step(`Click reply on content comment: ${commentText}`, async () => {
+      const replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+      await this.verifier.verifyTheElementIsVisible(replyButton, {
+        assertionMessage: 'Reply button should be visible for the post',
+      });
+      await replyButton.click();
+    });
+  }
+
   async verifyCancelButtonVisible(postText: string): Promise<void> {
     await test.step(`Verify Cancel button is visible for reply editor on post: ${postText}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyCancelButton.first(), {
@@ -1552,9 +1562,9 @@ export class ListFeedComponent
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
-    const showButtonLocator = this.page.getByText('Show', { exact: true }).first();
+    const sortByButtonLocator = this.page.getByText('Sort by').first();
     await test.step('Verify the page is loaded with timeline mode', async () => {
-      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
+      await this.verifier.verifyTheElementIsVisible(sortByButtonLocator, {
         assertionMessage: 'Show button should be visible on feed post',
       });
     });
