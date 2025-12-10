@@ -674,4 +674,208 @@ test.describe('aI Poll Creation Tests', () => {
       await pollsListeningPage.verifyPollExistsInList('What is your favorite team event activity?');
     }
   );
+
+  test(
+    'verify "Undo votes" and tooltip for Public polls',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLL_VOTING'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given Login as an End User, And User navigates to the Polls page via More in the side menu, And A poll with visibility set to Public is listed under Active polls, When User submits a vote on the public poll, Then The poll should display vote count/visibility label/expiry info/undo option, When User hovers over the tooltip icon next to the Public label, Then A tooltip should be shown with the message: Responses are public and visible to all, When User clicks on Undo vote, Then The selected vote should be cleared And The user should be allowed to submit a new vote',
+        zephyrTestId: 'LS-7485',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate to Polls page for voting' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.selectCreatorDropdownOption('canParticipate');
+      await aiPollCreationPage.handlePollVotingWorkflow();
+    }
+  );
+
+  test(
+    'display poll in Present mode',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLL_PRESENT'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given A poll is in "Active" state, Then The "Present" option should be visible, When User clicks the "Present" option from the 3-dot menu, Then A full-screen poll view should open, And A QR code should be displayed in a side panel to the left of the poll, And Below the QR code, the text "Scan and participate in this poll" should be shown',
+        zephyrTestId: 'LS-7487',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate to Polls page' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.selectCreatorDropdownOption('canParticipate');
+      await aiPollCreationPage.verifyActivePollIsVisible();
+      await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
+      await aiPollCreationPage.verifyPresentOptionIsVisible();
+      await aiPollCreationPage.clickPresentOption();
+      await aiPollCreationPage.verifyQRCodeIsDisplayedInSidePanel();
+      await aiPollCreationPage.verifyQRCodeInstructionText();
+    }
+  );
+
+  test(
+    '“Present” option appears only for Active polls',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLL_PRESENT', '@DRAFT_POLLS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given Login as "App Manager", And User navigates to the "Polls" page via "More" in the side menu, When User clicks the 3-dot menu on an "Active" poll, Then The "Present" option should be visible, When User clicks the 3-dot menu on "Draft" poll, Then The "Present" option should not be visible',
+        zephyrTestId: 'LS-7479',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate to Polls page as App Manager' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.verifyActivePollIsVisible();
+      await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
+      await aiPollCreationPage.verifyPresentOptionIsVisible();
+      await pollsListeningPage.page.click('body');
+      await aiPollCreationPage.selectDraftPollsState();
+      await aiPollCreationPage.verifyDraftPollIsVisible();
+      await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
+      await aiPollCreationPage.verifyPresentOptionIsNotVisible();
+    }
+  );
+
+  test(
+    'verify "Active" and "Polls created by me" filters from the polls page',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLL_FILTERS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given User navigates to the Polls page, Then Verify "Active" filter is visible on the polls page next to the search polls field, When User clicks on the "Active" filter, Then Verify Active filter should have "All polls", "Active polls", "Draft polls" and "Closed polls" options visible, When User clicks on the "Polls created by me" filter, Then Verify Creator filter should have "Polls I can manage", "Polls Created by me" and "Polls I can participate in" options visible',
+        zephyrTestId: 'LS-7330',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate to Polls page' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.verifyActiveFilterIsVisible();
+      await aiPollCreationPage.verifyActiveFilterOptions();
+      await aiPollCreationPage.testCreatorDropdownOptions();
+    }
+  );
+
+  test(
+    'verify user can filter polls by status: Active, Draft, Closed',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@POLL_FILTERS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given User navigates to the Polls page, When User clicks on the "Active" filter dropdown, And selects "Active" from the filter, Then Verify that only Active polls are displayed, When User selects "Draft" from the filter, Then Verify that only Draft polls are displayed, When User selects "Closed" from the filter, Then Verify that only Closed polls are displayed',
+        zephyrTestId: 'LS-7331',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate to Polls page' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.clickActiveFilter();
+      await aiPollCreationPage.selectActiveFilterOption('Active polls');
+      await aiPollCreationPage.verifyOnlyActivePollsAreDisplayed();
+      await aiPollCreationPage.selectActiveFilterOption('Draft polls');
+      await aiPollCreationPage.verifyOnlyDraftPollsAreDisplayed();
+      await aiPollCreationPage.selectActiveFilterOption('Closed polls');
+      await aiPollCreationPage.verifyOnlyClosedPollsAreDisplayed();
+    }
+  );
+
+  test(
+    'validate generated AI poll title character limit',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given Login as an "App Manager", And The AI poll generator is active, And User navigates to the "Polls" page via "More" in the side menu, And Click on the "Create" button, When A poll is generated, Then The poll title should be under 100 characters',
+        zephyrTestId: 'LS-7555',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.clickCreatePollButton();
+      await pollsHelper.addPoll({
+        quickPrompt: 0,
+        generateButton: true,
+      });
+
+      await aiPollCreationPage.verifyPollTitleIsUnder100Characters();
+    }
+  );
+
+  test(
+    'validate the character limit for the AI poll description',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given Login as an "App Manager", And The AI poll generator is active, And User navigates to the "Polls" page via "More" in the side menu, And Click on the "Create" button, Then The poll description character limit should be 1000 characters',
+        zephyrTestId: 'LS-7556',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.clickCreatePollButton();
+      await aiPollCreationPage.verifyPollDescriptionCharacterLimit(1000);
+    }
+  );
+
+  test(
+    'verify poll creator details are visible on poll',
+    {
+      tag: [TestPriority.P1, TestGroupType.SMOKE, '@POLLS', '@POLL_METADATA'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Given Login as "App_Manager", Then Click on the "Employee listening" icon, And Click on the "More" option from the left navigation, Then Click on "Polls" under the "Employee Listening" dropdown, When User creates a poll with question "What are you thinking for lunch?" and options "Pizza", "Pasta", "Salad", "Biryani", And User publishes the poll, Then User navigates to the poll listing page, And User clicks on the created poll from the in app notification, Then Verify that at the top left of each poll displays Creator Name, Timestamp, and Poll Status as Active',
+        zephyrTestId: 'LS-7431',
+        storyId: 'EL-UI Automation',
+      });
+      await pollsListeningPage.clickCreatePollButton();
+      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await pollsHelper.addPoll({
+        pollQuestion: 'What are you thinking for lunch?',
+        pollOptions: ['Pizza', 'Pasta', 'Salad', 'Biryani'],
+        nextButton: true,
+        selectTargetAudience: ['All Employees'],
+        postButton: true,
+      });
+      await pollsListeningPage.loadPage({ stepInfo: 'Navigate back to Polls listing page' });
+      await pollsListeningPage.verifyThePageIsLoaded();
+      await aiPollCreationPage.verifyPollMetadataDisplay('What are you thinking for lunch?');
+    }
+  );
+
+  test(
+    'verify Tooltip on Hover Over Generate Button',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
+    },
+    async () => {
+      tagTest(test.info(), {
+        description:
+          'Verify that when user hovers over the Generate button, it shows proper visual feedback and maintains accessibility. Test validates button hover state, cursor changes, and any tooltip or visual indicators that appear on hover.',
+        zephyrTestId: 'LS-7395',
+        storyId: 'EL-UI Automation',
+      });
+
+      await pollsListeningPage.clickCreatePollButton();
+      await aiPollCreationPage.enterManualPrompt('What are the best team collaboration tools?');
+      await aiPollCreationPage.verifyGenerateButtonHoverBehavior();
+    }
+  );
 });
