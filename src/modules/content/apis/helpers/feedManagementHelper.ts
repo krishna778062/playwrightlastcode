@@ -878,4 +878,41 @@ export class FeedManagementHelper {
       variant: 'standard',
     };
   }
+
+  /**
+   * Uploads an image to get a signed URL and file ID
+   * @param fileName - The name of the file to upload
+   * @param size - The size of the file in bytes
+   * @param mimeType - The MIME type of the file
+   * @param options - Optional parameters (altText, fileId, siteId, contentId)
+   * @returns Promise with upload response containing fileId and uploadUrl
+   */
+  async uploadImage(
+    fileName: string,
+    size: number,
+    mimeType: string,
+    options?: {
+      altText?: string | null;
+      fileId?: string;
+      siteId?: string | null;
+      contentId?: string | null;
+    }
+  ): Promise<any> {
+    return await test.step(`Uploading image "${fileName}" via helper`, async () => {
+      return await this.feedManagementService.uploadImage(fileName, size, mimeType, options);
+    });
+  }
+
+  /**
+   * Updates a feed post
+   * @param postId - The ID of the feed post to update
+   * @param postData - The update payload (textJson, textHtml, listOfAttachedFiles, ignoreToxic)
+   * @returns Promise with FeedResult (the actual return type, despite service typing as FeedPostResponse)
+   */
+  async updateFeed(postId: string, postData: any): Promise<any> {
+    return await test.step(`Updating feed post ${postId} via helper`, async () => {
+      // Note: updatePost returns FeedResult (responseBody.result) despite being typed as FeedPostResponse
+      return await this.feedManagementService.updatePost(postId, postData);
+    });
+  }
 }

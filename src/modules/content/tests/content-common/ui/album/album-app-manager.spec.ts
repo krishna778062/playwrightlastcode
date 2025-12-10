@@ -2,16 +2,15 @@ import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
-import { PROJECT_ROOT } from '@core/constants/paths';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 
 test.describe(
   `album Creation by Application Manager`,
@@ -76,30 +75,12 @@ test.describe(
         )) as AlbumCreationPage;
 
         // Generate album data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          PROJECT_ROOT,
-          'src',
-          'modules',
-          'content',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
-        const attachmentPath = FileUtil.getFilePath(
-          PROJECT_ROOT,
-          'src',
-          'modules',
-          'content',
-          'test-data',
-          'static-files',
-          'excel',
-          'sample.docx'
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+        const attachmentPath = FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname);
         const albumCreationOptions = TestDataGenerator.generateAlbum({
           fileName: imagePath,
           attachmentFileName: attachmentPath,
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
+          videoUrl: CONTENT_TEST_DATA.DEFAULT_ALBUM_CONTENT.videoUrls[0],
           openAlbum: true,
         });
 

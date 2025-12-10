@@ -1,0 +1,222 @@
+name: Start New Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release-pr:
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Check if release is in sync with main
+        id: sync_check
+        run: |
+          git fetch origin main
+          git fetch origin release
+
+          # Check if release is behind main (use origin/ prefix for remote refs)
+          BEHIND=$(git rev-list --count origin/release..origin/main)
+
+          if [ "$BEHIND" -gt 0 ]; then
+            echo "sync_status=behind" >> $GITHUB_OUTPUT
+            echo "commits_behind=$BEHIND" >> $GITHUB_OUTPUT
+            echo "❌ Release branch is $BEHIND commits behind main!"
+            echo "Please sync release with main before starting new release."
+            exit 1
+          else
+            echo "sync_status=synced" >> $GITHUB_OUTPUT
+            echo "✅ Release branch is in sync with main"
+          fi
+
+      - name: Determine new version
+        id: version
+        run: |
+          # Get latest QA tag to determine next version
+          LATEST_TAG=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            # First release ever
+            BASE_VERSION=$(date +%y.%m)
+            echo "First release ever: $BASE_VERSION"
+          else
+            # Increment from latest
+            CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
+            CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
+            CURRENT_MONTH=$(echo $CURRENT_BASE | cut -d'.' -f2)
+            
+            echo "Current base: $CURRENT_BASE"
+            
+            # Increment month
+            NEW_MONTH=$((10#$CURRENT_MONTH + 1))
+            NEW_YEAR=$((10#$CURRENT_YEAR))
+            
+            # Handle year rollover
+            if [ $NEW_MONTH -gt 12 ]; then
+              NEW_MONTH=1
+              NEW_YEAR=$((NEW_YEAR + 1))
+            fi
+            
+            BASE_VERSION=$(printf "%02d.%02d" $NEW_YEAR $NEW_MONTH)
+            echo "Incrementing: $CURRENT_BASE → $BASE_VERSION"
+          fi
+
+          EXPECTED_TAG="${BASE_VERSION}-qa.1"
+
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "expected_tag=$EXPECTED_TAG" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "========================================"
+          echo "New Release Version: $BASE_VERSION"
+          echo "Expected First Tag: $EXPECTED_TAG"
+          echo "========================================"
+
+      - name: Create PR from develop to release
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          BASE_VERSION="${{ steps.version.outputs.base_version }}"
+          EXPECTED_TAG="${{ steps.version.outputs.expected_tag }}"
+
+          git fetch origin develop
+
+          # Check if there are changes to merge (use origin/ prefix for remote refs)
+          COMMITS=$(git rev-list --count origin/release..origin/develop)
+
+          if [ "$COMMITS" -eq 0 ]; then
+            echo "⚠️ No new commits in develop to merge"
+            echo "Release branch is already up-to-date with develop"
+            exit 1
+          fi
+
+          echo "Found $COMMITS commits to merge from develop"
+
+          # Create PR
+          PR_URL=$(gh pr create \
+            --base release \
+            --head develop \
+            --title "Release $BASE_VERSION" \
+            --body "## Release $BASE_VERSION
+
+          This PR starts a new release cycle.
+
+          **Expected first QA tag:** \`$EXPECTED_TAG\`
+          **Commits included:** $COMMITS
+
+          ### What happens when merged:
+          - Workflow will create tag \`$EXPECTED_TAG\`
+          - \`CURRENT_STAGE\` will be set to \`qa\`
+          - QA regression will start testing this release
+
+          ### Labels:
+          - \`new-release\`: Marks this as a release PR
+          - \`latest-release\`: Marks this as the current active release
+
+          **⚠️ Do not remove the \`new-release\` label - it's used by automation**" \
+            --label "new-release" \
+            --label "latest-release")
+
+          PR_NUMBER=$(echo $PR_URL | grep -oP '\d+$')
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "✅ Created PR #$PR_NUMBER"
+
+      - name: Remove latest-release from previous PRs
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          CURRENT_PR="${{ steps.create_pr.outputs.pr_number }}"
+
+          # Find previous PRs with 'latest-release' label
+          PREVIOUS_PRS=$(gh pr list \
+            --base release \
+            --state all \
+            --label "latest-release" \
+            --json number \
+            --jq '.[].number')
+
+          for PR in $PREVIOUS_PRS; do
+            if [ "$PR" != "$CURRENT_PR" ]; then
+              gh pr edit $PR --remove-label "latest-release"
+              echo "✅ Removed 'latest-release' from PR #$PR"
+            fi
+          done
+
+      - name: Summary
+        run: |
+          BASE_VERSION="${{ steps.version.outputs.base_version }}"
+          EXPECTED_TAG="${{ steps.version.outputs.expected_tag }}"
+          PR_NUMBER="${{ steps.create_pr.outputs.pr_number }}"
+          PR_URL="${{ steps.create_pr.outputs.pr_url }}"
+
+          echo ""
+          echo "========================================"
+          echo "✅ RELEASE PR CREATED"
+          echo "========================================"
+          echo ""
+          echo "Release Version: $BASE_VERSION"
+          echo "Expected Tag: $EXPECTED_TAG"
+          echo "PR Number: #$PR_NUMBER"
+          echo "PR URL: $PR_URL"
+          echo ""
+          echo "Next steps:"
+          echo "  1. Review the PR"
+          echo "  2. Approve and merge"
+          echo "  3. Tag will be created automatically"
+          echo "  4. QA testing will begin"
+          echo ""
+          echo "========================================"
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          BASE_VERSION="${{ steps.version.outputs.base_version }}"
+          EXPECTED_TAG="${{ steps.version.outputs.expected_tag }}"
+          PR_URL="${{ steps.create_pr.outputs.pr_url }}"
+
+          if [ "${{ job.status }}" == "success" ]; then
+            MESSAGE=":memo: *New Release PR Created*
+
+          *Version:* $BASE_VERSION
+          *Expected Tag:* \`$EXPECTED_TAG\`
+          *PR:* $PR_URL
+
+          *Next steps:*
+            1. Review the PR
+            2. Approve and merge
+            3. Tag \`$EXPECTED_TAG\` will be created automatically
+            4. Stage will be set to \`qa\`
+            5. QA regression will start
+
+          _Please review and merge when ready!_"
+          else
+            if [ "${{ steps.sync_check.outputs.sync_status }}" == "behind" ]; then
+              BEHIND="${{ steps.sync_check.outputs.commits_behind }}"
+              MESSAGE=":warning: *Cannot Start Release - Sync Required*
+
+          Release branch is $BEHIND commits behind main.
+
+          *Action required:*
+          Please sync release with main before starting new release.
+
+          This usually means there were production hotfixes that need to be included."
+            else
+              MESSAGE=":x: *Failed to Create Release PR*
+
+          Check workflow logs for details:
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            fi
+          fi
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"

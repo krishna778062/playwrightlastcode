@@ -72,11 +72,11 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
             currentDate = addDays(currentDate, 1);
           }
         } else {
-          // 30 days or Custom period: Start from start date + 1 day, then every 7 days
-          // Example: If start date is Nov 02, labels should be: Nov 03, Nov 10, Nov 17, Nov 24, Dec 01, etc.
+          // 30 days or Custom period: Start from start date, then every 7 days
+          // Example: If start date is Nov 10, labels should be: Nov 10, Nov 17, Nov 24, Dec 01, Dec 08, etc.
           xAxisLabels = [];
-          // Start from start date + 1 day, then add 7 days for each subsequent label
-          let currentDate = addDays(startDate, 1);
+          // Start from start date, then add 7 days for each subsequent label
+          let currentDate = startDate;
           while (currentDate <= endDate) {
             xAxisLabels.push(format(currentDate, 'MMM dd'));
             currentDate = addDays(currentDate, 7); // Add 7 days for next label

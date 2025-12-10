@@ -6,6 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { CarouselApiHelper } from '@/src/modules/content/apis/apiValidation/carouselApiHelper';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -130,7 +131,7 @@ test.describe(
         );
 
         // Get existing site for event creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event content
         const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
@@ -147,7 +148,7 @@ test.describe(
         });
 
         // Add event to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(eventInfo.contentId, 'event');
+        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(eventInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
         // Verify event is in carousel
@@ -172,13 +173,13 @@ test.describe(
     test(
       'app manager can add and remove album content from home carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42877'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-10863'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Validate App Manager can add and remove album content from home carousel',
-          zephyrTestId: 'CONT-42877',
-          storyId: 'CONT-42877',
+          zephyrTestId: 'CONT-10863',
+          storyId: 'CONT-10863',
         });
 
         // Enable home carousel
@@ -192,7 +193,7 @@ test.describe(
         );
 
         // Get existing site for album creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create album content
         const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
@@ -206,7 +207,7 @@ test.describe(
         });
 
         // Add album to carousel
-        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(albumInfo.contentId, 'album');
+        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(albumInfo.contentId);
         await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
 
         // Verify album is in carousel

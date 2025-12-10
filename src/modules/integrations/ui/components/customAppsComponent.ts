@@ -699,20 +699,29 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async clickTypeFilter(): Promise<void> {
     await test.step('Click Type filter dropdown', async () => {
-      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
-      if (!isTypeFilterVisible) {
-        await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
-        await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
-      }
       await this.clickOnElement(this.typeFilterButton, { timeout: 10000 });
     });
   }
 
   /**
+   * Click Show next items button to reveal hidden filter buttons
+   */
+  async clickShowNextItems(): Promise<void> {
+    await test.step('Click Show next items button', async () => {
+      await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
+      await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
+    });
+  }
+
+  /**
    * Select a type filter option
+   * Note: For 'Custom' type, need to click 'Show next items' first to reveal the Type filter
    */
   async selectTypeFilter(type: 'Prebuilt' | 'Custom'): Promise<void> {
     await test.step(`Select type filter: ${type}`, async () => {
+      if (type === 'Custom') {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       const typeLabel = type === 'Prebuilt' ? this.typeFilterPrebuiltLabel : this.typeFilterCustomLabel;
       await this.clickOnElement(typeLabel, { timeout: 10000 });
@@ -722,9 +731,14 @@ export class CustomAppsComponent extends BaseComponent {
 
   /**
    * Clear the type filter
+   * Note: If Type filter is not visible, click 'Show next items' first
    */
   async clearTypeFilter(): Promise<void> {
     await test.step('Clear type filter', async () => {
+      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
+      if (!isTypeFilterVisible) {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       await this.clickOnElement(this.typeFilterClearButton, { timeout: 10000 });
     });
@@ -769,6 +783,35 @@ export class CustomAppsComponent extends BaseComponent {
       await this.clickSortDropdown();
       const menuItem = order === 'Newest first' ? this.sortOrderNewestFirstMenuItem : this.sortOrderOldestFirstMenuItem;
       await this.clickOnElement(menuItem, { timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verify the sort dropdown label text
+   */
+  async verifySortDropdownLabel(expectedLabel: string): Promise<void> {
+    await test.step(`Verify sort dropdown label is "${expectedLabel}"`, async () => {
+      await expect(this.sortDropdownButton).toContainText(expectedLabel);
+    });
+  }
+
+  /**
+   * Verify app is not at the top of the list
+   */
+  async verifyAppIsNotFirst(appName: string): Promise<void> {
+    await test.step(`Verify "${appName}" is not at the top of the list`, async () => {
+      const firstAppName = await this.getFirstAppName();
+      expect(firstAppName).not.toBe(appName);
+    });
+  }
+
+  /**
+   * Verify app is at the top of the list
+   */
+  async verifyAppIsFirst(appName: string): Promise<void> {
+    await test.step(`Verify "${appName}" is at the top of the list`, async () => {
+      const firstAppName = await this.getFirstAppName();
+      expect(firstAppName).toBe(appName);
     });
   }
 
@@ -875,6 +918,18 @@ export class CustomAppsComponent extends BaseComponent {
     await test.step(`Select sub auth type: ${subAuthType}`, async () => {
       await this.subAuthTypeSelect.waitFor({ state: 'visible' });
       await this.subAuthTypeSelect.selectOption({ label: subAuthType });
+    });
+  }
+
+  /**
+   * Verify that a sub auth type option is disabled in the dropdown
+   * @param optionLabel - The label of the option to verify (e.g., 'Client Credentials')
+   */
+  async verifySubAuthTypeOptionIsDisabled(optionLabel: string): Promise<void> {
+    await test.step(`Verify sub auth type option "${optionLabel}" is disabled`, async () => {
+      await this.subAuthTypeSelect.waitFor({ state: 'visible' });
+      const option = this.subAuthTypeSelect.locator(`option:has-text("${optionLabel}")`);
+      await expect(option, `Expected option "${optionLabel}" to be disabled`).toBeDisabled();
     });
   }
 
