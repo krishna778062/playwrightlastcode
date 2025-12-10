@@ -1,13 +1,5 @@
 import { CUSTOM_FIELD_TYPES } from '@modules/comms-planner/constants/constant';
-import {
-  CF_DATE_META,
-  CF_DD_META,
-  CF_LABEL_META,
-  CF_NUMBER_META,
-  CF_TEXT_AREA_META,
-  CF_TEXT_META,
-  CustomField,
-} from '@modules/comms-planner/constants/customField';
+import { CUSTOM_FIELD_META, CustomField, CustomFieldConfig } from '@modules/comms-planner/constants/customField';
 import { CustomFieldsPage } from '@modules/comms-planner/pages/customizations/customFieldsPage';
 
 /**
@@ -24,40 +16,29 @@ export const deleteCustomField = async (customFieldsPage: CustomFieldsPage, meta
 /**
  * Edit the custom field created
  */
-export const editCustomField = async (customFieldsPage: CustomFieldsPage, meta: CustomField) => {
+export const editCustomField = async (
+  customFieldsPage: CustomFieldsPage,
+  meta: CustomField,
+  config: CustomFieldConfig
+) => {
   await customFieldsPage.filterCustomFieldListingByFieldType(meta.type);
   await customFieldsPage.verifyCreatedCustomField(meta.name);
   await customFieldsPage.clickCustomFieldTableAction('Edit', meta.name);
 
   await customFieldsPage.verifyOpenedCustomFieldEditModal();
 
-  let editMeta: CustomField = CF_LABEL_META.EDIT;
+  await customFieldsPage.verifyMaxCharacterCustomFieldNameValidation('edit');
+  await customFieldsPage.verifyEmptyCustomFieldNameValidation('edit');
+
+  const editMeta: CustomField = CUSTOM_FIELD_META.get(meta.type)!.EDIT;
 
   switch (meta.type) {
     case CUSTOM_FIELD_TYPES.LABEL:
-      editMeta = CF_LABEL_META.EDIT;
       await customFieldsPage.deleteAllOptionsOfCustomField();
       await customFieldsPage.selectOptionsForCustomFieldTypeLabel(editMeta.options || []);
       break;
 
-    case CUSTOM_FIELD_TYPES.TEXT:
-      editMeta = CF_TEXT_META.EDIT;
-      break;
-
-    case CUSTOM_FIELD_TYPES.TEXTAREA:
-      editMeta = CF_TEXT_AREA_META.EDIT;
-      break;
-
-    case CUSTOM_FIELD_TYPES.NUMBER:
-      editMeta = CF_NUMBER_META.EDIT;
-      break;
-
-    case CUSTOM_FIELD_TYPES.DATE:
-      editMeta = CF_DATE_META.EDIT;
-      break;
-
     case CUSTOM_FIELD_TYPES.DROPDOWN:
-      editMeta = CF_DD_META.EDIT;
       await customFieldsPage.deleteAllOptionsOfCustomField();
       await customFieldsPage.selectOptionsForCustomFieldTypeDD(editMeta.options || []);
       break;
@@ -79,10 +60,18 @@ export const toggleCustomFieldStatusInListing = async (customFieldsPage: CustomF
   await customFieldsPage.toggleAndVerifyCreatedCustomFieldStatus(meta.name, true);
 };
 
-export const createCustomField = async (customFieldsPage: CustomFieldsPage, meta: CustomField) => {
+export const createCustomField = async (
+  customFieldsPage: CustomFieldsPage,
+  meta: CustomField,
+  config: CustomFieldConfig
+) => {
   await customFieldsPage.clickAddCustomFieldButton();
   await customFieldsPage.verifyOpenedCustomFieldModal();
+  await customFieldsPage.verifyMaxCharacterCustomFieldNameValidation('create');
+  await customFieldsPage.verifyEmptyCustomFieldNameValidation('create');
   await customFieldsPage.addCustomFieldName(meta.name);
+
+  await customFieldsPage.verifyEmptyCustomFieldTypeValidation('create');
 
   switch (meta.type) {
     case CUSTOM_FIELD_TYPES.LABEL:
@@ -110,7 +99,26 @@ export const createCustomField = async (customFieldsPage: CustomFieldsPage, meta
       break;
   }
 
-  await customFieldsPage.selectCustomFieldLocation();
+  if (config.addLocation) {
+    await customFieldsPage.selectCustomFieldLocation();
+  }
+
   await customFieldsPage.clickCreateCustomFieldModalButton();
   await customFieldsPage.verifyCustomFieldCreationConfirmation();
+};
+
+export const runCustomFieldLifecycle = async (
+  customFieldsPage: CustomFieldsPage,
+  meta: CustomField,
+  editMeta: CustomField,
+  config: CustomFieldConfig
+) => {
+  await createCustomField(customFieldsPage, meta, config);
+  await verifyCustomFieldInListing(customFieldsPage, meta);
+  await toggleCustomFieldStatusInListing(customFieldsPage, meta);
+
+  await editCustomField(customFieldsPage, meta, config);
+
+  await verifyCustomFieldInListing(customFieldsPage, editMeta);
+  await deleteCustomField(customFieldsPage, editMeta);
 };

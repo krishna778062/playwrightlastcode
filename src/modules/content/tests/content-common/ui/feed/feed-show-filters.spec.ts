@@ -13,6 +13,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
@@ -485,8 +486,7 @@ test.describe(
         console.log('Created contents:', contents.map(c => `${c.type}: ${c.title}`).join(', '));
 
         // Verify Admin can see all 3 contents in Recently Published block
-        await appManagerFixture.homePage.loadPage();
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
         await adminFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -500,8 +500,7 @@ test.describe(
 
         // Verify End User (non-member) cannot see the contents (only if user is not already a member)
         if (!isEndUserMember) {
-          await standardUserFixture.homePage.loadPage();
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.verifyThePageIsLoaded();
           await endUserFeedPage.actions.clickOnShowOption('Posts I follow');
@@ -533,9 +532,8 @@ test.describe(
         }
 
         // Verify End User (member) can now see all 3 contents
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
         const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await endUserMemberFeedPage.verifyThePageIsLoaded();
         await endUserMemberFeedPage.actions.clickOnShowOption('Posts I follow');
 
@@ -567,7 +565,8 @@ test.describe(
         let albumTitle: string | null = null;
 
         try {
-          allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+          allEmployeesSiteId =
+            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
           await test.step('As EndUser: Create album', async () => {
             const timestamp = Date.now();
