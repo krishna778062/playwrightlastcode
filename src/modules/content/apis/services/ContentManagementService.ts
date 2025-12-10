@@ -13,7 +13,6 @@ import { log } from '@core/utils/logger';
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
-import { CarouselItemResponse } from '@/src/modules/content/apis/types/carouselItemResponse';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 
 const defaultBaseContentPayload = {
@@ -415,34 +414,6 @@ export class ContentManagementService implements IContentManagementServices {
     });
   }
 
-  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
-    return await test.step('Adding content into home carousel via API post request', async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.content.addHomeCarouselItem, {
-        data: {
-          siteId: null,
-          itemType: 'content',
-          item: {
-            id: contentId,
-          },
-        },
-      });
-      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
-    });
-  }
-  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
-    return await test.step('Adding site carousel item via API post request', async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.site.addSiteCarouselItem(siteId), {
-        data: {
-          siteId: siteId,
-          itemType: 'content',
-          item: {
-            id: contentId,
-          },
-        },
-      });
-      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
-    });
-  }
   async makeContentMustRead(
     contentId: string,
     options: {
@@ -460,7 +431,7 @@ export class ContentManagementService implements IContentManagementServices {
           duration: options.duration || MustReadDuration.NINETY_DAYS,
         },
       });
-      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
+      return await this.httpClient.parseResponse<any>(response);
     });
   }
 
@@ -675,45 +646,6 @@ export class ContentManagementService implements IContentManagementServices {
         data: requestData,
       });
       return await this.httpClient.parseResponse<ContentListResponse>(response);
-    });
-  }
-
-  /**
-   * Creates a page template
-   * @param templateData - Template creation payload
-   * @returns Promise with the template creation response
-   */
-  async createTemplate(templateData: {
-    siteId: string;
-    name: string;
-    title: string;
-    subType: string;
-    language: string;
-    category: { id: string; name: string };
-    body: {
-      type: string;
-      content: Array<{
-        type: string;
-        attrs?: Record<string, any>;
-        content?: Array<{ type: string; text?: string; [key: string]: any }>;
-        [key: string]: any;
-      }>;
-    };
-    imgLayout?: string;
-    listOfTopics?: Array<{ id: string; name: string }>;
-  }): Promise<any> {
-    return await test.step(`Creating page template: ${templateData.name}`, async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.content.createTemplate, {
-        data: templateData,
-      });
-      const json = await response.json();
-      if (json.status !== 'success') {
-        throw new Error(
-          `Failed to create template. Status: ${json.status}, Message: ${json.message || 'Unknown error'}`
-        );
-      }
-      log.debug(`Successfully created template: ${templateData.name} with ID: ${json.result?.id || 'unknown'}`);
-      return json;
     });
   }
 }

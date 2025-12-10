@@ -53,24 +53,6 @@ export class BaseVerificationUtil {
     }
   }
 
-  async isTheElementVisibleWithLessTimeout(
-    locator: Locator,
-    options?: {
-      timeout?: number;
-      assertionMessage?: string;
-    }
-  ): Promise<boolean> {
-    try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || TIMEOUTS.VERY_SHORT,
-      });
-      return true;
-    } catch {
-      //if we want we can take screenshot here
-      return false;
-    }
-  }
-
   /**
    * Verifies that the element is not visible
    * @param locator - The locator to verify

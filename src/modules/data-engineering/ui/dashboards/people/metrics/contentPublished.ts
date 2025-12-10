@@ -65,14 +65,20 @@ export class ContentPublished extends PeopleDashboardTabularMetricsComponent {
 
       // Build expected headers based on actual CSV headers
       const expectedCsvHeaders: string[] = [...baseCsvHeaders];
-      if (actualCSVHeaders.includes('Segment') || actualCSVHeaders.includes('Segment name')) {
-        expectedCsvHeaders.splice(3, 0, actualCSVHeaders.includes('Segment') ? 'Segment' : 'Segment name');
+      if (actualCSVHeaders.includes('Segment')) {
+        expectedCsvHeaders.splice(3, 0, 'Segment'); // Insert after 'Company name'
       }
-      if (actualCSVHeaders.includes('User category') || actualCSVHeaders.includes('User Category')) {
+      if (actualCSVHeaders.includes('User category')) {
+        // Insert User category after Country
         const countryIndex = expectedCsvHeaders.indexOf('Country');
-        const userCategoryHeader = actualCSVHeaders.includes('User category') ? 'User category' : 'User Category';
-        expectedCsvHeaders.splice(countryIndex + 1, 0, userCategoryHeader);
+        expectedCsvHeaders.splice(countryIndex + 1, 0, 'User category');
       }
+
+      // Build header mapping dynamically
+      const headerMapping: Record<string, string> = {
+        Name: 'Name',
+        Count: 'Published content',
+      };
 
       const validationConfig: CSVValidationConfig = {
         csvPath: filePath,
@@ -82,10 +88,7 @@ export class ContentPublished extends PeopleDashboardTabularMetricsComponent {
         ...(customDates || {}),
         expectedHeaders: expectedCsvHeaders,
         transformations: {
-          headerMapping: {
-            Name: 'Name',
-            Count: 'Published content',
-          },
+          headerMapping,
         },
       };
 

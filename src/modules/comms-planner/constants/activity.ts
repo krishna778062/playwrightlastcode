@@ -18,7 +18,7 @@ export const ACTIVITIES: Activity[] = [
     type: `Page`,
     description: `Share a company-wide message introducing wellness month, benefits, and participation rules.`,
     content: {
-      type: 'Page',
+      type: 'page',
       subType: 'news',
       title: `Wellness Kickoff Announcement`,
       description: `Share a company-wide message introducing wellness month, benefits, and participation rules.`,
@@ -26,10 +26,10 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     title: `Team Photo Showcase`,
-    type: `Album`,
+    type: `Page`,
     description: `Each team uploads a group photo that represents their theme, task, or personality. All images are compiled into a single album to celebrate team spirit.`,
     content: {
-      type: 'Album',
+      type: 'album',
       title: `Team Photo Showcase`,
       description: `Each team uploads a group photo that represents their theme, task, or personality. All images are compiled into a single album to celebrate team spirit.`,
     },
@@ -39,7 +39,7 @@ export const ACTIVITIES: Activity[] = [
     type: `Event`,
     description: `Conduct an instructor-led workshop (virtual or in-person) to teach a specific skill, process, or method related to the campaign theme.`,
     content: {
-      type: 'Event',
+      type: 'event',
       title: `Live Workshop Session`,
       location: `Online`,
       description: `Conduct an instructor-led workshop (virtual or in-person) to teach a specific skill, process, or method related to the campaign theme.`,

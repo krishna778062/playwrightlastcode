@@ -5,8 +5,3 @@ export enum ContentStatus {
   PENDING = 'Pending',
   REJECTED = 'Rejected',
 }
-
-export enum ContentPostingPermission {
-  ENABLED = 'Enabled',
-  DISABLED = 'Disabled',
-}

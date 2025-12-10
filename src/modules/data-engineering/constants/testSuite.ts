@@ -7,5 +7,4 @@ export enum DataEngineeringTestSuite {
   MOBILE = '@mobile',
   MONTHLY_REPORTS = '@monthly-reports',
   SITES = '@sites',
-  OVERVIEW = '@overview',
 }

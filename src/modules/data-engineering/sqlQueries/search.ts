@@ -87,7 +87,8 @@ WHERE s.tenant_code = '{tenantCode}'
   {locationFilter}
   {departmentFilter}
 GROUP BY s.search_term
-ORDER BY total_search DESC, s.search_term ASC;
+ORDER BY total_search DESC, s.search_term ASC
+LIMIT 20;
 `,
   Top_Search_Queries_With_No_Clickthrough: `
 WITH search_data AS (
@@ -126,7 +127,8 @@ FROM search_data s
 LEFT JOIN click_data c
   ON s.code = c.search_code
 GROUP BY s.search_term
-ORDER BY total_search DESC, s.search_term ASC;
+ORDER BY total_search DESC, s.search_term ASC
+LIMIT 20;
 `,
   Top_Clickthrough_Types: `
 WITH total_clicks AS (
@@ -156,7 +158,8 @@ WHERE sc.tenant_code = '{tenantCode}'
   {locationFilter}
   {departmentFilter}
 GROUP BY rt.description, t.total_clickthrough
-ORDER BY click_count DESC;
+ORDER BY click_count DESC
+LIMIT 5;
 `,
   No_Result_Search_Queries: `
 SELECT
@@ -207,7 +210,8 @@ WHERE s.tenant_code = '{tenantCode}'
   {locationFilter}
   {departmentFilter}
 GROUP BY u.department
-ORDER BY total_searches DESC;
+ORDER BY total_searches DESC
+LIMIT 5;
 `,
   Search_Usage_Volume_And_Click_Through_Rate: `
 SELECT

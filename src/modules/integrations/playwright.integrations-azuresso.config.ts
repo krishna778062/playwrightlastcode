@@ -18,7 +18,7 @@ initializeIntegrationConfig('azuresso'); //integration config is initialized for
 export default defineConfig<Options>({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'integrations', 'tests', 'gamma'),
-  testMatch: ['**/azureSync.spec.ts', '**/googleSync.spec.ts'],
+  testMatch: '**/azureSync.spec.ts',
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
   timeout: 180_000,
