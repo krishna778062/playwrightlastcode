@@ -12,6 +12,7 @@ export interface IGovernanceScreenPageActions {
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
   clickOnTimelineFeedDisabled: () => Promise<void>;
+  selectContentValidationPeriodTime: (time: string) => Promise<void>;
   updateTheCustomFeedPlaceholder: (placeholder: string) => Promise<void>;
   makePlaceholderDefault: () => Promise<void>;
 }
@@ -29,6 +30,8 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   readonly timelineFeedEnabled: Locator;
   readonly successToastMessage: (message: string) => Locator;
   readonly clickOnContentSubmissions: Locator;
+  readonly clickOnSave: Locator;
+  readonly clickOnContentValidationPeriodTime: Locator;
   readonly clickOnCustomFeedPlaceholder: Locator;
   readonly customFeedPlaceholderInput: Locator;
   readonly makePlaceholderDefaultButton: Locator;
@@ -45,6 +48,8 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
     this.successToastMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.clickOnContentSubmissions = this.page.locator('#contentSubmissions');
+    this.clickOnSave = this.page.getByRole('button', { name: 'Save' });
+    this.clickOnContentValidationPeriodTime = page.locator('#autoGovValidationPeriod');
     this.clickOnCustomFeedPlaceholder = page.getByRole('radio', { name: 'Custom' });
     this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
@@ -105,6 +110,14 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
         stepInfo: 'Verify the changes confirmation toast message is visible',
       });
+    });
+  }
+
+  async selectContentValidationPeriodTime(time: string): Promise<void> {
+    await test.step('Clicking on content validation period time', async () => {
+      await this.clickOnElement(this.clickOnContentValidationPeriodTime);
+      await this.clickOnContentValidationPeriodTime.selectOption(time);
+      await this.clickOnElement(this.clickOnSave);
     });
   }
 

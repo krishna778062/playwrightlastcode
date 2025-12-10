@@ -26,6 +26,7 @@ export class TopNavBarComponent extends BaseComponent {
   readonly viewProfileButton: Locator;
   readonly profileSettingsButton: Locator;
   readonly xButtonToClearGlobalSearchBar: Locator;
+  readonly editTimezoneButton: Locator;
   constructor(
     page: Page,
     readonly isNewUxEnabled = true
@@ -55,6 +56,7 @@ export class TopNavBarComponent extends BaseComponent {
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
     this.viewProfileButton = this.page.getByText('View profile');
     this.xButtonToClearGlobalSearchBar = this.page.getByRole('button', { name: 'Clear' });
+    this.editTimezoneButton = this.page.getByRole('button', { name: 'Edit contact' });
   }
 
   /**
@@ -178,6 +180,11 @@ export class TopNavBarComponent extends BaseComponent {
   async logout(options?: { stepInfo?: string }): Promise<void> {
     const profileDropdownComponent = await this.openProfileSettings(options);
     await profileDropdownComponent.clickOnLogoutButton();
+  }
+  async openEditTimezone(options?: { stepInfo?: string }): Promise<void> {
+    await this.clickOnElement(this.editTimezoneButton, {
+      stepInfo: options?.stepInfo || `topnavbar: clicking on edit timezone button`,
+    });
   }
 
   async openMySettings(options?: { stepInfo?: string }): Promise<void> {

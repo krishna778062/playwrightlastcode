@@ -14,40 +14,78 @@ export class CarouselApiHelper {
   }
 
   /**
-   * Validates that home carousel is enabled with retry
+   * Validates that home carousel is enabled in the app configuration with retry logic
    * @param getConfigFn - Function that returns the app configuration
-   * @param timeout - Maximum timeout in milliseconds (default: 10000)
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @param retryDelay - Delay between retries in milliseconds (default: 2000)
    */
-  async validateHomeCarouselEnabled(getConfigFn: () => Promise<any>, timeout: number = 10000): Promise<void> {
-    await test.step('Validate home carousel is enabled', async () => {
-      await expect
-        .poll(
-          async () => {
-            const config = await getConfigFn();
-            return config.result.isHomeCarouselEnabled;
-          },
-          { timeout, intervals: [500, 1000, 2000] }
-        )
-        .toBe(true);
+  async validateHomeCarouselEnabled(
+    getConfigFn: () => Promise<any>,
+    maxRetries: number = 2,
+    retryDelay: number = 2000
+  ): Promise<void> {
+    await test.step(`Validate home carousel is enabled with retry (max ${maxRetries} attempts)`, async () => {
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const configResponse = await getConfigFn();
+          expect(
+            configResponse.result.isHomeCarouselEnabled,
+            `isHomeCarouselEnabled should be true (attempt ${attempt + 1}/${maxRetries + 1})`
+          ).toBe(true);
+          return; // Success, exit the retry loop
+        } catch (error) {
+          lastError = error as Error;
+          if (attempt < maxRetries) {
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(
+        `Failed to validate home carousel is enabled after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
     });
   }
 
   /**
-   * Validates that home carousel is disabled with retry
+   * Validates that home carousel is disabled in the app configuration with retry logic
    * @param getConfigFn - Function that returns the app configuration
-   * @param timeout - Maximum timeout in milliseconds (default: 10000)
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @param retryDelay - Delay between retries in milliseconds (default: 2000)
    */
-  async validateHomeCarouselDisabled(getConfigFn: () => Promise<any>, timeout: number = 10000): Promise<void> {
-    await test.step('Validate home carousel is disabled', async () => {
-      await expect
-        .poll(
-          async () => {
-            const config = await getConfigFn();
-            return config.result.isHomeCarouselEnabled;
-          },
-          { timeout, intervals: [500, 1000, 2000] }
-        )
-        .toBe(false);
+  async validateHomeCarouselDisabled(
+    getConfigFn: () => Promise<any>,
+    maxRetries: number = 2,
+    retryDelay: number = 2000
+  ): Promise<void> {
+    await test.step(`Validate home carousel is disabled with retry (max ${maxRetries} attempts)`, async () => {
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const configResponse = await getConfigFn();
+          expect(
+            configResponse.result.isHomeCarouselEnabled,
+            `isHomeCarouselEnabled should be false (attempt ${attempt + 1}/${maxRetries + 1})`
+          ).toBe(false);
+          return; // Success, exit the retry loop
+        } catch (error) {
+          lastError = error as Error;
+          if (attempt < maxRetries) {
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(
+        `Failed to validate home carousel is disabled after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
     });
   }
 
@@ -111,40 +149,78 @@ export class CarouselApiHelper {
   }
 
   /**
-   * Validates site carousel is enabled with retry
+   * Validates that site carousel is enabled in the app configuration with retry logic
    * @param getConfigFn - Function that returns the app configuration
-   * @param timeout - Maximum timeout in milliseconds (default: 10000)
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @param retryDelay - Delay between retries in milliseconds (default: 2000)
    */
-  async validateSiteCarouselEnabled(getConfigFn: () => Promise<any>, timeout: number = 10000): Promise<void> {
-    await test.step('Validate site carousel is enabled', async () => {
-      await expect
-        .poll(
-          async () => {
-            const config = await getConfigFn();
-            return config.result.isSiteCarouselEnabled;
-          },
-          { timeout, intervals: [500, 1000, 2000] }
-        )
-        .toBe(true);
+  async validateSiteCarouselEnabled(
+    getConfigFn: () => Promise<any>,
+    maxRetries: number = 2,
+    retryDelay: number = 2000
+  ): Promise<void> {
+    await test.step(`Validate site carousel is enabled with retry (max ${maxRetries} attempts)`, async () => {
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const configResponse = await getConfigFn();
+          expect(
+            configResponse.result.isSiteCarouselEnabled,
+            `isSiteCarouselEnabled should be true (attempt ${attempt + 1}/${maxRetries + 1})`
+          ).toBe(true);
+          return; // Success, exit the retry loop
+        } catch (error) {
+          lastError = error as Error;
+          if (attempt < maxRetries) {
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(
+        `Failed to validate site carousel is enabled after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
     });
   }
 
   /**
-   * Validates site carousel is disabled with retry
+   * Validates that site carousel is disabled in the app configuration with retry logic
    * @param getConfigFn - Function that returns the app configuration
-   * @param timeout - Maximum timeout in milliseconds (default: 10000)
+   * @param maxRetries - Maximum number of retries (default: 2)
+   * @param retryDelay - Delay between retries in milliseconds (default: 2000)
    */
-  async validateSiteCarouselDisabled(getConfigFn: () => Promise<any>, timeout: number = 10000): Promise<void> {
-    await test.step('Validate site carousel is disabled', async () => {
-      await expect
-        .poll(
-          async () => {
-            const config = await getConfigFn();
-            return config.result.isSiteCarouselEnabled;
-          },
-          { timeout, intervals: [500, 1000, 2000] }
-        )
-        .toBe(false);
+  async validateSiteCarouselDisabled(
+    getConfigFn: () => Promise<any>,
+    maxRetries: number = 2,
+    retryDelay: number = 2000
+  ): Promise<void> {
+    await test.step(`Validate site carousel is disabled with retry (max ${maxRetries} attempts)`, async () => {
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const configResponse = await getConfigFn();
+          expect(
+            configResponse.result.isSiteCarouselEnabled,
+            `isSiteCarouselEnabled should be false (attempt ${attempt + 1}/${maxRetries + 1})`
+          ).toBe(false);
+          return; // Success, exit the retry loop
+        } catch (error) {
+          lastError = error as Error;
+          if (attempt < maxRetries) {
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(
+        `Failed to validate site carousel is disabled after ${maxRetries + 1} attempts. Last error: ${lastError?.message}`
+      );
     });
   }
 }

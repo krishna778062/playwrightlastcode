@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
-import { FeedPostResponse } from '@core/types/feed.type';
+import { FeedPostResponse, FeedResult } from '@core/types/feed.type';
+import { CreateFeedPostPayload } from '@core/types/feed.type';
 
 export class FeedApiHelper {
   /**
@@ -128,6 +129,21 @@ export class FeedApiHelper {
   }
 
   /**
+   * Validates that FeedResult contains files with required fields
+   * @param feedResult - The FeedResult to validate
+   */
+  async validateFeedResultFiles(feedResult: FeedResult): Promise<void> {
+    await test.step('Validate feed result contains files', async () => {
+      expect(feedResult.listOfFiles, 'listOfFiles should be an array').toBeInstanceOf(Array);
+      if (feedResult.listOfFiles.length > 0) {
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('fileId');
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('name');
+        expect(feedResult.listOfFiles[0], 'File should have required fields').toHaveProperty('provider');
+      }
+    });
+  }
+
+  /**
    * Validates that feed response contains links
    * @param feedResponse - The feed response to validate
    */
@@ -136,6 +152,156 @@ export class FeedApiHelper {
       expect(feedResponse.result.listOfLinks, 'listOfLinks should be an array').toBeInstanceOf(Array);
       expect(feedResponse.result.listOfLinks.length, 'Should contain at least one link').toBeGreaterThan(0);
       expect(typeof feedResponse.result.listOfLinks[0], 'Link should be a string').toBe('string');
+    });
+  }
+
+  /**
+   * Validates the feed update response (FeedResult from updatePost)
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param originalFeedId - The original feed ID that was updated
+   * @param expectedText - The expected text that should be in textJson
+   */
+  async validateFeedUpdateResponse(
+    updatedFeedResult: FeedResult,
+    originalFeedId: string,
+    expectedText: string
+  ): Promise<void> {
+    await test.step('Validate feed update response', async () => {
+      expect(updatedFeedResult.feedId, 'Feed ID should match the original feed ID').toBe(originalFeedId);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain the updated text').toContain(expectedText);
+    });
+  }
+
+  /**
+   * Validates that the feed update response contains site mentions
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param siteMentions - Array of site mentions with id and label
+   */
+  async validateFeedUpdateResponseSiteMentions(
+    updatedFeedResult: FeedResult,
+    siteMentions: { id: string; label: string }[]
+  ): Promise<void> {
+    // Store in local variable to ensure proper closure capture
+    const mentions = siteMentions;
+    await test.step('Validate feed update response contains site mentions', async () => {
+      if (!mentions || mentions.length === 0) {
+        throw new Error('siteMentions array is required and must not be empty');
+      }
+      expect(updatedFeedResult.textJson, 'Text JSON should contain site mentions').toContain('UserAndSiteMention');
+      expect(updatedFeedResult.textJson, 'Text JSON should contain first site ID').toContain(mentions[0].id);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain site type').toContain('"type":"site"');
+      if (mentions.length > 1) {
+        expect(updatedFeedResult.textJson, 'Text JSON should contain second site ID').toContain(mentions[1].id);
+      }
+    });
+  }
+
+  /**
+   * Validates that the feed update response contains user mentions
+   * @param updatedFeedResult - The FeedResult from updatePost response
+   * @param userMentions - Array of user mentions with id and label
+   */
+  async validateFeedUpdateResponseUserMentions(
+    updatedFeedResult: FeedResult,
+    userMentions: { id: string; label: string }[]
+  ): Promise<void> {
+    // Store in local variable to ensure proper closure capture
+    const mentions = userMentions;
+    await test.step('Validate feed update response contains user mentions', async () => {
+      if (!mentions || mentions.length === 0) {
+        throw new Error('userMentions array is required and must not be empty');
+      }
+      expect(updatedFeedResult.textJson, 'Text JSON should contain user mentions').toContain('UserAndSiteMention');
+      expect(updatedFeedResult.textJson, 'Text JSON should contain first user ID').toContain(mentions[0].id);
+      expect(updatedFeedResult.textJson, 'Text JSON should contain user type').toContain('"type":"user"');
+      if (mentions.length > 1) {
+        expect(updatedFeedResult.textJson, 'Text JSON should contain second user ID').toContain(mentions[1].id);
+      }
+    });
+  }
+
+  /**
+   * Validates that feed response contains the expected site ID
+   * @param feedResponse - The feed response to validate
+   * @param expectedSiteId - The expected site ID
+   */
+  async validateFeedResponseSiteId(feedResponse: FeedPostResponse, expectedSiteId: string): Promise<void> {
+    await test.step('Validate feed response site ID', async () => {
+      expect(feedResponse.result.site?.siteId, 'Site ID should match').toBe(expectedSiteId);
+    });
+  }
+
+  /**
+   * Validates that attempting to delete an already deleted feed throws an appropriate error
+   * @param deleteOperation - A function that performs the delete operation (should throw an error)
+   */
+  async validateDeleteAlreadyDeletedFeedError(deleteOperation: () => Promise<void>): Promise<void> {
+    await test.step('Validate error when deleting already deleted feed', async () => {
+      try {
+        await deleteOperation();
+        throw new Error('Expected feed deletion to fail for already deleted feed, but it succeeded');
+      } catch (error: any) {
+        // Verify error response - should be 404 or similar
+        if (error.message && (error.message.includes('404') || error.message.includes('not found'))) {
+          // Expected error
+          return;
+        }
+        // Re-throw if it's a different error
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Validates that attempting to create a feed with blank text throws an appropriate error
+   * @param createFeedOperation - A function that performs the create feed operation with blank payload (should throw an error)
+   */
+  async validateCreateBlankFeedError(
+    createFeedOperation: (payload: CreateFeedPostPayload) => Promise<any>
+  ): Promise<void> {
+    await test.step('Validate error when creating feed with blank text', async () => {
+      try {
+        // Create feed with blank payload from test data (cast to mutable type)
+        const blankPayload: CreateFeedPostPayload = {
+          ...FEED_TEST_DATA.BLANK_FEED_PAYLOAD,
+          listOfAttachedFiles: [...FEED_TEST_DATA.BLANK_FEED_PAYLOAD.listOfAttachedFiles],
+        };
+        const response = await createFeedOperation(blankPayload);
+        // If creation succeeds, check if the response indicates an error
+        if (response.status === 'error' || response.status === 'failure') {
+          // Expected error response
+          return;
+        }
+        // If it succeeded, that's unexpected - the API should reject empty feeds
+        throw new Error('Expected feed creation to fail with blank text, but it succeeded');
+      } catch (error: any) {
+        // Verify error response - check for various possible error messages
+        const errorMessage = error.message || '';
+        const errorLower = errorMessage.toLowerCase();
+        if (
+          errorLower.includes('empty') ||
+          errorLower.includes('cannot be empty') ||
+          errorLower.includes('required') ||
+          errorLower.includes('400') ||
+          errorLower.includes('validation') ||
+          errorLower.includes('invalid')
+        ) {
+          // Expected error - feed creation failed as expected
+          return;
+        }
+        // If error doesn't match expected patterns, check if it's a 400/422 status
+        if (errorMessage.includes('Status: 400') || errorMessage.includes('Status: 422')) {
+          // Expected validation error
+          return;
+        }
+        // Check for error response body with status error or failure
+        if (error.responseBody && (error.responseBody.status === 'error' || error.responseBody.status === 'failure')) {
+          // Expected error response
+          return;
+        }
+        // Re-throw if it's a different error
+        throw error;
+      }
     });
   }
 }

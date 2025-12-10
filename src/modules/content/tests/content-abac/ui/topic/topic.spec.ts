@@ -10,6 +10,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { TOPIC_TEST_DATA } from '@/src/modules/content/test-data/topic.test-data';
 import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -80,7 +82,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const topicName = faker.lorem.words(2);
       await manageTopicsPage.actions.fillTopicName(topicName);
       await manageTopicsPage.actions.clickOnAddButton();
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName);
       await manageTopicsPage.actions.searchingTopicInSearchBar(`${topicName}--__`);
@@ -103,7 +105,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
       console.log('Created topic via API:', topicInfo);
 
-      const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+      const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate random page name using faker
       const randomPageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`;
@@ -301,7 +303,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.actions.clickDeleteConfirmButton();
 
       // Step 9: Verify the toast message
-      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
       await manageTopicsPage.assertions.verifyTopicIsNotVisible(topicName);
       await manageTopicsPage.loadPage();
 
@@ -330,11 +332,11 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Click on "Add topic" button
       topicId = await manageTopicsPage.actions.createTopic(topicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
       await manageTopicsPage.actions.createDuplicateTopic(topicName);
 
-      await manageTopicsPage.assertions.verifyToastMessage('Duplicate topics are not allowed.');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DUPLICATE_NOT_ALLOWED);
       manualCleanupNeeded = true;
     }
   );
@@ -360,15 +362,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(existingTopicName);
 
       topicId = await manageTopicsPage.actions.createTopic(topicName.toLowerCase());
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName.toLowerCase());
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.actions.editTopic(topicName.toUpperCase());
-      await manageTopicsPage.assertions.verifyToastMessage('Edited topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
       await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toUpperCase());
       await manageTopicsPage.actions.deleteTopic();
-      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
   );
 
@@ -388,18 +390,18 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.loadPage();
       const firstTopicName = faker.lorem.words(2);
       await manageTopicsPage.actions.createTopic(firstTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       const secondTopicName = faker.lorem.words(2);
       await manageTopicsPage.actions.createTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.actions.searchingTopicInSearchBar(firstTopicName);
       await manageTopicsPage.actions.mergeTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Merging topics… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
       await manageTopicsPage.assertions.verifyingNothingToShowHereText();
       await manageTopicsPage.actions.searchingTopicInSearchBar(secondTopicName);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(secondTopicName);
       await manageTopicsPage.actions.deleteTopic();
-      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
   );
 
@@ -427,7 +429,17 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Upload file "image3.jpg" under content and create album with topic
       // Use path.resolve to ensure absolute path resolution
-      const imagePath = path.resolve(__dirname, '..', '..', '..', 'test-data', 'static-files', 'images', 'image3.jpg');
+      const imagePath = path.resolve(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'test-data',
+        'static-files',
+        'images',
+        'image3.jpg'
+      );
 
       const albumCreationOptions = TestDataGenerator.generateAlbum({
         fileName: imagePath,
@@ -477,10 +489,10 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       // Create first topic with random alphabetic string
       const firstTopicName = faker.string.alpha({ length: 5 });
       topicId = await manageTopicsPage.actions.createTopic(firstTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       const editedTopicName = `${firstTopicName.slice(0, 2)} ${firstTopicName.slice(2)}`;
       await manageTopicsPage.actions.editTopic(editedTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Edited topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
 
       // Follow the topic
       await manageTopicsPage.actions.openTopicOptionsDropdown();
@@ -489,7 +501,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       // Create second topic "UI-test"
       const secondTopicName = faker.string.alpha({ length: 5 });
       const secondTopicId = await manageTopicsPage.actions.createTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Created topic successfully');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
       // Search for the edited topic "me rge"
       await manageTopicsPage.actions.searchingTopicInSearchBar(editedTopicName);
@@ -498,7 +510,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       // Merge "me rge" into "UI-test"
       await manageTopicsPage.actions.openTopicOptionsDropdown();
       await manageTopicsPage.actions.mergeTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage('Merging topics… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
 
       // Reload page to see merged topic
       await manageTopicsPage.loadPage();
@@ -512,7 +524,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.actions.clickOnDeleteTopic();
       await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
       await manageTopicsPage.actions.clickDeleteConfirmButton();
-      await manageTopicsPage.assertions.verifyToastMessage('Deleting topic… this may take some time');
+      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
 
       // Cleanup is not needed as topics are deleted in the test
       manualCleanupNeeded = false;
