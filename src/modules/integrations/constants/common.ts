@@ -59,6 +59,7 @@ export const FIELD_NAMES = {
   REPORT_ID: 'Report ID',
   CATEGORY: 'Category',
   SUBCATEGORY: 'Subcategory',
+  PROJECT: 'Project',
 } as const;
 
 export const DEFAULT_SITES = {
