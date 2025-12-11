@@ -23,7 +23,8 @@ for (const fileType of testData.fileTypes) {
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, '@test'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
@@ -68,6 +69,7 @@ for (const fileType of testData.fileTypes) {
         `verify Video File Search results with sidebar filter`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
+          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
@@ -137,6 +139,7 @@ for (const fileType of testData.fileTypes) {
         `verify Video File Autocomplete functionality`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
+          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
@@ -193,9 +196,9 @@ test.describe(
       'to verify video transcripts search',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        annotation: { type: 'known_failure', description: 'CONT-43091' },
       },
       async ({ appManagerFixture }) => {
-        // Mark as expected to fail - known failure (Bug: CONT-43091)
         tagTest(test.info(), {
           zephyrTestId: 'SEN-17761',
           isKnownFailure: true,
