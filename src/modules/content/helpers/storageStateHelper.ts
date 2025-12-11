@@ -23,9 +23,7 @@ export interface StorageStateCacheOptions {
  * @param options - Configuration options for storage state caching
  * @returns Promise<Page> - Authenticated page ready for use
  */
-export async function createAuthenticatedContextWithCache(
-  options: StorageStateCacheOptions
-): Promise<Page> {
+export async function createAuthenticatedContextWithCache(options: StorageStateCacheOptions): Promise<Page> {
   const { browser, userEmail, userPassword, testEnv, tenantOrgId, cacheUrl } = options;
   const cacheServerUrl = cacheUrl || process.env.STORAGE_STATE_CACHE_URL || 'http://localhost:3010';
 
@@ -277,4 +275,3 @@ export async function createAuthenticatedContextAndPageWithCache(
 
   return { context, page };
 }
-
