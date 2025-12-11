@@ -37,6 +37,7 @@
     "test": "npm run test:interactive",
     "create:module": "ts-node scripts/create-module.ts",
     "start-report-server": "http-server . -p 3000 --cors",
+    "start:cache-server": "ts-node src/core/utils/storageStateServer.ts",
     "generate-report": "node convert-report.js",
     "generate-report:custom": "node convert-report.js",
     "generate-tag-report": "node reporting/tag-report.mjs --generate-only",
