@@ -208,8 +208,8 @@ export const config = {
     },
     uat: {
       tenantName: 'Reward Primary UAT',
-      frontendBaseUrl: 'https://reward-settings.uat.simpplr.xyz',
-      apiBaseUrl: 'https://reward-settings-api.uat.simpplr.xyz',
+      frontendBaseUrl: 'https://rewards-setting.uat.simpplr.xyz',
+      apiBaseUrl: 'https://rewards-setting-api.uat.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
       appManagerUserId: 'bdfcdf8d-e148-4b93-87d2-838b336806e2',

@@ -31,6 +31,7 @@
     "test:content-studio:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-studio.config.ts --grep=@smoke",
     "test:reward": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:reward-settings": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward-settings.config.ts",
+    "test:reward-settings:uatEU": "cross-env TEST_ENV=uatEU MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward-settings.config.ts",
     "test:reward:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
