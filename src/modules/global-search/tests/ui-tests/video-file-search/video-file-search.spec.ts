@@ -23,7 +23,7 @@ for (const fileType of testData.fileTypes) {
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, '@test'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
           annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
