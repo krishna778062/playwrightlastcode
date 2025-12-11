@@ -39,4 +39,11 @@ export default defineConfig({
     ['html', { open: process.env.CI ? 'never' : 'on-failure' }],
     ['json', { outputFile: `${TEST_RESULTS_DIR}/test-results.json` }],
   ],
+  // Run storage state cache server before starting the tests
+  webServer: {
+    command: 'npm run start:cache-server',
+    url: process.env.STORAGE_STATE_CACHE_URL || 'http://localhost:3010',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000, // 2 minutes timeout for server startup
+  },
 });
