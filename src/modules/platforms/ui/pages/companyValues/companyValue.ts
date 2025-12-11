@@ -92,10 +92,6 @@ export class CompanyValuePage extends BasePage {
     });
   }
 
-  /**
-   * Override loadPage to use ZULU_URL if available (for Zulu tenant tests)
-   * This ensures navigation uses the correct base URL after Zulu login
-   */
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {

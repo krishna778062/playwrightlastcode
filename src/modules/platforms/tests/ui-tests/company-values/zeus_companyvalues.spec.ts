@@ -34,7 +34,6 @@ test.describe(
         });
 
         const companyValuePage = new CompanyValuePage(zuluAppManagerPage);
-        // Generate random suffix (5 uppercase letters) similar to original Java implementation
         const randomSuffix = faker.string.alpha({ length: 5, casing: 'upper' });
         const companyValue = `${COMPANY_VALUE_TEST_DATA.BASE_NAME}${randomSuffix}`;
         const description = COMPANY_VALUE_TEST_DATA.DESCRIPTION;
@@ -59,13 +58,11 @@ test.describe(
         });
 
         const companyValuePage = new CompanyValuePage(zuluAppManagerPage);
-        // Create a company value for this test
         const randomSuffix = faker.string.alpha({ length: 5, casing: 'upper' });
         const companyValue = `${COMPANY_VALUE_TEST_DATA.BASE_NAME}${randomSuffix}`;
         const description = COMPANY_VALUE_TEST_DATA.DESCRIPTION;
 
         await companyValuePage.loadPage();
-        // Create company value first
         await companyValuePage.createCompanyValue(companyValue, description);
         await companyValuePage.verifySuccessMessage(COMPANY_VALUE_SUCCESS_MESSAGES.ADDED);
 
@@ -117,7 +114,6 @@ test.describe(
         });
 
         const companyValuePage = new CompanyValuePage(zuluAppManagerPage);
-        // Create a company value for this test
         const randomSuffix = faker.string.alpha({ length: 5, casing: 'upper' });
         const companyValue = `${COMPANY_VALUE_TEST_DATA.BASE_NAME}${randomSuffix}`;
         const description = COMPANY_VALUE_TEST_DATA.DESCRIPTION;
@@ -125,7 +121,6 @@ test.describe(
         const longDescription = COMPANY_VALUE_VALIDATION_STRINGS.LONG_DESCRIPTION;
 
         await companyValuePage.loadPage();
-        // Create company value first
         await companyValuePage.createCompanyValue(companyValue, description);
         await companyValuePage.verifySuccessMessage(COMPANY_VALUE_SUCCESS_MESSAGES.ADDED);
 
@@ -133,18 +128,15 @@ test.describe(
         await companyValuePage.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
         await companyValuePage.verifyThePageIsLoaded();
 
-        // Now proceed with error validation test - verify the company value is present first
         await companyValuePage.verifyPresenceOfCompanyValueField(companyValue);
         await companyValuePage.scrollToCompanyValue(companyValue);
         await companyValuePage.hoverAndClickThreeDotsOption(COMPANY_VALUE_MENU_OPTIONS.EDIT, companyValue);
 
-        // Test value field error
         await companyValuePage.enterCompanyValue(longValue);
         // Click away from the field to trigger validation
         await companyValuePage.clickDescriptionField();
         await companyValuePage.verifyErrorMessage(COMPANY_VALUE_ERROR_MESSAGES.EXCEED_100_CHARACTERS);
 
-        // Test description field error
         await companyValuePage.enterCompanyValueDescription(longDescription);
         // Click away from the field to trigger validation
         await companyValuePage.clickValueField();
@@ -164,26 +156,21 @@ test.describe(
         });
 
         const companyValuePage = new CompanyValuePage(zuluAppManagerPage);
-        // Create a company value first, then try to create duplicate
         const randomSuffix = faker.string.alpha({ length: 5, casing: 'upper' });
         const companyValue = `${COMPANY_VALUE_TEST_DATA.BASE_NAME}${randomSuffix}`;
         const description = COMPANY_VALUE_TEST_DATA.DESCRIPTION;
 
         await companyValuePage.loadPage();
-        // Create the company value first
         await companyValuePage.createCompanyValue(companyValue, description);
         await companyValuePage.verifySuccessMessage(COMPANY_VALUE_SUCCESS_MESSAGES.ADDED);
 
-        // Reload page to ensure the newly created company value is visible
         await companyValuePage.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
         await companyValuePage.verifyThePageIsLoaded();
 
-        // Now try to create duplicate
         await companyValuePage.clickAddCompanyValueButton();
         await companyValuePage.enterCompanyValue(companyValue);
         await companyValuePage.enterCompanyValueDescription(description);
         await companyValuePage.clickAddButton();
-        // Error message appears in toast notification after dialog closes
         await companyValuePage.verifyErrorMessage(COMPANY_VALUE_ERROR_MESSAGES.DUPLICATE);
       }
     );
@@ -200,7 +187,6 @@ test.describe(
         });
 
         const companyValuePage = new CompanyValuePage(zuluAppManagerPage);
-        // Create a company value for this test
         const randomSuffix1 = faker.string.alpha({ length: 5, casing: 'upper' });
         const companyValue = `${COMPANY_VALUE_TEST_DATA.BASE_NAME}${randomSuffix1}`;
         const description = COMPANY_VALUE_TEST_DATA.DESCRIPTION;
@@ -209,22 +195,17 @@ test.describe(
         const updatedDescription = COMPANY_VALUE_TEST_DATA.UPDATED_DESCRIPTION;
 
         await companyValuePage.loadPage();
-        // Create company value first
         await companyValuePage.createCompanyValue(companyValue, description);
         await companyValuePage.verifySuccessMessage(COMPANY_VALUE_SUCCESS_MESSAGES.ADDED);
 
-        // Reload page to ensure the newly created company value is visible
         await companyValuePage.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
         await companyValuePage.verifyThePageIsLoaded();
 
-        // Verify the company value is present before updating
         await companyValuePage.verifyPresenceOfCompanyValueField(companyValue);
 
-        // Now proceed with update test
         await companyValuePage.updateCompanyValue(companyValue, updatedValue, updatedDescription);
         await companyValuePage.verifySuccessMessage(COMPANY_VALUE_SUCCESS_MESSAGES.UPDATED);
 
-        // Reload page to ensure the updated company value is visible
         await companyValuePage.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
         await companyValuePage.verifyThePageIsLoaded();
         await companyValuePage.verifyPresenceOfCompanyValueWithDescription(updatedValue, updatedDescription);
@@ -250,20 +231,15 @@ test.describe(
         await companyValuePage.loadPage();
         await companyValuePage.clickAddCompanyValueButton();
 
-        // Test empty value field error
         await companyValuePage.clickValueField();
         await companyValuePage.clickDescriptionField();
         await companyValuePage.verifyErrorMessage(COMPANY_VALUE_ERROR_MESSAGES.VALUE_REQUIRED);
 
-        // Test value field error
         await companyValuePage.enterCompanyValue(longValue);
-        // Click away from the field to trigger validation
         await companyValuePage.clickDescriptionField();
         await companyValuePage.verifyErrorMessage(COMPANY_VALUE_ERROR_MESSAGES.EXCEED_100_CHARACTERS);
 
-        // Test description field error
         await companyValuePage.enterCompanyValueDescription(longDescription);
-        // Click away from the field to trigger validation
         await companyValuePage.clickValueField();
         await companyValuePage.verifyErrorMessage(COMPANY_VALUE_ERROR_MESSAGES.EXCEED_500_CHARACTERS);
       }
