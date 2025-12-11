@@ -670,8 +670,15 @@ test.describe(
         tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
       },
       async ({ page, lwoUserManagementService, otpUtils }) => {
+        test.fail(); // Mark as expected to fail - known failure (Bug: FL-1297)
         tagTest(test.info(), {
           description: 'Verify user can add mobile number from profile page and verify with OTP when LWO is enabled',
+          isKnownFailure: true,
+          bugTicket: 'FL-1297', // bug ticket from Jira
+          bugReportedDate: '2025-12-02', // Date when the bug was reported
+          knownFailurePriority: 'Low', // Medium priority known failure (Eg: High, Medium, Low)
+          knownFailureNote:
+            'Continue button doesnt work after giving correct OTP on profile edit ,using login with OTP feature.', // description of the known failure
           zephyrTestId: 'FL-1007',
           storyId: 'FL-1007',
         });
