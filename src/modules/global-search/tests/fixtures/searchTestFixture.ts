@@ -139,9 +139,7 @@ export const searchTestFixtures = test.extend<
     async ({ appManagerApiContext }, use) => {
       const siteManagementHelper = new SiteManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       await use(siteManagementHelper);
-      console.log(`🧹 Starting siteManagementHelper cleanup. Sites tracked: ${siteManagementHelper.getSiteCount()}`);
       await siteManagementHelper.cleanup();
-      console.log(`✅ siteManagementHelper cleanup completed`);
     },
     { scope: 'worker' },
   ],
