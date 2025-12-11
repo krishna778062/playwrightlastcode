@@ -13,18 +13,38 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
+      - name: Check if this is a main sync
+        id: check_main_sync
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+            if [ "$SOURCE_BRANCH" == "main" ]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+              echo "⏭️ This is main → release sync - no tag needed (hotfix already deployed to production)"
+            else
+              echo "skip=false" >> $GITHUB_OUTPUT
+              echo "✅ Source branch: $SOURCE_BRANCH - will proceed with tagging"
+            fi
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ Direct push - will proceed with tagging"
+          fi
+
       - name: Checkout
+        if: steps.check_main_sync.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           ref: release
           fetch-depth: 0
 
       - name: Configure Git
+        if: steps.check_main_sync.outputs.skip == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Detect release type (dual check)
+        if: steps.check_main_sync.outputs.skip == 'false'
         id: detect
         env:
           CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
@@ -79,6 +99,7 @@ jobs:
           echo "current_stage=$STAGE" >> $GITHUB_OUTPUT
 
       - name: Determine tag version
+        if: steps.check_main_sync.outputs.skip == 'false'
         id: tag
         env:
           IS_NEW_RELEASE: ${{ steps.detect.outputs.is_new_release }}
@@ -189,13 +210,16 @@ jobs:
           echo "should_update_stage=$SHOULD_UPDATE_STAGE" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
+        if: steps.check_main_sync.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
           git tag ${{ steps.tag.outputs.new_tag }}
           git push origin ${{ steps.tag.outputs.new_tag }}
           echo "✅ Tag created: ${{ steps.tag.outputs.new_tag }}"
 
       - name: Update stage variable (if needed)
-        if: steps.tag.outputs.should_update_stage == 'true'
+        if: steps.check_main_sync.outputs.skip == 'false' && steps.tag.outputs.should_update_stage == 'true'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
@@ -203,7 +227,7 @@ jobs:
           echo "✅ CURRENT_STAGE reset to 'qa'"
 
       - name: Notify Slack
-        if: always()
+        if: always() && steps.check_main_sync.outputs.skip == 'false'
         run: |
           if [ "${{ job.status }}" == "success" ]; then
             DETECTION_INFO=""
