@@ -38,6 +38,7 @@ export enum IntegrationsSuiteTags {
   WORKFLOWS = '@workflows',
   SERVICENOW_APPTILES = '@serviceNowAppTiles',
   CUSTOM_APPS = '@customApps',
+  JIRA_APPTILES = '@jiraAppTiles',
 }
 
 export enum IntegrationsFeatureTags {

@@ -214,7 +214,7 @@ export const GREENHOUSE_CREDS = {
 } as const;
 
 /**
- * Data values for Greenhouse app tiles
+ * Data values for ServiceNow app tiles
  */
 export const SERVICENOW_VALUES = {
   TIME_PERIOD: 'Time Period',
@@ -264,4 +264,11 @@ export const WORKDAY_VALUES = {
   TimeOffLeaveType: 'Time off',
   LeaveOfAbsenceLeaveType: 'Leave of absence',
   AllLeaveType: 'All',
+} as const;
+/**
+ * Data values for ServiceNow app tiles
+ */
+export const JIRA_VALUES = {
+  PROJECT: 'Project',
+  INTEGRATIONS: 'Integrations',
 } as const;
