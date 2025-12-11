@@ -186,7 +186,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         await this.imageCropper.selectCropOption('Square');
       }
       await this.imageCropper.clickOnNextButton();
-      await this.imageCropper.clickOnNextButton();
+      //await this.imageCropper.clickOnNextButton();
+      await this.imageCropper.clickOnAddButton();
       await this.imageCropper.clickOnAddButton();
 
       // Wait for all 3 upload responses to complete with 200 status
