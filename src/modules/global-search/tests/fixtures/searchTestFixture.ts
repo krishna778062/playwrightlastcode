@@ -174,7 +174,7 @@ export const searchTestFixtures = test.extend<
         const response = await siteManagementHelper.siteManagementService.deactivateSite(publicSite.siteId);
         console.log(`✅ Deactivation response:`, JSON.stringify(response));
       } catch (error) {
-        console.error(`❌ Failed to deactivate site ${publicSite.siteName}:`, error);
+        console.warn(`❌ Failed to deactivate site ${publicSite.siteName}:`, error);
       }
     },
     { scope: 'worker' },
