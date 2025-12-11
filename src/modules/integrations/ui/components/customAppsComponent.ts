@@ -1112,6 +1112,15 @@ export class CustomAppsComponent extends BaseComponent {
   }
 
   /**
+   * Click on "Create your own app" link in prebuilt app dialog
+   */
+  async clickCreateYourOwnAppLink(): Promise<void> {
+    await test.step('Click on "Create your own app" link', async () => {
+      await this.clickOnElement(this.createYourOwnAppLink, { timeout: 10000 });
+    });
+  }
+
+  /**
    * Verify no results message with "Try adjusting search terms or filters, or create your own app" text
    */
   async verifyNoResultsMessageWithCreateOwnApp(): Promise<void> {
