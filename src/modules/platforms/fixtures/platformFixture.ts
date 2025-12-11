@@ -71,6 +71,35 @@ async function loginToZulu(page: Page, user: { email: string; password: string }
   return new NewHomePage(page);
 }
 
+// Local Quick Task login function - for Quick Task tests
+async function loginToQuickTask(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
+  if (!quickTaskUrl) {
+    throw new Error('Quick Task URL not configured in environment variables');
+  }
+
+  // Navigate to Quick Task login page
+  await page.goto(`${quickTaskUrl}/login`);
+
+  // Use the existing LoginPage but with Quick Task URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Quick Task with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
+
 // API-only fixture type for API helpers and services
 export interface PlatformApiFixture {
   apiContext: APIRequestContext;
@@ -161,6 +190,7 @@ export const platformTestFixture = test.extend<
     zuluAppManagerPage: Page;
     zuluEndUserPage: Page;
     zuluBrandingManagerPage: Page;
+    quickTaskPage: Page;
   },
   {
     // Worker-scoped fixtures
@@ -321,6 +351,23 @@ export const platformTestFixture = test.extend<
       const zuluUrl = process.env.ZULU_URL;
       if (zuluUrl) {
         await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  quickTaskPage: [
+    async ({ page }, use) => {
+      const _quickTaskHomePage = await loginToQuickTask(page, {
+        email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
+        password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
+      if (quickTaskUrl) {
+        await page.goto(`${quickTaskUrl}/logout`);
       }
     },
     { scope: 'test' },
