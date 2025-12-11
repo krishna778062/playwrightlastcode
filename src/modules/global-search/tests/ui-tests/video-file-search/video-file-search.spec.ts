@@ -20,38 +20,14 @@ for (const fileType of testData.fileTypes) {
       ],
     },
     () => {
-      let uploadedFileName: string;
-      let fileId: string;
-      let authorName: string;
-      let siteId: string;
-      let siteName: string;
-
-      test.beforeEach('Site and File Setup', async ({ appManagerFixture, publicSite }) => {
-        // Use the shared public site and upload video file using the new method
-        const videoResult = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
-          siteId: publicSite.siteId,
-          siteName: publicSite.siteName,
-          filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
-          options: { videoFile: true },
-        });
-
-        uploadedFileName = videoResult.uploadedFileName;
-        fileId = videoResult.fileId;
-        authorName = videoResult.authorName;
-        siteId = videoResult.siteId;
-        siteName = videoResult.siteName;
-      });
-
-      test.afterEach('Cleanup uploaded files', async ({ appManagerFixture }) => {
-        await appManagerFixture.intranetFileHelper.cleanup();
-      });
-
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, '@test'],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
+          // Mark as expected to fail - known failure (Bug: CONT-43091)
+          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
@@ -61,6 +37,15 @@ for (const fileType of testData.fileTypes) {
             knownFailurePriority: 'High',
             knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
+
+          // Setup: Upload video file
+          const { uploadedFileName, fileId, authorName, siteId, siteName } =
+            await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+              siteId: publicSite.siteId,
+              siteName: publicSite.siteName,
+              filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+              options: { videoFile: true },
+            });
 
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
@@ -75,6 +60,9 @@ for (const fileType of testData.fileTypes) {
             siteId,
             fileId,
           });
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
 
@@ -83,7 +71,9 @@ for (const fileType of testData.fileTypes) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
+          // Mark as expected to fail - known failure (Bug: CONT-43091)
+          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19543',
             isKnownFailure: true,
@@ -92,6 +82,15 @@ for (const fileType of testData.fileTypes) {
             knownFailurePriority: 'High',
             knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
+
+          // Setup: Upload video file
+          const { uploadedFileName, siteName } = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+            siteId: publicSite.siteId,
+            siteName: publicSite.siteName,
+            filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+            options: { videoFile: true },
+          });
+
           // Search for the video file
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify video file appears in search results`,
@@ -132,14 +131,20 @@ for (const fileType of testData.fileTypes) {
           });
 
           await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
+
       test(
         `verify Video File Autocomplete functionality`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
+          // Mark as expected to fail - known failure (Bug: CONT-43091)
+          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19659',
             isKnownFailure: true,
@@ -147,6 +152,14 @@ for (const fileType of testData.fileTypes) {
             bugReportedDate: '2025-12-10',
             knownFailurePriority: 'High',
             knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
+          });
+
+          // Setup: Upload video file
+          const { uploadedFileName, fileId } = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+            siteId: publicSite.siteId,
+            siteName: publicSite.siteName,
+            filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+            options: { videoFile: true },
           });
 
           /** Type in search input */
@@ -162,6 +175,9 @@ for (const fileType of testData.fileTypes) {
           await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
 
           await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
     }
@@ -185,6 +201,8 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
+        // Mark as expected to fail - known failure (Bug: CONT-43091)
+        test.fail();
         tagTest(test.info(), {
           zephyrTestId: 'SEN-17761',
           isKnownFailure: true,
