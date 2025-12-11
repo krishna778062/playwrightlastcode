@@ -9,6 +9,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 
 test.describe(
@@ -79,7 +80,7 @@ test.describe(
         const albumCreationOptions = TestDataGenerator.generateAlbum({
           fileName: imagePath,
           attachmentFileName: attachmentPath,
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
+          videoUrl: CONTENT_TEST_DATA.DEFAULT_ALBUM_CONTENT.videoUrls[0],
           openAlbum: true,
         });
 
