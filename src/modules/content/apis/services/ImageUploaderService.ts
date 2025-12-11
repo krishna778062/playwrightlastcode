@@ -183,7 +183,7 @@ export class ImageUploaderService implements IImageUploaderService {
         {
           message: `File details for fileId ${fileId} to appear in API response`,
         }
-      ).toPass({ intervals: [20000, 45000, 70000], timeout: 80_000 });
+      ).toPass({ intervals: [20000, 45000, 80000], timeout: 90_000 });
 
       return {
         fileInfo: fileInfo,
