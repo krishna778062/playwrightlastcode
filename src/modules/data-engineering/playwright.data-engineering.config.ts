@@ -1,9 +1,24 @@
-import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
 import path from 'path';
 
-import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
+// Load base env file for Snowflake credentials
+const envName = process.env.TEST_ENV || 'qa';
+dotenv.config({
+  path: path.resolve(__dirname, `env/${envName}.env`),
+  override: true,
+});
 
+// Initialize primary tenant config and set env vars
+import { initializeDataEngineeringConfig, setEnvFromTenantConfig } from './config/dataEngineeringConfig';
+
+initializeDataEngineeringConfig('primary');
+setEnvFromTenantConfig();
+
+import { defineConfig, devices } from '@playwright/test';
+
+import baseConfig from '../../../playwright.base.config';
+
+import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export default defineConfig({
@@ -15,8 +30,8 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: process.env.FRONTEND_BASE_URL,
-    actionTimeout: 15_000, // 15 seconds auto-wait for actions
-    navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
+    actionTimeout: 15_000,
+    navigationTimeout: 15_000,
   },
   projects: [
     {

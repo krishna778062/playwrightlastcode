@@ -4,6 +4,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { expectValidSchema } from '@/src/modules/data-engineering/api/helpers/schemaValidationHelper';
+import { GetContentEngagementResponseSchema } from '@/src/modules/data-engineering/api/schemas';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import {
   AnalyticsApiFixture,
@@ -51,39 +53,49 @@ async function validateContentEngagement(
   const apiResponse = await analyticsApiService.getContentEngagement(contentId, isRestricted);
   const responseTime = Date.now() - startTime;
 
-  // Validate API response structure and performance
-  expect(responseTime, 'Verify API responds within 2 seconds').toBeLessThan(2000);
-  expect(apiResponse.success, 'Verify API returns successful response').toBe(true);
-  expect(apiResponse.metadata.tenantId, 'Verify tenant identifier in response').toBe(tenantCode);
-  expect(apiResponse.metadata.contentId, 'Verify content identifier in response').toBe(contentId);
-  expect(apiResponse.metadata.isRestricted, 'Verify restricted flag in response').toBe(isRestricted);
+  expect.soft(responseTime, 'Verify API responds within 2 seconds').toBeLessThan(2000);
 
-  // Validate data structure
-  expect(typeof apiResponse.data.total_reactions, 'Verify reactions count is numeric').toBe('number');
-  expect(typeof apiResponse.data.total_comments, 'Verify comments count is numeric').toBe('number');
-  expect(typeof apiResponse.data.total_replies, 'Verify replies count is numeric').toBe('number');
-  expect(typeof apiResponse.data.total_shares, 'Verify shares count is numeric').toBe('number');
-  expect(typeof apiResponse.data.total_favorites, 'Verify favorites count is numeric').toBe('number');
+  // Validate response schema using Zod
+  const validatedResponse = expectValidSchema(
+    GetContentEngagementResponseSchema,
+    apiResponse,
+    'Verify API response matches expected schema'
+  );
+
+  // Validate business logic with parsed response
+  expect(validatedResponse.success, 'Verify API returns successful response').toBe(true);
+  expect(validatedResponse.metadata.tenantId, 'Verify tenant identifier in response').toBe(tenantCode);
+  expect(validatedResponse.metadata.contentId, 'Verify content identifier in response').toBe(contentId);
+  expect(validatedResponse.metadata.isRestricted, 'Verify restricted flag in response').toBe(isRestricted);
 
   // Fetch data from Snowflake and compare
   const dbResults = await analyticsQueryHelper.getContentEngagementFromDB(contentId);
 
   if (dbResults.length > 0) {
     const dbData = dbResults[0];
-    expect(apiResponse.data.total_reactions, 'Verify reactions count matches data warehouse').toBe(
+    expect(validatedResponse.data.total_reactions, 'Verify reactions count matches data warehouse').toBe(
       dbData.REACTIONS_COUNT
     );
-    expect(apiResponse.data.total_comments, 'Verify comments count matches data warehouse').toBe(dbData.COMMENT_COUNT);
-    expect(apiResponse.data.total_replies, 'Verify replies count matches data warehouse').toBe(dbData.REPLIES_COUNT);
-    expect(apiResponse.data.total_shares, 'Verify shares count matches data warehouse').toBe(dbData.SHARES_COUNT);
-    expect(apiResponse.data.total_favorites, 'Verify favorites count matches data warehouse').toBe(
+    expect(validatedResponse.data.total_comments, 'Verify comments count matches data warehouse').toBe(
+      dbData.COMMENT_COUNT
+    );
+    expect(validatedResponse.data.total_replies, 'Verify replies count matches data warehouse').toBe(
+      dbData.REPLIES_COUNT
+    );
+    expect(validatedResponse.data.total_shares, 'Verify shares count matches data warehouse').toBe(dbData.SHARES_COUNT);
+    expect(validatedResponse.data.total_favorites, 'Verify favorites count matches data warehouse').toBe(
       dbData.FAVORITES_COUNT
     );
   }
 
   testInfo.annotations.push({
+    type: 'API Summary',
+    description: `Response: ${responseTime}ms | Schema: Valid | UDL Match: ${dbResults.length > 0 ? 'OK' : 'Skipped'}`,
+  });
+
+  testInfo.annotations.push({
     type: 'Engagement Metrics',
-    description: `Reactions: ${apiResponse.data.total_reactions} | Comments: ${apiResponse.data.total_comments} | Replies: ${apiResponse.data.total_replies} | Shares: ${apiResponse.data.total_shares} | Favorites: ${apiResponse.data.total_favorites} | Response: ${responseTime}ms`,
+    description: `Reactions: ${validatedResponse.data.total_reactions} | Comments: ${validatedResponse.data.total_comments} | Replies: ${validatedResponse.data.total_replies} | Shares: ${validatedResponse.data.total_shares} | Favorites: ${validatedResponse.data.total_favorites}`,
   });
 }
 

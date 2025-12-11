@@ -1,12 +1,18 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load data-engineering env FIRST with override to prevent base config from using wrong values
-const envName = process.env.TEST_ENV || 'test';
+// Load base env file for Snowflake credentials
+const envName = process.env.TEST_ENV || 'qa';
 dotenv.config({
   path: path.resolve(__dirname, `env/${envName}.env`),
   override: true,
 });
+
+// Initialize primary tenant config and set env vars
+import { initializeDataEngineeringConfig, setEnvFromTenantConfig } from './config/dataEngineeringConfig';
+
+initializeDataEngineeringConfig('primary');
+setEnvFromTenantConfig();
 
 import { defineConfig, devices } from '@playwright/test';
 
