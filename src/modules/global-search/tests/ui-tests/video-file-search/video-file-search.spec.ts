@@ -26,8 +26,6 @@ for (const fileType of testData.fileTypes) {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, '@test'],
         },
         async ({ appManagerFixture, publicSite }) => {
-          // Mark as expected to fail - known failure (Bug: CONT-43091)
-          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
@@ -72,8 +70,6 @@ for (const fileType of testData.fileTypes) {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
         async ({ appManagerFixture, publicSite }) => {
-          // Mark as expected to fail - known failure (Bug: CONT-43091)
-          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19543',
             isKnownFailure: true,
@@ -143,8 +139,6 @@ for (const fileType of testData.fileTypes) {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
         async ({ appManagerFixture, publicSite }) => {
-          // Mark as expected to fail - known failure (Bug: CONT-43091)
-          test.fail();
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19659',
             isKnownFailure: true,
@@ -202,7 +196,6 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         // Mark as expected to fail - known failure (Bug: CONT-43091)
-        test.fail();
         tagTest(test.info(), {
           zephyrTestId: 'SEN-17761',
           isKnownFailure: true,
