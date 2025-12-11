@@ -42,6 +42,35 @@ async function loginToServiceDesk(page: Page, user: { email: string; password: s
   return new NewHomePage(page);
 }
 
+// Local Zulu tenant login function - for Company Values tests
+async function loginToZulu(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const zuluUrl = process.env.ZULU_URL;
+  if (!zuluUrl) {
+    throw new Error('Zulu URL not configured in environment variables');
+  }
+
+  // Navigate to Zulu login page
+  await page.goto(`${zuluUrl}/login`);
+
+  // Use the existing LoginPage but with Zulu URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Zulu tenant with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
+
 // API-only fixture type for API helpers and services
 export interface PlatformApiFixture {
   apiContext: APIRequestContext;
@@ -129,6 +158,9 @@ export const platformTestFixture = test.extend<
     appManagerFixture: PlatformUserFixture;
     userManagerFixture: PlatformUserFixture;
     serviceDeskPage: Page;
+    zuluAppManagerPage: Page;
+    zuluEndUserPage: Page;
+    zuluBrandingManagerPage: Page;
   },
   {
     // Worker-scoped fixtures
@@ -238,6 +270,57 @@ export const platformTestFixture = test.extend<
       const serviceDeskUrl = process.env.SERVICE_DESK_URL;
       if (serviceDeskUrl) {
         await page.goto(`${serviceDeskUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluAppManagerPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_APPLICATION_MANAGER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluEndUserPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_END_USER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluBrandingManagerPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_BRANDING_MANAGER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
       }
     },
     { scope: 'test' },

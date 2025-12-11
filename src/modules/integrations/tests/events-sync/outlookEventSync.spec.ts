@@ -28,12 +28,7 @@ import { UserManagementService } from '@/src/modules/platforms/apis/services/Use
 test.describe(
   'outlook Event Sync Integration Tests',
   {
-    tag: [
-      IntegrationsSuiteTags.BATCH2,
-      IntegrationsSuiteTags.INTEGRATIONS,
-      IntegrationsFeatureTags.EVENT_SYNC,
-      IntegrationsSuiteTags.PHOENIX,
-    ],
+    tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsFeatureTags.EVENT_SYNC, IntegrationsSuiteTags.PHOENIX],
   },
   () => {
     test(
