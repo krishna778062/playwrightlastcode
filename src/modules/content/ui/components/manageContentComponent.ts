@@ -495,7 +495,7 @@ export class ManageContentComponent extends BaseComponent {
   }
   async clickOnValidationViewAllButton(): Promise<void> {
     await test.step('Clicking on the validation view all button', async () => {
-      await this.clickOnElement(this.validationRequiredInfoBox);
+      await this.clickOnElement(this.validationViewAllButton);
     });
   }
 

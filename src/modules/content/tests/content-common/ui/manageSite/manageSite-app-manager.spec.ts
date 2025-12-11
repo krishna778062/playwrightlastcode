@@ -844,17 +844,20 @@ test.describe(
           filter: 'public',
           size: 1000,
         });
+        const filteredSites = getListOfSitesResponse.result.listOfItems.filter((item: any) => item.isActive === true);
+        if (filteredSites.length === 0) {
+          throw new Error('No active sites found in the response');
+        }
+        // Wrap filtered sites in the expected response structure
+        const filteredSitesResponse = {
+          result: {
+            listOfItems: filteredSites,
+          },
+        };
         const newSite =
-          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(filteredSitesResponse);
         console.log('newSite', newSite);
         const siteId = newSite.siteId;
-        const getUserList = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
-        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
-        const memberNames = getMemBerList.result.listOfItems.map((member: any) => member.name);
-        const allUserNames = getUserList.result.listOfItems.map((user: any) =>
-          `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        );
-        const nonMemberNames = allUserNames.filter((userName: string) => !memberNames.includes(userName));
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, newSite.siteId);
         await siteDashboardPage.loadPage();
         const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
@@ -863,14 +866,71 @@ test.describe(
         await manageSitesComponent.clickOnPeppleTabAction();
         await manageSitesComponent.clickOnAddAnotherButtonAction();
 
+        // Get both members and followers separately to ensure we capture all relationships
+        // Note: 'all' type is invalid, so we fetch 'members' and 'followers' separately
+        const [getMembersListResponse, getFollowersListResponse] = await Promise.all([
+          appManagerApiFixture.siteManagementHelper
+            .getSiteMembershipList(siteId, {
+              size: 1000,
+              type: 'members',
+            })
+            .catch(() => ({ result: { listOfItems: [] } })), // Fallback if fails
+          appManagerApiFixture.siteManagementHelper
+            .getSiteMembershipList(siteId, {
+              size: 1000,
+              type: 'followers',
+            })
+            .catch(() => ({ result: { listOfItems: [] } })), // Fallback if 'followers' type is invalid
+        ]);
+        const allUsersListResponse = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
+
+        // Extract peopleIds from both membership lists (members and followers) and combine
+        const membersPeopleIds = (getMembersListResponse.result.listOfItems || [])
+          .map((member: any) => member.peopleId || member.userId || member.user_id)
+          .filter((id: string) => id);
+        const followersPeopleIds = (getFollowersListResponse.result.listOfItems || [])
+          .map((member: any) => member.peopleId || member.userId || member.user_id)
+          .filter((id: string) => id);
+
+        // Combine and deduplicate using Set to get all people with any relationship to the site
+        const allRelatedPeopleIds = [...new Set([...membersPeopleIds, ...followersPeopleIds])];
+
+        console.log(`Found ${membersPeopleIds.length} members and ${followersPeopleIds.length} followers`);
+        console.log(`Total unique people with relationship to site: ${allRelatedPeopleIds.length}`);
+
+        // Filter all users to find those who are NOT in the membership list (neither members nor followers)
+        const nonMemberUsers = (allUsersListResponse.result.listOfItems || []).filter((user: any) => {
+          const userId = user.peopleId || user.user_id;
+          if (!userId) {
+            return false; // Skip users without valid ID
+          }
+          return !allRelatedPeopleIds.includes(userId);
+        });
+
+        // Get names of non-member users for UI interaction
+        const nonMemberNames = nonMemberUsers
+          .map((user: any) => `${user.first_name || ''} ${user.last_name || ''}`.trim())
+          .filter((name: string) => name.length > 0);
+
+        console.log(`Found ${nonMemberNames.length} users who are neither members nor followers`);
+        if (nonMemberNames.length > 0) {
+          console.log('Available non-member names (first 10):', nonMemberNames.slice(0, 10));
+        }
+
         if (nonMemberNames.length === 0) {
           throw new Error('No non-member users found to add to the site');
+        }
+
+        if (nonMemberNames.length < 2) {
+          throw new Error(
+            `Only ${nonMemberNames.length} non-member user(s) found. Need at least 2 users for this test.`
+          );
         }
 
         await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
         await addPeopleInSiteComponent.clickOnAddButton(siteId);
         await manageSitesComponent.clickOnAddAnotherButtonAction();
-        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[1]);
       }
     );
     test(
@@ -991,6 +1051,8 @@ test.describe(
         );
         await contentPreviewPageEvent.loadPage();
         await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        const newHomePage = new NewHomePage(appManagerFixture.page);
+        await newHomePage.loadPage();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
         await favoritesPage.actions.clickOnContentButton();
         await favoritesPage.assertions.verifyContentNamesAreDisplayed([
@@ -1305,18 +1367,15 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
         });
         console.log('pageInfo', pageInfo);
-        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
-        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
-        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
-        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
         await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
           siteId,
           pageInfo.contentId,
           MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
         );
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
         await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
         await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
