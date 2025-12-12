@@ -39,6 +39,6 @@ export default defineConfig({
       },
     },
   ],
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 0 : 0,
   workers: process.env.CI ? 4 : undefined,
 });
