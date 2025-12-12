@@ -2304,5 +2304,117 @@ test.describe(
         await customAppsPage.verifyFieldIsDisplayed('Client ID label');
       }
     );
+
+    test(
+      'verify empty state layout when no prebuilt apps match search term or filter',
+      {
+        tag: [TestPriority.P1],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23500',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        // Open prebuilt app dialog
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
+
+        // Select a category and enter search term that returns no results
+        await customAppsPage.clickCategoryButtonInPrebuiltDialog();
+        await customAppsPage.selectCategoryRadioInPrebuiltDialog('Calendar');
+        await customAppsPage.searchForPrebuiltApp('nonexistentapp123');
+
+        // Verify empty state with "Create your own app" option is displayed
+        await customAppsPage.verifyCreateYourOwnAppTextIsDisplayed();
+        await customAppsPage.verifyNoResultsMessageWithCreateOwnApp();
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.APP_NOT_AVAILABLE_HEADING);
+
+        // Click on "Create your own app" link and verify Add custom app page is displayed
+        await customAppsPage.clickCreateYourOwnAppLink();
+        await customAppsPage.verifyUrlContains('manage/app/integrations/custom/new');
+        await customAppsPage.verifyTextIsDisplayed('Add custom app');
+        await customAppsPage.verifyTextIsDisplayed('Details');
+        await customAppsPage.verifyFieldIsDisplayed('Custom app name');
+        await customAppsPage.verifyFieldIsDisplayed('Description');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
+        await customAppsPage.verifyTextIsDisplayed('Logo');
+        await customAppsPage.verifyTextIsDisplayed('Configuration');
+        await customAppsPage.verifyFieldIsDisplayed('Connection type');
+        await customAppsPage.verifyFieldIsDisplayed('Auth type');
+      }
+    );
+
+    test(
+      'verify logo file size validation rejects files exceeding 100KB',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14512',
+        });
+
+        const appName = `TestCustomApp name ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Test Description ${faker.lorem.sentence()}`;
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(appDescription);
+        await customAppsPage.selectAppCategory('Other');
+
+        // Attempt to upload logo file exceeding 100KB
+        await customAppsPage.uploadLogoFile('SizeMoreThan300KB.jpg');
+
+        // Verify error toast message is displayed
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.IMAGE_UPLOAD_FAILED_MESSAGE);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.FILE_SIZE_SHOULD_NOT_EXCEED_100KB_MESSAGE);
+
+        // Verify logo preview is not displayed (file was rejected)
+        await customAppsPage.verifyLogoPreviewIsHidden();
+      }
+    );
+
+    test(
+      'verify duplicate custom app name validation shows error message',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22240',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Duplicate Test App ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Test Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        // Create first app
+        await customAppsPage.createTrelloApiTokenApp(appName, appDescription);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        // Navigate back to create another app
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+
+        // Try to create app with duplicate name
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(appDescription);
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.enterFieldValue('Base URL', 'https://api.example.com');
+        await customAppsPage.enterFieldValue('API Token label', 'API Token');
+        await customAppsPage.enterFieldValue('Authorization header', 'Authorization');
+
+        // Try to save with duplicate name
+        await customAppsPage.clickSaveButtonOnForm();
+
+        // Verify duplicate name error message is displayed
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CUSTOM_APP_NAME_ALREADY_EXISTS);
+      }
+    );
   }
 );

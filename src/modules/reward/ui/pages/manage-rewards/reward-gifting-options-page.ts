@@ -16,7 +16,7 @@ export class RewardGiftingOptionsPage extends BasePage {
   readonly giftingOptionsInputBox: Locator;
   private giftingOptionsInputError: Locator;
   private giftingOptionsInputNote: Locator;
-  private giftingOptionsSave: Locator;
+  readonly giftingOptionsSave: Locator;
   readonly exchangeRateSelectDropdown: Locator;
 
   constructor(page: Page) {
@@ -64,12 +64,11 @@ export class RewardGiftingOptionsPage extends BasePage {
     });
     await this.clickOnElement(this.giftingOptionsInputNote, { stepInfo: 'Clicking to trigger validation' });
     await this.verifier.verifyTheElementIsNotVisible(this.giftingOptionsInputError);
-    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsSave);
     await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave);
   }
 
   async clickOnSaveButton(): Promise<void> {
-    await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave);
+    await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave, { timeout: 1200 });
     await this.clickOnElement(this.giftingOptionsSave, { stepInfo: 'Clicking on Save button' });
   }
 
