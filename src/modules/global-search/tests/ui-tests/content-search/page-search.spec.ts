@@ -33,6 +33,7 @@ test.describe(
           },
           options: {
             contentDescription: testData.description,
+            waitForSearchIndex: true,
           },
         });
 
