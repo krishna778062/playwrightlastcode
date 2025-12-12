@@ -961,4 +961,11 @@ export class SiteDashboard {
   async verifyServiceNowCreatedTicketStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyServiceNowCreatedTicketStructure(tileTitle);
   }
+  /**
+   * Verify Service Now Approval tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyJiraContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyJiraTileContentStructure(tileTitle);
+  }
 }
