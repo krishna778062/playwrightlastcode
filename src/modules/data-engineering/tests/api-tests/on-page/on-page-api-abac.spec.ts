@@ -88,10 +88,8 @@ async function validateContentEngagement(
 
   // Fetch content ID from database for the specific site type and restriction status
   const contentDataResults = await analyticsQueryHelper.getContentDataFromDB(siteType, isRestricted);
-  const skipReason = `No ${isRestricted ? 'restricted' : 'unrestricted'} content found for site type: ${siteType} | Tenant: ${tenantCode}`;
-  if (skipIfNoData(contentDataResults, skipReason, testInfo, test.skip)) {
-    return;
-  }
+  const skipReason = `No ${isRestricted ? 'restricted' : 'unrestricted'} content for ${siteType} | Tenant: ${tenantCode}`;
+  skipIfNoData(contentDataResults, skipReason, testInfo, test.skip);
 
   const contentData = contentDataResults[0];
   const contentId = contentData.CODE; // Content ID for the page/event/album

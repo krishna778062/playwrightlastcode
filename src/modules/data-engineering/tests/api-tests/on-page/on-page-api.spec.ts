@@ -42,11 +42,7 @@ test.describe(
 
         // Fetch blog post data from database
         const blogDataResults = await analyticsQueryHelper.getBlogDataFromDB(tenantCode);
-        if (
-          skipIfNoData(blogDataResults, `No Blog Post content found | Tenant: ${tenantCode}`, test.info(), test.skip)
-        ) {
-          return;
-        }
+        skipIfNoData(blogDataResults, `No Blog Post content | Tenant: ${tenantCode}`, test.info(), test.skip);
 
         const blogData = blogDataResults[0];
         const contentId = blogData.CODE; // Content ID for the blog post
@@ -103,16 +99,12 @@ test.describe(
 
           // Fetch content ID from database for the specific site type
           const contentDataResults = await analyticsQueryHelper.getContentDataFromDB(siteType);
-          if (
-            skipIfNoData(
-              contentDataResults,
-              `No content found for site type: ${siteType} | Tenant: ${tenantCode}`,
-              test.info(),
-              test.skip
-            )
-          ) {
-            return;
-          }
+          skipIfNoData(
+            contentDataResults,
+            `No content for ${siteType} | Tenant: ${tenantCode}`,
+            test.info(),
+            test.skip
+          );
 
           const contentData = contentDataResults[0];
           const contentId = contentData.CODE; // Content ID for the page/event/album

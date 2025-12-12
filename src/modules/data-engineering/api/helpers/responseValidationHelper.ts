@@ -40,21 +40,19 @@ export async function withTiming<T>(apiCall: () => Promise<T>, options?: TimingO
 }
 
 /**
- * Skips test if no data is found and adds annotation to report
- * @returns true if test should be skipped (no data), false otherwise
+ * Skips test if no data is found and adds annotation to report.
  */
 export function skipIfNoData<T>(
   data: T[],
   skipReason: string,
   testInfo: TestInfo,
-  skipFn: (condition: boolean, reason: string) => void
-): data is [] {
+
+  skipFn: any
+): void {
   if (data.length === 0) {
     testInfo.annotations.push({ type: 'Skip Reason', description: skipReason });
-    skipFn(true, skipReason);
-    return true;
+    skipFn(true, skipReason); // Throws and halts execution
   }
-  return false;
 }
 
 /** Content engagement response metadata */
