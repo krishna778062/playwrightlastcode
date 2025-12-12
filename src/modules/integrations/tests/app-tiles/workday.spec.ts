@@ -1681,5 +1681,36 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+
+    test(
+      'verify metadata and show more behavior for Workday Display Time Off(Leave of absence) app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27516',
+          storyId: 'INT-26724',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyWorkdayTimeOffMetadata(createdTileTitle, WORKDAY_VALUES.LeaveOfAbsenceLeaveType);
+      }
+    );
   }
 );
