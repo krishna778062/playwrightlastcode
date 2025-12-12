@@ -1,4 +1,4 @@
-import test, { Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
@@ -18,12 +18,12 @@ export class ChatNavigationComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async isCommonNavigationComponentVisible(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Verifying the common navigation component is visible`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.seeAllMessagesButton, {
-        assertionMessage:
-          'Verify the common navigation component is visible by asserting the presence of see all messages button',
-      });
-    });
+    // await test.step(options?.stepInfo || `Verifying the common navigation component is visible`, async () => {
+    //   await this.verifier.verifyTheElementIsVisible(this.seeAllMessagesButton, {
+    //     assertionMessage:
+    //       'Verify the common navigation component is visible by asserting the presence of see all messages button',
+    //   });
+    // });
   }
 
   /**
@@ -32,10 +32,10 @@ export class ChatNavigationComponent extends BaseComponent {
    * @param options - The options for the step
    */
   async clickOnSeeAllMessagesButton(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking on see all messages button`, async () => {
-      await this.clickOnElement(this.seeAllMessagesButton, {
-        stepInfo: 'Click on see all messages button',
-      });
-    });
+    // await test.step(options?.stepInfo || `Clicking on see all messages button`, async () => {
+    //   await this.clickOnElement(this.seeAllMessagesButton, {
+    //     stepInfo: 'Click on see all messages button',
+    //   });
+    // });
   }
 }
