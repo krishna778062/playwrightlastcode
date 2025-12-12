@@ -106,7 +106,7 @@ test.describe(
         await createFeedPostComponent.clickBoxFolder('SmokeTesting');
 
         // Select file(s) from folder
-        await createFeedPostComponent.selectBoxFile('');
+        await createFeedPostComponent.selectBoxFile('untitled3.pdf');
 
         // Click Attach button
         await createFeedPostComponent.clickAttachButton();

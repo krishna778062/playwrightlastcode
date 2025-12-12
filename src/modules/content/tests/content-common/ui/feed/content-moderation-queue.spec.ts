@@ -40,7 +40,7 @@ test.describe(
       await homeFeedPage.actions.createPost(inappropriateText);
 
       // Click Post button
-      await homeFeedPage.actions.clickPostButton();
+      await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -69,7 +69,7 @@ test.describe(
       await createFeedPostComponent.actions.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostButton();
+      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -105,7 +105,7 @@ test.describe(
       await createFeedPostComponent.actions.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostButton();
+      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);

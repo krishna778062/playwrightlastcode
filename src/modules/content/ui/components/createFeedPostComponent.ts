@@ -351,7 +351,13 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      await this.fileUploadInput.setInputFiles(filePaths);
+      const fileUploadInputCount = await this.fileUploadInput.count();
+      if (fileUploadInputCount > 1) {
+        await this.fileUploadInput.nth(1).setInputFiles(filePaths);
+      } else {
+        await this.fileUploadInput.setInputFiles(filePaths);
+      }
+
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       /*
           If files are more than 10, verify the count of attached files is 10
@@ -1144,17 +1150,17 @@ export class CreateFeedPostComponent
   async selectBoxFile(fileName: string): Promise<void> {
     await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
       if (fileName) {
-        // Find file in table by name
-        const fileRow = this.page.locator('table tbody tr').filter({ hasText: fileName });
-        await this.verifier.verifyTheElementIsVisible(fileRow, {
-          assertionMessage: `Box file "${fileName}" should be visible`,
-        });
-        // Click on the checkbox in the first column
-        const checkbox = fileRow.locator('td').first().locator('input[type="checkbox"]');
+        const checkbox = this.getFileCheckboxLocator(fileName);
         await this.verifier.verifyTheElementIsVisible(checkbox, {
           assertionMessage: `Checkbox for file "${fileName}" should be visible`,
         });
-        await this.clickOnElement(checkbox);
+
+        // Check if checkbox is already selected
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          // Click the checkbox using JavaScript to ensure it works
+          await checkbox.check();
+        }
       } else {
         // Select first available file (not a folder)
         // Wait for table to load after folder navigation

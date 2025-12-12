@@ -33,12 +33,6 @@ async function navigateToContentFeedAsRole(
   contentId: string,
   siteName: string
 ): Promise<{ contentPreviewPage: ContentPreviewPage; feedPage: FeedPage }> {
-  await test.step(`Search for site "${siteName}"`, async () => {
-    await navigationHelper.searchForTerm(siteName, {
-      stepInfo: `Searching for site "${siteName}"`,
-    });
-  });
-
   await test.step('Navigate to Content tab', async () => {
     const siteDashboardPage = new SiteDashboardPage(page, siteId);
     await siteDashboardPage.loadPage();
