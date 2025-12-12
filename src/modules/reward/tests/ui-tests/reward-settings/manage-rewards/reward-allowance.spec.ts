@@ -48,20 +48,23 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         userAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance, { timeout: 5000 })) {
         if (await allowancePage.removeUserAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('user');
           await allowancePage.validateToastMessage('Saved changes successfully');
           await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
+            timeout: 10000,
             stepInfo: 'Clicking add user allowance button',
           });
         } else {
           await allowancePage.clickOnElement(allowancePage.editUserAllowance, {
+            timeout: 10000,
             stepInfo: 'Clicking edit user allowance button',
           });
         }
       } else {
         await allowancePage.clickOnElement(allowancePage.addUserAllowance, {
+          timeout: 10000,
           stepInfo: 'Clicking add user allowance button',
         });
       }
@@ -138,7 +141,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         userAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeUserAllowance, { timeout: 5000 })) {
         if (await allowancePage.removeUserAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('user');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -210,7 +213,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         userAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance, { timeout: 5000 })) {
         if (await allowancePage.removeAudienceAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('audience');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -287,7 +290,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         indiAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+      if (
+        await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance, { timeout: 5000 })
+      ) {
         if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -362,7 +367,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         audienceAllowanceText
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeAudienceAllowance, { timeout: 5000 })) {
         await allowancePage.clickOnElement(allowancePage.editAudienceAllowance, {
           stepInfo: 'Clicking edit audience allowance button',
         });
@@ -484,7 +489,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
       );
 
       let status: string;
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+      if (
+        await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance, { timeout: 5000 })
+      ) {
         if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -574,7 +581,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         individualAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+      if (
+        await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance, { timeout: 5000 })
+      ) {
         if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -655,7 +664,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         individualAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance, { timeout: 5000 })) {
         await allowancePage.clickOnElement(allowancePage.editManagerAllowance, {
           stepInfo: 'Clicking edit manager allowance button',
         });
@@ -726,7 +735,9 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         individualAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance)) {
+      if (
+        await allowancePage.verifier.isTheElementVisible(allowancePage.removeIndividualAllowance, { timeout: 5000 })
+      ) {
         if (await allowancePage.removeIndividualAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('individual');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -800,7 +811,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         managerAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance, { timeout: 5000 })) {
         if (await allowancePage.removeManagerAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('manager');
           await allowancePage.validateToastMessage('Saved changes successfully');
@@ -1017,7 +1028,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
         individualAllowanceDescription
       );
 
-      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance)) {
+      if (await allowancePage.verifier.isTheElementVisible(allowancePage.removeManagerAllowance, { timeout: 5000 })) {
         if (await allowancePage.removeManagerAllowance.isEnabled()) {
           await allowancePage.removeTheExistingAllowance('manager');
           await allowancePage.validateToastMessage('Saved changes successfully');

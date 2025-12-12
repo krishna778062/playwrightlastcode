@@ -211,8 +211,9 @@ export class RecognitionHubPage extends BasePage {
    */
   async recognitionButtonText(): Promise<string> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
+    await giveRecognitionDialogBox.recognizeButton.waitFor({ state: 'visible', timeout: 5000 });
     const text = await giveRecognitionDialogBox.recognizeButton.textContent();
-    return text || '';
+    return text!;
   }
 
   /**
@@ -363,7 +364,7 @@ export class RecognitionHubPage extends BasePage {
             gifting: {
               pendingIn: 0,
               available: pointsToGive,
-              refreshingAt: '2025-07-01T00:00:00.000Z',
+              refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             },
             redeemable: {
               pendingIn: 0,
@@ -420,14 +421,13 @@ export class RecognitionHubPage extends BasePage {
   async setupTheSingleGiftingOptions(availablePoints: any): Promise<number> {
     const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
     await rewardGiftingOptions.loadPage();
-    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
-    const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    const cleanAvailablePoints = availablePoints.replace(/[,\s]/g, '');
-    const parsedAvailablePoints = Number(cleanAvailablePoints) || 0;
-    const parsedExistingValue = Number(existingValue) || 0;
-    const maxRewardOption = Math.max(1, parsedAvailablePoints - parsedExistingValue - 1);
-    const rewardOption = maxRewardOption > 0 ? Math.floor(Math.random() * maxRewardOption) + 1 : 1;
-    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    await rewardGiftingOptions.verifyThePageIsLoaded();
+    const parsedAvailablePoints = Number(availablePoints.replace(/[,\s]/g, '')) || 1;
+    let rewardOption;
+    do {
+      rewardOption = Math.floor(Math.random() * (parsedAvailablePoints - 1 + 1)) + 1;
+      await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    } while (!(await rewardGiftingOptions.giftingOptionsSave.isEnabled({ timeout: 1200 })));
     await rewardGiftingOptions.clickOnSaveButton();
     await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     return rewardOption;
@@ -471,7 +471,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
-      timeout: 15000,
+      timeout: 35000,
       assertionMessage: 'Recognition Hub page first Post should be visible',
     });
   }

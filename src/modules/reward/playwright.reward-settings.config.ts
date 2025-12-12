@@ -8,30 +8,37 @@ import { PROJECT_ROOT } from '@core/constants/paths';
 initializeRewardConfig('rewardSettings');
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
+const isCI = !!process.env.CI;
+const headless = isCI; // true in CI, false locally
+const screenWidth_RS = process.env.SCREEN_WIDTH ? parseInt(process.env.SCREEN_WIDTH, 10) : 1920;
+const screenHeight_RS = process.env.SCREEN_HEIGHT ? parseInt(process.env.SCREEN_HEIGHT, 10) : 1080;
+const projectViewport = isCI ? { width: screenWidth_RS, height: screenHeight_RS } : null;
+
+const commonLaunchArgs_RS = [
+  '--start-maximized',
+  `--window-size=${screenWidth_RS},${screenHeight_RS}`,
+  '--disable-gpu',
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  '--use-fake-ui-for-media-stream',
+  '--use-fake-device-for-media-stream',
+];
+
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests', 'reward-settings'),
   testIgnore: '**/api-tests/**',
   // keep workers consistent for CI/local as you previously had
   workers: process.env.CI ? 1 : 1,
-  timeout: 120_000,
   projects: [
     {
-      name: 'Reward Setting Cases',
+      name: 'Reward',
       use: {
         ...desktopChromeNoScale,
-        headless: !!process.env.CI,
-        viewport: { width: 1920, height: 1080 },
+        headless,
+        viewport: projectViewport,
         launchOptions: {
-          args: [
-            '--start-maximized',
-            '--window-size=1920,1080',
-            '--disable-gpu',
-            '--no-sandbox',
-            '--disable-dev-shm-usage',
-            '--use-fake-ui-for-media-stream',
-            '--use-fake-device-for-media-stream',
-          ],
+          args: commonLaunchArgs_RS,
         },
         baseURL: getRewardTenantConfigFromCache().frontendBaseUrl,
       },
