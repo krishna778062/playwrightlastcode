@@ -866,66 +866,10 @@ test.describe(
         await manageSitesComponent.clickOnPeppleTabAction();
         await manageSitesComponent.clickOnAddAnotherButtonAction();
 
-        // Get both members and followers separately to ensure we capture all relationships
-        // Note: 'all' type is invalid, so we fetch 'members' and 'followers' separately
-        const [getMembersListResponse, getFollowersListResponse] = await Promise.all([
-          appManagerApiFixture.siteManagementHelper
-            .getSiteMembershipList(siteId, {
-              size: 1000,
-              type: 'members',
-            })
-            .catch(() => ({ result: { listOfItems: [] } })), // Fallback if fails
-          appManagerApiFixture.siteManagementHelper
-            .getSiteMembershipList(siteId, {
-              size: 1000,
-              type: 'followers',
-            })
-            .catch(() => ({ result: { listOfItems: [] } })), // Fallback if 'followers' type is invalid
-        ]);
-        const allUsersListResponse = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
-
-        // Extract peopleIds from both membership lists (members and followers) and combine
-        const membersPeopleIds = (getMembersListResponse.result.listOfItems || [])
-          .map((member: any) => member.peopleId || member.userId || member.user_id)
-          .filter((id: string) => id);
-        const followersPeopleIds = (getFollowersListResponse.result.listOfItems || [])
-          .map((member: any) => member.peopleId || member.userId || member.user_id)
-          .filter((id: string) => id);
-
-        // Combine and deduplicate using Set to get all people with any relationship to the site
-        const allRelatedPeopleIds = [...new Set([...membersPeopleIds, ...followersPeopleIds])];
-
-        console.log(`Found ${membersPeopleIds.length} members and ${followersPeopleIds.length} followers`);
-        console.log(`Total unique people with relationship to site: ${allRelatedPeopleIds.length}`);
-
-        // Filter all users to find those who are NOT in the membership list (neither members nor followers)
-        const nonMemberUsers = (allUsersListResponse.result.listOfItems || []).filter((user: any) => {
-          const userId = user.peopleId || user.user_id;
-          if (!userId) {
-            return false; // Skip users without valid ID
-          }
-          return !allRelatedPeopleIds.includes(userId);
+        // Get non-member user names using helper method
+        const nonMemberNames = await appManagerApiFixture.siteManagementHelper.getNonMemberUserNames(siteId, {
+          minimumCount: 2,
         });
-
-        // Get names of non-member users for UI interaction
-        const nonMemberNames = nonMemberUsers
-          .map((user: any) => `${user.first_name || ''} ${user.last_name || ''}`.trim())
-          .filter((name: string) => name.length > 0);
-
-        console.log(`Found ${nonMemberNames.length} users who are neither members nor followers`);
-        if (nonMemberNames.length > 0) {
-          console.log('Available non-member names (first 10):', nonMemberNames.slice(0, 10));
-        }
-
-        if (nonMemberNames.length === 0) {
-          throw new Error('No non-member users found to add to the site');
-        }
-
-        if (nonMemberNames.length < 2) {
-          throw new Error(
-            `Only ${nonMemberNames.length} non-member user(s) found. Need at least 2 users for this test.`
-          );
-        }
 
         await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
         await addPeopleInSiteComponent.clickOnAddButton(siteId);
