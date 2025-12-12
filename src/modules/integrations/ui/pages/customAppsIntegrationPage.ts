@@ -314,6 +314,13 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Click on "Create your own app" link in prebuilt app dialog
+   */
+  async clickCreateYourOwnAppLink(): Promise<void> {
+    return this.customAppsComponent.clickCreateYourOwnAppLink();
+  }
+
+  /**
    * Verify no results message with "Try adjusting search terms or filters, or create your own app" text
    */
   async verifyNoResultsMessageWithCreateOwnApp(): Promise<void> {
