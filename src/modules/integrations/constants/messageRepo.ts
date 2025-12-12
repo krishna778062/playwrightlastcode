@@ -99,4 +99,9 @@ export const MESSAGES = {
   NO_RESULTS_DESCRIPTION: 'Try adjusting search term or filters',
   CONNECTION_DISCONNECTED_MESSAGE: 'Connection disconnected',
   CREATE_TICKET_SUCCESS_MESSAGE: 'Your ticket has been created successfully',
+  APP_NOT_AVAILABLE_HEADING: 'App not available?',
+  NO_RESULTS_WITH_CREATE_OWN_APP_MESSAGE: 'Try adjusting search terms or filters, or create your own app',
+  CREATE_YOUR_OWN_APP_LABEL: 'Create your own app',
+  PREBUILT_APPS_LINK_LABEL: 'Prebuilt apps',
+  CATEGORY_BUTTON_LABEL: 'Category',
 } as const;
