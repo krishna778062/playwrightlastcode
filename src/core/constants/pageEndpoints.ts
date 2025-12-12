@@ -24,6 +24,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  COMPANY_VALUES_PAGE: '/manage/company-values',
   MANAGE_USERS_PAGE: '/manage/users',
   MANAGE_USERS_FILTER_PAGE: (firstName: string, lastName: string) =>
     `/manage/users?searchTerm=${firstName}+${lastName}`,

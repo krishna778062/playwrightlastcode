@@ -22,7 +22,7 @@ on:
           - 'de-api'
           - 'frontline'
           - 'recognition'
-          - 'privateRecognition'
+          - 'only-peer-to-peer'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
@@ -57,6 +57,7 @@ on:
           - 'dev'
           - 'prodUS'
           - 'prodEU'
+          - 'prodCA'
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'

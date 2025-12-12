@@ -185,6 +185,7 @@ export class BaseActionUtil {
     const eleToFill = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     await test.step(options?.stepInfo || `Fill in ${selectorOrLocator}`, async () => {
       try {
+        await eleToFill.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
         await eleToFill.fill(value, options);
       } catch (error) {
         throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
