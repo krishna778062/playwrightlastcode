@@ -126,6 +126,7 @@ export const REDIRECT_URLS = {
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
   SERVICENOW: 'https://ven05143.service-now.com/',
+  JIRA: 'https://simpplr.atlassian.net/browse',
 } as const;
 
 /**
@@ -214,7 +215,7 @@ export const GREENHOUSE_CREDS = {
 } as const;
 
 /**
- * Data values for Greenhouse app tiles
+ * Data values for ServiceNow app tiles
  */
 export const SERVICENOW_VALUES = {
   TIME_PERIOD: 'Time Period',
@@ -264,4 +265,11 @@ export const WORKDAY_VALUES = {
   TimeOffLeaveType: 'Time off',
   LeaveOfAbsenceLeaveType: 'Leave of absence',
   AllLeaveType: 'All',
+} as const;
+/**
+ * Data values for ServiceNow app tiles
+ */
+export const JIRA_VALUES = {
+  PROJECT: 'Project',
+  INTEGRATIONS: 'Integrations',
 } as const;

@@ -16,7 +16,7 @@ import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard
 test.describe(
   'serviceNow App Tiles Multi-user Tests',
   {
-    tag: [IntegrationsSuiteTags.SERVICENOW, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.SERVICENOW_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     const AppName = 'ServiceNow';
