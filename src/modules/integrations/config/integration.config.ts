@@ -269,14 +269,15 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=test npm run test\n` +
         `  TEST_ENV=prodUS npm run test\n` +
         `  TEST_ENV=prodEU npm run test\n` +
+        `  TEST_ENV=prodCA npm run test\n` +
         `  TEST_ENV=uatEU npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'prodCA', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, prodCA, uatEU\n` +
         `Example: TEST_ENV=qa npm run test`
     );
   }
@@ -380,5 +381,5 @@ export function getIntegrationConfig() {
  * Helper function to get all available environments
  */
 export function getAvailableEnvironments(): EnvironmentKey[] {
-  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'];
+  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'prodCA', 'uatEU'];
 }
