@@ -110,11 +110,11 @@ export class AnalyticsQueryHelper {
 
   /**
    * Fetches content data from Snowflake based on tenant, restriction status, and site type
-   * @param isRestricted - Whether the content is restricted
    * @param siteType - The site type (Public, Private, or Unlisted)
+   * @param isRestricted - Whether the content is restricted (default: false)
    * @returns Promise with content data results
    */
-  async getContentDataFromDB(isRestricted: boolean, siteType: SiteType): Promise<ContentDataResult[]> {
+  async getContentDataFromDB(siteType: SiteType, isRestricted: boolean = false): Promise<ContentDataResult[]> {
     const query = CommonSql.CONTENT_DATA.replace('{tenantCode}', this.tenantCode)
       .replace('{isRestricted}', String(isRestricted))
       .replace('{siteType}', siteType);

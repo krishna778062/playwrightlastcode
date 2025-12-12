@@ -131,10 +131,10 @@ export class AnalyticsApiService extends HttpClient {
   /**
    * Get content engagement metrics for a specific content
    * @param contentId - The content ID to fetch engagement metrics for
-   * @param isRestricted - Whether the content is restricted
+   * @param isRestricted - Whether the content is restricted (default: false)
    * @returns Promise with the content engagement response data
    */
-  async getContentEngagement(contentId: string, isRestricted: boolean): Promise<GetContentEngagementResponse> {
+  async getContentEngagement(contentId: string, isRestricted: boolean = false): Promise<GetContentEngagementResponse> {
     const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.contentEngagement, {
       data: {
         contentId,

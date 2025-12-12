@@ -1,11 +1,9 @@
 import path from 'path';
 
-// Initialize tenant and Snowflake configs
+// Initialize tenant config
 import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
-import { initializeSnowflakeConfig } from './config/snowflakeConfig';
 
 initializeDataEngineeringConfig('primary');
-initializeSnowflakeConfig();
 
 const tenantConfig = getDataEngineeringConfigFromCache();
 

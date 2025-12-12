@@ -1,11 +1,9 @@
 import path from 'path';
 
-// Initialize ABAC tenant and Snowflake configs
+// Initialize ABAC tenant config
 import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
-import { initializeSnowflakeConfig } from './config/snowflakeConfig';
 
 initializeDataEngineeringConfig('abac');
-initializeSnowflakeConfig();
 
 const tenantConfig = getDataEngineeringConfigFromCache();
 

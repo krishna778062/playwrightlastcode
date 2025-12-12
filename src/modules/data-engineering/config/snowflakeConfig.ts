@@ -5,8 +5,6 @@
  * Usage: getSnowflakeConfig() returns config for current TEST_ENV
  */
 
-import { log } from '@core/utils/logger';
-
 export type SnowflakeEnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS' | 'dev';
 
 export interface SnowflakeEnvironmentConfig {
@@ -76,78 +74,17 @@ const snowflakeConfig: Record<SnowflakeEnvironmentKey, SnowflakeEnvironmentConfi
   },
 };
 
-// Singleton cache
-let snowflakeConfigCache: {
-  environment: SnowflakeEnvironmentKey;
-  config: SnowflakeEnvironmentConfig;
-} | null = null;
+const VALID_ENVS: SnowflakeEnvironmentKey[] = ['qa', 'test', 'uat', 'uatEU', 'prodUS', 'dev'];
 
 /**
- * Get current environment from TEST_ENV
- */
-function getCurrentSnowflakeEnvironment(): SnowflakeEnvironmentKey {
-  const testEnv = process.env.TEST_ENV || 'qa';
-
-  const validEnvs: SnowflakeEnvironmentKey[] = ['qa', 'test', 'uat', 'uatEU', 'prodUS', 'dev'];
-  if (!validEnvs.includes(testEnv as SnowflakeEnvironmentKey)) {
-    throw new Error(
-      `Invalid TEST_ENV value for Snowflake: '${testEnv}'\n` +
-        `Valid values are: ${validEnvs.join(', ')}\n` +
-        `Example: TEST_ENV=qa npm run test:de-api`
-    );
-  }
-
-  return testEnv as SnowflakeEnvironmentKey;
-}
-
-/**
- * Initialize Snowflake configuration based on TEST_ENV
- * Call this at the start of your test suite if you need explicit initialization
- */
-export function initializeSnowflakeConfig(): void {
-  if (snowflakeConfigCache) {
-    return; // Already initialized
-  }
-
-  const environment = getCurrentSnowflakeEnvironment();
-  const config = snowflakeConfig[environment];
-
-  if (!config) {
-    throw new Error(`Snowflake configuration not found for environment '${environment}'`);
-  }
-
-  snowflakeConfigCache = {
-    environment,
-    config,
-  };
-
-  log.debug(`Snowflake config initialized: env=${environment}`);
-}
-
-/**
- * Get Snowflake configuration for the current environment
- * Automatically initializes if not already done
+ * Get Snowflake configuration for the current environment (based on TEST_ENV)
  */
 export function getSnowflakeConfig(): SnowflakeEnvironmentConfig {
-  if (!snowflakeConfigCache) {
-    initializeSnowflakeConfig();
-  }
-  return snowflakeConfigCache!.config;
-}
+  const testEnv = (process.env.TEST_ENV || 'qa') as SnowflakeEnvironmentKey;
 
-/**
- * Get the current Snowflake environment
- */
-export function getCurrentSnowflakeEnv(): SnowflakeEnvironmentKey {
-  if (!snowflakeConfigCache) {
-    initializeSnowflakeConfig();
+  if (!VALID_ENVS.includes(testEnv)) {
+    throw new Error(`Invalid TEST_ENV for Snowflake: '${testEnv}'. Valid: ${VALID_ENVS.join(', ')}`);
   }
-  return snowflakeConfigCache!.environment;
-}
 
-/**
- * Clear the Snowflake configuration cache
- */
-export function clearSnowflakeConfigCache(): void {
-  snowflakeConfigCache = null;
+  return snowflakeConfig[testEnv];
 }
