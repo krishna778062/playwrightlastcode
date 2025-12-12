@@ -126,6 +126,7 @@ export const REDIRECT_URLS = {
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
   SERVICENOW: 'https://ven05143.service-now.com/',
+  JIRA: 'https://simpplr.atlassian.net/browse',
 } as const;
 
 /**
