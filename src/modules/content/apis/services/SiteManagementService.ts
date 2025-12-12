@@ -219,22 +219,20 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param siteId - The id of the site to deactivate
    */
   async deactivateSite(siteId: string) {
-    return await test.step(`Deactivating site using API: ${siteId}`, async () => {
-      const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
-      log.debug('Deactivate site full URL', { url: fullUrl });
-      const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
-        data: {
-          ids: [siteId],
-          newStatus: 'deactivated',
-        },
-      });
-      log.debug('Deactivate site response', { status: response.status() });
-      const json = await response.json();
-      if (json.status !== 'success') {
-        throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
-      }
-      return json;
+    const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
+    log.debug('Deactivate site full URL', { url: fullUrl });
+    const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
+      data: {
+        ids: [siteId],
+        newStatus: 'deactivated',
+      },
     });
+    log.debug('Deactivate site response', { status: response.status() });
+    const json = await response.json();
+    if (json.status !== 'success') {
+      throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
+    }
+    return json;
   }
 
   /**
