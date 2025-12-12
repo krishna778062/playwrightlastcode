@@ -197,7 +197,7 @@ export function initializeDataEngineeringConfig(tenant: TenantKey): void {
 /**
  * Get tenant configuration from cache
  */
-export function getDataEngineeringTenantConfig(): DataEngineeringTenantConfig {
+export function getDataEngineeringConfigFromCache(): DataEngineeringTenantConfig {
   if (!configCache) {
     throw new Error(`Config not initialized! Call initializeDataEngineeringConfig(tenant) first`);
   }
@@ -226,27 +226,4 @@ export function isAbacTenant(): boolean {
  */
 export function clearDataEngineeringConfigCache(): void {
   configCache = null;
-}
-
-/**
- * Set environment variables from tenant config
- * This bridges the gap between config and existing env-based code
- */
-export function setEnvFromTenantConfig(): void {
-  const tenantConfig = getDataEngineeringTenantConfig();
-
-  process.env.FRONTEND_BASE_URL = tenantConfig.frontendBaseUrl;
-  process.env.API_BASE_URL = tenantConfig.apiBaseUrl;
-  process.env.APP_MANAGER_USERNAME = tenantConfig.appManagerEmail;
-  process.env.APP_MANAGER_PASSWORD = tenantConfig.appManagerPassword;
-  process.env.STANDARD_USER_USERNAME = tenantConfig.standardUserEmail;
-  process.env.STANDARD_USER_PASSWORD = tenantConfig.standardUserPassword;
-  process.env.ORG_ID = tenantConfig.orgId;
-
-  if (tenantConfig.apiBeUrl) {
-    process.env.API_BE_URL = tenantConfig.apiBeUrl;
-  }
-  if (tenantConfig.odinOrgId) {
-    process.env.ODIN_ORG_ID = tenantConfig.odinOrgId;
-  }
 }

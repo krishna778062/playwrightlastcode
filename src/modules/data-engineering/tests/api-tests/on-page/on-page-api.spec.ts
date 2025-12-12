@@ -6,6 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { expectValidSchema } from '@/src/modules/data-engineering/api/helpers/schemaValidationHelper';
 import { GetContentEngagementResponseSchema } from '@/src/modules/data-engineering/api/schemas';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import { analyticsTestFixture as test } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
 import { SiteType } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
@@ -31,7 +32,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ODIN_ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().odinOrgId;
         const isRestricted = false;
 
         // Fetch blog post data from database
@@ -124,7 +125,7 @@ test.describe(
           });
 
           const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-          const tenantCode = process.env.ORG_ID;
+          const tenantCode = getDataEngineeringConfigFromCache().orgId;
           const isRestricted = false;
 
           // Fetch content ID from database for the specific site type

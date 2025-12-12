@@ -6,6 +6,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { expectValidSchema } from '@/src/modules/data-engineering/api/helpers/schemaValidationHelper';
 import { GetContentEngagementResponseSchema } from '@/src/modules/data-engineering/api/schemas';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import {
   AnalyticsApiFixture,
@@ -24,7 +25,7 @@ async function validateContentEngagement(
   testInfo: ReturnType<typeof test.info>
 ) {
   const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-  const tenantCode = process.env.ORG_ID;
+  const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
   // Fetch content ID from database for the specific site type and restriction status
   const contentDataResults = await analyticsQueryHelper.getContentDataFromDB(isRestricted, siteType);

@@ -1,18 +1,13 @@
-import dotenv from 'dotenv';
 import path from 'path';
 
-// Load base env file for Snowflake credentials (same for all tenants)
-const envName = process.env.TEST_ENV || 'qa';
-dotenv.config({
-  path: path.resolve(__dirname, `env/${envName}.env`),
-  override: true,
-});
-
-// Initialize ABAC tenant config and set env vars
-import { initializeDataEngineeringConfig, setEnvFromTenantConfig } from './config/dataEngineeringConfig';
+// Initialize ABAC tenant and Snowflake configs
+import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
+import { initializeSnowflakeConfig } from './config/snowflakeConfig';
 
 initializeDataEngineeringConfig('abac');
-setEnvFromTenantConfig();
+initializeSnowflakeConfig();
+
+const tenantConfig = getDataEngineeringConfigFromCache();
 
 import { defineConfig, devices } from '@playwright/test';
 
@@ -29,7 +24,7 @@ export default defineConfig({
   testMatch: '**/*-abac.spec.ts',
   use: {
     ...baseConfig.use,
-    baseURL: process.env.API_BASE_URL,
+    baseURL: tenantConfig.apiBaseUrl,
     actionTimeout: 10_000,
     navigationTimeout: 10_000,
   },

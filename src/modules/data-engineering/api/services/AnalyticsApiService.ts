@@ -12,6 +12,7 @@ import {
   GetSegmentsResponse,
   GetUserCategoriesResponse,
 } from '@/src/modules/data-engineering/api/interfaces/analytics.interface';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DATA_ENGINEERING_API_ENDPOINTS } from '@/src/modules/data-engineering/constants/apiEndpoints';
 
 /**
@@ -162,9 +163,10 @@ export class AnalyticsApiService extends HttpClient {
     tenantCode: string,
     isRestricted: boolean = false
   ): Promise<GetContentEngagementResponse> {
-    const apiBeUrl = process.env.API_BE_URL;
+    const config = getDataEngineeringConfigFromCache();
+    const apiBeUrl = config.apiBeUrl;
     if (!apiBeUrl) {
-      throw new Error('API_BE_URL is not set in environment variables');
+      throw new Error('API_BE_URL is not configured for this environment');
     }
 
     const fullUrl = `${apiBeUrl}${DATA_ENGINEERING_API_ENDPOINTS.analytics.contentEngagement}`;

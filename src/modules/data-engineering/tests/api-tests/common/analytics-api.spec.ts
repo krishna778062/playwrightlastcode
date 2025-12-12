@@ -14,6 +14,7 @@ import {
   GetSegmentsResponseSchema,
   GetUserCategoriesResponseSchema,
 } from '@/src/modules/data-engineering/api/schemas';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import { analyticsTestFixture as test } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
 
@@ -35,7 +36,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveSegments();
@@ -89,7 +90,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveDepartments();
@@ -146,7 +147,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveLocations();
@@ -203,7 +204,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveUserCategories();
@@ -260,7 +261,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveCompanyNames();
@@ -317,7 +318,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveDivisions();
@@ -374,7 +375,7 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getBatchRunDetails();
