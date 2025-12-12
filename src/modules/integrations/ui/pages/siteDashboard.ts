@@ -971,7 +971,27 @@ export class SiteDashboard {
   async verifyJiraContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyJiraTileContentStructure(tileTitle);
   }
-
+  /**
+   * Complete workflow to add an app tile with site manager defined settings and text area input
+   */
+  async addTilewithDefinedSettingsTextArea(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInput(fieldName, appManagerDefined, query);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  async setUpTileTextAreaInput(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextArea(tileTitle, fieldName, fieldValue);
+  }
   /**
    * Add a native tile (pages, events & albums) to the dashboard
    * @param tileTitle - The title to set for the tile
