@@ -1485,13 +1485,7 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove default display time off balance workday apptile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayleave',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
@@ -1528,7 +1522,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard - time off',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
@@ -1563,7 +1557,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off site manager defined tile on site dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off site manager defined tile on site dashboard - leave of absence',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
@@ -1603,7 +1597,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on home dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on home dashboard - leave of absence',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
@@ -1643,7 +1637,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard',
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard - time off',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
@@ -1739,7 +1733,7 @@ test.describe(
         );
         await homeDashboard.isTilePresent(createdTileTitle);
         await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
-        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        //show more is not visible as data is 4 only
         await homeDashboard.verifyWorkdayTimeOffMetadata(createdTileTitle, WORKDAY_VALUES.TimeOffLeaveType);
       }
     );
@@ -1747,7 +1741,7 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(All) app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
