@@ -2241,7 +2241,7 @@ test.describe(
     test(
       'verify all three auth type options are available',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, '@custom-apps'],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -2274,7 +2274,7 @@ test.describe(
     test(
       'verify all OAuth 2.0 sub-type options are available for App level connection',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, '@custom-apps'],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -2308,7 +2308,7 @@ test.describe(
     test(
       'verify empty state layout when no prebuilt apps match search term or filter',
       {
-        tag: [TestPriority.P1, '@custom-apps'],
+        tag: [TestPriority.P1],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -2348,7 +2348,7 @@ test.describe(
     test(
       'verify logo file size validation rejects files exceeding 100KB',
       {
-        tag: [TestPriority.P3, '@custom-apps'],
+        tag: [TestPriority.P3],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -2378,7 +2378,7 @@ test.describe(
     test(
       'verify duplicate custom app name validation shows error message',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, '@custom-apps'],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
