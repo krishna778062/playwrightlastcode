@@ -12,7 +12,15 @@ export class TopNavBarComponent extends BaseComponent {
   readonly notificationsButton: Locator;
   constructor(page: Page) {
     super(page);
-    this.profileSettingsButton = this.page.getByLabel('Profile settings');
+    this.profileSettingsButton = this.page.locator(
+      [
+        'button[aria-label*="Profile settings"]',
+        'button[aria-label*="Profile menu"]',
+        'button[aria-label*="User menu"]',
+        '[data-testid="profile-settings-button"]',
+        '[data-testid="profileNavigation"] button',
+      ].join(', ')
+    );
 
     this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
     this.seeAllMessagesButton = this.page.getByText('See all messages');

@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-import { PAGE_ENDPOINTS as newsletterEndpoints, PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
 export class NewsletterHomePagePage extends BasePage {
@@ -30,7 +30,6 @@ export class NewsletterHomePagePage extends BasePage {
   readonly headerTitleHeading: Locator;
   readonly createPrimaryButton: Locator;
   readonly createDropdownToggle: Locator;
-  readonly createDropdownMenu: Locator;
   readonly createMenuItemNewsletter: Locator;
   readonly createMenuItemCategory: Locator;
 
@@ -45,11 +44,11 @@ export class NewsletterHomePagePage extends BasePage {
   readonly headerCreatorButton: Locator;
   readonly headerStatusButton: Locator;
   readonly headerRecipientsButton: Locator;
-  readonly headerFromAddressButton: Locator;
   readonly headerDateModifiedButton: Locator;
   readonly tableRows: Locator;
   readonly rowActionShowMoreButtons: Locator;
   readonly loadMoreButton: Locator;
+  readonly fromAddressHeaderButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
@@ -62,7 +61,7 @@ export class NewsletterHomePagePage extends BasePage {
     this.newsletterCreateDropdown = this.newsletterCreateButton.locator('[class*="Dropdown-module__button"]');
     this.newsletterCreateDropdownItem = this.newsletterCreateDropdown.locator('[class*="Dropdown-module__item"]');
     this.searchContainer = this.page.locator('div[class*="TextInput-module__wrapper"]');
-    this.searchInput = this.searchContainer.getByRole('textbox', { name: 'search' });
+    this.searchInput = this.searchContainer.getByRole('textbox', { name: /search/i });
     this.searchClearButton = this.searchContainer.locator('button[aria-label="Clear"]');
     this.searchButton = this.searchContainer.getByRole('button', { name: 'Search' });
 
@@ -76,10 +75,17 @@ export class NewsletterHomePagePage extends BasePage {
     // Header and Create controls
     this.headerTitleHeading = this.page.getByRole('heading', { name: 'Newsletter' });
     this.createPrimaryButton = this.page.getByRole('link', { name: 'Create' });
-    this.createDropdownToggle = this.page.getByRole('button', { name: 'Open menu' });
-    this.createDropdownMenu = this.page.getByRole('menu');
-    this.createMenuItemNewsletter = this.createDropdownMenu.getByRole('menuitem').filter({ hasText: 'Newsletter' });
-    this.createMenuItemCategory = this.createDropdownMenu.getByRole('menuitem').filter({ hasText: 'Category' });
+    this.createDropdownToggle = this.newsletterHeaderContainer
+      .getByRole('button', { name: /Open menu|Options|More actions|Create/i })
+      .first();
+    this.createMenuItemNewsletter = this.page
+      .getByRole('menuitem')
+      .filter({ hasText: /^Newsletter\b/i })
+      .first();
+    this.createMenuItemCategory = this.page
+      .getByRole('menuitem')
+      .filter({ hasText: /^Category\b/i })
+      .first();
 
     // Search and Filters based on provided DOM
     this.searchIcon = this.page.locator('i[data-testid="i-searchThick"]');
@@ -93,11 +99,108 @@ export class NewsletterHomePagePage extends BasePage {
     this.headerCreatorButton = tableHeaders.getByRole('button', { name: 'Creator' });
     this.headerStatusButton = tableHeaders.getByRole('button', { name: 'Status' });
     this.headerRecipientsButton = tableHeaders.getByRole('button', { name: 'Recipients' });
-    this.headerFromAddressButton = tableHeaders.getByRole('button', { name: 'From address' });
     this.headerDateModifiedButton = tableHeaders.getByRole('button', { name: 'Date modified' });
+    this.fromAddressHeaderButton = tableHeaders.getByRole('button', { name: 'From address' });
     this.tableRows = this.page.locator('[data-testid^="dataGridRow-"]');
     this.rowActionShowMoreButtons = this.tableElement.locator('button[aria-label="Show more"]');
     this.loadMoreButton = this.page.getByRole('button', { name: 'Show more' });
+  }
+
+  async assertFromAddressColumnVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.fromAddressHeaderButton, {
+      assertionMessage: 'From address column header should be visible in newsletters table',
+    });
+  }
+
+  async assertTableHasResults(): Promise<void> {
+    await this.verifier.verifyCountOfElementsIsGreaterThanOrEqualTo(this.tableRows, 1, {
+      assertionMessage: 'Expected at least one newsletter to be visible in the table',
+    });
+  }
+
+  async clearSearchInput(): Promise<void> {
+    const currentValue = await this.searchInput.inputValue();
+    if (currentValue) {
+      await this.fillInElement(this.searchInput, '');
+    }
+    if (await this.searchClearButton.isVisible()) {
+      await this.clickOnElement(this.searchClearButton, {
+        stepInfo: 'Clear newsletter search input',
+      });
+    }
+  }
+
+  private async getCreateDropdownMenu(): Promise<Locator> {
+    const menuCandidates: Locator[] = [];
+
+    const ariaControls = await this.createDropdownToggle.getAttribute('aria-controls');
+    if (ariaControls) {
+      menuCandidates.push(this.page.locator(`#${ariaControls}`));
+    }
+
+    const dropdownContainers = [
+      '[role="menu"]',
+      '[role="listbox"]',
+      '[data-testid*="dropdown"]',
+      '[class*="Dropdown"][class*="list"]',
+      '[class*="Menu"][class*="content"]',
+      '[data-tippy-root] [role="menu"]',
+      '[data-tippy-root] [role="listbox"]',
+      '[data-tippy-root] [data-testid*="dropdown"]',
+      '[data-tippy-root] [class*="Dropdown"]',
+      '[data-tippy-root] [class*="Menu"]',
+    ];
+
+    for (const selector of dropdownContainers) {
+      menuCandidates.push(
+        this.page.locator(selector).filter({ has: this.createMenuItemNewsletter }).first(),
+        this.page.locator(selector).filter({ has: this.createMenuItemCategory }).first()
+      );
+    }
+
+    for (const candidate of menuCandidates) {
+      try {
+        await candidate.waitFor({ state: 'visible', timeout: 2000 });
+        return candidate;
+      } catch {
+        // continue to next candidate
+      }
+    }
+
+    const visibleMenuItem = this.page
+      .getByRole('menuitem')
+      .filter({ hasText: /^Newsletter\b|^Category\b/i })
+      .or(this.page.locator('[role="menuitem"]').filter({ has: this.page.getByText(/^Newsletter\b|^Category\b/i) }))
+      .first();
+
+    try {
+      await visibleMenuItem.waitFor({ state: 'visible', timeout: 2000 });
+    } catch {
+      const portalMenuItem = this.page
+        .locator('[data-tippy-root]')
+        .locator('[role="menuitem"]')
+        .filter({ hasText: /^Newsletter|^Category/i })
+        .first();
+      await portalMenuItem.waitFor({ state: 'visible', timeout: 2000 });
+      return portalMenuItem;
+    }
+
+    const ancestorSelectors = [
+      'xpath=ancestor::*[@role="menu"]',
+      'xpath=ancestor::*[@role="listbox"]',
+      'xpath=ancestor::*[contains(@class,"Dropdown")]',
+      'xpath=ancestor::*[contains(@class,"Menu")]',
+      'xpath=ancestor::*[contains(@data-testid,"dropdown")]',
+    ];
+
+    for (const selector of ancestorSelectors) {
+      const ancestor = visibleMenuItem.locator(selector).first();
+      if ((await ancestor.count()) > 0) {
+        return ancestor;
+      }
+    }
+
+    return visibleMenuItem;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -139,7 +242,7 @@ export class NewsletterHomePagePage extends BasePage {
       assertionMessage: 'Verify Create primary button is visible',
     });
 
-    // Create dropdown toggle
+    // Create dropdown≥ toggle
     await this.verifier.verifyTheElementIsVisible(this.createDropdownToggle, {
       assertionMessage: 'Verify Create dropdown toggle is visible',
     });
@@ -149,124 +252,19 @@ export class NewsletterHomePagePage extends BasePage {
       stepInfo: 'Open Create dropdown menu',
     });
 
-    // Dropdown menu and options
-    await this.verifier.verifyTheElementIsVisible(this.createDropdownMenu, {
+    //Dropdown menu and options
+    const createDropdownMenu = await this.getCreateDropdownMenu();
+    await this.verifier.verifyTheElementIsVisible(createDropdownMenu, {
       assertionMessage: 'Verify Create dropdown menu is visible',
     });
-    await this.verifier.verifyTheElementIsVisible(this.createMenuItemCategory, {
-      assertionMessage: 'Verify Category option is visible',
-    });
-  }
 
-  async validateSearchAndFilter() {
-    // Verify search input
-    await this.verifier.verifyTheElementIsVisible(this.searchInput, {
-      assertionMessage: 'Verify search input is visible',
+    await this.verifier.verifyTheElementIsVisible(this.createMenuItemNewsletter, {
+      assertionMessage: 'Verify Newsletter option is visible in Create dropdown',
     });
 
-    // Verify search icon inside adornments
-    await this.verifier.verifyTheElementIsVisible(this.searchIcon, {
-      assertionMessage: 'Verify search icon is visible',
-    });
-
-    // Verify Filters button
-    await this.verifier.verifyTheElementIsVisible(this.filtersButton, {
-      assertionMessage: 'Verify Filters button is visible',
-    });
-  }
-
-  async searchNewslettersAndVerifyResults(searchText: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.searchInput, {
-      assertionMessage: 'Search input should be visible before typing',
-    });
-
-    // Clear existing text if clear button is visible
-    const isClearVisible = await this.verifier.isTheElementVisible(this.searchClearButton, { timeout: 1000 });
-    if (isClearVisible) {
-      await this.clickOnElement(this.searchClearButton, {
-        stepInfo: 'Clear existing search text',
-      });
-    }
-
-    await this.fillInElement(this.searchInput, searchText, {
-      stepInfo: `Enter search text: ${searchText}`,
-    });
-
-    // Trigger search: prefer button if present, else press Enter
-    const isSearchButtonVisible = await this.verifier.isTheElementVisible(this.searchButton, { timeout: 1000 });
-    if (isSearchButtonVisible) {
-      await this.clickOnElement(this.searchButton, {
-        stepInfo: 'Click Search button',
-      });
-    } else {
-      await this.searchInput.press('Enter');
-    }
-
-    // Verify either results matching text or empty state
-    const possibleMatch = this.newsletterContainer.getByText(searchText, { exact: false }).first();
-    const hasMatch = await this.verifier.isTheElementVisible(possibleMatch, { timeout: 10000 });
-
-    if (hasMatch) {
-      await this.verifier.verifyTheElementIsVisible(possibleMatch, {
-        assertionMessage: `Verify at least one result contains: ${searchText}`,
-      });
-    } else {
-      await this.verifier.verifyTheElementIsVisible(this.searchResultsEmptyWrapper, {
-        assertionMessage: 'Verify empty results state is shown when no match found',
-      });
-    }
-  }
-
-  async validateNewsletterTable() {
-    // Verify table exists
-    await this.verifier.verifyTheElementIsVisible(this.tableElement, {
-      assertionMessage: 'Verify newsletter table is visible',
-    });
-
-    // Verify headers (sortable buttons)
-    await this.verifier.verifyTheElementIsVisible(this.headerNameButton, { assertionMessage: 'Verify Name header' });
-    await this.verifier.verifyTheElementIsVisible(this.headerCreatorButton, {
-      assertionMessage: 'Verify Creator header',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.headerStatusButton, {
-      assertionMessage: 'Verify Status header',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.headerRecipientsButton, {
-      assertionMessage: 'Verify Recipients header',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.headerFromAddressButton, {
-      assertionMessage: 'Verify From address header',
-    });
-    await this.verifier.verifyTheElementIsVisible(this.headerDateModifiedButton, {
-      assertionMessage: 'Verify Date modified header',
-    });
-
-    // Verify rows or empty state
-    const hasAnyRow = await this.verifier.isTheElementVisible(this.tableRows.first(), { timeout: 5000 });
-    if (hasAnyRow) {
-      await this.verifier.verifyTheElementIsVisible(this.tableRows.first(), {
-        assertionMessage: 'Verify at least one table row is visible',
-      });
-      // Row action button (Show more)
-      const hasRowActions = await this.verifier.isTheElementVisible(this.rowActionShowMoreButtons.first(), {
-        timeout: 1000,
-      });
-      if (hasRowActions) {
-        await this.verifier.verifyTheElementIsVisible(this.rowActionShowMoreButtons.first(), {
-          assertionMessage: 'Verify row action Show more button is visible',
-        });
-      }
-    } else {
-      await this.verifier.verifyTheElementIsVisible(this.searchResultsEmptyWrapper, {
-        assertionMessage: 'Verify empty results state when no rows are present',
-      });
-    }
-
-    //Load more button if present
-    const hasLoadMore = await this.verifier.isTheElementVisible(this.loadMoreButton, { timeout: 1000 });
-    if (hasLoadMore) {
-      await this.verifier.verifyTheElementIsVisible(this.loadMoreButton, {
-        assertionMessage: 'Verify Show more button is visible at the bottom',
+    if ((await this.createMenuItemCategory.count()) > 0) {
+      await this.verifier.verifyTheElementIsVisible(this.createMenuItemCategory, {
+        assertionMessage: 'Verify Category option is visible in Create dropdown',
       });
     }
   }

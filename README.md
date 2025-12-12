@@ -28,18 +28,11 @@ A centralized, scalable, and modular end-to-end UI automation framework built wi
 
 ## Available npm Scripts
 
-| Command                   | Description                                                                        |
-| ------------------------- | ---------------------------------------------------------------------------------- |
-| `npm test`                | **Interactive test runner** (recommended for local development)                    |
-| `npm run setup`           | **One-time setup** - installs dependencies, browsers, and git hooks                |
-| `npm run create:module`   | **Create new module** - scaffolds complete module structure                        |
-| `npm run test:module`     | **Generic module runner** - `npm run test:module <module> [tags] [env] [flags...]` |
-| `npm run test:chat`       | Run chat module tests directly                                                     |
-| `npm run test:chat:P0`    | Run priority P0 chat tests                                                         |
-| `npm run test:chat:smoke` | Run smoke tests for chat module                                                    |
-| `npm run serve-report`    | View latest test reports in browser                                                |
-| `npm run format`          | Format code with Prettier                                                          |
-| `npm run lint`            | Check code with ESLint                                                             |
+| Command                        | Description                              |
+| ------------------------------ | ---------------------------------------- |
+| `npm run test:newsletter`      | Run newsletter module tests              |
+| `npm run test:newsletter:qa`   | Run newsletter tests on QA environment   |
+| `npm run test:newsletter:test` | Run newsletter tests on Test environment |
 
 ## Directory Structure
 
@@ -137,8 +130,22 @@ npm run test:module content sanity uat --workers=1 --debug
   npm run test:chat -- --grep="@P0"
   ```
 - **Run Smoke Tests:**
+
   ```sh
   npm run test:chat -- --grep="@smoke"
+  ```
+
+- **Newsletter Module UI Tests:**
+
+  ```sh
+  npm run test:newsletter
+
+  # With specific environment
+  TEST_ENV=qa npm run test:newsletter
+
+  # With tag filter (feature or suite)
+  npm run test:newsletter -- --grep="@newsletter-home-page"
+  npm run test:newsletter -- --grep="@newsletter"
   ```
 
 ### Test Reports
@@ -248,6 +255,71 @@ TEST_ENV=uat MODULE_NAME=chat npx playwright test --config=src/modules/chat/play
 TEST_ENV=qa MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content.config.ts --grep="@P0"
 
 TEST_ENV=uat MODULE_NAME=chat npx playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=1 --headed --debug
+```
+
+## Newsletter Module
+
+### Paths
+
+- **Config:** `src/modules/newsletter/playwright.newsletter.config.ts`
+- **Tests:** `src/modules/newsletter/tests/`
+- **Tags:** `src/modules/newsletter/constants/testTags.ts`
+- **Fixture:** `src/modules/newsletter/fixtures/newsletterFixture.ts`
+
+### Tags
+
+```typescript
+// src/modules/newsletter/constants/testTags.ts
+export enum NEWSLETTER_FEATURE_TAGS {
+  NEWSLETTER_HOME_PAGE = '@newsletter-home-page',
+}
+export enum NEWSLETTER_SUITE_TAGS {
+  NEWSLETTER = '@newsletter',
+}
+```
+
+### Run Commands
+
+```sh
+# Interactive (auto-discovers newsletter)
+npm test
+
+# Module script
+npm run test:newsletter
+TEST_ENV=qa npm run test:newsletter
+
+# Generic runner
+npm run test:module newsletter P0 qa --workers=2
+
+# Direct Playwright
+TEST_ENV=qa MODULE_NAME=newsletter npx playwright test --config=src/modules/newsletter/playwright.newsletter.config.ts --grep='@newsletter-home-page'
+```
+
+### Environment Setup
+
+- Module env files: `src/modules/newsletter/env/{test,qa,prod}.env`
+- Common variables used:
+  - `FRONTEND_BASE_URL`, `API_BASE_URL`, `APP_MANAGER_USERNAME`, `APP_MANAGER_PASSWORD`, `ORG_ID`
+  - Optional user overrides via shell env for fixture: `STANDARD_USER_USERNAME`, `STANDARD_USER_PASSWORD`, `ENL_MANAGER_USERNAME`, `ENL_MANAGER_PASSWORD`
+
+### Example
+
+```typescript
+import { newsletterFixture as test } from '@newsletter/fixtures/newsletterFixture';
+import { NEWSLETTER_FEATURE_TAGS, NEWSLETTER_SUITE_TAGS } from '@newsletter/constants/testTags';
+import { NewsletterHomePagePage } from '@newsletter/pages/NewsletterHomePage.page';
+
+test.describe('Newsletter', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
+  test(
+    'Validate Manage Newsletter page UI',
+    { tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE] },
+    async ({ appManagerPage }) => {
+      const page = new NewsletterHomePagePage(appManagerPage);
+      await page.loadPage();
+      await page.verifyThePageIsLoaded();
+    }
+  );
+});
 ```
 
 #### Understanding the Hierarchy
@@ -703,11 +775,13 @@ If you prefer to create modules manually:
    ```
 
 3. **Create Environment Files**: Add environment-specific config files in `src/modules/<your-module>/env/`:
+
    - `qa.env`
    - `uat.env`
    - etc.
 
 4. **Choose Page Architecture**: Select the appropriate page class pattern based on complexity:
+
    - **Simple modules**: Use single class pattern with inline methods
    - **Complex modules**: Use base class inheritance pattern
    - **Multiple UX variants**: Use interface inheritance hierarchy
