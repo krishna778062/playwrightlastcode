@@ -1,7 +1,7 @@
 import { APIResponse, Page, request } from '@playwright/test';
 import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 
-import { HttpClient } from '../clients/httpClient';
+import { HttpClient } from '@core/api';
 
 /**
  * Service for making API calls to the Rewards API

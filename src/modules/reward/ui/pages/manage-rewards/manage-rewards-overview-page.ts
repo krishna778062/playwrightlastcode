@@ -404,14 +404,14 @@ export class ManageRewardsOverviewPage extends BasePage {
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
-      const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await manageRecognitionPage.loadPage();
-      await manageRecognitionPage.verifyThePageIsLoaded();
     }
+    await manageRecognitionPage.loadPage();
+    await manageRecognitionPage.verifyThePageIsLoaded();
   }
 
   async disableTheRewards(): Promise<void> {
