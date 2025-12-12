@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { RewardsApiService } from '@rewards/api/services/RewardsApiService';
 import { DialogBox } from '@rewards-components/common/dialog-box';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
@@ -6,7 +7,6 @@ import { RewardsPeerGifting } from '@rewards-components/manage-rewards/rewards-p
 import fs from 'fs';
 import path from 'path';
 
-import { RewardsApiService } from '@core/api';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
