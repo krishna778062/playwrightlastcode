@@ -6,6 +6,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
 export interface IListFeedComponentActions {
+  clickReplyImagePreview(replyText: string): Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickDeleteOption: () => Promise<void>;
   clickReportPostOption: () => Promise<void>;
@@ -195,7 +196,10 @@ export class ListFeedComponent
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
-  readonly replyContainer = this.page.locator('._reply_1ii4b_1');
+  readonly replyContainer = this.page
+    .locator('div[class*="_container_q3xrp_1"]')
+    .first()
+    .locator('div[class*="_reply_11nkx_1"]');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
   readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
@@ -253,6 +257,12 @@ export class ListFeedComponent
       .filter({ hasText: postText })
       .locator('xpath=./ancestor::div[3]')
       .locator("button[aria-label='Open image in lightbox']");
+
+  readonly getReplyImagePreviewLocator = (replyText: string): Locator =>
+    this.replyLocator(replyText)
+      .getByTestId('replyContent')
+      .getByRole('button', { name: 'Open image in lightbox' })
+      .first();
 
   /**
    * Gets a locator for the post options menu
@@ -500,6 +510,12 @@ export class ListFeedComponent
   async clickInlineImagePreview(postText: string): Promise<void> {
     await test.step('Click on inline image preview', async () => {
       await this.clickOnElement(this.getLightboxButtonLocator(postText).first());
+    });
+  }
+
+  async clickReplyImagePreview(replyText: string): Promise<void> {
+    await test.step('Click on reply image preview', async () => {
+      await this.clickOnElement(this.getReplyImagePreviewLocator(replyText));
     });
   }
 
@@ -910,10 +926,7 @@ export class ListFeedComponent
         assertionMessage: `Post "${postText}" should be visible`,
       });
       // Find all reply content divs within the post container
-      const replyContainers = this.page
-        .locator('div[class*="_container_q3xrp_1"]')
-        .first()
-        .locator('div[class*="_reply_1ii4b_1"]');
+      const replyContainers = this.replyContainer;
 
       const count = await replyContainers.count();
       console.log('Count of visible replies: ', count);
@@ -1120,7 +1133,7 @@ export class ListFeedComponent
       });
 
       // Find the reply container that contains this reply text
-      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const allReplyContainers = this.replyContainer;
       const containerCount = await allReplyContainers.count();
 
       let timestamp: Locator | null = null;

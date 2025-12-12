@@ -509,6 +509,93 @@ for (const testData of feedTestData) {
           }
         );
       }
+
+      // Verify user able to add, edit, delete reply on Content Feed with file attachment
+      if (testData.feedType === 'Content Feed') {
+        test(
+          'verify user can add, edit, delete reply on Content Feed with file attachment',
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19549'],
+          },
+          async ({ appManagerFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify user able to add, edit, delete reply on Content Feed with file attachment',
+              zephyrTestId: 'CONT-19549',
+              storyId: 'CONT-19549',
+            });
+
+            const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+            const gifPath = FILE_TEST_DATA.IMAGES.GIF1.getPath(__dirname);
+
+            const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+            await contentPreviewPage.actions.clickShareThoughtsButton();
+
+            const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
+
+            const postResult = await createFeedPostComponent.actions.createAndPost({
+              text: initialPostText,
+              attachments: {
+                files: [image1Path],
+              },
+            });
+
+            const postWithAttachmentText = postResult.postText;
+            const postWithAttachmentId = postResult.postId || '';
+
+            await contentPreviewPage.assertions.waitForPostToBeVisible(postWithAttachmentText);
+
+            await appManagerFeedPage.getPostTimestamp(postWithAttachmentText);
+
+            const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+            const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED_REPLY;
+
+            await appManagerFeedPage.actions.openReplyEditorForPost(postWithAttachmentText);
+
+            const replyCreateFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+            const listFeedComponent = appManagerFeedPage['listFeedComponent'];
+
+            await replyCreateFeedPostComponent.createPost(replyText);
+
+            await replyCreateFeedPostComponent.uploadFilesToReply([gifPath], postWithAttachmentText);
+
+            await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            await listFeedComponent.submitReplyAndGetResponse();
+
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+            await listFeedComponent.assertions.verifyReplyTimestamp(replyText);
+
+            await appManagerFeedPage.assertions.verifyReplyCount(postWithAttachmentText, 1);
+
+            await listFeedComponent.actions.clickReplyImagePreview(replyText);
+            await listFeedComponent.assertions.verifyInlineImagePreviewVisible();
+            await listFeedComponent.actions.closeImagePreview();
+
+            await listFeedComponent.actions.openReplyOptionsMenu(replyText);
+
+            await listFeedComponent.actions.clickReplyEditOption();
+
+            await replyCreateFeedPostComponent.assertions.verifyReplyEditorVisible(postWithAttachmentText);
+
+            await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            await replyCreateFeedPostComponent.updatePostText(updatedReplyText);
+
+            await replyCreateFeedPostComponent.clickReplyUpdateButton();
+
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
+
+            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+            await listFeedComponent.clickReplyDeleteOption();
+            await listFeedComponent.confirmDelete();
+            await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
+
+            await appManagerFixture.feedManagementHelper.deleteFeed(postWithAttachmentId);
+          }
+        );
+      }
     }
   );
 }
