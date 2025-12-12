@@ -37,6 +37,7 @@ export interface ISiteDashboardActions {
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnDismissButton: () => Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
 }
 
 export interface ISiteDashboardAssertions {
@@ -74,6 +75,7 @@ export interface ISiteDashboardAssertions {
   verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyCelebrationBlockIsVisible: () => Promise<void>;
+  verifyAllReactionEmojisVisible: (postText: string) => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -482,5 +484,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyCommentIconIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyCommentIconIsNotVisible();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 }

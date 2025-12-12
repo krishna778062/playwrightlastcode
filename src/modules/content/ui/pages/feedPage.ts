@@ -241,6 +241,7 @@ export interface IFeedAssertions {
   verifyReactionButtonIsNotVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyAllReactionEmojisVisible: (postText: string) => Promise<void>;
   verifyCommentIconIsVisible: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
@@ -1357,6 +1358,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
   }
 
   async verifyCommentIconIsVisible(): Promise<void> {

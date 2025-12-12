@@ -658,6 +658,84 @@ test.describe(
     );
 
     test(
+      'verify all six reaction emojis appear when clicking Add Reaction icon',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-32301'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify all six reaction emojis appear when clicking Add Reaction icon on Feed, Site Dashboard, and Content pages',
+          zephyrTestId: 'CONT-32301',
+          storyId: 'CONT-32301',
+        });
+
+        // Verify on Home/Global Feed
+        await test.step('Verify all six reaction emojis on Home/Global Feed', async () => {
+          await feedPage.actions.hoverOnReactionButton(createdPostText);
+          await feedPage.assertions.verifyAllReactionEmojisVisible(createdPostText);
+        });
+
+        // Verify on Site Dashboard
+        await test.step('Verify all six reaction emojis on Site Dashboard', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          });
+          const siteId = publicSite.siteId;
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          // Create a post on site dashboard
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+          const sitePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          await siteDashboardPage['createFeedPostComponent'].actions.createPost(sitePostText);
+          await siteDashboardPage['createFeedPostComponent'].actions.clickPostButton();
+          await siteDashboardPage.assertions.validatePostText(sitePostText);
+
+          // Verify reaction emojis on site dashboard
+          await siteDashboardPage.actions.hoverOnReactionButton(sitePostText);
+          await siteDashboardPage.assertions.verifyAllReactionEmojisVisible(sitePostText);
+        });
+
+        // Verify on Content Preview Page
+        await test.step('Verify all six reaction emojis on Content Preview Page', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          });
+          const siteId = publicSite.siteId;
+
+          // Create a page
+          const pageContent = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: siteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          });
+
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            siteId,
+            pageContent.contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Create a comment on content page
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+          const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+          await contentPreviewPage['createFeedPostComponent'].actions.createPost(commentText);
+          await contentPreviewPage['createFeedPostComponent'].actions.clickPostButton();
+          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+
+          // Verify reaction emojis on content page
+          await contentPreviewPage.actions.hoverOnReactionButton(commentText);
+          await contentPreviewPage.assertions.verifyAllReactionEmojisVisible(commentText);
+        });
+      }
+    );
+
+    test(
       'verify that clicking on reaction count opens modal with users grouped by emoji',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],

@@ -55,6 +55,7 @@ export interface IContentPreviewPageActions {
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnFavouriteContentButton(): Promise<void>;
+  hoverOnReactionButton: (postText: string) => Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -80,6 +81,7 @@ export interface IContentPreviewPageAssertions {
   verifyContentShareButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisible: () => Promise<void>;
   verifyReactionButtonIsVisibleForReply: () => Promise<void>;
+  verifyAllReactionEmojisVisible: (postText: string) => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
   verifyContentIsMustRead: () => Promise<void>;
@@ -559,6 +561,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    */
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 
   /**
