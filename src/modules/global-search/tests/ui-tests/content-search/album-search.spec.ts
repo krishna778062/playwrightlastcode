@@ -29,6 +29,7 @@ test.describe(
           imageName: 'beach.jpg',
           options: {
             contentDescription: ALBUM_SEARCH_TEST_DATA.description,
+            waitForSearchIndex: true,
           },
         });
 

@@ -9,6 +9,7 @@ import { UserCredentials } from '@core/types/test.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { JIRA_VALUES } from '../../test-data/app-tiles.test-data';
+import { REDIRECT_URLS } from '../../test-data/app-tiles.test-data';
 import { SiteDashboard } from '../../ui/pages/siteDashboard';
 
 import { FIELD_NAMES, UI_ACTIONS } from '@/src/modules/integrations/constants/common';
@@ -29,6 +30,12 @@ test.describe(
     const AppName = 'JIRA';
     const DisplayRecentTickets = 'Display recent tickets';
     const DisplayRecentlyReportedTickets = 'Display recently reported tickets';
+    const DisplayTicketsUsingJQL = 'Display tickets using JQL';
+    const AppManagerDefined = 'App manager defined';
+    const SiteManagerDefined = 'Site manager defined';
+    const JQLQuery = 'JQL Query';
+    const JQLQueryValue =
+      'project = "INT" AND assignee = 607d428f1417e2006aacea72 AND type = Story ORDER BY created DESC';
     let createdTileTitle: string | undefined = undefined;
 
     test.beforeEach(async ({ page }) => {
@@ -133,7 +140,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-13927'],
+          zephyrTestId: ['INT-13927', 'INT-24024'],
           storyId: 'INT-13220',
         });
 
@@ -165,7 +172,7 @@ test.describe(
       async ({ page, appManagerApiFixture }) => {
         const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-13929'],
+          zephyrTestId: ['INT-13929', 'INT-25842'],
           storyId: 'INT-13220',
         });
 
@@ -345,6 +352,301 @@ test.describe(
         await siteDashboard.setUpTileDropdown(createdTileTitle, FIELD_NAMES.PROJECT, JIRA_VALUES.INTEGRATIONS);
         await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
         await siteDashboard.verifyPersonalizeVisible(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify created Tile on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-24022', 'INT-15811'],
+          storyId: 'INT-23626',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add and edit tile
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          DisplayRecentTickets,
+          UI_ACTIONS.ADD_TO_HOME,
+          JIRA_VALUES.PROJECT,
+          JIRA_VALUES.INTEGRATIONS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        // Verify tile content structure
+        await homeDashboard.verifyJiraContentStructure(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.JIRA);
+      }
+    );
+    test(
+      'verify UI layout for Jira App Tile on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-29858', 'INT-13518'],
+          storyId: 'INT-13220',
+        });
+
+        // Create SiteDashboard instance directly (user is already logged in from beforeEach)
+        const siteDashboard = new SiteDashboard(page);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and edit tile
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          DisplayRecentTickets,
+          UI_ACTIONS.ADD_TO_SITE,
+          JIRA_VALUES.PROJECT,
+          JIRA_VALUES.INTEGRATIONS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        // Verify tile content structure
+        await siteDashboard.verifyJiraContentStructure(createdTileTitle);
+        await siteDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.JIRA);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify show more behaviour on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-13520'],
+          storyId: 'INT-13223',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add Jira tile
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          DisplayRecentTickets,
+          UI_ACTIONS.ADD_TO_HOME,
+          JIRA_VALUES.PROJECT,
+          JIRA_VALUES.INTEGRATIONS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+    test(
+      'verify show more behaviour on Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-29843'],
+          storyId: 'INT-13223',
+        });
+
+        // Create SiteDashboard instance directly (user is already logged in from beforeEach)
+        const siteDashboard = new SiteDashboard(page);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add Jira tile
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          DisplayRecentTickets,
+          UI_ACTIONS.ADD_TO_SITE,
+          JIRA_VALUES.PROJECT,
+          JIRA_VALUES.INTEGRATIONS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+
+        // Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify that App Manager should be able to add a JIRA App Tile to Display tickets using JQL with preferences set to "App Manager defined" on Home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-15790', 'INT-15812', 'INT-15814'],
+          storyId: 'INT-15400',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add and edit tile
+        await homeDashboard.addTilewithDefinedSettingsTextArea(
+          createdTileTitle,
+          AppName,
+          DisplayTicketsUsingJQL,
+          AppManagerDefined,
+          JQLQuery,
+          JQLQueryValue,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+    test(
+      'verify that App Manager should be able to add a JIRA App Tile to Display tickets using JQL with preferences set to "Site Manager defined" on Site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-15793', 'INT-16122', 'INT-29840'],
+          storyId: 'INT-15400',
+        });
+
+        // Create SiteDashboard instance directly (user is already logged in from beforeEach)
+        const siteDashboard = new SiteDashboard(page);
+
+        //Generate a random tile title
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and edit tile
+        await siteDashboard.addTilewithDefinedSettingsTextArea(
+          createdTileTitle,
+          AppName,
+          DisplayTicketsUsingJQL,
+          SiteManagerDefined,
+          JQLQuery,
+          JQLQueryValue,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+    test(
+      'verify that App Manager should be able to add a JIRA App Tile to Display tickets using JQL with preferences set to "User defined" on Home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-15773'],
+          storyId: 'INT-15400',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add and edit tile
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          DisplayTicketsUsingJQL,
+          JQLQuery
+        );
+        await homeDashboard.setUpTileTextAreaInput(createdTileTitle, FIELD_NAMES.JQL_QUERY, JIRA_VALUES.JIRA_JQL_QUERY);
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        // Verify tile content structure
+        await homeDashboard.verifyJiraContentStructure(createdTileTitle);
+      }
+    );
+    test(
+      'verify that App Manager should be able to add a JIRA App Tile to Display tickets using JQL with preferences set to "User defined" on Site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-15789'],
+          storyId: 'INT-15400',
+        });
+
+        // Create SiteDashboard instance directly (user is already logged in from beforeEach)
+        const siteDashboard = new SiteDashboard(page);
+
+        //Generate a random tile title
+        createdTileTitle = `JIRA report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add and edit tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          DisplayTicketsUsingJQL,
+          JQLQuery
+        );
+        await siteDashboard.setUpTileTextAreaInput(createdTileTitle, FIELD_NAMES.JQL_QUERY, JIRA_VALUES.JIRA_JQL_QUERY);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        // Verify tile content structure
+        await siteDashboard.verifyJiraContentStructure(createdTileTitle);
         createdTileTitle = undefined;
       }
     );

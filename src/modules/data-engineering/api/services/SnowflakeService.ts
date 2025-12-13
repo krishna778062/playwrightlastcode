@@ -1,3 +1,4 @@
+import { getSnowflakeConfig, SnowflakeEnvironmentConfig } from '@data-engineering/config/snowflakeConfig';
 import { decodeBase64 } from '@data-engineering/helpers/base64Helper';
 import crypto from 'crypto';
 import snowflake, { Connection, RowStatement } from 'snowflake-sdk';
@@ -5,40 +6,42 @@ import snowflake, { Connection, RowStatement } from 'snowflake-sdk';
 // Type for Snowflake parameter values (matches Snowflake SDK Bind type)
 export type SnowflakeParamValue = string | number | boolean | Date | null | Buffer;
 
-export type SnowflakeConfig = {
+export type SnowflakeConnectionConfig = {
   account: string;
   username: string;
-  password: string;
+  password?: string;
   warehouse?: string;
   database?: string;
   authenticator?: string;
-  privateKey: string;
+  privateKey?: string;
   application?: string;
 };
 
 export class SnowflakeService {
   private connection: Connection;
-  private config: SnowflakeConfig;
+  private config: SnowflakeConnectionConfig;
   private isConnected: boolean = false;
 
-  constructor(config: SnowflakeConfig) {
+  constructor(config: SnowflakeConnectionConfig) {
     this.config = config;
     this.connection = this.createConnection();
   }
 
   /**
-   * Factory method to create SnowflakeService from environment variables
+   * Factory method to create SnowflakeService from snowflakeConfig
+   * Uses the centralized configuration based on TEST_ENV
    */
-  static fromEnv(): SnowflakeService {
-    const privateKey = this.loadPrivateKeyFromEnv();
+  static fromConfig(): SnowflakeService {
+    const envConfig = getSnowflakeConfig();
+    const privateKey = envConfig.privateKey ? this.decryptPrivateKey(envConfig) : undefined;
 
-    const config: SnowflakeConfig = {
-      account: process.env.SNOWFLAKE_ACCOUNT || '',
-      username: process.env.SNOWFLAKE_USER_NAME || '',
-      password: process.env.SNOWFLAKE_USER_PASSWORD || '',
-      warehouse: process.env.SNOWFLAKE_WAREHOUSE || '',
-      database: process.env.SNOWFLAKE_DATABASE || '',
-      authenticator: 'SNOWFLAKE_JWT',
+    const config: SnowflakeConnectionConfig = {
+      account: envConfig.account,
+      username: envConfig.username,
+      password: envConfig.password,
+      warehouse: envConfig.warehouse,
+      database: envConfig.database,
+      authenticator: envConfig.privateKey ? 'SNOWFLAKE_JWT' : undefined,
       privateKey: privateKey,
     };
 
@@ -46,19 +49,27 @@ export class SnowflakeService {
   }
 
   /**
-   * Loads and processes the private key from environment variables
-   * The private key and passphrase should be Base64 encoded in the .env file
+   * @deprecated Use fromConfig() instead. This method is kept for backward compatibility.
+   * Factory method to create SnowflakeService (now uses centralized config)
    */
-  private static loadPrivateKeyFromEnv(): string {
-    const encodedPrivateKey = process.env.SNOWFLAKE_PRIVATE_KEY;
-    const encodedPassphrase = process.env.SNOWFLAKE_PASSPHRASE;
+  static fromEnv(): SnowflakeService {
+    return this.fromConfig();
+  }
+
+  /**
+   * Decrypts the private key using the passphrase from config
+   * The private key and passphrase should be Base64 encoded
+   */
+  private static decryptPrivateKey(envConfig: SnowflakeEnvironmentConfig): string {
+    const encodedPrivateKey = envConfig.privateKey;
+    const encodedPassphrase = envConfig.passphrase;
 
     if (!encodedPrivateKey) {
-      throw new Error('SNOWFLAKE_PRIVATE_KEY environment variable is required (Base64 encoded)');
+      throw new Error('Snowflake private key is required in config (Base64 encoded)');
     }
 
     if (!encodedPassphrase) {
-      throw new Error('SNOWFLAKE_PASSPHRASE environment variable is required (Base64 encoded)');
+      throw new Error('Snowflake passphrase is required in config (Base64 encoded)');
     }
 
     // Decode Base64 encoded strings (similar to Java's Base64.getDecoder().decode())

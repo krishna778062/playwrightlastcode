@@ -276,6 +276,57 @@ export class CustomAppsIntegrationPage extends BasePage {
     });
   }
 
+  /**
+   * Click on Category button in prebuilt app dialog if present
+   */
+  async clickCategoryButtonInPrebuiltDialog(): Promise<void> {
+    return this.customAppsComponent.clickCategoryButtonInPrebuiltDialog();
+  }
+
+  /**
+   * Select category radio button in prebuilt app dialog
+   * @param categoryId - The ID of the category radio button (e.g., 'categories_calendar')
+   */
+  async selectCategoryRadioInPrebuiltDialog(categoryId: string): Promise<void> {
+    return this.customAppsComponent.selectCategoryRadioInPrebuiltDialog(categoryId);
+  }
+
+  /**
+   * Click on "Prebuilt apps" link in the prebuilt app dialog
+   */
+  async clickPrebuiltAppsLink(): Promise<void> {
+    return this.customAppsComponent.clickPrebuiltAppsLink();
+  }
+
+  /**
+   * Search for an app in the prebuilt apps dialog
+   * @param searchTerm - The search term to enter
+   */
+  async searchForPrebuiltApp(searchTerm: string): Promise<void> {
+    return this.customAppsComponent.searchForPrebuiltApp(searchTerm);
+  }
+
+  /**
+   * Verify "Create your own app" text is displayed in prebuilt app dialog
+   */
+  async verifyCreateYourOwnAppTextIsDisplayed(): Promise<void> {
+    return this.customAppsComponent.verifyCreateYourOwnAppTextIsDisplayed();
+  }
+
+  /**
+   * Click on "Create your own app" link in prebuilt app dialog
+   */
+  async clickCreateYourOwnAppLink(): Promise<void> {
+    return this.customAppsComponent.clickCreateYourOwnAppLink();
+  }
+
+  /**
+   * Verify no results message with "Try adjusting search terms or filters, or create your own app" text
+   */
+  async verifyNoResultsMessageWithCreateOwnApp(): Promise<void> {
+    return this.customAppsComponent.verifyNoResultsMessageWithCreateOwnApp();
+  }
+
   async clickSaveButton(): Promise<void> {
     await this.customAppsComponent.clickButton('Save');
     await expect(this.saveButton).toBeDisabled({ timeout: TIMEOUTS.SHORT });
@@ -850,6 +901,13 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Verify the logo image preview is hidden (after removal)
+   */
+  async verifyLogoPreviewIsHidden(): Promise<void> {
+    return this.customAppsComponent.verifyLogoPreviewIsHidden();
+  }
+
+  /**
    * Verify the uploaded logo file size is displayed
    * @param expectedSize - The expected file size text (e.g., "JPG - 43.93KB")
    */
@@ -862,6 +920,29 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async verifyRemoveLogoButtonIsDisplayed(): Promise<void> {
     return this.customAppsComponent.verifyRemoveLogoButtonIsDisplayed();
+  }
+
+  /**
+   * Click the remove logo button to delete the uploaded logo
+   */
+  async clickRemoveLogoButton(): Promise<void> {
+    return this.customAppsComponent.clickRemoveLogoButton();
+  }
+
+  /**
+   * Verify required field error message is displayed
+   * @param fieldName - The name of the field (e.g., 'Custom app name', 'Description', 'Logo')
+   */
+  async verifyRequiredFieldError(fieldName: string): Promise<void> {
+    return this.customAppsComponent.verifyRequiredFieldError(fieldName);
+  }
+
+  /**
+   * Verify URL validation error message is displayed
+   * @param fieldName - The name of the URL field (e.g., 'Auth URL', 'Token URL', 'Base URL')
+   */
+  async verifyUrlValidationError(fieldName: string): Promise<void> {
+    return this.customAppsComponent.verifyUrlValidationError(fieldName);
   }
 
   /**

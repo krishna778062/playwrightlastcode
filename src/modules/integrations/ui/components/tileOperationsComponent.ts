@@ -107,6 +107,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   readonly serviceNowRejectButton: Locator;
   readonly serviceNowCreatedTicketMessage: Locator;
   readonly serviceNowCreateAnotherTicketButton: Locator;
+  readonly jiraTicketPattern: RegExp;
+  readonly jiraTicketType: RegExp;
+  readonly jiraTicketPriority: RegExp;
 
   constructor(page: Page) {
     super(page);
@@ -207,6 +210,9 @@ export class TileOperationsComponent extends BaseAppTileComponent {
     this.salesforceViewCompleteReportLink = page.getByRole('link', { name: /View complete report/ });
     this.serviceNowTicketPattern = /^INC\d+$/;
     this.serviceNowApprovalTicketPattern = /^REQ\d+$/;
+    this.jiraTicketPattern = /^INT-.*$/;
+    this.jiraTicketType = /Type:\s*(Story|Bug|Test)/;
+    this.jiraTicketPriority = /Priority:\s*(Low|Medium|High|None)/;
 
     // Workday: patterns for lessons count and registered date line
     this.lessonsPattern = /^\d+\s+Lessons?$/;
@@ -1275,6 +1281,37 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.locator(this.serviceNowCreatedTicketMessage).first()).toBeVisible();
       // Verify create another ticket button is visible
       await expect(tile.locator(this.serviceNowCreateAnotherTicketButton).first()).toBeVisible();
+    });
+  }
+  /**
+   * Verify Jira tile content structure
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyJiraTileContentStructure(tileTitle: string): Promise<void> {
+    await test.step(`Verify Jira tile content structure for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `JIRA tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      // Get task records and verify at least one exists
+      const containers = tile.locator(this.container);
+      const count = await containers.count();
+      expect(count, 'At least one container should be present in Jira tile').toBeGreaterThan(0);
+
+      // Verify ticket ID pattern (e.g., #INT12345)
+      await expect(tile.getByText(this.jiraTicketPattern).first()).toBeVisible();
+      // Verify ticket type is visible
+      await expect(tile.getByText(this.jiraTicketType).first()).toBeVisible();
+      // Verify ticket priority is visible
+      await expect(tile.getByText(this.jiraTicketPriority).first()).toBeVisible();
+    });
+  }
+  /**
+   * Set Up tile with text area input
+   */
+  async setUpTileTextArea(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.setUpTileTextAreaInput(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }
 }
