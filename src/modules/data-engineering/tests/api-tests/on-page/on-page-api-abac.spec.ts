@@ -1,6 +1,11 @@
+import { expect } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { AbacSiteTypes } from '../../../constants/abacSiteTypes';
+import { TestMetaDataHelper } from '../../../utils/testMetaDataHelper';
 
 import {
   assertEngagementMetricsMatch,
@@ -18,7 +23,7 @@ import {
 } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
 import { SiteType } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
 
-const abacSiteTypes: SiteType[] = ['Public', 'Private']; // Test file constants
+const abacSiteTypes: AbacSiteTypes[] = [AbacSiteTypes.PUBLIC, AbacSiteTypes.PRIVATE]; // Test file constants
 const API_RESPONSE_TIME_MS = 2000; // Max allowed API response time for this test suite
 
 test.describe(
@@ -92,37 +97,41 @@ async function validateContentEngagement(
   skipIfNoData(contentDataResults, skipReason, testInfo, test.skip);
 
   const contentData = contentDataResults[0];
-  const contentId = contentData.CODE; // Content ID for the page/event/album
+  const contentId = contentData.CODE;
 
-  // Log content details to Playwright report
-  testInfo.annotations.push({
-    type: 'Content Details',
-    description: `Title: ${contentData.TITLE} | ID: ${contentId} | Type: ${contentData.CONTENT_TYPE} | Site: ${siteType} | Restricted: ${isRestricted} | URL: ${contentData.CONTENT_URL}`,
-  });
+  // Add content details annotation
+  TestMetaDataHelper.addTestMetaDataWithContentDetails(testInfo, { contentData, siteType, isRestricted });
 
-  const { data: apiResponse, responseTime } = await withTiming(
-    () => analyticsApiService.getContentEngagement(contentId, isRestricted),
-    { maxResponseTime: API_RESPONSE_TIME_MS }
+  // Call API and measure response time
+  const { data: apiResponse, responseTime } = await withTiming(() =>
+    analyticsApiService.getContentEngagement(contentId, isRestricted)
   );
 
-  // Validate response schema using Zod
+  // Assert response time
+  expect.soft(responseTime, `API should respond within ${API_RESPONSE_TIME_MS}ms`).toBeLessThan(API_RESPONSE_TIME_MS);
+
+  // Validate schema
   const validatedResponse = expectValidSchema(
     GetContentEngagementResponseSchema,
     apiResponse,
     'Verify API response matches expected schema'
   );
 
-  // Validate response metadata
+  // Assert response metadata
   assertResponseMetadata(validatedResponse, { tenantId: tenantCode, contentId, isRestricted });
 
-  // Fetch data from Snowflake and compare
+  // Compare with Snowflake data
   const dbResults = await analyticsQueryHelper.getContentEngagementFromDB(contentId);
   if (dbResults.length > 0) {
     assertEngagementMetricsMatch(validatedResponse.data, dbResults[0]);
   }
 
+  // Add API summary annotation
   testInfo.annotations.push({
     type: 'API Summary',
     description: `Response: ${responseTime}ms | Schema: Valid | UDL Match: ${dbResults.length > 0 ? 'OK' : 'Skipped'}`,
   });
+
+  //validate soft assertions has no errors
+  expect(testInfo.errors.length, 'No soft assertions errors').toBe(0);
 }

@@ -5,36 +5,21 @@
 
 import { expect, TestInfo } from '@playwright/test';
 
-/** Default API response time threshold in ms */
-const DEFAULT_RESPONSE_TIME_MS = 2000;
-
 /** Result of API call with timing */
 export interface TimedResponse<T> {
   data: T;
   responseTime: number;
 }
 
-/** Options for withTiming */
-export interface TimingOptions {
-  /** Max allowed response time in ms (default: 2000). Set to 0 to skip validation */
-  maxResponseTime?: number;
-}
-
 /**
- * Wraps an API call, measures response time, and validates against threshold
+ * Wraps an API call and measures response time
  * @param apiCall - The API call to execute
- * @param options - Optional config (maxResponseTime defaults to 2000ms)
+ * @returns The API response data and response time in ms
  */
-export async function withTiming<T>(apiCall: () => Promise<T>, options?: TimingOptions): Promise<TimedResponse<T>> {
-  const maxTime = options?.maxResponseTime ?? DEFAULT_RESPONSE_TIME_MS;
-
+export async function withTiming<T>(apiCall: () => Promise<T>): Promise<TimedResponse<T>> {
   const start = Date.now();
   const data = await apiCall();
   const responseTime = Date.now() - start;
-
-  if (maxTime > 0) {
-    expect.soft(responseTime, `Verify API responds within ${maxTime}ms`).toBeLessThan(maxTime);
-  }
 
   return { data, responseTime };
 }
