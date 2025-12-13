@@ -621,6 +621,91 @@ test.describe(
     );
 
     test(
+      'in Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19561'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+          zephyrTestId: 'CONT-19561',
+          storyId: 'CONT-19561',
+        });
+
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.verifyThePageIsLoaded();
+
+        // Create Post with image1.jpg
+        await test.step('Create post with image attachment', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+
+          // Create post with image attachment
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1); // 1 attachment
+        });
+
+        // Share Post with mention and "Post in Home Feed" option
+        await test.step('Share post with mention using Post in Home Feed option', async () => {
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+          // Share the post with mention and "Post in Home Feed" option
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Home Feed',
+          });
+
+          // Verify success message
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        // Verify shared post is visible on Home Feed
+        await test.step('Verify shared post with message, mention, and inline image preview', async () => {
+          // Reload page to see the shared post
+          await endUserFeedPage.reloadPage();
+
+          // Verify shared post is visible
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+          // Verify share message is displayed
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+
+          await endUserFeedPage.actions.clickInlineImagePreview(shareMessage);
+          await endUserFeedPage.assertions.verifyInlineImagePreviewVisible();
+          await endUserFeedPage.actions.closeImagePreview();
+        });
+      }
+    );
+
+    test(
       'sU : Verify site owner or manager can edit or delete comments from other users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],

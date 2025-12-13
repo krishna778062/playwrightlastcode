@@ -172,6 +172,8 @@ export interface IFeedActions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
   clickPostWithoutWaitingForResponse(): Promise<void>;
+  clickInlineImagePreview: (postText: string) => Promise<void>;
+  closeImagePreview: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -263,6 +265,8 @@ export interface IFeedAssertions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
   verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
+  verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
+  verifyInlineImagePreviewVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -975,6 +979,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyUpdateButtonDisabled(): Promise<void> {
     await this.createFeedPostComponent.verifyUpdateButtonDisabled();
+  }
+
+  async verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void> {
+    await this.listFeedComponent.verifyUserNameMentionIsVisible(postText, standardUserFullName);
+  }
+
+  async verifyInlineImagePreviewVisible(): Promise<void> {
+    await this.listFeedComponent.verifyInlineImagePreviewVisible();
+  }
+  async clickInlineImagePreview(postText: string): Promise<void> {
+    await this.listFeedComponent.clickInlineImagePreview(postText);
+  }
+  async closeImagePreview(): Promise<void> {
+    await this.listFeedComponent.closeImagePreview();
   }
 
   async openPostOptionsMenu(postText: string): Promise<void> {
