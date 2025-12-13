@@ -1,9 +1,9 @@
 import path from 'path';
 
-// Initialize tenant config
+// Initialize ABAC tenant config
 import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
 
-initializeDataEngineeringConfig('primary');
+initializeDataEngineeringConfig('abac');
 
 const tenantConfig = getDataEngineeringConfigFromCache();
 
@@ -17,10 +17,9 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 export default defineConfig({
   ...baseConfig,
   timeout: TIMEOUTS.VERY_LONG,
-  name: 'Data Engineering API Automation',
+  name: 'Data Engineering API ABAC Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'data-engineering', 'tests', 'api-tests'),
-  testMatch: '**/*.spec.ts',
-  testIgnore: '**/*-abac.spec.ts',
+  testMatch: '**/*-abac.spec.ts',
   use: {
     ...baseConfig.use,
     baseURL: tenantConfig.apiBaseUrl,
@@ -29,7 +28,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'data-engineering-api',
+      name: 'data-engineering-api-abac',
       use: {
         ...devices['Desktop Chrome'],
         headless: true,
