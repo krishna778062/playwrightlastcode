@@ -3,7 +3,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export class AzureSyncingComponent extends BaseComponent {
+export class SyncingComponent extends BaseComponent {
   readonly tabLocator: (text: string) => Locator;
   readonly loginIdentifierCheckbox: (id: string) => Locator;
   readonly buttonLocator: (buttonText: string) => Locator;
@@ -36,7 +36,7 @@ export class AzureSyncingComponent extends BaseComponent {
     this.dataGridRows = this.page.locator('[data-testid*="dataGridRow"]');
     this.userRowByFirstname = (firstname: string) =>
       this.dataGridRows.filter({ has: this.page.locator('p').filter({ hasText: firstname }) });
-    this.moreButtonInRow = (row: Locator) => row.getByRole('button', { name: 'More' });
+    this.moreButtonInRow = (row: Locator) => row.getByLabel('More');
     this.searchInputBox = this.page.locator('#searchTerm');
     this.editUserBtn = (text: string) => this.page.getByRole('button', { name: text });
     this.formFieldInput = (fieldName: string) => this.page.locator(`#${fieldName}`);

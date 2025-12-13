@@ -433,6 +433,12 @@ export class SiteManagementHelper {
     return this.sites.length;
   }
 
+  async getCategoryList(options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting list of categories via API', async () => {
+      return await this.siteManagementService.getListOfCategories(options);
+    });
+  }
+
   async getRandomCategoryId(): Promise<{ categoryId: string; name: string }> {
     const categoryResponse = await this.siteManagementService.getListOfCategories();
     const categoryList = categoryResponse.result.listOfItems;
@@ -545,6 +551,53 @@ export class SiteManagementHelper {
     };
 
     return await this.siteManagementService.getListOfSites(defaultOptions);
+  }
+
+  /**
+   * Gets a site with manage site option (isManager, isOwner, and isActive all true)
+   * @param sitesResponse - The response from getListOfSites
+   * @returns Promise containing siteId and siteName
+   */
+  async getSiteWithManageSiteOption(sitesResponse: any): Promise<{ siteId: string; siteName: string }> {
+    return await test.step('Getting site with manage site option', async () => {
+      const sites = sitesResponse.result?.listOfItems || [];
+
+      if (sites.length === 0) {
+        throw new Error('No sites found in the response');
+      }
+
+      for (const site of sites) {
+        try {
+          const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+          if (
+            siteDetails.result.isManager === true &&
+            siteDetails.result.isOwner === true &&
+            siteDetails.result.isActive === true
+          ) {
+            return {
+              siteId: siteDetails.result.siteId,
+              siteName: siteDetails.result.name || siteDetails.result.siteName,
+            };
+          }
+        } catch (error: any) {
+          // Skip sites that fail (deleted, invalid, or inaccessible) and continue to next site
+          console.log(`Skipping site ${site.siteId} due to error: ${error.message}`);
+          continue;
+        }
+      }
+
+      throw new Error('No site found with manage site option (isManager, isOwner, and isActive all true)');
+    });
+  }
+
+  /**
+   * Gets all users list
+   * @returns Promise containing the users list response with listOfItems
+   */
+  async getAllUsersList(): Promise<any> {
+    return await test.step('Getting all users list', async () => {
+      return await this.identityService.getListOfPeople();
+    });
   }
 
   async getMemberList(options?: {

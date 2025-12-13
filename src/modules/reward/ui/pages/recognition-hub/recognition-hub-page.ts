@@ -38,6 +38,7 @@ export class RecognitionHubPage extends BasePage {
   readonly deleteRecognitionDialogBoxCancelButton: Locator;
   readonly deletedRecognitionPostNotAvailable: Locator;
   readonly deletedRecognitionPostDeletedMessage: Locator;
+  readonly recognitionFirstPost: Locator;
 
   /**
    * This is a Recognition Hub class that contains locators and methods for the Recognition Hub page.
@@ -53,6 +54,7 @@ export class RecognitionHubPage extends BasePage {
     this.deleteRecognitionDialogBoxDescriptionText = this.deleteRecognitionDialogBoxContainer.locator(
       'p[class*="Typography-module__paragraph"]'
     );
+    this.recognitionFirstPost = page.locator('.Recognition_panelInner--TcQfa');
     this.deleteRecognitionWithRevokePoints = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsyes"]');
     this.deleteRecognitionOnly = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsno"]');
     this.deleteRecognitionNote = this.deleteRecognitionDialogBoxContainer.locator(
@@ -209,8 +211,9 @@ export class RecognitionHubPage extends BasePage {
    */
   async recognitionButtonText(): Promise<string> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
+    await giveRecognitionDialogBox.recognizeButton.waitFor({ state: 'visible', timeout: 5000 });
     const text = await giveRecognitionDialogBox.recognizeButton.textContent();
-    return text || '';
+    return text!;
   }
 
   /**
@@ -335,6 +338,20 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Click Share button on the first recognition post
+   */
+  async clickShareButtonOnFirstRecognition(): Promise<void> {
+    await test.step('Click Share button on first recognition post', async () => {
+      const recognitionPost = this.recognitionFirstPost.first();
+      const shareButton = recognitionPost.getByRole('button', { name: 'Share this recognition' });
+      await this.verifier.verifyTheElementIsVisible(shareButton, {
+        assertionMessage: 'Share button should be visible on recognition post',
+      });
+      await this.clickOnElement(shareButton, { stepInfo: 'Clicking Share button on recognition post' });
+    });
+  }
+
+  /**
    * Mock the wallet points
    */
   async mockTheWalletPoints(pointsToGive: number, pointsToSpend: number, redeemedPoint: number): Promise<void> {
@@ -347,7 +364,7 @@ export class RecognitionHubPage extends BasePage {
             gifting: {
               pendingIn: 0,
               available: pointsToGive,
-              refreshingAt: '2025-07-01T00:00:00.000Z',
+              refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             },
             redeemable: {
               pendingIn: 0,
@@ -404,14 +421,13 @@ export class RecognitionHubPage extends BasePage {
   async setupTheSingleGiftingOptions(availablePoints: any): Promise<number> {
     const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
     await rewardGiftingOptions.loadPage();
-    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
-    const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    const cleanAvailablePoints = availablePoints.replace(/[,\s]/g, '');
-    const parsedAvailablePoints = Number(cleanAvailablePoints) || 0;
-    const parsedExistingValue = Number(existingValue) || 0;
-    const maxRewardOption = Math.max(1, parsedAvailablePoints - parsedExistingValue - 1);
-    const rewardOption = maxRewardOption > 0 ? Math.floor(Math.random() * maxRewardOption) + 1 : 1;
-    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    await rewardGiftingOptions.verifyThePageIsLoaded();
+    const parsedAvailablePoints = Number(availablePoints.replace(/[,\s]/g, '')) || 1;
+    let rewardOption;
+    do {
+      rewardOption = Math.floor(Math.random() * (parsedAvailablePoints - 1 + 1)) + 1;
+      await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    } while (!(await rewardGiftingOptions.giftingOptionsSave.isEnabled({ timeout: 1200 })));
     await rewardGiftingOptions.clickOnSaveButton();
     await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully');
     return rewardOption;
@@ -455,7 +471,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
-      timeout: 15000,
+      timeout: 35000,
       assertionMessage: 'Recognition Hub page first Post should be visible',
     });
   }
@@ -504,7 +520,7 @@ export class RecognitionHubPage extends BasePage {
   async verifyRecognitionPostVisible(message?: string): Promise<void> {
     await test.step(`Verify recognition post is visible with message "${message}"`, async () => {
       // Wait for recognition post to be visible
-      const recognitionPosts = this.page.locator('.Recognition_panelInner--TcQfa').first();
+      const recognitionPosts = this.recognitionFirstPost.first();
 
       await this.verifier.verifyTheElementIsVisible(recognitionPosts, {
         assertionMessage: 'Recognition post should be visible on Recognition dashboard',

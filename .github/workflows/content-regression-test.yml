@@ -1,4 +1,4 @@
-name: Content Regression Tests
+name: Content Regression Tests (Test Environment)
 
 on:
   workflow_dispatch: # allows manual triggering of the workflow
@@ -53,10 +53,11 @@ on:
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests (default: 5 for content UI, 1 for others)'
-        required: true
-        default: '1'
+        required: false
+        default: 'default'
         type: choice
         options:
+          - 'default'
           - '1'
           - '2'
           - '3'
@@ -80,14 +81,27 @@ jobs:
   content-test-and-upload:
     timeout-minutes: 300
     runs-on: [kubernetes]
+    # Use matrix strategy for scheduled runs to execute both UI and API tests
+    # For manual runs: only execute the selected test_category
+    strategy:
+      matrix:
+        # For scheduled runs: include both UI and API
+        # For manual runs: include only the selected test_category
+        test_category: ${{ github.event_name == 'schedule' && fromJSON('["ui", "api"]') || fromJSON(format('["{0}"]', inputs.test_category || 'ui')) }}
+      fail-fast: false
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}
+      MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}
       E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
       CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use the branch selected in "Use workflow from" dropdown (github.ref_name)
+          # For scheduled runs, default to develop
+          ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref_name || github.ref || 'develop' }}
 
       - name: Create Calendar Secrets JSON
         run: |
@@ -112,6 +126,8 @@ jobs:
 
       - name: Run Content tests
         id: run-tests
+        # Matrix strategy now only creates jobs for selected test_category in manual runs
+        # So this step will always execute (no conditional needed)
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
@@ -119,7 +135,7 @@ jobs:
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
           MODULE="${{ inputs.module_name || 'content' }}"
-          TEST_CATEGORY="${{ inputs.test_category || 'ui' }}"
+          TEST_CATEGORY="${{ matrix.test_category }}"
           ALL_TAGS=()
 
           # Add @api tag if API tests are selected
@@ -147,18 +163,25 @@ jobs:
           echo "Debug: Module=$MODULE, TestCategory=$TEST_CATEGORY, Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
-          # Set workers - default to 5 for content UI tests, use input value for others
-          WORKERS="${{ inputs.workers || '1' }}"
-          if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ]; then
-            if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ]; then
-              WORKERS="5"
-            else
-              WORKERS="1"
-            fi
-          fi
-          # Override to 5 for content UI module if it's the default '1' (user didn't specify)
-          if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ] && [ "$WORKERS" = "1" ]; then
+          # Set workers based on execution type:
+          # - Scheduled runs for UI tests: always use 5 workers
+          # - Manual runs: use user's selection (or default to 1 if not specified)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$TEST_CATEGORY" = "ui" ]; then
+            # Scheduled UI runs always use 5 workers
             WORKERS="5"
+            echo "Scheduled UI execution detected - using 5 workers"
+          else
+            # Manual runs: use user's selection
+            WORKERS="${{ inputs.workers }}"
+            # If user selected "default" or didn't specify, use defaults based on module
+            if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ] || [ "$WORKERS" = "default" ]; then
+              if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ]; then
+                WORKERS="5"
+              else
+                WORKERS="1"
+              fi
+            fi
+            echo "Manual execution - using selected workers: $WORKERS"
           fi
 
           # Determine config file based on module and test category
@@ -347,11 +370,11 @@ jobs:
             # Prepare Slack message with hyperlinks
             BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
             ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="<!subteam^S087M3C16GL>  📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE=" 📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
 
             # Send to Slack using curl
@@ -377,7 +400,7 @@ jobs:
                echo "No tests were found matching the criteria"
                BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
                ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
                NO_TESTS_MESSAGE="⚠️ *No Content Tests Found* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
               # Send to Slack using curl
@@ -396,7 +419,7 @@ jobs:
              echo "No test results file found - pipeline likely failed"
              BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
              ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ inputs.test_category || 'ui' }}"
+             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
              FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content Regression Automation Suite Pipeline Failed* - \`${MODULE_NAME}\` module pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
              # Send to Slack using curl

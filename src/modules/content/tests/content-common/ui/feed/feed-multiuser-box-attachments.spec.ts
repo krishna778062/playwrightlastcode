@@ -10,6 +10,7 @@ import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
   '@FeedPost - Site Roles Box File Attachments',
@@ -22,8 +23,8 @@ test.describe(
     // Setup test runs first (serial) - configures Box files only
     test.describe.serial('setup', () => {
       test('setup: Configure Box files', async ({ appManagerApiFixture, appManagerFixture }) => {
-        // Get "All Employees" site ID
-        siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Configure External Files to use Box via UI (done once for all tests)
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
@@ -37,14 +38,14 @@ test.describe(
       /**
        * Helper function to test Box file attachments functionality for a specific role
        */
-      const siteName: string = 'All Employees';
+      const siteName: string = DEFAULT_PUBLIC_SITE_NAME;
       const testBoxAttachmentsForRole = async (
         role: SitePermission,
         roleName: string,
         appManagerApiFixture: any,
         userFixture: any
       ) => {
-        // Get siteId independently (always "All Employees")
+        // Get siteId independently (always DEFAULT_PUBLIC_SITE_NAME)
         const testSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
         // Assign role to user

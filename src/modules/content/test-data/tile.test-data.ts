@@ -406,4 +406,11 @@ export const TILE_TEST_DATA = {
       isNewTiptap: false,
     };
   },
+
+  // Toast messages
+  TOAST_MESSAGES: {
+    ADDED_TILE_TO_DASHBOARD: 'Added tile to dashboard successfully',
+    EDITED_DASHBOARD_TILE: 'Edited dashboard tile successfully',
+    REMOVED_TILE_FROM_DASHBOARD: 'Removed tile from dashboard successfully',
+  },
 } as const;
