@@ -1133,6 +1133,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
           await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible' });
           // Try to select 'public' value, if it fails, Home Feed is likely already selected
           await this.shareComponent.shareOptionDropdown.selectOption({ value: 'public' });
+
+          // Click Share button
+          await this.shareComponent.actions.clickShareButton();
         } catch {
           // If selection fails, Home Feed is likely already the default, continue
           console.log('Home Feed appears to be already selected or is the default');
@@ -1140,9 +1143,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       } else {
         await this.shareComponent.selectShareOptionAsSiteFeed();
       }
-
-      // Click Share button
-      await this.shareComponent.clickShareButton();
     });
   }
 

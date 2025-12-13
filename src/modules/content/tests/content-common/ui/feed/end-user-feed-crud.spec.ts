@@ -706,6 +706,125 @@ test.describe(
     );
 
     test(
+      'in Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19562'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+          zephyrTestId: 'CONT-19562',
+          storyId: 'CONT-19562',
+        });
+
+        // Get Standard User1's full name for mention
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+        const publicSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(publicSiteName);
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+        await test.step('Create post with image attachment on Global Feed', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created successfully
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1);
+        });
+
+        await test.step('Share post to Site Feed with mention', async () => {
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Site Feed',
+          });
+
+          await endUserFeedPage.actions.enterSiteNameForShare(publicSiteName);
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.actions.clickShareButton();
+
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        await test.step('Verify shared post with mention is visible on Global Feed', async () => {
+          await endUserFeedPage.reloadPage();
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Verify shared post is visible on Site Feed', async () => {
+          siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+          const siteFeedPage = new FeedPage(standardUserFixture.page);
+          await siteFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await siteFeedPage.assertions.validatePostText(shareMessage);
+
+          await siteFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Delete the post from Global Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const globalFeedPage = new FeedPage(standardUserFixture.page);
+          await globalFeedPage.actions.verifyThePageIsLoaded();
+
+          await globalFeedPage.actions.deletePost(createdPostText);
+        });
+
+        await test.step('Verify deleted post is not visible on Site Feed', async () => {
+          const siteDashboardForDelete = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardForDelete.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
+          await siteDashboardForDelete.actions.clickOnFeedLink();
+          await siteDashboardForDelete.navigateToTab(SitePageTab.FeedTab);
+
+          const siteFeedForDelete = new FeedPage(standardUserFixture.page);
+          await siteFeedForDelete.assertions.verifyPostIsNotVisible(shareMessage);
+        });
+
+        await test.step('Verify deleted post is not visible on Home Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const globalFeedForDelete = new FeedPage(standardUserFixture.page);
+          await globalFeedForDelete.actions.verifyThePageIsLoaded();
+
+          await globalFeedForDelete.assertions.verifyPostIsNotVisible(shareMessage);
+
+          await globalFeedForDelete.assertions.verifyPostIsNotVisible(createdPostText);
+        });
+      }
+    );
+
+    test(
       'sU : Verify site owner or manager can edit or delete comments from other users',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
