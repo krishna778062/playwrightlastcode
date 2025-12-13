@@ -1,30 +1,13 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { AbacSiteTypes } from '../../../constants/abacSiteTypes';
-import { TestMetaDataHelper } from '../../../utils/testMetaDataHelper';
-
-import {
-  assertEngagementMetricsMatch,
-  assertResponseMetadata,
-  skipIfNoData,
-  withTiming,
-} from '@/src/modules/data-engineering/api/helpers/responseValidationHelper';
-import { expectValidSchema } from '@/src/modules/data-engineering/api/helpers/schemaValidationHelper';
-import { GetContentEngagementResponseSchema } from '@/src/modules/data-engineering/api/schemas';
-import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
+import { SITE_ACCESS_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
-import {
-  AnalyticsApiFixture,
-  analyticsTestFixture as test,
-} from '@/src/modules/data-engineering/fixtures/analyticsFixture';
-import { SiteType } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
+import { analyticsTestFixture as test } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
+import { validateContentEngagement } from '@/src/modules/data-engineering/helpers/contentEngagementTestHelper';
 
-const abacSiteTypes: AbacSiteTypes[] = [AbacSiteTypes.PUBLIC, AbacSiteTypes.PRIVATE]; // Test file constants
-const API_RESPONSE_TIME_MS = 2000; // Max allowed API response time for this test suite
+const abacSiteTypes: SITE_ACCESS_TYPES[] = [SITE_ACCESS_TYPES.PUBLIC, SITE_ACCESS_TYPES.PRIVATE];
 
 test.describe(
   'on-page analytics API ABAC tests',
@@ -52,7 +35,13 @@ test.describe(
             storyId: 'DE-26267',
           });
 
-          await validateContentEngagement(appManagerApiFixture, siteType, false, test.info());
+          await validateContentEngagement({
+            appManagerApiFixture,
+            siteType,
+            isRestricted: false,
+            testInfo: test.info(),
+            skipFn: test.skip,
+          });
         }
       );
 
@@ -74,64 +63,15 @@ test.describe(
             storyId: 'DE-26267',
           });
 
-          await validateContentEngagement(appManagerApiFixture, siteType, true, test.info());
+          await validateContentEngagement({
+            appManagerApiFixture,
+            siteType,
+            isRestricted: true,
+            testInfo: test.info(),
+            skipFn: test.skip,
+          });
         }
       );
     }
   }
 );
-
-// helper function to validate content engagement API response
-async function validateContentEngagement(
-  appManagerApiFixture: AnalyticsApiFixture,
-  siteType: SiteType,
-  isRestricted: boolean,
-  testInfo: ReturnType<typeof test.info>
-) {
-  const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-  const tenantCode = getDataEngineeringConfigFromCache().orgId;
-
-  // Fetch content ID from database for the specific site type and restriction status
-  const contentDataResults = await analyticsQueryHelper.getContentDataFromDB(siteType, isRestricted);
-  const skipReason = `No ${isRestricted ? 'restricted' : 'unrestricted'} content for ${siteType} | Tenant: ${tenantCode}`;
-  skipIfNoData(contentDataResults, skipReason, testInfo, test.skip);
-
-  const contentData = contentDataResults[0];
-  const contentId = contentData.CODE;
-
-  // Add content details annotation
-  TestMetaDataHelper.addTestMetaDataWithContentDetails(testInfo, { contentData, siteType, isRestricted });
-
-  // Call API and measure response time
-  const { data: apiResponse, responseTime } = await withTiming(() =>
-    analyticsApiService.getContentEngagement(contentId, isRestricted)
-  );
-
-  // Assert response time
-  expect.soft(responseTime, `API should respond within ${API_RESPONSE_TIME_MS}ms`).toBeLessThan(API_RESPONSE_TIME_MS);
-
-  // Validate schema
-  const validatedResponse = expectValidSchema(
-    GetContentEngagementResponseSchema,
-    apiResponse,
-    'Verify API response matches expected schema'
-  );
-
-  // Assert response metadata
-  assertResponseMetadata(validatedResponse, { tenantId: tenantCode, contentId, isRestricted });
-
-  // Compare with Snowflake data
-  const dbResults = await analyticsQueryHelper.getContentEngagementFromDB(contentId);
-  if (dbResults.length > 0) {
-    assertEngagementMetricsMatch(validatedResponse.data, dbResults[0]);
-  }
-
-  // Add API summary annotation
-  testInfo.annotations.push({
-    type: 'API Summary',
-    description: `Response: ${responseTime}ms | Schema: Valid | UDL Match: ${dbResults.length > 0 ? 'OK' : 'Skipped'}`,
-  });
-
-  //validate soft assertions has no errors
-  expect(testInfo.errors.length, 'No soft assertions errors').toBe(0);
-}
