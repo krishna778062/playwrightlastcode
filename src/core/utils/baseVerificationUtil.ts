@@ -53,6 +53,24 @@ export class BaseVerificationUtil {
     }
   }
 
+  async isTheElementVisibleWithLessTimeout(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
+        timeout: options?.timeout || TIMEOUTS.VERY_SHORT,
+      });
+      return true;
+    } catch {
+      //if we want we can take screenshot here
+      return false;
+    }
+  }
+
   /**
    * Verifies that the element is not visible
    * @param locator - The locator to verify
@@ -409,6 +427,28 @@ export class BaseVerificationUtil {
     } catch (error) {
       throw new Error(
         options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be visible failed.\n${error}`
+      );
+    }
+  }
+
+  async verifyElementVisibilityByOpacity(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+      assertionMessage?: string;
+    }
+  ) {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to have opacity 1`).toHaveCSS(
+        'opacity',
+        '1'
+      );
+    } catch (error) {
+      throw new Error(
+        options?.assertionMessage
+          ? `${options.assertionMessage}\n${error}`
+          : `Verification failed: Element not visible.\n${error}`
       );
     }
   }

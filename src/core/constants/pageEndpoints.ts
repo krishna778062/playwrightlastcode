@@ -6,7 +6,8 @@ export const PAGE_ENDPOINTS = {
   FEATURED_SITES_PAGE: '/sites/featured',
   MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
-  SITE_PAGE: (siteId: string) => `/site/${siteId}/`,
+  SITE_PAGE: (siteId: string) => `/site/${siteId}`,
+  SITE_CONTENT_PAGE: (siteId: string) => `/site/${siteId}/content`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
   MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
@@ -24,6 +25,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  COMPANY_VALUES_PAGE: '/manage/company-values',
   MANAGE_USERS_PAGE: '/manage/users',
   MANAGE_USERS_FILTER_PAGE: (firstName: string, lastName: string) =>
     `/manage/users?searchTerm=${firstName}+${lastName}`,
@@ -95,10 +97,16 @@ export const PAGE_ENDPOINTS = {
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
+  WORKFLOWS_PAGE: '/workflows',
+  SIMPPLR_IDP_PAGE: '/manage/app/security/simpplr_idp',
+  APPS_LINKS: '/manage/apps-and-links',
 
   // Alert Notification pages
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
+  APPLICATION_GENERAL_SETTINGS_PAGE: '/manage/app/setup/general',
+  MOBILE_APP_SETTINGS_PAGE: '/manage/app/setup/mobile-app',
+
   //analytics pages
   ANALYTICS_LANDING_PAGE: '/analytics-landing',
   APP_ANALYTICS_OVERVIEW_DASHBOARD: '/analytics',
@@ -109,6 +117,8 @@ export const PAGE_ENDPOINTS = {
   SEARCH_DASHBOARD: '/analytics/search',
   PEOPLE_DASHBOARD_PAGE: '/analytics/people',
   MOBILE_DASHBOARD: '/analytics/mobile',
+  MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
+  SITES_DASHBOARD: '/analytics/sites',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -118,4 +128,8 @@ export const PAGE_ENDPOINTS = {
 
   //Form creation page
   FORM_CREATION_PAGE: '/forms',
+
+  COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
+  COMMS_PLANNER_PLANNER: '/comms-planner/planner',
+  COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
 };

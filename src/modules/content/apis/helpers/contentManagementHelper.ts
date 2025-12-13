@@ -2,9 +2,7 @@ import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
-
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
-import { SiteManagementService } from '../services/SiteManagementService';
+import { log } from '@core/utils/logger';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -13,7 +11,10 @@ import {
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy, DateField } from '@/src/modules/content/constants';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -82,7 +83,6 @@ export class ContentManagementHelper {
     }
 
     // No content found, get a site from site service and create a page
-    console.log(`No ${accessType} content found, getting ${accessType} site from site service and creating a page...`);
 
     // Get sites filtered by access type
     const sitesResponse = await this.siteManagementService.getListOfSites({
@@ -124,20 +124,35 @@ export class ContentManagementHelper {
     };
   }
 
+  async makeContentMustRead(
+    contentId: string,
+    options: {
+      audienceType?: MustReadAudienceType | string;
+      duration?: MustReadDuration | string;
+    } = {
+      audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+      duration: MustReadDuration.NINETY_DAYS,
+    }
+  ): Promise<any> {
+    const mustReadResponse = await this.contentManagementService.makeContentMustRead(contentId, options);
+    return mustReadResponse;
+  }
+
   async getContentCreatedAtDetails(
     sortBy: ContentSortBy,
-    options?: { size?: number; filter?: string; status?: string }
+    options?: { size?: number; filter?: string; status?: string; contribution?: string }
   ): Promise<string[] | null> {
     const size = options?.size || 1000;
     const filter = options?.filter || 'owned';
     const status = options?.status || 'published';
+    const contribution = options?.contribution || 'all';
 
     const siteListResponse = await this.contentManagementService.getContentList({
       sortBy: sortBy,
       size: size,
-      contribution: 'all',
       filter: filter, // Match curl command parameter
       status: status, // Match curl command parameter
+      contribution: contribution,
     });
 
     // Determine which date field to use based on sort type
@@ -172,23 +187,51 @@ export class ContentManagementHelper {
       }
 
       if (targetDate) {
-        const date = new Date(targetDate);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // Extract date directly from ISO string (YYYY-MM-DD) to avoid timezone conversion
+        // API returns: "2025-11-30T23:59:00.000Z" -> extract "2025-11-30"
+        const dateUTCString = targetDate.split('T')[0];
 
-        // Check if the date is today using UTC comparison
-        if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+        // Validate the date string format
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTCString)) {
+          console.warn(`Invalid date string format: ${targetDate}`);
+          continue;
+        }
+
+        // Get today and yesterday dates using local timezone to match UI behavior
+        // The UI uses the browser's local timezone to determine "Today" vs "Yesterday"
+        const now = new Date();
+        // Convert API UTC date to local date for comparison
+        const apiDate = new Date(targetDate);
+        const apiLocalDateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`;
+
+        // Get today's local date string
+        const todayLocalDateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        // Get yesterday's local date string
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayLocalDateString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+        // Debug: Log comparison for debugging
+        console.log(
+          `Item ${i}: Comparing apiLocalDateString="${apiLocalDateString}" with todayLocalDateString="${todayLocalDateString}" and yesterdayLocalDateString="${yesterdayLocalDateString}" (UTC: dateUTCString="${dateUTCString}")`
+        );
+
+        // Check if the date is today using local date string comparison
+        // This matches the UI behavior which uses local timezone
+        if (apiLocalDateString === todayLocalDateString) {
           dates.push('Today');
         }
-        // Check if the date is yesterday using UTC comparison
-        else if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+        // Check if the date is yesterday using local date string comparison
+        else if (apiLocalDateString === yesterdayLocalDateString) {
           dates.push('Yesterday');
         }
-        // For other dates, return formatted date
+        // For other dates, return formatted date using UTC components
         else {
           const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
-          const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+          // Parse the UTC date string (YYYY-MM-DD) to get exact date components
+          const [year, month, day] = dateUTCString.split('-').map(Number);
+          const formattedDate = `${monthNames[month - 1]} ${day}, ${year}`;
           dates.push(formattedDate);
         }
       } else {
@@ -263,6 +306,17 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      return await this.contentManagementService.addContentIntoHomeCarousel(contentId);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      return await this.contentManagementService.addSiteCarouselItem(siteId, contentId);
+    });
+  }
+
   /**
    * Creates a new page in an existing site
    * @param siteId - The ID of the existing site
@@ -301,6 +355,74 @@ export class ContentManagementHelper {
     }
 
     const pageResult = await this.contentManagementService.addNewPageContent(siteId, {
+      title: finalPageName,
+      body,
+      bodyHtml,
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      contentType: contentInfo.contentType,
+      contentSubType: contentInfo.contentSubType,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+      ...(options.publishAt && { publishAt: options.publishAt }),
+      ...(options.publishTo && { publishTo: options.publishTo }),
+    });
+
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalPageName,
+        objectType: 'content',
+      });
+    }
+
+    const createdContent = {
+      siteId,
+      contentId: pageResult.pageId,
+      pageName: finalPageName,
+      authorName: pageResult.authorName,
+      contentDescription: finalContentDescription,
+      publishAt: pageResult.publishAt,
+      publishTo: pageResult.publishTo,
+      isScheduled: pageResult.isScheduled,
+    };
+    this.content.push({ siteId, contentId: pageResult.pageId });
+    return { ...createdContent };
+  }
+
+  async createDraftPage(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      waitForSearchIndex?: boolean;
+      publishAt?: string;
+      publishTo?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, contentInfo, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+    const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+    const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    const pageResult = await this.contentManagementService.saveDraftPageContent(siteId, {
       title: finalPageName,
       body,
       bodyHtml,
@@ -407,6 +529,8 @@ export class ContentManagementHelper {
       contentId: eventResult.eventId,
       eventName: finalEventName,
       authorName: eventResult.authorName,
+      startsAt: eventResult.startsAt,
+      endsAt: eventResult.endsAt,
       contentDescription: finalContentDescription,
       ...(eventResult.eventSyncDetails && { eventSyncDetails: eventResult.eventSyncDetails }),
       ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
@@ -416,6 +540,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located
@@ -425,13 +552,10 @@ export class ContentManagementHelper {
     if (contentId && siteId) {
       try {
         await this.contentManagementService.deleteContent(siteId, contentId);
-        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
       } catch (error) {
-        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        log.error(`Failed to delete content ${contentId} from site ${siteId}`, error);
         throw error;
       }
-    } else {
-      console.log('No content ID or site ID provided for deletion');
     }
   }
 
@@ -769,6 +893,285 @@ export class ContentManagementHelper {
       this.content.push({ siteId, contentId: json.result.id });
 
       return json;
+    });
+  }
+
+  /**
+   * Creates a page template
+   * @param templateData - Template creation payload
+   * @returns Promise with the template creation response
+   */
+  async createTemplate(templateData: {
+    siteId: string;
+    name: string;
+    title: string;
+    subType: string;
+    language: string;
+    category: { id: string; name: string };
+    body: {
+      type: string;
+      content: Array<{
+        type: string;
+        attrs?: Record<string, any>;
+        content?: Array<{ type: string; text?: string; [key: string]: any }>;
+        [key: string]: any;
+      }>;
+    };
+    imgLayout?: string;
+    listOfTopics?: Array<{ id: string; name: string }>;
+  }): Promise<any> {
+    return await test.step(`Creating page template via API: ${templateData.name}`, async () => {
+      return await this.contentManagementService.createTemplate(templateData);
+    });
+  }
+
+  /**
+   * Creates a page template with simplified parameters
+   * Handles category retrieval, topic mapping, and body structure building internally
+   * @param params - Parameters for template creation
+   * @param params.siteId - The site ID where the template will be created
+   * @param params.options - Optional configuration for template creation
+   * @param params.options.name - Template name (default: 'Testing 1')
+   * @param params.options.title - Template title (default: 'Testing-1')
+   * @param params.options.subType - Template sub type (default: 'knowledge')
+   * @param params.options.language - Template language (default: 'en-US')
+   * @param params.options.text - Template text content (will be wrapped in ProseMirror structure)
+   * @param params.options.body - Template body content (ProseMirror format) - if provided, text will be ignored
+   * @param params.options.imgLayout - Image layout (default: 'wide')
+   * @param params.options.listOfTopics - Array of topic names to include (will be mapped to IDs)
+   * @returns Promise with the template creation response
+   */
+  async createPageTemplate(params: {
+    siteId: string;
+    options?: {
+      name?: string;
+      title?: string;
+      subType?: string;
+      language?: string;
+      text?: string;
+      body?: {
+        type: string;
+        content: Array<{
+          type: string;
+          attrs?: Record<string, any>;
+          content?: Array<{ type: string; text?: string; [key: string]: any }>;
+          [key: string]: any;
+        }>;
+      };
+      imgLayout?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    // Build body structure - use provided body or build from text
+    let body;
+    if (options.body) {
+      body = options.body;
+    } else {
+      const textContent = options.text || 'Default template content';
+      body = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            attrs: {
+              indentation: 0,
+              textAlign: 'left',
+              className: '',
+              'data-sw-sid': null,
+            },
+            content: [
+              {
+                type: 'text',
+                text: textContent,
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Build template data
+    const templateData = {
+      siteId,
+      name: options.name || `Template ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+      title: options.title || `Template-${faker.company.buzzAdjective()}-${faker.company.buzzNoun()}`,
+      subType: options.subType || 'knowledge',
+      language: options.language || 'en-US',
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      body,
+      imgLayout: options.imgLayout || 'wide',
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+    };
+
+    const templateResult = await this.createTemplate(templateData);
+    const templateId = templateResult.result?.id;
+
+    // Track template for cleanup
+    if (templateId) {
+      this.content.push({ siteId, contentId: templateId });
+    }
+
+    return templateResult;
+  }
+
+  /**
+   * Finds a site with a page category that has more than 16 pages, or creates pages to reach that count
+   * @param options - Optional parameters
+   * @param options.minPageCount - Minimum page count required (default: 17)
+   * @param options.maxSitesToCheck - Maximum number of sites to check (default: 10)
+   * @returns Promise with site info, category info, and page count
+   */
+  async getSiteWithPageCategoryHavingMoreThan16Pages(
+    options: {
+      minPageCount?: number;
+      maxSitesToCheck?: number;
+    } = {}
+  ): Promise<{
+    siteId: string;
+    siteName: string;
+    categoryId: string;
+    categoryName: string;
+    pageCount: number;
+  }> {
+    const minPageCount = options.minPageCount ?? 17;
+    const maxSitesToCheck = options.maxSitesToCheck ?? 10;
+
+    return await test.step(`Finding site with page category having more than ${minPageCount - 1} pages`, async () => {
+      // Get list of sites
+      const sitesResponse = await this.siteManagementService.getListOfSites({
+        size: maxSitesToCheck,
+        canManage: true,
+        filter: 'active',
+      });
+
+      if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+        throw new Error('No sites found');
+      }
+
+      let bestCategory: {
+        siteId: string;
+        siteName: string;
+        categoryId: string;
+        categoryName: string;
+        pageCount: number;
+      } | null = null;
+      let highestPageCount = 0;
+
+      // Iterate through sites
+      for (const site of sitesResponse.result.listOfItems) {
+        const siteId = site.siteId;
+        const siteName = site.name;
+
+        if (!siteId) {
+          log.debug(`Skipping site without ID: ${siteName || 'Unknown'}`);
+          continue;
+        }
+
+        try {
+          // Get page categories for this site
+          const categoriesResponse = await this.contentManagementService.getPageCategoriesList(siteId, {
+            size: 999,
+            sortBy: 'createdNewest',
+          });
+
+          if (!categoriesResponse.result?.listOfItems || categoriesResponse.result.listOfItems.length === 0) {
+            log.debug(`No page categories found for site ${siteId}`);
+            continue;
+          }
+
+          // Find category with pageCount > minPageCount, or track the highest
+          for (const category of categoriesResponse.result.listOfItems) {
+            const pageCount = category.pageCount || 0;
+
+            // If we find one with more than minPageCount, use it immediately
+            if (pageCount >= minPageCount) {
+              log.info(`Found category with ${pageCount} pages in site ${siteName}`);
+              return {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+
+            // Track the category with highest page count
+            if (pageCount > highestPageCount) {
+              highestPageCount = pageCount;
+              bestCategory = {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+          }
+        } catch (error) {
+          log.warn(`Error checking site ${siteId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          continue;
+        }
+      }
+
+      // If we found a category but it has <= minPageCount, create more pages
+      if (bestCategory) {
+        const pagesToCreate = minPageCount - bestCategory.pageCount;
+        log.info(
+          `Category "${bestCategory.categoryName}" in site "${bestCategory.siteName}" has ${bestCategory.pageCount} pages. Creating ${pagesToCreate} more pages.`
+        );
+
+        // Get the category info for creating pages
+        const pageCategory = {
+          categoryId: bestCategory.categoryId,
+          name: bestCategory.categoryName,
+        };
+
+        // Create pages to reach minPageCount
+        for (let i = 0; i < pagesToCreate; i++) {
+          await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
+            title: `Test Page ${Date.now()}_${i}`,
+            bodyHtml: `<p>Auto-generated page for testing category with >16 pages</p>`,
+            contentType: 'page',
+            contentSubType: 'knowledge',
+            category: {
+              id: pageCategory.categoryId,
+              name: pageCategory.name,
+            },
+          });
+        }
+
+        // Update page count
+        bestCategory.pageCount = minPageCount;
+
+        log.info(
+          `Created ${pagesToCreate} pages. Category "${bestCategory.categoryName}" now has ${bestCategory.pageCount} pages.`
+        );
+
+        return bestCategory;
+      }
+
+      throw new Error(
+        `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
+      );
     });
   }
 }

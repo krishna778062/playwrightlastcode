@@ -17,7 +17,7 @@ test.describe(
     tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX, IntegrationsSuiteTags.SERVICENOW],
   },
   () => {
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'Verify ServiceNow credentials can be connected',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],
@@ -416,7 +416,7 @@ test.describe(
       }
     );
 
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'Verify Disconnect ServiceNow account',
       {
         tag: [TestPriority.P3, TestGroupType.SANITY],

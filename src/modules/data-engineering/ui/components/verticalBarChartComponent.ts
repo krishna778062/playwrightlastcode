@@ -1,5 +1,6 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class VerticalBarChartComponent extends BaseComponent {
@@ -34,7 +35,9 @@ export class VerticalBarChartComponent extends BaseComponent {
     this.barChartYAxisLabels = this.rootLocator.locator('[class*="highcharts-yaxis-labels"]').locator('text');
 
     // Tool tip container
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
   }
@@ -176,11 +179,9 @@ export class VerticalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
-      await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-        timeout: 30_000,
-        stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
-      });
+    await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
 

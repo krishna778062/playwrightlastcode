@@ -48,13 +48,19 @@ export const ORGANIZATION_SETTINGS = {
 } as const;
 
 export const FIELD_NAMES = {
+  INCIDENT_VIEW: 'Incident view',
   ORGANIZATION: 'Organization',
+  TIME_PERIOD: 'Time Period',
   STATUS: 'Status',
   SORT_BY: 'Sort by',
   SORT_ORDER: 'Sort order',
   PAYSLIP_LIST_URL: 'Payslip list URL',
   INBOX_REPORT_URL: 'Inbox tasks report URL',
   REPORT_ID: 'Report ID',
+  CATEGORY: 'Category',
+  SUBCATEGORY: 'Subcategory',
+  PROJECT: 'Project',
+  JQL_QUERY: 'JQL Query',
 } as const;
 
 export const DEFAULT_SITES = {

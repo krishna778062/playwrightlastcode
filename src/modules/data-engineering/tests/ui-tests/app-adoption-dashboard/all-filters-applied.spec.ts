@@ -1,8 +1,10 @@
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -26,7 +28,7 @@ import {
  */
 
 test.describe(
-  'app Adoption Dashboard - All Filters Applied',
+  'app Adoption Dashboard - All Filters Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },
@@ -50,10 +52,9 @@ test.describe(
         testFiltersConfig = {
           tenantCode: process.env.ORG_ID!,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
-          departments: ['test', 'QA'],
-          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          // userCategories: ['Adil Option1'],
-          companyName: ['Simpplr'],
+          departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
@@ -71,7 +72,7 @@ test.describe(
     test(
       'verify impact of applied filters on the total users metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-users-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-users-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -84,6 +85,7 @@ test.describe(
         const dbValues = await appAdoptionQueryHelper.getTotalUsersDataFromDBWithFilters({
           filterBy: testFiltersConfig,
         });
+        console.log(`----> The total users data is  `, dbValues);
 
         const totalUsersMetrics = testEnvironment.appAdoptionDashboard.totalUsersMetrics;
         //since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
@@ -94,7 +96,7 @@ test.describe(
     test(
       'verify impact of applied filters on the logged in users metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@logged-in-users-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@logged-in-users-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -123,7 +125,7 @@ test.describe(
     test(
       'verify impact of applied filters on the contributors and participants metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@logged-in-users-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@logged-in-users-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -152,7 +154,7 @@ test.describe(
     test(
       'verify impact of applied filters on the app web page views metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@app-web-page-views-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@app-web-page-views-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -210,7 +212,7 @@ test.describe(
     test(
       'verify impact of applied filter on adoption leaders  metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@adoption-leaders-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@adoption-leaders-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -284,7 +286,7 @@ test.describe(
     test(
       'verify impact of applied filter on user engagement breakdown metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-engagement-breakdown-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.PIE_CHART, '@user-engagement-breakdown-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -298,17 +300,14 @@ test.describe(
           filterBy: testFiltersConfig,
         });
 
-        // Filter out "No logins" as it's not displayed in the UI
-        const visibleSegments = dbResults.filter(data => data.behaviour !== 'No logins');
-
         const userEngagementBreakdownMetric = appAdoptionDashboard.userEngagementBreakdownMetric;
         await userEngagementBreakdownMetric.scrollToComponent();
 
-        // Verify number of segments matches DB results (excluding "No logins")
-        await userEngagementBreakdownMetric.verifyNumberOfSegmentsVisibleonPieChartIs(visibleSegments.length);
+        // Verify number of segments matches DB results (all 4 segments including "No login")
+        await userEngagementBreakdownMetric.verifyNumberOfSegmentsVisibleonPieChartIs(dbResults.length);
 
         // Verify each segment label data points
-        for (const data of visibleSegments) {
+        for (const data of dbResults) {
           await userEngagementBreakdownMetric.verifySegmentLabelDataPointsAreAsExpected({
             label: data.behaviour,
             expectedText: `${data.behaviour} - ${data.count} (${data.percentage}%)`,
@@ -316,7 +315,7 @@ test.describe(
         }
 
         //verify tooltip is visible for each segment
-        for (const data of visibleSegments) {
+        for (const data of dbResults) {
           await userEngagementBreakdownMetric.hoverOverSegmentLabelWithLabelAs(data.behaviour);
           await userEngagementBreakdownMetric.waitForToolTipContainerToBeVisible();
           await userEngagementBreakdownMetric.validateValuesShownInToolTipAreAsExpected({
@@ -332,7 +331,7 @@ test.describe(
     test(
       'verify impact of applied filter on adoption rate - user logins metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@adoption-rate-user-logins-metric'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.BAR_CHART, '@adoption-rate-user-logins-metric'],
       },
       async () => {
         tagTest(test.info(), {
@@ -360,7 +359,12 @@ test.describe(
     test(
       'verify impact of applied filter on adoption rate - user login frequency distribution metric',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@adoption-rate-user-login-frequency-distribution-metric'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.BAR_CHART,
+          '@adoption-rate-user-login-frequency-distribution-metric',
+        ],
       },
       async () => {
         tagTest(test.info(), {

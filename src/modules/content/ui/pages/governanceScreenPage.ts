@@ -5,42 +5,60 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
 export interface IGovernanceScreenPageActions {
+  selectTimelineFeedSettingsAsTimelineAndCommentsOnContent(): unknown;
+  selectTimelineFeedSettingsAsDefaultMode(): Promise<void>;
+  selectTimelineFeedSettingsAsTimeline(): Promise<void>;
   disableContentSubmissions: (message: string) => Promise<void>;
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
   clickOnTimelineFeedDisabled: () => Promise<void>;
+  selectContentValidationPeriodTime: (time: string) => Promise<void>;
   updateTheCustomFeedPlaceholder: (placeholder: string) => Promise<void>;
   makePlaceholderDefault: () => Promise<void>;
 }
 
-export interface IGovernanceScreenPageAssertions {}
+export interface IGovernanceScreenPageAssertions {
+  verifyFeedPlaceholderSettingIsVisible: () => Promise<void>;
+  verifyFeedPlaceholderSettingIsNotVisible: () => Promise<void>;
+  verifyFeedPlaceholderPositionedBelowTimelineFeed: () => Promise<void>;
+}
 
 export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
   // Governance locators (moved from GovernanceComponent)
   private baseActionUtil: BaseActionUtil;
   readonly clickOnTimelineButton: Locator;
+  readonly clickOnDefaultModeButton: Locator;
+  readonly clickOnTimelineAndCommentsOnContentButton: Locator;
   readonly clickOnSaveButton: Locator;
   readonly timelineAndFeed: Locator;
   readonly timelineFeedEnabled: Locator;
   readonly successToastMessage: (message: string) => Locator;
   readonly clickOnContentSubmissions: Locator;
+  readonly clickOnSave: Locator;
+  readonly clickOnContentValidationPeriodTime: Locator;
   readonly clickOnCustomFeedPlaceholder: Locator;
   readonly customFeedPlaceholderInput: Locator;
   readonly makePlaceholderDefaultButton: Locator;
+  readonly feedPlaceholderHeading: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
     this.baseActionUtil = new BaseActionUtil(page);
 
     this.clickOnTimelineButton = page.getByText('Timeline', { exact: true });
+    this.clickOnDefaultModeButton = page.getByRole('radio', { name: 'Timeline, comments on content' });
+    this.clickOnTimelineAndCommentsOnContentButton = page.getByRole('radio', { name: 'Timeline and comments on' });
     this.timelineFeedEnabled = page.locator('#feedMode_timeline_comment_post');
     this.clickOnSaveButton = page.getByRole('button', { name: 'Save' });
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
     this.successToastMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.clickOnContentSubmissions = this.page.locator('#contentSubmissions');
+    this.clickOnSave = this.page.getByRole('button', { name: 'Save' });
+    this.clickOnContentValidationPeriodTime = page.locator('#autoGovValidationPeriod');
     this.clickOnCustomFeedPlaceholder = page.getByRole('radio', { name: 'Custom' });
     this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
+    this.feedPlaceholderHeading = page.getByRole('heading', { name: 'Feed placeholder' });
   }
 
   get actions(): IGovernanceScreenPageActions {
@@ -49,6 +67,47 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
 
   get assertions(): IGovernanceScreenPageAssertions {
     return this;
+  }
+
+  async verifyFeedPlaceholderSettingIsVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderSettingIsNotVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should not be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderPositionedBelowTimelineFeed(): Promise<void> {
+    await test.step('Verify Feed placeholder is positioned below Timeline & Feed heading', async () => {
+      // Verify both elements are visible
+      await this.verifier.verifyTheElementIsVisible(this.timelineAndFeed, {
+        assertionMessage: 'Timeline & Feed heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder heading should be visible',
+      });
+
+      // Verify positioning: Feed placeholder should appear after Timeline & Feed in DOM
+      const timelineAndFeedBox = await this.timelineAndFeed.boundingBox();
+      const feedPlaceholderBox = await this.feedPlaceholderHeading.boundingBox();
+
+      if (timelineAndFeedBox && feedPlaceholderBox) {
+        // Check if Feed placeholder is positioned below Timeline & Feed (higher Y coordinate)
+        if (feedPlaceholderBox.y < timelineAndFeedBox.y) {
+          throw new Error(
+            'Feed placeholder heading should be positioned below Timeline & Feed heading, but it appears above'
+          );
+        }
+      }
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -101,6 +160,14 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     });
   }
 
+  async selectContentValidationPeriodTime(time: string): Promise<void> {
+    await test.step('Clicking on content validation period time', async () => {
+      await this.clickOnElement(this.clickOnContentValidationPeriodTime);
+      await this.clickOnContentValidationPeriodTime.selectOption(time);
+      await this.clickOnElement(this.clickOnSave);
+    });
+  }
+
   async enableContentSubmissions(message: string): Promise<void> {
     await test.step('Clicking on content submissions checkbox', async () => {
       const outerHTML = await this.clickOnContentSubmissions.evaluate(el => el.outerHTML);
@@ -112,7 +179,47 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.clickOnElement(this.clickOnContentSubmissions);
       await this.clickOnElement(this.clickOnSaveButton);
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
-        stepInfo: 'Verify the changes confirmation toast message is visible',
+        stepInfo: 'Verify the changes confirmation toast mess age is visible',
+      });
+    });
+  }
+  async selectTimelineFeedSettingsAsTimeline(): Promise<void> {
+    await test.step('Selecting timeline feed as timeline', async () => {
+      const isChecked = await this.clickOnTimelineButton.isChecked();
+      if (isChecked === true) {
+        console.log('Timeline feed is already selected');
+        return;
+      }
+      await this.clickOnElement(this.clickOnTimelineButton);
+      await this.clickOnElement(this.clickOnSaveButton);
+      await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+        assertionMessage: 'Timeline feed should be selected as timeline mode',
+      });
+    });
+  }
+  async selectTimelineFeedSettingsAsDefaultMode(): Promise<void> {
+    await test.step('Selecting timeline feed as default mode', async () => {
+      const isChecked = await this.clickOnDefaultModeButton.isChecked();
+      if (isChecked === false) {
+        await this.clickOnElement(this.clickOnDefaultModeButton);
+        await this.clickOnElement(this.clickOnSaveButton);
+        await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+          assertionMessage: 'Timeline feed should be selected as default mode',
+        });
+      }
+    });
+  }
+  async selectTimelineFeedSettingsAsTimelineAndCommentsOnContent(): Promise<void> {
+    await test.step('Selecting timeline feed as timeline and comments on content', async () => {
+      const isChecked = await this.clickOnTimelineAndCommentsOnContentButton.isChecked();
+      if (isChecked === true) {
+        console.log('Timeline and comments on content feed is already selected');
+        return;
+      }
+      await this.clickOnElement(this.clickOnTimelineAndCommentsOnContentButton);
+      await this.clickOnElement(this.clickOnSaveButton);
+      await this.verifier.verifyTheElementIsVisible(this.successToastMessage('Saved changes successfully'), {
+        assertionMessage: 'Timeline and comments on content feed should be selected',
       });
     });
   }

@@ -7,7 +7,7 @@ import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { AnalyticsApiService } from '@/src/modules/data-engineering/api/services/AnalyticsApiService';
 import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
-import { DuckDBFiltersQueryHelper } from '@/src/modules/data-engineering/helpers/duckdbFiltersQueryHelper';
+import { AnalyticsQueryHelper } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
 import { AnalyticsOverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
 import { SocialInteractionDashboard } from '@/src/modules/data-engineering/ui/dashboards/social-interaction/socialInteractionDashboard';
@@ -19,7 +19,7 @@ export interface AnalyticsApiFixture {
   analyticsApiService: AnalyticsApiService;
   snowflakeHelper: SnowflakeHelper;
   socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
-  duckdbFiltersQueryHelper: DuckDBFiltersQueryHelper;
+  analyticsQueryHelper: AnalyticsQueryHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -70,7 +70,7 @@ async function createAnalyticsApiFixture(
     analyticsApiService: new AnalyticsApiService(apiContext, apiBaseUrl),
     snowflakeHelper,
     socialInteractionQueryHelper: new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId),
-    duckdbFiltersQueryHelper: new DuckDBFiltersQueryHelper(snowflakeHelper, orgId),
+    analyticsQueryHelper: new AnalyticsQueryHelper(snowflakeHelper, orgId),
   };
 }
 

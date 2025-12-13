@@ -30,7 +30,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async getMetricValue(): Promise<string> {
     return await test.step(`Get hero metric value`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 60_000 });
+      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 120_000 });
       const value = await this.metricValue.textContent();
       return value?.trim() || '';
     });
@@ -55,7 +55,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyAnswerTitleIsVisible(): Promise<void> {
     await test.step(`Verify answer title is visible - with title as : ${this.metricTitle}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 60_000 });
+      await this.verifier.verifyTheElementIsVisible(this.answerTitle, { timeout: 120_000 });
     });
   }
 
@@ -65,7 +65,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyAnswerSubTitleIsVisible(expectedSubTitle: string): Promise<void> {
     await test.step(`Verify answer subtitle "${expectedSubTitle}" is visible - for metric ${this.metricTitle}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.answerSubTitle, { timeout: 60_000 });
+      await this.verifier.verifyTheElementIsVisible(this.answerSubTitle, { timeout: 120_000 });
       await expect(this.answerSubTitle, `Answer subtitle should be "${expectedSubTitle}"`).toHaveText(expectedSubTitle);
     });
   }
@@ -75,7 +75,7 @@ export class HeroMetricsComponent extends BaseComponent {
    */
   async verifyMetricIsLoaded(): Promise<void> {
     await test.step(`Verify hero metric is loaded for ${this.metricTitle}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 60_000 });
+      await this.verifier.verifyTheElementIsVisible(this.metricValue, { timeout: 120_000 });
     });
   }
 

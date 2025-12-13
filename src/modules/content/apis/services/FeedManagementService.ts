@@ -8,11 +8,13 @@ import {
   CreateFeedPostPayload,
   CreateQuestionPayload,
   FeedPostResponse,
+  GetQuestionDetailsResponse,
   QuestionResponse,
   UpdateFeedPostPayload,
   UpdateQuestionPayload,
 } from '@core/types/feed.type';
 import { AppConfigResponse, FeedMode } from '@core/types/feedManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { IFeedManagementOperations } from '@/src/modules/content/apis/interfaces/IFeedManagementOperations';
@@ -42,7 +44,22 @@ export function buildFeedTextJsonAndTextHtml(text: string) {
   };
 }
 
-export function buildFeedTextWithTopicMentions(text: string, topics: { id: string; name: string }[]) {
+/**
+ * Builds textJson and textHtml for feed replies with support for text, topics, user mentions, and site mentions
+ * @param text - The base text for the reply (optional)
+ * @param options - Optional parameters for mentions and topics
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedReplyText(
+  text: string = '',
+  options?: {
+    topics?: { id: string; name: string }[];
+    userMentions?: { id: string; label: string }[];
+    siteMentions?: { id: string; label: string }[];
+  }
+) {
+  const { topics = [], userMentions = [], siteMentions = [] } = options || {};
+
   const content = [
     {
       type: 'paragraph',
@@ -58,7 +75,7 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
   if (text) {
     content[0].content.push({
       type: 'text',
-      text: text + ' ',
+      text: text + (topics.length > 0 || userMentions.length > 0 || siteMentions.length > 0 ? ' ' : ''),
     });
   }
 
@@ -72,8 +89,43 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
         type: 'topic',
       },
     });
+    if (index < topics.length - 1 || userMentions.length > 0 || siteMentions.length > 0) {
+      content[0].content.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
 
-    if (index < topics.length - 1) {
+  // Add user mentions
+  userMentions.forEach((user, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: user.id,
+        label: user.label,
+        type: 'user',
+      },
+    });
+    if (index < userMentions.length - 1 || siteMentions.length > 0) {
+      content[0].content.push({
+        type: 'text',
+        text: ' ',
+      });
+    }
+  });
+
+  // Add site mentions
+  siteMentions.forEach((site, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: site.id,
+        label: site.label,
+        type: 'site',
+      },
+    });
+    if (index < siteMentions.length - 1) {
       content[0].content.push({
         type: 'text',
         text: ' ',
@@ -86,14 +138,162 @@ export function buildFeedTextWithTopicMentions(text: string, topics: { id: strin
     content,
   });
 
-  const topicLinks = topics
-    .map(
-      topic =>
-        `<span data-type="topic" data-id="${topic.id}" data-label="${topic.name}"><a href="/topic/${topic.id}" target="_blank">#${topic.name}</a></span>`
-    )
-    .join(' ');
+  // Build textHtml
+  let textHtml = '<p>';
+  if (text) {
+    textHtml += text;
+  }
 
-  const textHtml = `<p>${text} ${topicLinks}</p>`;
+  // Add topic links
+  if (topics.length > 0) {
+    const topicLinks = topics
+      .map(
+        topic =>
+          `<span data-type="topic" data-id="${topic.id}" data-label="${topic.name}"><a href="/topic/${topic.id}" target="_blank">#${topic.name}</a></span>`
+      )
+      .join(' ');
+    textHtml += text ? ` ${topicLinks}` : topicLinks;
+  }
+
+  // Add user mention links
+  if (userMentions.length > 0) {
+    const userLinks = userMentions
+      .map(
+        user =>
+          `<span data-type="user" data-id="${user.id}" data-label="${user.label}"><a href="/people/${user.id}" target="_blank">@${user.label}</a></span>`
+      )
+      .join(' ');
+    textHtml += text || topics.length > 0 ? ` ${userLinks}` : userLinks;
+  }
+
+  // Add site mention links
+  if (siteMentions.length > 0) {
+    const siteLinks = siteMentions
+      .map(
+        site =>
+          `<span data-type="site" data-id="${site.id}" data-label="${site.label}"><a href="/site/${site.id}" target="_blank">@${site.label}</a></span>`
+      )
+      .join(' ');
+    textHtml += text || topics.length > 0 || userMentions.length > 0 ? ` ${siteLinks}` : siteLinks;
+  }
+
+  textHtml += '</p>';
+
+  return {
+    textJson,
+    textHtml,
+  };
+}
+
+/**
+ * @deprecated Use buildFeedReplyText instead. This function is kept for backward compatibility.
+ * Builds textJson and textHtml with topic mentions for feed posts
+ */
+export function buildFeedTextWithTopicMentions(text: string, topics: { id: string; name: string }[]) {
+  return buildFeedReplyText(text, { topics });
+}
+
+/**
+ * Builds textJson and textHtml with site mentions for feed post updates
+ * @param text - The base text for the feed post
+ * @param siteMentions - Array of site mentions with id and label
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedTextWithSiteMentions(text: string, siteMentions: { id: string; label: string }[]) {
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [] as any[],
+    },
+  ];
+
+  // Add site mentions
+  siteMentions.forEach((site, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: site.id,
+        label: site.label,
+        type: 'site',
+      },
+    });
+    content[0].content.push({
+      type: 'text',
+      text: index < siteMentions.length - 1 ? '  ' : ' ',
+    });
+  });
+
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  const siteLinks = siteMentions
+    .map(
+      site =>
+        `<span data-type="site" data-id="${site.id}" data-label="${site.label}"><a href="/site/${site.id}" target="_blank">@${site.label}</a></span>`
+    )
+    .join('  ');
+
+  const textHtml = `<p>${siteLinks} </p>`;
+
+  return {
+    textJson,
+    textHtml,
+  };
+}
+
+/**
+ * Builds textJson and textHtml with user mentions for feed post updates
+ * @param text - The base text for the feed post
+ * @param userMentions - Array of user mentions with id and label
+ * @returns Object with textJson and textHtml
+ */
+export function buildFeedTextWithUserMentions(text: string, userMentions: { id: string; label: string }[]) {
+  const content = [
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [] as any[],
+    },
+  ];
+
+  // Add user mentions
+  userMentions.forEach((user, index) => {
+    content[0].content.push({
+      type: 'UserAndSiteMention',
+      attrs: {
+        id: user.id,
+        label: user.label,
+        type: 'user',
+      },
+    });
+    content[0].content.push({
+      type: 'text',
+      text: index < userMentions.length - 1 ? '  ' : ' ',
+    });
+  });
+
+  const textJson = JSON.stringify({
+    type: 'doc',
+    content,
+  });
+
+  const userLinks = userMentions
+    .map(
+      user =>
+        `<span data-type="user" data-id="${user.id}" data-label="${user.label}"><a href="/people/${user.id}" target="_blank">@${user.label}</a></span>`
+    )
+    .join('  ');
+
+  const textHtml = `<p>${userLinks} </p>`;
 
   return {
     textJson,
@@ -551,13 +751,13 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...defaultFeedPayload,
         ...overrides,
       };
-      console.log('feed payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post. Status: ${response.status()}`);
       }
@@ -606,13 +806,13 @@ export class FeedManagementService implements IFeedManagementOperations {
   }): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with all features via API post request', async () => {
       const payload = buildFeedWithAllFeatures(params);
-      console.log('feed payload JSON with all features: ', JSON.stringify(payload, null, 2));
+      log.debug('feed payload JSON with all features', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('feed response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
       }
@@ -740,7 +940,7 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async deleteFeed(postId: string): Promise<void> {
     return await test.step(`Deleting feed post ${postId}`, async () => {
-      console.log(`Deleting feed post ${postId}`);
+      log.debug(`Deleting feed post ${postId}`);
       const response = await this.httpClient.delete(API_ENDPOINTS.feed.delete(postId), {
         headers: {
           'Content-Type': 'application/json',
@@ -749,7 +949,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log(`Delete response:`, responseBody);
+      log.debug('Delete response', { response: responseBody });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
@@ -757,7 +957,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         );
       }
 
-      console.log(`Feed post ${postId} deleted successfully. Message: ${responseBody.message}`);
+      log.debug(`Feed post ${postId} deleted successfully`, { message: responseBody.message });
     });
   }
 
@@ -785,8 +985,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
-      console.log('fileId: ', fileId);
-      console.log('attachmentURL: ', attachmentURL);
+      log.debug('File upload details', { fileId, attachmentURL });
       if (!fileId) {
         throw new Error('Failed to get fileId from upload response');
       }
@@ -800,14 +999,14 @@ export class FeedManagementService implements IFeedManagementOperations {
         ...overrides,
       };
 
-      console.log('Feed with attachment payload:', JSON.stringify(payload, null, 2));
+      log.debug('Feed with attachment payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
 
       const responseBody = await response.json();
-      console.log('Feed with attachment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Feed with attachment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create feed with attachment. Status: ${response.status()}`);
@@ -838,7 +1037,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('Add comment response:', JSON.stringify(responseBody, null, 2));
+      log.debug('Add comment response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to add comment to feed ${feedId}. Status: ${response.status()}`);
@@ -895,13 +1094,91 @@ export class FeedManagementService implements IFeedManagementOperations {
     feedMode: FeedMode = FeedMode.TIMELINE_COMMENT_POST
   ): Promise<APIResponse> {
     return await test.step('Configuring app governance settings', async () => {
-      // Default values from the curl command
+      // Get current app config to preserve existing state (especially sitesToUploadFiles)
+      let currentConfig: any = {};
+      try {
+        const appConfigResponse = await this.getAppConfig();
+        currentConfig = appConfigResponse.result || {};
+        log.debug('Retrieved current app config for governance update', {
+          sitesToUploadFilesCount: Array.isArray(currentConfig.sitesToUploadFiles)
+            ? currentConfig.sitesToUploadFiles.length
+            : 0,
+        });
+      } catch (error) {
+        log.warn('Failed to get current app config, using defaults only', error);
+      }
+
+      // Extract governance-related fields from current config
+      // Only include values that are not undefined to avoid overwriting defaults
+      const currentGovernanceSettings: any = {};
+      if (currentConfig.isExpertiseAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseAppManagerControlled = currentConfig.isExpertiseAppManagerControlled;
+      if (currentConfig.isHomeAppManagerControlled !== undefined)
+        currentGovernanceSettings.isHomeAppManagerControlled = currentConfig.isHomeAppManagerControlled;
+      if (currentConfig.isSiteAppManagerControlled !== undefined)
+        currentGovernanceSettings.isSiteAppManagerControlled = currentConfig.isSiteAppManagerControlled;
+      if (currentConfig.isExpertiseCreateAppManagerControlled !== undefined)
+        currentGovernanceSettings.isExpertiseCreateAppManagerControlled =
+          currentConfig.isExpertiseCreateAppManagerControlled;
+      // Only use current feedMode if not explicitly provided in settings
+      if (currentConfig.feedMode !== undefined && settings.feedMode === undefined)
+        currentGovernanceSettings.feedMode = currentConfig.feedMode;
+      if (currentConfig.autoGovValidationPeriod !== undefined)
+        currentGovernanceSettings.autoGovValidationPeriod = currentConfig.autoGovValidationPeriod;
+      if (currentConfig.autoGovernanceEnabled !== undefined)
+        currentGovernanceSettings.autoGovernanceEnabled = currentConfig.autoGovernanceEnabled;
+      if (currentConfig.contentSubmissionsEnabled !== undefined)
+        currentGovernanceSettings.contentSubmissionsEnabled = currentConfig.contentSubmissionsEnabled;
+      if (currentConfig.feedOnContentEnabled !== undefined)
+        currentGovernanceSettings.feedOnContentEnabled = currentConfig.feedOnContentEnabled;
+      if (currentConfig.isExpertiseEnabled !== undefined)
+        currentGovernanceSettings.isExpertiseEnabled = currentConfig.isExpertiseEnabled;
+      if (currentConfig.isHomeCarouselEnabled !== undefined)
+        currentGovernanceSettings.isHomeCarouselEnabled = currentConfig.isHomeCarouselEnabled;
+      if (currentConfig.isSiteCarouselEnabled !== undefined)
+        currentGovernanceSettings.isSiteCarouselEnabled = currentConfig.isSiteCarouselEnabled;
+      if (currentConfig.allowFileUpload !== undefined)
+        currentGovernanceSettings.allowFileUpload = currentConfig.allowFileUpload;
+      if (currentConfig.siteFilePermission !== undefined)
+        currentGovernanceSettings.siteFilePermission = currentConfig.siteFilePermission;
+      if (currentConfig.htmlTileEnabled !== undefined)
+        currentGovernanceSettings.htmlTileEnabled = currentConfig.htmlTileEnabled;
+      if (currentConfig.isNativeVideoAutoPlayEnabled !== undefined)
+        currentGovernanceSettings.isNativeVideoAutoPlayEnabled = currentConfig.isNativeVideoAutoPlayEnabled;
+      if (currentConfig.allowFileShareWithPublicLink !== undefined)
+        currentGovernanceSettings.allowFileShareWithPublicLink = currentConfig.allowFileShareWithPublicLink;
+      if (currentConfig.enablePersonalizedContentEmails !== undefined)
+        currentGovernanceSettings.enablePersonalizedContentEmails = currentConfig.enablePersonalizedContentEmails;
+      if (currentConfig.feedPlaceholder !== undefined)
+        currentGovernanceSettings.feedPlaceholder = currentConfig.feedPlaceholder;
+      if (currentConfig.isFeedPlaceholderDefault !== undefined)
+        currentGovernanceSettings.isFeedPlaceholderDefault = currentConfig.isFeedPlaceholderDefault;
+      if (currentConfig.sitesToUploadFiles !== undefined) {
+        currentGovernanceSettings.sitesToUploadFiles = Array.isArray(currentConfig.sitesToUploadFiles)
+          ? currentConfig.sitesToUploadFiles
+              .map((site: any) => {
+                if (typeof site === 'string') return site;
+                // Handle object format: { siteId: "...", name: "..." } or just { id: "..." }
+                return site?.siteId || site?.id || String(site);
+              })
+              .filter(Boolean)
+          : [];
+      }
+      if (currentConfig.privacyPolicy !== undefined)
+        currentGovernanceSettings.privacyPolicy = currentConfig.privacyPolicy;
+      if (currentConfig.termsOfService !== undefined)
+        currentGovernanceSettings.termsOfService = currentConfig.termsOfService;
+      if (currentConfig.takeLegalAcknowledgement !== undefined)
+        currentGovernanceSettings.takeLegalAcknowledgement = currentConfig.takeLegalAcknowledgement;
+
+      // Default values (used when current config doesn't have these fields)
+      // Note: htmlTileEnabled default changed to true to match production requirements
       const defaultSettings = {
         isExpertiseAppManagerControlled: true,
         isHomeAppManagerControlled: true,
         isSiteAppManagerControlled: false,
         isExpertiseCreateAppManagerControlled: true,
-        feedMode: feedMode,
+        feedMode: settings.feedMode || feedMode, // Use settings.feedMode if provided, otherwise use parameter
         autoGovValidationPeriod: 12,
         autoGovernanceEnabled: true,
         contentSubmissionsEnabled: true,
@@ -911,7 +1188,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         isSiteCarouselEnabled: true,
         allowFileUpload: 'all',
         siteFilePermission: 'sameAsAllUsers',
-        htmlTileEnabled: false,
+        htmlTileEnabled: true, // Changed to true to match production requirements
         isNativeVideoAutoPlayEnabled: true,
         allowFileShareWithPublicLink: false,
         enablePersonalizedContentEmails: false,
@@ -935,8 +1212,33 @@ export class FeedManagementService implements IFeedManagementOperations {
         takeLegalAcknowledgement: true,
       };
 
-      // Merge provided settings with defaults
-      const finalSettings = { ...defaultSettings, ...settings };
+      // Merge: current config -> defaults -> provided settings (provided settings take precedence)
+      // Ensure feedMode from settings parameter or settings object takes precedence
+      const finalSettings = {
+        ...defaultSettings,
+        ...currentGovernanceSettings,
+        ...settings,
+        // Explicitly set feedMode: use settings.feedMode if provided, otherwise use parameter, otherwise current, otherwise default
+        feedMode: settings.feedMode || feedMode || currentGovernanceSettings.feedMode || defaultSettings.feedMode,
+        // Ensure nested objects are properly merged
+        privacyPolicy: {
+          ...defaultSettings.privacyPolicy,
+          ...(currentGovernanceSettings.privacyPolicy || {}),
+          ...(settings.privacyPolicy || {}),
+        },
+        termsOfService: {
+          ...defaultSettings.termsOfService,
+          ...(currentGovernanceSettings.termsOfService || {}),
+          ...(settings.termsOfService || {}),
+        },
+        // Preserve sitesToUploadFiles from current config unless explicitly provided
+        sitesToUploadFiles:
+          settings.sitesToUploadFiles !== undefined
+            ? settings.sitesToUploadFiles
+            : currentGovernanceSettings.sitesToUploadFiles?.length > 0
+              ? currentGovernanceSettings.sitesToUploadFiles
+              : defaultSettings.sitesToUploadFiles,
+      };
 
       const response = await this.httpClient.post(API_ENDPOINTS.appConfig.governance, {
         data: finalSettings,
@@ -946,7 +1248,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App governance configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App governance configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to configure app governance. Status: ${response.status()}`);
@@ -969,7 +1271,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = (await response.json()) as AppConfigResponse;
-      console.log('App configuration response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to get app configuration. Status: ${response.status()}`);
@@ -1015,7 +1317,7 @@ export class FeedManagementService implements IFeedManagementOperations {
       });
 
       const responseBody = await response.json();
-      console.log('App configuration update response:', JSON.stringify(responseBody, null, 2));
+      log.debug('App configuration update response', { response: JSON.stringify(responseBody, null, 2) });
 
       if (!response.ok()) {
         throw new Error(`Failed to update app configuration. Status: ${response.status()}`);
@@ -1032,13 +1334,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async createQuestion(payload: CreateQuestionPayload): Promise<QuestionResponse> {
     return await test.step('Creating a question via API post request', async () => {
-      console.log('Question payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question payload JSON', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create question. Status: ${response.status()}, Message: ${responseBody.message}`);
       }
@@ -1055,13 +1357,13 @@ export class FeedManagementService implements IFeedManagementOperations {
    */
   async updateQuestion(questionId: string, payload: UpdateQuestionPayload): Promise<QuestionResponse> {
     return await test.step(`Updating question ${questionId}`, async () => {
-      console.log('Question update payload JSON: ', JSON.stringify(payload, null, 2));
+      log.debug('Question update payload JSON', { payload: JSON.stringify(payload, null, 2) });
       const response = await this.httpClient.put(API_ENDPOINTS.feed.update(questionId), {
         headers: { 'Content-Type': 'application/json' },
         data: payload,
       });
       const responseBody = await response.json();
-      console.log('Question update response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Question update response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to update question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1099,7 +1401,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'add' },
       });
       const responseBody = await response.json();
-      console.log('Upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to upvote question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1121,7 +1423,7 @@ export class FeedManagementService implements IFeedManagementOperations {
         data: { reactionType: 'emoji/2B06', action: 'remove' },
       });
       const responseBody = await response.json();
-      console.log('Remove upvote response JSON: ', JSON.stringify(responseBody, null, 2));
+      log.debug('Remove upvote response JSON', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(
           `Failed to remove upvote from question ${questionId}. Status: ${response.status()}, Message: ${responseBody.message || 'Unknown error'}`
@@ -1150,6 +1452,178 @@ export class FeedManagementService implements IFeedManagementOperations {
         throw new Error(`Failed to create answer on question ${questionId}. Status: ${response.status()}`);
       }
       return responseBody;
+    });
+  }
+
+  /**
+   * Updates an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to update
+   * @param payload - The answer payload
+   * @returns Promise with the answer response
+   */
+  async updateAnswer(
+    questionId: string,
+    answerId: string,
+    payload: { textJson: string; textHtml: string; listOfAttachedFiles?: AttachedFile[]; ignoreToxic?: boolean }
+  ): Promise<any> {
+    return await test.step(`Updating answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.put(API_ENDPOINTS.feed.updateComment(questionId, answerId), {
+        data: payload,
+      });
+      const responseBody = await response.json();
+
+      log.debug('Update answer response JSON', { response: JSON.stringify(responseBody, null, 2) });
+      // Check for error status or error messages in response
+      if (!response.ok() || responseBody.status !== 'success') {
+        const errorMessage = responseBody.message || `Failed to update answer ${answerId} on question ${questionId}`;
+        throw new Error(`${errorMessage}. Status: ${response.status()}`);
+      }
+
+      // Also check if response indicates the comment was not found or deleted
+      if (
+        responseBody.message &&
+        (responseBody.message.includes('Not Found') || responseBody.message.includes('not found'))
+      ) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Comment not found. Status: ${response.status()}`
+        );
+      }
+
+      // Check if the response indicates the answer is deleted
+      if (responseBody.result?.isDeleted === true) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Answer is deleted. Status: ${response.status()}`
+        );
+      }
+
+      // Check HTTP status code - 404 indicates resource not found (deleted)
+      if (response.status() === 404) {
+        throw new Error(
+          `Failed to update answer ${answerId} on question ${questionId}. Answer not found (likely deleted). Status: ${response.status()}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Deletes an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to delete
+   * @returns Promise with the delete response
+   */
+  async deleteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Deleting answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.delete(API_ENDPOINTS.feed.deleteComment(questionId, answerId));
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to delete answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Upvotes an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to upvote
+   * @returns Promise with the upvote response
+   */
+  async upvoteAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Upvoting answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.commentReaction(questionId, answerId), {
+        data: {
+          reactionType: 'emoji/2B06',
+          action: 'add',
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to upvote answer ${answerId} on question ${questionId}. Status: ${response.status()}`);
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Removes upvote from an answer (comment) on a question via API
+   * @param questionId - The question ID
+   * @param answerId - The answer ID to remove upvote from
+   * @returns Promise with the remove upvote response
+   */
+  async removeUpvoteFromAnswer(questionId: string, answerId: string): Promise<any> {
+    return await test.step(`Removing upvote from answer ${answerId} on question ${questionId}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.feed.commentReaction(questionId, answerId), {
+        data: {
+          reactionType: 'emoji/2B06',
+          action: 'remove',
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(
+          `Failed to remove upvote from answer ${answerId} on question ${questionId}. Status: ${response.status()}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets question details including answers (comments) via API
+   * @param questionId - The question ID
+   * @returns Promise with the question details response including answers
+   */
+  async getQuestionDetails(questionId: string): Promise<GetQuestionDetailsResponse> {
+    return await test.step(`Getting question details for question ${questionId}`, async () => {
+      const response = await this.httpClient.get(API_ENDPOINTS.feed.fetchQuestionDetails(questionId), {
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+        },
+      });
+      const responseBody = await response.json();
+      if (!response.ok() || responseBody.status !== 'success') {
+        const errorDetails = JSON.stringify(responseBody, null, 2);
+        throw new Error(
+          `Failed to get question details for question ${questionId}. Status: ${response.status()}. Response: ${errorDetails}`
+        );
+      }
+      return responseBody;
+    });
+  }
+
+  /**
+   * Fetches answers (comments) for a question via API
+   * @param questionId - The question ID
+   * @param options - Optional query parameters (kept for backward compatibility)
+   * @returns Promise with the answers response
+   */
+  async fetchAnswers(
+    questionId: string,
+    options?: { size?: number; nextPageToken?: string; sortBy?: string }
+  ): Promise<any> {
+    return await test.step(`Fetching answers for question ${questionId}`, async () => {
+      // Get question details which includes answers/comments
+      const questionDetails = await this.getQuestionDetails(questionId);
+
+      // Extract answers from the question details response
+      // The answers are typically in recentComments.listOfItems
+      if (questionDetails.result?.recentComments) {
+        return {
+          status: 'success',
+          result: {
+            listOfItems: questionDetails.result.recentComments.listOfItems || [],
+            nextPageToken: questionDetails.result.recentComments.nextPageToken || null,
+          },
+        };
+      }
+
+      // If structure is different, return the full response
+      return questionDetails;
     });
   }
 }

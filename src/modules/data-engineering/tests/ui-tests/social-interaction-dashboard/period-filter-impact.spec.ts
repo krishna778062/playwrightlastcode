@@ -1,4 +1,5 @@
 import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -219,7 +220,7 @@ test.describe(
     test(
       `verify Least engaged by Department tabular data validation - custom date range`,
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@least-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@least-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
@@ -245,7 +246,12 @@ test.describe(
     test(
       `verify Least engaged by Department CSV download and validation - custom date range`,
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@least-engaged-by-department-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.REGRESSION,
+          TestCaseType.CSV_VALIDATION,
+          '@least-engaged-by-department-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -272,7 +278,7 @@ test.describe(
     test(
       `verify Most engaged by Department tabular data validation - custom date range`,
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@most-engaged-by-department'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@most-engaged-by-department'],
       },
       async () => {
         tagTest(test.info(), {
@@ -298,7 +304,12 @@ test.describe(
     test(
       `verify Most engaged by Department CSV download and validation - custom date range`,
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@most-engaged-by-department-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.REGRESSION,
+          TestCaseType.CSV_VALIDATION,
+          '@most-engaged-by-department-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {

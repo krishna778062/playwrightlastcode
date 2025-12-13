@@ -65,26 +65,34 @@ export class DateHelper {
       };
     }
 
-    // Handle static periods (Last X days/months, Year to date)
-    const currentDate = DateHelper.getCurrentUTCDate();
+    let currentDate = DateHelper.getCurrentUTCDate();
+    currentDate = this.toUtcMidnight(currentDate);
     let startDate: Date;
+    // End date is always yesterday (current date - 1 day) for all period filters
+    const endDate = subDays(currentDate, 1);
+    const endDateUtc = this.toUtcMidnight(endDate);
 
     // Handle "Last X days" - use subDays for precise day calculation
+    // End date is yesterday, start date is (end date - X days) + 1 day
     const daysMatch = period.match(/Last (\d+) days?/i);
     if (daysMatch) {
       const days = parseInt(daysMatch[1], 10);
-      startDate = subDays(currentDate, days - 1); // e.g., "Last 7 days" means 6 days ago to today
+      startDate = subDays(endDateUtc, days - 1);
+      startDate = this.toUtcMidnight(startDate);
     }
     // Handle "Last X months" - use subMonths for accurate month calculation
+    // End date is yesterday, start date is (end date - X months) + 1 day
     else if (period.match(/Last (\d+) months?/i)) {
       const monthsMatch = period.match(/Last (\d+) months?/i);
       const months = parseInt(monthsMatch![1], 10);
-      const targetDate = subMonths(currentDate, months);
-      startDate = addDays(targetDate, 1); // Start from the day after X months ago
+      // Start date is (end date - X months) + 1 day
+      const targetDate = subMonths(endDateUtc, months);
+      startDate = addDays(targetDate, 1);
+      startDate = this.toUtcMidnight(startDate);
     }
-    // Handle "Year to date" - start from beginning of year
+    // Handle "Year to date" - start from beginning of year, end date is yesterday
     else if (period.match(/Year to date/i)) {
-      startDate = startOfYear(currentDate);
+      startDate = startOfYear(endDateUtc);
     } else {
       throw new Error(
         `Unsupported period: "${period}". Supported periods: ${Object.values(PeriodFilterTimeRange).join(', ')}`
@@ -94,8 +102,13 @@ export class DateHelper {
     return {
       timePeriod: period,
       startDate: `${format(startDate, 'yyyy-MM-dd')} 00:00:00`,
-      endDate: `${format(currentDate, 'yyyy-MM-dd')} 23:59:59`,
+      endDate: `${format(endDateUtc, 'yyyy-MM-dd')} 23:59:59`,
     };
+  }
+
+  static parseIsoAsUTC(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
   }
 
   /**
@@ -267,5 +280,9 @@ export class DateHelper {
     const endFormatted = format(endDate, "dd MMM yyyy 'at' 23:59 '(UTC)'");
 
     return `From: ${startFormatted} To: ${endFormatted}`;
+  }
+
+  private static toUtcMidnight(d: Date): Date {
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   }
 }

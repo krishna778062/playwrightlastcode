@@ -1,3 +1,4 @@
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -54,7 +55,13 @@ test.describe(
     test(
       'verify Total Users metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@total-users'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@total-users',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -79,7 +86,13 @@ test.describe(
     test(
       'verify Departments metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@departments'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@departments',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -105,7 +118,7 @@ test.describe(
     test(
       'verify Locations metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@locations'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@locations'],
       },
       async () => {
         tagTest(test.info(), {
@@ -131,7 +144,13 @@ test.describe(
     test(
       'verify User Category metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@user-category'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@user-category',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -158,7 +177,13 @@ test.describe(
     test(
       'verify Content Published tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@content-published',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -183,7 +208,13 @@ test.describe(
     test(
       'verify Content Published CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@content-published-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@content-published-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -216,7 +247,13 @@ test.describe(
     test(
       'verify Favorites Received tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@favorites-received',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -241,7 +278,13 @@ test.describe(
     test(
       'verify Favorites Received CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites-received-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@favorites-received-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -274,7 +317,13 @@ test.describe(
     test(
       'verify Reactions Made tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@reactions-made',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -299,7 +348,13 @@ test.describe(
     test(
       'verify Reactions Made CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-made-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@reactions-made-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -332,7 +387,13 @@ test.describe(
     test(
       'verify Reactions Received tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@reactions-received',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -357,7 +418,13 @@ test.describe(
     test(
       'verify Reactions Received CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-received-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@reactions-received-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -390,7 +457,13 @@ test.describe(
     test(
       'verify Feed Posts and Content Comments tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@feed-posts-comments',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -415,7 +488,13 @@ test.describe(
     test(
       'verify Feed Posts and Content Comments CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-comments-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@feed-posts-comments-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -449,7 +528,7 @@ test.describe(
     test(
       'verify Replies tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.TABULAR_METRIC, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
@@ -474,7 +553,13 @@ test.describe(
     test(
       'verify Replies CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@replies-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -507,7 +592,13 @@ test.describe(
     test(
       'verify Replies from Other Users tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@replies-from-other-users',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -532,7 +623,13 @@ test.describe(
     test(
       'verify Replies from Other Users CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies-from-other-users-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@replies-from-other-users-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -565,7 +662,13 @@ test.describe(
     test(
       'verify Shares Received tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares-received'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@shares-received',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -590,7 +693,13 @@ test.describe(
     test(
       'verify Shares Received CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares-received-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@shares-received-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -623,7 +732,13 @@ test.describe(
     test(
       'verify Profile Views tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@profile-views',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -648,7 +763,13 @@ test.describe(
     test(
       'verify Profile Views CSV download and validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-views-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@profile-views-csv',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -681,7 +802,13 @@ test.describe(
     test(
       'verify Profile Completeness tabular data validation (time-independent)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-completeness'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@profile-completeness',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -704,7 +831,13 @@ test.describe(
     test(
       'verify Profile Completeness CSV download and validation (time-independent)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@profile-completeness-csv'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@profile-completeness-csv',
+        ],
       },
       async () => {
         // Skip execution via env flag to satisfy linter

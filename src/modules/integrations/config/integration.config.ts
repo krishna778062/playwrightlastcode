@@ -15,7 +15,7 @@
  */
 
 export type TenantKey = 'primary' | 'azuresso' | 'workday' | 'okta';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU' | 'prodCA';
 
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
@@ -32,8 +32,8 @@ interface TenantConfig {
   apiBaseUrl: string;
   appManagerEmail: string;
   appManagerPassword: string;
-  endUserEmail: string;
-  endUserPassword: string;
+  endUserEmail?: string;
+  endUserPassword?: string;
 }
 
 // App-level configuration (same for all tenants/environments)
@@ -48,10 +48,10 @@ export const config = {
       tenantName: 'Primary Tenant',
       frontendBaseUrl: 'https://newintegrations.qa.simpplr.xyz',
       apiBaseUrl: 'https://newintegrations-api.qa.simpplr.xyz',
-      appManagerEmail: 'neha.manhas@simpplr.com',
-      appManagerPassword: 'Simp@12345',
-      endUserEmail: 'priyanka.dubey@simpplr.com',
-      endUserPassword: 'Pass@123',
+      appManagerEmail: 'Srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@12345',
+      endUserEmail: 'Srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
@@ -150,6 +150,23 @@ export const config = {
       IGNORE_TLS: 1,
       TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
     },
+    prodCA: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
+      appManagerEmail: 'srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
     test: {
       tenantName: 'Primary Tenant',
       frontendBaseUrl: 'https://integrations-qa-auto.test.simpplr.xyz',
@@ -172,14 +189,14 @@ export const config = {
       tenantName: 'Primary Tenant',
       frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
       apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
-      appManagerEmail: 'shubham.garg@simpplr.com',
+      appManagerEmail: 'srikant.g@simpplr.com',
       appManagerPassword: 'Simpplr@123',
-      endUserEmail: 'akanksha.kumari@simpplr.com',
-      endUserPassword: 'pass@1234',
+      endUserEmail: 'srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
-      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
       QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
@@ -190,21 +207,23 @@ export const config = {
   azuresso: {
     qa: {
       tenantName: 'Azure SSO Tenant',
-      frontendBaseUrl: ' https://azuresso-auto.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://azuresso-auto.qa.simpplr.xyz',
       apiBaseUrl: 'https://azuresso-auto-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
-      endUserPassword: 'simpplr001',
+      appManagerEmail: 'shivani.chauhan@simpplr.com',
+      appManagerPassword: 'Qwerty@123',
+      QA_MOBILE: '34595666',
+      QA_ALTERNATE: 'J3838689',
+      QA_ALTERNATE_PHONE: '837389444',
     },
-    uat: {
-      tenantName: 'Primary Tenant',
-      frontendBaseUrl: 'https://content-ui-auto1.qa.simpplr.xyz',
-      apiBaseUrl: 'https://content-ui-auto1-api.qa.simpplr.xyz',
-      appManagerEmail: 'kulwinder.singh@simpplr.com',
-      appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta@simpplr.com',
-      endUserPassword: 'simpplr001',
+    test: {
+      tenantName: 'Azure SSO Tenant',
+      frontendBaseUrl: 'https://azuresso-int.test.simpplr.xyz',
+      apiBaseUrl: 'https://azuresso-int-api.test.simpplr.xyz',
+      appManagerEmail: 'shivani.chauhan@simpplr.com',
+      appManagerPassword: 'Qwerty@123',
+      QA_MOBILE: '34595666',
+      QA_ALTERNATE: 'J3838689',
+      QA_ALTERNATE_PHONE: '837389444',
     },
   },
   workday: {
@@ -250,14 +269,15 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=test npm run test\n` +
         `  TEST_ENV=prodUS npm run test\n` +
         `  TEST_ENV=prodEU npm run test\n` +
+        `  TEST_ENV=prodCA npm run test\n` +
         `  TEST_ENV=uatEU npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'prodCA', 'uatEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, prodCA, uatEU\n` +
         `Example: TEST_ENV=qa npm run test`
     );
   }
@@ -361,5 +381,5 @@ export function getIntegrationConfig() {
  * Helper function to get all available environments
  */
 export function getAvailableEnvironments(): EnvironmentKey[] {
-  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'];
+  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'prodCA', 'uatEU'];
 }

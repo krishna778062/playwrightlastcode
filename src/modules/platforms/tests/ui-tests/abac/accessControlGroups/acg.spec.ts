@@ -24,6 +24,7 @@ import { FeatureOwnersPage } from '@platforms/ui/pages/abacPage/featureOwnersPag
 
 import { Roles } from '@/src/core/constants/roles';
 import { TestSuite } from '@/src/core/constants/testSuite';
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
@@ -241,7 +242,7 @@ test.describe(
     test(
       'verify that status of the ACG should be displayed as Active or Inactive immediately after creation',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         const { identityManagementHelper } = appManagerFixture;
@@ -431,7 +432,7 @@ test.describe(
     test(
       'verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -445,7 +446,7 @@ test.describe(
         await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
+        await accessControlGroupsPage.searchForAudiencesOnAudiencePickerPopup(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -497,7 +498,7 @@ test.describe(
         await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
+        await accessControlGroupsPage.searchForAudiencesOnAudiencePickerPopup(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.createACGModal.verifyDuplicateTargetGroupsErrorMessage();
@@ -511,7 +512,7 @@ test.describe(
     test(
       'verify that duplicate acg error is displayed on editing ACG to match anothers features and target audiences',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -560,7 +561,7 @@ test.describe(
         await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.TARGET_AUDIENCE);
         await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(targetAudienceToCreate[1]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
+        await accessControlGroupsPage.searchForAudiencesOnAudiencePickerPopup(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.editACGModal.verifyDuplicateTargetGroupsErrorMessage();
@@ -634,7 +635,7 @@ test.describe(
     test(
       `verify the state of different edit buttons when Feature Owner is editing System RBAC ACG`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -684,7 +685,7 @@ test.describe(
         await accessControlGroupsPage.selectSingleFeatureToAddToControlGroupForSingleACG(ACGFeature.ALERTS);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
+        await accessControlGroupsPage.searchForAudiencesOnAudiencePickerPopup(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.NEXT);
@@ -702,7 +703,7 @@ test.describe(
         await accessControlGroupsPage.createACGModal.verifyListCount('Target audience', targetAudienceCount);
         await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
-        await accessControlGroupsPage.searchForValues(targetAudienceToCreate[0]);
+        await accessControlGroupsPage.searchForAudiencesOnAudiencePickerPopup(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnAudience(targetAudienceToCreate[0]);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
@@ -718,6 +719,87 @@ test.describe(
         await accessControlGroupsPage.dismissTheToastMessage();
         // Clean up: Delete the above created ACG
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+      }
+    );
+
+    test(
+      `verify the state of different edit buttons when Admin is editing an Active Custom ACG`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+      },
+      async ({ appManagerFixture, browser }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-30119', `PS-30120`],
+        });
+
+        const activeACGCreationParams: ACGCreationParams = {
+          targetAudience: [targetAudienceToCreate[0]],
+          managerUser: [],
+          managerAudience: [],
+          adminUser: [adminsAudienceUser[0].username],
+          adminAudience: [],
+          acgStatus: ACG_STATUS.ACTIVE,
+          acgFeature: ACGFeature.ALERTS,
+        };
+        const inactiveACGCreationParams: ACGCreationParams = {
+          targetAudience: [targetAudienceToCreate[1]],
+          managerUser: [],
+          managerAudience: [],
+          adminUser: [adminsAudienceUser[0].username],
+          adminAudience: [],
+          acgStatus: ACG_STATUS.INACTIVE,
+          acgFeature: ACGFeature.ALERTS,
+        };
+        const accessControlGroupsPageAM: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
+        await accessControlGroupsPageAM.loadPage();
+        acgName.push(await accessControlGroupsPageAM.createACGWithAllParams(activeACGCreationParams));
+        acgName.push(await accessControlGroupsPageAM.createACGWithAllParams(inactiveACGCreationParams));
+        await appManagerFixture.userManagementService.registerUser(adminsAudienceUser[0].emp);
+        const newUserContext = await browser.newContext();
+        const page = await newUserContext.newPage();
+        await LoginHelper.loginWithPassword(page, {
+          email: adminsAudienceUser[0].emp,
+          password: 'Simp@1234',
+        });
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(page);
+        await accessControlGroupsPage.loadPage();
+        // Test Scenario
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_TARGET_AUDIENCE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_MANAGER
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_ADMIN
+        );
+        await accessControlGroupsPage.editACGModal.clickCloseButton();
+
+        await accessControlGroupsPage.searchForACG(acgName[1]);
+        await accessControlGroupsPage.editACG(acgName[1]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_FEATURE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_TARGET_AUDIENCE
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsEnabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_MANAGER
+        );
+        await accessControlGroupsPage.editACGModal.verifySummaryScreenAssetButtonIsDisabled(
+          ACG_EDIT_ASSETS_SUMMARY_SCREEN.EDIT_ADMIN
+        );
+        await accessControlGroupsPage.editACGModal.clickCloseButton();
+        while (acgName.length > 0) {
+          await accessControlGroupsPageAM.deleteACG(acgName.pop() as string);
+        }
       }
     );
   }
