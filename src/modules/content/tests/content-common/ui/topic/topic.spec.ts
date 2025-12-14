@@ -6,6 +6,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -19,6 +20,7 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -228,6 +230,177 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
+    'verify user navigates to Topic Details page with Content tab selected when clicking topic from Home Feed',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-23775'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify user navigates to Topic Details page with Content tab selected when clicking topic from Home Feed',
+        zephyrTestId: 'CONT-23775',
+        storyId: 'CONT-23775',
+      });
+
+      // Create topic via API
+      const topicName = faker.lorem.words(2);
+      const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
+      const topicId = topicInfo.topicId;
+
+      // Create home feed post with topic via API
+      const feedText = FEED_TEST_DATA.POST_TEXT.TOPIC;
+      await appManagerFixture.feedManagementHelper.createFeed({
+        scope: 'public',
+        text: feedText,
+        listOfTopics: [topicName],
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      // Navigate to Home Feed
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+      const feedPage = new FeedPage(appManagerFixture.page);
+      await feedPage.reloadPage();
+      await feedPage.verifyThePageIsLoaded();
+
+      // Verify the feed post is created successfully
+      await feedPage.assertions.waitForPostToBeVisible(feedText);
+
+      // Click topic hashtag from the feed post
+      await feedPage.actions.clickTopicInPost(feedText, topicName, topicId);
+
+      // Verify navigation to TopicDetailsPage
+      const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.verifyThePageIsLoaded();
+
+      // Verify Content tab is selected by default
+      await topicDetailsPage.assertions.verifyContentTabIsSelected();
+    }
+  );
+
+  test(
+    'verify user navigates to Topic Details page with Feed tab selected when clicking topic from Site Feed',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-23777'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify user navigates to Topic Details page with Feed tab selected when clicking topic from Site Feed',
+        zephyrTestId: 'CONT-23777',
+        storyId: 'CONT-23777',
+      });
+
+      // Get an existing public site
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      const siteId = siteInfo.siteId;
+
+      // Create topic via API
+      const topicName = faker.lorem.words(2);
+      const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
+      const topicId = topicInfo.topicId;
+
+      // Navigate to site dashboard
+      const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+      await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+      await siteDashboardPage.verifyThePageIsLoaded();
+
+      // Click on Feed link to go to site feed
+      await siteDashboardPage.actions.clickOnFeedLink();
+
+      // Click "Share your thoughts" button
+      const feedPage = new FeedPage(appManagerFixture.page);
+      await feedPage.actions.clickShareThoughtsButton();
+
+      // Create feed post with topic via UI
+      const feedText = FEED_TEST_DATA.POST_TEXT.TOPIC;
+      await feedPage.actions.createAndPostWithTopic(feedText, topicName);
+
+      // Verify feed post is created successfully
+      await feedPage.assertions.waitForPostToBeVisible(feedText);
+
+      // Click topic hashtag from the feed post
+      await feedPage.actions.clickTopicInPost(feedText, topicName, topicId);
+
+      // Verify navigation to TopicDetailsPage
+      const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.verifyThePageIsLoaded();
+
+      // Verify Feed tab is selected
+      await topicDetailsPage.assertions.verifyContentTabIsSelected();
+    }
+  );
+
+  test(
+    'verify user navigates to Topic Details page with Content tab selected when clicking topic from Content Feed',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-23778'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify user navigates to Topic Details page with Content tab selected when clicking topic from Content Feed',
+        zephyrTestId: 'CONT-23778',
+        storyId: 'CONT-23778',
+      });
+
+      // Get an existing public site
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      const siteId = siteInfo.siteId;
+
+      // Create a page on the site via API
+      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'knowledge',
+        },
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      // Create topic via API
+      const topicName = faker.lorem.words(2);
+      const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
+      const topicId = topicInfo.topicId;
+
+      // Navigate to Content tab and open the page content
+      const contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteId,
+        pageInfo.contentId,
+        ContentType.PAGE.toLowerCase()
+      );
+      await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+      await contentPreviewPage.verifyThePageIsLoaded();
+
+      // Click "Share your thoughts" button
+      await contentPreviewPage.actions.clickShareThoughtsButton();
+
+      // Create feed post with topic via UI
+      const feedPage = new FeedPage(appManagerFixture.page);
+      const feedText = FEED_TEST_DATA.POST_TEXT.TOPIC;
+      await feedPage.actions.createAndPostWithTopic(feedText, topicName);
+
+      // Verify feed post is created successfully
+      await feedPage.assertions.waitForPostToBeVisible(feedText);
+
+      // Click topic hashtag from the feed post
+      await feedPage.actions.clickTopicInPost(feedText, topicName, topicId);
+
+      // Verify navigation to TopicDetailsPage
+      const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.verifyThePageIsLoaded();
+
+      // Verify Content tab is selected
+      await topicDetailsPage.assertions.verifyContentTabIsSelected();
+    }
+  );
+
+  test(
     'verify cancel behaviour of delete topic',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-40977'],
@@ -248,6 +421,64 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.assertions.verifyTopicIsVisible(topicName);
     }
   );
+
+  test(
+    'verify user is navigated to Content tab first when clicked on any topic from Manage Topics',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-23779'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify user is navigated to Content tab first when clicked on any topic from Manage Topics',
+        zephyrTestId: 'CONT-23779',
+        storyId: 'CONT-23779',
+      });
+
+      // Navigate to Application Settings
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+
+      // Click on Topics link
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.verifyThePageIsLoaded();
+
+      // Get an existing topic name from the list (or create one if list is empty)
+      let topicName: string;
+      let topicId: string;
+
+      try {
+        topicName = await manageTopicsPage.getTopicNameFromList();
+        // Click on the topic link to navigate to topic details page
+        await manageTopicsPage.actions.openingSearchedTopic(topicName);
+
+        // Extract topicId from URL after navigation
+        await appManagerFixture.page.waitForURL(/\/topic\//, { timeout: TIMEOUTS.MEDIUM });
+        const currentUrl = appManagerFixture.page.url();
+        const urlMatch = currentUrl.match(/\/topic\/([^/]+)/);
+        if (!urlMatch?.[1]) {
+          throw new Error('Could not extract topicId from URL');
+        }
+        topicId = urlMatch[1];
+      } catch {
+        // If no topic exists, create one
+        topicName = faker.lorem.words(2);
+        const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
+        topicId = topicInfo.topicId;
+
+        // Reload Manage Topics page and click on the newly created topic
+        await manageTopicsPage.loadPage();
+        await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
+        await manageTopicsPage.actions.openingSearchedTopic(topicName);
+      }
+
+      // Verify navigation to TopicDetailsPage
+      const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.verifyThePageIsLoaded();
+
+      // Verify Content tab is selected by default
+      await topicDetailsPage.assertions.verifyContentTabIsSelected();
+    }
+  );
+
   test(
     'verify standard user is able to add/list topic in Content',
     {

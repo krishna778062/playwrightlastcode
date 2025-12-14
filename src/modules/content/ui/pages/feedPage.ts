@@ -160,6 +160,7 @@ export interface IFeedActions {
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
   clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
+  clickTopicInPost(postText: string, topicName: string, topicId: string): Promise<void>;
   addSiteName(siteName: string): Promise<void>;
   removeSiteMention(siteName: string): Promise<void>;
   clickOnGiveRecognition(): Promise<void>;
@@ -1514,6 +1515,41 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step(`Verify navigation to site ${siteId}`, async () => {
       // Wait for URL to contain the site ID (could be /site/{siteId} or /site/{siteId}/dashboard, etc.)
       await this.page.waitForURL(new RegExp(`/site/${siteId}`), { timeout: TIMEOUTS.MEDIUM });
+
+      // Verify the page has loaded
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  async clickTopicInPost(postText: string, topicName: string, topicId: string): Promise<void> {
+    await test.step(`Click topic #${topicName} in post and verify navigation`, async () => {
+      // Get the post container
+      const postContainer = this.listFeedComponent.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post ${postText} should be visible`,
+      });
+
+      // Find the topic link within the post
+      // Topics are rendered as links with data-type="topic" and href="/topic/{topicId}"
+      const topicLink = postContainer.getByRole('link', { name: `#${topicName}` });
+
+      // Verify the link is visible
+      await this.verifier.verifyTheElementIsVisible(topicLink, {
+        assertionMessage: `Topic #${topicName} should be visible in post`,
+      });
+
+      // Click the topic link
+      await this.clickOnElement(topicLink);
+
+      // Verify navigation to the topic details page
+      await this.verifyNavigationToTopic(topicId);
+    });
+  }
+
+  async verifyNavigationToTopic(topicId: string): Promise<void> {
+    await test.step(`Verify navigation to topic ${topicId}`, async () => {
+      // Wait for URL to contain the topic ID (could be /topic/{topicId} or /topic/{topicId}/content, etc.)
+      await this.page.waitForURL(new RegExp(`/topic/${topicId}`), { timeout: TIMEOUTS.MEDIUM });
 
       // Verify the page has loaded
       await this.page.waitForLoadState('domcontentloaded');
