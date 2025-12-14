@@ -1304,4 +1304,14 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.getByText(this.jiraTicketPriority).first()).toBeVisible();
     });
   }
+  /**
+   * Set Up tile with text area input
+   */
+  async setUpTileTextArea(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.setUpTileTextAreaInput(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
+    });
+  }
 }
