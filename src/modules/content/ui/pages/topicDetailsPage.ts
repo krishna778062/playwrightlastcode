@@ -169,14 +169,9 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
 
   async verifyContentTabIsSelected(): Promise<void> {
     await test.step('Verify Content tab is selected by default', async () => {
-      await this.verifier.verifyElementHasAttribute(
-        this.contentTab,
-        'aria-selected',
-        'true',
-        {
-          assertionMessage: 'Content tab should be selected by default',
-        }
-      );
+      await this.verifier.verifyElementHasAttribute(this.contentTab, 'aria-selected', 'true', {
+        assertionMessage: 'Content tab should be selected by default',
+      });
     });
   }
 }
