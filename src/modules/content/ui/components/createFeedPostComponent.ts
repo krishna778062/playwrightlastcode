@@ -75,6 +75,7 @@ export interface ICreateFeedPostAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPostButtonDisabled: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -895,6 +896,15 @@ export class CreateFeedPostComponent
   async verifyUpdateButtonDisabled(): Promise<void> {
     await test.step('Verify update button is disabled', async () => {
       await expect(this.updateButton).toBeDisabled();
+    });
+  }
+
+  /**
+   * Verifies that the Post button is disabled
+   */
+  async verifyPostButtonDisabled(): Promise<void> {
+    await test.step('Verify Post button is disabled', async () => {
+      await expect(this.postButton).toBeDisabled();
     });
   }
 
