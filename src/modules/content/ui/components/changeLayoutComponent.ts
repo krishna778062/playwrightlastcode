@@ -8,7 +8,7 @@ export interface IChangeLayoutActions {
   selectTileLayout: (layoutIndex: string) => Promise<void>;
 }
 
-export interface IChangeLayoutAssertions { }
+export interface IChangeLayoutAssertions {}
 
 export class ChangeLayoutComponent extends BaseComponent implements IChangeLayoutActions, IChangeLayoutAssertions {
   readonly includeFeed: Locator;
@@ -63,7 +63,6 @@ export class ChangeLayoutComponent extends BaseComponent implements IChangeLayou
 
   async selectTileLayout(layoutSign: string): Promise<void> {
     await test.step(`Select tile layout with sign ${layoutSign} and enable feed`, async () => {
-      
       const tileLayoutRadioButton = this.tileLayoutRadioButtons(layoutSign);
 
       await this.verifier.verifyTheElementIsVisible(tileLayoutRadioButton, {
