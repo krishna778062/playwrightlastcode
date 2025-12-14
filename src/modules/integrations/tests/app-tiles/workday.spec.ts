@@ -1639,7 +1639,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard - time off',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
 
       async ({ appManagerFixture }) => {
@@ -1679,7 +1679,7 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(Leave of absence) app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -1710,7 +1710,7 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(Time off) app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY, '@workdayleave'],
+        tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -1741,13 +1741,7 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(All) app manager defined tile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayleave',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
