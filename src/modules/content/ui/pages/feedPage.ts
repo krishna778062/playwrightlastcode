@@ -263,6 +263,7 @@ export interface IFeedAssertions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
   verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
+  verifyMustReadSectionIsVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -290,6 +291,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   readonly allCommentsIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
+  readonly mustReadSection: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -323,6 +325,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
     this.celebrationBlockUserName = (userName: string) =>
       this.page.locator('div').filter({ hasText: `Birthday${userName}` });
+    this.mustReadSection = this.page.getByRole('menuitem', { name: 'Must reads Must reads' }).first();
   }
 
   get actions(): IFeedActions {
@@ -907,6 +910,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await test.step('Verify Celebration smart block is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.celebrationBlock, {
         assertionMessage: 'Celebration smart block should be visible',
+      });
+    });
+  }
+
+  async verifyMustReadSectionIsVisible(): Promise<void> {
+    await test.step('Verify Must Read section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.mustReadSection, {
+        assertionMessage: 'Must Read section should be visible',
       });
     });
   }

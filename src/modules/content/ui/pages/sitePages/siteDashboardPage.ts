@@ -8,6 +8,7 @@ import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
@@ -20,6 +21,11 @@ export interface ISiteDashboardActions {
   clickOnEditCarousel: () => Promise<void>;
   clickOnAddTile: () => Promise<void>;
   clickOnEditDashboard: () => Promise<void>;
+  clickOnChangeLayout: () => Promise<void>;
+  clickIncludeFeed: () => Promise<void>;
+  checkIncludeFeed: () => Promise<void>;
+  selectTileLayout: (layoutSign: string) => Promise<void>;
+  clickExcludeFeed: () => Promise<void>;
   enterSearchCarouselInput: (text: string) => Promise<void>;
   selectCarouselItem: (text: string) => Promise<void>;
   clickDoneButton: () => Promise<void>;
@@ -99,6 +105,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   private addTileComponent: AddTileComponent;
   private createQuestionComponent: CreateQuestionComponent;
   private createFeedPostComponent: CreateFeedPostComponent;
+  readonly changeLayoutComponent: ChangeLayoutComponent;
   // Actions
   get actions(): ISiteDashboardActions {
     return this;
@@ -112,6 +119,7 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
+    this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
@@ -216,6 +224,26 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step('Click on edit dashboard', async () => {
       await this.clickOnElement(this.editDashboardButton);
     });
+  }
+
+  async clickOnChangeLayout(): Promise<void> {
+    return this.editbarComponent.clickChangeLayout();
+  }
+
+  async clickIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickIncludeFeed();
+  }
+
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
+  }
+
+  async selectTileLayout(layoutSign: string): Promise<void> {
+    return this.changeLayoutComponent.selectTileLayout(layoutSign);
+  }
+
+  async clickExcludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickExcludeFeed();
   }
 
   async clickOnAddTile(): Promise<void> {

@@ -358,7 +358,7 @@ export class ListFeedComponent
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
     this.upcomingEventsBlock = this.page.locator('header').filter({ hasText: 'Upcoming event' });
     this.recentlyPublishedBlock = this.page.locator('header').filter({ hasText: 'Recently published' });
-    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebration` });
     this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
     this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
