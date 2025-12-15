@@ -2561,7 +2561,6 @@ test.describe(
 
         // ==================== VERIFY POST UPDATED ====================
         await test.step('Verify feed post is updated successfully', async () => {
-
           await adminFeedPage.assertions.waitForPostToBeVisible(updatedPostText);
 
           await adminFeedPage.assertions.verifyPostDetails(updatedPostText, 6);
