@@ -84,7 +84,7 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -134,7 +134,7 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -187,7 +187,7 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -245,7 +245,7 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
