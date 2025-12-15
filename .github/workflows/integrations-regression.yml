@@ -2,8 +2,8 @@ name: Integrations Regression Tests
 
 on:
   schedule:
-    # Run only on Monday, Wednesday, Friday at 1 AM UTC
-    - cron: '0 1 * * 1,3,5'
+    # Run at 5 AM IST on Monday, Wednesday, Friday (23:30 UTC on Sunday, Tuesday, Thursday)
+    - cron: '30 23 * * 0,2,4'
   workflow_dispatch: # allows manual triggering for testing
 
 permissions:
@@ -13,8 +13,8 @@ permissions:
 
 jobs:
   integrations-regression-tests:
-    timeout-minutes: 200
-    runs-on: [kubernetes]
+    timeout-minutes: 300
+    runs-on: [kubernetes-pvc]
     strategy:
       fail-fast: false
       matrix:
@@ -59,14 +59,15 @@ jobs:
           # Get current day of month
           DAY_OF_MONTH=$(date +%d)
 
-          # Check: Verify today is Monday, Wednesday, or Friday (1, 3, 5)
+          # Check: Verify today is Sunday, Tuesday, or Thursday in UTC (7, 2, 4)
+          # Cron runs at 23:30 UTC on these days, which is 5 AM IST the next day (Mon/Wed/Fri)
           # Cron is already set to run only on these days, but this is a safeguard
-          if [[ "$DAY_OF_WEEK" == "1" || "$DAY_OF_WEEK" == "3" || "$DAY_OF_WEEK" == "5" ]]; then
+          if [[ "$DAY_OF_WEEK" == "7" || "$DAY_OF_WEEK" == "2" || "$DAY_OF_WEEK" == "4" ]]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Schedule Check Passed: Running integrations regression on $(date +%A), $(date +%B) $DAY_OF_MONTH at $(date +%T) UTC"
+            echo "Schedule Check Passed: Running integrations regression on $(date +%A), $(date +%B) $DAY_OF_MONTH at $(date +%T) UTC (5 AM IST next day)"
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "Schedule Check: Skipping run - Today is $(date +%A), $(date +%B) $DAY_OF_MONTH (Tests only run on Mon/Wed/Fri)"
+            echo "Schedule Check: Skipping run - Today is $(date +%A), $(date +%B) $DAY_OF_MONTH (Tests only run at 5 AM IST on Mon/Wed/Fri, which is 23:30 UTC on Sun/Tue/Thu)"
           fi
 
       - name: Run integrations regression tests
@@ -75,7 +76,7 @@ jobs:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run integrations regression tests
-          npm run test:${{ matrix.module }} -- --workers=4
+          npm run test:${{ matrix.module }} -- --workers=7
 
       - name: Upload test report to github artifact backup
         if: always()
@@ -235,9 +236,9 @@ jobs:
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks for integrations
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *Integrations Regression (Mon/Wed/Fri)* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="🧪 *Integrations Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="🧪 *Integrations Regression (Mon/Wed/Fri)* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              MESSAGE="🧪 *Integrations Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl

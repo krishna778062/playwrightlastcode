@@ -30,6 +30,16 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
     return;
   }
 
+  // Data Engineering module uses dataEngineeringConfig.ts and snowflakeConfig.ts instead of .env files
+  if (moduleName === Modules.DATA_ENGINEERING) {
+    log.info(`Skipping env file loading for data-engineering module (uses config files instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
   // Resolve paths relative to project root
   const envPath = path.resolve(PROJECT_ROOT, `src/modules/${moduleName}/env/${envName}.env`);
   const googleCalendarSecretsPath = path.resolve(

@@ -314,6 +314,13 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Click on "Create your own app" link in prebuilt app dialog
+   */
+  async clickCreateYourOwnAppLink(): Promise<void> {
+    return this.customAppsComponent.clickCreateYourOwnAppLink();
+  }
+
+  /**
    * Verify no results message with "Try adjusting search terms or filters, or create your own app" text
    */
   async verifyNoResultsMessageWithCreateOwnApp(): Promise<void> {
@@ -1207,6 +1214,17 @@ export class CustomAppsIntegrationPage extends BasePage {
   async verifySaveButtonIsDisabled(): Promise<void> {
     await test.step('Verify Save button is disabled', async () => {
       await expect(this.saveButtonByRole, 'Expected Save button to be disabled').toBeDisabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify Save button is enabled
+   */
+  async verifySaveButtonIsEnabled(): Promise<void> {
+    await test.step('Verify Save button is enabled', async () => {
+      await expect(this.saveButtonByRole, 'Expected Save button to be enabled').toBeEnabled({
         timeout: TIMEOUTS.SHORT,
       });
     });

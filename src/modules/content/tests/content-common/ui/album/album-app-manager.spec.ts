@@ -59,6 +59,7 @@ test.describe(
           TestGroupType.REGRESSION,
           ContentSuiteTags.ALBUM_CREATION,
           '@healthcheck',
+          '@CONT-11065',
         ],
       },
       async ({ appManagerFixture }) => {

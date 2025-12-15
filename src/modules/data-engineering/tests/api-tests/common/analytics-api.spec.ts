@@ -4,6 +4,17 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { expectValidSchema } from '@/src/modules/data-engineering/api/helpers/schemaValidationHelper';
+import {
+  GetBatchRunDetailsResponseSchema,
+  GetCompanyNamesResponseSchema,
+  GetDepartmentsResponseSchema,
+  GetDivisionsResponseSchema,
+  GetLocationsResponseSchema,
+  GetSegmentsResponseSchema,
+  GetUserCategoriesResponseSchema,
+} from '@/src/modules/data-engineering/api/schemas';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DataEngineeringTestSuite } from '@/src/modules/data-engineering/constants/testSuite';
 import { analyticsTestFixture as test } from '@/src/modules/data-engineering/fixtures/analyticsFixture';
 
@@ -25,33 +36,45 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveSegments();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetSegmentsResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveSegmentsFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
         const dbMap = new Map(dbResults.map((s: any) => [s.SEGMENT_CODE, s.SEGMENT_NAME]));
-        apiResponse.data.forEach(seg => {
+        validatedResponse.data.forEach(seg => {
           expect(dbMap.has(seg.segment_code), `Segment ${seg.segment_code} should exist in Snowflake UDL`).toBe(true);
           expect(seg.segment_name, `Segment name for ${seg.segment_code} should match UDL`).toBe(
             dbMap.get(seg.segment_code)
           );
         });
 
-        console.log(`✅ Segments: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Segments: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -67,25 +90,34 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveDepartments();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetDepartmentsResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveDepartmentsFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
-        const apiDepts = new Set(apiResponse.data.map((d: any) => d.department));
+        const apiDepts = new Set(validatedResponse.data.map(d => d.department));
         const dbDepts = new Set(dbResults.map((d: any) => d.DEPARTMENT));
 
         apiDepts.forEach((dept: string) => {
@@ -96,7 +128,10 @@ test.describe(
           expect(apiDepts.has(dept), `Department "${dept}" from UDL should exist in API response`).toBe(true);
         });
 
-        console.log(`✅ Departments: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Departments: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -112,25 +147,34 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveLocations();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetLocationsResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveLocationsFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
-        const apiLocations = new Set(apiResponse.data.map((d: any) => d.location));
+        const apiLocations = new Set(validatedResponse.data.map(d => d.location));
         const dbLocations = new Set(dbResults.map((d: any) => d.LOCATION));
 
         apiLocations.forEach((location: string) => {
@@ -141,7 +185,10 @@ test.describe(
           expect(apiLocations.has(location), `Location "${location}" from UDL should exist in API response`).toBe(true);
         });
 
-        console.log(`✅ Locations: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Locations: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -157,26 +204,35 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveUserCategories();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetUserCategoriesResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveUserCategoriesFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
         const dbMap = new Map(dbResults.map((s: any) => [s.USER_CATEGORY_CODE, s.USER_CATEGORY_NAME]));
-        apiResponse.data.forEach(cat => {
+        validatedResponse.data.forEach(cat => {
           expect(
             dbMap.has(cat.user_category_code),
             `User category ${cat.user_category_code} should exist in Snowflake UDL`
@@ -186,7 +242,10 @@ test.describe(
           );
         });
 
-        console.log(`✅ User Categories: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `User Categories: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -202,25 +261,34 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveCompanyNames();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetCompanyNamesResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveCompanyNamesFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
-        const apiCompanyNames = new Set(apiResponse.data.map((d: any) => d.company_name));
+        const apiCompanyNames = new Set(validatedResponse.data.map(d => d.company_name));
         const dbCompanyNames = new Set(dbResults.map((d: any) => d.COMPANY_NAME));
 
         apiCompanyNames.forEach((name: string) => {
@@ -231,7 +299,10 @@ test.describe(
           expect(apiCompanyNames.has(name), `Company name "${name}" from UDL should exist in API response`).toBe(true);
         });
 
-        console.log(`✅ Company Names: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Company Names: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -247,25 +318,34 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getActiveDivisions();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.status, 'Metadata status should match request').toBe('active');
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetDivisionsResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.status, 'Metadata status should match request').toBe('active');
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getActiveDivisionsFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
-        const apiDivisions = new Set(apiResponse.data.map((d: any) => d.division));
+        const apiDivisions = new Set(validatedResponse.data.map(d => d.division));
         const dbDivisions = new Set(dbResults.map((d: any) => d.DIVISION));
 
         apiDivisions.forEach((division: string) => {
@@ -276,7 +356,10 @@ test.describe(
           expect(apiDivisions.has(division), `Division "${division}" from UDL should exist in API response`).toBe(true);
         });
 
-        console.log(`✅ Divisions: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Divisions: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
 
@@ -292,25 +375,34 @@ test.describe(
         });
 
         const { analyticsApiService, analyticsQueryHelper } = appManagerApiFixture;
-        const tenantCode = process.env.ORG_ID;
+        const tenantCode = getDataEngineeringConfigFromCache().orgId;
 
         const startTime = Date.now();
         const apiResponse = await analyticsApiService.getBatchRunDetails();
         const responseTime = Date.now() - startTime;
 
-        expect(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
-        expect(apiResponse.success, 'API should return success=true').toBe(true);
-        expect(apiResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
-        expect(apiResponse.metadata.count, 'Metadata count should match data array length').toBe(
-          apiResponse.data.length
+        expect.soft(responseTime, 'API response time should be under 1 second').toBeLessThan(1000);
+
+        // Validate response schema using Zod
+        const validatedResponse = expectValidSchema(
+          GetBatchRunDetailsResponseSchema,
+          apiResponse,
+          'Verify API response matches expected schema'
+        );
+
+        // Validate business logic
+        expect(validatedResponse.success, 'API should return success=true').toBe(true);
+        expect(validatedResponse.metadata.tenantId, 'Metadata tenantId should match request').toBe(tenantCode);
+        expect(validatedResponse.metadata.count, 'Metadata count should match data array length').toBe(
+          validatedResponse.data.length
         );
 
         const dbResults = await analyticsQueryHelper.getBatchRunDetailsFromDB();
 
-        expect(apiResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
+        expect(validatedResponse.data.length, 'API data count should match Snowflake UDL count').toBe(dbResults.length);
 
         const dbMap = new Map(dbResults.map((b: any) => [b.BATCH_NAME, b.LAST_BATCH_END_TIME]));
-        apiResponse.data.forEach(batch => {
+        validatedResponse.data.forEach(batch => {
           expect(dbMap.has(batch.batch_name), `Batch ${batch.batch_name} should exist in Snowflake UDL`).toBe(true);
 
           // Normalize timestamps to 'YYYY-MM-DD HH:mm:ss.SSS' format
@@ -329,7 +421,10 @@ test.describe(
           ).toBe(dbTime);
         });
 
-        console.log(`✅ Batch Run Details: ${apiResponse.data.length} | Response: ${responseTime}ms | UDL Match: OK`);
+        test.info().annotations.push({
+          type: 'API Summary',
+          description: `Batch Run Details: ${validatedResponse.data.length} | Response: ${responseTime}ms | Schema: Valid | UDL Match: OK`,
+        });
       }
     );
   }

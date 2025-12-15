@@ -121,7 +121,7 @@ export const REDIRECT_URLS = {
   WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
   WORKDAY_JOB_POSTINGS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/inst/9925$1420/rel-task/2998$16774.htmld',
   WORKDAY_EXTERNAL_JOB_POSTINGS: 'https://simpplr-dpt1.impl-wd12.myworkdayjobs.com/External',
-  FRESHSERVICE: 'https://simpplr-913437188788850422.myfreshworks.com',
+  FRESHSERVICE: 'https://simpplr-919461751771098470.myfreshworks.com',
   SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
   SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
   ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
@@ -272,4 +272,5 @@ export const WORKDAY_VALUES = {
 export const JIRA_VALUES = {
   PROJECT: 'Project',
   INTEGRATIONS: 'Integrations',
+  JIRA_JQL_QUERY: 'project = "INT" AND assignee = 607d428f1417e2006aacea72 AND type = Story ORDER BY created DESC',
 } as const;
