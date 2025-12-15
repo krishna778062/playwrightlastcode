@@ -40,7 +40,7 @@ test.describe('daily Pulse Survey Creation Tests', () => {
         storyId: 'EL-Daily Pulse Survey Creation',
       });
 
-      const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+      const timestamp = new Date().toISOString().slice(0, 10);
       await surveyCreationPage.clickCreateSurveyButton();
       await pulseSurveyPage.clickPulseSurvey();
       await surveyCreationPage.clickCreateButton();

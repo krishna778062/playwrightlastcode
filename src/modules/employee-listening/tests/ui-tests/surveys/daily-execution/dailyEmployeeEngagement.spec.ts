@@ -36,7 +36,7 @@ test.describe('daily Employee Engagement Survey Creation Tests', () => {
         storyId: 'EL-Daily Employee Engagement Survey Creation',
       });
 
-      const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+      const timestamp = new Date().toISOString().slice(0, 10);
       await surveyCreationPage.createBasicSurveySetup(`Daily Employee Engagement ${timestamp}`);
       await surveyCreationPage.selectAudiences(['All Employees']);
       await surveyCreationPage.selectDefaultIntroAndThanks();
