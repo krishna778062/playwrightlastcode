@@ -1734,62 +1734,147 @@ export class SurveyCreationPage extends BasePage {
   }
   async addQuestionFromBankWithSearch(questionText: string): Promise<void> {
     await test.step(`Add question from bank using search: ${questionText}`, async () => {
-      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).fill(questionText);
-      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
-      await this.page.waitForTimeout(2000);
-      await this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first().check();
-      await this.page.getByRole('button', { name: 'Done' }).click();
-      await this.page.waitForTimeout(3000);
+      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+        stepInfo: 'Click Browse question bank button',
+      });
+      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+        assertionMessage: 'Search textbox should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(searchTextbox, {
+        stepInfo: 'Click on search textbox',
+      });
+      await this.fillInElement(searchTextbox, questionText, {
+        stepInfo: `Fill search textbox with: ${questionText}`,
+      });
+      await searchTextbox.press('Enter');
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      const firstCheckbox = this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first();
+      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
+        assertionMessage: 'First checkbox should be visible after search',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(firstCheckbox, {
+        stepInfo: 'Select first question from search results',
+      });
+      await this.clickDoneButton();
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
 
   async addScaleQuestionFromBankWithSearch(): Promise<void> {
     await test.step('Add scale question from bank using search', async () => {
       const scaleQuestion = SURVEY_QUESTION_BANK.SCALE[0].question;
-      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).fill(scaleQuestion);
-      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
-      await this.page.waitForTimeout(2000);
-      await this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first().check();
-      await this.page.getByRole('button', { name: 'Done' }).click();
-      await this.page.waitForTimeout(3000);
+      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+        stepInfo: 'Click Browse question bank button',
+      });
+      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+        assertionMessage: 'Search textbox should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(searchTextbox, {
+        stepInfo: 'Click on search textbox',
+      });
+      await this.fillInElement(searchTextbox, scaleQuestion, {
+        stepInfo: `Fill search textbox with scale question: ${scaleQuestion}`,
+      });
+      await searchTextbox.press('Enter');
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      const scaleCheckbox = this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first();
+      await this.verifier.verifyTheElementIsVisible(scaleCheckbox, {
+        assertionMessage: 'Scale question checkbox should be visible after search',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(scaleCheckbox, {
+        stepInfo: 'Select scale question from search results',
+      });
+      await this.clickDoneButton();
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
 
   async addMultipleChoiceQuestionFromBankWithSearch(): Promise<void> {
     await test.step('Add multiple choice question from bank using search', async () => {
       const mcqQuestion = SURVEY_QUESTION_BANK.MCQ[0].question;
-      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
-      await this.page
+      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+        stepInfo: 'Click Browse question bank button',
+      });
+      const multipleChoiceTab = this.page
         .locator('div')
         .filter({ hasText: /^Multiple choice$/ })
-        .nth(1)
-        .click();
-      await this.page.getByRole('textbox', { name: 'search' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).fill(mcqQuestion);
-      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
-      await this.page.waitForTimeout(2000);
-      await this.page.getByRole('checkbox').first().check();
-      await this.page.getByRole('button', { name: 'Done' }).click();
-      await this.page.waitForTimeout(3000);
+        .nth(1);
+      await this.verifier.verifyTheElementIsVisible(multipleChoiceTab, {
+        assertionMessage: 'Multiple choice tab should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(multipleChoiceTab, {
+        stepInfo: 'Click Multiple choice tab',
+      });
+      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+        assertionMessage: 'Search textbox should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(searchTextbox, {
+        stepInfo: 'Click on search textbox',
+      });
+      await this.fillInElement(searchTextbox, mcqQuestion, {
+        stepInfo: `Fill search textbox with MCQ question: ${mcqQuestion}`,
+      });
+      await searchTextbox.press('Enter');
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      const firstCheckbox = this.page.getByRole('checkbox').first();
+      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
+        assertionMessage: 'First MCQ checkbox should be visible after search',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(firstCheckbox, {
+        stepInfo: 'Select multiple choice question from search results',
+      });
+      await this.clickDoneButton();
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
 
   async addFreeTextQuestionFromBankWithSearch(): Promise<void> {
     await test.step('Add free text question from bank using search', async () => {
       const freeTextQuestion = SURVEY_QUESTION_BANK.FREE_TEXT[0].question;
-      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
-      await this.page.getByText('Free text').click();
-      await this.page.getByRole('textbox', { name: 'search' }).click();
-      await this.page.getByRole('textbox', { name: 'search' }).fill(freeTextQuestion);
-      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
-      await this.page.waitForTimeout(2000);
-      await this.page.getByRole('checkbox').first().check();
-      await this.page.getByRole('button', { name: 'Done' }).click();
-      await this.page.waitForTimeout(3000);
+      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+        stepInfo: 'Click Browse question bank button',
+      });
+      const freeTextTab = this.page.getByText('Free text');
+      await this.verifier.verifyTheElementIsVisible(freeTextTab, {
+        assertionMessage: 'Free text tab should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(freeTextTab, {
+        stepInfo: 'Click Free text tab',
+      });
+      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+        assertionMessage: 'Search textbox should be visible in question bank',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(searchTextbox, {
+        stepInfo: 'Click on search textbox',
+      });
+      await this.fillInElement(searchTextbox, freeTextQuestion, {
+        stepInfo: `Fill search textbox with free text question: ${freeTextQuestion}`,
+      });
+      await searchTextbox.press('Enter');
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      const firstCheckbox = this.page.getByRole('checkbox').first();
+      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
+        assertionMessage: 'First free text checkbox should be visible after search',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(firstCheckbox, {
+        stepInfo: 'Select free text question from search results',
+      });
+      await this.clickDoneButton();
+      await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
 }
