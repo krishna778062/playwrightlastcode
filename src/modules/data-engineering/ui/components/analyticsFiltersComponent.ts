@@ -134,11 +134,20 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   async verifyFiltersAreVisible() {
     await test.step('Verify common filters are visible', async () => {
-      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Location'), 'Location filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Company name'), 'Company name filter should be visible').toBeVisible();
-      await expect(this.filterGroup('People Category'), 'People Category filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Period'), 'Period filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.DEPARTMENT),
+        'Department filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.LOCATION), 'Location filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.COMPANY_NAME),
+        'Company name filter should be visible'
+      ).toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.PEOPLE_CATEGORY),
+        'People Category filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.PERIOD), 'Period filter should be visible').toBeVisible();
     });
   }
 

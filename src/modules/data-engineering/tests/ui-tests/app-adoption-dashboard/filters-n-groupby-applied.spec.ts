@@ -13,6 +13,7 @@ import { AppAdoptionDashboard } from '../../../ui/dashboards';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupAppAdoptionDashboardForTest,
@@ -49,7 +50,7 @@ test.describe.fixme(
         testEnvironment = await setupAppAdoptionDashboardForTest(browser, UserRole.APP_MANAGER);
 
         testFiltersConfig = {
-          tenantCode: process.env.ORG_ID!,
+          tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
           departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],

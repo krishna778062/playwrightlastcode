@@ -495,7 +495,7 @@ export class ManageContentComponent extends BaseComponent {
   }
   async clickOnValidationViewAllButton(): Promise<void> {
     await test.step('Clicking on the validation view all button', async () => {
-      await this.clickOnElement(this.validationRequiredInfoBox);
+      await this.clickOnElement(this.validationViewAllButton);
     });
   }
 
@@ -685,6 +685,30 @@ export class ManageContentComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
         await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
       } else {
+      }
+    });
+  }
+
+  /**
+   * Selects a specific page category by name from the dropdown
+   * @param categoryName - The name of the page category to select
+   */
+  async selectPageCategoryByName(categoryName: string): Promise<void> {
+    await test.step(`Selecting page category: ${categoryName}`, async () => {
+      // Click on the page category dropdown
+      if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdown)) {
+        await this.clickOnElement(this.pageCategorySelectorDropdown);
+        // Wait for dropdown options to appear
+        await this.page.waitForTimeout(500);
+        // Select the category by name
+        const categoryOption = this.page.getByRole('option', { name: categoryName, exact: true }).first();
+        if (await this.verifier.isTheElementVisible(categoryOption)) {
+          await this.clickOnElement(categoryOption);
+        } else {
+          throw new Error(`Page category "${categoryName}" not found in dropdown`);
+        }
+      } else {
+        throw new Error('Page category selector dropdown is not visible');
       }
     });
   }

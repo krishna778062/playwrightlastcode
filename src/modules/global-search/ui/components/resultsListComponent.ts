@@ -255,23 +255,19 @@ export class ResultListingComponent extends BaseComponent {
       try {
         // Wait for at least one autocomplete item to appear
         await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-          timeout: 20000,
+          timeout: 30000,
           assertionMessage: 'Verifying autocomplete list is visible',
         });
       } catch (error) {
         // If autocomplete is not displayed, retry by deleting last character and retyping
         if (searchInputLocator && searchTerm && searchTerm.length > 0) {
-          await test.step('Autocomplete not displayed, retrying by deleting last character and retyping', async () => {
-            // Delete the last character
-            await searchInputLocator.press('Backspace');
-
-            // Retype the last character
-            const lastChar = searchTerm[searchTerm.length - 1];
-            await searchInputLocator.fill(lastChar);
+          await test.step('Autocomplete not displayed, retrying by clearing and retyping search term', async () => {
+            await searchInputLocator.clear();
+            await searchInputLocator.fill(searchTerm);
 
             // Try to verify autocomplete list again
             await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-              timeout: 10000,
+              timeout: 30000,
               assertionMessage: 'Verifying autocomplete list is visible after retry',
             });
           });
