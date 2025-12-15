@@ -12,6 +12,7 @@ import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../..
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSocialInteractionDashboardForTest,
@@ -47,7 +48,7 @@ test.describe(
       testEnvironment = await setupSocialInteractionDashboardForTest(browser, UserRole.APP_MANAGER);
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
         segments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.SEGMENTS],
         departments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.DEPARTMENTS],

@@ -11,6 +11,7 @@ import { OverviewDashboard } from '../../../ui/dashboards';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupOverviewDashboardForTest,
@@ -39,7 +40,7 @@ test.describe(
 
       // Overview dashboard has no filters, using default config for DB queries
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, // default period for DB queries
       };
     });

@@ -1032,6 +1032,48 @@ export class TileOperationsComponent extends BaseAppTileComponent {
   }
 
   /**
+   * Verify Workday Time Off tile metadata.
+   */
+  async verifyWorkdayTimeOffMetadata(tileTitle: string, leaveType?: string): Promise<void> {
+    await test.step(`Verify Workday Time Off metadata for '${tileTitle}'`, async () => {
+      const tile = this.getTileContainers(tileTitle).first();
+      await expect(tile, `Tile '${tileTitle}' should be visible`).toBeVisible({ timeout: 10_000 });
+      const rows = tile.locator('[data-testid="container"]');
+      await expect(rows.first(), 'At least one row should be visible').toBeVisible();
+      const firstRow = rows.first();
+
+      const expectedType = (leaveType || 'Time off').toLowerCase();
+      if (expectedType === 'all') {
+        await expect(
+          rows.filter({ hasText: /Time off/i }).first(),
+          "One 'Time off' row should be visible"
+        ).toBeVisible();
+        await expect(
+          rows.filter({ hasText: /Leave of absence/i }).first(),
+          "One 'Leave of absence' row should be visible"
+        ).toBeVisible();
+      } else if (expectedType === 'time off') {
+        await expect(firstRow.getByText(/^Time off$/i).first(), "First line should be 'Time off'").toBeVisible();
+      } else if (expectedType === 'leave of absence') {
+        await expect(
+          firstRow.getByText(/^Leave of absence$/i).first(),
+          "First line should be 'Leave of absence'"
+        ).toBeVisible();
+      }
+
+      const titleEl = firstRow.getByRole('heading', { level: 3 }).first();
+      await expect(titleEl, 'Leave title should be visible').toBeVisible();
+      const titleText = (await titleEl.textContent())?.trim() ?? '';
+      expect(titleText.length > 0, 'Leave title should not be empty').toBeTruthy();
+
+      const balancePattern = /Balance:\s*-?\d+(?:\.\d{1,2})?\s+(Hours|Days)/i;
+      await expect(
+        firstRow.getByText(balancePattern).first(),
+        "Balance line should match 'Balance: <number> Hours/Days'"
+      ).toBeVisible();
+    });
+  }
+  /**
    * Verify Workday Job Postings metadata based on job type
    */
   async verifyWorkdayJobPostingsmetadata(tileTitle: string, jobType: string): Promise<void> {
@@ -1302,6 +1344,16 @@ export class TileOperationsComponent extends BaseAppTileComponent {
       await expect(tile.getByText(this.jiraTicketType).first()).toBeVisible();
       // Verify ticket priority is visible
       await expect(tile.getByText(this.jiraTicketPriority).first()).toBeVisible();
+    });
+  }
+  /**
+   * Set Up tile with text area input
+   */
+  async setUpTileTextArea(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await test.step(` tile: ${tileTitle}`, async () => {
+      await this.openSetUpOptions(tileTitle);
+      await this.setUpTileTextAreaInput(fieldName, fieldValue);
+      await this.clickButton(DASHBOARD_BUTTONS.SAVE);
     });
   }
 }
