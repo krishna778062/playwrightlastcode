@@ -10,8 +10,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { waitUntilTilePresentInApi } from '@/src/modules/integrations/apis/helpers/tileApiHelpers';
-import { REDIRECT_URLS, WORKDAY_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { REDIRECT_URLS, WORKDAY_CREDS, WORKDAY_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
+import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
 test.describe(
@@ -43,6 +44,34 @@ test.describe(
         createdTileTitle = undefined;
       }
     });
+
+    // Verify Workday connection as the first test
+    multiUserTileFixture(
+      'verify workday is connected with valid credentials',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workdayleave'],
+      },
+      async ({ adminPage }) => {
+        tagTest(multiUserTileFixture.info(), {
+          zephyrTestId: 'INT-21414',
+          storyId: 'INT-21182',
+        });
+        const peopleTab = new PeopleTabPage(adminPage);
+        await peopleTab.navigateToPeopleDataPage();
+        await peopleTab.verifyNavigatedToPeoplePage();
+        await peopleTab.deselectWorkdayIfChecked();
+        await peopleTab.configureWorkdayCredentials({
+          username: WORKDAY_CREDS.USERNAME,
+          password: WORKDAY_CREDS.PASSWORD,
+          wsdlUrl: WORKDAY_CREDS.WSURL,
+          tenantId: WORKDAY_CREDS.TENANT_ID,
+          clientId: WORKDAY_CREDS.CLIENT_ID,
+          clientSecret: WORKDAY_CREDS.CLIENT_SECRET,
+          refreshToken: WORKDAY_CREDS.REFRESH_TOKEN,
+        });
+        await peopleTab.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+      }
+    );
 
     multiUserTileFixture(
       'verify Display pending learning courses workday apptile is visible to end users after it has been added by the App Manager',
@@ -371,7 +400,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Display Time Off default apptile is visible to end users on home dashboard after it has been added by the App Manager',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workdayleave'],
       },
       async ({ adminPage, endUserPage, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
@@ -396,7 +425,7 @@ test.describe(
     multiUserTileFixture(
       'Verify Display Time Off default apptile is visible to end users on site dashboard after it has been added by the Site Manager',
       {
-        tag: [TestPriority.P3, TestGroupType.SANITY],
+        tag: [TestPriority.P3, TestGroupType.SANITY, '@workdayleave'],
       },
       async ({ adminPage, endUserPage, siteManagementHelper, tileManagementHelper }) => {
         tagTest(multiUserTileFixture.info(), {
