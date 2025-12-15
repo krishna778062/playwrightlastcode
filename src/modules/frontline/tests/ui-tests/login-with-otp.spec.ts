@@ -420,7 +420,7 @@ test.describe(
         });
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('mobile', 'optional');
         await loginWithOtpPage.skipVerificationPage();
 
         // Verify navigation to home page
@@ -535,7 +535,7 @@ test.describe(
         });
 
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('mobile', 'optional');
         await loginWithOtpPage.clickDontShowThisAgainButton();
 
         // Verify navigation to home page
@@ -695,7 +695,7 @@ test.describe(
           password: userDetails.endUserPassword,
         });
         const loginWithOtpPage = new LoginWithOtpPage(page);
-        await loginWithOtpPage.verifyForceAddContactPageForIdentifierTypeMobileOrEmail('mobile');
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('mobile', 'optional');
         await loginWithOtpPage.skipVerificationPage();
 
         const topNavBar = new TopNavBarComponent(page);

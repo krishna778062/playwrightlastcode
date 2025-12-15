@@ -295,15 +295,6 @@ export class LoginWithOtpPage extends BasePage {
     }
   }
 
-  /**
-   * Verifies the force add contact page for a specific identifier type and LWO setting.
-   * In optional mode, skip and "don't show this again" buttons ARE visible.
-   * In mandatory mode, skip and "don't show this again" buttons are NOT visible.
-   * This applies when login identifiers are: email and mobile, mobile, emp id, or emp id and mobile,
-   * and user doesn't have the required contact info (email/mobile) added during creation.
-   * @param verificationType - The type of contact to add ('email' or 'mobile')
-   * @param lwoType - The LWO setting type ('optional' or 'mandatory'), defaults to 'optional'
-   */
   async verifyForceAddContactPageForIdentifierType(
     verificationType: 'email' | 'mobile',
     lwoType: 'optional' | 'mandatory' = 'optional'
@@ -334,28 +325,6 @@ export class LoginWithOtpPage extends BasePage {
     });
   }
 
-  /**
-   * @deprecated Use verifyForceAddContactPageForIdentifierType with lwoType='optional' instead
-   */
-  async verifyForceAddContactPageForIdentifierTypeMobileOrEmail(verificationType: string): Promise<void> {
-    await this.verifyForceAddContactPageForIdentifierType(verificationType as 'email' | 'mobile', 'optional');
-  }
-
-  /**
-   * @deprecated Use verifyForceAddContactPageForIdentifierType with lwoType='mandatory' instead
-   */
-  async verifyMandatoryForceAddContactPageForIdentifierType(verificationType: string): Promise<void> {
-    await this.verifyForceAddContactPageForIdentifierType(verificationType as 'email' | 'mobile', 'mandatory');
-  }
-
-  /**
-   * Adds email or mobile contact info and verifies with OTP on the force add contact page.
-   * Works for both optional and mandatory LWO settings.
-   * @param otpUtils - OTP utilities instance for retrieving OTP
-   * @param identifier - The email address or mobile number to add
-   * @param identifierType - Type of identifier ('email' or 'mobile')
-   * @param lwoType - The LWO setting type ('optional' or 'mandatory'), defaults to 'optional'
-   */
   async addEmailOrMobileBasedOnIdentifiers(
     otpUtils: OTPUtils,
     identifier: string,
