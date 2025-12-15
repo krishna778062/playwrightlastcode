@@ -74,30 +74,6 @@ export class LWOUserManagementService {
     });
   }
 
-  /**
-   * Delete both email and mobile for a user
-   * @deprecated Use deleteUserContactInfo with options instead
-   */
-  async deleteEmailAndMobile(userID: string, empID: string, firstName: string, lastName: string) {
-    await this.deleteUserContactInfo(userID, empID, firstName, lastName, { deleteEmail: true, deleteMobile: true });
-  }
-
-  /**
-   * Delete only mobile for a user
-   * @deprecated Use deleteUserContactInfo with options instead
-   */
-  async deleteMobileOnly(userID: string, empID: string, firstName: string, lastName: string) {
-    await this.deleteUserContactInfo(userID, empID, firstName, lastName, { deleteEmail: false, deleteMobile: true });
-  }
-
-  /**
-   * Delete only email for a user
-   * @deprecated Use deleteUserContactInfo with options instead
-   */
-  async deleteEmailOnly(userID: string, empID: string, firstName: string, lastName: string) {
-    await this.deleteUserContactInfo(userID, empID, firstName, lastName, { deleteEmail: true, deleteMobile: false });
-  }
-
   async setLWOSetting(verificationType: string) {
     let payload: any = '';
     if (verificationType === 'optional') {

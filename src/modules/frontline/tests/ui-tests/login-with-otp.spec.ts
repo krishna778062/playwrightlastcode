@@ -63,11 +63,12 @@ test.describe(
     });
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true }
       );
     });
 
@@ -198,11 +199,12 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
     });
 
@@ -328,21 +330,23 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteMobileOnly(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: false, deleteMobile: true }
       );
     });
 
     test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -453,21 +457,23 @@ test.describe(
     });
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteMobileOnly(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: false, deleteMobile: true }
       );
     });
 
     test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -591,11 +597,12 @@ test.describe(
 
     test.afterAll(async ({ appManagerApiContext, config, lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
         userDetails.endUserId,
@@ -605,11 +612,12 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteMobileOnly(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: false, deleteMobile: true }
       );
     });
 
@@ -729,21 +737,23 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailOnly(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: false }
       );
     });
 
     test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -890,21 +900,23 @@ test.describe(
 
     test.afterEach(async ({ lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailOnly(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: false }
       );
     });
 
     test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
       const userDetails = loadUserDetails();
-      await lwoUserManagementService.deleteEmailAndMobile(
+      await lwoUserManagementService.deleteUserContactInfo(
         userDetails.endUserId,
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
-        userDetails.endUserLastName
+        userDetails.endUserLastName,
+        { deleteEmail: true, deleteMobile: true }
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
