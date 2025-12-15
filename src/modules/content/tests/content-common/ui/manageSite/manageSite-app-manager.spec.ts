@@ -38,6 +38,7 @@ import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteContentPage } from '@/src/modules/content/ui/pages/sitePages/siteContentPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -1384,6 +1385,41 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+      }
+    );
+
+    test(
+      'verify content list loads when page category has more than 16 items on site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43064'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify content list loads when page category has more than 16 items on site dashboard',
+          zephyrTestId: 'CONT-43064',
+          storyId: 'CONT-43064',
+        });
+        await test.step('Get site with page category having more than 16 pages', async () => {
+          // Get a site with a page category that has more than 16 pages
+          const categoryInfo =
+            await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
+              minPageCount: 17,
+              maxSitesToCheck: 10,
+            });
+
+          console.log(`Using site: ${categoryInfo.siteName} (${categoryInfo.siteId})`);
+          console.log(`Page category: ${categoryInfo.categoryName} (${categoryInfo.categoryId})`);
+          console.log(`Page count: ${categoryInfo.pageCount}`);
+
+          // Click on the page category
+          const siteContentPage = new SiteContentPage(appManagerFixture.page, categoryInfo.siteId);
+          await siteContentPage.loadPage();
+          await siteContentPage.assertions.verifyThePageIsLoaded();
+          await siteContentPage.actions.clickPageCategory(categoryInfo.categoryName);
+
+          // Verify content list loads
+          await siteContentPage.assertions.verifyContentListLoaded();
+        });
       }
     );
   }

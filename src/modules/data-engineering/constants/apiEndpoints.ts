@@ -12,6 +12,7 @@ export const DATA_ENGINEERING_API_ENDPOINTS = {
     companyNames: '/v2/analytics/companyNames',
     divisions: '/v2/analytics/divisions',
     batchRunDetails: '/v2/analytics/batchRunDetails',
+    contentEngagement: '/v2/analytics/contentEngagement',
   },
 } as const;
 

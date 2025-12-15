@@ -243,6 +243,19 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   }
 
   /**
+   * Verify a custom app is NOT visible in External Apps page
+   * @param appName - The name of the custom app
+   */
+  async verifyCustomAppIsNotVisible(appName: string): Promise<void> {
+    await test.step(`Verify custom app "${appName}" is NOT visible in External Apps`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.getCustomAppElement(appName), {
+        timeout: 10_000,
+        assertionMessage: `Verifying that custom app "${appName}" is NOT visible in External Apps page after disabling`,
+      });
+    });
+  }
+
+  /**
    * Verify text is displayed on the page
    * @param text - The text to verify
    */

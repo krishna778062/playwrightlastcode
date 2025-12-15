@@ -59,6 +59,8 @@ export const FIELD_NAMES = {
   REPORT_ID: 'Report ID',
   CATEGORY: 'Category',
   SUBCATEGORY: 'Subcategory',
+  PROJECT: 'Project',
+  JQL_QUERY: 'JQL Query',
 } as const;
 
 export const DEFAULT_SITES = {

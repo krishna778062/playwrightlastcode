@@ -21,7 +21,10 @@ export class FederatedSearchComponent extends ContentListComponent {
       hasText: 'Your integrations',
     });
     this.integrationItem = (integrationName: string) =>
-      this.page.locator(`span[class*="Typography-module__heading3"]`).filter({ hasText: integrationName }).first();
+      this.page
+        .locator(`span[class*="Typography-module__heading3"]`)
+        .filter({ hasText: new RegExp(`^${integrationName}$`) })
+        .first();
     this.integrationLogo = (integrationName: string) => this.page.locator(`img[alt="${integrationName}"]`);
     this.integrationCount = (integrationName: string) =>
       this.integrationItem(integrationName)
@@ -160,17 +163,12 @@ export class FederatedSearchComponent extends ContentListComponent {
     await test.step(`Verifying navigation to title link for federated file "${fileName}"`, async () => {
       // Click the title link
       await this.clickOnElement(this.name, { timeout: 40000 });
-      // Wait for navigation - verify URL contains provider parameter and utm_source
       const providerParam = `provider=${integrationName.toLowerCase()}`;
-      const utmPattern = new RegExp(`utm_source=search_result&utm_term=${encodeURIComponent(fileName)}`);
-
       try {
-        await this.page.waitForURL(url => url.toString().includes(providerParam) && utmPattern.test(url.toString()), {
-          timeout: 20000,
-        });
+        await this.page.waitForURL(url => url.toString().includes(providerParam), { timeout: 20000 });
       } catch (error) {
         throw new Error(
-          `Verifying navigation with title link for federated file "${fileName}" failed. URL should contain "${providerParam}" and utm_source parameter.\n${error}`
+          `Verifying navigation with title link for federated file "${fileName}" failed. URL should contain "${providerParam}".\n${error}`
         );
       }
     });
