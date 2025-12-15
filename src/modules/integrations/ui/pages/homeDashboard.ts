@@ -2,6 +2,7 @@ import { DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } from '@integrati
 import { MESSAGES } from '@integrations/constants/messageRepo';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+import { NativeTileComponent } from '@integrations-components/nativeComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { AIRTABLE_TILE } from '@integrations-test-data/app-tiles.test-data';
@@ -23,6 +24,7 @@ export class HomeDashboard extends BasePage {
   private readonly appTileComponent: AppTileComponent;
   private readonly timeOffRequestTileComponent: TimeOffRequestTileComponent;
   private readonly tileOperationsComponent: TileOperationsComponent;
+  private readonly nativeTileComponent: NativeTileComponent;
   private readonly tileManagementHelper: IntegrationTileHelper;
   private readonly tileContainer: Locator;
 
@@ -40,6 +42,7 @@ export class HomeDashboard extends BasePage {
     this.appTileComponent = new AppTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
+    this.nativeTileComponent = new NativeTileComponent(page);
     this.tileManagementHelper = tileManagementHelper;
     this.tileContainer = page.locator('aside');
   }
@@ -757,6 +760,34 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Open edit modal for native tile and verify fields
+   * @param tileTitle - The tile title to edit (this is the actual title set when creating the tile)
+   * @param expectedCalendarEmail - Expected calendar email in dropdown
+   */
+  async openEditModalAndVerifyFields(tileTitle: string, expectedCalendarEmail: string): Promise<void> {
+    await test.step(`Open edit modal and verify fields for: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickThreeDotsOnTile(tileTitle);
+      await this.appTileComponent.clickTileOption(DASHBOARD_BUTTONS.EDIT);
+
+      // Verify modal is opened
+      await this.nativeTileComponent.verifyEditModalOpened();
+
+      // Verify all fields - tile title should match what was set when creating the tile
+      await this.nativeTileComponent.verifyTileTitle(tileTitle);
+      await this.nativeTileComponent.verifyEventsContentTypeSelected();
+      await this.nativeTileComponent.verifyGoogleCalendarSelected();
+      await this.nativeTileComponent.verifyCalendarEmail(expectedCalendarEmail);
+    });
+  }
+
+  /**
+   * Click Save button in edit modal
+   */
+  async clickSaveButtonInEditModal(): Promise<void> {
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+  }
+
+  /**
    * Complete workflow to add an app tile with text fields
    */
   async addTileWithTextField(
@@ -964,6 +995,12 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
   }
+  /**
+   * Verify Workday Display Time Off metadata
+   */
+  async verifyWorkdayTimeOffMetadata(tileTitle: string, leaveType?: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayTimeOffMetadata(tileTitle, leaveType);
+  }
   async verifyWorkdayJobPostingsmetadata(tileTitle: string, jobType: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayJobPostingsmetadata(tileTitle, jobType);
   }
@@ -1160,5 +1197,64 @@ export class HomeDashboard extends BasePage {
    */
   async verifyServiceNowCreatedTicketStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyServiceNowCreatedTicketStructure(tileTitle);
+  }
+  /**
+   * Verify Jira tile content structure with task records
+   * @param tileTitle - The title of the tile to verify
+   */
+  async verifyJiraContentStructure(tileTitle: string): Promise<void> {
+    await this.tileOperationsComponent.verifyJiraTileContentStructure(tileTitle);
+  }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input
+   */
+  async addTilewithDefinedSettingsTextArea(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInput(fieldName, appManagerDefined, query);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  async setUpTileTextAreaInput(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextArea(tileTitle, fieldName, fieldValue);
+  }
+
+  /**
+   * Add a native tile (pages, events & albums) to the dashboard
+   * @param tileTitle - The title to set for the tile
+   * @param calendarType - The calendar type ('Google Calendar' or 'Outlook Calendar')
+   * @param destination - The destination for the tile (UI_ACTIONS.ADD_TO_HOME or UI_ACTIONS.ADD_TO_SITE)
+   * @param calendarEmail - Optional calendar email to select from dropdown. If not provided, selects first available
+   */
+  async addNativeTile(
+    tileTitle: string,
+    calendarType: string,
+    destination: string,
+    calendarEmail?: string
+  ): Promise<void> {
+    await test.step(`Add native tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.nativeTileComponent.clickAddContentTileButton();
+      await this.nativeTileComponent.selectEventsContentType();
+      await this.nativeTileComponent.selectCalendarType(calendarType);
+
+      if (calendarEmail) {
+        await this.nativeTileComponent.selectCalendarFromDropdown(calendarEmail);
+      } else {
+        await this.nativeTileComponent.selectFirstAvailableCalendar();
+      }
+
+      await this.nativeTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
   }
 }

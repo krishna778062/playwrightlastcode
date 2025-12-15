@@ -5,12 +5,14 @@ import {
   FilterRequest,
   GetBatchRunDetailsResponse,
   GetCompanyNamesResponse,
+  GetContentEngagementResponse,
   GetDepartmentsResponse,
   GetDivisionsResponse,
   GetLocationsResponse,
   GetSegmentsResponse,
   GetUserCategoriesResponse,
 } from '@/src/modules/data-engineering/api/interfaces/analytics.interface';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { DATA_ENGINEERING_API_ENDPOINTS } from '@/src/modules/data-engineering/constants/apiEndpoints';
 
 /**
@@ -124,5 +126,67 @@ export class AnalyticsApiService extends HttpClient {
 
     const responseData = await response.json();
     return responseData as GetBatchRunDetailsResponse;
+  }
+
+  /**
+   * Get content engagement metrics for a specific content
+   * @param contentId - The content ID to fetch engagement metrics for
+   * @param isRestricted - Whether the content is restricted (default: false)
+   * @returns Promise with the content engagement response data
+   */
+  async getContentEngagement(contentId: string, isRestricted: boolean = false): Promise<GetContentEngagementResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.contentEngagement, {
+      data: {
+        contentId,
+        isRestricted,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as GetContentEngagementResponse;
+  }
+
+  /**
+   * Get content engagement metrics for Odin/Blog content using backend API
+   * This method uses API_BE_URL with tenant code passed in header
+   * @param contentId - The content ID to fetch engagement metrics for
+   * @param tenantCode - The Odin tenant code to pass in header
+   * @param isRestricted - Whether the content is restricted
+   * @returns Promise with the content engagement response data
+   */
+  async getBlogContentEngagement(
+    contentId: string,
+    tenantCode: string,
+    isRestricted: boolean = false
+  ): Promise<GetContentEngagementResponse> {
+    const config = getDataEngineeringConfigFromCache();
+    const apiBeUrl = config.apiBeUrl;
+    if (!apiBeUrl) {
+      throw new Error('API_BE_URL is not configured for this environment');
+    }
+
+    const fullUrl = `${apiBeUrl}${DATA_ENGINEERING_API_ENDPOINTS.analytics.contentEngagement}`;
+
+    const response = await this.context.post(fullUrl, {
+      headers: {
+        'x-smtip-tid': tenantCode,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        contentId,
+        isRestricted,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as GetContentEngagementResponse;
   }
 }

@@ -197,6 +197,36 @@ export const config = {
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
+    prodUS: {
+      tenantName: 'Content Settings',
+      frontendBaseUrl: 'https://content.app.simpplr.com',
+      apiBaseUrl: 'https://content-api.app.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+20@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    prodEU: {
+      tenantName: 'Content Settings',
+      frontendBaseUrl: 'https://content.eu.simpplr.com',
+      apiBaseUrl: 'https://content-api.eu.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+20@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
   },
   contentAbac: {
     qa: {
@@ -434,6 +464,17 @@ export function clearContentConfigCache(): void {
  */
 export function isContentConfigInitialized(): boolean {
   return configCache !== null;
+}
+
+/**
+ * Get current environment from cache
+ * @returns Current environment key (e.g., 'qa', 'uat', 'test')
+ */
+export function getContentEnvironmentFromCache(): EnvironmentKey {
+  if (!configCache) {
+    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+  }
+  return configCache.environment;
 }
 
 /**

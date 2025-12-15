@@ -1,5 +1,7 @@
 import { SnowflakeHelper } from '@data-engineering/helpers/snowflakeHelper';
 import { AnalyticsSql } from '@data-engineering/sqlQueries/analytics';
+import { CommonSql } from '@data-engineering/sqlQueries/common';
+import { OnPageAnalyticsSql } from '@data-engineering/sqlQueries/on-page-analytics';
 
 export interface SegmentResult {
   SEGMENT_CODE: string;
@@ -31,6 +33,23 @@ export interface BatchRunDetailResult {
   BATCH_NAME: string;
   LAST_BATCH_END_TIME: string;
 }
+
+export interface ContentEngagementResult {
+  REACTIONS_COUNT: number;
+  COMMENT_COUNT: number;
+  REPLIES_COUNT: number;
+  SHARES_COUNT: number;
+  FAVORITES_COUNT: number;
+}
+
+export interface ContentDataResult {
+  CODE: string;
+  TITLE: string;
+  CONTENT_URL: string;
+  CONTENT_TYPE: string;
+}
+
+export type SiteType = 'Public' | 'Private' | 'Unlisted';
 
 /**
  * Analytics Query Helper
@@ -79,5 +98,36 @@ export class AnalyticsQueryHelper {
 
   async getBatchRunDetailsFromDB(): Promise<BatchRunDetailResult[]> {
     return await this.snowflakeHelper.execute<BatchRunDetailResult>(AnalyticsSql.ANALYTICS_LAST_UPDATED_DATETIME);
+  }
+
+  async getContentEngagementFromDB(contentCode: string): Promise<ContentEngagementResult[]> {
+    const query = OnPageAnalyticsSql.CONTENT_ENGAGEMENT_DATA.replace('{tenantCode}', this.tenantCode).replace(
+      '{contentCode}',
+      contentCode
+    );
+    return await this.snowflakeHelper.execute<ContentEngagementResult>(query);
+  }
+
+  /**
+   * Fetches content data from Snowflake based on tenant, restriction status, and site type
+   * @param siteType - The site type (Public, Private, or Unlisted)
+   * @param isRestricted - Whether the content is restricted (default: false)
+   * @returns Promise with content data results
+   */
+  async getContentDataFromDB(siteType: SiteType, isRestricted: boolean = false): Promise<ContentDataResult[]> {
+    const query = CommonSql.CONTENT_DATA.replace('{tenantCode}', this.tenantCode)
+      .replace('{isRestricted}', String(isRestricted))
+      .replace('{siteType}', siteType);
+    return await this.snowflakeHelper.execute<ContentDataResult>(query);
+  }
+
+  /**
+   * Fetches blog post data from Snowflake
+   * @param tenantCode - The tenant code
+   * @returns Promise with blog post content data results
+   */
+  async getBlogDataFromDB(tenantCode: any): Promise<ContentDataResult[]> {
+    const query = CommonSql.BLOG_DATA.replace('{tenantCode}', tenantCode);
+    return await this.snowflakeHelper.execute<ContentDataResult>(query);
   }
 }
