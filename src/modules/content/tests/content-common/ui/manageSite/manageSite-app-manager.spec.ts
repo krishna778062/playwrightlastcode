@@ -33,6 +33,7 @@ import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceS
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSitePageCategoryPage } from '@/src/modules/content/ui/pages/manageSitePageCategoryPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
@@ -1404,19 +1405,52 @@ test.describe(
               maxSitesToCheck: 10,
             });
 
-          console.log(`Using site: ${categoryInfo.siteName} (${categoryInfo.siteId})`);
-          console.log(`Page category: ${categoryInfo.categoryName} (${categoryInfo.categoryId})`);
-          console.log(`Page count: ${categoryInfo.pageCount}`);
-
           // Click on the page category
           const siteContentPage = new SiteContentPage(appManagerFixture.page, categoryInfo.siteId);
           await siteContentPage.loadPage();
           await siteContentPage.assertions.verifyThePageIsLoaded();
           await siteContentPage.actions.clickPageCategory(categoryInfo.categoryName);
-
           // Verify content list loads
           await siteContentPage.assertions.verifyContentListLoaded();
+          await siteContentPage.assertions.verifyShowMoreButtonIsVisible();
+          await siteContentPage.actions.clickOnShowMoreButton();
+          await siteContentPage.assertions.verifyContentListAfterClickingShowMoreButton();
         });
+      }
+    );
+
+    test(
+      'verify content list loads when page category has more than 16 items on manage site Page Categories',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43065'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify content list loads when page category has more than 16 items on manage site Page Categories',
+          zephyrTestId: 'CONT-43065',
+          storyId: 'CONT-43065',
+        });
+
+        // Get a site with a page category that has more than 16 pages
+        const categoryInfo =
+          await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
+            minPageCount: 17,
+            maxSitesToCheck: 10,
+          });
+        const manageSitePageCategoryPage = new ManageSitePageCategoryPage(appManagerFixture.page, categoryInfo.siteId);
+        await manageSitePageCategoryPage.loadPage();
+        await manageSitePageCategoryPage.assertions.verifyThePageIsLoaded();
+        await manageSitePageCategoryPage.actions.searchCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.actions.clickOnCustomCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.assertions.verifyNoResultsFoundIsNotVisible();
+        await manageSitePageCategoryPage.assertions.verifyContentListLoaded(
+          categoryInfo.siteId,
+          categoryInfo.categoryId
+        );
+        await manageSitePageCategoryPage.assertions.verifyShowMoreButtonIsVisible();
+        await manageSitePageCategoryPage.actions.clickOnShowMoreButton();
+        await manageSitePageCategoryPage.assertions.verifyContentListAfterClickingShowMoreButton();
       }
     );
   }

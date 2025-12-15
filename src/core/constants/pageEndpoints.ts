@@ -77,6 +77,9 @@ export const PAGE_ENDPOINTS = {
 
   MANAGE_SITE_SETUP_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   MANAGE_SITE_PAGE: `manage/sites`,
+  MANAGE_SITE_PAGE_CATEGORIES_PAGE: (siteId: string) => `manage/sites/${siteId}/page-categories`,
+  MANAGE_SITE_CONTENT_PAGE: (siteId: string, pageCategoryId: string) =>
+    `manage/sites/${siteId}/content?type=page&pageCategoryId=${pageCategoryId}`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
