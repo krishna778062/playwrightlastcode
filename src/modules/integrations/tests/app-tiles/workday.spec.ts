@@ -1684,8 +1684,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27516',
-          storyId: 'INT-26724',
+          zephyrTestId: 'INT-21049',
+          storyId: 'INT-20791',
         });
 
         //Generate a random tile title
@@ -1715,8 +1715,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27517',
-          storyId: 'INT-26724',
+          zephyrTestId: 'INT-21050',
+          storyId: 'INT-20791',
         });
 
         //Generate a random tile title
@@ -1746,8 +1746,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27518',
-          storyId: 'INT-26724',
+          zephyrTestId: 'INT-21053',
+          storyId: 'INT-20791',
         });
 
         //Generate a random tile title
