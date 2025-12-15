@@ -70,7 +70,7 @@ export class LoginWithOtpPage extends BasePage {
     });
     this.countryCodeRequiredFor = page.getByText('Country code is required for mobile phone number');
     this.mobileText = page.getByText('Mobile', { exact: true });
-    this.emailText = page.getByText('Email ID');
+    this.emailText = page.getByRole('textbox', { name: 'Email ID' });
 
     this.sendOtpToVerifyButton = page.getByRole('button', { name: 'Send OTP to verify' });
     this.skipForNowButton = page.getByRole('button', { name: 'Skip for now' });
@@ -85,8 +85,10 @@ export class LoginWithOtpPage extends BasePage {
     this.verifyButton = page.getByRole('button', { name: 'Verify' });
     this.resendOtpButton = page.getByRole('button', { name: 'Resend OTP' });
     this.continueButton = page.getByRole('button', { name: 'Continue' });
-    this.addEmailAddressHeading = page.getByRole('heading', { name: 'Add email address' });
-    this.emailForceAddContactMessage = page.getByText(LWO_MESSAGES.EMAIL_NUMBER_FORCE_ADD_CONTACT_MESSAGE);
+    this.addEmailAddressHeading = page.getByRole('heading', { name: 'Add Email' });
+    this.emailForceAddContactMessage = page.getByRole('heading', {
+      name: LWO_MESSAGES.EMAIL_NUMBER_FORCE_ADD_CONTACT_MESSAGE,
+    });
     this.dontShowThisAgainModal = page
       .getByRole('dialog')
       .filter({ hasText: LWO_MESSAGES.DONT_SHOW_THIS_AGAIN_MODAL_HEADER });
@@ -293,40 +295,82 @@ export class LoginWithOtpPage extends BasePage {
     }
   }
 
-  async verifyForceAddContactPageForIdentifierTypeMobileOrEmail(verificationType: string): Promise<void> {
-    await test.step(`Verifying add force contact page is loaded for ${verificationType} LWO when login identifiers are email and employee number`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+  /**
+   * Verifies the force add contact page for a specific identifier type and LWO setting.
+   * In optional mode, skip and "don't show this again" buttons ARE visible.
+   * In mandatory mode, skip and "don't show this again" buttons are NOT visible.
+   * This applies when login identifiers are: email and mobile, mobile, emp id, or emp id and mobile,
+   * and user doesn't have the required contact info (email/mobile) added during creation.
+   * @param verificationType - The type of contact to add ('email' or 'mobile')
+   * @param lwoType - The LWO setting type ('optional' or 'mandatory'), defaults to 'optional'
+   */
+  async verifyForceAddContactPageForIdentifierType(
+    verificationType: 'email' | 'mobile',
+    lwoType: 'optional' | 'mandatory' = 'optional'
+  ): Promise<void> {
+    await test.step(`Verifying ${lwoType} add force contact page is loaded for ${verificationType}`, async () => {
+      // Verify optional/mandatory specific elements
+      if (lwoType === 'optional') {
+        await this.verifier.verifyTheElementIsVisible(this.optionalHeading);
+        await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
+        await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
+      } else {
+        await this.verifier.verifyTheElementIsNotVisible(this.optionalHeading);
+        await this.verifier.verifyTheElementIsNotVisible(this.skipForNowButton);
+        await this.verifier.verifyTheElementIsNotVisible(this.dontShowThisAgainButton);
+      }
+
+      // Verify identifier type specific elements
       if (verificationType === 'mobile') {
         await this.verifier.verifyTheElementIsVisible(this.addMobileNumberHeading);
         await this.verifier.verifyTheElementIsVisible(this.mobileNumberForceAddContactMessage);
         await this.verifier.verifyTheElementIsVisible(this.countryCodeRequiredFor);
         await this.verifier.verifyTheElementIsVisible(this.mobileText);
-      } else if (verificationType === 'email') {
+      } else {
         await this.verifier.verifyTheElementIsVisible(this.addEmailAddressHeading);
         await this.verifier.verifyTheElementIsVisible(this.emailForceAddContactMessage);
         await this.verifier.verifyTheElementIsVisible(this.emailText);
       }
-      await this.verifier.verifyTheElementIsVisible(this.skipForNowButton);
-      await this.verifier.verifyTheElementIsVisible(this.dontShowThisAgainButton);
     });
   }
 
+  /**
+   * @deprecated Use verifyForceAddContactPageForIdentifierType with lwoType='optional' instead
+   */
+  async verifyForceAddContactPageForIdentifierTypeMobileOrEmail(verificationType: string): Promise<void> {
+    await this.verifyForceAddContactPageForIdentifierType(verificationType as 'email' | 'mobile', 'optional');
+  }
+
+  /**
+   * @deprecated Use verifyForceAddContactPageForIdentifierType with lwoType='mandatory' instead
+   */
+  async verifyMandatoryForceAddContactPageForIdentifierType(verificationType: string): Promise<void> {
+    await this.verifyForceAddContactPageForIdentifierType(verificationType as 'email' | 'mobile', 'mandatory');
+  }
+
+  /**
+   * Adds email or mobile contact info and verifies with OTP on the force add contact page.
+   * Works for both optional and mandatory LWO settings.
+   * @param otpUtils - OTP utilities instance for retrieving OTP
+   * @param identifier - The email address or mobile number to add
+   * @param identifierType - Type of identifier ('email' or 'mobile')
+   * @param lwoType - The LWO setting type ('optional' or 'mandatory'), defaults to 'optional'
+   */
   async addEmailOrMobileBasedOnIdentifiers(
     otpUtils: OTPUtils,
     identifier: string,
-    identifierType: 'email' | 'mobile'
+    identifierType: 'email' | 'mobile',
+    lwoType: 'optional' | 'mandatory' = 'optional'
   ): Promise<void> {
-    await test.step('Navigating to force add contact page', async () => {
+    await test.step(`Navigating to ${lwoType} force add contact page`, async () => {
       await this.page.waitForURL(/login\/force-add-contact/, {
         timeout: TIMEOUTS.MEDIUM,
       });
     });
 
-    let otpValue = '';
-
     await this.checkScreenAndNavigateToForceAddContactPageWithClearFields();
 
-    await this.verifyForceAddContactPageForIdentifierTypeMobileOrEmail(identifierType);
+    await this.verifyForceAddContactPageForIdentifierType(identifierType, lwoType);
 
     if (identifierType === 'mobile') {
       await this.fillInElement(this.mobileInput, identifier);
@@ -336,12 +380,12 @@ export class LoginWithOtpPage extends BasePage {
 
     await this.clickOnElement(this.sendOtpToVerifyButton);
 
-    // Verify correct verification page based on type & LWO type
+    // Verify correct verification page based on type
     await this.verifyEmailOrMobileVerificationPageIsLoadedForOptionalOrMandatoryLWO(identifierType);
 
     // Get and enter OTP
     await this.page.waitForTimeout(8000);
-    otpValue =
+    const otpValue =
       identifierType === 'mobile'
         ? await otpUtils.getOTPFromSMS(identifier)
         : await otpUtils.getOTPFromEmail(identifier);
@@ -351,6 +395,17 @@ export class LoginWithOtpPage extends BasePage {
     await this.fillInElement(this.enterOtpInput, otpValue);
     await this.clickOnElement(this.verifyButton);
     await this.clickOnElement(this.continueButton);
+  }
+
+  /**
+   * @deprecated Use addEmailOrMobileBasedOnIdentifiers with lwoType='mandatory' instead
+   */
+  async addEmailOrMobileForMandatoryLWO(
+    otpUtils: OTPUtils,
+    identifier: string,
+    identifierType: 'email' | 'mobile'
+  ): Promise<void> {
+    await this.addEmailOrMobileBasedOnIdentifiers(otpUtils, identifier, identifierType, 'mandatory');
   }
 
   async skipVerificationPage(): Promise<void> {

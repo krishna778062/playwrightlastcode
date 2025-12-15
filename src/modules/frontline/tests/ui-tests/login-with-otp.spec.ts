@@ -708,3 +708,258 @@ test.describe(
     );
   }
 );
+
+test.describe(
+  'feature: login with otp test cases for employee number and mobile as login identifiers ',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+  },
+  () => {
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('optional');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
+          'employee_number',
+          'mobile',
+        ]);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+
+    test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailAndMobile(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userDetails.endUserId,
+        USER_STATUS.INACTIVE
+      );
+    });
+
+    test(
+      'scenario: Verify user with emp id and mobile login can add email from force add contact page when LWO is optional',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify newly added user with emp id and mobile can login and add email from force add contact page when LWO is optional',
+          zephyrTestId: 'FL-435',
+          storyId: 'FL-435',
+        });
+
+        // Create user with emp id only (without email and mobile)
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(Roles.END_USER);
+
+        // Store user details in properties file
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
+
+        // Set password for first time login
+        await LoginHelper.setPasswordForFirstTimeLogin(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+        await LoginHelper.setUserProfileSecurityQuestions(page);
+
+        // Verify force add contact page appears for email only
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('email', 'optional');
+
+        // Add email and verify with OTP
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(
+          otpUtils,
+          mailosaurValues.mailosaurEmail,
+          'email',
+          'optional'
+        );
+      }
+    );
+
+    test(
+      "scenario: Verify user with emp id and mobile as identifier can click don't show this again on force add contact page when LWO is optional",
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          description:
+            "Verify user with emp id and mobile as identifier can click don't show this again on force add contact page when LWO is optional",
+          zephyrTestId: 'FL-436',
+          storyId: 'FL-436',
+        });
+
+        const userDetails = loadUserDetails();
+
+        // Login with emp id and password
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+
+        // Verify force add contact page appears for email only
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('email', 'optional');
+
+        // Click don't show this again and confirm
+        await loginWithOtpPage.clickDontShowThisAgainButton();
+
+        // Verify user is redirected to home page
+        await page.waitForURL('/home', {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        const homePage = new NewHomePage(page);
+        await homePage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      "scenario: Verify user with emp id is directly redirected to home page after clicking don't show this again in previous login",
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          description:
+            "Verify user with emp id is directly redirected to home page without seeing force add contact page after clicking don't show this again in previous login",
+          zephyrTestId: 'FL-437',
+          storyId: 'FL-437',
+        });
+
+        const userDetails = loadUserDetails();
+
+        // Login with emp id and password
+        await LoginHelper.loginWithPassword(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+
+        // Verify user is directly redirected to home page without force add contact page
+        await page.waitForURL('/home', {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        const homePage = new NewHomePage(page);
+        await homePage.verifyThePageIsLoaded();
+      }
+    );
+  }
+);
+
+test.describe(
+  'feature: login with otp test cases for employee number and mobile as login identifiers when LWO is mandatory',
+  {
+    tag: [FrontlineSuiteTags.FRONTLINE, FrontlineFeatureTags.LOGIN_WITH_OTP],
+  },
+  () => {
+    test.beforeAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      try {
+        await lwoUserManagementService.setLWOSetting('mandatory');
+        await new IdentityService(appManagerApiContext, config.apiBaseUrl).enableLoginIdentifiers([
+          'employee_number',
+          'mobile',
+        ]);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    test.afterEach(async ({ lwoUserManagementService }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailOnly(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+    });
+
+    test.afterAll(async ({ lwoUserManagementService, appManagerApiContext, config }) => {
+      const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteEmailAndMobile(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName
+      );
+
+      await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
+        userDetails.endUserId,
+        USER_STATUS.INACTIVE
+      );
+    });
+
+    test(
+      'scenario: Verify user with emp id and mobile login must add email from force add contact page when LWO is mandatory',
+      {
+        tag: [TestPriority.P0, FrontlineFeatureTags.LOGIN_WITH_OTP],
+      },
+      async ({ page, otpUtils, appManagerApiContext, config }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify newly added user with emp id and mobile must add email from force add contact page when LWO is mandatory (no skip or dont show this again option)',
+          zephyrTestId: 'FL-438',
+          storyId: 'FL-438',
+        });
+
+        // Create user with emp id only (without email and mobile)
+        const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
+        const endUser = await userBuilder.addUsersWithEmpIdAndDepartmentToSystemWithoutPassword(Roles.END_USER);
+
+        // Store user details in properties file
+        const prop = new PropertiesFile(USER_DETAILS_FILE);
+        prop.setProperty('endUserEmpId', endUser[0].emp);
+        prop.setProperty('endUserPassword', 'Simpplr@2025');
+        prop.setProperty('endUserId', endUser[0].userId);
+        prop.setProperty('endUserFirstName', endUser[0].first_name);
+        prop.setProperty('endUserLastName', endUser[0].last_name);
+        prop.store(null);
+
+        const userDetails = loadUserDetails();
+
+        // Set password for first time login
+        await LoginHelper.setPasswordForFirstTimeLogin(page, {
+          email: userDetails.endUserEmpId,
+          password: userDetails.endUserPassword,
+        });
+        await LoginHelper.setUserProfileSecurityQuestions(page);
+
+        // Verify mandatory force add contact page appears for email (no skip or don't show this again buttons)
+        const loginWithOtpPage = new LoginWithOtpPage(page);
+        await loginWithOtpPage.verifyForceAddContactPageForIdentifierType('email', 'mandatory');
+
+        // Add email and verify with OTP (mandatory flow)
+        await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(
+          otpUtils,
+          mailosaurValues.mailosaurEmail,
+          'email',
+          'mandatory'
+        );
+      }
+    );
+  }
+);
