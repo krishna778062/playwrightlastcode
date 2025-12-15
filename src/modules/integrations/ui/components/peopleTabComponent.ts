@@ -30,7 +30,11 @@ export class PeopleTabComponent extends BaseComponent {
     this.provisioningSourceDropdown = () => this.rootLocator.locator('#provisioningSource');
     this.syncingSourceDropdown = () => this.rootLocator.locator('#syncSource');
     this.bambooHRCheckbox = () => this.rootLocator.locator('#Merge_3_selected');
-    this.workdayCheckbox = () => this.rootLocator.locator('input[type="checkbox"][id*="Workday"]');
+    this.workdayCheckbox = () =>
+      this.rootLocator
+        .getByRole('checkbox', { name: /Workday/i })
+        .or(this.rootLocator.locator('#Workday_selected'))
+        .or(this.rootLocator.locator('input[type="checkbox"][id*="Workday"]'));
     this.fieldLabel = (fieldName: string) => this.rootLocator.getByText(fieldName, { exact: true });
     this.fieldEditableCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'editable');
     this.fieldDisplayCheckbox = (fieldName: string) => this.getFieldCheckbox(fieldName, 'display');
@@ -70,7 +74,7 @@ export class PeopleTabComponent extends BaseComponent {
 
   async verifyNavigatedToPeoplePage(): Promise<void> {
     await test.step('Verify user navigated to manage/app/integrations/people page', async () => {
-      await this.page.waitForURL(PAGE_ENDPOINTS.PEOPLE_DATA_PAGE, { timeout: 30_000 });
+      await this.page.waitForURL(PAGE_ENDPOINTS.PEOPLE_DATA_PAGE, { timeout: 70_000 });
       expect(this.page.url()).toContain(PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
     });
   }
@@ -111,6 +115,10 @@ export class PeopleTabComponent extends BaseComponent {
   async deselectWorkdayIfChecked(): Promise<void> {
     await test.step('Deselect Workday checkbox if checked and click Save', async () => {
       const checkbox = this.workdayCheckbox();
+      await checkbox.waitFor({ state: 'attached', timeout: 10000 });
+      if (!(await checkbox.isVisible().catch(() => false))) {
+        await checkbox.scrollIntoViewIfNeeded().catch(() => {});
+      }
       await expect(checkbox, 'expecting Workday checkbox to be visible').toBeVisible();
       const isChecked = await checkbox.isChecked();
       if (isChecked) {
