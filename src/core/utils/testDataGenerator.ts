@@ -477,8 +477,8 @@ export class TestDataGenerator {
    */
   static generateSite(access: string, overrides?: Partial<any>): any {
     const siteOptions = {
-      siteName: `${faker.animal.type()} - ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
-      siteType: access,
+      name: `${faker.animal.type()} _ ${faker.company.name()} _ ${faker.commerce.department()}`.substring(0, 39),
+      access: access,
     };
 
     return {

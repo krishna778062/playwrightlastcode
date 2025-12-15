@@ -20,6 +20,7 @@ on:
           - 'integrations-primary'
           - 'de'
           - 'de-api'
+          - 'de-api-abac'
           - 'frontline'
           - 'recognition'
           - 'only-peer-to-peer'

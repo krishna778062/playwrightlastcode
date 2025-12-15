@@ -12,6 +12,7 @@ import { DateHelper, SearchDashboardQueryHelper, SnowflakeHelper } from '../../.
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SearchDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSearchDashboardForTest,
@@ -52,7 +53,7 @@ test.describe(
       startDate.setDate(startDate.getDate() - 59); // 60 days ago (including today)
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
         customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
