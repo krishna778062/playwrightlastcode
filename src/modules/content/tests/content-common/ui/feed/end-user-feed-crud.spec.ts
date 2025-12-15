@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { expect } from '@playwright/test';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { ContentTestSuite } from '@content/constants/testSuite';
@@ -2463,6 +2464,116 @@ test.describe(
           await endUserFeedPage.actions.openPostOptionsMenu(replyText);
 
           await endUserFeedPage.assertions.verifyReplyOptionsMenuNotVisible(replyText);
+        });
+      }
+    );
+
+    test(
+      'verify Admin can create, edit and delete a feed post with multiple file attachments on Home Feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24135'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Admin is able to Add, Edit, and Delete Feed Post with File Attachments on Home Feed',
+          zephyrTestId: 'CONT-24135',
+          storyId: 'CONT-24135',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // ==================== CREATE FEED POST ====================
+        await test.step('Create feed post with multiple file attachments', async () => {
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          const filePaths = [
+            FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname), // image1.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname), // image3.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE4.getPath(__dirname), // image4.jpg
+            FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname), // favicon.png
+            FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname), // sample.docx
+            FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname), // sample.xlsx
+            FILE_TEST_DATA.DOCUMENTS.FILES_PREVIEW_BEHAVE_DOC_1_PDF.getPath(__dirname), // sample.pdf
+          ];
+
+          await createFeedPostComponent.createPost(initialPostText);
+
+          await createFeedPostComponent.uploadFiles(filePaths);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(filePaths.length);
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const postResponse = await createFeedPostComponent.createFeedPost();
+          const feedResponseBody = (await postResponse.json()) as any;
+          createdPostText = initialPostText;
+          createdPostId = feedResponseBody.result?.feedId || '';
+        });
+
+        // ==================== VERIFY POST CREATED ====================
+        await test.step('Verify feed post is created with file attachments', async () => {
+          await adminFeedPage.assertions.waitForPostToBeVisible(initialPostText);
+
+          await adminFeedPage.getPostTimestamp(initialPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(initialPostText, 7);
+        });
+
+        // ==================== EDIT FEED POST ====================
+        await test.step('Edit feed post and remove one attachment', async () => {
+          await adminFeedPage.actions.openPostOptionsMenu(initialPostText);
+
+          await adminFeedPage.actions.clickEditOption();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          await createFeedPostComponent.assertions.verifyUpdateButtonDisabled();
+
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const initialFileCount = await createFeedPostComponent.attachedFiles.count();
+          await createFeedPostComponent.removeAttachedFile(0);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(initialFileCount - 1);
+
+          await createFeedPostComponent.updatePostText(updatedPostText);
+
+          await createFeedPostComponent.clickUpdateButton();
+        });
+
+        // ==================== VERIFY POST UPDATED ====================
+        await test.step('Verify feed post is updated successfully', async () => {
+
+          await adminFeedPage.assertions.waitForPostToBeVisible(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(updatedPostText, 6);
+        });
+
+        // ==================== DELETE FEED POST ====================
+        await test.step('Delete feed post', async () => {
+          await adminFeedPage.actions.deletePost(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostIsNotVisible(updatedPostText);
+          createdPostId = '';
+          createdPostText = '';
         });
       }
     );
