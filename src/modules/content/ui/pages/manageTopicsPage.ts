@@ -32,6 +32,7 @@ export interface IManageTopicsPageActions {
   fillMergeTopicName: (topicName: string) => Promise<void>;
   clickMergeConfirmButton: () => Promise<void>;
   mergeTopic: (targetTopicName: string) => Promise<void>;
+  clearSearchBar: () => Promise<void>;
 }
 
 export interface IManageTopicsPageAssertions {
@@ -53,7 +54,8 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
   readonly searchingTopic: Locator = this.page.locator('[aria-label="Search topics…"]');
-  readonly verifiedTheSearhcedTopic: Locator = this.page.locator('[data-testid="dataGridRow"]').first();
+  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator = (topicName: string) =>
+    this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
   readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
   readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
   readonly clickingOnCrossSearchButton: Locator = this.page.locator('[aria-label="Clear"]');
@@ -135,6 +137,9 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     );
   }
 
+  async clearSearchBar(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCrossSearchButton);
+  }
   async fillTopicName(topicName: string): Promise<void> {
     await this.addTopicComponent.fillTopicName(topicName);
   }
@@ -167,7 +172,7 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
 
   async verifyingTheSearhcedTopicIsVisible(topicName: string): Promise<void> {
     await test.step(`Verifying topic "${topicName}" is visible in search results`, async () => {
-      const topicLocator = this.verifiedTheSearhcedTopic.filter({ hasText: topicName });
+      const topicLocator = this.verifiedTheSearhcedTopic(topicName);
       await this.verifier.verifyTheElementIsVisible(topicLocator, {
         assertionMessage: `Topic "${topicName}" should be visible in search results`,
       });

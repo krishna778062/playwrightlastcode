@@ -27,7 +27,6 @@ export interface IFeedActions {
   verifyThePageIsLoaded(): Promise<void>;
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
-  createAndPostWithTopic: (text: string, topic: string) => Promise<FeedPostResult>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
@@ -61,6 +60,7 @@ export interface IFeedActions {
   openReplyEditorForPost: (postText: string) => Promise<void>;
   clickReplyOnContentComment: (commentText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
+  addReplyToPostWithTopic: (replyText: string, topicName: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
@@ -173,7 +173,6 @@ export interface IFeedActions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
   clickPostWithoutWaitingForResponse(): Promise<void>;
->>>>>>> origin/develop
 }
 
 export interface IFeedAssertions {
@@ -547,6 +546,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async addReplyToPost(replyText: string, postId: string): Promise<void> {
     await this.listFeedComponent.addReplyToPost(replyText, postId);
+  }
+
+  async addReplyToPostWithTopic(replyText: string, topicName: string, postId: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPost(replyText, postId, topicName);
   }
 
   async openReplyEditorForPost(postText: string): Promise<void> {

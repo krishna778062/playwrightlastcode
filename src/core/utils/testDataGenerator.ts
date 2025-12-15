@@ -289,6 +289,13 @@ export class TestDataGenerator {
     return `${prefix}_${Date.now()}`;
   }
 
+  // Helper function to generate unique topic names with timestamp and random string
+  static generateTopicName(prefix: string = 'Topic'): string {
+    const timestamp = Date.now();
+    const randomString = faker.string.alphanumeric(4);
+    return `${prefix}_${timestamp}_${randomString}`;
+  }
+
   // Helper function to generate test description with timestamp
   static generateRandomString(prefix: string = 'Test'): string {
     const timestamp = Date.now();
