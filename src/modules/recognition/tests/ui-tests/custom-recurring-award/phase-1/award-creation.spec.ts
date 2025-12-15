@@ -1,4 +1,8 @@
-import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
+import {
+  RecognitionFeatureTags,
+  RecognitionSuitTags,
+  RecurringAwardsFeatureTags,
+} from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 
 import { TestPriority } from '@core/constants/testPriority';
@@ -18,7 +22,7 @@ test.describe('custom recurring award creation', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        RecognitionFeatureTags.CUSTOM_NOMINATION,
+        RecurringAwardsFeatureTags.RECURRING_AWARD_CREATION,
         TestPriority.P0,
         TestGroupType.SANITY,
         TestGroupType.HEALTHCHECK,

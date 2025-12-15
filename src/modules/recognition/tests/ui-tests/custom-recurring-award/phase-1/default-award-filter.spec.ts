@@ -95,7 +95,6 @@ test.describe('custom recurring award default setting', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        RecognitionFeatureTags.CUSTOM_NOMINATION,
         TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
