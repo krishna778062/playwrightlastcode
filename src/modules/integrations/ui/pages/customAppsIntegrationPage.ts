@@ -1220,6 +1220,17 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   /**
+   * Verify Save button is enabled
+   */
+  async verifySaveButtonIsEnabled(): Promise<void> {
+    await test.step('Verify Save button is enabled', async () => {
+      await expect(this.saveButtonByRole, 'Expected Save button to be enabled').toBeEnabled({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
    * Verify Cancel button is displayed in dialog
    */
   async verifyCancelButtonIsDisplayedInDialog(): Promise<void> {
