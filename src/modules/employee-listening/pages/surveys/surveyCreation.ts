@@ -1732,4 +1732,132 @@ export class SurveyCreationPage extends BasePage {
       });
     });
   }
+  async addQuestionFromBankWithSearch(questionText: string): Promise<void> {
+    await test.step(`Add question from bank using search: ${questionText}`, async () => {
+      // Click Browse question bank button
+      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
+
+      // Click on search textbox
+      await this.page.getByRole('textbox', { name: 'search' }).click();
+
+      // Fill search textbox with question text
+      await this.page.getByRole('textbox', { name: 'search' }).fill(questionText);
+
+      // Press Enter
+      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
+
+      // Wait for 2 seconds for search results to load
+      await this.page.waitForTimeout(2000);
+
+      // Check the first checkbox that matches the search pattern
+      await this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first().check();
+
+      // Click Done button
+      await this.page.getByRole('button', { name: 'Done' }).click();
+
+      // Wait for some time after pressing Done for the question to be added
+      await this.page.waitForTimeout(3000);
+    });
+  }
+
+  async addScaleQuestionFromBankWithSearch(): Promise<void> {
+    await test.step('Add scale question from bank using search', async () => {
+      const scaleQuestion = SURVEY_QUESTION_BANK.SCALE[0].question;
+
+      // Click Browse question bank button
+      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
+
+      // For scale questions, no tab selection needed - directly search
+      // Click on search textbox
+      await this.page.getByRole('textbox', { name: 'search' }).click();
+
+      // Fill search textbox with question text
+      await this.page.getByRole('textbox', { name: 'search' }).fill(scaleQuestion);
+
+      // Press Enter
+      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
+
+      // Wait for 2 seconds for search results to load
+      await this.page.waitForTimeout(2000);
+
+      // Check the first checkbox that matches the search pattern for scale questions
+      await this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first().check();
+
+      // Click Done button
+      await this.page.getByRole('button', { name: 'Done' }).click();
+
+      // Wait for some time after pressing Done for the question to be added
+      await this.page.waitForTimeout(3000);
+    });
+  }
+
+  async addMultipleChoiceQuestionFromBankWithSearch(): Promise<void> {
+    await test.step('Add multiple choice question from bank using search', async () => {
+      const mcqQuestion = SURVEY_QUESTION_BANK.MCQ[0].question;
+
+      // Click Browse question bank button
+      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
+
+      // Click on Multiple choice tab first
+      await this.page
+        .locator('div')
+        .filter({ hasText: /^Multiple choice$/ })
+        .nth(1)
+        .click();
+
+      // Click on search textbox
+      await this.page.getByRole('textbox', { name: 'search' }).click();
+
+      // Fill search textbox with question text
+      await this.page.getByRole('textbox', { name: 'search' }).fill(mcqQuestion);
+
+      // Press Enter
+      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
+
+      // Wait for 2 seconds for search results to load
+      await this.page.waitForTimeout(2000);
+
+      // Check the first checkbox that appears for multiple choice questions
+      await this.page.getByRole('checkbox').first().check();
+
+      // Click Done button
+      await this.page.getByRole('button', { name: 'Done' }).click();
+
+      // Wait for some time after pressing Done for the question to be added
+      await this.page.waitForTimeout(3000);
+    });
+  }
+
+  async addFreeTextQuestionFromBankWithSearch(): Promise<void> {
+    await test.step('Add free text question from bank using search', async () => {
+      const freeTextQuestion = SURVEY_QUESTION_BANK.FREE_TEXT[0].question;
+
+      // Click Browse question bank button
+      await this.page.getByRole('button', { name: 'Browse question bank' }).click();
+
+      // Click on Free text tab first
+      await this.page.getByText('Free text').click();
+
+      // Click on search textbox
+      await this.page.getByRole('textbox', { name: 'search' }).click();
+
+      // Fill search textbox with question text
+      await this.page.getByRole('textbox', { name: 'search' }).fill(freeTextQuestion);
+
+      // Press Enter
+      await this.page.getByRole('textbox', { name: 'search' }).press('Enter');
+
+      // Wait for 2 seconds for search results to load
+      await this.page.waitForTimeout(2000);
+
+      // Check the first checkbox that appears for free text questions
+      await this.page.getByRole('checkbox').first().check();
+
+      // Click Done button
+      await this.page.getByRole('button', { name: 'Done' }).click();
+
+      // Wait for some time after pressing Done for the question to be added
+      await this.page.waitForTimeout(3000);
+    });
+  }
 }

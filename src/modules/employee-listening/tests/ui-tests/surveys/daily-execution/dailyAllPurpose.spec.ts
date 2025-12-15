@@ -31,20 +31,20 @@ test.describe('daily All Purpose Survey Creation Tests', () => {
     async () => {
       tagTest(test.info(), {
         description:
-          'Daily execution test to create an all purpose survey with "default" intro "default" thanks message and "India" as audience',
+          'Daily execution test to create an all purpose survey with "default" intro "default" thanks message and "India" as audience using question bank search and selection',
         zephyrTestId: 'LS-DAILY-ALL-PURPOSE-001',
         storyId: 'EL-Daily Survey Creation',
       });
 
-      const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+      const timestamp = new Date().toISOString().slice(0, 10);
       await surveyCreationPage.createBasicSurveySetup(`Daily All Purpose ${timestamp}`);
       await surveyCreationPage.selectAudiences(['India']);
       await surveyCreationPage.selectDefaultIntroAndThanks();
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      await surveyCreationPage.addScaleQuestionFromData(0, 'Sentiment');
-      await surveyCreationPage.addFreeTextQuestionFromData(0);
+      await surveyCreationPage.addScaleQuestionFromBankWithSearch();
+      await surveyCreationPage.addMultipleChoiceQuestionFromBankWithSearch();
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();

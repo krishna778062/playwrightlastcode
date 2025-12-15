@@ -35,7 +35,7 @@ test.describe('daily Pulse Survey Creation Tests', () => {
     async () => {
       tagTest(test.info(), {
         description:
-          'Daily execution test to create a pulse survey with custom end date frequency type of Every three months',
+          'Daily execution test to create a pulse survey with custom end date frequency type of Every three months using question bank search and selection',
         zephyrTestId: 'LS-DAILY-PULSE-001',
         storyId: 'EL-Daily Pulse Survey Creation',
       });
@@ -60,7 +60,7 @@ test.describe('daily Pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      await pulseSurveyPage.addScaleQuestionFromDataWithoutType(surveyCreationPage, 0, 'Sentiment');
+      await surveyCreationPage.addScaleQuestionFromBankWithSearch();
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();

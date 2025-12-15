@@ -31,7 +31,7 @@ test.describe('daily Employee Engagement Survey Creation Tests', () => {
     async () => {
       tagTest(test.info(), {
         description:
-          'Daily execution test to create an employee engagement survey with "default" intro "default" thanks message and "All Employees" as audience',
+          'Daily execution test to create an employee engagement survey with "default" intro "default" thanks message and "All Employees" as audience using question bank search and selection',
         zephyrTestId: 'LS-DAILY-EMPLOYEE-ENGAGEMENT-001',
         storyId: 'EL-Daily Employee Engagement Survey Creation',
       });
@@ -43,9 +43,8 @@ test.describe('daily Employee Engagement Survey Creation Tests', () => {
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      await surveyCreationPage.addMultipleChoiceQuestionFromData(0, ['Yes', 'No', 'Optional'], 'Employee engagement');
-      await surveyCreationPage.addScaleQuestionFromData(1, 'Awareness');
-      await surveyCreationPage.addFreeTextQuestionFromData(0);
+      await surveyCreationPage.addScaleQuestionFromBankWithSearch();
+      await surveyCreationPage.addMultipleChoiceQuestionFromBankWithSearch();
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();
