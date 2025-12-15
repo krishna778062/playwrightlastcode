@@ -846,17 +846,20 @@ test.describe(
           filter: 'public',
           size: 1000,
         });
+        const filteredSites = getListOfSitesResponse.result.listOfItems.filter((item: any) => item.isActive === true);
+        if (filteredSites.length === 0) {
+          throw new Error('No active sites found in the response');
+        }
+        // Wrap filtered sites in the expected response structure
+        const filteredSitesResponse = {
+          result: {
+            listOfItems: filteredSites,
+          },
+        };
         const newSite =
-          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(filteredSitesResponse);
         console.log('newSite', newSite);
         const siteId = newSite.siteId;
-        const getUserList = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
-        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
-        const memberNames = getMemBerList.result.listOfItems.map((member: any) => member.name);
-        const allUserNames = getUserList.result.listOfItems.map((user: any) =>
-          `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        );
-        const nonMemberNames = allUserNames.filter((userName: string) => !memberNames.includes(userName));
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, newSite.siteId);
         await siteDashboardPage.loadPage();
         const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
@@ -865,14 +868,15 @@ test.describe(
         await manageSitesComponent.clickOnPeppleTabAction();
         await manageSitesComponent.clickOnAddAnotherButtonAction();
 
-        if (nonMemberNames.length === 0) {
-          throw new Error('No non-member users found to add to the site');
-        }
+        // Get non-member user names using helper method
+        const nonMemberNames = await appManagerApiFixture.siteManagementHelper.getNonMemberUserNames(siteId, {
+          minimumCount: 2,
+        });
 
         await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
         await addPeopleInSiteComponent.clickOnAddButton(siteId);
         await manageSitesComponent.clickOnAddAnotherButtonAction();
-        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[1]);
       }
     );
     test(
@@ -993,6 +997,8 @@ test.describe(
         );
         await contentPreviewPageEvent.loadPage();
         await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        const newHomePage = new NewHomePage(appManagerFixture.page);
+        await newHomePage.loadPage();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
         await favoritesPage.actions.clickOnContentButton();
         await favoritesPage.assertions.verifyContentNamesAreDisplayed([
@@ -1307,18 +1313,15 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
         });
         console.log('pageInfo', pageInfo);
-        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
-        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
-        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
-        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
         await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
           siteId,
           pageInfo.contentId,
           MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
         );
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
         await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
         await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(

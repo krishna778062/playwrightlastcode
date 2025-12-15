@@ -995,6 +995,12 @@ export class HomeDashboard extends BasePage {
   async verifyWorkdayInboxMetadata(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayInboxMetadata(tileTitle);
   }
+  /**
+   * Verify Workday Display Time Off metadata
+   */
+  async verifyWorkdayTimeOffMetadata(tileTitle: string, leaveType?: string): Promise<void> {
+    await this.tileOperationsComponent.verifyWorkdayTimeOffMetadata(tileTitle, leaveType);
+  }
   async verifyWorkdayJobPostingsmetadata(tileTitle: string, jobType: string): Promise<void> {
     await this.tileOperationsComponent.verifyWorkdayJobPostingsmetadata(tileTitle, jobType);
   }
