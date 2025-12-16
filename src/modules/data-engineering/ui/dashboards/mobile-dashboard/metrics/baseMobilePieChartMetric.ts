@@ -39,10 +39,12 @@ export abstract class BaseMobilePieChartMetric extends PieChartComponent {
   /**
    * Override hover method to use the regex-based locator
    * Subclasses can override this to add additional logic (e.g., visibility waits)
+   * Note: Using dispatchEvent to trigger mouseover as SVG elements intercept pointer events
    */
   async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
     const chartLabel = this.getChartLabelLocatorWithLabelAsOverride(label);
-    await chartLabel.hover();
+    // Use dispatchEvent to trigger mouseover directly, bypassing SVG interception
+    await chartLabel.dispatchEvent('mouseover');
   }
 
   /**
