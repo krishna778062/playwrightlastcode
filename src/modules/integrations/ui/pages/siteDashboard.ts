@@ -1017,7 +1017,7 @@ export class SiteDashboard {
     categoryValue: string,
     subcategory: string,
     subcategoryValue: string,
-    textFieldName: string,
+    textFieldName?: string,
     textValue?: string
   ): Promise<void> {
     await this.appTileComponent.clickButton('Create ticket');
