@@ -11,7 +11,7 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 
 test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SUITE_TAGS.USER_PROFILE] }, () => {
   test(
-    "[RC-3261] A Verify user profile should show a 'View orders' button in the Recognition section in Admin User profile page",
+    "[Zeus only] - Verify user profile should show a 'View orders' button in the Recognition section in User profile page. RC-3261",
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },

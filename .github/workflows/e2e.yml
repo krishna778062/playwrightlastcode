@@ -19,6 +19,7 @@ on:
           - 'integrations-azuresso'
           - 'integrations-primary'
           - 'de'
+          - 'de-browserstack'
           - 'de-api'
           - 'de-api-abac'
           - 'frontline'

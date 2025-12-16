@@ -1,0 +1,29 @@
+# =============================
+# Set BrowserStack Credentials
+# =============================
+userName: prateekparashar_LlOEnN
+accessKey: sycBfgWLQZUZQJ8W86gb
+
+# ======================
+# BrowserStack Reporting
+# ======================
+buildName: 'DE Automation Tests'
+projectName: 'Data Engineering'
+buildIdentifier: '#${BUILD_NUMBER}'
+
+# Custom tags for filtering
+CUSTOM_TAG_1: 'reward-module'
+
+# ======================
+# Test Observability Only
+# ======================
+# Run tests locally, report to BrowserStack
+testObservability: true
+browserstackAutomation: false # Tests run locally, NOT on BrowserStack browsers
+
+# ===================
+# Debugging features
+# ===================
+debug: false
+networkLogs: false
+consoleLogs: errors
