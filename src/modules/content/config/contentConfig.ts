@@ -247,9 +247,9 @@ export const config = {
     uat: {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://abac.uat.simpplr.xyz',
-      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz/',
+      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz',
       appManagerEmail: 'rakesh.shahabadi@simpplr.com',
-      appManagerPassword: 'simpplr001',
+      appManagerPassword: 'Simp@1234',
       endUserEmail: 'diksha.gaur@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'diksha.gaur@simpplr.com',
