@@ -43,8 +43,16 @@ test.describe('daily Employee Engagement Survey Creation Tests', () => {
       await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.selectSendDate();
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      await surveyCreationPage.addScaleQuestionFromBankWithSearch();
-      await surveyCreationPage.addMultipleChoiceQuestionFromBankWithSearch();
+      await surveyCreationPage.addScaleQuestionFromBank(0);
+      await surveyCreationPage.addMCQQuestionFromBank(0);
+      //Need to Uncomment below lines after fixing of diffrent themes additions issue
+      // await surveyCreationPage.addScaleQuestionFromBank(6);
+      // await surveyCreationPage.addScaleQuestionFromBank(11);
+      // await surveyCreationPage.addMCQQuestionFromBank(3);
+      // await surveyCreationPage.addMCQQuestionFromBank(4);
+      // await surveyCreationPage.addFreeTextQuestionFromBank(0);
+      // await surveyCreationPage.addFreeTextQuestionFromBank(1);
+      // await surveyCreationPage.addFreeTextQuestionFromBank(2);
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();

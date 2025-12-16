@@ -60,7 +60,8 @@ test.describe('daily Pulse Survey Creation Tests', () => {
         endDateButtonName: 'Select date…',
       });
       await surveyCreationPage.clickConfigureSurveyNextButton();
-      await surveyCreationPage.addScaleQuestionFromBankWithSearch();
+      await surveyCreationPage.addScaleQuestionFromBank(0);
+      await surveyCreationPage.addScaleQuestionFromBank(1);
       await surveyCreationPage.clickAddQuestionNextButton();
       await surveyCreationPage.captureSurveyIdAfterSchedule();
       await surveyCreationPage.verifySurveyScheduledMessage();

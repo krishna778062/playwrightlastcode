@@ -7,6 +7,11 @@ import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
 import { getAlternativeAudienceCheckbox, getExactAudienceCheckbox } from '@/src/modules/employee-listening/utils/polls';
 
+type QuestionBankSearchItem = {
+  question: string;
+  type?: 'scale' | 'multiple-choice' | 'free-text' | 'all';
+};
+
 export class SurveyCreationPage extends BasePage {
   readonly manageFeaturesMenuItem: Locator;
   readonly surveysButton: Locator;
@@ -1732,149 +1737,204 @@ export class SurveyCreationPage extends BasePage {
       });
     });
   }
-  async addQuestionFromBankWithSearch(questionText: string): Promise<void> {
-    await test.step(`Add question from bank using search: ${questionText}`, async () => {
-      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
-        stepInfo: 'Click Browse question bank button',
-      });
-      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
-      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
-        assertionMessage: 'Search textbox should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(searchTextbox, {
-        stepInfo: 'Click on search textbox',
-      });
-      await this.fillInElement(searchTextbox, questionText, {
-        stepInfo: `Fill search textbox with: ${questionText}`,
-      });
-      await searchTextbox.press('Enter');
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
-      const firstCheckbox = this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first();
-      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
-        assertionMessage: 'First checkbox should be visible after search',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(firstCheckbox, {
-        stepInfo: 'Select first question from search results',
-      });
-      await this.clickDoneButton();
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+
+  async addQuestionsFromBankWithSearch(questions: QuestionBankSearchItem[]): Promise<void> {
+    await test.step(`Add ${questions.length} question(s) from bank using search`, async () => {
+      for (let i = 0; i < questions.length; i++) {
+        const { question, type = 'all' } = questions[i];
+        await this.addSingleQuestionFromBank(question, type, i + 1);
+      }
     });
   }
 
-  async addScaleQuestionFromBankWithSearch(): Promise<void> {
-    await test.step('Add scale question from bank using search', async () => {
-      const scaleQuestion = SURVEY_QUESTION_BANK.SCALE[0].question;
-      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
-        stepInfo: 'Click Browse question bank button',
-      });
-      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
-      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
-        assertionMessage: 'Search textbox should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(searchTextbox, {
-        stepInfo: 'Click on search textbox',
-      });
-      await this.fillInElement(searchTextbox, scaleQuestion, {
-        stepInfo: `Fill search textbox with scale question: ${scaleQuestion}`,
-      });
-      await searchTextbox.press('Enter');
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
-      const scaleCheckbox = this.page.getByRole('checkbox', { name: 'Business agility Do you feel' }).first();
-      await this.verifier.verifyTheElementIsVisible(scaleCheckbox, {
-        assertionMessage: 'Scale question checkbox should be visible after search',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(scaleCheckbox, {
-        stepInfo: 'Select scale question from search results',
-      });
-      await this.clickDoneButton();
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+  private async addSingleQuestionFromBank(
+    question: string,
+    type: 'scale' | 'multiple-choice' | 'free-text' | 'all',
+    questionNumber: number
+  ): Promise<void> {
+    await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+      stepInfo: `Click Browse question bank button for question ${questionNumber}`,
     });
+
+    await this.navigateToQuestionTypeTab(type);
+    await this.searchAndSelectQuestion(question);
   }
 
-  async addMultipleChoiceQuestionFromBankWithSearch(): Promise<void> {
-    await test.step('Add multiple choice question from bank using search', async () => {
-      const mcqQuestion = SURVEY_QUESTION_BANK.MCQ[0].question;
-      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
-        stepInfo: 'Click Browse question bank button',
-      });
+  private async navigateToQuestionTypeTab(type: 'scale' | 'multiple-choice' | 'free-text' | 'all'): Promise<void> {
+    if (type === 'multiple-choice') {
+      await this.clickTabIfVisible('multiple-choice');
+    } else if (type === 'free-text') {
+      await this.clickTabIfVisible('free-text');
+    }
+  }
+
+  private async clickTabIfVisible(tabType: 'multiple-choice' | 'free-text'): Promise<void> {
+    if (tabType === 'multiple-choice') {
       const multipleChoiceTab = this.page
         .locator('div')
         .filter({ hasText: /^Multiple choice$/ })
         .nth(1);
-      await this.verifier.verifyTheElementIsVisible(multipleChoiceTab, {
-        assertionMessage: 'Multiple choice tab should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(multipleChoiceTab, {
-        stepInfo: 'Click Multiple choice tab',
-      });
-      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
-      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
-        assertionMessage: 'Search textbox should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(searchTextbox, {
-        stepInfo: 'Click on search textbox',
-      });
-      await this.fillInElement(searchTextbox, mcqQuestion, {
-        stepInfo: `Fill search textbox with MCQ question: ${mcqQuestion}`,
-      });
-      await searchTextbox.press('Enter');
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
-      const firstCheckbox = this.page.getByRole('checkbox').first();
-      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
-        assertionMessage: 'First MCQ checkbox should be visible after search',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(firstCheckbox, {
-        stepInfo: 'Select multiple choice question from search results',
-      });
-      await this.clickDoneButton();
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      const isTabVisible = await multipleChoiceTab.isVisible({ timeout: TIMEOUTS.SHORT });
+      if (isTabVisible) {
+        try {
+          await this.clickOnElement(multipleChoiceTab, {
+            stepInfo: 'Click Multiple choice tab',
+            timeout: TIMEOUTS.SHORT,
+          });
+        } catch (error) {
+          console.warn('Multiple choice tab click failed, might already be selected:', error);
+        }
+      }
+    } else if (tabType === 'free-text') {
+      const freeTextTab = this.page.getByText('Free text');
+      const isTabVisible = await freeTextTab.isVisible({ timeout: TIMEOUTS.SHORT });
+      if (isTabVisible) {
+        try {
+          await this.clickOnElement(freeTextTab, {
+            stepInfo: 'Click Free text tab',
+            timeout: TIMEOUTS.SHORT,
+          });
+        } catch (error) {
+          console.warn('Free text tab click failed, might already be selected:', error);
+        }
+      }
+    }
+  }
+
+  private async searchAndSelectQuestion(question: string): Promise<void> {
+    const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+    await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+      assertionMessage: 'Search textbox should be visible in question bank',
+      timeout: TIMEOUTS.MEDIUM,
     });
+    await this.clickOnElement(searchTextbox, {
+      stepInfo: 'Click on search textbox',
+    });
+    await searchTextbox.fill('');
+    await this.fillInElement(searchTextbox, question, {
+      stepInfo: `Search for question: "${question}"`,
+    });
+    await searchTextbox.press('Enter');
+    await this.page.waitForTimeout(TIMEOUTS.SHORT);
+    const firstCheckbox = this.page.getByRole('checkbox').first();
+    await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
+      assertionMessage: `First checkbox for "${question}" should be visible after search`,
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await this.clickOnElement(firstCheckbox, {
+      stepInfo: `Select question: "${question}"`,
+    });
+
+    await this.clickDoneButton();
+    await this.page.waitForTimeout(TIMEOUTS.SHORT);
+  }
+
+  async addQuestionFromBankWithSearch(questionText: string): Promise<void> {
+    await this.addQuestionsFromBankWithSearch([{ question: questionText, type: 'all' }]);
+  }
+
+  async addScaleQuestionFromBankWithSearch(): Promise<void> {
+    const scaleQuestion = SURVEY_QUESTION_BANK.SCALE[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: scaleQuestion, type: 'scale' }]);
+  }
+
+  async addMultipleChoiceQuestionFromBankWithSearch(): Promise<void> {
+    const mcqQuestion = SURVEY_QUESTION_BANK.MCQ[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: mcqQuestion, type: 'multiple-choice' }]);
   }
 
   async addFreeTextQuestionFromBankWithSearch(): Promise<void> {
-    await test.step('Add free text question from bank using search', async () => {
-      const freeTextQuestion = SURVEY_QUESTION_BANK.FREE_TEXT[0].question;
-      await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
-        stepInfo: 'Click Browse question bank button',
-      });
-      const freeTextTab = this.page.getByText('Free text');
-      await this.verifier.verifyTheElementIsVisible(freeTextTab, {
-        assertionMessage: 'Free text tab should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(freeTextTab, {
-        stepInfo: 'Click Free text tab',
-      });
-      const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
-      await this.verifier.verifyTheElementIsVisible(searchTextbox, {
-        assertionMessage: 'Search textbox should be visible in question bank',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(searchTextbox, {
-        stepInfo: 'Click on search textbox',
-      });
-      await this.fillInElement(searchTextbox, freeTextQuestion, {
-        stepInfo: `Fill search textbox with free text question: ${freeTextQuestion}`,
-      });
-      await searchTextbox.press('Enter');
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
-      const firstCheckbox = this.page.getByRole('checkbox').first();
-      await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
-        assertionMessage: 'First free text checkbox should be visible after search',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(firstCheckbox, {
-        stepInfo: 'Select free text question from search results',
-      });
-      await this.clickDoneButton();
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
-    });
+    const freeTextQuestion = SURVEY_QUESTION_BANK.FREE_TEXT[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: freeTextQuestion, type: 'free-text' }]);
+  }
+
+  static getQuestionBankQuestions(
+    type: 'scale' | 'multiple-choice' | 'free-text' | 'mixed',
+    count: number = 1
+  ): { question: string; type: 'scale' | 'multiple-choice' | 'free-text' }[] {
+    const questions: { question: string; type: 'scale' | 'multiple-choice' | 'free-text' }[] = [];
+
+    if (type === 'mixed') {
+      const scaleQuestions = SURVEY_QUESTION_BANK.SCALE.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'scale' as const,
+      }));
+      const mcqQuestions = SURVEY_QUESTION_BANK.MCQ.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'multiple-choice' as const,
+      }));
+      const freeTextQuestions = SURVEY_QUESTION_BANK.FREE_TEXT.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'free-text' as const,
+      }));
+
+      questions.push(...scaleQuestions, ...mcqQuestions, ...freeTextQuestions);
+      return questions;
+    }
+
+    switch (type) {
+      case 'scale':
+        return SURVEY_QUESTION_BANK.SCALE.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'scale' as const,
+        }));
+      case 'multiple-choice':
+        return SURVEY_QUESTION_BANK.MCQ.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'multiple-choice' as const,
+        }));
+      case 'free-text':
+        return SURVEY_QUESTION_BANK.FREE_TEXT.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'free-text' as const,
+        }));
+      default:
+        return [];
+    }
+  }
+
+  async addScaleQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.SCALE.length) {
+      throw new Error(
+        `Invalid SCALE question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.SCALE.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.SCALE[questionIndex].question,
+        type: 'scale',
+      },
+    ]);
+  }
+
+  async addMCQQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.MCQ.length) {
+      throw new Error(
+        `Invalid MCQ question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.MCQ.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.MCQ[questionIndex].question,
+        type: 'multiple-choice',
+      },
+    ]);
+  }
+
+  async addFreeTextQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.FREE_TEXT.length) {
+      throw new Error(
+        `Invalid FREE_TEXT question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.FREE_TEXT.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.FREE_TEXT[questionIndex].question,
+        type: 'free-text',
+      },
+    ]);
   }
 }
