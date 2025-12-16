@@ -77,6 +77,9 @@ export const PAGE_ENDPOINTS = {
 
   MANAGE_SITE_SETUP_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   MANAGE_SITE_PAGE: `manage/sites`,
+  MANAGE_SITE_PAGE_CATEGORIES_PAGE: (siteId: string) => `manage/sites/${siteId}/page-categories`,
+  MANAGE_SITE_CONTENT_PAGE: (siteId: string, pageCategoryId: string) =>
+    `manage/sites/${siteId}/content?type=page&pageCategoryId=${pageCategoryId}`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
@@ -119,6 +122,7 @@ export const PAGE_ENDPOINTS = {
   MOBILE_DASHBOARD: '/analytics/mobile',
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
+  CONTENT_DASHBOARD: '/analytics/content',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
