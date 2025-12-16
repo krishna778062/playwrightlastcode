@@ -148,38 +148,30 @@ jobs:
 
       - name: Run regression tests
         run: |
-          # Determine test command based on BrowserStack flag
+          # Determine test script suffix based on BrowserStack flag
           if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
             echo "🔗 BrowserStack Test Observability: ENABLED"
             echo "   Project: $BROWSERSTACK_PROJECT_NAME"
             echo "   Build: $BROWSERSTACK_BUILD_NAME"
             echo "   Tags: $CUSTOM_TAG_1, $CUSTOM_TAG_2, $CUSTOM_TAG_3"
-            TEST_PREFIX="browserstack-node-sdk"
+            BS_SUFFIX="-browserstack"
           else
             echo "📊 BrowserStack Test Observability: DISABLED"
-            TEST_PREFIX=""
+            BS_SUFFIX=""
           fi
+
+          # Build the test script name
+          TEST_SCRIPT="test:${{ matrix.module }}${BS_SUFFIX}"
+          echo "Running: npm run ${TEST_SCRIPT}"
 
           if [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
-            if [ -n "$TEST_PREFIX" ]; then
-              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
-            else
-              npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
-            fi
+            npm run ${TEST_SCRIPT} -- --grep-invert=P3 --workers=3
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            if [ -n "$TEST_PREFIX" ]; then
-              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
-            else
-              npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
-            fi
+            npm run ${TEST_SCRIPT} -- --grep-invert=P3 --workers=1
           else
-            if [ -n "$TEST_PREFIX" ]; then
-              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --workers=3
-            else
-              npm run test:${{ matrix.module }} -- --workers=3
-            fi
+            npm run ${TEST_SCRIPT} -- --workers=3
           fi
 
       - name: Upload test report to github artifact backup
