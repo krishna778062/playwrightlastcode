@@ -624,54 +624,6 @@ export class SiteManagementHelper {
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
     return await this.siteManagementService.getListOfPeople(options);
   }
-  /**
-   * Gets 2 sites that are not in the featured sites list
-   * @param count - Number of non-featured sites to return (default: 2)
-   * @returns Promise containing non-featured sites
-   */
-  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
-    return await test.step(`Getting ${count} non-featured sites`, async () => {
-      // Fetch both lists in parallel for better performance
-      const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'active', size: 1000 }),
-        this.getListOfSites({ filter: 'featured', size: 1000 }),
-      ]);
-
-      // Early validation
-      if (!allSitesResponse.result.listOfItems.length) {
-        throw new Error('No active sites found');
-      }
-
-      // Create Set for O(1) lookup performance
-      const featuredSiteIds = new Set(featuredSitesResponse.result.listOfItems.map((site: any) => site.siteId));
-
-      // Single pass filtering and mapping for better performance
-      const nonFeaturedSites: { siteId: string; name: string }[] = [];
-
-      for (const site of allSitesResponse.result.listOfItems) {
-        if (!featuredSiteIds.has(site.siteId)) {
-          nonFeaturedSites.push({
-            siteId: site.siteId,
-            name: site.name,
-          });
-
-          // Early exit if we have enough sites
-          if (nonFeaturedSites.length >= count) {
-            break;
-          }
-        }
-      }
-
-      if (nonFeaturedSites.length < count) {
-        throw new Error(`Not enough non-featured sites found. Found: ${nonFeaturedSites.length}, Required: ${count}`);
-      }
-
-      log.debug(
-        `Selected ${nonFeaturedSites.length} non-featured sites: ${nonFeaturedSites.map(s => s.name).join(', ')}`
-      );
-      return nonFeaturedSites;
-    });
-  }
 
   /**
    * Unfeatures a site (removes it from featured sites)
@@ -1715,6 +1667,32 @@ export class SiteManagementHelper {
       } else {
         return { siteId: site.siteId, siteName: site.name };
       }
+    });
+  }
+
+  /**
+   * Gets unfeatured sites using the API service
+   * @param count - Number of unfeatured sites to return (default: 2)
+   * @returns Promise containing array of unfeatured sites
+   */
+  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
+    return await test.step(`Getting ${count} unfeatured sites`, async () => {
+      // Call the service method to get unfeatured sites
+      const siteListResponse = await this.siteManagementService.getUnfeaturedSites({
+        size: 1000,
+        sortBy: 'alphabetical',
+      });
+
+      // Randomize the site list first
+      const shuffledSites = [...siteListResponse.result.listOfItems].sort(() => Math.random() - 0.5);
+      if (shuffledSites.length < count) {
+        throw new Error(`Not enough unfeatured sites found. Found: ${shuffledSites.length}, Required: ${count}`);
+      }
+      // Return the requested count of sites
+      return shuffledSites.slice(0, count).map((site: any) => ({
+        siteId: site.siteId,
+        name: site.name,
+      }));
     });
   }
 }
