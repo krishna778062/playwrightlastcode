@@ -228,10 +228,9 @@ export class AudienceManagementHelper {
     const response = await this.audienceManagementService.getAudienceList();
     const audience = response.result.listOfItems.find(audience => audience.description === null);
     if (!audience) {
-      //create a audience with description
+      //create a audience with out any description
       const newAudience = await this.createAudience({
         name: `Test Audience ${Math.random().toString(36).substring(2, 12)}`,
-        description: `Test Audience Description ${Math.random().toString(36).substring(2, 12)}`,
         type: 'mixed',
         audienceRule: {
           AND: [
