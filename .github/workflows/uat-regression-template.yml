@@ -8,6 +8,11 @@ on:
         required: false
         default: 'uat'
         type: string
+      enable_browserstack:
+        description: 'Enable BrowserStack Test Observability reporting'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -95,11 +100,29 @@ jobs:
       MODULE_NAME: ${{ matrix.module }}
       TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack SDK Configuration (overrides browserstack.yml)
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      BROWSERSTACK_PROJECT_NAME: ${{ matrix.module }}-automation
+      BROWSERSTACK_BUILD_NAME: ${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}
+      BROWSERSTACK_BUILD_IDENTIFIER: '#${{ github.run_number }}-${{ github.run_attempt }}'
+      # Custom tags for filtering in BrowserStack dashboard
+      BROWSERSTACK_BUILD_TAG: ${{ inputs.environment }}
+      CUSTOM_TAG_1: ${{ matrix.module }}
+      CUSTOM_TAG_2: ${{ inputs.environment }}
+      CUSTOM_TAG_3: uat-regression
     steps:
       - name: Display configuration
         run: |
           echo "🌍 Environment: ${{ inputs.environment }}"
           echo "🔖 Git Ref: ${{ needs.check-stage.outputs.checkout_ref }}"
+          echo "📦 Module: ${{ matrix.module }}"
+          echo "🔗 BrowserStack: ${{ inputs.enable_browserstack && 'Enabled' || 'Disabled' }}"
+          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
+            echo "   └── Project: ${{ matrix.module }}-automation"
+            echo "   └── Build: ${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}"
+            echo "   └── Tags: ${{ matrix.module }}, ${{ inputs.environment }}, uat-regression"
+          fi
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -125,14 +148,38 @@ jobs:
 
       - name: Run regression tests
         run: |
+          # Determine test command based on BrowserStack flag
+          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
+            echo "🔗 BrowserStack Test Observability: ENABLED"
+            echo "   Project: $BROWSERSTACK_PROJECT_NAME"
+            echo "   Build: $BROWSERSTACK_BUILD_NAME"
+            echo "   Tags: $CUSTOM_TAG_1, $CUSTOM_TAG_2, $CUSTOM_TAG_3"
+            TEST_PREFIX="browserstack-node-sdk"
+          else
+            echo "📊 BrowserStack Test Observability: DISABLED"
+            TEST_PREFIX=""
+          fi
+
           if [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+            if [ -n "$TEST_PREFIX" ]; then
+              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+            else
+              npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+            fi
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+            if [ -n "$TEST_PREFIX" ]; then
+              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+            else
+              npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+            fi
           else
-            npm run test:${{ matrix.module }} -- --workers=3
+            if [ -n "$TEST_PREFIX" ]; then
+              npx $TEST_PREFIX npm run test:${{ matrix.module }} -- --workers=3
+            else
+              npm run test:${{ matrix.module }} -- --workers=3
+            fi
           fi
 
       - name: Upload test report to github artifact backup
@@ -208,6 +255,12 @@ jobs:
           echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
           echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
           echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
+
+          # BrowserStack Test Observability dashboard link
+          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
+            echo "BROWSERSTACK_DASHBOARD_URL=https://observability.browserstack.com/builds?project=${{ matrix.module }}-automation&build=${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}" >> $GITHUB_ENV
+            echo "🔗 BrowserStack Dashboard: https://observability.browserstack.com/builds?project=${{ matrix.module }}-automation"
+          fi
 
       - name: Upload Regression Data to Postgres
         if: always()
@@ -289,11 +342,17 @@ jobs:
         run: |
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            # Build BrowserStack link if enabled
+            BS_LINK=""
+            if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
+              BS_LINK=" | <${{ env.BROWSERSTACK_DASHBOARD_URL }}|🔬 BrowserStack>"
+            fi
+            
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags>${BS_LINK} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags>${BS_LINK} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
