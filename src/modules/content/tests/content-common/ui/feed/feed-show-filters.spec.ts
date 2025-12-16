@@ -363,6 +363,7 @@ test.describe(
         for (const content of contents) {
           await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
         }
+        await endUserMemberFeedPage.reloadPage();
       }
     );
 
