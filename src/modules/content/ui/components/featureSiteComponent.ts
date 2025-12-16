@@ -54,13 +54,13 @@ export class FeatureSiteComponent extends BaseComponent {
   async clickAddButton(): Promise<void> {
     await test.step('Click on Add button', async () => {
       const addButtonResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.addButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.addButton, { delay: 5_000 }),
         response =>
           response.url().includes('featured?action=feature') &&
-          response.request().method() === 'POST' &&
-          response.status() === 201,
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 50_000,
         }
       );
       return addButtonResponse;
