@@ -778,39 +778,47 @@ export class SiteManagementHelper {
         `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
       );
     }
+    //loop through the siteListResponse and check if the site matches the options
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-    let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
-    let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
-    if (siteDetails) {
-      // Check if the existing site matches the required options
+    // Use default values: if options are not specified, default to true (original behavior)
+    const requiredHasPages = options?.hasPages;
+    const requiredHasEvents = options?.hasEvents;
+    const requiredHasAlbums = options?.hasAlbums;
+
+    log.debug(
+      `Looking for site with hasPages: ${requiredHasPages}, hasEvents: ${requiredHasEvents}, hasAlbums: ${requiredHasAlbums}`
+    );
+
+    for (const site of siteListResponse.result.listOfItems) {
+      // Only check active sites
+      if (!site.isActive) {
+        continue;
+      }
+
+      // Check if site matches the required options
       const matchesRequirements =
-        (options?.hasPages ?? true) && (options?.hasEvents ?? true) && (options?.hasAlbums ?? true);
+        site.hasPages === requiredHasPages &&
+        site.hasEvents === requiredHasEvents &&
+        site.hasAlbums === requiredHasAlbums;
 
       if (matchesRequirements) {
-        siteId = siteDetails.siteId;
-        siteName = siteDetails.name;
-        log.debug(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
+        log.debug(
+          `Found matching site: ${site.name} (${site.siteId}) with hasPages: ${site.hasPages}, hasEvents: ${site.hasEvents}, hasAlbums: ${site.hasAlbums}`
+        );
+        return { siteId: site.siteId, name: site.name, siteListResponse: siteListResponse.result.listOfItems };
       } else {
-        log.debug(`Existing site doesn't match requirements, will create new site`);
-        siteDetails = undefined; // Reset to undefined so we create a new site
+        log.debug(
+          `Site ${site.name} doesn't match - hasPages: ${site.hasPages}, hasEvents: ${site.hasEvents}, hasAlbums: ${site.hasAlbums}`
+        );
       }
     }
-
-    if (!siteId) {
-      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
-        ...options,
-        waitForSearchIndex: options?.waitForSearchIndex,
-      });
-      siteId = createdSite.siteId;
-      siteName = createdSite.siteName;
-    }
-
-    if (!siteId || !siteName) {
-      throw new Error(`No site found or created with access type ${accessType}`);
-    }
-
-    return { siteId, name: siteName, siteListResponse: siteListResponse.result.listOfItems };
+    //create a new site with the options
+    const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+      ...options,
+      waitForSearchIndex: options?.waitForSearchIndex,
+    });
+    return { siteId: createdSite.siteId, name: createdSite.siteName };
   }
 
   /**
