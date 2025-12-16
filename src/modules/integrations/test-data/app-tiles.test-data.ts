@@ -272,4 +272,5 @@ export const WORKDAY_VALUES = {
 export const JIRA_VALUES = {
   PROJECT: 'Project',
   INTEGRATIONS: 'Integrations',
+  JIRA_JQL_QUERY: 'project = "INT" AND assignee = 607d428f1417e2006aacea72 AND type = Story ORDER BY created DESC',
 } as const;

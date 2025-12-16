@@ -300,6 +300,17 @@ export class CustomAppsComponent extends BaseComponent {
   }
 
   /**
+   * Verify the result count is visible and displayed
+   */
+  async verifyResultCountIsVisible(): Promise<void> {
+    await test.step('Verify result count is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resultCountLocator, {
+        assertionMessage: 'Result count should be visible',
+      });
+    });
+  }
+
+  /**
    * Verify count of apps in list
    */
   async verifyCountOfAppsInListIs(count: number): Promise<void> {

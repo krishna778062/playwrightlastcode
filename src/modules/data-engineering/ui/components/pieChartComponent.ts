@@ -8,6 +8,7 @@ export class PieChartComponent extends BaseComponent {
   readonly chartSegmentLocator: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
   readonly getChartLabelLocatorWithLabelAs: (label: string) => Locator;
+  readonly downloadCSVButton: Locator;
   constructor(
     readonly page: Page,
     readonly thoughtSpotIframe: FrameLocator,
@@ -26,6 +27,7 @@ export class PieChartComponent extends BaseComponent {
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
       this.rootLocator.locator(`g[class*='highcharts-data-label-color']`).filter({ hasText: label });
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
   }
 
   /**
@@ -147,5 +149,29 @@ export class PieChartComponent extends BaseComponent {
       normalizedActual,
       `Segment label ${label} should display text: ${expectedText}, but got: ${actualText}`
     ).toBe(normalizedExpected);
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv for ${this.metricTitle}`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: 10_000,
+          assertionMessage: `Download csv button should be visible for ${this.metricTitle}`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file for ${this.metricTitle}` });
+    });
   }
 }

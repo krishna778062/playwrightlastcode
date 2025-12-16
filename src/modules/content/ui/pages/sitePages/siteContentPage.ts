@@ -1,15 +1,18 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 export interface ISiteContentActions {
   clickPageCategory: (categoryName: string) => Promise<void>;
+  clickOnShowMoreButton: () => Promise<void>;
 }
 
 export interface ISiteContentAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyContentListLoaded: () => Promise<void>;
+  verifyShowMoreButtonIsVisible: () => Promise<void>;
+  verifyContentListAfterClickingShowMoreButton: () => Promise<void>;
 }
 
 /**
@@ -19,6 +22,7 @@ export interface ISiteContentAssertions {
 export class SiteContentPage extends BaseSitePage implements ISiteContentAssertions {
   readonly pageCategoryLink: (categoryName: string) => Locator;
   readonly contentListContainer: Locator;
+  readonly showMoreButton: Locator;
 
   constructor(page: Page, siteId: string) {
     super(page, siteId);
@@ -28,6 +32,7 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
     this.pageCategoryLink = (categoryName: string) =>
       this.page.getByLabel('Content', { exact: true }).getByRole('link', { name: categoryName, exact: true });
     this.contentListContainer = this.page.locator('div.DraggableList > div > li').first();
+    this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   }
 
   get actions(): ISiteContentActions {
@@ -64,5 +69,26 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
         assertionMessage: 'Content list should be visible',
       });
     });
+    //element list size should be 16
+    const elementListSize = await this.contentListContainer.count();
+    expect(elementListSize).toBe(16);
+  }
+
+  async verifyShowMoreButtonIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.showMoreButton, {
+      assertionMessage: 'Show More button should be visible',
+    });
+  }
+
+  async clickOnShowMoreButton(): Promise<void> {
+    await test.step('Click Show More button', async () => {
+      await this.clickOnElement(this.showMoreButton);
+    });
+  }
+
+  async verifyContentListAfterClickingShowMoreButton(): Promise<void> {
+    //element list size should be 16
+    const elementListSize = await this.contentListContainer.count();
+    expect(elementListSize).toBeGreaterThan(16);
   }
 }

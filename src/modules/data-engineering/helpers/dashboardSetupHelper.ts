@@ -8,6 +8,7 @@ import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
@@ -33,15 +34,16 @@ async function createAuthenticatedSession(browser: Browser, userRole: UserRole):
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  // User credentials
+  // User credentials from config
+  const config = getDataEngineeringConfigFromCache();
   const users = {
     appManager: {
-      email: process.env.APP_MANAGER_USERNAME || '',
-      password: process.env.APP_MANAGER_PASSWORD || '',
+      email: config.appManagerEmail,
+      password: config.appManagerPassword,
     },
     standardUser: {
-      email: process.env.STANDARD_USER_USERNAME || '',
-      password: process.env.STANDARD_USER_PASSWORD || '',
+      email: config.standardUserEmail,
+      password: config.standardUserPassword,
     },
   };
 
@@ -89,10 +91,7 @@ export async function setupSocialInteractionDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create social interaction query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const socialInteractionQueryHelper = new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create social interaction dashboard
@@ -129,10 +128,7 @@ export async function setupAppAdoptionDashboardForTest(
   const snowflakeHelper = await createSnowflakeConnection();
 
   //create app adoption query helper
-  const orgId = process.env.ORG_ID || '';
-  if (!orgId) {
-    throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-  }
+  const orgId = getDataEngineeringConfigFromCache().orgId;
   const appAdoptionQueryHelper = new AppAdoptionDashboardQueryHelper(snowflakeHelper, orgId);
 
   //create app adoption dashboard
@@ -168,10 +164,7 @@ export async function setupPeopleDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create people query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const peopleQueryHelper = new PeopleDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create people dashboard
@@ -207,10 +200,7 @@ export async function setupSearchDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create search dashboard query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const searchDashboardQueryHelper = new SearchDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create search dashboard
@@ -248,10 +238,7 @@ export async function setupMobileDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create mobile dashboard query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const mobileDashboardQueryHelper = new MobileDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create mobile dashboard
@@ -288,10 +275,7 @@ export async function setupMonthlyReportsDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create monthly reports query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const monthlyReportsQueryHelper = new MonthlyReportsQueryHelper(snowflakeHelper, orgId);
 
     //create monthly reports dashboard
@@ -329,10 +313,7 @@ export async function setupSitesDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create sites dashboard query helper
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const sitesDashboardQueryHelper = new SitesDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create sites dashboard
@@ -369,10 +350,7 @@ export async function setupOverviewDashboardForTest(
     const snowflakeHelper = await createSnowflakeConnection();
 
     //create app adoption query helper (reused for overview dashboard)
-    const orgId = process.env.ORG_ID || '';
-    if (!orgId) {
-      throw new Error('ORG_ID is not set, please set the ORG_ID environment variable');
-    }
+    const orgId = getDataEngineeringConfigFromCache().orgId;
     const appAdoptionQueryHelper = new AppAdoptionDashboardQueryHelper(snowflakeHelper, orgId);
 
     //create overview dashboard
@@ -386,6 +364,43 @@ export async function setupOverviewDashboardForTest(
       overviewDashboard,
       snowflakeHelper,
       appAdoptionQueryHelper,
+    };
+  });
+}
+
+/**
+ * Sets up Content Dashboard for testing
+ */
+export async function setupContentDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  contentDashboard: ContentDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  contentDashboardQueryHelper: ContentDashboardQueryHelper;
+}> {
+  return await test.step('Setup Content Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create content dashboard query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const contentDashboardQueryHelper = new ContentDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create content dashboard
+    const contentDashboard = new ContentDashboard(page);
+    await contentDashboard.loadPage();
+
+    console.log('Content Dashboard loaded successfully');
+
+    return {
+      page,
+      contentDashboard,
+      snowflakeHelper,
+      contentDashboardQueryHelper,
     };
   });
 }

@@ -10,6 +10,7 @@ import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange'
 import { FilterOptions, PeriodFilterOption, SearchDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { SearchDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSearchDashboardForTest,
@@ -34,7 +35,7 @@ test.describe(
     // Helper function to create FilterOptions from period filter
     const createFilterOptions = (timePeriod: string): FilterOptions => {
       return {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: timePeriod as PeriodFilterOption,
       };
     };
