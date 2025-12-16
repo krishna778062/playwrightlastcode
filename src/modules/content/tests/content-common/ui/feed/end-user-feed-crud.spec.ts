@@ -1441,7 +1441,7 @@ test.describe(
           await homeFeedPage.actions.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostButton();
+          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1488,7 +1488,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1537,7 +1537,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1604,8 +1604,6 @@ test.describe(
           ),
         ]);
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
         // Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: publicSiteId,
@@ -1656,9 +1654,6 @@ test.describe(
           inappropriatePostText,
           editedPostText
         );
-
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
       }
     );
 
