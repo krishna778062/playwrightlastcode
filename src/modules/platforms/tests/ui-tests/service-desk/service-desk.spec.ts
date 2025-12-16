@@ -6,10 +6,10 @@ import { tagTest } from '@core/utils/testDecorator';
 import { multiUserServiceDeskFixture } from '@platforms/fixtures/multiUserServiceDeskFixture';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 
-import { ServiceDeskHomePage } from '../../../pages/service-desk/serviceDeskHomePage';
-import { ServiceDeskManageFeaturesPage } from '../../../pages/service-desk/serviceDeskManageFeaturesPage';
-import { ServiceDeskPage } from '../../../pages/service-desk/serviceDeskPage';
-import { ServiceDeskSettingsPage } from '../../../pages/service-desk/serviceDeskSettingsPage';
+import { ServiceDeskHomePage } from '../../../ui/pages/service-desk/serviceDeskHomePage';
+import { ServiceDeskManageFeaturesPage } from '../../../ui/pages/service-desk/serviceDeskManageFeaturesPage';
+import { ServiceDeskPage } from '../../../ui/pages/service-desk/serviceDeskPage';
+import { ServiceDeskSettingsPage } from '../../../ui/pages/service-desk/serviceDeskSettingsPage';
 import { ServiceDeskTestData } from '../../test-data/service-desk.test-data';
 
 test.describe('service desk - Application Settings', () => {
