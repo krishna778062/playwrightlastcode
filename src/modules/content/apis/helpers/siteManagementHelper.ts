@@ -1529,23 +1529,30 @@ export class SiteManagementHelper {
       // Try to find an existing site with the desired configuration
       const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
       console.log('siteListResponse', JSON.stringify(siteListResponse, null, 2));
+      // Loop through sites to find one that matches the content submissions configuration
       for (const site of siteListResponse.result.listOfItems) {
         const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
         if (siteDetails.result.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
-          siteDetails.result.status === 'active'
-            ? siteDetails
-            : await this.siteManagementService.activateSite(site.siteId);
-          return siteDetails;
-        } else {
-          const createdSite = await this.createSiteByAccessType(accessType, undefined, {
-            overrides: {
-              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
-            },
-            waitForSearchIndex: true,
-          });
-          return createdSite;
+          // Activate site if it's not active
+          if (!site.isActive) {
+            await this.siteManagementService.activateSite(site.siteId);
+          }
+          return { siteId: site.siteId, siteName: site.name };
         }
       }
+
+      // If no matching site found, create a new site with the specific content submission setting
+      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+        overrides: {
+          isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+        },
+        waitForSearchIndex: true,
+      });
+
+      return {
+        siteId: createdSite.siteId,
+        siteName: createdSite.siteName,
+      };
     });
   }
 

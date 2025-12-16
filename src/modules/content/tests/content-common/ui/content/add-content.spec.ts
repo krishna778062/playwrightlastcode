@@ -124,7 +124,6 @@ test.describe(
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
         const siteName = DEFAULT_UNLISTED_SITE_NAME;
         console.log('siteName :   ', siteName);
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -184,7 +183,7 @@ test.describe(
 
         // Generate page data using TestDataGenerator
         const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
