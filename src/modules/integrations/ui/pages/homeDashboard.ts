@@ -1250,16 +1250,11 @@ export class HomeDashboard extends BasePage {
     category: string,
     categoryValue: string,
     subcategory: string,
-    subcategoryValue: string,
-    textFieldName?: string,
-    textValue?: string
+    subcategoryValue: string
   ): Promise<void> {
     await this.appTileComponent.clickButton('Create ticket');
-    await this.selectDropdownValue(category, categoryValue);
-    await this.selectDropdownValue(subcategory, subcategoryValue);
-    if (textFieldName !== undefined && textValue !== undefined) {
-      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
-    }
+    await this.selectDropdownValue('Category', categoryValue);
+    await this.selectDropdownValue('Subcategory', subcategoryValue);
     await this.appTileComponent.clickButton('Create');
     await this.verifyToastMessage(MESSAGES.CREATE_TICKET_SUCCESS_MESSAGE);
   }
