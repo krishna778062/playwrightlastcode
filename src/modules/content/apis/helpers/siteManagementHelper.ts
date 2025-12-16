@@ -473,7 +473,7 @@ export class SiteManagementHelper {
   ): Promise<string> {
     // Get the list of sites
     const sitesResponse = await this.siteManagementService.getListOfSites({
-      size: 10000, // Get a large number to ensure we find the site if it exists
+      size: 5000, // Get a large number to ensure we find the site if it exists
       canManage: true,
       sortBy: 'alphabetical',
     });
@@ -1527,23 +1527,25 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site with access type ${accessType} and content submissions ${isContentSubmissionsEnabled ? 'enabled' : 'disabled'}`, async () => {
       // Try to find an existing site with the desired configuration
-      const _existingSite = await this.getSiteByAccessType(accessType, {
-        waitForSearchIndex: true,
-      });
-
-      // If we found an existing site, check if it matches our content submission requirements
-      // For now, we'll create a new site with the specific content submission setting
-      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
-        overrides: {
-          isContentSubmissionsEnabled: isContentSubmissionsEnabled,
-        },
-        waitForSearchIndex: true,
-      });
-
-      return {
-        siteId: createdSite.siteId,
-        siteName: createdSite.siteName,
-      };
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      console.log('siteListResponse', JSON.stringify(siteListResponse, null, 2));
+      for (const site of siteListResponse.result.listOfItems) {
+        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+        if (siteDetails.result.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
+          siteDetails.result.status === 'active'
+            ? siteDetails
+            : await this.siteManagementService.activateSite(site.siteId);
+          return siteDetails;
+        } else {
+          const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+            overrides: {
+              isContentSubmissionsEnabled: isContentSubmissionsEnabled,
+            },
+            waitForSearchIndex: true,
+          });
+          return createdSite;
+        }
+      }
     });
   }
 

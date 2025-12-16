@@ -80,7 +80,13 @@ test.describe(
       test(
         `${testData.description}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.PAGE_CREATION,
+            `@${testData.storyId}`,
+          ],
         },
         async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
           tagTest(test.info(), {
@@ -146,11 +152,6 @@ test.describe(
             pageCreationOptions.title,
             testData.actionSuccessMessage
           );
-          await standardUserFixture.page.reload();
-
-          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
-            stepInfo: 'Standard user clicking on bell icon to view notifications',
-          });
           const identityManagementHelper = new IdentityManagementHelper(
             appManagerApiContext,
             getContentConfigFromCache().tenant.apiBaseUrl
@@ -158,6 +159,9 @@ test.describe(
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + pageCreationOptions.title + '"';
+          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
+            stepInfo: 'Standard user clicking on bell icon to view notifications',
+          });
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {

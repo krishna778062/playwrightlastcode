@@ -75,8 +75,6 @@ test.describe(
 
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
         const siteName = DEFAULT_UNLISTED_SITE_NAME;
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.reloadPage();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -179,7 +177,6 @@ test.describe(
         );
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -236,8 +233,6 @@ test.describe(
 
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -288,8 +283,6 @@ test.describe(
         // Create site with content submission disabled
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
         const siteName = DEFAULT_UNLISTED_SITE_NAME;
-
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         addContentModal = await appManagerFixture.navigationHelper.openAddContentModal(ContentType.PAGE);
 
         await addContentModal.selectSiteToAddContentFromDropdown(siteName);
