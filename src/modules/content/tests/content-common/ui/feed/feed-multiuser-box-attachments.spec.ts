@@ -21,7 +21,7 @@ test.describe(
     let siteId: string;
     const siteName: string = DEFAULT_PUBLIC_SITE_NAME;
 
-    test.beforeEach('setup: Configure Box files', async ({ appManagerApiFixture, appManagerFixture }) => {
+    test('setup: Configure Box files', async ({ appManagerApiFixture, appManagerFixture }) => {
       // Get DEFAULT_PUBLIC_SITE_NAME site ID
       siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 

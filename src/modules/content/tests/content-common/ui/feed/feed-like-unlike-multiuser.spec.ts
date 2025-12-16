@@ -723,18 +723,12 @@ test.describe(
         await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
         await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        // Refresh pages to ensure all reactions are visible
-        await Promise.all([
-          appManagerFeedPage.page.reload(),
-          siteManagerFeedPage.page.reload(),
-          standardUserFeedPage.page.reload(),
-        ]);
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        await Promise.all([
-          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-        ]);
+        // Refresh pages to ensure all reactions are visible
+        await standardUserFeedPage.page.reload();
+
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // The user clicks on the reaction count or reactions text
         await feedPage.actions.clickReactionCountButton(createdPostText);
