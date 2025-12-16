@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - 'chat'
+          - 'chat-browserstack'
           - 'platforms'
           - 'global-search'
           - 'reward'

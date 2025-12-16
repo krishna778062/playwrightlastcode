@@ -164,7 +164,8 @@ jobs:
           if [ "${{ matrix.module }}" = "chat" ]; then
             if [ "$USE_BROWSERSTACK" = "true" ]; then
               echo "Running Chat tests with BrowserStack SDK..."
-              npx browserstack-node-sdk playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=3
+              # Use locally installed SDK (not npx) so it can find browserstack.yml
+              ./node_modules/.bin/browserstack-node-sdk playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=3
             else
               npm run test:chat -- --workers=3
             fi
