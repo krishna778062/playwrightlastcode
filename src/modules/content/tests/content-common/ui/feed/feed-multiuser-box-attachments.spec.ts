@@ -198,7 +198,7 @@ test.describe(
     test(
       'verify Site Member can add, edit, and delete Feed reply with Box file attachments',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachmentss'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments'],
       },
       async ({ appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
