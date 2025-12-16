@@ -1527,12 +1527,21 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site with access type ${accessType} and content submissions ${isContentSubmissionsEnabled ? 'enabled' : 'disabled'}`, async () => {
       // Try to find an existing site with the desired configuration
-      const _existingSite = await this.getSiteByAccessType(accessType, {
-        waitForSearchIndex: true,
-      });
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      console.log('siteListResponse', JSON.stringify(siteListResponse, null, 2));
+      // Loop through sites to find one that matches the content submissions configuration
+      for (const site of siteListResponse.result.listOfItems) {
+        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+        if (siteDetails.result.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
+          // Activate site if it's not active
+          if (!site.isActive) {
+            await this.siteManagementService.activateSite(site.siteId);
+          }
+          return { siteId: site.siteId, siteName: site.name };
+        }
+      }
 
-      // If we found an existing site, check if it matches our content submission requirements
-      // For now, we'll create a new site with the specific content submission setting
+      // If no matching site found, create a new site with the specific content submission setting
       const createdSite = await this.createSiteByAccessType(accessType, undefined, {
         overrides: {
           isContentSubmissionsEnabled: isContentSubmissionsEnabled,
