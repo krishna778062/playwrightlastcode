@@ -1,5 +1,7 @@
 import { Browser, Page, test } from '@playwright/test';
 
+import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDashboard';
+
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
@@ -9,7 +11,7 @@ import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
-import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
+import { ContentDashboardQueryHelper, SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
