@@ -507,14 +507,14 @@ test.describe('aI Poll Creation Tests', () => {
         zephyrTestId: 'LS-7412',
         storyId: 'EL-UI Automation',
       });
-      const selectedAudiences = ['India', 'Finance-india', 'Form-India'];
+      const selectedAudiences = ['India', 'Finance-india'];
 
       await pollsListeningPage.clickCreatePollButton();
       await pollsHelper.addPoll({
         quickPrompt: 1,
         generateButton: true,
         nextButton: true,
-        selectTargetAudience: ['India', 'Finance-india', 'Form-India'],
+        selectTargetAudience: ['India', 'Finance-india'],
       });
       await aiPollCreationPage.verifySelectedAudiencesWithRemoveIcons(selectedAudiences);
       await aiPollCreationPage.verifySelectedUserCount(String.raw`\d+\s+users`);
@@ -639,7 +639,7 @@ test.describe('aI Poll Creation Tests', () => {
         pollQuestion: 'What is your preferred development methodology?',
         pollOptions: ['Scrum', 'Kanban', 'Waterfall', 'Agile'],
         nextButton: true,
-        selectTargetAudience: ['Finance-india', 'Form-India'],
+        selectTargetAudience: ['Finance-india'],
         postButton: true,
         allowMultipleOptionsToggle: true,
       });
