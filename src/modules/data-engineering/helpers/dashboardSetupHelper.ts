@@ -369,6 +369,43 @@ export async function setupOverviewDashboardForTest(
 }
 
 /**
+ * Sets up Content Dashboard for testing
+ */
+export async function setupContentDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  contentDashboard: ContentDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  contentDashboardQueryHelper: ContentDashboardQueryHelper;
+}> {
+  return await test.step('Setup Content Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create content dashboard query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const contentDashboardQueryHelper = new ContentDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create content dashboard
+    const contentDashboard = new ContentDashboard(page);
+    await contentDashboard.loadPage();
+
+    console.log('Content Dashboard loaded successfully');
+
+    return {
+      page,
+      contentDashboard,
+      snowflakeHelper,
+      contentDashboardQueryHelper,
+    };
+  });
+}
+
+/**
  * Cleans up dashboard testing resources
  */
 export async function cleanupDashboardTesting(resources: {

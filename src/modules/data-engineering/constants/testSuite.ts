@@ -8,5 +8,4 @@ export enum DataEngineeringTestSuite {
   MONTHLY_REPORTS = '@monthly-reports',
   SITES = '@sites',
   ON_PAGE_ANALYTICS = '@on-page-analytics',
-  OVERVIEW = '@overview',
 }

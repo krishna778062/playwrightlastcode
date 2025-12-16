@@ -122,6 +122,7 @@ export const PAGE_ENDPOINTS = {
   MOBILE_DASHBOARD: '/analytics/mobile',
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
+  CONTENT_DASHBOARD: '/analytics/content',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
