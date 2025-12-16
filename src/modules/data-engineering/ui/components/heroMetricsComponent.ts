@@ -13,9 +13,13 @@ export class HeroMetricsComponent extends BaseComponent {
     readonly metricTitle: string
   ) {
     // Find the container internally
-    const container = thoughtSpotIframe.locator('[class*="answer-content-module__answerVizContainer"]').filter({
-      has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
-    });
+    // Use .first() to handle cases where multiple elements match (strict mode violation)
+    const container = thoughtSpotIframe
+      .locator('[class*="answer-content-module__answerVizContainer"]')
+      .filter({
+        has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
+      })
+      .first();
 
     super(page, container);
 
