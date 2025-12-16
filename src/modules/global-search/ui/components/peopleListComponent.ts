@@ -20,7 +20,7 @@ export class PeopleListComponent extends ResultListingComponent {
     this.peopleLinkLocator = this.rootLocator.locator('span[class*="BreadcrumbItem-module"]:has-text("People")');
     this.homePageLinkLocator = this.rootLocator.locator('a[aria-label*="home"]');
     this.orgChartIconLocator = this.rootLocator.locator('[data-testid="i-orgChart"]');
-    this.tooltipLocator = this.page.locator('[role="tooltip"]');
+    this.tooltipLocator = this.rootLocator.locator('[role="tooltip"]');
   }
 
   /**

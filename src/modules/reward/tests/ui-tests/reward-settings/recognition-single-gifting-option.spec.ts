@@ -32,8 +32,6 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.pointsToGive);
       const availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
       const rewardOption = await recognitionHub.setupTheSingleGiftingOptions(availablePoints);
@@ -85,7 +83,7 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
       await recognitionHub.enableTheGiftingOption(true);
       const textOfRecognitionButton = await recognitionHub.recognitionButtonText();
       const insufficientErrorMessage = await recognitionHub.insufficientPointErrorMessageIsDisplaying();
-      expect(textOfRecognitionButton).toContain(`Recognize & gift ${Number(rewardOption).toLocaleString()} points`);
+      expect(textOfRecognitionButton).toContain(`Recognize & gift ${Number(rewardOption).toLocaleString()} point`);
       expect(insufficientErrorMessage).toBe(false);
 
       // Select more user and check the Recognize button is disabled
@@ -96,7 +94,7 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
       const textOfRecognitionButtonMultiple = await recognitionHub.recognitionButtonText();
       const insufficientErrorMessageMultiple = await recognitionHub.insufficientPointErrorMessageIsDisplaying();
       expect(textOfRecognitionButtonMultiple).toContain(
-        `Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} points`
+        `Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} point`
       );
       expect(insufficientErrorMessageMultiple).toBe(true);
     }

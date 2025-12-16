@@ -8,7 +8,11 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { FeedApiHelper } from '@/src/modules/content/apis/apiValidation/feedApiHelper';
-import { buildAttachmentObject, buildFeedReplyText } from '@/src/modules/content/apis/services/FeedManagementService';
+import {
+  buildAttachmentObject,
+  buildFeedReplyText,
+  buildFeedWithAllFeatures,
+} from '@/src/modules/content/apis/services/FeedManagementService';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 
 test.describe(
@@ -1018,6 +1022,205 @@ test.describe(
         await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedText);
 
         //Delete Combination Feed on Unlisted Site Dashboard
+        await siteManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Public Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43152'],
+      },
+      async ({ appManagerApiFixture, siteManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of Site Manager Feed creation with Editor formatting on public site',
+          zephyrTestId: 'CONT-43152',
+          storyId: 'CONT-43152',
+        });
+
+        // Get or create a public site
+        const publicSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        if (!publicSiteId) {
+          throw new Error('No public site available');
+        }
+
+        // Create feed with all editor formatting features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with editor formatting on public site',
+          siteId: publicSiteId,
+          emoji: { name: 'smile', emoji: '😊' },
+          linkUrl: 'https://www.example.com',
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.siteManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await siteManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, publicSiteId);
+
+        //Edit Editor Feed Post
+        const updatedBaseText = 'Updated test feed with editor formatting on public site';
+        const updatedFeedPayload = buildFeedWithAllFeatures({
+          scope: 'site',
+          baseText: updatedBaseText,
+          siteId: publicSiteId,
+          emoji: { name: 'heart', emoji: '❤️' },
+          linkUrl: 'https://www.updated-example.com',
+        });
+        const updatedFeedResult = await siteManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson: updatedFeedPayload.textJson,
+            textHtml: updatedFeedPayload.textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: publicSiteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedBaseText);
+
+        //Delete Editor Feed Post
+        await siteManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Private Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43151'],
+      },
+      async ({ appManagerApiFixture, siteManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of Site Manager Feed creation with Editor formatting on private site',
+          zephyrTestId: 'CONT-43151',
+          storyId: 'CONT-43151',
+        });
+
+        // Get or create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
+        if (!privateSite) {
+          throw new Error('No private site available');
+        }
+
+        // Create feed with all editor formatting features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with editor formatting on private site',
+          siteId: privateSite.siteId,
+          emoji: { name: 'smile', emoji: '😊' },
+          linkUrl: 'https://www.example.com',
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.siteManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await siteManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, privateSite.siteId);
+
+        //Edit Editor Feed Post
+        const updatedBaseText = 'Updated test feed with editor formatting on private site';
+        const updatedFeedPayload = buildFeedWithAllFeatures({
+          scope: 'site',
+          baseText: updatedBaseText,
+          siteId: privateSite.siteId,
+          emoji: { name: 'heart', emoji: '❤️' },
+          linkUrl: 'https://www.updated-example.com',
+        });
+        const updatedFeedResult = await siteManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson: updatedFeedPayload.textJson,
+            textHtml: updatedFeedPayload.textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: privateSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedBaseText);
+
+        //Delete Editor Feed Post
+        await siteManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
+      }
+    );
+
+    test(
+      'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Unlisted Site Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43153'],
+      },
+      async ({ appManagerApiFixture, siteManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'API Validation of Site Manager Feed creation with Editor formatting on unlisted site',
+          zephyrTestId: 'CONT-43153',
+          storyId: 'CONT-43153',
+        });
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted');
+        if (!unlistedSite) {
+          throw new Error('No unlisted site available');
+        }
+
+        // Create feed with all editor formatting features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'site',
+          baseText: 'Test feed with editor formatting on unlisted site',
+          siteId: unlistedSite.siteId,
+          emoji: { name: 'smile', emoji: '😊' },
+          linkUrl: 'https://www.example.com',
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.siteManager.email
+        );
+
+        // Create feed using API
+        const feedResponse = await siteManagerApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+        await feedApiHelper.validateFeedResponseSiteId(feedResponse, unlistedSite.siteId);
+
+        //Edit Editor Feed Post
+        const updatedBaseText = 'Updated test feed with editor formatting on unlisted site';
+        const updatedFeedPayload = buildFeedWithAllFeatures({
+          scope: 'site',
+          baseText: updatedBaseText,
+          siteId: unlistedSite.siteId,
+          emoji: { name: 'heart', emoji: '❤️' },
+          linkUrl: 'https://www.updated-example.com',
+        });
+        const updatedFeedResult = await siteManagerApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson: updatedFeedPayload.textJson,
+            textHtml: updatedFeedPayload.textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+            siteId: unlistedSite.siteId,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedBaseText);
+
+        //Delete Editor Feed Post
         await siteManagerApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
     );
