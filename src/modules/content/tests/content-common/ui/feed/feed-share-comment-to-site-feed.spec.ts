@@ -327,14 +327,14 @@ test.describe(
           siteName = siteDetails.result.name;
 
           const contentListResponse =
-              await appManagerFixture.contentManagementHelper.contentManagementService.getContentList({
-                siteId: contentSiteId,
-                status: 'published',
-              });
-            const contentItem = contentListResponse.result.listOfItems.find(
-              (item: any) => item.contentId === contentResponse.contentId || item.id === contentResponse.contentId
-            );
-            contentTitle = contentItem?.title || '';
+            await appManagerFixture.contentManagementHelper.contentManagementService.getContentList({
+              siteId: contentSiteId,
+              status: 'published',
+            });
+          const contentItem = contentListResponse.result.listOfItems.find(
+            (item: any) => item.contentId === contentResponse.contentId || item.id === contentResponse.contentId
+          );
+          contentTitle = contentItem?.title || '';
 
           // ==================== PART 1: Admin Shares Content Comment to Home Feed ====================
           await test.step('Part 1: Admin shares content feed post comment to Home Feed', async () => {
@@ -358,7 +358,6 @@ test.describe(
             // Wait for comment to be visible
             await adminContentPreviewPage.assertions.waitForPostToBeVisible(commentText);
 
-
             // Click Share on the added comment
             await adminFeedPage.actions.clickShareOnComment();
 
@@ -373,7 +372,6 @@ test.describe(
 
             // Verify Original Post is displayed with View Post link
             await adminFeedPage.assertions.verifyViewPostLinkInShareDialog();
-
 
             // Click Share and get shared post ID
             const shareComponent = new ShareComponent(appManagerFixture.page);
@@ -610,7 +608,6 @@ test.describe(
               (item: any) => item.contentId === contentId || item.id === contentId
             );
             contentTitle = contentItem?.title || 'Content';
-
 
             // Wait for content preview page to load
             const siteOwnerContentPreviewPage = new ContentPreviewPage(
