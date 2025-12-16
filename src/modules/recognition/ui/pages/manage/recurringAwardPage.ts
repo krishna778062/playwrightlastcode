@@ -8,7 +8,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { AWARD_CREATION_MESSAGES } from '../../../constants/messages';
+import { AWARD_CREATION_MESSAGES } from '@/src/modules/recognition/constants/messages';
 
 export class RecurringAwardPage extends BasePage {
   readonly recurringTab: Locator;
