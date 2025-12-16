@@ -86,6 +86,8 @@ export interface IListFeedComponentAssertions {
   verifyThePageIsLoadedWithTimelineMode: () => Promise<void>;
   verifyThePageIsLoadedWithTimelineModeOnContentPage: () => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
+  verifyFeedTitle: (postText: string, expectedTitle: string) => Promise<void>;
+  verifyOriginalPostTitle: (postText: string, expectedFormat: string) => Promise<void>;
   verifyReactionModalIsVisible: () => Promise<void>;
   verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
   verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
@@ -166,6 +168,9 @@ export class ListFeedComponent
   readonly muteButton: Locator = this.page.getByRole('button', { name: 'Mute' });
   readonly unmuteButton: Locator = this.page.getByRole('button', { name: 'Unmute' });
   readonly randomClickOnPage: Locator = this.page.locator('.row').first();
+
+  readonly feedTitleLocator = (expectedTitle: string): Locator =>
+    this.page.getByTestId('headerLabel').filter({ hasText: expectedTitle }).first();
 
   // Dynamic locator functions
   /**
@@ -1976,6 +1981,29 @@ export class ListFeedComponent
       const userNameLocator = this.page.getByTestId('profilePopover').getByRole('link', { name: userName });
       await this.verifier.verifyTheElementIsVisible(userNameLocator, {
         assertionMessage: `User name "${userName}" should be visible on hover`,
+      });
+    });
+  }
+
+  async verifyFeedTitle(postText: string, expectedTitle: string): Promise<void> {
+    await test.step(`Verify feed title "${expectedTitle}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+
+      const feedTitleLocator = this.feedTitleLocator(expectedTitle);
+      await this.verifier.verifyTheElementIsVisible(feedTitleLocator, {
+        assertionMessage: `Feed title "${expectedTitle}" should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
+    await test.step(`Verify original post title format "${expectedFormat}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const postContainer = this.page.locator('._postBody_1rr9k_14');
+      const originalPostTitleLocator = postContainer.filter({ hasText: expectedFormat }).first();
+
+      await this.verifier.verifyTheElementIsVisible(originalPostTitleLocator, {
+        assertionMessage: `Original post title matching "${expectedFormat}" should be visible for post "${postText}"`,
       });
     });
   }

@@ -245,6 +245,8 @@ export interface IFeedAssertions {
   verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
   verifyVideoControls: (postText: string) => Promise<void>;
   verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
+  verifyFeedTitle: (postText: string, expectedTitle: string) => Promise<void>;
+  verifyOriginalPostTitle: (postText: string, expectedFormat: string) => Promise<void>;
   verifyDeletedPostMessage: (postText: string) => Promise<void>;
   verifyRemovedContentMessage: (postText: string) => Promise<void>;
   verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
@@ -1373,6 +1375,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsNotUnfurled(embedUrl: string, postText: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsNotUnfurled(embedUrl, postText);
+  }
+
+  async verifyFeedTitle(postText: string, expectedTitle: string): Promise<void> {
+    await this.listFeedComponent.verifyFeedTitle(postText, expectedTitle);
+  }
+
+  async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
+    await this.listFeedComponent.verifyOriginalPostTitle(postText, expectedFormat);
   }
 
   async hoverOnReactionButton(postText: string): Promise<void> {
