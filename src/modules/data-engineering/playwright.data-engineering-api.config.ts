@@ -1,18 +1,18 @@
-import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
+// Initialize tenant config
+import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
+
+initializeDataEngineeringConfig('primary');
+
+const tenantConfig = getDataEngineeringConfigFromCache();
+
+import { defineConfig, devices } from '@playwright/test';
+
 import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
 
-import { Environments } from '@/src/core/constants/environments';
-import { Modules } from '@/src/core/constants/modules';
+import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariablesForGivenModule } from '@/src/core/utils/envLoader';
-
-loadEnvVariablesForGivenModule(
-  (process.env.TEST_ENV as Environments) || Environments.TEST,
-  process.env.MODULE_NAME || Modules.DATA_ENGINEERING
-);
 
 export default defineConfig({
   ...baseConfig,
@@ -20,9 +20,10 @@ export default defineConfig({
   name: 'Data Engineering API Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'data-engineering', 'tests', 'api-tests'),
   testMatch: '**/*.spec.ts',
+  testIgnore: '**/*-abac.spec.ts',
   use: {
     ...baseConfig.use,
-    baseURL: process.env.API_BASE_URL,
+    baseURL: tenantConfig.apiBaseUrl,
     actionTimeout: 10_000,
     navigationTimeout: 10_000,
   },
@@ -36,6 +37,6 @@ export default defineConfig({
       },
     },
   ],
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 0 : 0,
   workers: process.env.CI ? 4 : undefined,
 });
