@@ -148,30 +148,34 @@ jobs:
 
       - name: Run regression tests
         run: |
-          # Determine test script suffix based on BrowserStack flag
+          # Determine if BrowserStack is enabled
           if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
             echo "🔗 BrowserStack Test Observability: ENABLED"
             echo "   Project: $BROWSERSTACK_PROJECT_NAME"
             echo "   Build: $BROWSERSTACK_BUILD_NAME"
             echo "   Tags: $CUSTOM_TAG_1, $CUSTOM_TAG_2, $CUSTOM_TAG_3"
-            BS_SUFFIX="-browserstack"
+            USE_BROWSERSTACK=true
           else
             echo "📊 BrowserStack Test Observability: DISABLED"
-            BS_SUFFIX=""
+            USE_BROWSERSTACK=false
           fi
 
-          # Build the test script name
-          TEST_SCRIPT="test:${{ matrix.module }}${BS_SUFFIX}"
-          echo "Running: npm run ${TEST_SCRIPT}"
-
-          if [ "${{ matrix.module }}" = "reward" ]; then
+          # Run tests based on module
+          if [ "${{ matrix.module }}" = "chat" ]; then
+            if [ "$USE_BROWSERSTACK" = "true" ]; then
+              echo "Running Chat tests with BrowserStack SDK..."
+              npx browserstack-node-sdk playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=3
+            else
+              npm run test:chat -- --workers=3
+            fi
+          elif [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run ${TEST_SCRIPT} -- --grep-invert=P3 --workers=3
+            npm run test:reward -- --grep-invert=P3 --workers=3
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run ${TEST_SCRIPT} -- --grep-invert=P3 --workers=1
+            npm run test:reward-settings -- --grep-invert=P3 --workers=1
           else
-            npm run ${TEST_SCRIPT} -- --workers=3
+            npm run test:${{ matrix.module }} -- --workers=3
           fi
 
       - name: Upload test report to github artifact backup
