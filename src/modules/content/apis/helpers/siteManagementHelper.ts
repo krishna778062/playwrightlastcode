@@ -1445,6 +1445,77 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Gets users who are neither members nor followers of a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters including minimumCount to ensure enough users are available
+   * @returns Promise containing array of non-member user names
+   */
+  async getNonMemberUserNames(siteId: string, options?: { minimumCount?: number }): Promise<string[]> {
+    return await test.step(`Getting non-member user names for site ${siteId}`, async () => {
+      // Get both members and followers separately to ensure we capture all relationships
+      // Note: 'all' type is invalid, so we fetch 'members' and 'followers' separately
+      const [getMembersListResponse, getFollowersListResponse] = await Promise.all([
+        this.getSiteMembershipList(siteId, {
+          size: 1000,
+          type: 'members',
+        }).catch(() => ({ result: { listOfItems: [] } })), // Fallback if fails
+        this.getSiteMembershipList(siteId, {
+          size: 1000,
+          type: 'followers',
+        }).catch(() => ({ result: { listOfItems: [] } })), // Fallback if 'followers' type is invalid
+      ]);
+      const allUsersListResponse = await this.getAllUsersList();
+
+      // Extract peopleIds from both membership lists (members and followers) and combine
+      const membersPeopleIds = (getMembersListResponse.result.listOfItems || [])
+        .map((member: any) => member.peopleId || member.userId || member.user_id)
+        .filter((id: string) => id);
+      const followersPeopleIds = (getFollowersListResponse.result.listOfItems || [])
+        .map((member: any) => member.peopleId || member.userId || member.user_id)
+        .filter((id: string) => id);
+
+      // Combine and deduplicate using Set to get all people with any relationship to the site
+      const allRelatedPeopleIds = [...new Set([...membersPeopleIds, ...followersPeopleIds])];
+
+      log.debug(
+        `Found ${membersPeopleIds.length} members and ${followersPeopleIds.length} followers for site ${siteId}`
+      );
+      log.debug(`Total unique people with relationship to site: ${allRelatedPeopleIds.length}`);
+
+      // Filter all users to find those who are NOT in the membership list (neither members nor followers)
+      const nonMemberUsers = (allUsersListResponse.result.listOfItems || []).filter((user: any) => {
+        const userId = user.peopleId || user.user_id;
+        if (!userId) {
+          return false; // Skip users without valid ID
+        }
+        return !allRelatedPeopleIds.includes(userId);
+      });
+
+      // Get names of non-member users for UI interaction
+      const nonMemberNames = nonMemberUsers
+        .map((user: any) => `${user.first_name || ''} ${user.last_name || ''}`.trim())
+        .filter((name: string) => name.length > 0);
+
+      log.debug(`Found ${nonMemberNames.length} users who are neither members nor followers`);
+      if (nonMemberNames.length > 0) {
+        log.debug('Available non-member names (first 10):', nonMemberNames.slice(0, 10));
+      }
+
+      if (nonMemberNames.length === 0) {
+        throw new Error('No non-member users found to add to the site');
+      }
+
+      if (options?.minimumCount && nonMemberNames.length < options.minimumCount) {
+        throw new Error(
+          `Only ${nonMemberNames.length} non-member user(s) found. Need at least ${options.minimumCount} users.`
+        );
+      }
+
+      return nonMemberNames;
+    });
+  }
+
+  /**
    * Gets a site by access type with specific content submissions configuration
    * @param accessType - The access type of the site (e.g., SITE_TYPES.UNLISTED)
    * @param isContentSubmissionsEnabled - Whether content submissions should be enabled
