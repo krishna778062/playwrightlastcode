@@ -6,7 +6,7 @@ export const ContentSql = {
   TOTAL_CONTENT_VIEWS: `
     select TO_CHAR(count(i.code), '999,999,999') as count 
     from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
-    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code and c.tenant_code = i.tenant_code
     {userJoin}
     where i.tenant_code = '{tenantCode}'
       and i.interaction_datetime between '{startDate}' and '{endDate}'
@@ -49,11 +49,11 @@ export const ContentSql = {
       RIGHT JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
         ON i.tenant_code = c.tenant_code
        AND i.content_code = c.code
+       AND i.tenant_code = c.tenant_code
       JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_content_type_as_is ct
         ON c.content_type_code = ct.code
       LEFT JOIN SIMPPLR_COMMON_TENANT.udl.user as u 
-        ON i.interacted_by_user_code = u.code
-      {userJoin}
+        ON i.interacted_by_user_code = u.code AND i.tenant_code = u.tenant_code
     WHERE i.tenant_code = '{tenantCode}'
       AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
       AND i.interaction_type_code = 'IT001'
@@ -62,11 +62,6 @@ export const ContentSql = {
       AND i.interaction_entity_code = 'ET003'
       AND (i.CONTENT_CODE NOT IN ('N/A') OR i.CONTENT_CODE IS NOT NULL)
       AND i.interaction_content_post_first_publish = 'true'
-      {locationFilter}
-      {departmentFilter}
-      {segmentFilter}
-      {userCategoryFilter}
-      {companyNameFilter}
   `,
 
   /**
@@ -152,15 +147,15 @@ export const ContentSql = {
   REPLIES: `
     select count(i.code) as views 
     from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
-    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code
+    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code and c.tenant_code = i.tenant_code
     inner join SIMPPLR_COMMON_TENANT.udl.ref_content_type ct on ct.code = c.content_type_code
     {userJoin}
     where ct.code in ('CT001','CT002','CT003','CT004')
       and i.interaction_type_code = 'IT007'
-      and i.interaction_entity_code = 'ET003'
+      and i.interaction_entity_code = 'ET004'
       and i.is_system_feed = false
       and i.interaction_datetime between '{startDate}' AND '{endDate}'
-      and c.tenant_code = '{tenantCode}'
+      and i.tenant_code = '{tenantCode}'
       and i.is_deleted = false
       and i.interaction_content_post_first_publish = true
       {locationFilter}
@@ -278,7 +273,7 @@ export const ContentSql = {
       ROUND(
         CAST(COUNT(i.code) AS NUMBER(18,9)) / 
         NULLIF(CAST(COUNT(DISTINCT c.code) AS NUMBER(18,9)), 0),
-        2
+        1
       ) AS AVG_REF
     FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
     INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c 

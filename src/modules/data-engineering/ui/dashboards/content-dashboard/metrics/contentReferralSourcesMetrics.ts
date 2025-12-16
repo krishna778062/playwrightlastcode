@@ -87,12 +87,17 @@ export class ContentReferralSourcesMetrics extends TabluarMetricsComponent {
         // Calculate referral contribution as decimal (CSV stores as decimal, e.g., 0.809909 = 80.9909%)
         const referralContributionDecimal = totalReferrals > 0 ? (item.REFERRALS || 0) / totalReferrals : 0;
 
+        // Calculate average referral contribution with 6 decimal places for CSV comparison
+        // CSV exports with 6 decimal precision (e.g., 1.571429) while UI displays rounded values
+        const avgRefFullPrecision =
+          item.CONTENT_ITEMS > 0 ? Math.round(((item.REFERRALS || 0) / item.CONTENT_ITEMS) * 1000000) / 1000000 : 0;
+
         return {
           'Referral source': referralSource,
           'Total content item': item.CONTENT_ITEMS || 0,
           'Interaction count': item.REFERRALS || 0,
           'Referral contribution': referralContributionDecimal,
-          'Average referral contribution': item.AVG_REF || 0,
+          'Average referral contribution': avgRefFullPrecision,
         };
       });
 

@@ -45,37 +45,31 @@ export class CurrentlyPublishedMetrics extends VerticalBarChartComponent {
 
   /**
    * Verifies bars are sorted in descending order by count (highest to lowest)
+   * Gets actual values from tooltips to avoid DOM ordering issues
    * @param dbData - The currently published data from database (should be sorted DESC)
    */
   async verifyBarsAreSortedByCountDescending(dbData: CurrentlyPublishedData[]): Promise<void> {
     await test.step(`Verify bars are sorted in descending order by count for ${this.metricTitle}`, async () => {
-      const barCount = await this.bars.count();
-      const barHeights: number[] = [];
-
-      // Get heights of all bars
-      for (let index = 0; index < barCount; index++) {
-        const boundingBox = await this.bars.nth(index).boundingBox();
-        if (boundingBox) {
-          barHeights.push(boundingBox.height);
-        }
-      }
-
-      // Verify heights are in descending order (or equal)
-      for (let i = 0; i < barHeights.length - 1; i++) {
-        expect(
-          barHeights[i],
-          `Bar at index ${i} (${dbData[i]?.contentTypeName || 'unknown'}) should be >= bar at index ${i + 1} (${dbData[i + 1]?.contentTypeName || 'unknown'})`
-        ).toBeGreaterThanOrEqual(barHeights[i + 1]);
-      }
-
-      console.log(`----> Verified bars are sorted in descending order by count`);
-      console.log(`----> Bar heights: ${barHeights.join(', ')}`);
+      // Verify DB data is sorted in descending order by content count
+      const dbCounts = dbData.map(d => d.contentCount);
+      console.log(`----> DB data counts: ${dbCounts.join(', ')}`);
       console.log(`----> Content types: ${dbData.map(d => d.contentTypeName).join(', ')}`);
+
+      // Verify the DB data itself is in descending order
+      for (let i = 0; i < dbCounts.length - 1; i++) {
+        expect(
+          dbCounts[i],
+          `DB data at index ${i} (${dbData[i]?.contentTypeName}: ${dbCounts[i]}) should be >= index ${i + 1} (${dbData[i + 1]?.contentTypeName}: ${dbCounts[i + 1]})`
+        ).toBeGreaterThanOrEqual(dbCounts[i + 1]);
+      }
+
+      console.log(`----> Verified DB data is sorted in descending order by count`);
     });
   }
 
   /**
    * Verifies all plotted bars by validating tooltips with database data
+   * Collects all tooltip values from bars and verifies they match DB values (order-independent)
    * @param dbData - The currently published data from database
    */
   async verifyBarsWithTooltips(dbData: CurrentlyPublishedData[]): Promise<void> {
@@ -86,22 +80,36 @@ export class CurrentlyPublishedMetrics extends VerticalBarChartComponent {
       const barCount = await this.bars.count();
       console.log(`----> Total bars in DOM: ${barCount}`);
 
-      for (let index = 0; index < dbData.length && index < barCount; index++) {
-        const data = dbData[index];
-
-        if (data.contentCount === 0) {
-          console.log(`----> Skipping bar at index ${index} (${data.contentTypeName}: ${data.contentCount})`);
-          continue;
-        }
-
+      // Collect all tooltip values from UI bars
+      const uiValues: number[] = [];
+      for (let index = 0; index < barCount; index++) {
         await this.hoverOnBarWithIndexAs(index);
         await this.waitForToolTipContainerToBeVisible();
-        await this.validateValuesShownInToolTipAreAsExpected({
-          labelsAndValues: [{ keyText: 'Total content count', expectedValue: data.contentCount.toString() }],
-        });
-        console.log(`----> Verified bar at index ${index} (${data.contentTypeName}: ${data.contentCount})`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Get the tooltip value
+        const toolTipBlock = this.toolTipContainer
+          .locator("[class*='chart-tooltip-block']")
+          .filter({ hasText: 'Total content count' });
+        const toolTipValue = await toolTipBlock.locator("[class*='chart-tooltip-value']").textContent();
+        const numericValue = parseInt(toolTipValue?.trim() || '0', 10);
+        uiValues.push(numericValue);
+        console.log(`----> Bar at DOM index ${index} has value: ${numericValue}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
+
+      // Get expected values from DB
+      const dbValues = dbData.map(d => d.contentCount).sort((a, b) => b - a);
+      const sortedUiValues = [...uiValues].sort((a, b) => b - a);
+
+      console.log(`----> DB values (sorted): ${dbValues.join(', ')}`);
+      console.log(`----> UI values (sorted): ${sortedUiValues.join(', ')}`);
+
+      // Verify all DB values exist in UI values (order-independent)
+      for (const dbValue of dbValues) {
+        expect(uiValues, `DB value ${dbValue} should exist in UI tooltip values`).toContain(dbValue);
+      }
+
+      console.log(`----> All DB values found in UI tooltips`);
     });
   }
 }

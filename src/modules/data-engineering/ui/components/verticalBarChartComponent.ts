@@ -168,14 +168,7 @@ export class VerticalBarChartComponent extends BaseComponent {
    */
   async hoverOnBarWithIndexAs(barIndex: number): Promise<void> {
     await test.step(`Hover on bar at index ${barIndex} for metric ${this.metricTitle}`, async () => {
-      // await this.bars.nth(barIndex).hover();
-      const barBoundingBox = await this.bars.nth(barIndex).boundingBox();
-      //get the middle point of the bar
-      const middlePoint = {
-        x: (barBoundingBox?.x ?? 0) + (barBoundingBox?.width ?? 0) / 2,
-        y: (barBoundingBox?.y ?? 0) + (barBoundingBox?.height ?? 0) / 2,
-      };
-      await this.page.mouse.move(middlePoint.x, middlePoint.y);
+      await this.bars.nth(barIndex).hover({ force: true, timeout: 10_000 });
     });
   }
 
@@ -215,6 +208,23 @@ export class VerticalBarChartComponent extends BaseComponent {
           `Value shown in tool tip for key text ${keyText} should be ${expectedValue}`
         ).toHaveText(expectedValue.toString());
       }
+    });
+  }
+
+  // Verifies X-axis labels are present and bars match expected count
+  async verifyChartHasLabelsAndBars(expectedBarCount?: number): Promise<void> {
+    await test.step(`Verify chart has labels and bars for metric ${this.metricTitle}`, async () => {
+      const labelCount = await this.barChartXAxisLabels.count();
+      expect(labelCount, 'X-axis should have date labels').toBeGreaterThan(0);
+
+      const barCount = await this.bars.count();
+      if (expectedBarCount !== undefined) {
+        expect(barCount, `Number of bars should be ${expectedBarCount}`).toBe(expectedBarCount);
+      } else {
+        expect(barCount, 'Chart should have bars').toBeGreaterThan(0);
+      }
+
+      console.log(`Chart ${this.metricTitle}: ${labelCount} X-axis labels, ${barCount} bars`);
     });
   }
 

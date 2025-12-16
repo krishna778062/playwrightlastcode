@@ -71,17 +71,14 @@ export class ContentDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
   /**
    * Gets unique content view data from database with filters.
-   * @param filterBy - Filter options including time period and user filters
+   * @param filterBy - Filter options including time period
    * @returns Promise<string> - Unique content view count (formatted with commas)
    */
   async getUniqueContentViewDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<string> {
-    let query = await this.transformQueryWithFilters({
+    const query = await this.transformQueryWithFilters({
       baseQuery: ContentSql.UNIQUE_CONTENT_VIEW,
       filterBy,
     });
-
-    // Replace userJoin placeholder
-    query = query.replace(/{userJoin}/g, this.addUserJoinIfNeeded(filterBy));
 
     const results = await this.executeQuery(query);
     // Query returns formatted string with commas, so return as string
