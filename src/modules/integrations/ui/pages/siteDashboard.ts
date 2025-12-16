@@ -2,6 +2,7 @@ import { ACTION_LABELS, DASHBOARD_BUTTONS, ORGANIZATION_SETTINGS, UI_ACTIONS } f
 import { AIRTABLE_TILE } from '@integrations/test-data/app-tiles.test-data';
 import { ExternalAppProvider } from '@integrations/ui/pages/externalAppsPage';
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+import { NativeTileComponent } from '@integrations-components/nativeComponent';
 import { TileOperationsComponent } from '@integrations-components/tileOperationsComponent';
 import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
 import { expect, Page, test } from '@playwright/test';
@@ -15,6 +16,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 export class SiteDashboard {
   readonly page: Page;
   private appTileComponent!: BaseAppTileComponent;
+  private nativeTileComponent!: NativeTileComponent;
   private timeOffRequestTileComponent!: TimeOffRequestTileComponent;
   private tileOperationsComponent!: TileOperationsComponent;
   private appManagerApiClient?: any;
@@ -23,6 +25,7 @@ export class SiteDashboard {
     this.page = page;
     this.appManagerApiClient = appManagerApiClient;
     this.appTileComponent = new BaseAppTileComponent(page);
+    this.nativeTileComponent = new NativeTileComponent(page);
     this.timeOffRequestTileComponent = new TimeOffRequestTileComponent(page);
     this.tileOperationsComponent = new TileOperationsComponent(page);
   }
@@ -332,11 +335,77 @@ export class SiteDashboard {
   }
 
   /**
+   * Verify Calendar upcoming events tile data for native tiles
+   * @param tileTitle - The title of the tile to verify
+   * @param eventTitle - Optional regex pattern for event title (defaults to any text)
+   * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
+   * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
+   */
+  async verifyNativeCalendarUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle?: RegExp,
+    calDate?: RegExp,
+    minExpectedCount?: number
+  ): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarUpcomingEventsTileData(
+      tileTitle,
+      eventTitle,
+      calDate,
+      minExpectedCount
+    );
+  }
+
+  /**
    * Verify Show more behaviour for apptile on site dashboard
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
   }
+
+  /**
+   * Verify "Show more" behavior for native tiles
+   */
+  async verifyNativeShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyShowMoreBehavior(tileTitle);
+  }
+
+  /**
+   * Verify tile redirects to expected URL for native tiles
+   * @param tileTitle - The title of the tile
+   * @param expectedUrl - The expected URL to redirect to
+   */
+  async verifyNativeTileRedirects(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.nativeTileComponent.verifyTileRedirects(tileTitle, expectedUrl);
+  }
+
+  /**
+   * Verify events are sorted in chronological order for native tiles
+   */
+  async verifyNativeEventsChronologicalOrder(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyEventsChronologicalOrder(tileTitle);
+  }
+
+  /**
+   * Verify calendar day elements are displayed for native tiles
+   */
+  async verifyNativeCalendarDayElements(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarDayElements(tileTitle);
+  }
+
+  /**
+   * Verify Google Calendar label is present for native tiles
+   */
+  async verifyNativeGoogleCalendarLabel(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyGoogleCalendarLabel(tileTitle);
+  }
+
+  /**
+   * Verify event count for native tiles
+   */
+  async verifyNativeEventCount(tileTitle: string, minExpectedCount: number = 1): Promise<void> {
+    await this.nativeTileComponent.verifyEventCount(tileTitle, minExpectedCount);
+  }
+
   /**
    * Verify DocuSign tile content structure with task records
    * @param tileTitle - The title of the tile to verify
@@ -988,5 +1057,64 @@ export class SiteDashboard {
   }
   async setUpTileTextAreaInput(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
     await this.tileOperationsComponent.setUpTileTextArea(tileTitle, fieldName, fieldValue);
+  }
+  /**
+   * Add a native tile (pages, events & albums) to the dashboard
+   * @param tileTitle - The title to set for the tile
+   * @param calendarType - The calendar type ('Google Calendar' or 'Outlook Calendar')
+   * @param _tileName - Description/name (not used in flow, kept for compatibility)
+   * @param destination - The destination for the tile (UI_ACTIONS.ADD_TO_HOME or UI_ACTIONS.ADD_TO_SITE)
+   * @param calendarEmail - Optional calendar email to select from dropdown. If not provided, selects first available
+   */
+  async addNativeTile(
+    tileTitle: string,
+    calendarType: string,
+    destination: string,
+    calendarEmail?: string
+  ): Promise<void> {
+    await test.step(`Add native tile: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.nativeTileComponent.clickAddContentTileButton();
+      await this.nativeTileComponent.selectEventsContentType();
+      await this.nativeTileComponent.selectCalendarType(calendarType);
+
+      if (calendarEmail) {
+        await this.nativeTileComponent.selectCalendarFromDropdown(calendarEmail);
+      } else {
+        await this.nativeTileComponent.selectFirstAvailableCalendar();
+      }
+
+      await this.nativeTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Open edit modal and verify all fields are populated correctly
+   * @param tileTitle - The title of the tile to edit
+   * @param expectedCalendarEmail - The expected calendar email to verify
+   */
+  async openEditModalAndVerifyFields(tileTitle: string, expectedCalendarEmail: string): Promise<void> {
+    await test.step(`Open edit modal and verify fields for: ${tileTitle}`, async () => {
+      await this.appTileComponent.clickThreeDotsOnTile(tileTitle);
+      await this.appTileComponent.clickTileOption(DASHBOARD_BUTTONS.EDIT);
+
+      // Verify modal is opened
+      await this.nativeTileComponent.verifyEditModalOpened();
+
+      // Verify all fields - tile title should match what was set when creating the tile
+      await this.nativeTileComponent.verifyTileTitle(tileTitle);
+      await this.nativeTileComponent.verifyEventsContentTypeSelected();
+      await this.nativeTileComponent.verifyGoogleCalendarSelected();
+      await this.nativeTileComponent.verifyCalendarEmail(expectedCalendarEmail);
+    });
+  }
+
+  /**
+   * Click Save button in edit modal
+   */
+  async clickSaveButtonInEditModal(): Promise<void> {
+    await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
   }
 }
