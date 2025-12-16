@@ -22,6 +22,8 @@ on:
           - 'de-api'
           - 'de-api-abac'
           - 'frontline'
+          - 'integrations'
+          - 'newsletter'
           - 'recognition'
           - 'only-peer-to-peer'
           - 'alert-notification'
