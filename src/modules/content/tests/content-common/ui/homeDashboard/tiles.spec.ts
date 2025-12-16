@@ -16,7 +16,7 @@ import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardP
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 
-test.describe('edit Topic', () => {
+test.describe('home Dashboard Tiles', () => {
   let homeDashboardPage: HomeDashboardPage;
   let contentPreviewPage: ContentPreviewPage;
   let manageFeaturesPage: ManageFeaturesPage;
@@ -25,7 +25,6 @@ test.describe('edit Topic', () => {
 
   test.beforeEach('Setup for home dashboard tiles test', async ({ appManagerFixture }) => {
     homeDashboardPage = new HomeDashboardPage(appManagerFixture.page);
-    contentPreviewPage = new ContentPreviewPage(appManagerFixture.page);
     manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
     manageContentPage = new ManageContentPage(appManagerFixture.page);
     createdTileId = null;
@@ -45,7 +44,13 @@ test.describe('edit Topic', () => {
   test(
     'to verify content changes in home dashboard tiles',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_HOME_DASHBOARD_TILES, '@healthcheck'],
+      tag: [
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        ContentFeatureTags.CONTENT_HOME_DASHBOARD_TILES,
+        '@healthcheck',
+        '@CONT-22815',
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -87,17 +92,20 @@ test.describe('edit Topic', () => {
       await appManagerFixture.page.reload();
       await homeDashboardPage.assertions.verifyingCreatedPageIsVisibleInTile(randomPageName);
       await homeDashboardPage.actions.openingCreatedPageInTile(randomPageName);
+      contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        allEmployeesSiteId,
+        pageInfo.contentId,
+        'page'
+      );
       await contentPreviewPage.actions.unpublishingTheContent();
-      await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage('Unpublished content successfully');
+      await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+        TILE_TEST_DATA.TOAST_MESSAGES.UNPUBLISHED_CONTENT
+      );
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.assertions.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
-      await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-      await manageFeaturesPage.actions.clickOnContentCard();
-      await manageContentPage.actions.writeRandomTextInSearchBar(randomPageName);
-      await manageContentPage.actions.clickSearchIcon();
-      await appManagerFixture.page.reload();
-      await manageContentPage.actions.openContentDetailsPage();
+      await contentPreviewPage.loadPage();
       await contentPreviewPage.actions.publishingTheContent();
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await appManagerFixture.page.reload();

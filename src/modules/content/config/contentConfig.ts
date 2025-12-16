@@ -467,6 +467,17 @@ export function isContentConfigInitialized(): boolean {
 }
 
 /**
+ * Get current environment from cache
+ * @returns Current environment key (e.g., 'qa', 'uat', 'test')
+ */
+export function getContentEnvironmentFromCache(): EnvironmentKey {
+  if (!configCache) {
+    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+  }
+  return configCache.environment;
+}
+
+/**
  * Get combined configuration (tenant + app) for current environment
  * No need to pass tenant - uses the initialized tenant
  * @returns Combined configuration object
