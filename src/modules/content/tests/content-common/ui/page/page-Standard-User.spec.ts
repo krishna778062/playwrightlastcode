@@ -88,7 +88,7 @@ test.describe(
             `@${testData.storyId}`,
           ],
         },
-        async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
+        async ({ standardUserFixture, appManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -103,15 +103,18 @@ test.describe(
             ContentType.PAGE
           );
 
-          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-            [users.endUser.email],
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+          const site = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [endUserInfo.userId],
             SITE_TYPES.PUBLIC
           );
 
           // Navigate to page creation by standard user
           pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
             ContentType.PAGE,
-            { siteName: siteInfo.siteName }
+            { siteName: site.siteName }
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator
@@ -153,7 +156,7 @@ test.describe(
             testData.actionSuccessMessage
           );
           const identityManagementHelper = new IdentityManagementHelper(
-            appManagerApiContext,
+            appManagerApiFixture.apiContext,
             getContentConfigFromCache().tenant.apiBaseUrl
           );
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
