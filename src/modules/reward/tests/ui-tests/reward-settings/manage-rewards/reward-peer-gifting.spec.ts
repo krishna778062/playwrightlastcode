@@ -13,8 +13,6 @@ import { tagTest } from '@core/utils/testDecorator';
 test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-    await manageRewardsPage.loadPage();
-    await manageRewardsPage.verifyThePageIsLoaded();
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
   });
 
@@ -356,71 +354,15 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-
-      await manageRewardsPage.peerGifting.loadPage();
-      await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.disableThePeerGifting();
-
-      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await manageRewardsPage.verifier.verifyTheElementIsNotVisible(giveRecognitionModal.giftingToggle);
-
       const amountToBeSetForUserAllowance = 15;
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
-      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo(
-        '/manage/recognition/rewards/peer-gifting/allowances'
-      );
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
-      await manageRewardsPage.verifier.verifyTheElementIsVisible(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceIcon
-      );
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceHeading,
-        'Users allowance'
-      );
-      const userAllowanceDescription = 'Add a monthly allowance for all intranet users';
-      await manageRewardsPage.verifier.verifyElementHasText(
-        manageRewardsPage.rewardsAllowance.rewardsUserAllowance.userAllowanceDescription,
-        userAllowanceDescription
-      );
-
-      if (
-        await manageRewardsPage.verifier.isTheElementVisible(
-          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance
-        )
-      ) {
-        if (await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.removeUserAllowance.isEnabled()) {
-          await manageRewardsPage.rewardsAllowance.removeTheExistingAllowance('user');
-          await manageRewardsPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-          await manageRewardsPage.clickOnElement(
-            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
-            {
-              stepInfo: 'Clicking add user allowance button',
-            }
-          );
-        } else {
-          await manageRewardsPage.clickOnElement(
-            manageRewardsPage.rewardsAllowance.rewardsUserAllowance.editUserAllowance,
-            {
-              stepInfo: 'Clicking edit user allowance button',
-            }
-          );
-        }
-      } else {
-        await manageRewardsPage.clickOnElement(
-          manageRewardsPage.rewardsAllowance.rewardsUserAllowance.addUserAllowance,
-          {
-            stepInfo: 'Clicking add user allowance button',
-          }
-        );
-      }
-
-      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.increaseTheUserAmountBy(
-        amountToBeSetForUserAllowance
-      );
+      await manageRewardsPage.rewardsAllowance.clickOnTheAddOrEditButton('user');
+      await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(amountToBeSetForUserAllowance);
       const currentAmount =
         await manageRewardsPage.rewardsAllowance.rewardsUserAllowance.getTheCurrentAmountInInputBox();
       expect(currentAmount).toBe(amountToBeSetForUserAllowance);
@@ -432,7 +374,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.peerGifting.verifyThePageIsLoaded();
       await manageRewardsPage.peerGifting.enableThePeerGifting('Immediately');
 
-      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(giveRecognitionModal.giftingToggle);
     }

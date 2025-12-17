@@ -32,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -445,6 +446,12 @@ export class CreateFeedPostComponent
     });
   }
 
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
+      await this.clickOnElement(this.postButton);
+    });
+  }
+
   /**
    * Opens the options menu for a post
    * @param postText - Text of the post to open options for
@@ -581,6 +588,31 @@ export class CreateFeedPostComponent
     await test.step(`Adding topic mention: #${topicName}`, async () => {
       await this.typeInElement(this.feedEditor, ` #${topicName}`);
       await this.clickOnElement(this.addtopicfromList(topicName));
+    });
+  }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await test.step(`Removing site mention: @${siteName}`, async () => {
+      // Find the site mention node in the editor
+      // Site mentions are rendered as spans with data-type="site" and data-label containing the site name
+      const siteMentionNode = this.feedEditor
+        .locator('span[data-type="site"]')
+        .filter({ hasText: new RegExp(siteName) })
+        .first();
+
+      // Check if the mention exists
+      const isVisible = await siteMentionNode.isVisible().catch(() => false);
+
+      if (isVisible) {
+        // Click on the mention to select it, then delete
+        await this.clickOnElement(siteMentionNode);
+        // Press Backspace or Delete to remove the mention
+        await this.feedEditor.press('Backspace');
+        // Sometimes we need to press it twice or use Delete
+        await this.feedEditor.press('Delete');
+      } else {
+        console.log(`Site mention @${siteName} not found in editor, skipping removal`);
+      }
     });
   }
 

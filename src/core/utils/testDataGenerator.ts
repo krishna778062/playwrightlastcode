@@ -436,11 +436,29 @@ export class TestDataGenerator {
     endDate?: string,
     overrides?: Partial<EventCreationOptions>
   ): EventCreationOptions {
+    // Generate startDate first if not provided
+    const generatedStartDate = startDate || faker.date.future().toISOString().split('T')[0];
+
+    // Generate endDate that is always after startDate
+    let generatedEndDate: string;
+    if (endDate) {
+      generatedEndDate = endDate;
+    } else {
+      // Generate endDate that is at least 1 day after startDate
+      const startDateObj = new Date(generatedStartDate);
+      const minEndDate = new Date(startDateObj);
+      minEndDate.setDate(minEndDate.getDate() + 1); // At least 1 day after startDate
+      // Generate a date between minEndDate and 30 days after startDate
+      const maxEndDate = new Date(startDateObj);
+      maxEndDate.setDate(maxEndDate.getDate() + 30);
+      generatedEndDate = faker.date.between({ from: minEndDate, to: maxEndDate }).toISOString().split('T')[0];
+    }
+
     const eventOptions: EventCreationOptions = {
       title: `Automated Test Event ${faker.company.name()} - ${faker.commerce.productName()}`,
       description: `This is an automated test event description ${faker.lorem.paragraph()}`,
-      startDate: startDate || faker.date.future().toISOString().split('T')[0],
-      endDate: endDate || faker.date.future().toISOString().split('T')[0],
+      startDate: generatedStartDate,
+      endDate: generatedEndDate,
       location: `${faker.location.streetAddress()}, ${faker.location.city()}`,
       coverImage: fileName
         ? {
@@ -477,8 +495,8 @@ export class TestDataGenerator {
    */
   static generateSite(access: string, overrides?: Partial<any>): any {
     const siteOptions = {
-      siteName: `${faker.animal.type()} - ${faker.company.name()} - ${faker.commerce.department()}`.substring(0, 39),
-      siteType: access,
+      name: `${faker.animal.type()} _ ${faker.company.name()} _ ${faker.commerce.department()}`.substring(0, 39),
+      access: access,
     };
 
     return {

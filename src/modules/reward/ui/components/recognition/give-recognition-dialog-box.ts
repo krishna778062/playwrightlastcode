@@ -46,13 +46,12 @@ export class GiveRecognitionDialogBox extends DialogBox {
 
   constructor(page: Page) {
     super(page);
-
-    this.dialog = page.locator('[role="dialog"]');
-    this.dialogTitle = this.dialog.locator('[data-testid="give-recognition-dialog-title"]');
+    this.dialog = page.locator('[role="dialog"][data-state="open"]');
+    this.dialogTitle = this.dialog.locator('h2 span');
     this.dialogDescription = this.dialog.locator('[data-testid="give-recognition-dialog-description"]');
-    this.dialogCancelButton = this.dialog.locator('button[data-testid="give-recognition-cancel"]');
+    this.dialogCancelButton = this.dialog.locator('button[aria-label="Close"]');
     this.dialogConfirmButton = this.dialog.locator('button[data-testid="give-recognition-confirm"]');
-    this.dialogCloseButton = this.dialog.locator('button[data-testid="give-recognition-close"]');
+    this.dialogCloseButton = this.dialog.locator('button[aria-label="Close"]');
     this.recipientInput = this.dialog.locator('input[data-testid="recipient-input"]');
     this.pointsInput = this.dialog.locator('input[data-testid="points-input"]');
     this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');

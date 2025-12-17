@@ -6,12 +6,24 @@ export interface CustomField {
   options?: string[];
 }
 
+export interface CustomFieldConfig {
+  addLocation?: boolean;
+}
+
 const DATE_NOW: string = Date.now().toString().slice(-6);
 
-export const MAX_CUSTOM_FIELD_NAME_LENGTH = 20;
-export const CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS = `Custom Field Name More Than ${MAX_CUSTOM_FIELD_NAME_LENGTH} Characters`;
+export const MAX_CUSTOM_FIELD_NAME_LENGTH = 100;
+export const CUSTOM_FIELD_NAME_MORE_THAN_X_CHARACTERS = 'a'.repeat(101);
 
-export const CF_LABEL_META = {
+export const CUSTOM_FIELD_META: Map<
+  string,
+  {
+    CREATE: CustomField;
+    EDIT: CustomField;
+  }
+> = new Map();
+
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.LABEL, {
   CREATE: {
     name: `Label | ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.LABEL,
@@ -22,9 +34,9 @@ export const CF_LABEL_META = {
     type: CUSTOM_FIELD_TYPES.LABEL,
     options: [`option 1`],
   },
-};
+});
 
-export const CF_TEXT_META = {
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.TEXT, {
   CREATE: {
     name: `Text - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.TEXT,
@@ -33,9 +45,9 @@ export const CF_TEXT_META = {
     name: `ed-Text - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.TEXT,
   },
-};
+});
 
-export const CF_TEXT_AREA_META = {
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.TEXTAREA, {
   CREATE: {
     name: `TA - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.TEXTAREA,
@@ -44,9 +56,9 @@ export const CF_TEXT_AREA_META = {
     name: `ed-TA - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.TEXTAREA,
   },
-};
+});
 
-export const CF_NUMBER_META = {
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.NUMBER, {
   CREATE: {
     name: `Num - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.NUMBER,
@@ -55,9 +67,9 @@ export const CF_NUMBER_META = {
     name: `ed-Num - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.NUMBER,
   },
-};
+});
 
-export const CF_DATE_META = {
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.DATE, {
   CREATE: {
     name: `Date - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.DATE,
@@ -66,9 +78,9 @@ export const CF_DATE_META = {
     name: `ed-Date - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.DATE,
   },
-};
+});
 
-export const CF_DD_META = {
+CUSTOM_FIELD_META.set(CUSTOM_FIELD_TYPES.DROPDOWN, {
   CREATE: {
     name: `DD - ${DATE_NOW}`,
     type: CUSTOM_FIELD_TYPES.DROPDOWN,
@@ -79,4 +91,4 @@ export const CF_DD_META = {
     type: CUSTOM_FIELD_TYPES.DROPDOWN,
     options: [`option 1`],
   },
-};
+});
