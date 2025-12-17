@@ -969,10 +969,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
         // If no link found, click the content item itself
         await this.clickOnElement(contentItem);
       }
-
-      await this.page.waitForURL(new RegExp('/site/.*/page/'), {
-        timeout: 15000,
-      });
     });
   }
 
