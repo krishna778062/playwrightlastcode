@@ -1,21 +1,23 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
-import { CarouselHelper } from '../apis/helpers/carouselHelper';
-import { SiteAudienceHelper } from '../apis/helpers/siteAudienceHelper';
-import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
-import { TileManagementHelper } from '../apis/helpers/tileManagementHelper';
-
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { AudienceManagementHelper } from '@/src/modules/content/apis/helpers/audienceManagementHelper';
+import { CarouselHelper } from '@/src/modules/content/apis/helpers/carouselHelper';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteAudienceHelper } from '@/src/modules/content/apis/helpers/siteAudienceHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { SocialCampaignHelper } from '@/src/modules/content/apis/helpers/socialCampaignHelper';
+import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
-import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import {
+  getContentEnvironmentFromCache,
+  getContentTenantConfigFromCache,
+} from '@/src/modules/content/config/contentConfig';
+import { createAuthenticatedContextAndPageWithCache } from '@/src/modules/content/helpers/storageStateHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // API-only fixture type for API helpers and services
@@ -111,18 +113,22 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
 // Helper function to create UI-only fixtures
 async function createUiFixture(browser: any, userType: UserType): Promise<UiFixture> {
   const user = users[userType];
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  const tenantConfig = getContentTenantConfigFromCache();
+  const testEnv = getContentEnvironmentFromCache();
+
+  // Use storage state caching to avoid redundant logins
+  const { context, page } = await createAuthenticatedContextAndPageWithCache({
+    browser,
+    userEmail: user.email,
+    userPassword: user.password,
+    testEnv,
+    tenantOrgId: tenantConfig.orgId,
+  });
 
   // Handle browser alerts by clicking OK
   page.on('dialog', async (dialog: any) => {
     console.log(`Dialog appeared: ${dialog.message()}`);
     await dialog.accept();
-  });
-
-  await LoginHelper.loginWithPassword(page, {
-    email: user.email,
-    password: user.password,
   });
 
   const homePage = new NewHomePage(page);

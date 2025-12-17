@@ -131,11 +131,11 @@ export class AlbumCreationPage extends BasePage {
         }
       }
 
-      // Add video if provided
-      if (options.videoUrl) {
-        await this.addVideoUrl(options.videoUrl);
-        await this.waitForVideoUpload();
-      }
+      // // Add video if provided
+      // if (options.videoUrl) {
+      //   await this.addVideoUrl(options.videoUrl);
+      //   await this.waitForVideoUpload();
+      // }
 
       // Add attachments if provided
       if (options.attachments && options.attachments.length > 0) {

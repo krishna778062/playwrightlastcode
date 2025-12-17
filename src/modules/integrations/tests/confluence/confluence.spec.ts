@@ -14,7 +14,6 @@ test.describe(
   'confluence test cases',
   {
     tag: [
-      IntegrationsSuiteTags.BATCH2,
       IntegrationsSuiteTags.INTEGRATIONS,
       IntegrationsSuiteTags.PHOENIX,
       IntegrationsSuiteTags.CONFLUENCE,

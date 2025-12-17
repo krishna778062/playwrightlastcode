@@ -12,9 +12,9 @@ export const TEST_FILTER_VALUES = {
    * Social Interaction Dashboard filter values
    */
   SOCIAL_INTERACTION: {
-    SEGMENTS: ['india'],
-    DEPARTMENTS: ['New department DUCK DB'],
-    LOCATIONS: ['Kolkata, West Bengal, India'],
+    SEGMENTS: ['USA Operations'],
+    DEPARTMENTS: ['CEO', 'Engineering', 'Finance', 'Human Admin', 'Human Resources'],
+    LOCATIONS: ['Chicago, IL, US', 'Los Angeles, CA, US', 'San Francisco, CA, US'],
   },
 
   /**

@@ -11,6 +11,7 @@ import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../..
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSocialInteractionDashboardForTest,
@@ -39,7 +40,7 @@ test.describe(
 
       // Define unified filter configuration for static period (Last 36 months)
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: periodFilterTimeRange,
       };
 
