@@ -192,10 +192,10 @@ test.describe(
         await privilegesScreenPage.actions.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
         await privilegesScreenPage.actions.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
         await privilegesScreenPage.actions.clickOnSave();
-        await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
+        await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
         await privilegesScreenPage.reloadScreen();
-        await privilegesScreenPage.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
+        await privilegesScreenPage.assertions.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.assertions.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
       }
     );
   }
