@@ -13,6 +13,7 @@ import { AppAdoptionDashboard } from '../../../ui/dashboards';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupAppAdoptionDashboardForTest,
@@ -50,7 +51,7 @@ test.describe.fixme(
       const customDateRange = DateHelper.createTestCustomDateRange();
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customDateRange.startDate,
         customEndDate: customDateRange.endDate,

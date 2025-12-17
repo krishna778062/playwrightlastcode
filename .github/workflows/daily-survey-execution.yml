@@ -1,0 +1,270 @@
+name: Daily Survey Creation Tests
+
+on:
+  schedule:
+    # Run daily at 10:00 PM IST (4:30 PM UTC)
+    # IST = UTC + 5:30, so 10:00 PM IST = 4:30 PM UTC = 16:30 UTC
+    - cron: '30 16 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  daily-survey-tests:
+    timeout-minutes: 60
+    runs-on: [kubernetes]
+    strategy:
+      fail-fast: false
+      matrix:
+        survey_type: [dailyAllPurpose, dailyPulseSurvey, dailyEmployeeEngagement]
+    env:
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+      TEST_ENV: ${{ inputs.environment || 'qa' }}
+      MODULE_NAME: employee-listening
+      E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop #always develop HEAD
+
+      - name: Create Calendar Secrets JSON
+        run: |
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+          echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
+
+      - name: set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
+      - name: Run daily survey test - ${{ matrix.survey_type }}
+        id: run-tests
+        env:
+          TEST_ENV: ${{ inputs.environment || 'qa' }}
+        run: |
+          echo "Running daily survey test: ${{ matrix.survey_type }}"
+          echo "Environment: ${{ env.TEST_ENV }}"
+          CONFIG_FILE="src/modules/employee-listening/playwright.employee-listening.config.ts"
+
+          # Verify config file exists
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "Error: Config file not found: $CONFIG_FILE"
+            exit 1
+          fi
+
+          echo "Using config file: $CONFIG_FILE"
+          echo "Running Employee Listening daily survey tests with grep filter: daily execution"
+          TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=employee-listening npx playwright test --config="$CONFIG_FILE" --grep="daily execution" src/modules/employee-listening/tests/ui-tests/surveys/daily-execution/${{ matrix.survey_type }}.spec.ts
+        continue-on-error: true
+
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+          echo "Timestamp set to: $TIMESTAMP"
+
+      - name: Generate HTML Report
+        if: always()
+        run: |
+          npm run generate-report:custom test-results/test-results.json
+
+      - name: Generate Tag Report
+        if: always()
+        run: |
+          npm run generate-tag-report
+
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          MODULE_FOLDER="${MODULE_NAME}-daily-surveys"
+          # Upload to timestamped folder
+          echo "Uploading report to S3..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+
+          # Update latest folder (overwrites existing files)
+          echo "Updating latest folder..."
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_FOLDER}/latest --recursive
+
+          # Create index.html in module root to redirect to latest
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_FOLDER}/index.html
+
+          echo "Report uploaded successfully!"
+          echo "Latest report available at: s3://${S3_BUCKET}/${MODULE_FOLDER}/latest"
+          echo "Timestamped report available at: s3://${S3_BUCKET}/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}"
+          echo ""
+          echo "📊 Test Report Links:"
+          echo "🔗 Latest Report: https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/index.html"
+          echo "🏷️ Latest Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/tag-report.html"
+          echo "📅 Timestamped Report: https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
+          echo "📅 Timestamped Tag Report: https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html"
+
+          # Store report links for Slack notification
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/index.html" >> $GITHUB_ENV
+          echo "LATEST_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/tag-report.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
+
+      - name: Parse Test Results
+        if: always()
+        run: |
+          # Parse test results from test-results directory
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+            PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
+
+            # Count known failures from annotations
+            KNOWN_FAILED=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
+              const knownFailed = data.suites.flatMap(s =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
+                      t.status === 'unexpected' &&
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
+                    )
+                  )
+                )
+              ).length;
+              console.log(knownFailed);
+            ")
+
+            # Calculate actual failures (excluding known failures)
+            ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
+          else
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            KNOWN_FAILED=0
+            ACTUAL_FAILED=0
+          fi
+
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
+          echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
+
+          echo "Test Results:"
+          echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daily-survey-results-${{ matrix.survey_type }}-${{ env.TEST_ENV }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+  notify-results:
+    needs: daily-survey-tests
+    runs-on: [kubernetes]
+    if: always()
+    env:
+      E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+      MODULE_NAME: employee-listening
+    steps:
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          MODULE_FOLDER="${MODULE_NAME}-daily-surveys"
+
+          # Check overall job status
+          if [ "${{ needs.daily-survey-tests.result }}" = "success" ]; then
+            STATUS="✅ SUCCESS"
+            COLOR="good"
+          else
+            STATUS="❌ FAILED"
+            COLOR="danger"
+          fi
+
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          IST_TIME=$(TZ="Asia/Kolkata" date +"%Y-%m-%d %H:%M:%S IST")
+          BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+          ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+
+          # Create run timestamp for URL
+          RUN_TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")
+
+          MESSAGE="📝 *Daily Survey Creation Tests* - triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment - $STATUS | Execution Time: $IST_TIME | Tests: • All Purpose Survey • Pulse Survey • Employee Engagement Survey | <https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/index.html|📊 View Report> | <https://playwrite.simpplr.xyz/results/${MODULE_FOLDER}/latest/tag-report.html|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$MESSAGE\"}" \
+            $E2E_SLACK_WEBHOOK_URL
+        continue-on-error: true
+
+      - name: Send Smart Slack Notifications
+        if: always()
+        run: |
+          MODULE_FOLDER="${MODULE_NAME}-daily-surveys"
+
+          # Check for pipeline failures
+          if [ "${{ needs.daily-survey-tests.result }}" = "failure" ]; then
+            echo "Daily survey tests job failed - sending pipeline failure notification"
+            BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+            ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+            FAILURE_MESSAGE="🚨 *Daily Survey Creation Tests Pipeline Failed* - Pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+              $E2E_SLACK_WEBHOOK_URL
+          else
+            echo "Daily survey tests completed - notifications already sent in previous step"
+          fi
+        continue-on-error: true

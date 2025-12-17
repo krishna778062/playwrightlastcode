@@ -29,6 +29,11 @@ export interface IHomeDashboardPageActions {
   addSitesCategoryTile: (siteName: string, tileTitle: string) => Promise<void>;
   reorderTiles: (sourceTileTitle: string, targetTileTitle: string) => Promise<void>;
   clickThreeDotsOnTile: (tileTitle: string) => Promise<void>;
+  clickOnSitesCategoriesTileOption: () => Promise<void>;
+  clickOnSitesTab: () => Promise<void>;
+  setSitesTileTitle: (tileName: string) => Promise<void>;
+  addSiteToSitesTile: (siteName: string) => Promise<void>;
+  setSitesTileLayout: (layout: 'list' | 'grid') => Promise<void>;
   clickingOnOnboardingTab: () => Promise<void>;
   isAddToHomeButtonDisabled: () => Promise<boolean>;
   closeAddContentTileDialog: () => Promise<void>;
@@ -41,6 +46,9 @@ export interface IHomeDashboardPageAssertions {
   verifyingCreatedPageIsNotVisibleInTile: (pageName: string) => Promise<void>;
   verifyingThePageTileSectionIsNotVisible: (tileName: string) => Promise<void>;
   verifyTileOrder: (tileTitles: string[]) => Promise<void>;
+  verifyingSiteIsVisibleInSitesTile: (siteName: string, tileName: string) => Promise<void>;
+  verifyingSiteIsNotVisibleInSitesTile: (siteName: string, tileName: string) => Promise<void>;
+  verifyingMemberIconIsNotVisibleForSite: (siteName: string, tileName: string) => Promise<void>;
   verifyOnboardingTileIsVisible: () => Promise<void>;
   verifyAddToHomeButtonIsDisabled: () => Promise<void>;
   verifyTileAlreadyAddedMessage: () => Promise<void>;
@@ -61,6 +69,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
   readonly getTileLocator: (tileTitle: string) => Locator = (tileTitle: string) =>
     this.page.getByRole('heading', { name: tileTitle });
+  readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
   readonly closeDialogButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Close' });
   readonly tileAlreadyAddedMessage: Locator = this.addContentTileDialog.getByText(
     'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
@@ -85,14 +94,14 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
-      const isEditButtonVisible = await this.verifier.isTheElementVisible(this.editDashboardButton);
+      const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);
 
       if (isEditButtonVisible) {
         await this.verifier.verifyTheElementIsVisible(this.editDashboardButton, {
           assertionMessage: 'Home dashboard page should be visible',
         });
       } else {
-        const homeTextLocator = this.page.getByRole('heading', { name: /Home/i }).first();
+        const homeTextLocator = this.page.getByText('Home').first();
         await this.verifier.verifyTheElementIsVisible(homeTextLocator, {
           assertionMessage: 'Home dashboard page should be visible',
         });
@@ -229,6 +238,32 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
       }
     });
   }
+  
+  async clickOnSitesCategoriesTileOption(): Promise<void> {
+    await this.addTileComponent.clickSitesCategoriesTileOption();
+  }
+  async clickOnSitesTab(): Promise<void> {
+    await this.addTileComponent.clickSitesTab();
+  }
+  async setSitesTileTitle(tileName: string): Promise<void> {
+    await this.addTileComponent.setSitesTileTitle(tileName);
+  }
+  async addSiteToSitesTile(siteName: string): Promise<void> {
+    await this.addTileComponent.addSiteToTile(siteName);
+  }
+  async setSitesTileLayout(layout: 'list' | 'grid'): Promise<void> {
+    await this.addTileComponent.setLayout(layout);
+  }
+  async verifyingSiteIsVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
+    await this.pageTileSectionComponent.verifyingSiteIsVisibleInSitesTile(siteName, tileName);
+  }
+  async verifyingSiteIsNotVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
+    await this.pageTileSectionComponent.verifyingSiteIsNotVisibleInSitesTile(siteName, tileName);
+  }
+  async verifyingMemberIconIsNotVisibleForSite(siteName: string, tileName: string): Promise<void> {
+    await this.pageTileSectionComponent.verifyingMemberIconIsNotVisibleForSite(siteName, tileName);
+  }
+
   async clickingOnOnboardingTab(): Promise<void> {
     await test.step('Click on Onboarding tab', async () => {
       await this.clickOnElement(this.onboardingComponent.onboardingTab);

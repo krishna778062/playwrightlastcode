@@ -169,6 +169,28 @@ export class ContentManagementService implements IContentManagementServices {
     }
     return categoryInfo;
   }
+
+  /**
+   * Gets list of page categories for a given site with their page counts
+   * @param siteId - The site ID
+   * @param options - Optional parameters (size, sortBy)
+   * @returns Promise with list of page categories including pageCount
+   */
+  async getPageCategoriesList(siteId: string, options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting page categories list', async () => {
+      const requestData = {
+        size: options.size ?? 16,
+        sortBy: options.sortBy ?? 'createdNewest',
+      };
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category,
+        {
+          data: requestData,
+        }
+      );
+      return await response.json();
+    });
+  }
   async updateContentDetails(siteId: string, contentId: string, publishAt: string): Promise<void> {
     return await test.step('Updating content details via API PUT request', async () => {
       const contentResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId), {});
@@ -247,6 +269,8 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
+        contentSubType: 'news',
+        contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,
           ...overrides.category,

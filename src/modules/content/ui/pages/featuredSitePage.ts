@@ -28,11 +28,8 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   //LOCATORS
   readonly featuredTab = this.page.locator('a').filter({ hasText: /^Featured$/ });
-  readonly featuredSiteNames = this.page
-    .locator('#panel-featured')
-    .locator('.SiteGridItem-info')
-    .locator('h2')
-    .getByRole('link');
+  readonly featuredSiteNames = (siteName: string) =>
+    this.page.locator('h2').filter({ hasText: siteName }).getByRole('link');
   readonly successToastMessage = (message: string) =>
     this.page.locator('div[class*="Toast-module"] p', { hasText: message });
   readonly addUpdateFeaturedSiteButton = this.page.locator('button').filter({ hasText: 'Add/update' });
@@ -65,8 +62,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
 
   private async clickOnFeaturedSite(siteName: string): Promise<void> {
     await test.step(`Click on featured site: ${siteName}`, async () => {
-      const featuredSite = this.featuredSiteNames.getByText(siteName);
-      await this.clickOnElement(featuredSite);
+      await this.clickOnElement(this.featuredSiteNames(siteName));
     });
   }
 
@@ -123,11 +119,7 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
    */
   private async verifyFeaturedSiteInList(siteName: string): Promise<void> {
     await test.step(`Verify "${siteName}" is in featured sites list`, async () => {
-      // Create a locator that filters for the specific site name
-      const specificSite = this.featuredSiteNames.filter({ hasText: siteName });
-
-      // Simply verify the filtered element is visible
-      await this.verifier.verifyTheElementIsVisible(specificSite);
+      await this.verifier.verifyTheElementIsVisible(this.featuredSiteNames(siteName));
     });
   }
 

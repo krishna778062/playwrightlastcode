@@ -7,6 +7,8 @@ export class PageTileSectionComponent extends BaseComponent {
   readonly ellipsisButton: Locator;
   readonly editTileButton: Locator;
   readonly baseActionUtil: BaseActionUtil;
+  readonly tileSection: (tileName: string) => Locator;
+  readonly getSiteLinkLocator: (siteName: string, tileName: string) => Locator;
   readonly removeTileButton: Locator;
   readonly removeTileConfirmationDialog: Locator;
   readonly removeTileConfirmationButton: Locator;
@@ -22,6 +24,10 @@ export class PageTileSectionComponent extends BaseComponent {
       this.page.locator(`div[class*="Tile-optionsContainer"]`).first();
     this.removeTileConfirmationDialog = page.getByRole('dialog', { name: 'Remove tile' });
     this.removeTileConfirmationButton = this.removeTileConfirmationDialog.getByRole('button', { name: 'Remove' });
+    this.tileSection = (tileName: string) =>
+      page.locator('aside.Tile').filter({ has: this.page.locator('header h2').filter({ hasText: tileName }) });
+    this.getSiteLinkLocator = (siteName: string, tileName: string) =>
+      this.tileSection(tileName).locator('a.type--title').filter({ hasText: siteName }).first();
     this.getTileHeadingLocator = (tileName: string) =>
       this.page.getByRole('heading', { name: new RegExp(tileName, 'i') }).first();
   }
@@ -95,6 +101,37 @@ export class PageTileSectionComponent extends BaseComponent {
         assertionMessage: 'Remove confirmation button should be visible',
       });
       await this.clickOnElement(this.removeTileConfirmationButton);
+    });
+  }
+  
+  async verifyingSiteIsVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
+    await test.step(`Verify site "${siteName}" is visible in Sites tile "${tileName}"`, async () => {
+      // Find the tile by header text, then find the site link within that tile
+      const siteLink = this.getSiteLinkLocator(siteName, tileName);
+      await this.verifier.verifyTheElementIsVisible(siteLink, {
+        assertionMessage: `Site "${siteName}" should be visible in Sites tile "${tileName}"`,
+      });
+    });
+  }
+
+  async verifyingSiteIsNotVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
+    await test.step(`Verify site "${siteName}" is NOT visible in Sites tile "${tileName}"`, async () => {
+      // Find the tile by header text, then verify the site link is not visible within that tile
+      const siteLink = this.getSiteLinkLocator(siteName, tileName);
+      await this.verifier.verifyTheElementIsNotVisible(siteLink, {
+        assertionMessage: `Site "${siteName}" should NOT be visible in Sites tile "${tileName}"`,
+      });
+    });
+  }
+
+  async verifyingMemberIconIsNotVisibleForSite(siteName: string, tileName: string): Promise<void> {
+    await test.step(`Verify member icon is NOT visible for site "${siteName}" in Sites tile "${tileName}"`, async () => {
+      // Find the tile by header text
+      const siteItem = this.getSiteLinkLocator(siteName, tileName).locator('li.ListingItem');
+      const memberIconButton = siteItem.locator('button[aria-label*="members"]').first();
+      await this.verifier.verifyTheElementIsNotVisible(memberIconButton, {
+        assertionMessage: `Member icon should NOT be visible for site "${siteName}" in Sites tile "${tileName}"`,
+      });
     });
   }
 }
