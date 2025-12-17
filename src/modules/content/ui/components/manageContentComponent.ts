@@ -71,6 +71,9 @@ export class ManageContentComponent extends BaseComponent {
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
+  readonly validationRequiredInfoBox: Locator;
+  readonly validationViewAllButton: Locator;
+  readonly validationRequiredTag: Locator;
   readonly activateButton: Locator;
   readonly verifyTabVisibleUnderFavoritesTab: (option: TagOption) => Locator;
   readonly selectContentByNumberOfItemsButton: (option: number) => Locator;
@@ -152,11 +155,18 @@ export class ManageContentComponent extends BaseComponent {
       .locator('div')
       .filter({ hasText: /^Unpublished$/ })
       .first();
+    this.validationRequiredTag = page
+      .locator('div')
+      .filter({ hasText: /^Validation required$/ })
+      .first();
+
     this.addToCampaignOption = page.getByText('Add to campaign', { exact: true });
+    this.validationViewAllButton = page.getByRole('button', { name: 'View all' });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
+    this.validationRequiredInfoBox = page.locator('.InfoBox').first();
     this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
     this.verifyTabVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
@@ -476,6 +486,18 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.onboardingOption);
     });
   }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await test.step('Verifying the validation required is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.validationRequiredInfoBox, {
+        assertionMessage: 'Validation required info box should be visible',
+      });
+    });
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await test.step('Clicking on the validation view all button', async () => {
+      await this.clickOnElement(this.validationViewAllButton);
+    });
+  }
 
   async verifyOnboardingOptionVisibleInManageContent(): Promise<void> {
     await test.step('Verifying the onboarding option is visible in manage content', async () => {
@@ -663,6 +685,30 @@ export class ManageContentComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
         await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
       } else {
+      }
+    });
+  }
+
+  /**
+   * Selects a specific page category by name from the dropdown
+   * @param categoryName - The name of the page category to select
+   */
+  async selectPageCategoryByName(categoryName: string): Promise<void> {
+    await test.step(`Selecting page category: ${categoryName}`, async () => {
+      // Click on the page category dropdown
+      if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdown)) {
+        await this.clickOnElement(this.pageCategorySelectorDropdown);
+        // Wait for dropdown options to appear
+        await this.page.waitForTimeout(500);
+        // Select the category by name
+        const categoryOption = this.page.getByRole('option', { name: categoryName, exact: true }).first();
+        if (await this.verifier.isTheElementVisible(categoryOption)) {
+          await this.clickOnElement(categoryOption);
+        } else {
+          throw new Error(`Page category "${categoryName}" not found in dropdown`);
+        }
+      } else {
+        throw new Error('Page category selector dropdown is not visible');
       }
     });
   }
@@ -906,6 +952,8 @@ export class ManageContentComponent extends BaseComponent {
         return this.scheduledTag;
       case ManageContentTags.DRAFT:
         return this.draftTag;
+      case ManageContentTags.VALIDATION_REQUIRED:
+        return this.validationRequiredTag;
       default:
         throw new Error(`Unknown tag: ${tag}`);
     }

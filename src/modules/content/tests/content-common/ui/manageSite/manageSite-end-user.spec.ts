@@ -9,6 +9,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
@@ -290,6 +291,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
+        await newSiteDashboard.assertions.verifyThePageIsLoaded();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
@@ -344,16 +346,7 @@ test.describe(
         console.log('getListOfSitesResponse', getListOfSitesResponse);
         const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
         console.log('siteId', siteId);
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         const fileSize = FileUtil.getFileSize(imagePath);
         const getSignedUploadUrlResponse =
           await standardUserApiFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({

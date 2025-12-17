@@ -1,4 +1,5 @@
 import { APP_LABELS } from '@integrations/constants/common';
+import { MESSAGES } from '@integrations/constants/messageRepo';
 import { expect, Locator, Page, test } from '@playwright/test';
 import path from 'node:path';
 
@@ -69,6 +70,13 @@ export class CustomAppsComponent extends BaseComponent {
   readonly completedStepIndicator: Locator;
   readonly dialogContainer: Locator;
   readonly deleteDialogHeading: Locator;
+  readonly prebuiltAppCategoryButton: Locator;
+  readonly prebuiltAppsLink: Locator;
+  readonly createYourOwnAppLink: Locator;
+  readonly appNotAvailableHeading: Locator;
+  readonly noResultsWithCreateOwnAppMessage: Locator;
+  readonly prebuiltAppCategoryLabelLocator: Locator;
+  readonly prebuiltAppCategoryRadioLocator: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -132,6 +140,26 @@ export class CustomAppsComponent extends BaseComponent {
     this.completedStepIndicator = page.locator('[data-testid="completedStepStatusIndicator"]');
     this.dialogContainer = page.getByRole('dialog');
     this.deleteDialogHeading = page.getByRole('dialog').locator('h2');
+
+    // Prebuilt app dialog locators
+    this.prebuiltAppCategoryButton = this.prebuiltAppDialog.getByRole('button', {
+      name: MESSAGES.CATEGORY_BUTTON_LABEL,
+    });
+    this.prebuiltAppsLink = this.prebuiltAppDialog.getByRole('link', {
+      name: MESSAGES.PREBUILT_APPS_LINK_LABEL,
+    });
+    this.createYourOwnAppLink = this.prebuiltAppDialog.getByRole('link', {
+      name: MESSAGES.CREATE_YOUR_OWN_APP_LABEL,
+    });
+    this.appNotAvailableHeading = this.prebuiltAppDialog.getByRole('heading', {
+      name: MESSAGES.APP_NOT_AVAILABLE_HEADING,
+    });
+    this.noResultsWithCreateOwnAppMessage = this.prebuiltAppDialog.getByText(
+      MESSAGES.NO_RESULTS_WITH_CREATE_OWN_APP_MESSAGE,
+      { exact: false }
+    );
+    this.prebuiltAppCategoryLabelLocator = this.prebuiltAppDialog.locator('label');
+    this.prebuiltAppCategoryRadioLocator = this.prebuiltAppDialog.locator('input[type="radio"]');
   }
 
   /**
@@ -153,6 +181,16 @@ export class CustomAppsComponent extends BaseComponent {
    */
   getHeading(name: string, level: 1 | 2 | 3 | 4 | 5 | 6 = 3): Locator {
     return this.page.getByRole('heading', { name, level });
+  }
+
+  /**
+   * Get category radio locator by id or name in prebuilt app dialog
+   * @param categoryLabelOrId - The category label or radio id/name
+   */
+  getCategoryRadioLocator(categoryLabelOrId: string): Locator {
+    return this.prebuiltAppDialog.locator(
+      `input[type="radio"][id="${categoryLabelOrId}"], input[type="radio"][name="${categoryLabelOrId}"]`
+    );
   }
 
   /**
@@ -258,6 +296,17 @@ export class CustomAppsComponent extends BaseComponent {
       await expect(this.resultCountLocator, `Expected result count text to contain "${expectedText}"`).toContainText(
         expectedText
       );
+    });
+  }
+
+  /**
+   * Verify the result count is visible and displayed
+   */
+  async verifyResultCountIsVisible(): Promise<void> {
+    await test.step('Verify result count is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resultCountLocator, {
+        assertionMessage: 'Result count should be visible',
+      });
     });
   }
 
@@ -509,6 +558,15 @@ export class CustomAppsComponent extends BaseComponent {
   }
 
   /**
+   * Verify the logo image preview is hidden (after removal)
+   */
+  async verifyLogoPreviewIsHidden(): Promise<void> {
+    await test.step('Verify logo image preview is hidden', async () => {
+      await expect(this.logoImagePreview, 'Expected logo preview to be hidden after removal').not.toBeVisible();
+    });
+  }
+
+  /**
    * Verify the uploaded logo file size is displayed
    */
   async verifyUploadedLogoFileSize(expectedSize: string): Promise<void> {
@@ -525,6 +583,40 @@ export class CustomAppsComponent extends BaseComponent {
   async verifyRemoveLogoButtonIsDisplayed(): Promise<void> {
     await test.step('Verify remove logo button is displayed', async () => {
       await expect(this.removeLogoButton, 'Expected remove logo button to be visible').toBeVisible({ timeout: 10000 });
+    });
+  }
+
+  /**
+   * Click the remove logo button to delete the uploaded logo
+   */
+  async clickRemoveLogoButton(): Promise<void> {
+    await test.step('Click remove logo button', async () => {
+      await this.removeLogoButton.waitFor({ state: 'visible' });
+      await this.removeLogoButton.click();
+    });
+  }
+
+  /**
+   * Verify required field error message is displayed
+   * @param fieldName - The name of the field (e.g., 'Custom app name', 'Description', 'Logo')
+   */
+  async verifyRequiredFieldError(fieldName: string): Promise<void> {
+    await test.step(`Verify ${fieldName} required field error is visible`, async () => {
+      const errorMessage = this.page.getByText(`${fieldName} is required`, { exact: false });
+      await expect(errorMessage, `Expected "${fieldName} is required" error message to be visible`).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify URL validation error message is displayed
+   * @param fieldName - The name of the URL field (e.g., 'Invalid Auth URL format', 'Invalid Token URL format', 'Invalid Base URL format')
+   */
+  async verifyUrlValidationError(fieldName: string): Promise<void> {
+    await test.step(`Verify ${fieldName} URL validation error is visible`, async () => {
+      // Check for the specific field validation error message
+      // The error message format is "Invalid {Field} URL format" (e.g., "Invalid Auth URL format")
+      const errorMessage = this.page.getByText(fieldName, { exact: false });
+      await expect(errorMessage, `Expected URL validation error for ${fieldName} to be visible`).toBeVisible();
     });
   }
 
@@ -699,20 +791,29 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async clickTypeFilter(): Promise<void> {
     await test.step('Click Type filter dropdown', async () => {
-      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
-      if (!isTypeFilterVisible) {
-        await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
-        await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
-      }
       await this.clickOnElement(this.typeFilterButton, { timeout: 10000 });
     });
   }
 
   /**
+   * Click Show next items button to reveal hidden filter buttons
+   */
+  async clickShowNextItems(): Promise<void> {
+    await test.step('Click Show next items button', async () => {
+      await this.clickOnElement(this.showNextItemsButton, { timeout: 10000 });
+      await this.typeFilterButton.waitFor({ state: 'visible', timeout: 10000 });
+    });
+  }
+
+  /**
    * Select a type filter option
+   * Note: For 'Custom' type, need to click 'Show next items' first to reveal the Type filter
    */
   async selectTypeFilter(type: 'Prebuilt' | 'Custom'): Promise<void> {
     await test.step(`Select type filter: ${type}`, async () => {
+      if (type === 'Custom') {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       const typeLabel = type === 'Prebuilt' ? this.typeFilterPrebuiltLabel : this.typeFilterCustomLabel;
       await this.clickOnElement(typeLabel, { timeout: 10000 });
@@ -722,9 +823,14 @@ export class CustomAppsComponent extends BaseComponent {
 
   /**
    * Clear the type filter
+   * Note: If Type filter is not visible, click 'Show next items' first
    */
   async clearTypeFilter(): Promise<void> {
     await test.step('Clear type filter', async () => {
+      const isTypeFilterVisible = await this.typeFilterButton.isVisible();
+      if (!isTypeFilterVisible) {
+        await this.clickShowNextItems();
+      }
       await this.clickTypeFilter();
       await this.clickOnElement(this.typeFilterClearButton, { timeout: 10000 });
     });
@@ -769,6 +875,35 @@ export class CustomAppsComponent extends BaseComponent {
       await this.clickSortDropdown();
       const menuItem = order === 'Newest first' ? this.sortOrderNewestFirstMenuItem : this.sortOrderOldestFirstMenuItem;
       await this.clickOnElement(menuItem, { timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verify the sort dropdown label text
+   */
+  async verifySortDropdownLabel(expectedLabel: string): Promise<void> {
+    await test.step(`Verify sort dropdown label is "${expectedLabel}"`, async () => {
+      await expect(this.sortDropdownButton).toContainText(expectedLabel);
+    });
+  }
+
+  /**
+   * Verify app is not at the top of the list
+   */
+  async verifyAppIsNotFirst(appName: string): Promise<void> {
+    await test.step(`Verify "${appName}" is not at the top of the list`, async () => {
+      const firstAppName = await this.getFirstAppName();
+      expect(firstAppName).not.toBe(appName);
+    });
+  }
+
+  /**
+   * Verify app is at the top of the list
+   */
+  async verifyAppIsFirst(appName: string): Promise<void> {
+    await test.step(`Verify "${appName}" is at the top of the list`, async () => {
+      const firstAppName = await this.getFirstAppName();
+      expect(firstAppName).toBe(appName);
     });
   }
 
@@ -879,6 +1014,18 @@ export class CustomAppsComponent extends BaseComponent {
   }
 
   /**
+   * Verify that a sub auth type option is disabled in the dropdown
+   * @param optionLabel - The label of the option to verify (e.g., 'Client Credentials')
+   */
+  async verifySubAuthTypeOptionIsDisabled(optionLabel: string): Promise<void> {
+    await test.step(`Verify sub auth type option "${optionLabel}" is disabled`, async () => {
+      await this.subAuthTypeSelect.waitFor({ state: 'visible' });
+      const option = this.subAuthTypeSelect.locator(`option:has-text("${optionLabel}")`);
+      await expect(option, `Expected option "${optionLabel}" to be disabled`).toBeDisabled();
+    });
+  }
+
+  /**
    * Enter value in a textbox field by its label name
    */
   async enterFieldValue(fieldName: string, value: string): Promise<void> {
@@ -910,6 +1057,98 @@ export class CustomAppsComponent extends BaseComponent {
       await this.getBoxPopupGrantAccessButton(popup).click({ timeout: 15000 });
 
       await popup.waitForEvent('close', { timeout: 30000 }).catch(() => {});
+    });
+  }
+
+  /**
+   * Click on Category button in prebuilt app dialog if present
+   */
+  async clickCategoryButtonInPrebuiltDialog(): Promise<void> {
+    await test.step('Click Category button in prebuilt app dialog if present', async () => {
+      await this.prebuiltAppDialog.waitFor({ state: 'visible', timeout: 20000 });
+      if (await this.prebuiltAppCategoryButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await this.clickOnElement(this.prebuiltAppCategoryButton, { timeout: 10000 });
+      }
+    });
+  }
+
+  /**
+   * Select category option in prebuilt app dialog by visible label
+   * Falls back to radio id/name if label not found.
+   * @param categoryLabelOrId - e.g. 'Calendar' or radio id like 'categories_calendar'
+   */
+  async selectCategoryRadioInPrebuiltDialog(categoryLabelOrId: string): Promise<void> {
+    await test.step(`Select category: ${categoryLabelOrId}`, async () => {
+      await this.prebuiltAppDialog.waitFor({ state: 'visible', timeout: 20000 });
+
+      const labelOption = this.prebuiltAppCategoryLabelLocator.filter({ hasText: categoryLabelOrId });
+      if (
+        await labelOption
+          .first()
+          .isVisible({ timeout: 5000 })
+          .catch(() => false)
+      ) {
+        await this.clickOnElement(labelOption.first(), { timeout: 10000 });
+        return;
+      }
+
+      const categoryRadio = this.getCategoryRadioLocator(categoryLabelOrId);
+      await expect(categoryRadio).toBeVisible({ timeout: 10000 });
+      await this.clickOnElement(categoryRadio, { timeout: 10000 });
+    });
+  }
+
+  /**
+   * Click on "Prebuilt apps" link in the prebuilt app dialog
+   */
+  async clickPrebuiltAppsLink(): Promise<void> {
+    await test.step('Click on Prebuilt apps link', async () => {
+      await expect(this.prebuiltAppsLink).toBeVisible({ timeout: 10000 });
+      await this.clickOnElement(this.prebuiltAppsLink, { timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verify "Create your own app" link/button is displayed in prebuilt app dialog
+   */
+  async verifyCreateYourOwnAppTextIsDisplayed(): Promise<void> {
+    await test.step('Verify "Create your own app" link is displayed', async () => {
+      await expect(
+        this.createYourOwnAppLink,
+        `Expected "${MESSAGES.CREATE_YOUR_OWN_APP_LABEL}" link to be visible`
+      ).toBeVisible({
+        timeout: 10000,
+      });
+    });
+  }
+
+  /**
+   * Click on "Create your own app" link in prebuilt app dialog
+   */
+  async clickCreateYourOwnAppLink(): Promise<void> {
+    await test.step('Click on "Create your own app" link', async () => {
+      await this.clickOnElement(this.createYourOwnAppLink, { timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verify no results message with "Try adjusting search terms or filters, or create your own app" text
+   */
+  async verifyNoResultsMessageWithCreateOwnApp(): Promise<void> {
+    await test.step('Verify no results message with create your own app text', async () => {
+      // Verify "App not available?" heading
+      await expect(
+        this.appNotAvailableHeading,
+        `Expected "${MESSAGES.APP_NOT_AVAILABLE_HEADING}" heading to be visible`
+      ).toBeVisible({
+        timeout: 10000,
+      });
+
+      // Verify the message text
+      await expect(
+        this.noResultsWithCreateOwnAppMessage,
+        `Expected "${MESSAGES.NO_RESULTS_WITH_CREATE_OWN_APP_MESSAGE}" message to be visible`
+      ).toBeVisible({ timeout: 10000 });
     });
   }
 }

@@ -5,12 +5,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { Roles } from '@/src/core/constants/roles';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_UNLISTED_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { ManageUsersPage } from '@/src/modules/content/ui/pages/manageUsersPage';
@@ -31,6 +32,22 @@ test.describe(
     let addContentModal: AddContentModalComponent;
     let userId: string = '';
     let roleId: string = '';
+    let peopleInfo: { userId: string; firstName: string; lastName: string };
+
+    test.beforeEach('Setup: Assign Unlisted Sites Manager role to standard user', async ({ appManagerFixture }) => {
+      // Get user info and assign Unlisted Sites Manager role
+      const userEmail = users.endUser.email;
+      peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
+      userId = peopleInfo.userId;
+      // Get and assign Unlisted Sites Manager role
+      roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
+      await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
+      // Verify role assignment in Manage Users page
+      manageUsersPage = new ManageUsersPage(appManagerFixture.page);
+      await manageUsersPage.loadPage();
+      await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
+      await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
+    });
 
     test.afterEach('Cleanup after test', async ({ appManagerFixture }) => {
       // Cleanup: Remove the assigned role (runs even if test fails)
@@ -56,45 +73,16 @@ test.describe(
           storyId: 'CONT-30521',
         });
 
-        // Login with standard user and assign Unlisted Sites Manager role
-        const userEmail = users.endUser.email;
-        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
-        userId = peopleInfo.userId;
-        await standardUserFixture.homePage.loadPage();
-        // Get and assign Unlisted Sites Manager role
-        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        console.log('roleId :   ', roleId);
-        console.log('Roles.UNLISTED_SITES_MANAGER :   ', Roles.UNLISTED_SITES_MANAGER);
-        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
-        manageUsersPage = new ManageUsersPage(appManagerFixture.page);
-        await manageUsersPage.loadPage();
-        await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
-        await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
-          waitForSearchIndex: true,
-          hasPages: true,
-        });
-        const siteId = siteDetails.siteId;
-        const siteName = siteDetails.name;
-        await standardUserFixture.homePage.loadPage();
-        await standardUserFixture.homePage.reloadPage();
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
+        const siteName = DEFAULT_UNLISTED_SITE_NAME;
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -114,7 +102,7 @@ test.describe(
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
-          "Created page successfully - it's published"
+          CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
         await contentPreviewPage.actions.handlePromotionPageStep();
@@ -133,30 +121,17 @@ test.describe(
           storyId: 'CONT-39680',
         });
 
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
-          hasPages: true,
-        });
-        const siteId = siteDetails.siteId;
-        const siteName = siteDetails.name;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
+        const siteName = DEFAULT_UNLISTED_SITE_NAME;
         console.log('siteName :   ', siteName);
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -176,7 +151,7 @@ test.describe(
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
-          "Created page successfully - it's published"
+          CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
         await contentPreviewPage.actions.handlePromotionPageStep();
       }
@@ -201,23 +176,13 @@ test.describe(
         );
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
@@ -239,7 +204,7 @@ test.describe(
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
-          "Created page successfully - it's published"
+          CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
         await contentPreviewPage.actions.handlePromotionPageStep();
@@ -258,15 +223,6 @@ test.describe(
           storyId: 'CONT-39775',
         });
 
-        // Login with standard user and assign Unlisted Sites Manager role
-        const userEmail = users.endUser.email;
-        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
-        userId = peopleInfo.userId;
-
-        // Get and assign Unlisted Sites Manager role
-        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
-
         // Create site with content submission disabled
 
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByIdWithContentSubmissions(
@@ -276,25 +232,14 @@ test.describe(
 
         const siteId = siteDetails.siteId;
         const siteName = siteDetails.siteName;
-
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
         )) as PageCreationPage;
 
         // Generate page data using TestDataGenerator
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-        );
-        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+        const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+        const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
         const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
@@ -314,7 +259,7 @@ test.describe(
         // Verify content was published successfully via UI
         await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
-          "Created page successfully - it's published"
+          CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
         await contentPreviewPage.actions.handlePromotionPageStep();
@@ -337,12 +282,11 @@ test.describe(
         // Create site with content submission disabled
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           hasPages: false,
-          waitForSearchIndex: true,
         });
         const siteName = siteDetails.name;
-
+        await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.verifyThePageIsLoaded();
-        addContentModal = await appManagerFixture.navigationHelper.openAddContentModal(ContentType.PAGE);
+        addContentModal = await appManagerFixture.navigationHelper.openCreateContentPage(ContentType.PAGE);
 
         await addContentModal.selectSiteToAddContentFromDropdown(siteName);
 
@@ -361,15 +305,6 @@ test.describe(
           zephyrTestId: 'CONT-39780',
           storyId: 'CONT-39780',
         });
-
-        // Login with standard user and assign Unlisted Sites Manager role
-        const userEmail = users.endUser.email;
-        const peopleInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(userEmail);
-        userId = peopleInfo.userId;
-
-        // Get and assign Unlisted Sites Manager role
-        roleId = await appManagerFixture.identityManagementHelper.getListOfRoles(Roles.UNLISTED_SITES_MANAGER);
-        await appManagerFixture.identityManagementHelper.updateUserWithAdditionalRoles(userId, [roleId], true);
 
         // Create site with content submission disabled
         await appManagerFixture.siteManagementHelper.createUnlistedSite({
