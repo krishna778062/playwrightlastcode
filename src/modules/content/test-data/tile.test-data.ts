@@ -412,5 +412,6 @@ export const TILE_TEST_DATA = {
     ADDED_TILE_TO_DASHBOARD: 'Added tile to dashboard successfully',
     EDITED_DASHBOARD_TILE: 'Edited dashboard tile successfully',
     REMOVED_TILE_FROM_DASHBOARD: 'Removed tile from dashboard successfully',
+    UNPUBLISHED_CONTENT: 'Unpublished content successfully',
   },
 } as const;

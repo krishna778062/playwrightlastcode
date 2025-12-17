@@ -9,7 +9,6 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { SideNavBarComponent } from '@/src/core/ui/components/sideNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { MediaManagerComponent } from '@/src/modules/content/ui/components/mediaManagerComponent';
 
@@ -96,7 +95,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
   readonly sideNavBarComponent: SideNavBarComponent;
   static actions: any;
 
-  constructor(page: Page, siteId?: string, siteManagementHelper?: SiteManagementHelper) {
+  constructor(page: Page, siteId?: string) {
     super(page, PAGE_ENDPOINTS.getPageCreationPage(siteId ?? ''));
     this.mediaManagerComponent = new MediaManagerComponent(page);
     //root locators of some components
@@ -186,7 +185,8 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
         await this.imageCropper.selectCropOption('Square');
       }
       await this.imageCropper.clickOnNextButton();
-      await this.imageCropper.clickOnNextButton();
+      //await this.imageCropper.clickOnNextButton();
+      await this.imageCropper.clickOnAddButton();
       await this.imageCropper.clickOnAddButton();
 
       // Wait for all 3 upload responses to complete with 200 status

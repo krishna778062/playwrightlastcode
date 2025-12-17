@@ -22,3 +22,5 @@ export const SITE_TEST_DATA: siteTestCase[] = [
 
 // Default public site name used across all tests
 export const DEFAULT_PUBLIC_SITE_NAME = 'All Employees';
+export const DEFAULT_PRIVATE_SITE_NAME = 'Finance';
+export const DEFAULT_UNLISTED_SITE_NAME = 'Internal Policy';

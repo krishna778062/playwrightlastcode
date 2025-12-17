@@ -6,7 +6,7 @@ import { API_ENDPOINTS, API_QUERY_PARAMS } from '@/src/core/constants/apiEndpoin
 import { LinkTilePayload, LinkTileResponse, TileLink } from '@/src/modules/integrations/apis/types/tile.type';
 
 export class TileManagementService {
-  private httpClient: HttpClient;
+  public httpClient: HttpClient;
   constructor(
     readonly context: APIRequestContext,
     readonly baseUrl: string,

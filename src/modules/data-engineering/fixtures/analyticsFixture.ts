@@ -5,6 +5,7 @@ import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { AnalyticsApiService } from '@/src/modules/data-engineering/api/services/AnalyticsApiService';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AnalyticsQueryHelper } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
@@ -39,31 +40,29 @@ export interface AnalyticsUserFixture extends AnalyticsApiFixture, AnalyticsUiFi
 
 export type UserType = 'appManager' | 'standardUser';
 
-export const users = {
-  appManager: {
-    email: process.env.APP_MANAGER_USERNAME || '',
-    password: process.env.APP_MANAGER_PASSWORD || '',
-  },
-  standardUser: {
-    email: process.env.STANDARD_USER_USERNAME || '',
-    password: process.env.STANDARD_USER_PASSWORD || '',
-  },
-} as const;
+// User credentials getter function
+export function getUsers() {
+  const config = getDataEngineeringConfigFromCache();
+  return {
+    appManager: {
+      email: config.appManagerEmail,
+      password: config.appManagerPassword,
+    },
+    standardUser: {
+      email: config.standardUserEmail,
+      password: config.standardUserPassword,
+    },
+  };
+}
 
 // Helper function to create API-only fixtures
 async function createAnalyticsApiFixture(
   apiContext: APIRequestContext,
   snowflakeHelper: SnowflakeHelper
 ): Promise<AnalyticsApiFixture> {
-  const orgId = process.env.ORG_ID || '';
-  const apiBaseUrl = process.env.API_BASE_URL || '';
-
-  if (!orgId) {
-    throw new Error('ORG_ID is not set , please set the ORG_ID environment variable');
-  }
-  if (!apiBaseUrl) {
-    throw new Error('API_BASE_URL is not set , please set the API_BASE_URL environment variable');
-  }
+  const config = getDataEngineeringConfigFromCache();
+  const orgId = config.orgId;
+  const apiBaseUrl = config.apiBaseUrl;
 
   return {
     apiContext,
@@ -76,6 +75,7 @@ async function createAnalyticsApiFixture(
 
 // Helper function to create UI-only fixtures for a specific user type
 async function createAnalyticsUiFixture(browser: any, userType: UserType): Promise<AnalyticsUiFixture> {
+  const users = getUsers();
   const user = users[userType];
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -151,15 +151,10 @@ export const analyticsTestFixture = test.extend<
   // Authenticates via API_BASE_URL to get session cookies (CloudFront blocks POST on frontend URL)
   appManagerApiContext: [
     async ({}, use) => {
-      const apiBaseUrl = process.env.API_BASE_URL || '';
-
-      if (!apiBaseUrl) {
-        throw new Error('API_BASE_URL is required for authentication');
-      }
-
-      const context = await RequestContextFactory.createAuthenticatedContext(apiBaseUrl, {
-        email: process.env.APP_MANAGER_USERNAME || '',
-        password: process.env.APP_MANAGER_PASSWORD || '',
+      const config = getDataEngineeringConfigFromCache();
+      const context = await RequestContextFactory.createAuthenticatedContext(config.apiBaseUrl, {
+        email: config.appManagerEmail,
+        password: config.appManagerPassword,
       });
       await use(context);
       await context.dispose();
@@ -169,15 +164,10 @@ export const analyticsTestFixture = test.extend<
 
   standardUserApiContext: [
     async ({}, use) => {
-      const apiBaseUrl = process.env.API_BASE_URL || '';
-
-      if (!apiBaseUrl) {
-        throw new Error('API_BASE_URL is required for authentication');
-      }
-
-      const context = await RequestContextFactory.createAuthenticatedContext(apiBaseUrl, {
-        email: process.env.STANDARD_USER_USERNAME || '',
-        password: process.env.STANDARD_USER_PASSWORD || '',
+      const config = getDataEngineeringConfigFromCache();
+      const context = await RequestContextFactory.createAuthenticatedContext(config.apiBaseUrl, {
+        email: config.standardUserEmail,
+        password: config.standardUserPassword,
       });
       await use(context);
       await context.dispose();

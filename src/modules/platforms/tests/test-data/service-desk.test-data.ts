@@ -96,6 +96,35 @@ export const ServiceDeskTestData = {
     closed: 'Closed',
     cancelled: 'Cancelled',
   },
+
+  // Settings Page
+  settingsPage: {
+    featureName: 'Service desk',
+    enableCheckboxLabel: 'Enable Service desk',
+    settingsPath: '/manage/app/setup/service-desk',
+    radioOptions: {
+      supportTeamsOnly: 'support-teams' as const,
+      everyone: 'everyone' as const,
+    },
+    headings: {
+      manageApplication: 'Manage application',
+      enableDisableServiceDesk: 'Enable/Disable Service desk',
+    },
+    descriptions: {
+      main: 'Service desk allows employees to raise requests and allow assigned agents to manage these tickets directly within Simpplr.',
+      helpText:
+        'Turn on Service desk to let support teams manage service requests, incidents, and approvals directly within Simpplr.',
+      supportTeamsOnly:
+        'Only support teams and admins will have access to the Service desk feature to manage requests and incidents.',
+      everyone:
+        'All employees will see the Support option to raise requests and track tickets, while support teams continue managing them through Service desk.',
+    },
+    radioLabels: {
+      supportTeamsOnly: 'Enable Service desk (for support teams only)',
+      everyone: 'Enable Service desk with Support (for everyone)',
+    },
+    successToastMessage: 'Saved changes successfully',
+  },
 };
 
 export default ServiceDeskTestData;

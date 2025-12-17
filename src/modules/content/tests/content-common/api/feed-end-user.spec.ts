@@ -13,6 +13,7 @@ import {
   buildFeedReplyText,
   buildFeedTextWithSiteMentions,
   buildFeedTextWithUserMentions,
+  buildFeedWithAllFeatures,
 } from '@/src/modules/content/apis/services/FeedManagementService';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 
@@ -720,6 +721,61 @@ test.describe(
         await feedApiHelper.validateDeleteAlreadyDeletedFeedError(async () => {
           await standardUserApiFixture.feedManagementHelper.deleteFeed(feedId);
         });
+      }
+    );
+
+    test(
+      'end User Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Home Dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_STANDARD_USER, '@CONT-43150'],
+      },
+      async ({ standardUserApiFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'API Validation of End User Feed creation with Editor formatting (Bold, Italic, Underline, Strike, bullets, Emojies, Link) on home',
+          zephyrTestId: 'CONT-43150',
+          storyId: 'CONT-43150',
+        });
+
+        // Create feed with all editor formatting features
+        const feedTestData = TestDataGenerator.generateFeedWithAllFeatures({
+          scope: 'public',
+          baseText: 'Test feed with editor formatting',
+          emoji: { name: 'smile', emoji: '😊' },
+          linkUrl: 'https://www.example.com',
+        });
+
+        // Get user info for validation
+        const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // Create feed using API
+        const feedResponse = await standardUserApiFixture.feedManagementHelper.createWithAllFeatures(feedTestData);
+
+        // Validate the Feed response
+        await feedApiHelper.validateFeedResponseBasic(feedResponse);
+        await feedApiHelper.validateFeedResponseAuthoredBy(feedResponse, userInfo.userId, userInfo.fullName);
+
+        //Edit Editor Feed Post
+        const updatedBaseText = 'Updated test feed with editor formatting';
+        const updatedFeedPayload = buildFeedWithAllFeatures({
+          scope: 'public',
+          baseText: updatedBaseText,
+          emoji: { name: 'heart', emoji: '❤️' },
+          linkUrl: 'https://www.updated-example.com',
+        });
+        const updatedFeedResult = await standardUserApiFixture.feedManagementHelper.updateFeed(
+          feedResponse.result?.feedId,
+          {
+            textJson: updatedFeedPayload.textJson,
+            textHtml: updatedFeedPayload.textHtml,
+            listOfAttachedFiles: [],
+            ignoreToxic: false,
+          }
+        );
+        await feedApiHelper.validateFeedUpdateResponse(updatedFeedResult, feedResponse.result?.feedId, updatedBaseText);
+
+        //Delete Editor Feed Post
+        await standardUserApiFixture.feedManagementHelper.deleteFeed(updatedFeedResult.feedId);
       }
     );
   }

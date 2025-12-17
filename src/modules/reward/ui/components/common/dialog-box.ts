@@ -26,7 +26,7 @@ export class DialogBox {
     this.page = page;
     this.container = page.locator('[role="dialog"][data-state="open"]');
     this.title = this.container.getByRole('heading');
-    this.closeButton = this.container.getByRole('button', { name: 'Close' });
+    this.closeButton = this.container.locator('button[aria-label="Close"]');
     this.description = this.container.locator('p[class*="paragraph"]');
     this.descriptionText = this.container.locator('div[class^="TypographyBody-module__wrapper"] p');
     this.inputBox = this.container.locator('input[type="text"]');
