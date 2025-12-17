@@ -3,6 +3,9 @@ import { faker } from '@faker-js/faker';
 import { FeedMode } from '@core/types/feedManagement.types';
 
 export const FEED_TEST_DATA = {
+  TILE: {
+    TITLE: `Tile Title ${faker.company.buzzNoun()}`,
+  },
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',

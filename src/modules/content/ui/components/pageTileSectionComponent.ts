@@ -103,7 +103,7 @@ export class PageTileSectionComponent extends BaseComponent {
       await this.clickOnElement(this.removeTileConfirmationButton);
     });
   }
-  
+
   async verifyingSiteIsVisibleInSitesTile(siteName: string, tileName: string): Promise<void> {
     await test.step(`Verify site "${siteName}" is visible in Sites tile "${tileName}"`, async () => {
       // Find the tile by header text, then find the site link within that tile

@@ -69,7 +69,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
   readonly getTileLocator: (tileTitle: string) => Locator = (tileTitle: string) =>
     this.page.getByRole('heading', { name: tileTitle });
-  readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
   readonly closeDialogButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Close' });
   readonly tileAlreadyAddedMessage: Locator = this.addContentTileDialog.getByText(
     'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
@@ -238,7 +237,7 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
       }
     });
   }
-  
+
   async clickOnSitesCategoriesTileOption(): Promise<void> {
     await this.addTileComponent.clickSitesCategoriesTileOption();
   }

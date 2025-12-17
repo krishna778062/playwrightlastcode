@@ -149,8 +149,8 @@ test.describe('home Dashboard Tiles', () => {
       await homeDashboardPage.actions.clickOnEditDashboardButton();
 
       // Generate unique tile names
-      const textTileTitle = `Text Tile ${faker.string.alphanumeric(6)}`;
-      const sitesTileTitle = `Sites Tile ${faker.string.alphanumeric(6)}`;
+      const textTileTitle = FEED_TEST_DATA.TILE.TITLE;
+      const sitesTileTitle = FEED_TEST_DATA.TILE.TITLE;
       const textTileDescription = FEED_TEST_DATA.SEARCH.RANDOM_TEXT;
 
       // Get a site name for Sites & Category tile
@@ -204,7 +204,7 @@ test.describe('home Dashboard Tiles', () => {
     }
   );
 
-  test(  
+  test(
     'verify private and unlisted sites on Sites tile for non-members',
     {
       tag: [
@@ -244,9 +244,6 @@ test.describe('home Dashboard Tiles', () => {
       const privateSiteName = privateSiteResult.siteName;
       const unlistedSiteName = unlistedSiteResult.siteName;
 
-      console.log(`Using private site: ${privateSiteName}`);
-      console.log(`Using unlisted site: ${unlistedSiteName}`);
-
       // Navigate to Home tab
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await homeDashboardPage.verifyThePageIsLoaded();
@@ -260,7 +257,7 @@ test.describe('home Dashboard Tiles', () => {
       await homeDashboardPage.actions.clickOnSitesTab();
 
       // Enter tile name
-      const tileName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Sites Tile`;
+      const tileName = FEED_TEST_DATA.TILE.TITLE;
       await homeDashboardPage.actions.setSitesTileTitle(tileName);
 
       // Add private and unlisted sites to tile
