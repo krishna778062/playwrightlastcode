@@ -4,7 +4,6 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
@@ -17,7 +16,6 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { PageCreationPage } from '@/src/modules/content/ui/pages/pageCreationPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
-import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   '@FeedPost - Show Filters Display Correct Shared Feed Posts',
