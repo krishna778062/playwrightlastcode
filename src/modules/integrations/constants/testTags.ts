@@ -1,6 +1,5 @@
 export enum IntegrationsSuiteTags {
   INTEGRATIONS = '@integrations',
-  BATCH2 = '@integrations-batch2', // New tests should use this tag to run in parallel suite
   AIRTABLE = '@airtableAppTiles',
   FRESHSERVICE = '@freshserviceAppTiles',
   EXPENSIFY = '@expensifyAppTiles',
@@ -39,6 +38,8 @@ export enum IntegrationsSuiteTags {
   WORKFLOWS = '@workflows',
   SERVICENOW_APPTILES = '@serviceNowAppTiles',
   CUSTOM_APPS = '@customApps',
+  JIRA_APPTILES = '@jiraAppTiles',
+  GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
 }
 
 export enum IntegrationsFeatureTags {
@@ -58,7 +59,6 @@ export enum IntegrationsFeatureTags {
 
 export const TEST_TAGS = {
   INTEGRATIONS: IntegrationsSuiteTags.INTEGRATIONS,
-  BATCH2: IntegrationsSuiteTags.BATCH2,
   AIRTABLE: IntegrationsSuiteTags.AIRTABLE,
   FRESHSERVICE: IntegrationsSuiteTags.FRESHSERVICE,
   EXPENSIFY: IntegrationsSuiteTags.EXPENSIFY,

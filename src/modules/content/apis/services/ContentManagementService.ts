@@ -13,6 +13,7 @@ import { log } from '@core/utils/logger';
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
+import { CarouselItemResponse } from '@/src/modules/content/apis/types/carouselItemResponse';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 
 const defaultBaseContentPayload = {
@@ -168,6 +169,28 @@ export class ContentManagementService implements IContentManagementServices {
     }
     return categoryInfo;
   }
+
+  /**
+   * Gets list of page categories for a given site with their page counts
+   * @param siteId - The site ID
+   * @param options - Optional parameters (size, sortBy)
+   * @returns Promise with list of page categories including pageCount
+   */
+  async getPageCategoriesList(siteId: string, options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting page categories list', async () => {
+      const requestData = {
+        size: options.size ?? 16,
+        sortBy: options.sortBy ?? 'createdNewest',
+      };
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category,
+        {
+          data: requestData,
+        }
+      );
+      return await response.json();
+    });
+  }
   async updateContentDetails(siteId: string, contentId: string, publishAt: string): Promise<void> {
     return await test.step('Updating content details via API PUT request', async () => {
       const contentResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId), {});
@@ -246,6 +269,8 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
+        contentSubType: 'news',
+        contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,
           ...overrides.category,
@@ -414,6 +439,34 @@ export class ContentManagementService implements IContentManagementServices {
     });
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.addHomeCarouselItem, {
+        data: {
+          siteId: null,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.addSiteCarouselItem(siteId), {
+        data: {
+          siteId: siteId,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
+    });
+  }
   async makeContentMustRead(
     contentId: string,
     options: {
@@ -431,7 +484,7 @@ export class ContentManagementService implements IContentManagementServices {
           duration: options.duration || MustReadDuration.NINETY_DAYS,
         },
       });
-      return await this.httpClient.parseResponse<any>(response);
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
     });
   }
 

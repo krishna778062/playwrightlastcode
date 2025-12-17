@@ -13,13 +13,33 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
+      - name: Check if backport is needed
+        id: check_source
+        run: |
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          # Skip if PR is from main (already backported via auto-backport-main)
+          if [ "$SOURCE_BRANCH" == "main" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ This is main → release sync - skipping (already backported to develop via auto-backport-main)"
+          # Skip if PR is from develop (those changes already exist in develop)
+          elif [ "$SOURCE_BRANCH" == "develop" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - PR is from develop branch (no backport needed)"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ PR is from '$SOURCE_BRANCH' - will proceed with backport"
+          fi
+
       - name: Checkout repository
+        if: steps.check_source.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Check for existing sync PR
+        if: steps.check_source.outputs.skip == 'false'
         id: check_pr
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
@@ -46,7 +66,7 @@ jobs:
 
       - name: Create sync PR if not exists
         id: create_pr
-        if: steps.check_pr.outputs.exists == 'false'
+        if: steps.check_source.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
@@ -108,7 +128,7 @@ jobs:
           echo "✅ Created sync PR: $SYNC_PR_URL"
 
       - name: Update existing PR body with new change
-        if: steps.check_pr.outputs.exists == 'true'
+        if: steps.check_source.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'true'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
@@ -154,6 +174,7 @@ jobs:
           echo "✅ Updated sync PR #$SYNC_PR_NUMBER with new change"
 
       - name: Determine PR URL for notification
+        if: steps.check_source.outputs.skip == 'false'
         id: pr_info
         run: |
           if [ "${{ steps.check_pr.outputs.exists }}" == "true" ]; then
@@ -170,7 +191,7 @@ jobs:
           fi
 
       - name: Notify Slack
-        if: steps.pr_info.outputs.pr_url != ''
+        if: steps.check_source.outputs.skip == 'false' && steps.pr_info.outputs.pr_url != ''
         run: |
           ORIGINAL_PR_NUMBER="${{ github.event.pull_request.number }}"
           ORIGINAL_PR_TITLE="${{ github.event.pull_request.title }}"

@@ -47,6 +47,11 @@ export const CONTENT_TEST_DATA = {
     endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   },
 
+  TOAST_MESSAGES: {
+    PAGE_PUBLISHED_SUCCESSFULLY: "Created page successfully - it's published",
+    EVENT_PUBLISHED_SUCCESSFULLY: "Created event successfully - it's published",
+    ALBUM_PUBLISHED_SUCCESSFULLY: "Created album successfully - it's published",
+  },
   TIMEOUTS: {
     DEFAULT: 30_000,
     UPLOAD: 60_000,

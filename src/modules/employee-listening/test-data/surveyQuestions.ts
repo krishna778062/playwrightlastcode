@@ -224,6 +224,12 @@ export const SURVEY_QUESTION_BANK = {
       type: 'Multiple choice',
       creator: 'User',
     },
+    {
+      question: 'How motivated do you feel at work right now? ',
+      theme: 'Unassigned',
+      type: 'Multiple choice',
+      creator: 'User',
+    },
   ],
   FREE_TEXT: [
     {

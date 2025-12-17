@@ -33,31 +33,23 @@ test.describe(
           zephyrTestId: 'CONT-18541',
           storyId: 'CONT-18541',
         });
-        // Get list of sites
-        const getListOfSitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites({
+        // Get list of sites for standard user
+        const getListOfSitesResponse = await standardUserFixture.siteManagementHelper.getListOfSites({
           size: 1000,
         });
-        const activeSites = getListOfSitesResponse.result.listOfItems.filter(
-          (site: any) => site.isActive === true && site.isOwner === true
-        );
 
-        // Find a site that has page categories
-        let selectedSite = null;
-        for (const site of activeSites) {
-          try {
-            // Check if site has page categories by attempting to get one
-            await standardUserFixture.contentManagementHelper.contentManagementService.getPageCategoryID(site.siteId);
-            selectedSite = site;
-            break;
-          } catch {
-            // Site doesn't have page categories, try next site
-            continue;
-          }
+        // Get a site where standard user is owner/manager
+        const siteInfo =
+          await standardUserFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+
+        // Verify site has page categories
+        try {
+          await standardUserFixture.contentManagementHelper.contentManagementService.getPageCategoryID(siteInfo.siteId);
+        } catch (error) {
+          throw new Error(`Site ${siteInfo.siteName} does not have page categories: ${error}`);
         }
 
-        if (!selectedSite) {
-          throw new Error('No active sites found with page categories where user is owner');
-        }
+        const selectedSite = { siteId: siteInfo.siteId, siteName: siteInfo.siteName };
         // Create a page in the selected site
         const pageInfo = await standardUserFixture.contentManagementHelper.createPage({
           siteId: selectedSite.siteId,
