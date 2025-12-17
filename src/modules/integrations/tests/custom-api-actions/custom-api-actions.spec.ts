@@ -28,7 +28,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-16368',
+          zephyrTestId: 'INT-16368, INT-16372',
           storyId: 'INT-15403',
         });
         const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
@@ -42,11 +42,11 @@ test.describe(
     test(
       'verify Apps filter functionality for API actions list',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-27996',
+          zephyrTestId: 'INT-16370',
           storyId: 'INT-15403',
         });
         const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
