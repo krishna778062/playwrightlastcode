@@ -34,6 +34,7 @@ export class ServiceDeskSettingsPage extends BasePage {
   private readonly settingsNavButton: Locator;
   private readonly workspacePopoverLauncher: Locator;
   private readonly rocketButton: Locator;
+  private readonly appsButton: Locator;
 
   constructor(page: Page) {
     super(page, '/manage/app/setup/service-desk');
@@ -75,6 +76,7 @@ export class ServiceDeskSettingsPage extends BasePage {
     this.settingsNavButton = page.getByTestId('main_sidenav.settings');
     this.workspacePopoverLauncher = page.getByTestId('popover-launcher');
     this.rocketButton = page.getByRole('button', { name: 'rocket' });
+    this.appsButton = page.getByTestId('popover-launcher').getByRole('button', { name: 'apps' });
   }
 
   private getAppsButton(): Locator {
@@ -485,8 +487,13 @@ export class ServiceDeskSettingsPage extends BasePage {
       await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
       await this.page.waitForTimeout(2000);
 
-      await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
-      await this.rocketButton.click();
+      const isAppsButtonVisible = await this.appsButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isAppsButtonVisible) {
+        await this.appsButton.click();
+      } else {
+        await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+        await this.rocketButton.click();
+      }
       await this.page.waitForTimeout(1000);
 
       const workspaceButton = this.page
@@ -654,8 +661,13 @@ export class ServiceDeskSettingsPage extends BasePage {
       await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
       await this.page.waitForTimeout(1000);
 
-      await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
-      await this.rocketButton.click();
+      const isAppsButtonVisible = await this.appsButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isAppsButtonVisible) {
+        await this.appsButton.click();
+      } else {
+        await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+        await this.rocketButton.click();
+      }
       await this.page.waitForTimeout(1000);
 
       const workspaceButton = this.page
