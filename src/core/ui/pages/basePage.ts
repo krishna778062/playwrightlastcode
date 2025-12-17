@@ -94,4 +94,15 @@ export abstract class BasePage extends BaseActionUtil {
       ).toBeVisible();
     });
   }
+
+  /**
+   * @description
+   * Verifies that the current URL contains the specified path
+   * @param urlPath - The URL path to verify
+   */
+  async verifyUrlContains(urlPath: string): Promise<void> {
+    await test.step(`Verify URL contains: ${urlPath}`, async () => {
+      await expect(this.page, `Expected URL to contain "${urlPath}"`).toHaveURL(new RegExp(urlPath));
+    });
+  }
 }

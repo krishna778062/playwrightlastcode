@@ -11,6 +11,7 @@ import { PeopleDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { PeopleDashboard } from '../../../ui/dashboards/people/peopleDashboard';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupPeopleDashboardForTest,
@@ -37,7 +38,7 @@ test.describe(
 
       // Define unified filter configuration for default state (Last 30 days)
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
       };
 

@@ -1,7 +1,9 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { ContentPostingPermission } from '@/src/modules/content/constants/contentStatus';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
@@ -11,6 +13,7 @@ import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components
 export interface IManageSiteActions {
   clickDashboardAndFeedTab: () => Promise<void>;
   setFeedPostingPermission: (permission: FeedPostingPermission) => Promise<void>;
+  setContentPostsPermission: (state: ContentPostingPermission) => Promise<void>;
   clickOnOptionsDropdown: (siteName: string) => Promise<void>;
   clickOnSearchButton: () => Promise<void>;
   searchSite: (siteName: string) => Promise<void>;
@@ -21,6 +24,7 @@ export interface IManageSiteActions {
   clickOnEditOption: () => Promise<void>;
   setExternalFilesProvider: (provider: string) => Promise<void>;
   clickOnShowMoreButtonAction: () => Promise<void>;
+  clickOnFileFavoriteButton: () => Promise<void>;
 }
 
 export interface IManageSiteAssertions {
@@ -31,6 +35,7 @@ export interface IManageSiteAssertions {
   verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
   verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
+  verifyFavoriteIsNotClicked: () => Promise<void>;
 }
 
 export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
@@ -39,11 +44,14 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   readonly siteList = this.page.locator('.type--title').first();
   readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
+  readonly fileFavoriteButton = this.page.getByTestId('favorite-button');
   readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
     // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
     const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
     return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
   };
+  readonly contentPostsPermissionRadio = (state: ContentPostingPermission) =>
+    this.page.getByRole('radio', { name: state });
   readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
   readonly siteReferenceEllipses = (siteName: string) =>
     this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
@@ -198,7 +206,11 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
   async clickOnShowMoreButtonAction(): Promise<void> {
     await this.clickOnElement(this.showMoreButton);
   }
-
+  async verifyFavoriteIsNotClicked(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.fileFavoriteButton, {
+      assertionMessage: 'Favorite button should not be clicked',
+    });
+  }
   /**
    * Sets the External Files provider (e.g., "Box files")
    * @param provider - The name of the storage provider (e.g., "Box files")
@@ -252,6 +264,21 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       await this.page.waitForSelector('input[name="isBroadcast"]', { state: 'visible' });
     });
   }
+  async clickOnFileFavoriteButton(): Promise<void> {
+    await test.step('Click on file favorite button', async () => {
+      const favoriteResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.fileFavoriteButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.fileFavourites) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      await favoriteResponse.finished();
+    });
+  }
 
   async setFeedPostingPermission(permission: FeedPostingPermission): Promise<void> {
     await test.step(`Set feed posting permission to ${permission}`, async () => {
@@ -269,6 +296,27 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       // Permission needs to be changed, click the radio button
       await radioButton.click({ force: true });
       await this.expect(radioButton).toBeChecked();
+
+      // Look for and click Save/Update button if it exists
+      const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+      await this.verifier.verifyTheElementIsVisible(saveButton, {
+        assertionMessage: 'Save/Update button should be visible',
+      });
+      await saveButton.click();
+    });
+  }
+
+  /**
+   * Sets the Content posts permission (Enable/Disable) for the site
+   * @param state - 'Enabled' to enable Content posts, 'Disabled' to disable it
+   */
+  async setContentPostsPermission(state: ContentPostingPermission): Promise<void> {
+    await test.step(`Set Content posts permission to ${state}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentPostsPermissionRadio(state), {
+        assertionMessage: `Content posts permission radio button for "${state}" should be visible`,
+      });
+
+      await this.clickOnElement(this.contentPostsPermissionRadio(state));
 
       // Look for and click Save/Update button if it exists
       const saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();

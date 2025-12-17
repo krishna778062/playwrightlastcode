@@ -670,6 +670,65 @@ test.describe(
       }
     );
     test(
+      'to verify the navigation menu of recently visited site on home dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22482'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the navigation menu of recently visited site on home dashboard',
+          zephyrTestId: 'CONT-22482',
+          storyId: 'CONT-22482',
+        });
+        // Get list of public sites
+        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+          size: 1000,
+        });
+        const activePublicSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        if (activePublicSites.length < 4) {
+          throw new Error(`Not enough active public sites found. Found: ${activePublicSites.length}, Required: 4`);
+        }
+
+        // Get 4 unique sites (use Set to ensure uniqueness by siteId)
+        const uniqueSites: any[] = [];
+        const seenSiteIds = new Set<string>();
+        for (const site of activePublicSites) {
+          if (!seenSiteIds.has(site.siteId)) {
+            uniqueSites.push(site);
+            seenSiteIds.add(site.siteId);
+            if (uniqueSites.length === 4) break;
+          }
+        }
+
+        if (uniqueSites.length < 4) {
+          throw new Error(`Not enough unique active public sites found. Found: ${uniqueSites.length}, Required: 4`);
+        }
+
+        // Perform the actions for 4 different sites
+        for (let i = 0; i < 4; i++) {
+          await test.step(`Navigate to site ${i + 1} of 4: ${uniqueSites[i].name}`, async () => {
+            const siteInfo = uniqueSites[i];
+            const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.verifyThePageIsLoaded();
+            const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
+            await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
+          });
+        }
+        const newHomePage = new NewHomePage(appManagerFixture.page);
+        await newHomePage.loadPage();
+        await newHomePage.verifyThePageIsLoaded();
+        await Promise.all([
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[0].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[1].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[2].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[3].name),
+        ]);
+      }
+    );
+    test(
       'verify All Sites site category takes the user to respective category screen with list of Sites',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
@@ -708,8 +767,8 @@ test.describe(
         await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
         await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
         await sitesPage.actions.clickOnSiteName(siteName);
-        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
-        await siteDashboardPage.assertions.verifyThePageIsLoaded();
+        const siteDashboardPageInstance = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
+        await siteDashboardPageInstance.assertions.verifyThePageIsLoaded();
       }
     );
   }

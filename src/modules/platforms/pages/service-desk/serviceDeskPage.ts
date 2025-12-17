@@ -60,22 +60,27 @@ export class ServiceDeskPage extends BasePage {
     this.ticketIdDisplay = page.getByText(/INC-\d+/);
   }
 
+  private getServiceDeskUrl(): string {
+    const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+    if (!serviceDeskUrl) {
+      throw new Error('SERVICE_DESK_URL not configured in environment variables');
+    }
+    return serviceDeskUrl;
+  }
+
   /**
    * Verify the page is loaded - required by BasePage
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await expect(this.ticketListTable).toBeVisible({ timeout: 15000 });
   }
+
   /**
    * loadPage to handle Service Desk URL
    */
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading Service Desk page`, async () => {
-      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
-      if (!serviceDeskUrl) {
-        throw new Error('Service Desk URL not configured');
-      }
-      await this.page.goto(`${serviceDeskUrl}/service-desk`, { waitUntil: 'domcontentloaded' });
+      await this.goToUrl(`${this.getServiceDeskUrl()}/service-desk`, { waitUntil: 'domcontentloaded' });
       await this.verifyThePageIsLoaded();
     });
   }

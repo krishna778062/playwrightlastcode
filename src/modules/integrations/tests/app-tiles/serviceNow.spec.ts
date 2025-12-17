@@ -753,7 +753,8 @@ test.describe(
           FIELD_NAMES.CATEGORY,
           SERVICENOW_VALUES.CATEGORY_VALUE,
           FIELD_NAMES.SUBCATEGORY,
-          SERVICENOW_VALUES.SUBCATEGORY_VALUE
+          SERVICENOW_VALUES.SUBCATEGORY_VALUE,
+          FIELD_NAMES.SUMMARY
         );
 
         // Verify tile content structure
@@ -800,7 +801,8 @@ test.describe(
           FIELD_NAMES.CATEGORY,
           SERVICENOW_VALUES.CATEGORY_VALUE,
           FIELD_NAMES.SUBCATEGORY,
-          SERVICENOW_VALUES.SUBCATEGORY_VALUE
+          SERVICENOW_VALUES.SUBCATEGORY_VALUE,
+          FIELD_NAMES.SUMMARY
         );
 
         // Verify tile content structure

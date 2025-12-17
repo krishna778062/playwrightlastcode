@@ -2,6 +2,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 
 import { SitePermission } from '@/src/core/types/siteManagement.types';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { formatCreatedAtDateForManageContent, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
@@ -16,7 +17,6 @@ import {
   SortOptionLabels,
   TagOption,
 } from '@/src/modules/content/constants';
-import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
@@ -33,11 +33,13 @@ import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceS
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ManageSitePageCategoryPage } from '@/src/modules/content/ui/pages/manageSitePageCategoryPage';
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteCategoriesPage } from '@/src/modules/content/ui/pages/siteCategoriesPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
+import { SiteContentPage } from '@/src/modules/content/ui/pages/sitePages/siteContentPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
@@ -844,17 +846,20 @@ test.describe(
           filter: 'public',
           size: 1000,
         });
+        const filteredSites = getListOfSitesResponse.result.listOfItems.filter((item: any) => item.isActive === true);
+        if (filteredSites.length === 0) {
+          throw new Error('No active sites found in the response');
+        }
+        // Wrap filtered sites in the expected response structure
+        const filteredSitesResponse = {
+          result: {
+            listOfItems: filteredSites,
+          },
+        };
         const newSite =
-          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(getListOfSitesResponse);
+          await appManagerApiFixture.siteManagementHelper.getSiteWithManageSiteOption(filteredSitesResponse);
         console.log('newSite', newSite);
         const siteId = newSite.siteId;
-        const getUserList = await appManagerApiFixture.siteManagementHelper.getAllUsersList();
-        const getMemBerList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(siteId);
-        const memberNames = getMemBerList.result.listOfItems.map((member: any) => member.name);
-        const allUserNames = getUserList.result.listOfItems.map((user: any) =>
-          `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        );
-        const nonMemberNames = allUserNames.filter((userName: string) => !memberNames.includes(userName));
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, newSite.siteId);
         await siteDashboardPage.loadPage();
         const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
@@ -863,9 +868,10 @@ test.describe(
         await manageSitesComponent.clickOnPeppleTabAction();
         await manageSitesComponent.clickOnAddAnotherButtonAction();
 
-        if (nonMemberNames.length === 0) {
-          throw new Error('No non-member users found to add to the site');
-        }
+        // Get non-member user names using helper method
+        const nonMemberNames = await appManagerApiFixture.siteManagementHelper.getNonMemberUserNames(siteId, {
+          minimumCount: 2,
+        });
 
         await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[0]);
         await addPeopleInSiteComponent.clickOnAddButton(siteId);
@@ -915,6 +921,7 @@ test.describe(
         await manageContentPage.actions.clickFilterButton();
         await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+        await addPeopleInSiteComponent.fillAddPeopleInput(nonMemberNames[1]);
       }
     );
     test(
@@ -991,11 +998,7 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
         const makeContentMustReadResponse = await appManagerApiFixture.contentManagementHelper.makeContentMustRead(
-          createPageInfo.contentId,
-          {
-            audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
-            duration: MustReadDuration.NINETY_DAYS,
-          }
+          createPageInfo.contentId
         );
         console.log('makeContentMustReadResponse', makeContentMustReadResponse);
         const createAlbumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
@@ -1039,6 +1042,8 @@ test.describe(
         );
         await contentPreviewPageEvent.loadPage();
         await contentPreviewPageEvent.clickOnFavouriteContentButton();
+        const newHomePage = new NewHomePage(appManagerFixture.page);
+        await newHomePage.loadPage();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
         await favoritesPage.actions.clickOnContentButton();
         await favoritesPage.assertions.verifyContentNamesAreDisplayed([
@@ -1054,6 +1059,52 @@ test.describe(
         await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
         await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
+      }
+    );
+    test(
+      'verify user should be able to add and remove content from carousel on clicking three dot menu options',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29906'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the carousel item functionality',
+          zephyrTestId: 'CONT-29906',
+          storyId: 'CONT-29906',
+        });
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const createPageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        const addSiteCarouselItemResponse = await appManagerApiFixture.contentManagementHelper.addSiteCarouselItem(
+          siteInfo.siteId,
+          createPageInfo.contentId
+        );
+
+        const addContentIntoHomeCarouselResponse =
+          await appManagerApiFixture.contentManagementHelper.addContentIntoHomeCarousel(createPageInfo.contentId);
+        const contentDetails = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteInfo.siteId,
+          createPageInfo.contentId,
+          'page'
+        );
+        await contentDetails.loadPage();
+        await contentDetails.actions.clickOnOptionMenuButton();
+        await contentDetails.actions.clickOnRemoveFromHomeCarouselButton(
+          addContentIntoHomeCarouselResponse.result.carouselItemId
+        );
+        await contentDetails.actions.clickOnRemoveFromSiteCarouselButton(
+          siteInfo.siteId,
+          addSiteCarouselItemResponse.result.carouselItemId
+        );
+        const homePage = new NewHomePage(appManagerFixture.page);
+        await homePage.loadPage();
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+        await siteDashboardPage.loadPage();
+        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
       }
     );
 
@@ -1307,18 +1358,15 @@ test.describe(
           contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
         });
         console.log('pageInfo', pageInfo);
-        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
-        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
-        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
-        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPageForStandardUser.actions.clickSortByButton();
         await standardUserApiFixture.contentManagementHelper.updateContentPublishDate(
           siteId,
           pageInfo.contentId,
           MANAGE_CONTENT_TEST_DATA.PAST_YEAR_DATE
         );
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
         await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
         await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
@@ -1340,6 +1388,117 @@ test.describe(
         );
         await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
         await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+      }
+    );
+    test(
+      'verify rejected content functionality under Content tab in Manage Site',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify rejected content functionality under Content tab in Manage Site',
+          zephyrTestId: 'CONT-20533',
+          storyId: 'CONT-20533',
+        });
+
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
+        if (!siteListResponse || siteListResponse.length === 0) {
+          throw new Error('No sites found in siteListResponse');
+        }
+        // Loop through sites to find one where standard user is NOT a member, owner, or manager
+        const newsiteInfo =
+          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
+          siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
+        console.log('pageInfo', pageInfo);
+        await appManagerApiFixture.siteManagementHelper.rejectContent(
+          newsiteInfo.siteId, // Use the same site where the content was created
+          pageInfo.contentId,
+          'This is not good'
+        );
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
+        await siteDetailsPage.loadPage();
+        const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
+        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
+        await siteDetailsPage.actions.clickOnContentTab();
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
+        await manageContentPage.actions.clickFilterButton();
+        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+      }
+    );
+
+    test(
+      'verify content list loads when page category has more than 16 items on site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43064'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify content list loads when page category has more than 16 items on site dashboard',
+          zephyrTestId: 'CONT-43064',
+          storyId: 'CONT-43064',
+        });
+        await test.step('Get site with page category having more than 16 pages', async () => {
+          // Get a site with a page category that has more than 16 pages
+          const categoryInfo =
+            await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
+              minPageCount: 17,
+              maxSitesToCheck: 10,
+            });
+
+          // Click on the page category
+          const siteContentPage = new SiteContentPage(appManagerFixture.page, categoryInfo.siteId);
+          await siteContentPage.loadPage();
+          await siteContentPage.assertions.verifyThePageIsLoaded();
+          await siteContentPage.actions.clickPageCategory(categoryInfo.categoryName);
+          // Verify content list loads
+          await siteContentPage.assertions.verifyContentListLoaded();
+          await siteContentPage.assertions.verifyShowMoreButtonIsVisible();
+          await siteContentPage.actions.clickOnShowMoreButton();
+          await siteContentPage.assertions.verifyContentListAfterClickingShowMoreButton();
+        });
+      }
+    );
+
+    test(
+      'verify content list loads when page category has more than 16 items on manage site Page Categories',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43065'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify content list loads when page category has more than 16 items on manage site Page Categories',
+          zephyrTestId: 'CONT-43065',
+          storyId: 'CONT-43065',
+        });
+
+        // Get a site with a page category that has more than 16 pages
+        const categoryInfo =
+          await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
+            minPageCount: 17,
+            maxSitesToCheck: 10,
+          });
+        const manageSitePageCategoryPage = new ManageSitePageCategoryPage(appManagerFixture.page, categoryInfo.siteId);
+        await manageSitePageCategoryPage.loadPage();
+        await manageSitePageCategoryPage.assertions.verifyThePageIsLoaded();
+        await manageSitePageCategoryPage.actions.searchCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.actions.clickOnCustomCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.assertions.verifyNoResultsFoundIsNotVisible();
+        await manageSitePageCategoryPage.assertions.verifyContentListLoaded(
+          categoryInfo.siteId,
+          categoryInfo.categoryId
+        );
+        await manageSitePageCategoryPage.assertions.verifyShowMoreButtonIsVisible();
+        await manageSitePageCategoryPage.actions.clickOnShowMoreButton();
+        await manageSitePageCategoryPage.assertions.verifyContentListAfterClickingShowMoreButton();
       }
     );
   }
