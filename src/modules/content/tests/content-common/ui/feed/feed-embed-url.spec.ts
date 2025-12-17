@@ -133,11 +133,12 @@ test.describe(
           storyId: 'CONT-19558',
         });
 
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.actions.verifyThePageIsLoaded();
 
         // Generate test data
-        const postText = TestDataGenerator.generateRandomText();
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
         await feedPage.actions.clickShareThoughtsButton();

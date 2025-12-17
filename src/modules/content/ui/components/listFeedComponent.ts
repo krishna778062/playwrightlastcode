@@ -197,7 +197,10 @@ export class ListFeedComponent
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
-  readonly replyContainer = this.page.locator('._reply_1ii4b_1');
+  readonly replyContainer = this.page
+    .locator('div[class*="_container_q3xrp_1"]')
+    .first()
+    .locator('div[class*="_reply_11nkx_1"]');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
   readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
