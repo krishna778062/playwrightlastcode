@@ -1360,4 +1360,25 @@ export class HomeDashboard extends BasePage {
       await this.appTileComponent.closeDialog();
     });
   }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input and dropdown
+   */
+  async addTilewithDefinedSettingsTextAreaAndDropdown(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInputJQL(fieldName, appManagerDefined, query);
+      await this.selectRadioOptionandValue(dropdownFieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, dropdownValue);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
 }
