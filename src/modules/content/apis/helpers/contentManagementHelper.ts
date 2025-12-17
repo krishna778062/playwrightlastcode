@@ -588,6 +588,15 @@ export class ContentManagementHelper {
     return await this.contentManagementService.getTopicList();
   }
 
+  async getTopicListWithName(topicName: string) {
+    const topicList = await this.contentManagementService.getTopicList();
+    const topic = topicList.result.listOfItems.find(t => t.name === topicName);
+    if (!topic) {
+      return topicList.result.listOfItems[0];
+    }
+    return topic;
+  }
+
   /**
    * Cleans up all content (albums, pages, events) created by this helper instance.
    * Note: Site cleanup is handled by the siteManagementHelper fixture at worker level.

@@ -183,7 +183,6 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;

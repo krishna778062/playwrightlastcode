@@ -12,6 +12,7 @@ export const FEED_TEST_DATA = {
     COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
     ADDED_NEW_VERSION: 'Added new version successfully',
     DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
+    DELETED_POST_SUCCESSFULLY: 'Deleted post successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -49,6 +50,8 @@ export const FEED_TEST_DATA = {
   },
 
   DEFAULT_FEED_MODE: FeedMode.TIMELINE_COMMENT_POST,
+
+  DEFAULT_TOPIC_NAME: 'Simpplr',
 
   DEFAULT_FEED_CONTENT_JPEG: {
     fileName: 'image1.jpg',

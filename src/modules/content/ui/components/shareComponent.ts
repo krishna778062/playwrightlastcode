@@ -15,6 +15,7 @@ export interface IShareComponentActions {
 export interface IShareComponentAssertions {
   verifyNoAttachmentsInShareModal: () => Promise<void>;
   verifyShareModalIsFunctional: () => Promise<void>;
+  verifyViewPostLinkInShareDialog: () => Promise<void>;
 }
 
 export class ShareComponent extends BaseComponent implements IShareComponentActions, IShareComponentAssertions {
