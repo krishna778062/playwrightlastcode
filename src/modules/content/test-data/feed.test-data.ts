@@ -3,6 +3,11 @@ import { faker } from '@faker-js/faker';
 import { FeedMode } from '@core/types/feedManagement.types';
 
 export const FEED_TEST_DATA = {
+  CONTENT: {
+    EVENT_TITLE: `Event Title ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+    ALBUM_TITLE: `Album Title ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+    PAGE_TITLE: `Page Title ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+  },
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',

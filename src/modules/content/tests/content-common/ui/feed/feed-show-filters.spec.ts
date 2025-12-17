@@ -512,8 +512,7 @@ test.describe(
             await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
           await test.step('As EndUser: Create album', async () => {
-            const timestamp = Date.now();
-            albumTitle = `Test Album ${timestamp}`;
+            albumTitle = FEED_TEST_DATA.CONTENT.ALBUM_TITLE;
 
             const albumInfo = await standardUserFixture.contentManagementHelper.createAlbum({
               siteId: allEmployeesSiteId!,
@@ -615,7 +614,8 @@ test.describe(
       let pageTitle: string | null = null;
 
       try {
-        allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        allEmployeesSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
@@ -749,7 +749,8 @@ test.describe(
       let eventTitle: string | null = null;
 
       try {
-        allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        allEmployeesSiteId =
+          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event with future date and location "GGN"
         const futureDate = new Date();
@@ -757,7 +758,7 @@ test.describe(
         const futureEndDate = new Date(futureDate);
         futureEndDate.setHours(futureEndDate.getHours() + 2);
 
-        const eventName = `Test Event ${Date.now()}`;
+        const eventName = FEED_TEST_DATA.CONTENT.EVENT_TITLE;
 
         const eventInfo =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.addNewEventContent(
