@@ -234,13 +234,20 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER, '@box-attachments', '@content-feed'],
   },
   () => {
-    let siteId: string;
-    let contentId: string;
-    let contentSiteId: string;
+    test(
+      'verify Site Member can add, edit, and delete Content Feed reply with Box file attachments',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24917', '@box-attachments'],
+      },
+      async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Site Member can add, edit, and delete Content Feed reply with Box file attachments and verify on Home Global Feed',
+          zephyrTestId: 'CONT-24917',
+          storyId: 'CONT-24917',
+        });
 
-    test.describe.serial('setup', () => {
-      test('setup: Configure Box files and create content', async ({ appManagerApiFixture, appManagerFixture }) => {
-        siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
         await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
@@ -249,52 +256,28 @@ test.describe(
         const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteId,
           contentInfo: {
-            contentType: 'page',
+            contentType: ContentType.PAGE.toLowerCase(),
             contentSubType: 'knowledge',
           },
           options: {
             waitForSearchIndex: false,
           },
         });
-        contentId = pageInfo.contentId;
-        contentSiteId = siteId;
-      });
-    });
-
-    test.describe.serial('content feed tests', () => {
-      const testContentFeedBoxAttachments = async (appManagerApiFixture: any, userFixture: any) => {
-        let testContentId = contentId;
-        let testContentSiteId = contentSiteId;
-
-        if (!testContentId || !testContentSiteId) {
-          const testSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
-          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
-            siteId: testSiteId,
-            contentInfo: {
-              contentType: 'page',
-              contentSubType: 'knowledge',
-            },
-            options: {
-              waitForSearchIndex: false,
-            },
-          });
-          testContentId = pageInfo.contentId;
-          testContentSiteId = testSiteId;
-        }
+        const contentId = pageInfo.contentId;
 
         const contentPreviewPage = new ContentPreviewPage(
-          userFixture.page,
-          testContentSiteId,
-          testContentId,
+          standardUserFixture.page,
+          siteId,
+          contentId,
           ContentType.PAGE.toLowerCase()
         );
-        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
 
         await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
         await contentPreviewPage.actions.clickShareThoughtsButton();
 
-        const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
+        const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
         const baseCommentText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         const commentResult = await createFeedPostComponent.createAndPost({
           text: baseCommentText,
@@ -307,7 +290,7 @@ test.describe(
         const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED;
 
         // ==================== ADD REPLY WITH BOX ATTACHMENT ====================
-        const listFeedComponent = new ListFeedComponent(userFixture.page);
+        const listFeedComponent = new ListFeedComponent(standardUserFixture.page);
         await listFeedComponent.openReplyEditorForPost(baseCommentText);
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         const userName = userInfo?.fullName || '';
@@ -332,9 +315,9 @@ test.describe(
         await listFeedComponent.verifyBoxLogoOnReplyAttachment(replyText);
 
         // ==================== HOME GLOBAL FEED VERIFICATION ====================
-        await userFixture.homePage.loadPage();
-        await userFixture.navigationHelper.clickOnGlobalFeed();
-        const feedPage = new FeedPage(userFixture.page);
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
         await feedPage.assertions.waitForPostToBeVisible(baseCommentText);
 
@@ -351,45 +334,20 @@ test.describe(
         await listFeedComponent.verifyReplyIsVisible(updatedReplyText);
 
         // ==================== VERIFY UPDATED REPLY ON HOME FEED ====================
-        await userFixture.homePage.loadPage();
-        await userFixture.navigationHelper.clickOnGlobalFeed();
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.verifyThePageIsLoaded();
         await feedPage.assertions.waitForPostToBeVisible(baseCommentText);
 
         // Cleanup
         try {
           await appManagerApiFixture.feedManagementHelper.deleteFeed(replyPostId);
-        } catch (error) {
-          console.log(`Failed to cleanup reply feed ${replyPostId} via API:`, error);
-        }
-        try {
           await appManagerApiFixture.feedManagementHelper.deleteFeed(baseCommentId);
+          await appManagerApiFixture.contentManagementHelper.deleteContent(siteId, contentId);
         } catch (error) {
-          console.log(`Failed to cleanup base comment feed ${baseCommentId} via API:`, error);
+          console.log(`Failed to cleanup via API:`, error);
         }
-        try {
-          await appManagerApiFixture.contentManagementHelper.deleteContent(testContentSiteId, testContentId);
-        } catch (error) {
-          console.log(`Failed to cleanup content ${testContentId} via API:`, error);
-        }
-      };
-
-      test(
-        'verify Site Member can add, edit, and delete Content Feed reply with Box file attachments',
-        {
-          tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments', '@CONT-24917'],
-        },
-        async ({ appManagerApiFixture, standardUserFixture }) => {
-          tagTest(test.info(), {
-            description:
-              'Verify Site Member can add, edit, and delete Content Feed reply with Box file attachments and verify on Home Global Feed',
-            zephyrTestId: 'CONT-24917',
-            storyId: 'CONT-24917',
-          });
-
-          await testContentFeedBoxAttachments(appManagerApiFixture, standardUserFixture);
-        }
-      );
-    });
+      }
+    );
   }
 );
