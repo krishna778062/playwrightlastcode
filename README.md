@@ -1395,32 +1395,97 @@ The framework automatically loads the appropriate environment file and injects v
 
 ---
 
-## Playwright Configuration Structure
+## Configuration & Build
 
-The framework uses a layered Playwright configuration approach for flexibility and maintainability:
+### Config Distribution
 
-- **Base Configuration:**  
-  `playwright.base.config.ts`  
-  Contains all common Playwright settings (timeouts, reporters, device settings, etc.) shared across modules.
+```
+playwright.base.config.ts          # Shared Playwright settings (timeouts, reporters, devices)
+src/modules/<module>/
+├── playwright.<module>.config.ts  # Extends base config with module-specific overrides
+└── env/
+    ├── qa.env                     # QA environment variables
+    ├── uat.env                    # UAT environment variables
+    └── prod.env                   # Production variables
+```
 
-- **Module-Specific Configuration:**  
-  Each module can extend or override the base config.  
-  For example, `src/modules/chat/playwright.chat.config.ts` imports the base config and customizes it for the chat module (e.g., test directory, browser launch options).
+**Build & Usage:**
 
-**How to extend:**
+```sh
+npm ci                    # Install dependencies
+npx playwright install    # Install browsers
+npm test                  # Interactive runner (recommended)
+npm run test:module <module> [tags] [env] --workers=N
+```
+
+---
+
+## Adding an API Test Suite
+
+1. **Create test file** in `src/modules/<module>/tests/api-tests/`:
 
 ```typescript
-// src/modules/chat/playwright.chat.config.ts
-import baseConfig from '../../../playwright.base.config';
-import { defineConfig } from '@playwright/test';
+// src/modules/<module>/tests/api-tests/my-api.spec.ts
+import { expect } from '@playwright/test';
+import { myModuleTestFixture as test } from '../fixtures/myFixture';
+import { TestPriority } from '@core/constants/testPriority';
 
-export default defineConfig({
-  ...baseConfig,
-  // Module-specific overrides here
+test.describe('My API Tests', { tag: ['@api-tests'] }, () => {
+  test('validate API response', { tag: [TestPriority.P0] }, async ({ appManagerApiFixture }) => {
+    const response = await appManagerApiFixture.myApiService.getData();
+    expect(response.success).toBe(true);
+  });
 });
 ```
 
-**Best Practice:**  
-Always put shared settings in the base config and only override in the module config when necessary.
+2. **API Service** in `src/modules/<module>/api/services/`:
+
+```typescript
+export class MyApiService extends BaseApiClient {
+  async getData(): Promise<MyResponse> {
+    return this.get('/api/endpoint');
+  }
+}
+```
+
+3. **Add to fixture** in `src/modules/<module>/fixtures/`:
+
+```typescript
+async function createModuleApiFixture(apiContext: APIRequestContext) {
+  return {
+    apiContext,
+    myApiService: new MyApiService(apiContext, getEnvConfig().apiBaseUrl),
+  };
+}
+```
+
+4. **Run**: `npm run test:module <module> @api-tests qa`
+
+---
+
+## Running on CI (GitHub Actions)
+
+### Manual Trigger
+
+1. Go to **Actions** → **UI E2E Tests** workflow
+2. Click **Run workflow**
+3. Select: module, priority (`@P0`/`@P1`/`all`), environment, workers, feature tags
+4. Click **Run workflow**
+
+### CI Configuration (`.github/workflows/e2e.yml`)
+
+```yaml
+- name: Run tests
+  env:
+    TEST_ENV: ${{ inputs.environment }}
+  run: npm run test:${{ inputs.module_name }} -- --grep="@P0" --workers=3
+```
+
+### Key CI Features
+
+- Auto-uploads HTML reports to S3
+- Slack notifications with test results
+- Supports all modules and environments
+- Configurable parallelization (1-5 workers)
 
 ---

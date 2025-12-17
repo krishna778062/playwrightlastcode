@@ -230,6 +230,18 @@ export class NavigationHelper {
     });
   }
 
+  async openCreateContentPage(
+    contentType: ContentType,
+    options?: { stepInfo?: string; isFromStudio?: boolean; siteName?: string }
+  ): Promise<AddContentModalComponent> {
+    return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
+      await this.sideNavBarComponent.clickOnCreateButton();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      return await createComponent.selectContentTypeAndCreateContent(contentType);
+    });
+  }
+
   async openAddContentModal(
     contentType: ContentType,
     siteName?: string,
