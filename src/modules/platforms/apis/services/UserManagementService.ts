@@ -9,6 +9,7 @@ import {
   IdentityValidateResponse,
   SearchUserResponse,
   User,
+  UserWithLicenseAndDepartment,
 } from '@core/types/user.type';
 
 import { IdentityService } from './IdentityService';
@@ -39,6 +40,34 @@ export class UserManagementService implements IUserManagementOperations {
   }
 
   /**
+   * Get ORG_ID dynamically from frontline config if available, otherwise fall back to process.env
+   * This allows tenant-specific ORG_ID without manual process.env updates
+   */
+  private getOrgId(): string {
+    // Try to get ORG_ID from frontline config (if module is frontline)
+    try {
+      // Dynamic import to avoid circular dependencies
+      const frontlineConfigPath = '@/src/modules/frontline/config/frontlineConfig';
+
+      const { getFrontlineTenantConfigFromCache } = require(frontlineConfigPath);
+      const config = getFrontlineTenantConfigFromCache();
+      if (config?.orgId) {
+        console.log(`🔧 Using ORG_ID from frontline config: ${config.orgId}`);
+        return config.orgId;
+      }
+    } catch (error) {
+      // Frontline config not available (other modules) - fall back to process.env
+    }
+
+    // Fall back to process.env for other modules
+    if (!process.env.ORG_ID) {
+      throw new Error('ORG_ID not found in frontline config or process.env');
+    }
+    console.log(`🔧 Using ORG_ID from process.env: ${process.env.ORG_ID}`);
+    return process.env.ORG_ID;
+  }
+
+  /**
    * Adds a user to the system
    * @param user - The user to add
    * @param role - The role of the user
@@ -60,6 +89,91 @@ export class UserManagementService implements IUserManagementOperations {
         role_id: roleId,
         silent_upload: false,
       },
+    });
+
+    return await this.httpClient.parseResponse<AddUserResponse>(response);
+  }
+
+  async addUserWithEmail(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
+    const roleId = await this.identityService.fetchRoleId(role);
+
+    // Build personal_info object, only including email/mobile if they're not empty
+    const personal_info: any = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      timezone_id: user.timezone_id || this.defaultTimezoneId,
+      language_id: user.language_id || this.defaultLanguageId,
+      locale_id: user.locale_id || this.defaultLocaleId,
+      license_type: user.license_type || 'Corporate',
+    };
+
+    // Only add mobile if it's not 0
+    if (user.mobile && user.mobile !== 0) {
+      personal_info.mobile = user.mobile;
+    }
+
+    // Build the request data
+    const data: any = {
+      personal_info,
+      role_id: roleId,
+      silent_upload: false,
+    };
+
+    if (user.emp && user.emp.trim() !== '') {
+      data.work_info = {
+        employee_number: user.emp,
+        department: user.department || this.defaultDepartment,
+      };
+    }
+
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
+      data,
+    });
+
+    return await this.httpClient.parseResponse<AddUserResponse>(response);
+  }
+
+  async addUserWithEmpIdAndDepartment(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
+    const roleId = await this.identityService.fetchRoleId(role);
+
+    // Build personal_info object, only including email/mobile if they're not empty
+    const personal_info: any = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      timezone_id: user.timezone_id || this.defaultTimezoneId,
+      language_id: user.language_id || this.defaultLanguageId,
+      locale_id: user.locale_id || this.defaultLocaleId,
+      license_type: user.license_type || 'Corporate',
+    };
+
+    // Only add email if it's not empty (API rejects empty strings)
+    if (user.email && user.email.trim() !== '') {
+      personal_info.email = user.email;
+    }
+
+    // Only add mobile if it's not 0
+    if (user.mobile && user.mobile !== 0) {
+      personal_info.mobile = user.mobile;
+    }
+
+    // Build the request data
+    const data: any = {
+      personal_info,
+      role_id: roleId,
+      silent_upload: false,
+    };
+
+    // Add work_info if employee number is provided
+    if (user.emp && user.emp.trim() !== '') {
+      data.work_info = {
+        employee_number: user.emp,
+        department: user.department || this.defaultDepartment,
+      };
+    }
+
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
+      data,
     });
 
     return await this.httpClient.parseResponse<AddUserResponse>(response);
@@ -217,7 +331,36 @@ export class UserManagementService implements IUserManagementOperations {
             password: password,
           },
           headers: {
-            'x-smtip-tid': process.env.ORG_ID!,
+            'x-smtip-tid': this.getOrgId(),
+            'x-smtip-uid': userId,
+            'x-smtip-tenant-user-role': roleId.toString(),
+          },
+          timeout: 50_000,
+        }
+      );
+      await this.httpClient.validateResponse(response);
+    });
+  }
+
+  async activateUserWithEmpIdAndDepartment(
+    firstName: string,
+    lastName: string,
+    password = 'Simpplr@2025'
+  ): Promise<void> {
+    const userId = await this.identityService.getIdentityUserId(firstName, lastName);
+    const roleId = await this.identityService.fetchRoleId(Roles.END_USER);
+
+    await test.step(`Activate user ${firstName} ${lastName}`, async () => {
+      const internalBackendUrl = getInternalBackendUrl(this.baseUrl);
+      console.log('Info: To activate user, we are using the internal backend url: ', internalBackendUrl);
+      const response = await this.httpClient.post(
+        `${internalBackendUrl}/v1/identity/internal/accounts/users/${userId}/password`,
+        {
+          data: {
+            password: password,
+          },
+          headers: {
+            'x-smtip-tid': this.getOrgId(),
             'x-smtip-uid': userId,
             'x-smtip-tenant-user-role': roleId.toString(),
           },
@@ -274,9 +417,16 @@ export class UserManagementService implements IUserManagementOperations {
       if (userInfoResponseJson.work_info?.work_info_id) {
         delete userInfoResponseJson.work_info.work_info_id;
       }
+      // Remove additional_role_id from the user info response json for abac tenant
       if (options?.abac == true) {
         delete userInfoResponseJson.additional_role_id;
       }
+      delete (userInfoResponseJson as any).source;
+      delete (userInfoResponseJson as any).external_id;
+      delete (userInfoResponseJson as any).deprov_source;
+      delete (userInfoResponseJson as any).sync_source;
+      delete (userInfoResponseJson as any).sync_identifier;
+      delete (userInfoResponseJson as any).reprov_source;
       userInfoResponseJson.role_id = newPrimaryRole;
       await expect(
         await this.httpClient.put(API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserId(userId), {

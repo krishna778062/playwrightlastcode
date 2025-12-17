@@ -18,6 +18,7 @@ export interface IAddCampaignPageActions {
   AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
   uncheckNetwork: (networkName: string) => Promise<void>;
   selectNetworks: (networks: SocialCampaignNetworkUI[]) => Promise<void>;
+  enterAudienceName: (audienceName: string) => Promise<void>;
 }
 
 export interface IAddCampaignPageAssertions {
@@ -33,11 +34,14 @@ export interface IAddCampaignPageAssertions {
     description: string,
     name: string
   ) => Promise<void>;
+  verifyAudienceNameAndCount: (count: string | number, name: string) => Promise<void>;
+  verifyAudienceNameAndCountNotVisible: (count: string | number, name: string) => Promise<void>;
 }
 
 export class AddCampaignPage extends BasePage implements IAddCampaignPageActions, IAddCampaignPageAssertions {
   readonly addCampaignButton: Locator;
   readonly audienceOption: Locator;
+  readonly segmentAudienceOption: Locator;
   readonly campaignMessageInput: Locator;
   readonly campaignUrlInput: Locator;
   readonly createCampaignButton: Locator;
@@ -46,7 +50,9 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
   private getNetworkCheckbox: (networkName: string) => Locator;
   private errorLocator: (errorMessage: string) => Locator;
   private audienceNameDisplay: (audienceName: string, audienceCount: number, descriptionText: string) => Locator;
+  private audienceNameAndCountDisplay: (audienceName: string, audienceCount: number) => Locator;
   private audienceName: Locator;
+  private audienceFromDropdown: (audienceName: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ADD_SOCIAL_CAMPAIGNS);
@@ -66,6 +72,12 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
       page.locator(
         `xpath=//div[@class='Panel-item']/span[text()='${audienceName} (${audienceCount})']/following-sibling::span[text()='${descriptionText}']`
       );
+    this.audienceNameAndCountDisplay = (audienceName: string, audienceCount: number) =>
+      page.locator(`xpath=//div[@class='Panel-item']/span[text()='${audienceName} (${audienceCount})']`);
+
+    this.audienceFromDropdown = (audienceName: string) =>
+      page.locator(`div.Panel-item span:has-text('${audienceName}']`).first();
+    this.segmentAudienceOption = page.getByRole('radio', { name: 'Audience' });
   }
 
   get actions(): IAddCampaignPageActions {
@@ -86,7 +98,12 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
 
   async selectMemberAsAudience(): Promise<void> {
     await test.step('Select member as Audience', async () => {
-      await this.clickOnElement(this.audienceOption);
+      try {
+        await this.clickOnElement(this.audienceOption);
+      } catch (error) {
+        console.log('Segment enabled');
+        await this.clickOnElement(this.segmentAudienceOption);
+      }
     });
   }
 
@@ -99,19 +116,7 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
   async enterCampaignUrl(url: string, linkText?: string): Promise<void> {
     await test.step(`Enter campaign URL: ${url}`, async () => {
       // Fill in URL and wait for metadata to load
-      await this.performActionAndWaitForResponse(
-        async () => {
-          await this.fillInElement(this.campaignUrlInput, url);
-          await this.page.waitForTimeout(3000);
-        },
-        response =>
-          response.url().includes(API_ENDPOINTS.socialCampaign.metadata) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200,
-        {
-          timeout: 10_000,
-        }
-      );
+      await this.fillInElement(this.campaignUrlInput, url);
 
       if (linkText) {
         await this.verifier.verifyTheElementIsVisible(this.getHeadingByText(linkText), {
@@ -225,11 +230,12 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
   }
 
   async enterAudienceName(audienceName: string): Promise<void> {
+    await this.audienceName.clear();
     return await this.fillInElement(this.audienceName, audienceName);
   }
 
   async selectAudience(audienceName: string): Promise<void> {
-    return await this.clickOnElement(this.audienceOption);
+    return await this.clickOnElement(this.audienceFromDropdown(audienceName));
   }
 
   async verifyAudienceNameAndDescription(
@@ -261,6 +267,22 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
           assertionMessage: `Audience name "${name}" should be visible`,
         }
       );
+    });
+  }
+
+  async verifyAudienceNameAndCount(count: string | number, name: string): Promise<void> {
+    await test.step('Verify audience name and count', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audienceNameAndCountDisplay(name, Number(count)), {
+        assertionMessage: `Audience name "${name}" and count "${count}" should be visible`,
+      });
+    });
+  }
+
+  async verifyAudienceNameAndCountNotVisible(count: string | number, name: string): Promise<void> {
+    await test.step('Verify audience name and count not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.audienceNameAndCountDisplay(name, Number(count)), {
+        assertionMessage: `Audience name "${name}" and count "${count}" should not be visible`,
+      });
     });
   }
 }

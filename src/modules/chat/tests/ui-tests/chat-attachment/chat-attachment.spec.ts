@@ -4,6 +4,7 @@ import { groupChatTestFixture as test } from '@chat/fixtures/groupChatFixture';
 import { ChatTestUser } from '@chat/types/chat-test.type';
 import { TestPriority } from '@core/constants/testPriority';
 
+import { TestGroupType } from '@/src/core/constants/testType';
 import { CHAT_SUITE_TAGS } from '@/src/modules/chat/constants/testTags';
 import { MessageCardComponent } from '@/src/modules/chat/ui/components/messageCardComponent';
 import { ChatAppPage } from '@/src/modules/chat/ui/pages/chatPage/chatPage';
@@ -27,7 +28,7 @@ test.describe(
     test(
       'verify user is able to add and send pdf as  attachment in chat',
       {
-        tag: [TestPriority.P0, '@chat-attachment'],
+        tag: [TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
       async () => {
         //now open conversation with user 2
@@ -60,6 +61,30 @@ test.describe(
         );
         await user1ChatPage.assertions.verifyUnsupportedFileHandling({
           stepInfo: `User 1 Verifying the unsupported file message is visible`,
+        });
+      }
+    );
+
+    test(
+      'verify sending unsupported svg files format',
+      {
+        tag: [TestPriority.P0],
+      },
+      async () => {
+        const user2Name = user2.fullName;
+        //now open conversation with user 2
+        await user1ChatPage.actions.openDirectMessageWithUser(user2Name, {
+          stepInfo: `User 1 opening direct message with ${user2Name}`,
+        });
+        await user1ChatPage.actions.addAttachment(
+          'src/modules/chat/test-data/static-files/unsupportedFiles/svg-viewer.svg',
+          {
+            stepInfo: `User 1 sending attachment to ${user2Name} which is not supported`,
+            isItValidFile: false,
+          }
+        );
+        await user1ChatPage.assertions.verifyUnsupportedFileTostMessageIsVisible({
+          stepInfo: `User 1 Verifying the unsupported file toast message is visible`,
         });
       }
     );

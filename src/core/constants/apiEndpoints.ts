@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     roles: {
       list: '/v1/identity/accounts/roles/list',
     },
+    tiles: {
+      create: '/v1/content/tiles',
+    },
     groups: {
       create: '/v1/chat/conversations',
       addMembers: `/v1/chat/members`,
@@ -36,6 +39,13 @@ export const API_ENDPOINTS = {
     },
   },
   identity: {
+    followersAndFollowingList: (userId: string, size: number = 6, nextPageToken?: number) => {
+      let url = `/v1/identity/people/follow/${userId}?size=${size}&types=followers&types=following`;
+      if (nextPageToken !== undefined) {
+        url += `&nextPageToken=${nextPageToken}`;
+      }
+      return url;
+    },
     validate: '/v2/identity/users/validate',
     login: '/v2/identity/users/login',
     people: '/v2/identity/people',
@@ -49,28 +59,56 @@ export const API_ENDPOINTS = {
   },
 
   site: {
+    people: '/v1/identity/people',
     url: '/v1/content/sites',
     category: '/v1/content/siteCategories/list',
     deactivate: '/v1/content/sites/attributes?attribute=status',
     activate: '/v1/content/sites/attributes?attribute=status',
     updateAccess: '/v1/content/sites/attributes?attribute=access',
     listOfSites: '/v1/content/sites/list',
+    updateStatus: '/v1/content/sites/attributes?attribute=status',
+    updateCategory: '/v1/content/sites/attributes?attribute=category',
+    listOfCategories: '/v1/content/siteCategories/list?unrestrictedOnly=true',
     manageMembers: (siteId: string) => `/v1/content/sites/${siteId}/membership/manage`,
     membershipList: (siteId: string) => `/v1/content/sites/${siteId}/members/list`,
     unfeature: (siteId: string) => `/v1/content/sites/${siteId}/featured?action=unfeature`,
     siteDetails: (siteId: string) => `/v1/content/sites/${siteId}`,
+    carouselItems: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items/list`,
+    addSiteCarouselItem: (siteId: string) => `/v1/content/sites/${siteId}/carousel/items`,
+    requestMembership: `membership/request`,
+    acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
+    deleteCarouselItem: (siteId: string, carouselItemId: string) =>
+      `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
   },
 
   content: {
+    makeContentMustRead: (contentId: string) => `/v1/content/sites/content/${contentId}/mustRead`,
     category: '/pageCategories/list',
     publish: '/content?action=publish',
+    draft: '/content?action=draft',
+    saveDraft: '/content?action=saveDraft',
+    approveContent: (siteId: string, contentId: string) =>
+      `/v1/content/sites/${siteId}/content/${contentId}?action=updateApprove`,
+    updateDetails: (siteId: string, contentId: string) =>
+      `/v1/content/sites/${siteId}/content/${contentId}?action=update`,
     delete: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}`,
     file: (fileId: string) => `/v1/content/files/${fileId}`,
     signedUrl: '/v1/content/static/signedurl/upload',
     files: '/v1/content/files',
     listFiles: '/v1/content/files/list',
     topics: '/v1/content/topics/manage/list',
+    createTopic: '/v1/content/topics',
+    deleteTopics: '/v1/content/topics/bulk-delete',
+    favourites: '/v1/content/sites/content/favorite',
+    fileFavourites: '/v1/content/files/favourite',
     contentListInSite: '/v1/content/sites/content/list',
+    move: '/move',
+    manageContent: (siteId: string, contentId: string) => `/v1/content/sites/${siteId}/content/${contentId}/manage`,
+    homeCarouselItems: '/v1/content/carousel/items/list',
+    addHomeCarouselItem: '/v1/content/carousel/items',
+    deleteHomeCarouselItem: (carouselItemId: string) => `/v1/content/carousel/items/${carouselItemId}`,
+    onboarding: '/onboarding',
+    createTemplate: '/content-template/v2/templates',
   },
 
   fileUpload: {
@@ -88,22 +126,34 @@ export const API_ENDPOINTS = {
     update: (feedId: string) => `/v1/wfeed/feeds/${feedId}`,
     feedURL: (feedId: string) => `/feed/${feedId}`,
     comment: (feedId: string) => `/v1/wfeed/feeds/${feedId}/comments`,
+    updateComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
+    deleteComment: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}`,
+    commentReaction: (feedId: string, commentId: string) => `/v1/wfeed/feeds/${feedId}/comments/${commentId}/reactions`,
+    fetchQuestionDetails: (feedId: string) => `/v1/rfeed/feeds/${feedId}`,
     rudderstack: 'https://rudderstack-data-plane.qa.simpplr.xyz/v1/track',
   },
 
   socialCampaign: {
     create: '/v1/socialcampaigns',
     list: '/v1/socialcampaigns/list',
+    listGet: '/v1/campaign/list',
     get: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     update: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     delete: (campaignId: string) => `/v1/socialcampaigns/${campaignId}`,
     updateStatus: (campaignId: string) => `/v1/socialcampaigns/${campaignId}/status`,
+    shareToFeed: (campaignId: string, sharedWith: string) =>
+      `/v1/socialcampaigns/${campaignId}/share/feed/${sharedWith}`,
     metadata: '/v1/content/oembed/metadata',
+    enableSettings: '/v1/account/appConfig/app.integrations.social.campaigns',
   },
   appConfig: {
     governance: '/v1/account/appConfig/app.setup.governance',
     general: '/v1/account/appConfig/app',
     appConfig: '/v1/account/appConfig',
+  },
+  tile: {
+    create: '/v1/content/tiles',
+    siteCreate: (siteId: string) => `/v1/content/sites/${siteId}/tiles`,
   },
   apps: {
     settings: '/v1/account/apps-links-settings',
@@ -130,6 +180,8 @@ export const API_ENDPOINTS = {
     contentTilesList: '/v1/content/tiles/list',
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
+    calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
+    integrationDomains: '/v1/account/integration-domains',
   },
 } as const;
 

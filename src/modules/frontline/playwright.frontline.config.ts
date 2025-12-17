@@ -5,6 +5,8 @@ import path from 'path';
 import baseConfig from '../../../playwright.base.config';
 import { PROJECT_ROOT } from '../../core/constants/paths';
 
+import { getFrontlineTenantConfigFor, initializeFrontlineConfig } from './config/frontlineConfig';
+
 export default defineConfig({
   ...baseConfig,
   name: 'Frontline UI Automation',
@@ -13,10 +15,40 @@ export default defineConfig({
   testIgnore: '**/api-tests/**',
   projects: [
     {
-      name: 'frontline-chromium',
+      name: 'frontline-primary',
+      testMatch: /^(?!.*login-with-otp).*\.spec\.ts$/, // All tests EXCEPT login-with-otp
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.FRONTEND_BASE_URL,
+        baseURL: (() => {
+          // Initialize config for primary tenant
+          initializeFrontlineConfig('primary');
+          const config = getFrontlineTenantConfigFor('primary');
+          return config.frontendBaseUrl;
+        })(),
+        headless: process.env.CI ? true : false,
+        permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
+        launchOptions: {
+          args: [
+            '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--use-fake-ui-for-media-stream',
+            '--use-fake-device-for-media-stream',
+          ],
+        },
+      },
+    },
+    {
+      name: 'frontline-secondary',
+      testMatch: /login-with-otp\.spec\.ts$/, // Only login-with-otp tests
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: (() => {
+          // Initialize config for secondary tenant
+          initializeFrontlineConfig('secondary');
+          const config = getFrontlineTenantConfigFor('secondary');
+          return config.frontendBaseUrl;
+        })(),
         headless: process.env.CI ? true : false,
         permissions: ['camera', 'microphone', 'clipboard-read', 'clipboard-write'],
         launchOptions: {

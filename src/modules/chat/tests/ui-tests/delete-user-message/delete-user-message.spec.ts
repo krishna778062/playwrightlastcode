@@ -15,7 +15,7 @@ test.describe('direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   test(
     "message Deletion: Verify deletion of user's own message with no time limit",
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {

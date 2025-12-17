@@ -10,6 +10,8 @@ export enum GlobalSearchSuiteTags {
   FEED_SEARCH = '@feed-search',
   FILE_SEARCH = '@file-search',
   VIDEO_FILE_SEARCH = '@video-file-search',
+  PEOPLE_SEARCH = '@people-search',
+  FEDERATED_SEARCH = '@federated-search',
 }
 
 export enum GlobalSearchFeatureTags {

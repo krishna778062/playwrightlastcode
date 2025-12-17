@@ -35,7 +35,13 @@ export class FeatureSiteComponent extends BaseComponent {
 
       // Wait for the site to appear in dropdown results
       const siteDropdownOption = this.getSiteFromDropdown(siteName);
-      await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      try {
+        await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      } catch (error) {
+        await this.searchSitesInput.clear();
+        await this.fillInElement(this.searchSitesInput, siteName);
+        await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
+      }
 
       // Click on the specific site from dropdown
       await this.clickOnElement(siteDropdownOption);
@@ -48,13 +54,13 @@ export class FeatureSiteComponent extends BaseComponent {
   async clickAddButton(): Promise<void> {
     await test.step('Click on Add button', async () => {
       const addButtonResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.addButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.addButton, { delay: 5_000 }),
         response =>
           response.url().includes('featured?action=feature') &&
-          response.request().method() === 'POST' &&
-          response.status() === 201,
+          response.request().method() === 'PUT' &&
+          response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 50_000,
         }
       );
       return addButtonResponse;

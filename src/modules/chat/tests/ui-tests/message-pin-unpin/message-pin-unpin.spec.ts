@@ -19,7 +19,7 @@ test.describe(
     test(
       'message Pinning: Verify user can pin and view their sent message in direct chat',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {

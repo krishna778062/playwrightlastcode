@@ -1,22 +1,79 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { AddTileComponent } from '@content/ui/components/addTileComponent';
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 
-import { ListFeedComponent } from '../../components/listFeedComponent';
-import { SiteDashboardComponent } from '../../components/siteDashboardComponent';
+import { CreateFeedPostComponent } from '../../components/createFeedPostComponent';
+import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../components/createQuestionComponent';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
+import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
+import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface ISiteDashboardActions {
-  verfiyFeedSection: () => Promise<void>;
+  navigateToManageSite: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
+  clickOnOptionsMenu: (commentText: string) => Promise<void>;
+  editPost: (currentText: string, newText: string) => Promise<void>;
+  deletePost: (postText: string) => Promise<void>;
+  clickOnEditCarousel: () => Promise<void>;
+  clickOnAddTile: () => Promise<void>;
+  clickOnEditDashboard: () => Promise<void>;
+  enterSearchCarouselInput: (text: string) => Promise<void>;
+  selectCarouselItem: (text: string) => Promise<void>;
+  clickDoneButton: () => Promise<void>;
+  clickOnSocialCampaignTile: () => Promise<void>;
+  clickOnCustomSCTile: () => Promise<void>;
+  enterTileTitle: (tileTitle: string) => Promise<void>;
+  setCustomSCTitle: (title: string) => Promise<void>;
+  clickAddToHomeButton: () => Promise<string>;
+  clickAddToSiteButton: (siteId: string) => Promise<string>;
+  clickShareThoughtsButton: () => Promise<void>;
+  clickQuestionButton: () => Promise<void>;
+  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
+  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
+  clickOnDismissButton: () => Promise<void>;
 }
+
 export interface ISiteDashboardAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyDashboardUrl: (siteId: string) => Promise<void>;
   verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
   verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
   verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
+  verifyAddContentButtonIsNotVisible: () => Promise<void>;
+  verifyAddContentButtonIsVisible: () => Promise<void>;
+  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
+  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
+  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
+  verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
+  verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
+  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
+  verifyFeedSectionIsVisible: () => Promise<void>;
+  verifyFeedSectionIsNotVisible: () => Promise<void>;
+  verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
+  validatePostText: (postText: string) => Promise<void>;
+  validatePostNotVisible: (postText: string) => Promise<void>;
+  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
+  verifyShareButtonIsNotVisible: () => Promise<void>;
+  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
+  verifyTimestampFormat: (postText: string) => Promise<void>;
+  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
+  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
+  verifyCommentIconIsNotVisible: () => Promise<void>;
+  verifyTopPicksBlockIsVisible: () => Promise<void>;
+  verifyPopularContentBlockIsVisible: () => Promise<void>;
+  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
+  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
+  verifyCelebrationBlockIsVisible: () => Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -24,11 +81,24 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
   readonly siteLink: (siteName: string) => Locator;
+  readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
+  readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
+  readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
+  readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
+  readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
+    this.page.getByRole('button', { name: socialCampaignName }).first();
+  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
+  readonly shareThoughtsButton: Locator;
+  readonly dismissButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
-  readonly siteDashboardComponent: SiteDashboardComponent;
+  private carouselComponent: CarouselComponent;
+  private editbarComponent: EditBarComponent;
+  private addTileComponent: AddTileComponent;
+  private createQuestionComponent: CreateQuestionComponent;
+  private createFeedPostComponent: CreateFeedPostComponent;
   // Actions
   get actions(): ISiteDashboardActions {
     return this;
@@ -36,12 +106,19 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   constructor(page: Page, siteId: string) {
     super(page, siteId);
-    this.siteDashboardComponent = new SiteDashboardComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
-    this.feedLink = this.page.locator('a:has-text("eed")');
+    this.carouselComponent = new CarouselComponent(page);
+    this.editbarComponent = new EditBarComponent(page);
+    this.addTileComponent = new AddTileComponent(page);
+    this.createFeedPostComponent = new CreateFeedPostComponent(page);
+    this.createQuestionComponent = new CreateQuestionComponent(page);
+    this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
     this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
+    this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
   }
   /**
    * Verifies that site was created successfully by checking if site link is visible
@@ -105,19 +182,305 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
-  async verfiyFeedSection(): Promise<void> {
-    await test.step('Verifying feed section', async () => {
-      await expect(this.siteDashboardComponent.verfiyFeedSection, 'expecting feed section to be hidden').toBeHidden();
-    });
-  }
-
   async clickOnFeedLink(): Promise<void> {
     await test.step('Click on feed link', async () => {
-      await this.clickOnElement(this.feedLink);
+      if (await this.dashboardFeedLink.isVisible()) {
+        await this.clickOnElement(this.dashboardFeedLink);
+      } else {
+        await this.clickOnElement(this.feedLink);
+      }
     });
   }
 
   async verifyCampaignLinkDisplayed(linkText: string, description: string): Promise<void> {
     await this.listFeedComponent.verifyCampaignLinkDisplayed(linkText, description);
+  }
+
+  async verifyAddContentButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify add content button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+
+  async verifySocialCampaignShareButtonIsNotVisible(description: string): Promise<void> {
+    await this.listFeedComponent.verifySocialCampaignShareButtonIsNotVisible(description);
+  }
+
+  async clickOnEditCarousel(): Promise<void> {
+    return this.editbarComponent.clickEditCarousel();
+  }
+
+  async clickOnEditDashboard(): Promise<void> {
+    await test.step('Click on edit dashboard', async () => {
+      await this.clickOnElement(this.editDashboardButton);
+    });
+  }
+
+  async clickOnAddTile(): Promise<void> {
+    return this.editbarComponent.clickOnAddTile();
+  }
+
+  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
+  }
+
+  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
+  }
+
+  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+    return this.carouselComponent.verifyCarouselItem(text);
+  }
+
+  async clickDoneButton(): Promise<void> {
+    return this.carouselComponent.clickDoneButton();
+  }
+
+  async enterSearchCarouselInput(text: string): Promise<void> {
+    return this.carouselComponent.getSearchCarouselInput(text);
+  }
+
+  async selectCarouselItem(text: string): Promise<void> {
+    return this.carouselComponent.selectCarouselItem(text);
+  }
+
+  async clickOnSocialCampaignTile(): Promise<void> {
+    return this.addTileComponent.clickSocialCampaignsButton();
+  }
+
+  async clickOnCustomSCTile(): Promise<void> {
+    return this.addTileComponent.clickCustomTab();
+  }
+
+  async enterTileTitle(tileTitle: string): Promise<void> {
+    return this.addTileComponent.setTileTitle(tileTitle);
+  }
+
+  async setCustomSCTitle(title: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title);
+  }
+
+  async clickAddToHomeButton(): Promise<string> {
+    return this.addTileComponent.clickAddToHomeButton();
+  }
+
+  async verifyTileIsDisplayed(tileTitle: string): Promise<void> {
+    await test.step('Verifying tile is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.tileListComponent(tileTitle), {
+        timeout: 20000,
+        assertionMessage: `Tile title '${tileTitle}' should be displayed`,
+      });
+    });
+  }
+
+  async verifyAddContentButtonIsVisible(): Promise<void> {
+    await test.step('Verify add content button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addContentButton, {
+        assertionMessage: 'Add content button should not be visible',
+      });
+    });
+  }
+  async verifySocialCampaignNameInTheDisplayed(socialCampaignName: string): Promise<void> {
+    await test.step('Verifying social campaign name is displayed in the displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.socialCampaignNameInTileList(socialCampaignName), {
+        timeout: 20000,
+        assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+
+  async verifySocialCampaignNameNotDisplayed(socialCampaignName: string): Promise<void> {
+    await test.step('Verifying social campaign name is displayed in the displayed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.socialCampaignNameInTileList(socialCampaignName), {
+        timeout: 20000,
+        assertionMessage: `Social campaign name '${socialCampaignName}' should be displayed`,
+      });
+    });
+  }
+
+  /**
+   * Clicks the share thoughts button to open post editor
+   */
+  async clickShareThoughtsButton(): Promise<void> {
+    await test.step('Click on Share your thoughts button', async () => {
+      await this.clickOnElement(this.shareThoughtsButton);
+    });
+  }
+
+  async clickQuestionButton(): Promise<void> {
+    await this.createFeedPostComponent.clickQuestionButton();
+  }
+
+  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
+    return this.createQuestionComponent.createAndPostQuestion(options);
+  }
+
+  async clickOnOptionsMenu(commentText: string): Promise<void> {
+    await this.listFeedComponent.openPostOptionsMenu(commentText);
+  }
+
+  async editQuestion(questionTitle: string, newTitle: string): Promise<void> {
+    await this.createQuestionComponent.editQuestion(questionTitle, newTitle);
+  }
+
+  async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
+    await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  async clickAddToSiteButton(siteId: string): Promise<string> {
+    return this.addTileComponent.clickAddToSiteButton(siteId);
+  }
+
+  async verifyFeedSectionIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should be visible',
+    });
+  }
+
+  async verifyFeedSectionIsNotVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsNotVisible(this.shareThoughtsButton, {
+      assertionMessage: 'Feed section should not be visible',
+    });
+  }
+
+  async verifyEditAndDeleteOptionsVisible(commentText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyEditAndDeleteOptionsVisible(commentText);
+  }
+
+  async editPost(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPost(currentText, newText);
+  }
+
+  async deletePost(postText: string): Promise<void> {
+    await test.step(`Deleting post with text: ${postText}`, async () => {
+      await this.listFeedComponent.openPostOptionsMenu(postText);
+      await this.listFeedComponent.clickDeleteOption();
+      await this.listFeedComponent.confirmDelete();
+    });
+  }
+
+  async validatePostText(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostText(postText);
+  }
+
+  async validatePostNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.validatePostNotVisible(postText);
+  }
+
+  async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedRestrictionMessageVisible(expectedText);
+  }
+
+  async verifyShareButtonIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyShareButtonIsNotVisible();
+  }
+
+  async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
+    await this.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+  }
+
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await this.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholder);
+  }
+
+  /**
+   * Verifies that multiple site names are displayed on the page
+   * @param siteNames - Array of site names to verify
+   */
+  async verifySitesNamesAreDisplayed(siteNames: string[]): Promise<void> {
+    await test.step(`Verify ${siteNames.length} site name(s) are displayed`, async () => {
+      for (const siteName of siteNames) {
+        await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+          assertionMessage: `Site link "${siteName}" should be visible`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies that a single site name is displayed on the page
+   * @param siteName - The site name to verify
+   */
+  async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
+  }
+
+  async verifyTimestampFormat(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyTimestampFormat(postText);
+  }
+
+  async verifyTopPicksBlockIsVisible(): Promise<void> {
+    await test.step('Verify Top picks smart block is visible on site feed', async () => {
+      const topPicksBlock = this.page.locator('section', { hasText: 'Top picks' }).first();
+      await this.verifier.verifyTheElementIsVisible(topPicksBlock, {
+        assertionMessage: 'Top picks smart block should be visible',
+      });
+    });
+  }
+
+  async verifyPopularContentBlockIsVisible(): Promise<void> {
+    await test.step('Verify Popular content smart block is visible on site feed', async () => {
+      const popularContentBlock = this.page.locator('section', { hasText: 'Popular content' }).first();
+      await this.verifier.verifyTheElementIsVisible(popularContentBlock, {
+        assertionMessage: 'Popular content smart block should be visible',
+      });
+    });
+  }
+
+  async verifyUpcomingEventsBlockIsVisible(): Promise<void> {
+    await test.step('Verify Upcoming events smart block is visible on site feed', async () => {
+      const upcomingEventsBlock = this.page.locator('section', { hasText: 'Upcoming event' }).first();
+      await this.verifier.verifyTheElementIsVisible(upcomingEventsBlock, {
+        assertionMessage: 'Upcoming events smart block should be visible',
+      });
+    });
+  }
+
+  async verifyRecentlyPublishedBlockIsVisible(): Promise<void> {
+    await test.step('Verify Recently published smart block is visible on site feed', async () => {
+      const recentlyPublishedBlock = this.page.locator('section', { hasText: 'Recently published' }).first();
+      await this.verifier.verifyTheElementIsVisible(recentlyPublishedBlock, {
+        assertionMessage: 'Recently published smart block should be visible',
+      });
+    });
+  }
+
+  async verifyCelebrationBlockIsVisible(): Promise<void> {
+    await test.step('Verify Celebration smart block is visible on site feed', async () => {
+      const celebrationBlock = this.page.locator('strong:has-text("celebration")');
+      await this.verifier.verifyTheElementIsVisible(celebrationBlock, {
+        assertionMessage: 'Celebration smart block should be visible',
+      });
+    });
+  }
+
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationCancelButtonVisible();
+  }
+
+  async clickPostCreationCancelButton(): Promise<void> {
+    await this.createFeedPostComponent.clickPostCreationCancelButton();
+  }
+
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await this.createFeedPostComponent.verifyPostCreationEditorClosed();
+  }
+
+  async clickOnDismissButton(): Promise<void> {
+    await this.clickOnElement(this.dismissButton);
+  }
+
+  async verifySmartFeedBlockIsVisible(blockName: string): Promise<void> {
+    await this.listFeedComponent.verifySmartFeedBlockIsVisible(blockName);
+  }
+
+  async verifyCommentIconIsNotVisible(): Promise<void> {
+    await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
 }

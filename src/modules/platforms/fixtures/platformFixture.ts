@@ -1,19 +1,110 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { LoginPage } from '@core/ui/pages/loginPage';
+import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
+import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
-import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+
+// Local service desk login function - keeps service desk functionality within platform module
+async function loginToServiceDesk(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+  if (!serviceDeskUrl) {
+    throw new Error('Service Desk URL not configured in environment variables');
+  }
+
+  // Navigate to Service Desk login page
+  await page.goto(`${serviceDeskUrl}/login`);
+
+  // Use the existing LoginPage but with Service Desk URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Service Desk with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
+
+// Local Zulu tenant login function - for Company Values tests
+async function loginToZulu(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const zuluUrl = process.env.ZULU_URL;
+  if (!zuluUrl) {
+    throw new Error('Zulu URL not configured in environment variables');
+  }
+
+  // Navigate to Zulu login page
+  await page.goto(`${zuluUrl}/login`);
+
+  // Use the existing LoginPage but with Zulu URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Zulu tenant with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
+
+// Local Quick Task login function - for Quick Task tests
+async function loginToQuickTask(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
+  const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
+  if (!quickTaskUrl) {
+    throw new Error('Quick Task URL not configured in environment variables');
+  }
+
+  // Navigate to Quick Task login page
+  await page.goto(`${quickTaskUrl}/login`);
+
+  // Use the existing LoginPage but with Quick Task URL
+  const loginPage = new LoginPage(page);
+
+  // Manually perform login steps without using loadPage (which uses standard URL)
+  await test.step(`Logging in to Quick Task with user ${user.email}`, async () => {
+    await loginPage.usernameInput.fill(user.email);
+    await loginPage.continueButton.click();
+    await page.waitForURL(/authenticate/, { timeout: TIMEOUTS.MEDIUM });
+    await loginPage.passwordInput.fill(user.password);
+    await loginPage.signInButton.click();
+  });
+
+  // Wait for successful login
+  await page.waitForURL(url => !url.pathname.includes('authenticate'), { timeout: TIMEOUTS.MEDIUM });
+
+  // Return a home page instance
+  return new NewHomePage(page);
+}
 
 // API-only fixture type for API helpers and services
 export interface PlatformApiFixture {
   apiContext: APIRequestContext;
   audienceCategoryManagementHelper: AudienceCategoryManagementHelper;
+  audienceTestDataHelper: AudienceTestDataHelper;
   identityManagementHelper: IdentityManagementHelper;
   userManagementService: UserManagementService;
 }
@@ -45,12 +136,14 @@ export const platformUsers = {
 // Helper function to create API-only fixtures using existing API contexts
 async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<PlatformApiFixture> {
   const audienceCategoryManagementHelper = new AudienceCategoryManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const audienceTestDataHelper = new AudienceTestDataHelper(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
     audienceCategoryManagementHelper,
+    audienceTestDataHelper,
     identityManagementHelper,
     userManagementService,
   };
@@ -93,6 +186,11 @@ export const platformTestFixture = test.extend<
     // Combined user fixtures - complete entry points with all helpers and services
     appManagerFixture: PlatformUserFixture;
     userManagerFixture: PlatformUserFixture;
+    serviceDeskPage: Page;
+    zuluAppManagerPage: Page;
+    zuluEndUserPage: Page;
+    zuluBrandingManagerPage: Page;
+    quickTaskPage: Page;
   },
   {
     // Worker-scoped fixtures
@@ -186,6 +284,91 @@ export const platformTestFixture = test.extend<
   userManagerFixture: [
     async ({ userManagerUiFixture, userManagerApiFixture }, use) => {
       await use({ ...userManagerUiFixture, ...userManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  serviceDeskPage: [
+    async ({ page }, use) => {
+      const _serviceDeskHomePage = await loginToServiceDesk(page, {
+        email: process.env.SERVICE_DESK_USERNAME!,
+        password: process.env.SERVICE_DESK_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const serviceDeskUrl = process.env.SERVICE_DESK_URL;
+      if (serviceDeskUrl) {
+        await page.goto(`${serviceDeskUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluAppManagerPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_APPLICATION_MANAGER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluEndUserPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_END_USER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  zuluBrandingManagerPage: [
+    async ({ page }, use) => {
+      const _zuluHomePage = await loginToZulu(page, {
+        email: process.env.ZULU_BRANDING_MANAGER!,
+        password: process.env.ZULU_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const zuluUrl = process.env.ZULU_URL;
+      if (zuluUrl) {
+        await page.goto(`${zuluUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  quickTaskPage: [
+    async ({ page }, use) => {
+      const _quickTaskHomePage = await loginToQuickTask(page, {
+        email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
+        password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
+      });
+      await use(page);
+
+      // Logout after each test case
+      const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
+      if (quickTaskUrl) {
+        await page.goto(`${quickTaskUrl}/logout`);
+      }
     },
     { scope: 'test' },
   ],

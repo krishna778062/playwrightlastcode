@@ -1,13 +1,13 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
 import { SiteManagementHelper } from '@content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@content/apis/helpers/tileManagementHelper';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { UserCredentials } from '@core/types/test.types';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 
 export type UserType = 'appManager' | 'endUser';
 
@@ -33,7 +33,7 @@ export const multiUserTileFixture = test.extend<
     appManagerBrowserContext: BrowserContext;
     adminPage: Page;
     appManagerUINavigationHelper: NavigationHelper;
-    tileManagementHelper: TileManagementHelper;
+    tileManagementHelper: IntegrationTileHelper;
     siteManagementHelper: SiteManagementHelper;
     // End user browser context, Request Context + page
     endUserBrowserContext: BrowserContext;
@@ -113,7 +113,7 @@ export const multiUserTileFixture = test.extend<
 
   tileManagementHelper: [
     async ({ appManagerApiContext }, use) => {
-      const tileManagementHelper = new TileManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      const tileManagementHelper = new IntegrationTileHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
       try {
         await use(tileManagementHelper);
       } finally {

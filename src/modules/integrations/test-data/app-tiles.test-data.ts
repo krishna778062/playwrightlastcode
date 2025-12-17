@@ -15,6 +15,10 @@ export const CONNECTOR_IDS = {
   DOCUSIGN: 'e7926584-1a7b-47a5-b8a1-c59f0701df39',
   DOCEBO: 'db7f4f18-16e7-443b-9d72-ae68d146e854',
   MONDAY_DOT_COM: '46cae9fc-78b9-4f30-916d-ccd6d8eff802',
+  WORKDAY: 'af4ed833-9514-466d-a6a5-752f26456adf',
+  SALESFORCE: '76108098-da7d-4030-b7c1-ef737e61e5a2',
+  FRESHSERVICE: 'e780853b-1806-4f3f-918d-76e004b116a6',
+  SERVICENOW: '1c4cf4fa-ec30-48d5-926b-86e771d9c035',
 } as const;
 
 /**
@@ -37,6 +41,15 @@ export const TILE_IDS = {
   DISPLAY_DOCUSIGN_SIGNATURE_REQUESTS: 'c9368b20-00c3-40d7-b08e-20bc48be72ac',
   DISPLAY_LEARNING_COURSES: 'addf843b-06a7-498b-a471-8895fcaf47a7',
   MONDAY_DOT_COM_DISPLAY_TASKS: 'cf77a6cf-ed45-4b69-951a-dfd36d374fba',
+  WORKDAY_DISPLAY_PENDING_LEARNING_COURSES: '3580db32-32ad-4d67-b813-e89a10286fbf',
+  WORKDAY_APPLY_FOR_TIMEOFF: '61da175c-f777-4456-8512-715e7808b657',
+  WORKDAY_DISPLAY_JOB_POSTINGS: '1b290b55-cc07-4b24-a963-ab8177f8d8eb',
+  WORKDAY_DISPLAY_TIME_OFF_BALANCE: '3418ba10-1e32-46b2-8b51-aeada4b89958',
+  DISPLAY_TABULAR_REPORT: 'fb9971dd-f266-4c7e-b07e-74726c4f834f',
+  FRESHSERVICE_DISPLAY_TICKETS_SUBMITTED_BY_ME: '4c84479e-4460-419c-9765-1a6de4c34c9b',
+  FRESHSERVICE_DISPLAY_UNASSIGNED_TICKETS: 'c4008107-200e-41d7-94a2-3b556d87e06f',
+  SERVICENOW_DISPLAY_RECENTLY_REPORTED_TICKETS: '5df8382e-ff9f-44d2-a5a9-c80ae22b02e7',
+  SERVICENOW_APPROVAL_REQUESTS: '255e7a1c-cd86-4b04-9b2d-a589f6b7f268',
 } as const;
 
 /**
@@ -95,11 +108,25 @@ export const REDIRECT_URLS = {
   AIRTABLE: 'https://airtable.com/',
   UKG_PRO: 'https://et19.ultipro.com/',
   GOOGLE_CALENDAR: 'https://workspace.google.com/',
-  OUTLOOK_CALENDAR: 'https://login.microsoftonline.com/',
+  OUTLOOK_CALENDAR: 'https://outlook.office365.com',
   DOCUSIGN: 'https://account-d.docusign.com/',
   UKG_WFM: 'https://kcfn01-cfn08-ath01.cfn.mykronos.com/',
   MONDAY_DOT_COM: 'https://clydenoronha48s-team.monday.com/',
   DOCEBO: 'https://simpplr.docebosaas.com/',
+  ASANA: 'https://app.asana.com/',
+  GREENHOUSE: 'https://job-boards.greenhouse.io/',
+  WORKDAY: 'https://impl-identity.wd12.myworkday.com/',
+  WORKDAY_INBOX_TASKS_REPORT:
+    'https://impl-services1.wd12.myworkday.com/ccx/service/customreport2/simpplr_dpt1/sgarg/INBOX_TASKS_PER_WORKER',
+  WORKDAY_RECENT_PAYSTUBS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/task/2997$1475.htmld',
+  WORKDAY_JOB_POSTINGS: 'https://impl.wd12.myworkday.com/simpplr_dpt1/d/inst/9925$1420/rel-task/2998$16774.htmld',
+  WORKDAY_EXTERNAL_JOB_POSTINGS: 'https://simpplr-dpt1.impl-wd12.myworkdayjobs.com/External',
+  FRESHSERVICE: 'https://simpplr-919461751771098470.myfreshworks.com',
+  SALESFORCE: 'https://odin-int-dev-ed.develop.my.salesforce.com/',
+  SALESFORCE_REPORT_ID: '00O5i00000BBQuy',
+  ZENDESK: 'https://simpplr1729079501.zendesk.com/api/v2/ticket_fields/34446836547475.json',
+  SERVICENOW: 'https://ven05143.service-now.com/',
+  JIRA: 'https://simpplr.atlassian.net/browse',
 } as const;
 
 /**
@@ -132,4 +159,124 @@ export const STATUS_VALUES = {
   DRAFT: 'Draft',
   OPEN: 'Open',
   CLOSED: 'Closed',
+} as const;
+
+export const TEST_EMAIL = {
+  GOOGLE_CALENDAR: 'howard.nelson@simpplr.dev',
+  OUTLOOK_CALENDAR: 'howard.nelson@smplrdev.onmicrosoft.com',
+};
+/**
+ * Data values for Docebo app tiles
+ */
+export const DOCEBO_VALUES = {
+  ENROLLMENT_STATUS: 'Enrollment status',
+  COURSE_TYPE: 'Course type',
+  ENROLLMENT_LEVEL: 'Enrollment level',
+  COMPLETED: 'Completed',
+  E_LEARNING: 'E-learning',
+  STUDENT: 'Student',
+} as const;
+
+/**
+ * Data values for Expensify app tiles
+ */
+export const EXPENSIFY_VALUES = {
+  WORKSPACE: 'Workspace',
+  STATUS: 'Status',
+  DURATION: 'Duration',
+  PROCESSING: 'Processing',
+  APPROVER: 'Srikant G',
+  MAX_DAYS: 30,
+  WORKSPACE_VALUE: 'Sandbox-R&D',
+} as const;
+/**
+ * Data values for Greenhouse app tiles
+ */
+export const GREENHOUSE_VALUES = {
+  JOB_TYPE: 'Job type',
+  ALL: 'All',
+  EXTERNAL: 'External',
+  INTERNAL: 'Internal',
+  JOB_BOARD_TOKEN: 'Job board token',
+  JOB_BOARD_TOKEN_VALUE: 'mergeapiintegrationsandbox',
+  SHOW_ALL_REDIRECT_URL: 'Show all redirect url',
+} as const;
+
+export const SERVICE_NOW_VALUES = {
+  USER_NAME: 'admin',
+  PASSWORD: '0=IPmAxD$x6f',
+  CONSUMER_KEY: '3488c64de4b34dd8a6bddf91911aa1fe',
+  SECRET_KEY: '^8yo#^&BoQ+*bB,<!Qi04YzxKIZs~5Wa',
+  URL: 'https://dev275557.service-now.com',
+} as const;
+
+export const GREENHOUSE_CREDS = {
+  API_Token: 'Basic N2RlMTdmNzQ3ZjdiZjJhNzNiOTI1ODBiM2I5OTY2NmMtMzo=',
+} as const;
+
+/**
+ * Data values for ServiceNow app tiles
+ */
+export const SERVICENOW_VALUES = {
+  TIME_PERIOD: 'Time Period',
+  DAYS_30: '30 days',
+  INCIDENT_VIEW_VALUE: 'Self Service',
+  CATEGORY_VALUE: 'Software',
+  SUBCATEGORY_VALUE: 'Email',
+} as const;
+
+/**
+ * Workday credentials and config for People data
+ */
+export const WORKDAY_CREDS = {
+  USERNAME: 'WorkdayWebServices_ISU',
+  PASSWORD: 'A1b@cD3#eF!',
+  WSURL: 'https://impl-services1.wd12.myworkday.com/ccx/service',
+  TENANT_ID: 'simpplr_dpt1',
+  CLIENT_ID: 'MjM2NGU2NzAtOTI1Yi00ZjE5LWExN2ItYzgyZDc2YTNlYTJl',
+  CLIENT_SECRET: 'za21q013uoy7wu45l44cj1i2lu0jtcrx8a4yklco4yez2ncwxswvmll7cdfhc5m10szb4a81g1h0dwtpd5k8g8pxyuih2mh6gg3',
+  REFRESH_TOKEN: 'e1pk3uorn77hyvo886jvty9pro2wq1q8edo8jgipmr5eaije99ieq2cju94b1g7z7ue6ekax3dd1xug6doy4z4nvlqc7j7sxspj',
+} as const;
+
+/**
+ * Workday labels and values used across tests
+ */
+export const WORKDAY_VALUES = {
+  CreateAnotherRequest: 'Create another request',
+  Vacation: 'Vacation',
+  Wedding: 'Wedding',
+  AppName: 'Workday',
+  pendingLearningCoursesTile: 'Display pending learning courses',
+  applyTimeOffTile: 'Apply for time off',
+  paystubsTileName: 'Display recent paystubs',
+  inboxTileName: 'Display inbox',
+  jobPostingsTileName: 'Display job postings',
+  timeOffBalanceTileName: 'Display time off balance',
+  AppManagerDefined: 'App manager defined',
+  SiteManagerDefined: 'Site manager defined',
+  PayslipListUrl: 'Payslip list URL',
+  InboxTasksReportUrl: 'Inbox tasks report URL',
+  JobType: 'Job type',
+  InternalJobType: 'Internal jobs',
+  ExternalJobType: 'External jobs',
+  AllJobType: 'All jobs',
+  InternalJobPostingsUrl: 'Example internal job URL',
+  LeaveType: 'Leave type',
+  TimeOffLeaveType: 'Time off',
+  LeaveOfAbsenceLeaveType: 'Leave of absence',
+  AllLeaveType: 'All',
+} as const;
+/**
+ * Data values for ServiceNow app tiles
+ */
+export const JIRA_VALUES = {
+  PROJECT: 'Project',
+  INTEGRATIONS: 'Integrations',
+  JIRA_JQL_QUERY: 'project = "INT" AND assignee = 607d428f1417e2006aacea72 AND type = Story ORDER BY created DESC',
+  JIRA_SERVICE_DESK_VALUE: 'ITSM Test Project / BOT',
+  TICKET_GROUP_VALUE: 'General Requests',
+  TICKET_TYPE_VALUE: 'Get IT help',
+  SUMMARY_VALUE: 'Test Summary',
+  GROUP_ISSUES_BY: 'Group issues by',
+  ISSUES_BY_VALUE: 'Assignee',
 } as const;

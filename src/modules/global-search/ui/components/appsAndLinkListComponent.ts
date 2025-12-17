@@ -18,6 +18,8 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
   readonly appImg: Locator;
   readonly appLink: Locator;
   readonly linkImg: Locator;
+  // App autocomplete locators
+  readonly autocompleteAppName: Locator;
 
   constructor(page: Page, rootLocator: Locator) {
     super(page, rootLocator);
@@ -26,6 +28,8 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
     this.appImg = this.rootLocator.locator('img');
     this.appLink = this.rootLocator;
     this.linkImg = this.rootLocator.getByTestId('i-link');
+    // App autocomplete locators - for autocomplete items, app name is in 'p' tag and icon is in 'img' tag
+    this.autocompleteAppName = this.rootLocator.locator('p');
   }
   /**
    * Creates a URL matcher function for normalized comparison
@@ -117,9 +121,10 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
   /**
    * Verifies that the app link opens in a new tab/window
    * @param expectedUrl - The expected URL to navigate to
+   * @param options - Optional parameters including stepInfo
    */
-  async verifyAppLinkOpensInNewTab(expectedUrl: string) {
-    await test.step(`Verifying app link opens in new tab with URL "${expectedUrl}"`, async () => {
+  async verifyAppLinkOpensInNewTab(expectedUrl: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `Verifying app link opens in new tab with URL "${expectedUrl}"`, async () => {
       // Click on the app link and wait for new page to open
       const newPage = await this.clickAndWaitForNewPageToOpen(() => this.clickOnElement(this.appLink), {
         timeout: TIMEOUTS.MEDIUM,
@@ -193,5 +198,55 @@ export class AppsAndLinkContainerComponent extends BaseComponent {
         await this.verifyAppLinkRel();
       }
     });
+  }
+
+  /**
+   * Verifies that the app name is visible in autocomplete
+   * @param expectedName - The expected app name to verify
+   * @param options - Optional parameters including stepInfo
+   */
+  async verifyAppNameIsVisibleInAutocomplete(expectedName: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(
+      options?.stepInfo || `Verifying app name "${expectedName}" is visible in autocomplete`,
+      async () => {
+        await this.verifier.verifyTheElementIsVisible(this.autocompleteAppName, {
+          timeout: 20000,
+          assertionMessage: `Verifying app name "${expectedName}" is visible in autocomplete`,
+        });
+        await this.verifier.verifyElementHasText(this.autocompleteAppName, expectedName, {
+          timeout: 20000,
+          assertionMessage: `Verifying app name "${expectedName}" is displayed in autocomplete`,
+        });
+      }
+    );
+  }
+
+  /**
+   * Verifies that the app icon is displayed in autocomplete
+   * @param expectedIconSrc - The expected icon source URL (can be in src or href attribute)
+   * @param options - Optional parameters including stepInfo
+   */
+  async verifyIconIsDisplayedInAutocomplete(expectedIconSrc: string, options?: { stepInfo?: string }): Promise<void> {
+    await test.step(
+      options?.stepInfo || `Verifying app icon is displayed in autocomplete with src/href "${expectedIconSrc}"`,
+      async () => {
+        const isLink = (await this.linkImg.count()) > 0;
+
+        if (isLink) {
+          const hrefAttribute = await this.getElementAttribute(this.appLink, 'href', { timeout: 20000 });
+          if (hrefAttribute === expectedIconSrc) return;
+          throw new Error(
+            `Link icon does not have expected href. Expected: ${expectedIconSrc}, Found: ${hrefAttribute ?? 'null'}`
+          );
+        } else {
+          const imgElement = this.appLink.locator('img');
+          const srcAttribute = await this.getElementAttribute(imgElement, 'src', { timeout: 20000 });
+          if (srcAttribute === expectedIconSrc) return;
+          throw new Error(
+            `App icon does not have expected src. Expected: ${expectedIconSrc}, Found: ${srcAttribute ?? 'null'}`
+          );
+        }
+      }
+    );
   }
 }

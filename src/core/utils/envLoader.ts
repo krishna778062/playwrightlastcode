@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 import { Environments } from '@core/constants/environments';
+import { Modules } from '@core/constants/modules';
 import { log } from '@core/utils';
 
 import { PROJECT_ROOT } from '../constants/paths';
@@ -9,6 +10,36 @@ import { PROJECT_ROOT } from '../constants/paths';
 import { FileUtil } from './fileUtil';
 
 export function loadEnvVariablesForGivenModule(envName: Environments, moduleName: string) {
+  // Content module uses contentConfig.ts instead of .env files
+  if (moduleName === Modules.CONTENT) {
+    log.info(`Skipping env file loading for content module (uses contentConfig.ts instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
+  // Frontline module uses frontlineConfig.ts instead of .env files
+  if (moduleName === Modules.FRONTLINE) {
+    log.info(`Skipping env file loading for frontline module (uses frontlineConfig.ts instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
+  // Data Engineering module uses dataEngineeringConfig.ts and snowflakeConfig.ts instead of .env files
+  if (moduleName === Modules.DATA_ENGINEERING) {
+    log.info(`Skipping env file loading for data-engineering module (uses config files instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
   // Resolve paths relative to project root
   const envPath = path.resolve(PROJECT_ROOT, `src/modules/${moduleName}/env/${envName}.env`);
   const googleCalendarSecretsPath = path.resolve(

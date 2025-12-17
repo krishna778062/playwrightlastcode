@@ -153,7 +153,7 @@ test.describe('audience CSV Upload Testcases', { tag: [TestSuite.AUDIENCE, TestS
       // Step 6: Click Create button to submit
       await audiencePage.csvUploadModal.clickCreate();
 
-      // Step 7: Wait for creation to complete
+      // Step 7: Wait for creation to complete and backend to process
       await audiencePage.page.waitForTimeout(3000);
 
       // Step 8: Verify new category was created using API

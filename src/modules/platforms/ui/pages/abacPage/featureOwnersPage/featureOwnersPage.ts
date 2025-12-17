@@ -4,6 +4,8 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/ui/pages/basePage';
 import { UserCountPopupComponent } from '@platforms/ui/components/userCountPopupComponent';
 
+import { FeatureOwnerModalComponent } from '../../../components/featureOwnerModal';
+
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
 export class FeatureOwnersPage extends BasePage {
@@ -25,6 +27,7 @@ export class FeatureOwnersPage extends BasePage {
 
   // Component
   readonly userCountPopup: UserCountPopupComponent;
+  readonly featureOwnerModal: FeatureOwnerModalComponent;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
@@ -48,6 +51,7 @@ export class FeatureOwnersPage extends BasePage {
 
     // Initialize component
     this.userCountPopup = new UserCountPopupComponent(page);
+    this.featureOwnerModal = new FeatureOwnerModalComponent(page);
   }
 
   // To verify that the feature owners page is loaded
@@ -122,7 +126,7 @@ export class FeatureOwnersPage extends BasePage {
       if (optionName == 'Edit') {
         try {
           await this.clickOnElementWithCoordinates(this.foOptionButtons.filter({ hasText: optionName }));
-          await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible({ timeout: 5_000 });
+          expect(await this.featureOwnerModal.verifyTheFeatureOwnerModalIsVisible(featureName)).toBeTruthy();
         } catch {
           console.log(`Couldn't click on ${optionName} button`);
           await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }), {
@@ -131,140 +135,10 @@ export class FeatureOwnersPage extends BasePage {
             // stepInfo: 'Clicking on the Edit button with force',
           });
         }
-        await expect(this.plusIconOnEditFeaturePopup.nth(0)).toBeVisible();
+        expect(await this.featureOwnerModal.verifyTheFeatureOwnerModalIsVisible(featureName)).toBeTruthy();
       } else {
         await this.clickOnElement(this.foOptionButtons.filter({ hasText: optionName }));
       }
-    });
-  }
-
-  /**
-   * Gets list of usernames of users having app manager tag from edit popup of feature owners.
-   */
-  async getUsersWithAppManagerTag(): Promise<string[]> {
-    const userNamesWithAppManagerTag: string[] = [];
-    return await test.step(`Getting all visible usernames with app manager tag from user count popup`, async () => {
-      for (let i = 0; i < (await this.userCountPopup.foUserCountPopupModal.count()); i++) {
-        const appManagerElement = this.userCountPopup.foUserCountPopupModal
-          .nth(i)
-          .locator("div [class*='AccessControlListItem-module-appManagerContainer'] p");
-
-        if (await appManagerElement.isVisible()) {
-          const userNameElement = this.userCountPopup.foUserCountPopupModal
-            .nth(i)
-            .locator("[class*='Typography-module__paragraph'] a");
-
-          const userName = await userNameElement.textContent();
-          if (userName) {
-            userNamesWithAppManagerTag.push(userName.trim());
-          }
-        }
-      }
-      if (userNamesWithAppManagerTag.length > 0) {
-        return userNamesWithAppManagerTag;
-      } else if (await this.showMoreButtonForEditFO.isVisible()) {
-        await this.clickOnElement(this.showMoreButtonForEditFO);
-        return await this.getUsersWithAppManagerTag();
-      } else {
-        expect(`Couldn't find any users with app manaage tag`).toBeFalsy();
-      }
-      return userNamesWithAppManagerTag;
-    });
-  }
-
-  /**
-   * Adds different users as feature owner for the feature which has it's edit popup opened.
-   * @param userNames - Users who need to be added as feature onwers.
-   */
-  async addUserAsFeatureOnwer(userNames: string[], options?: { stepInfo?: string; timeout?: number }): Promise<void> {
-    await test.step(options?.stepInfo ?? `Add users: ${userNames} as feature owners`, async () => {
-      await this.clickOnElement(this.plusIconOnEditFeaturePopup, {
-        stepInfo: 'Click on plus icon to add feature owners',
-      });
-      while (userNames.length > 0) {
-        await this.typeInElement(this.addFeatureOnwersInput, userNames.pop() || '');
-        await this.sleep(2000);
-        await this.page.keyboard.press('Enter');
-      }
-      await this.clickOnButtonWithName('Done');
-      await this.clickOnButtonWithName('Update');
-    });
-  }
-
-  /**
-   * Finds user and remove the user from feature owners list.
-   * @param userName - User who need find in visible list of feature owners.
-   * @return true if user is found and removed in list of feature owners, otherwise false.
-   */
-  async removeUserFromFeatureOwnersList(
-    userName: string,
-    options?: { stepInfo?: string; timeout?: number }
-  ): Promise<void> {
-    await test.step(options?.stepInfo ?? `Removing ${userName} from feature owners list`, async () => {
-      const userToBeRemoved = await this.getFeatureOwnerRecordItem(userName, true);
-      await this.clickOnElement(userToBeRemoved.locator('[aria-label="Remove user"]'));
-      await this.clickOnButtonWithName('Update');
-    });
-  }
-
-  /**
-   * Verifies whether the given feature onwers are displayed with app manager tag.
-   * @param userName - Username of user who need to be checked for app manager tag.
-   */
-  async verifyFeatureOwnerIsDisplayedWithAppManagerTag(userName: string): Promise<void> {
-    await test.step(`Verifying ${userName} is displayed with app manager tag`, async () => {
-      const featureOwnerRecordItem = await this.getFeatureOwnerRecordItem(userName, true);
-      //verify this record has app manager tag
-      const appManagerTag = featureOwnerRecordItem.locator(
-        "[class*='AccessControlListItem-module-appManagerContainer'] p"
-      );
-      await expect(appManagerTag).toBeVisible();
-    });
-  }
-
-  /**
-   * Gets the locator of feature owner record item having the given username. Doesn't return anything if user is not found.
-   * @param userName - Username of user who need to be checked for feature owner.
-   * @param visiblility - Whether the user record should be visible or not.
-   * @returns The feature owner record item.
-   */
-  async getFeatureOwnerRecordItem(userName: string, visiblility: boolean): Promise<any> {
-    let featureOwnerRecordItem: any = this.page
-      .locator("[class*='AccessControlListItem-module-listItemContainer']")
-      .filter({ hasText: userName });
-    let isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
-      timeout: 1000,
-    });
-    let isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, { timeout: 1000 });
-    //iterate until show more button is visible and feature owner record item is not visible
-    while (isShowMoreButtonVisible && !isUserVisible) {
-      await this.clickOnElement(this.showMoreButtonForEditFO, {
-        stepInfo:
-          'Since the user record is not visible but the show more button is visible hence clicking on show more button',
-      });
-      isUserVisible = await this.verifier.isTheElementVisible(featureOwnerRecordItem, {
-        timeout: 1000,
-      });
-      isShowMoreButtonVisible = await this.verifier.isTheElementVisible(this.showMoreButtonForEditFO, {
-        timeout: 1000,
-      });
-    }
-    if (visiblility) {
-      expect(isUserVisible, `expecting  ${userName} to be visible`).toBeTruthy();
-    } else {
-      expect(isUserVisible, `expecting ${userName} not to be visible`).toBeFalsy();
-      featureOwnerRecordItem = null;
-    }
-    return featureOwnerRecordItem;
-  }
-
-  /**
-   * Verifies given user is not displayed as feature owner.
-   * @param userName - Username of user who need to be checked for feature owner.
-   */
-  async verifyUserIsNotDisplayedAsFeatureOwner(userName: string): Promise<void> {
-    await test.step(`Verifying ${userName} is not displayed in the feature owners list`, async () => {
-      await this.getFeatureOwnerRecordItem(userName, false);
     });
   }
 
@@ -316,7 +190,7 @@ export class FeatureOwnersPage extends BasePage {
             .locator(`[class*='FeatureColumn-module-featureName'] p`)
             .filter({ hasText: featureNameOrIndex }),
         });
-        userCountButton = featureRow.locator('[class*="OwnerColumn-module-userCount"]');
+        userCountButton = featureRow.locator('[class*="FeatureOwnersCountDialog-module-ownerCountButton"] p');
       } else {
         // Find by index (fallback)
         userCountButton = this.userCountButton.nth(featureNameOrIndex);

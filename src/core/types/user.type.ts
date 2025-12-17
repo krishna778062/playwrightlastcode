@@ -10,6 +10,20 @@ export interface User {
   locale_id?: number;
 }
 
+export interface UserWithLicenseAndDepartment {
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  mobile: number;
+  emp: string;
+  license_type: string;
+  department: string;
+  timezone_id?: number;
+  language_id?: number;
+  locale_id?: number;
+}
+
 export interface StaticUsers {
   email: string;
   password?: string;
@@ -97,6 +111,12 @@ export interface IdentityUserInfoResponse {
   work_info: work_info;
   role_id: string;
   additional_role_id?: string[];
+  source: string;
+  external_id: string;
+  deprov_source: string;
+  sync_source: string;
+  sync_identifier: string;
+  reprov_source: string;
 }
 
 export interface personal_info {

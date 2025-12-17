@@ -1,5 +1,7 @@
 import { APIRequestContext, Browser, BrowserContext, request } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 
 export class AuthHelper {
@@ -12,10 +14,10 @@ export class AuthHelper {
   ): Promise<APIRequestContext> {
     const tmpContext = await request.newContext();
     try {
-      // ✅ Use HttpClient for API calls
+      // ✅ Use HttpClient for API calls with retry logic
       const httpClient = new HttpClient(tmpContext, tenantUrl);
-      const token = await this.getValidationToken(httpClient, creds.email);
-      await this.performLogin(httpClient, token, creds.password);
+      const token = await this.getValidationTokenWithRetry(httpClient, creds.email);
+      await this.performLoginWithRetry(httpClient, token, creds.password);
 
       const headers = await this.extractAuthHeaders(tmpContext);
       const storageState = await tmpContext.storageState();
@@ -35,10 +37,10 @@ export class AuthHelper {
   ): Promise<BrowserContext> {
     const tmpContext = await request.newContext();
     try {
-      // ✅ Use HttpClient for API calls
+      // ✅ Use HttpClient for API calls with retry logic
       const httpClient = new HttpClient(tmpContext, tenantUrl);
-      const token = await this.getValidationToken(httpClient, creds.email);
-      await this.performLogin(httpClient, token, creds.password);
+      const token = await this.getValidationTokenWithRetry(httpClient, creds.email);
+      await this.performLoginWithRetry(httpClient, token, creds.password);
 
       const headers = await this.extractAuthHeaders(tmpContext);
       const storageState = await tmpContext.storageState();
@@ -48,9 +50,45 @@ export class AuthHelper {
     }
   }
 
+  private static async getValidationTokenWithRetry(
+    httpClient: HttpClient,
+    email: string,
+    maxRetries: number = 3
+  ): Promise<string> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await httpClient.post(API_ENDPOINTS.identity.validate, {
+          data: { loginIdentifier: email },
+          timeout: 30000, // Increase timeout to 30 seconds for parallel execution
+        });
+
+        if (!response.ok()) {
+          throw new Error(`User validation failed for email: ${email}`);
+        }
+
+        const responseJson = await response.json();
+        const token = responseJson?.result?.token;
+
+        if (!token) {
+          throw new Error(`Token not found for email: ${email}`);
+        }
+
+        return token;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+    throw new Error(`Failed to get validation token after ${maxRetries} attempts`);
+  }
+
   private static async getValidationToken(httpClient: HttpClient, email: string): Promise<string> {
-    const response = await httpClient.post('/v2/identity/users/validate', {
+    const response = await httpClient.post(API_ENDPOINTS.identity.validate, {
       data: { loginIdentifier: email },
+      timeout: 30000, // Increase timeout to 30 seconds for parallel execution
     });
 
     if (!response.ok()) {
@@ -67,10 +105,39 @@ export class AuthHelper {
     return token;
   }
 
+  private static async performLoginWithRetry(
+    httpClient: HttpClient,
+    token: string,
+    password: string,
+    maxRetries: number = 3
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await httpClient.post(API_ENDPOINTS.identity.login, {
+          data: { password },
+          headers: { 'x-smtip-tsid': token },
+          timeout: 30000, // Increase timeout to 30 seconds for parallel execution
+        });
+
+        if (!response.ok()) {
+          throw new Error('Login failed');
+        }
+        return; // Success, exit retry loop
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+  }
+
   private static async performLogin(httpClient: HttpClient, token: string, password: string): Promise<void> {
-    const response = await httpClient.post('/v2/identity/users/login', {
+    const response = await httpClient.post(API_ENDPOINTS.identity.login, {
       data: { password },
       headers: { 'x-smtip-tsid': token },
+      timeout: 30000, // Increase timeout to 30 seconds for parallel execution
     });
 
     if (!response.ok()) {

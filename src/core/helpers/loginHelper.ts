@@ -18,11 +18,41 @@ export class LoginHelper {
    * @param options - Optional parameters for the login step.
    * @returns An instance of the HomePage.
    */
-  public static async loginWithPassword(page: Page, user: UserCredentials): Promise<NewHomePage> {
+  public static async loginWithPassword(page: Page, user: UserCredentials, tenantConfig?: any): Promise<NewHomePage> {
     const loginPage = new LoginPage(page);
     await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
-    const homePage = await loginPage.actions.performLogin(user.email, user.password!);
+
+    // Detect login identifier type and get appropriate credential
+    const identifierType = await loginPage.getLoginIdentifierType();
+
+    const identifierLookup: Record<string, () => string> = {
+      email: () => user.email || tenantConfig?.appManagerEmail || '',
+      employee: () => user.email || tenantConfig?.QA_ALTERNATE || tenantConfig?.UAT_ALTERNATE || '',
+      mobile: () => tenantConfig?.QA_MOBILE || tenantConfig?.UAT_MOBILE || '',
+      phone: () =>
+        tenantConfig?.QA_ALTERNATE_PHONE ||
+        tenantConfig?.UAT_ALTERNATE_PHONE ||
+        user.email ||
+        tenantConfig?.appManagerEmail ||
+        '',
+    };
+
+    const getLoginIdentifier = identifierLookup[identifierType] ?? identifierLookup.phone;
+    const loginIdentifier = getLoginIdentifier();
+
+    const homePage = await loginPage.actions.performLogin(loginIdentifier, user.password!);
     return homePage;
+  }
+
+  public static async setPasswordForFirstTimeLogin(page: Page, user: UserCredentials): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.loadPage({ stepInfo: `Loading login page for user ${user.email}` });
+    await loginPage.actions.performFirstTimeLoginBySettingPassword(user.email, user.password!);
+  }
+  // step to set user profile security questions
+  public static async setUserProfileSecurityQuestions(page: Page): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.actions.setUserProfileSecurityQuestions();
   }
 
   /**

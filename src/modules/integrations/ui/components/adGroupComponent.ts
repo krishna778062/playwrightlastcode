@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { AD_GROUP } from '@/src/modules/integrations/test-data/gamma-data-file';
 
 export class AdGroupComponent extends BaseComponent {
   readonly adGroupsOption: (text: string) => Locator;
@@ -124,6 +125,51 @@ export class AdGroupComponent extends BaseComponent {
     const clearButton = this.clearGroupButton(groupName);
     await test.step(`Click on Clear Group button: ${groupName}`, async () => {
       await clearButton.click();
+    });
+  }
+
+  async removeIfGroupsAreSelected(useGroupsRadioText: string, selectGroupsButtonText: string): Promise<void> {
+    await test.step(`Check if ${useGroupsRadioText} is selected and click ${selectGroupsButtonText} if enabled`, async () => {
+      const useGroupsOption = this.adGroupsOption(useGroupsRadioText);
+
+      const isSelected = await useGroupsOption.isChecked();
+
+      if (isSelected) {
+        const selectButton = this.selectADGroupButton(selectGroupsButtonText);
+        await selectButton.click();
+        await this.clickOnSelectedGroupsTab(AD_GROUP.SELECTED_GROUPS_TAB);
+        await this.removeGroups();
+        await this.clickOnSelectADGroupButton('Done');
+        await this.clickOnDoNotUseADGroupsRadioButton(AD_GROUP.DO_NOT_USE_AD_GROUPS);
+        await this.clickOnSelectADGroupButton('Save');
+      } else {
+        console.log(
+          `${useGroupsRadioText} radio button is not selected, skipping ${selectGroupsButtonText} button click`
+        );
+      }
+    });
+  }
+
+  async removeGroups(): Promise<void> {
+    await test.step('Clear all selected AD groups', async () => {
+      const groupItems = this.rootLocator.locator('li.SelectActiveDirectoryGroup-module-itemList___Fton6');
+      const count = await groupItems.count();
+
+      if (count === 0) {
+        console.log('No selected groups to clear');
+        return;
+      }
+      console.log(`Clearing ${count} selected groups`);
+
+      for (let i = count - 1; i >= 0; i--) {
+        const clearButton = groupItems.nth(i).locator('button[data-testid*="clear-button"]');
+        if (await clearButton.isVisible()) {
+          const currentCount = await groupItems.count();
+          await clearButton.click();
+          await expect(groupItems).toHaveCount(currentCount - 1);
+        }
+      }
+      console.log('All groups cleared');
     });
   }
 }

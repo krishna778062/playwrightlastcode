@@ -58,7 +58,7 @@ export interface AudienceRule {
 
 export interface CreateAudienceRequest {
   name: string;
-  description: string;
+  description?: string;
   type: string;
   audienceRule: AudienceRule;
 }
@@ -75,6 +75,7 @@ export interface CreateAudienceResponse {
     description: string;
     type: string;
     audienceRule: AudienceRule;
+    audienceMemberCount: number;
   };
   errors: any[];
 }

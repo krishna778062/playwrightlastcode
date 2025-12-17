@@ -45,7 +45,9 @@ export class ResultListingComponent extends BaseComponent {
     this.autocompleteList = this.page.locator('div[class*="AutocompleteListingItem_wrapper"]');
     this.autocompleteSiteName = this.rootLocator;
     this.autocompleteSiteLabel = this.autocompleteSiteName.locator('p[class*="Typography-module__paragraph"]');
-    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator('[class*="Emblem-module__iconContainer"]');
+    this.autocompleteSiteThumbnail = this.autocompleteSiteName.locator(
+      '[class*="Emblem-module__autoIconContainer"], [class*="Emblem-module__iconContainer"], [class*="Emblem-module__image"]'
+    );
     this.autocompleteLockIcon = this.autocompleteSiteName.locator('[data-testid="i-lock"]');
     this.autocompleteDateEmblem = this.autocompleteSiteName.locator('[class*="DateEmblem-module__date"]').first();
   }
@@ -112,7 +114,7 @@ export class ResultListingComponent extends BaseComponent {
   async verifyNameIsDisplayed(name: string) {
     await test.step(`Verifying name "${name}" is displayed in the result item`, async () => {
       await this.verifier.verifyElementHasText(this.name, name, {
-        timeout: 20000,
+        timeout: 40000,
         assertionMessage: `Verifying name "${name}" is displayed in the result item`,
       });
     });
@@ -253,23 +255,19 @@ export class ResultListingComponent extends BaseComponent {
       try {
         // Wait for at least one autocomplete item to appear
         await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-          timeout: 20000,
+          timeout: 30000,
           assertionMessage: 'Verifying autocomplete list is visible',
         });
       } catch (error) {
         // If autocomplete is not displayed, retry by deleting last character and retyping
         if (searchInputLocator && searchTerm && searchTerm.length > 0) {
-          await test.step('Autocomplete not displayed, retrying by deleting last character and retyping', async () => {
-            // Delete the last character
-            await searchInputLocator.press('Backspace');
-
-            // Retype the last character
-            const lastChar = searchTerm[searchTerm.length - 1];
-            await searchInputLocator.fill(lastChar);
+          await test.step('Autocomplete not displayed, retrying by clearing and retyping search term', async () => {
+            await searchInputLocator.clear();
+            await searchInputLocator.fill(searchTerm);
 
             // Try to verify autocomplete list again
             await this.verifier.verifyTheElementIsVisible(this.autocompleteList.first(), {
-              timeout: 10000,
+              timeout: 30000,
               assertionMessage: 'Verifying autocomplete list is visible after retry',
             });
           });

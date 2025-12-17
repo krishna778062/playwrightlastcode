@@ -6,6 +6,7 @@ import { ExternalSearchListComponent } from '../components/externalSearchListCom
 import { ContentType } from '@/src/core/constants/contentTypes';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { EXACT_MATCH_TOOLTIP_TEXT } from '@/src/modules/global-search/test-data/site-search.test-data';
 import { IContentSearch } from '@/src/modules/global-search/types/content-search.type';
 import { IFeedSearch } from '@/src/modules/global-search/types/feed-search.type';
 import { IFileSearch } from '@/src/modules/global-search/types/file-search.type';
@@ -13,14 +14,17 @@ import { AppsAndLinkContainerComponent } from '@/src/modules/global-search/ui/co
 import { ContentListComponent } from '@/src/modules/global-search/ui/components/contentListComponent';
 import { FeedListComponent } from '@/src/modules/global-search/ui/components/feedListComponent';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
+import { PeopleListComponent } from '@/src/modules/global-search/ui/components/peopleListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
 import { SidebarFilterComponent } from '@/src/modules/global-search/ui/components/sidebarFilterComponent';
 import { SiteListComponent } from '@/src/modules/global-search/ui/components/siteListComponent';
 import { TileListComponent } from '@/src/modules/global-search/ui/components/tileListComponent';
+import { TypeFilterComponent } from '@/src/modules/global-search/ui/components/typeFilterComponent';
 
 export class GlobalSearchResultPage extends BasePage {
   readonly resultListingComponent: ResultListingComponent;
   readonly siteListingComponent: SiteListComponent;
+  readonly peopleListingComponent: PeopleListComponent;
   readonly searchResultListContainer: Locator;
   readonly searchResultListItems: Locator;
   readonly siteResultItems: Locator;
@@ -29,15 +33,23 @@ export class GlobalSearchResultPage extends BasePage {
   readonly albumResultItems: Locator;
   readonly feedResultItems: Locator;
   readonly tileResultItems: Locator;
+  readonly peopleResultItems: Locator;
   readonly tileButton: Locator;
   readonly appResultContainer: Locator;
   readonly externalSearchResultItems: Locator;
   readonly dismissButton: Locator;
+  readonly autocompleteAppList: Locator;
+  readonly exactMatchCheckbox: Locator;
+  readonly exactMatchTitle: Locator;
+  readonly exactMatchSection: Locator;
+  readonly exactMatchInfoIcon: Locator;
+  readonly exactMatchTooltip: Locator;
 
   constructor(page: Page) {
     super(page);
     this.resultListingComponent = new ResultListingComponent(page);
     this.siteListingComponent = new SiteListComponent(page);
+    this.peopleListingComponent = new PeopleListComponent(page);
     this.searchResultListContainer = this.page.locator("div[class*='ResultListWithSidebar_container']");
     this.searchResultListItems = this.searchResultListContainer.locator('li');
     this.siteResultItems = this.searchResultListItems.filter({
@@ -55,16 +67,33 @@ export class GlobalSearchResultPage extends BasePage {
     this.tileResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-tile'),
     });
+    this.peopleResultItems = this.searchResultListItems.filter({
+      has: this.page.locator("span[class*='BreadcrumbItem-module']").filter({ hasText: 'People' }),
+    });
     this.tileButton = this.page.getByRole('button', { name: 'Tiles' });
 
     this.eventResultItems = this.searchResultListItems.filter({
       has: this.page.getByTestId('i-calendar'),
     });
 
-    this.appResultContainer = this.page.locator("div[class*='AppItemList_appListTopWrapper']");
+    this.appResultContainer = this.page
+      .locator("div[class*='AppItemList_appListTopWrapper']")
+      .or(this.page.locator("div[class*='ResultListWithSidebar_container']"));
 
     this.externalSearchResultItems = this.page.locator("div[class*='externalSearchBox']");
     this.dismissButton = this.page.locator('button[aria-label*="Dismiss"]');
+
+    // App autocomplete locators
+    this.autocompleteAppList = this.page.locator('a[class*="AppList_hoverStyle"]');
+
+    // Exact match locators
+    this.exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
+    this.exactMatchSection = this.page.locator('[class*="ExactMatch_title"]');
+    this.exactMatchTitle = this.exactMatchSection.filter({
+      hasText: 'Search for an exact match',
+    });
+    this.exactMatchInfoIcon = this.page.locator('[data-testid="i-info"]');
+    this.exactMatchTooltip = this.page.getByRole('tooltip');
   }
 
   /**
@@ -74,6 +103,15 @@ export class GlobalSearchResultPage extends BasePage {
    */
   getSidebarFilter(options: { filterText: string; iconType?: string; siteName?: string }): SidebarFilterComponent {
     return new SidebarFilterComponent(this.page, options);
+  }
+
+  /**
+   * Creates a filter component for filtering search results (e.g., Type, Author)
+   * @param filterName - The name of the filter (e.g., "Type", "Author"). Defaults to "Type" for backward compatibility
+   * @returns TypeFilterComponent - The filter component instance
+   */
+  getTypeFilter(filterName: string): TypeFilterComponent {
+    return new TypeFilterComponent(this.page, filterName);
   }
 
   private getTestIdForFileType(fileType: string): string {
@@ -89,6 +127,8 @@ export class GlobalSearchResultPage extends BasePage {
       case 'xlsx':
         return 'i-microsoftExcel';
       case 'mp4':
+        return 'i-video';
+      case 'mov':
         return 'i-video';
       default:
         return 'i-files';
@@ -182,7 +222,7 @@ export class GlobalSearchResultPage extends BasePage {
    * @returns true if the app result list is displayed, false otherwise
    */
   async isAppResultDisplayed() {
-    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer, { timeout: 50000 });
+    return await this.verifier.verifyTheElementIsVisible(this.appResultContainer.first(), { timeout: 90000 });
   }
 
   /**
@@ -203,9 +243,8 @@ export class GlobalSearchResultPage extends BasePage {
       await verificationFn();
     } catch {
       // If the verification fails, check if the "Search for an exact match" checkbox is visible and click it
-      const exactMatchCheckbox = this.page.getByRole('checkbox', { name: 'Search for an exact match' });
-      await exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
-      await exactMatchCheckbox.click();
+      await this.exactMatchCheckbox.waitFor({ state: 'visible', timeout: 50_000 });
+      await this.exactMatchCheckbox.click();
       // Retry the verification after clicking the checkbox
       await verificationFn();
     }
@@ -251,6 +290,27 @@ export class GlobalSearchResultPage extends BasePage {
     });
 
     return new SiteListComponent(this.page, siteResultToLocate);
+  }
+
+  /**
+   * Get the people result item exactly matching the search term
+   * @param searchTerm - the search term
+   * @returns the people result item
+   */
+  async getPeopleResultItemExactlyMatchingTheSearchTerm(searchTerm: string) {
+    await this.waitUntilSearchResultListIsDisplayed();
+    const peopleResultToLocate = this.peopleResultItems.filter({
+      has: this.page.locator('h2', { hasText: searchTerm }),
+    });
+
+    await this.handleExactMatchCheckboxRetry(async () => {
+      await this.verifier.verifyTheElementIsVisible(peopleResultToLocate, {
+        timeout: 40_000,
+        assertionMessage: `Verifying the people result item exactly matching the search term: ${searchTerm}`,
+      });
+    });
+
+    return new PeopleListComponent(this.page, peopleResultToLocate);
   }
 
   /**
@@ -375,6 +435,26 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Get specific app autocomplete item by name
+   * @param itemName - The app name to find
+   * @param options - Optional parameters including stepInfo
+   * @returns AppsAndLinkContainerComponent instance for the specific app item
+   */
+  async getAutocompleteAppItemByName(
+    itemName: string,
+    options?: { stepInfo?: string }
+  ): Promise<AppsAndLinkContainerComponent> {
+    return await test.step(options?.stepInfo || `Getting app autocomplete item by name "${itemName}"`, async () => {
+      // wait for autocompleteAppList to be visible
+      await this.verifier.waitUntilElementIsVisible(this.autocompleteAppList, { timeout: 40000 });
+      const specificItemLocator = this.autocompleteAppList.filter({
+        hasText: itemName,
+      });
+      return new AppsAndLinkContainerComponent(this.page, specificItemLocator);
+    });
+  }
+
+  /**
    * Verifies external search results are displayed
    */
   async verifyExternalSearchLinksAreDisplayed(): Promise<ExternalSearchListComponent> {
@@ -418,6 +498,48 @@ export class GlobalSearchResultPage extends BasePage {
   }
 
   /**
+   * Generic people subfilter with count tracking and reset functionality
+   * @param options - Options including filter text, filter name, original count, and expected count after filter
+   */
+  async verifyPeopleSubFilterWithCountTracking(options: {
+    filterText: string;
+    filterName: string;
+    originalCount: number;
+    expectedCountAfterFilter: number;
+    stepInfo?: string;
+  }): Promise<void> {
+    const subFilter = this.getSidebarFilter(options);
+    await subFilter.verifyPeopleSubFilterWithCountTracking({
+      filterName: options.filterName,
+      expectedCountAfterFilter: options.expectedCountAfterFilter,
+      originalCount: options.originalCount,
+      stepInfo: options.stepInfo,
+    });
+  }
+
+  /**
+   * Verifies the visibility of a people subfilter
+   * @param subFilterName - The name of the subfilter to verify
+   * @param shouldBeVisible - Whether the subfilter should be visible (true) or not visible (false)
+   * @param options - Optional step info and filter configuration
+   */
+  async verifyPeopleSubFilterVisibility(
+    subFilterName: string,
+    shouldBeVisible: boolean,
+    options?: {
+      stepInfo?: string;
+      filterText?: string;
+      iconType?: string;
+      globalFilterName?: string;
+    }
+  ): Promise<void> {
+    const filterText = options?.filterText || 'People';
+    const iconType = options?.iconType || 'people';
+    const subFilter = this.getSidebarFilter({ filterText, iconType });
+    await subFilter.verifyPeopleSubFilterVisibility(subFilterName, shouldBeVisible);
+  }
+
+  /**
    * Dismisses survey popup if present
    */
   async dismissSurveyPopupIfPresent(): Promise<void> {
@@ -429,6 +551,74 @@ export class GlobalSearchResultPage extends BasePage {
       } catch {
         // No survey popup present - continue with test
       }
+    });
+  }
+
+  /**
+   * Verifies the exact match checkbox is visible
+   */
+  async verifyExactMatchCheckboxIsVisible(): Promise<void> {
+    await test.step('Verifying exact match checkbox is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchCheckbox, {
+        timeout: 30000,
+        assertionMessage: 'Verifying exact match checkbox is visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match title text is displayed
+   */
+  async verifyExactMatchTitleTextIsDisplayed(): Promise<void> {
+    await test.step('Verifying exact match title text is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTitle, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match title text is displayed',
+      });
+    });
+  }
+
+  /**
+   * Verifies the exact match info icon is visible
+   */
+  async verifyExactMatchInfoIconIsVisible(): Promise<void> {
+    await test.step('Verifying exact match info icon is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchInfoIcon.first(), {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying exact match info icon is visible',
+      });
+    });
+  }
+
+  /**
+   * Hovers over the exact match info icon and verifies tooltip text
+   * @param searchTerm - The search term to verify in the tooltip text
+   */
+  async hoverOverExactMatchInfoIconAndVerifyTooltip(searchTerm: string): Promise<void> {
+    await test.step(`Hovering over exact match info icon and verifying tooltip text with search term "${searchTerm}"`, async () => {
+      await this.exactMatchInfoIcon.first().hover();
+      await this.verifier.verifyTheElementIsVisible(this.exactMatchTooltip.first(), {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying tooltip is displayed after hovering over info icon',
+      });
+
+      // Verify tooltip text contains the expected content (base text and search term)
+      const expectedText = `${EXACT_MATCH_TOOLTIP_TEXT} “${searchTerm}”`;
+      await this.verifier.verifyElementContainsText(this.exactMatchTooltip.first(), expectedText, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Verifying tooltip contains base text and search term "${searchTerm}"`,
+      });
+    });
+  }
+
+  /**
+   * Clicks on the exact match checkbox
+   */
+  async clickExactMatchCheckbox(): Promise<void> {
+    await test.step('Clicking on exact match checkbox', async () => {
+      await this.clickOnElement(this.exactMatchCheckbox, {
+        stepInfo: 'Clicking on exact match checkbox',
+      });
     });
   }
 }

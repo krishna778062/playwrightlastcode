@@ -33,9 +33,16 @@ Thumbs.db
 coverage/
 *.lcov
 
+
 # ESLint cache
 .eslintcache
 
 # TypeScript cache
 *.tsbuildinfo
 .idea/
+
+downloads/
+
+# all debug csv and log files
+*.csv
+*.log

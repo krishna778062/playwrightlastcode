@@ -207,6 +207,28 @@ export class TimeOffRequestTileComponent extends BaseAppTileComponent {
   }
 
   /**
+   * Verifies that the form displays the correct total hours
+   * @param expectedTotalHours - The expected total hours
+   */
+  async verifyTotalHours(expectedTotalHours: number): Promise<void> {
+    await test.step(`Verify total hours is ${expectedTotalHours}`, async () => {
+      const inputCount = await this.totalAmountInput.count();
+      const inputVisible = inputCount > 0 && (await this.totalAmountInput.isVisible());
+      if (inputVisible) {
+        await expect(
+          this.totalAmountInput,
+          `Total amount input should display ${expectedTotalHours} hours`
+        ).toHaveValue(`${expectedTotalHours} hours`);
+      } else {
+        await expect(
+          this.totalAmountHeading,
+          `Total amount heading should contain ${expectedTotalHours} hours`
+        ).toContainText(`Total: ${expectedTotalHours} hours`);
+      }
+    });
+  }
+
+  /**
    * Verifies all required form fields are present and in correct state
    */
   async verifyRequiredFields(): Promise<void> {

@@ -1,18 +1,23 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
-import { AudienceManagementHelper } from '../apis/helpers/audienceManagementHelper';
-import { SocialCampaignHelper } from '../apis/helpers/socialCampaignHelper';
-
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
-import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { AudienceManagementHelper } from '@/src/modules/content/apis/helpers/audienceManagementHelper';
+import { CarouselHelper } from '@/src/modules/content/apis/helpers/carouselHelper';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
+import { SiteAudienceHelper } from '@/src/modules/content/apis/helpers/siteAudienceHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { SocialCampaignHelper } from '@/src/modules/content/apis/helpers/socialCampaignHelper';
+import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
-import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import {
+  getContentEnvironmentFromCache,
+  getContentTenantConfigFromCache,
+} from '@/src/modules/content/config/contentConfig';
+import { createAuthenticatedContextAndPageWithCache } from '@/src/modules/content/helpers/storageStateHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 // API-only fixture type for API helpers and services
@@ -23,7 +28,10 @@ export interface ApiFixture {
   feedManagementHelper: FeedManagementHelper;
   identityManagementHelper: IdentityManagementHelper;
   socialCampaignHelper: SocialCampaignHelper;
+  tileManagementHelper: TileManagementHelper;
+  carouselHelper: CarouselHelper;
   audienceManagementHelper: AudienceManagementHelper;
+  siteAudienceHelper: SiteAudienceHelper;
   siteManagementService: SiteManagementService;
   feedManagerService: FeedManagementService;
 }
@@ -64,6 +72,11 @@ export const users = {
 async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
   // Create all helpers and services
   const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl,
+    getContentTenantConfigFromCache().frontendBaseUrl
+  );
   const contentManagementHelper = new ContentManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(
@@ -71,6 +84,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     getContentTenantConfigFromCache().apiBaseUrl
   );
   const socialCampaignHelper = new SocialCampaignHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const carouselHelper = new CarouselHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const audienceManagementHelper = new AudienceManagementHelper(
     apiContext,
     getContentTenantConfigFromCache().apiBaseUrl
@@ -78,6 +92,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
 
   const siteManagementService = new SiteManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagerService = new FeedManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const siteAudienceHelper = new SiteAudienceHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
 
   return {
     apiContext,
@@ -86,7 +101,10 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     feedManagementHelper,
     identityManagementHelper,
     socialCampaignHelper,
+    tileManagementHelper,
+    carouselHelper,
     audienceManagementHelper,
+    siteAudienceHelper,
     siteManagementService,
     feedManagerService,
   };
@@ -95,12 +113,22 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
 // Helper function to create UI-only fixtures
 async function createUiFixture(browser: any, userType: UserType): Promise<UiFixture> {
   const user = users[userType];
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  const tenantConfig = getContentTenantConfigFromCache();
+  const testEnv = getContentEnvironmentFromCache();
 
-  await LoginHelper.loginWithPassword(page, {
-    email: user.email,
-    password: user.password,
+  // Use storage state caching to avoid redundant logins
+  const { context, page } = await createAuthenticatedContextAndPageWithCache({
+    browser,
+    userEmail: user.email,
+    userPassword: user.password,
+    testEnv,
+    tenantOrgId: tenantConfig.orgId,
+  });
+
+  // Handle browser alerts by clicking OK
+  page.on('dialog', async (dialog: any) => {
+    console.log(`Dialog appeared: ${dialog.message()}`);
+    await dialog.accept();
   });
 
   const homePage = new NewHomePage(page);
@@ -211,8 +239,10 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }
@@ -228,8 +258,10 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Standard user API fixture cleanup failed:', error);
       }
@@ -245,8 +277,10 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Site manager API fixture cleanup failed:', error);
       }
@@ -262,8 +296,10 @@ export const contentTestFixture = test.extend<
       // Cleanup helpers that have cleanup methods
       try {
         await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
       } catch (error) {
         console.warn('Social campaign manager API fixture cleanup failed:', error);
       }

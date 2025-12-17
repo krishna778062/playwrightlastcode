@@ -1,12 +1,12 @@
 import { Locator, Page, Response, test } from '@playwright/test';
 
 import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
-import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 export interface SiteCreationOptions {
   name: string;
@@ -63,7 +63,7 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
     super(page);
 
     // API-based locators (existing)
-    this.siteNameInput = page.locator('input[aria-label="Site name"]');
+    this.siteNameInput = page.getByRole('textbox', { name: 'Site name' });
     this.categoryDropdown = page
       .locator('div')
       .filter({ hasText: 'Add or select existing category' })
@@ -77,8 +77,8 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
         .locator('div')
         .filter({ hasText: new RegExp(`^${categoryName}$`) });
 
-    this.accessType = (type: string) => page.locator('label').filter({ hasText: type });
-    this.createSiteButton = page.locator('button:has-text("Add site")');
+    this.accessType = (type: string) => page.getByText(type, { exact: true });
+    this.createSiteButton = page.getByRole('button', { name: 'Add site' });
 
     // UI-based locators (new)
     this.siteNameTextbox = page.getByRole('textbox', { name: 'Site name' });
@@ -180,11 +180,14 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
     siteDashboard: SiteDashboardPage;
     siteId: string;
   }> {
-    return await test.step(`Creating and publishing site with name: ${options.name}`, async () => {
+    // Handle siteCategory - use default if not provided
+    const siteCategory = options.siteCategory || (options as any).category || 'Uncategorized';
+
+    return await test.step(`Creating and publishing site with name: ${options.name} accessType: ${options.access}`, async () => {
       // Fill in site mandatory details
       await this.fillSiteDetails({
         name: options.name,
-        category: options.siteCategory,
+        category: siteCategory,
         access: options.access,
       });
 
@@ -211,7 +214,14 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async fillSiteDetails(options: { name: string; category: string; access: string }) {
     await test.step(`Filling site details`, async () => {
+      // Validate that name is provided
+      if (!options.name || options.name.trim() === '') {
+        throw new Error('Site name is required and cannot be empty');
+      }
+
       // Add site name
+      await this.clickOnElement(this.siteNameInput);
+      console.log('options.name', options.name);
       await this.fillInElement(this.siteNameInput, options.name);
 
       // Handle category selection
@@ -232,10 +242,11 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
    */
   async createSite(): Promise<Response> {
     return await test.step(`Creating site and wait for create api response`, async () => {
+      console.log('site creation url', getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url);
       const createResponse = await this.performActionAndWaitForResponse(
-        () => this.clickOnElement(this.createSiteButton, { delay: 2_000 }),
+        () => this.clickOnElement(this.createSiteButton, { delay: 5_000 }),
         response =>
-          response.request().url() === getEnvConfig().apiBaseUrl + API_ENDPOINTS.site.url &&
+          response.request().url() === getContentTenantConfigFromCache().apiBaseUrl + API_ENDPOINTS.site.url &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

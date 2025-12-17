@@ -2,6 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { ProfileDropdownComponent } from './profileDropdownComponent';
 
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class TopNavBarComponent extends BaseComponent {
@@ -22,8 +23,10 @@ export class TopNavBarComponent extends BaseComponent {
   readonly notificationsButton: Locator;
 
   //profile settings section
+  readonly viewProfileButton: Locator;
   readonly profileSettingsButton: Locator;
-
+  readonly xButtonToClearGlobalSearchBar: Locator;
+  readonly editTimezoneButton: Locator;
   constructor(
     page: Page,
     readonly isNewUxEnabled = true
@@ -43,14 +46,19 @@ export class TopNavBarComponent extends BaseComponent {
     this.notificationsButton = this.page.getByRole('button', { name: 'Notifications' });
 
     //message section
-    this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
+    this.messageButton = this.page
+      .getByRole('button', { name: 'Messaging' })
+      .or(this.page.getByRole('menuitem', { name: 'Messaging' }));
 
     //search section
-    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]');
+    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]').first();
     this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
+    this.viewProfileButton = this.page.getByText('View profile');
+    this.xButtonToClearGlobalSearchBar = this.page.getByRole('button', { name: 'Clear' });
+    this.editTimezoneButton = this.page.getByRole('button', { name: 'Edit contact' });
   }
 
   /**
@@ -64,9 +72,9 @@ export class TopNavBarComponent extends BaseComponent {
   }
 
   async clickSeeAllMessages(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking 'See all messages'`, async () => {
-      await this.clickOnElement(this.seeAllMessagesButton);
-    });
+    // await test.step(options?.stepInfo || `Clicking 'See all messages'`, async () => {
+    //   await this.clickOnElement(this.seeAllMessagesButton);
+    // });
   }
 
   async typeInSearchBarInput(searchTerm: string, options?: { stepInfo?: string }): Promise<void> {
@@ -74,10 +82,25 @@ export class TopNavBarComponent extends BaseComponent {
       await this.typeInElement(this.globalSearchInputBox, searchTerm, { timeout: 80_000 });
     });
   }
+  async clickOnXButtonToClearGlobalSearchBarInput(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || `topnavbar: clicking x button to clear global search bar input`, async () => {
+      await this.clickOnElement(this.xButtonToClearGlobalSearchBar);
+    });
+  }
 
   async clickSearchButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || `topnavbar: clicking search button`, async () => {
-      await this.clickOnElement(this.globalSearchButton);
+      const globalSearchResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.globalSearchButton, { delay: 2_000, timeout: 30_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.search.enterprise) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 40_000,
+        }
+      );
+      return globalSearchResponse;
     });
   }
 
@@ -159,6 +182,11 @@ export class TopNavBarComponent extends BaseComponent {
   async logout(options?: { stepInfo?: string }): Promise<void> {
     const profileDropdownComponent = await this.openProfileSettings(options);
     await profileDropdownComponent.clickOnLogoutButton();
+  }
+  async openEditTimezone(options?: { stepInfo?: string }): Promise<void> {
+    await this.clickOnElement(this.editTimezoneButton, {
+      stepInfo: options?.stepInfo || `topnavbar: clicking on edit timezone button`,
+    });
   }
 
   async openMySettings(options?: { stepInfo?: string }): Promise<void> {

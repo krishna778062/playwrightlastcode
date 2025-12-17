@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 
 export const CONTENT_TEST_DATA = {
@@ -10,6 +12,7 @@ export const CONTENT_TEST_DATA = {
   },
 
   DEFAULT_PAGE_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`,
     content: 'page',
     category: 'Uncategorized',
     label: 'Page',
@@ -35,6 +38,20 @@ export const CONTENT_TEST_DATA = {
     attachments: ['image1.jpg', 'testData.txt'],
   },
 
+  DEFAULT_EVENT_CONTENT: {
+    title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Event`,
+    contentType: 'event',
+    description: 'Test event content for global search verification and validation',
+    location: 'Delhi, India',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  },
+
+  TOAST_MESSAGES: {
+    PAGE_PUBLISHED_SUCCESSFULLY: "Created page successfully - it's published",
+    EVENT_PUBLISHED_SUCCESSFULLY: "Created event successfully - it's published",
+    ALBUM_PUBLISHED_SUCCESSFULLY: "Created album successfully - it's published",
+  },
   TIMEOUTS: {
     DEFAULT: 30_000,
     UPLOAD: 60_000,

@@ -33,6 +33,7 @@ test.describe(
           },
           options: {
             contentDescription: testData.description,
+            waitForSearchIndex: true,
           },
         });
 
@@ -58,7 +59,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -67,7 +68,6 @@ test.describe(
         });
 
         // 4. UI Search for the page
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" and intent is to find the content`,
         });
@@ -97,7 +97,6 @@ test.describe(
         });
 
         // Search for the page
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(pageName, {
           stepInfo: `Searching with term "${pageName}" to verify page appears in search results`,
         });
@@ -139,7 +138,7 @@ test.describe(
     test(
       `verify Page Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

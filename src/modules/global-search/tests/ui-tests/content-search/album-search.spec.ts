@@ -29,6 +29,7 @@ test.describe(
           imageName: 'beach.jpg',
           options: {
             contentDescription: ALBUM_SEARCH_TEST_DATA.description,
+            waitForSearchIndex: true,
           },
         });
 
@@ -54,7 +55,7 @@ test.describe(
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -63,7 +64,6 @@ test.describe(
         });
 
         // 5. UI Search for the album
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" and intent is to find the content`,
         });
@@ -93,7 +93,6 @@ test.describe(
         });
 
         // Search for the album
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(albumName, {
           stepInfo: `Searching with term "${albumName}" to verify album appears in search results`,
         });
@@ -133,7 +132,7 @@ test.describe(
     test(
       `verify Album Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -141,7 +140,6 @@ test.describe(
         });
 
         // Type in search input
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const topNavBarComponent = appManagerFixture.navigationHelper.topNavBarComponent;
         await topNavBarComponent.typeInSearchBarInput(albumName, {
           stepInfo: `Typing "${albumName}" in search input`,

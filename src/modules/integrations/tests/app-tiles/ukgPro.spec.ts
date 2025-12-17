@@ -14,6 +14,8 @@ import {
   TILE_IDS,
   UKG_PRO_INSTANCE_URL,
 } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { SYNCING, UKG_CREDS } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { UkgSyncPage } from '@/src/modules/integrations/ui/pages/ukgSyncPage';
 
 test.describe(
   'uKG PRO App Tiles Integration',
@@ -28,6 +30,7 @@ test.describe(
     const InstanceUrl = 'https://et19.ultipro.com/';
 
     let createdTileTitle: string | undefined = undefined;
+    let ukgSyncPage: UkgSyncPage;
 
     test.afterEach(async ({ appManagerFixture }) => {
       const { tileManagementHelper, homeDashboard } = appManagerFixture;
@@ -39,14 +42,44 @@ test.describe(
     });
 
     test(
+      'connect UKG Pro to the account',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        ukgSyncPage = new UkgSyncPage(appManagerFixture.page);
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-21130'],
+        });
+
+        // Navigate to the UKG sync page
+        await ukgSyncPage.loadPage();
+        await ukgSyncPage.verifyThePageIsLoaded();
+
+        // Check UKG Pro checkbox and fill connection details
+        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
+        await ukgSyncPage.addUkgConnectionDetails(
+          SYNCING.UKG_PRO,
+          UKG_CREDS.USERNAME,
+          UKG_CREDS.PASSWORD,
+          UKG_CREDS.BASE_URL,
+          UKG_CREDS.KEY
+        );
+        // Save the connection
+        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
+        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+      }
+    );
+
+    test(
       'create and edit UKG Pro Display Recent Paystubs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: ['INT-21114', 'INT-21086'],
+          zephyrTestId: ['INT-21114'],
           storyId: 'INT-20795',
         });
 
@@ -69,7 +102,7 @@ test.describe(
     test(
       'verify metadata for UKG Pro Display recent paystubs tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK, TestGroupType.SMOKE],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -96,7 +129,7 @@ test.describe(
     test(
       'create and edit UKG Pro Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -187,7 +220,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21088',
+          zephyrTestId: 'INT-28241',
           storyId: 'INT-20795',
         });
 
@@ -246,7 +279,7 @@ test.describe(
     test(
       'verify metadata for UKG Pro Display Recent Paystubs tile on site dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;

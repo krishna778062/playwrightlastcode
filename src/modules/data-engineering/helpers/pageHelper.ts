@@ -24,4 +24,10 @@ export class PageHelper {
       });
     });
   }
+
+  static async pause(page: Page, timeInMs: number): Promise<void> {
+    await test.step(`Pause for ${timeInMs} milliseconds`, async () => {
+      await page.waitForTimeout(timeInMs);
+    });
+  }
 }

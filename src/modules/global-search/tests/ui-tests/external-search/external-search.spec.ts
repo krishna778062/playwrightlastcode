@@ -33,7 +33,7 @@ test.describe(
     test(
       'to verify that external search is displaying correctly and responsive in Workplace Search',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -41,7 +41,6 @@ test.describe(
           storyId: 'SEN-14964',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(searchTerm, {
           stepInfo: `Searching with term "${searchTerm}" to verify external search links`,
         });

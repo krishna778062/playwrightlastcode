@@ -1,10 +1,10 @@
 import { Locator, Page, test } from '@playwright/test';
 
 import { ContentType } from '@content/constants/contentType';
-
-import { AlbumCreationPage } from '../pages/albumCreationPage';
-import { EventCreationPage } from '../pages/eventCreationPage';
-import { PageCreationPage } from '../pages/pageCreationPage';
+import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
+import { ContentStudioPageCreationPage } from '@content/ui/pages/contentStudioPageCreationPage';
+import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { extractSiteIdFromContentAdditionUrl } from '@/src/core/utils/urlUtils';
@@ -21,6 +21,7 @@ export class AddContentModalComponent extends BaseComponent {
   readonly pageContentTypeLabel: Locator;
   readonly albumContentTypeLabel: Locator;
   readonly eventContentTypeLabel: Locator;
+  readonly siteMessage: Locator;
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
@@ -53,10 +54,8 @@ export class AddContentModalComponent extends BaseComponent {
 
     //select site dropdown
     this.selectSiteDropdown = page.locator('input.ReactSelectInput-inputField');
-    this.selectSiteDropdownOption = (siteName: string) =>
-      page.locator(`div.u-textTruncate div:has-text("${siteName}")`);
+    this.selectSiteDropdownOption = (siteName: string) => page.locator(`div.u-textTruncate div:text-is("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
-
     this.selectSiteDropdownOptionByIndex = (index: number) => page.locator(`span.u-textTruncate`).nth(index);
 
     //select template dropdown
@@ -67,7 +66,8 @@ export class AddContentModalComponent extends BaseComponent {
       page.locator("div[class*='Menu-module'] div[role='menuitem']").nth(index);
 
     this.errorMessage = (contentType: ContentType) =>
-      page.locator(`p:has-text('${contentType}s have been disabled within this site')`);
+      page.getByText(`${contentType}s have been disabled within this site`);
+    this.siteMessage = page.locator('#siteError');
   }
 
   /**
@@ -133,7 +133,15 @@ export class AddContentModalComponent extends BaseComponent {
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
       await this.typeInElement(this.selectSiteDropdown, siteName);
-      await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      try {
+        console.log(`Selecting ${siteName} site from select site dropdown`);
+        await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      } catch (error) {
+        console.log(`Error selecting ${siteName} site from select site dropdown: ${error}`);
+        await this.selectSiteDropdown.clear();
+        await this.typeInElement(this.selectSiteDropdown, siteName);
+        await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      }
     });
   }
 
@@ -219,8 +227,14 @@ export class AddContentModalComponent extends BaseComponent {
    */
   async completeContentCreationForm(
     contentOption: ContentType,
-    options?: { siteName?: string; templateName?: string; recentlyUsedSiteIndex?: number; isFromHomePage?: boolean }
-  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage> {
+    options?: {
+      siteName?: string;
+      templateName?: string;
+      recentlyUsedSiteIndex?: number;
+      isFromHomePage?: boolean;
+      isFromStudio?: boolean;
+    }
+  ): Promise<PageCreationPage | AlbumCreationPage | EventCreationPage | ContentStudioPageCreationPage> {
     /**
      * First select the content type option
      * Then select the site if provided
@@ -229,7 +243,7 @@ export class AddContentModalComponent extends BaseComponent {
      * Then click the add button
      * Based on the content type, it will open the relevant content creation page
      */
-    let contentCreationPage: PageCreationPage | AlbumCreationPage | EventCreationPage;
+    let contentCreationPage: PageCreationPage | AlbumCreationPage | EventCreationPage | ContentStudioPageCreationPage;
 
     if (options?.siteName) {
       await this.selectSiteToAddContentFromDropdown(options.siteName);
@@ -268,7 +282,12 @@ export class AddContentModalComponent extends BaseComponent {
     switch (contentOption) {
       case ContentType.PAGE:
         if (siteId) {
-          contentCreationPage = new PageCreationPage(this.page, siteId);
+          // Return ContentStudioPageCreationPage if isFromStudio option is true, otherwise PageCreationPage
+          if (options?.isFromStudio) {
+            contentCreationPage = new ContentStudioPageCreationPage(this.page, siteId);
+          } else {
+            contentCreationPage = new PageCreationPage(this.page, siteId);
+          }
         } else {
           throw new Error('Site id not found in the url');
         }
@@ -298,6 +317,7 @@ export class AddContentModalComponent extends BaseComponent {
   async verifyErrorMessageWhenContentSubmissionIsDisabled(contentType: ContentType) {
     await test.step('Verify error message when content submission is disabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.errorMessage(contentType));
+      await this.verifier.verifyTheElementIsVisible(this.siteMessage);
     });
   }
 }

@@ -34,6 +34,11 @@ export enum SocialCampaignFilter {
   POPULAR = 'popular',
 }
 
+export enum SocialCampaignSharedWith {
+  FOLLOWERS = 'followers',
+  SITE = 'site',
+}
+
 export interface SocialCampaignOptions {
   message: string;
   url: string;
@@ -51,6 +56,7 @@ export interface SocialCampaign {
   recipientId?: string;
   status: SocialCampaignStatus;
   message: string;
+  title?: string;
   campaignUrl?: string;
   urlPreview?: {
     author_name: string;
@@ -172,5 +178,23 @@ export interface SocialCampaignStatusUpdateResponse {
   result: {
     data: SocialCampaign;
   };
+  errors: any[];
+}
+
+export interface SocialCampaignShareRequest {
+  textToPost: string;
+  bodyHtml: string;
+  isNewTiptap: true;
+  siteId?: string;
+  sharedWith: SocialCampaignSharedWith;
+}
+
+export interface SocialCampaignShareResponse {
+  success: boolean;
+  status: number;
+  textStatus: string;
+  message: string;
+  responseTimeStamp: number;
+  result: any;
   errors: any[];
 }

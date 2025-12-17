@@ -1,5 +1,19 @@
 import { getEnvVar } from '@core/utils/getEnvConfig';
 
+/**
+ * Google Calendar Integration Credentials
+ */
+export const GOOGLE_CALENDAR_USERS = {
+  APP_MANAGER: {
+    email: 'howard.nelson@simpplr.dev',
+    password: 'Simpplr@1220169',
+  },
+  END_USER: {
+    email: 'craig.gordon@simpplr.dev',
+    password: '_Simp_1234',
+  },
+};
+
 export interface GoogleCalendarEvent {
   id?: string;
   summary?: string;
@@ -13,6 +27,11 @@ export interface GoogleCalendarEvent {
   };
   location?: string;
   description?: string;
+  organizer?: {
+    email?: string;
+    displayName?: string;
+    self?: boolean;
+  };
   attendees?: Array<{
     email: string;
     responseStatus: 'accepted' | 'declined' | 'tentative' | 'needsAction';
@@ -111,20 +130,9 @@ export class GoogleCalendarHelper {
       q: eventTitle,
     });
 
-    console.log(`🔍 Searching Google Calendar for events containing: "${eventTitle}"`);
     const data = await this.makeRequest(`/calendars/${encodeURIComponent(calendarId)}/events?${params}`);
     const events = data.items || [];
-
-    console.log(`📅 Found ${events.length} total events in calendar`);
     const matchingEvents = events.filter((event: any) => event.summary?.includes(eventTitle)) as GoogleCalendarEvent[];
-
-    console.log(`🎯 Found ${matchingEvents.length} events matching "${eventTitle}"`);
-    if (matchingEvents.length > 0) {
-      console.log(
-        `✅ Matching events:`,
-        matchingEvents.map(e => ({ id: e.id, summary: e.summary }))
-      );
-    }
 
     return matchingEvents;
   }
@@ -154,11 +162,16 @@ export class GoogleCalendarHelper {
   ): Promise<{ found: boolean; event?: GoogleCalendarEvent; attempts: number }> {
     const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
 
+    console.log(`[Google Calendar] Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`);
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const matchingEvents = await this.findEvents(eventTitle, calendarId);
       const eventFound = matchingEvents.length > 0;
 
+      console.log(`[Google Calendar] Attempt ${attempt}/${maxAttempts}: ${eventFound ? 'Found' : 'Not found'}`);
+
       if (eventFound === expectFound) {
+        console.log(`[Google Calendar] ✅ SUCCESS after ${attempt} attempts`);
         return {
           found: eventFound,
           event: eventFound ? matchingEvents[0] : undefined,
@@ -171,6 +184,7 @@ export class GoogleCalendarHelper {
       }
     }
 
+    console.log(`[Google Calendar] ❌ FAILED after ${maxAttempts} attempts`);
     return { found: !expectFound, attempts: maxAttempts };
   }
 
@@ -180,11 +194,13 @@ export class GoogleCalendarHelper {
       title?: string;
       description?: string;
       location?: string;
+      author?: string;
     },
     options: {
       maxAttempts?: number;
       retryDelayMs?: number;
       calendarId?: string;
+      authorMatchBy?: 'email' | 'displayName' | 'both';
     } = {}
   ): Promise<{
     found: boolean;
@@ -193,10 +209,16 @@ export class GoogleCalendarHelper {
     attempts: number;
     mismatches?: string[];
   }> {
-    const { maxAttempts = 8, retryDelayMs = 10000, calendarId = 'primary' } = options;
+    const { maxAttempts = 12, retryDelayMs = 10000, calendarId = 'primary', authorMatchBy = 'both' } = options;
+
+    console.log(`[Google Calendar] Verifying details for "${eventTitle}"`);
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const matchingEvents = await this.findEvents(eventTitle, calendarId);
+
+      console.log(
+        `[Google Calendar] Attempt ${attempt}/${maxAttempts}: ${matchingEvents.length > 0 ? 'Found event' : 'No event'}`
+      );
 
       if (matchingEvents.length > 0) {
         const foundEvent = matchingEvents[0];
@@ -221,13 +243,48 @@ export class GoogleCalendarHelper {
           );
         }
 
+        if (expectedDetails.author) {
+          if (!foundEvent.organizer) {
+            mismatches.push('Author mismatch: organizer information is missing from event');
+          } else {
+            const organizerEmail = foundEvent.organizer.email?.toLowerCase() || '';
+            const organizerDisplayName = foundEvent.organizer.displayName?.toLowerCase() || '';
+            const expectedAuthorLower = expectedDetails.author.toLowerCase();
+
+            console.log(
+              `[Google Calendar] Author verification - Expected: "${expectedDetails.author}" (${authorMatchBy}), Got - Email: "${foundEvent.organizer.email || 'N/A'}", DisplayName: "${foundEvent.organizer.displayName || 'N/A'}"`
+            );
+
+            let authorMatched = false;
+
+            if (authorMatchBy === 'email') {
+              authorMatched = organizerEmail === expectedAuthorLower;
+            } else if (authorMatchBy === 'displayName') {
+              authorMatched = organizerDisplayName === expectedAuthorLower;
+            } else {
+              // authorMatchBy === 'both'
+              authorMatched = organizerEmail === expectedAuthorLower || organizerDisplayName === expectedAuthorLower;
+            }
+
+            if (!authorMatched) {
+              mismatches.push(
+                `Author mismatch: expected "${expectedDetails.author}", got "${foundEvent.organizer.displayName || foundEvent.organizer.email || 'N/A'}" (Email: ${organizerEmail}, DisplayName: ${organizerDisplayName})`
+              );
+            }
+          }
+        }
+
         if (mismatches.length === 0) {
+          console.log(`[Google Calendar] ✅ All details match after ${attempt} attempts`);
           return {
             found: true,
             detailsMatched: true,
             event: foundEvent,
             attempts: attempt,
           };
+        } else {
+          console.log(`[Google Calendar] Details mismatch: ${mismatches.length} issues`);
+          console.log(`[Google Calendar] Mismatch details:`, mismatches);
         }
       }
 
@@ -236,6 +293,7 @@ export class GoogleCalendarHelper {
       }
     }
 
+    console.log(`[Google Calendar] ❌ Details verification failed after ${maxAttempts} attempts`);
     return {
       found: false,
       detailsMatched: false,
@@ -302,6 +360,7 @@ export const verifyEventDetailsInGoogleCalendar = async (
     title?: string;
     description?: string;
     location?: string;
+    author?: string;
   },
   accessToken: string,
   options: {
@@ -309,6 +368,7 @@ export const verifyEventDetailsInGoogleCalendar = async (
     retryDelayMs?: number;
     calendarId?: string;
     waitFunction?: (ms: number) => Promise<void>;
+    authorMatchBy?: 'email' | 'displayName' | 'both';
   } = {}
 ): Promise<{
   found: boolean;
@@ -401,4 +461,14 @@ export function assertCompleteEventConfiguration(
 ): void {
   assertEventSyncConfiguration(eventResult, config.eventSync);
   assertRsvpConfiguration(eventResult, config.rsvp);
+}
+
+export function assertEventSyncedToCalendar(eventSyncResult: any): void {
+  const { expect } = require('@playwright/test');
+  expect(eventSyncResult.found, 'Event should have been synced to Google Calendar').toBe(true);
+}
+
+export function assertEventRemovedFromCalendar(eventSyncResult: any): void {
+  const { expect } = require('@playwright/test');
+  expect(eventSyncResult.found, 'Event should have been removed from Google Calendar').toBe(false);
 }

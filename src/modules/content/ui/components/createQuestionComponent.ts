@@ -185,6 +185,9 @@ export class CreateQuestionComponent
 
   async clickAskQuestionButton(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
+      // Wait for button to be enabled
+      await expect(this.askQuestionButton, 'Ask question button should be enabled').toBeEnabled({ timeout: 10_000 });
+
       const postResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.askQuestionButton, { delay: 3_000 }),
         response =>

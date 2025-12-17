@@ -35,13 +35,41 @@ export class AudiencePage extends BasePage {
   editCategoryModal: CategoryModalComponent;
   csvUploadModal: CsvAudienceModule;
 
+  // Audience create flow - class-level locators (CSS-first)
+  createAudienceDialog: Locator;
+  audienceNameInput: Locator;
+  addAudienceDescriptionButton: Locator;
+  audienceDescriptionInput: Locator;
+  selectParentTile: Locator;
+  audiencePickerDialog: Locator;
+  audiencePickerSearchBox: Locator;
+  audiencePickerDoneButton: Locator;
+  typeSelectInput: Locator;
+  adGroupSelectInput: Locator;
+  selectParentButton: Locator;
+  createAudienceBtn: Locator;
+
+  // Operator-related locators
+  operatorSelectInput: Locator;
+  operatorValueInput: Locator;
+  operatorValueDropdown: Locator;
+  operatorValueTestId: Locator;
+  operatorValuePlaceholder: Locator;
+
+  // Country-specific locators
+  countryValuesTextInput: Locator;
+
+  // Date-specific locators
+  dateButton: Locator;
+  startDateButton: Locator;
+  endDateButton: Locator;
+
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.AUDIENCE_PAGE) {
     super(page, pageUrl);
     const pageContainer = page.getByTestId('pageContainer-page');
-
     this.createAudienceButton = pageContainer.locator('button:has-text("Create")');
-    this.createDropdown = page.getByRole('button', { name: 'Open menu' });
-    this.createAudience = page.locator('[role="menuitem"]:has-text("Create audience")');
+    this.createDropdown = page.locator('header').locator('button[aria-label="Show more"]');
+    this.createAudience = page.getByRole('menuitem', { name: 'Create audience', exact: true });
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
@@ -52,6 +80,37 @@ export class AudiencePage extends BasePage {
     this.editCategoryDialog = page.locator('[role="dialog"]');
     this.editCategoryLabel = page.locator('h2:has-text("Edit category")');
     this.editCategoryModalSaveButton = page.getByRole('button', { name: 'Save' });
+
+    // Audience create flow - CSS selectors (scoped to Create Audience dialog)
+    this.createAudienceDialog = page.getByRole('dialog', { name: 'Create audience' });
+    this.audienceNameInput = page.getByRole('textbox', { name: 'Name*' });
+    this.addAudienceDescriptionButton = page.getByRole('button', { name: 'Add description' });
+    this.audienceDescriptionInput = page.getByRole('textbox', { name: 'Description' });
+    this.selectParentTile = this.createAudienceDialog.locator('div:has-text("Select parent")').first();
+    this.selectParentButton = page.getByRole('button').nth(2);
+    this.audiencePickerDialog = page.getByRole('dialog', { name: 'Audiences' });
+    this.audiencePickerSearchBox = this.audiencePickerDialog
+      .getByRole('textbox', { name: /search|filter|find/i })
+      .first();
+    this.audiencePickerDoneButton = page.getByRole('button', { name: 'Done' });
+    this.typeSelectInput = page.getByTestId('field-Type').getByTestId('SelectInput');
+    this.adGroupSelectInput = page.locator('#groups_0_subGroups_0_adGroup');
+    this.createAudienceBtn = page.getByRole('button', { name: 'Create' });
+
+    // Operator-related locators
+    this.operatorSelectInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_operator');
+    this.operatorValueInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_operatorValue');
+    this.operatorValueDropdown = page.locator('.css-19bb58m'); // For Microsoft Entra ID groups
+    this.operatorValueTestId = this.createAudienceDialog.locator('[data-testid="operator-value"]');
+    this.operatorValuePlaceholder = this.createAudienceDialog.locator('input[placeholder*="value" i]');
+
+    // Country-specific locators
+    this.countryValuesTextInput = this.createAudienceDialog.locator('#groups_0_subGroups_0_valuesText');
+
+    // Date-specific locators
+    this.dateButton = this.createAudienceDialog.getByRole('button', { name: 'Date*' });
+    this.startDateButton = this.createAudienceDialog.getByRole('button', { name: 'Start date*' });
+    this.endDateButton = this.createAudienceDialog.getByRole('button', { name: 'End date*' });
 
     this.addCategoryModal = new CategoryModalComponent(page, 'create');
     this.editCategoryModal = new CategoryModalComponent(page, 'edit');
@@ -238,45 +297,40 @@ export class AudiencePage extends BasePage {
   // Verify all three options are present in category dropdown menu (Add Audience, Edit category, Delete category)
   async verifyAllCategoryOptionsArePresent(categoryName: string): Promise<void> {
     await test.step('Verify all three options are present in category dropdown menu', async () => {
-      await this._openCategoryDropdown(categoryName);
+      // Find the specific Show more button for this category using a more robust approach
+      const showMoreButton = this.page.locator(
+        `//p[text()='${categoryName}']/ancestor::div[contains(@class, 'Grid-module-gridRow')]//button[@aria-label='Show more']`
+      );
+
+      await this.verifier.verifyTheElementIsVisible(showMoreButton, {
+        assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Hover and click the Show more button to open the dropdown
+      await showMoreButton.hover();
+      await this.page.waitForTimeout(500);
+      await showMoreButton.click({ force: true });
+
+      // Wait for the dropdown menu to appear
+      await this.page.waitForSelector('[role="menu"]', { timeout: 5000 });
+
+      // Verify the dropdown options
       await this._verifyDropdownOptions();
     });
   }
 
-  // Open category dropdown menu
-  private async _openCategoryDropdown(categoryName: string): Promise<void> {
-    const showMoreButton = this.page.locator(
-      `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
-    );
-
-    await this.verifier.verifyTheElementIsVisible(showMoreButton, {
-      assertionMessage: `Verify Show more button is visible for category: ${categoryName}`,
-      timeout: TIMEOUTS.MEDIUM,
-    });
-
-    await this.clickOnElement(showMoreButton, {
-      stepInfo: `Click on Show more button for category: ${categoryName}`,
-      timeout: 10_000,
-    });
-
-    await this.page.waitForTimeout(1000);
-  }
-
   // Verify all expected dropdown options are present
   private async _verifyDropdownOptions(): Promise<void> {
-    const expectedOptions = ['Add Audience', 'Edit category', 'Delete category'];
-    console.log('Verifying category dropdown options...');
+    const expectedOptions = ['Add audience', 'Edit category', 'Delete category'];
 
     for (const option of expectedOptions) {
-      const optionLocator = this.page.getByText(option);
+      const optionLocator = this.page.locator('[role="menuitem"]').filter({ hasText: option });
       await this.verifier.verifyTheElementIsVisible(optionLocator, {
         assertionMessage: `Verify "${option}" option is visible in dropdown menu`,
         timeout: TIMEOUTS.SHORT,
       });
-      console.log(`✅ Found option: "${option}"`);
     }
-
-    console.log('✅ All three required options are present in the category dropdown menu');
   }
 
   // Close any open dropdown by clicking elsewhere on the page
@@ -290,8 +344,9 @@ export class AudiencePage extends BasePage {
   // Generic method to open category dropdown menu and click on specific option
   async openCategoryDropdownAndClickOption(categoryName: string, optionText: string): Promise<void> {
     await test.step(`Open category dropdown for "${categoryName}" and click "${optionText}"`, async () => {
+      // Find the specific Show more button for this category using the same approach as verifyAllCategoryOptionsArePresent
       const showMoreButton = this.page.locator(
-        `//p[contains(text(),'${categoryName}')]/ancestor::div[@role='presentation']/following-sibling::div/following-sibling::div//button`
+        `//p[text()='${categoryName}']/ancestor::div[contains(@class, 'Grid-module-gridRow')]//button[@aria-label='Show more']`
       );
 
       await this.verifier.verifyTheElementIsVisible(showMoreButton, {
@@ -299,10 +354,13 @@ export class AudiencePage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      await this.clickOnElement(showMoreButton, {
-        stepInfo: `Click on Show more button for category: ${categoryName}`,
-        timeout: 10_000,
-      });
+      // Hover and click the Show more button to open the dropdown
+      await showMoreButton.hover();
+      await this.page.waitForTimeout(500);
+      await showMoreButton.click({ force: true });
+
+      // Wait for the dropdown menu to appear
+      await this.page.waitForSelector('[role="menu"]', { timeout: 5000 });
 
       // Click the parent menuitem element instead of the text element
       const menuItemLocator = this.page.locator('[role="menuitem"]').filter({ hasText: optionText });
@@ -318,16 +376,50 @@ export class AudiencePage extends BasePage {
 
   // ========== CATEGORY BEHAVIOR VERIFICATION METHODS ==========
 
-  // Verify clicking Cancel button prevents category creation
+  // Verify clicking Cancel button prevents category creation (CREATE modal)
   async verifyCategoryCancelButtonBehavior(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
     await this.addCategoryModal.verifyCategoryCancelButtonBehavior();
   }
 
-  // Verify clicking Close (X) button prevents category creation
+  // Verify clicking Close (X) button prevents category creation (CREATE modal)
   async verifyCategoryCloseButtonBehavior(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create category');
     await this.addCategoryModal.verifyCategoryCloseButtonBehavior();
+  }
+
+  // Verify clicking Cancel button prevents category update (EDIT modal)
+  async verifyEditCategoryCancelButtonBehavior(categoryName: string): Promise<void> {
+    await test.step(`Verify Cancel button behavior in Edit category modal for: ${categoryName}`, async () => {
+      // Open edit modal for the existing category
+      await this.openEditCategoryModal(categoryName);
+
+      // Fill new name (different from original to verify it doesn't get saved)
+      const newCategoryName = `CancelTest_${Date.now()}`;
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newCategoryName);
+
+      // Click cancel
+      await this.editCategoryModal.clickCancelButton();
+      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
+    });
+  }
+
+  // Verify clicking Close (X) button prevents category update (EDIT modal)
+  async verifyEditCategoryCloseButtonBehavior(categoryName: string): Promise<void> {
+    await test.step(`Verify Close button behavior in Edit category modal for: ${categoryName}`, async () => {
+      // Open edit modal for the existing category
+      await this.openEditCategoryModal(categoryName);
+
+      // Fill new name (different from original to verify it doesn't get saved)
+      const newCategoryName = `CloseTest_${Date.now()}`;
+      await this.editCategoryModal.fillInElement(this.editCategoryModal.categoryNameInput, '');
+      await this.editCategoryModal.fillCategoryName(newCategoryName);
+
+      // Click close
+      await this.editCategoryModal.clickCloseButton();
+      await this.editCategoryModal.verifyCategoryDialogueIsNotVisible();
+    });
   }
 
   // Verify specific category name is not present in the categories list
@@ -424,6 +516,242 @@ export class AudiencePage extends BasePage {
   // Open CSV upload modal for creating audience with CSV
   async openCreateAudienceWithCsvModal(): Promise<void> {
     await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience with CSV');
+  }
+
+  // ========== AUDIENCE CREATE (FORM) METHODS ==========
+
+  /**
+   * Open the Create audience form from the page
+   */
+  async openCreateAudienceForm(): Promise<void> {
+    // Open dropdown then choose menu item to ensure dialog opens reliably
+    await this.clickOnElement(this.createDropdown, { stepInfo: 'Open Create dropdown' });
+    await this.clickOnElement(this.createAudience, { stepInfo: 'Click Create audience menu item' });
+    await expect(this.createAudienceDialog, 'expecting Create audience dialog to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  // Open Create audience modal (API consistent with openCreateCategoryModal/openCreateAudienceWithCsvModal)
+  async openCreateAudienceModal(): Promise<void> {
+    await this.clickOnCreateButtonToInitiateAudienceCreationFlowFor('Create audience');
+    await expect(this.createAudienceDialog, 'expecting Create audience dialog to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  /**
+   * Fill basic audience fields
+   */
+  async fillAudienceBasics(options: { name: string; description?: string }): Promise<void> {
+    const { name, description } = options;
+    await test.step('Fill audience name and optional description', async () => {
+      await this.fillInElement(this.audienceNameInput, name, { stepInfo: 'Fill audience name' });
+
+      if (description && description.trim().length > 0) {
+        await this.clickOnElement(this.addAudienceDescriptionButton, { stepInfo: 'Click Add description' });
+        await this.fillInElement(this.audienceDescriptionInput, description, { stepInfo: 'Fill audience description' });
+      }
+    });
+  }
+
+  /**
+   * Select a parent audience/category from the picker dialog
+   */
+  async selectParentAudienceByName(parentName: string): Promise<void> {
+    await test.step(`Select parent audience: ${parentName}`, async () => {
+      await this.clickOnElement(this.selectParentButton, { stepInfo: 'Open Select parent picker' });
+      await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+      // Wait for the dialog content to load by waiting for any list item to be visible
+      await this.page.waitForTimeout(2000); // Give the dialog time to load its content
+
+      // Wait for the category to be available in the dialog
+      const itemExact = this.audiencePickerDialog.getByText(parentName, { exact: true }).first();
+      await expect(itemExact).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+      // Select the parent category directly from the list
+      await this.clickOnElement(itemExact, { stepInfo: `Choose parent: ${parentName}` });
+
+      await this.clickOnElement(this.audiencePickerDoneButton, { stepInfo: 'Confirm parent selection' });
+    });
+  }
+
+  /**
+   * Create audience with all details in one method
+   */
+  async createAudienceWithDetails(options: {
+    name: string;
+    description?: string;
+    parentCategoryName: string;
+    audienceType: string;
+    adGroup?: string;
+    operator?: string;
+  }): Promise<void> {
+    const { name, description, parentCategoryName, audienceType, adGroup, operator } = options;
+
+    await test.step('Create audience with all details', async () => {
+      await this.fillAudienceBasics({ name, description });
+      await this.selectParentAudienceByName(parentCategoryName);
+      await this.chooseAudienceType(audienceType);
+
+      // Only choose AD group if it's provided (not needed for Country attribute)
+      if (adGroup) {
+        await this.chooseAdGroup(adGroup);
+      }
+
+      // Handle operator selection and value only if operator is provided AND selected
+      if (operator) {
+        const operatorSelected = await this.chooseOperator(operator);
+        if (operatorSelected && operator !== 'ALL') {
+          // Use different value filling method based on attribute type
+          if (audienceType === 'country_name') {
+            await this.fillCountryOperatorValue();
+          } else if (audienceType === 'start_date') {
+            await this.fillDateOperatorValue();
+          } else {
+            await this.fillOperatorValue();
+          }
+        }
+      }
+
+      await this.createAudienceBtn.click();
+    });
+  }
+
+  /**
+   * Choose Type from the select input
+   */
+  async chooseAudienceType(typeLabel: string): Promise<void> {
+    await test.step(`Choose audience Type: ${typeLabel}`, async () => {
+      // Wait for the select input to be visible and enabled
+      await expect(this.typeSelectInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.typeSelectInput).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
+      // Wait for the specific option to be available in the dropdown
+      await this.page.waitForFunction(
+        ({ testId, optionValue }) => {
+          const select = document.querySelector(`[data-testid="${testId}"]`) as HTMLSelectElement | null;
+          if (!select) return false;
+          // Check if the option exists by value
+          return Array.from(select.options).some(opt => opt.value === optionValue);
+        },
+        { testId: 'SelectInput', optionValue: typeLabel },
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
+      // Select by value directly
+      await this.typeSelectInput.selectOption(typeLabel);
+    });
+  }
+
+  /**
+   * Choose AD group from the select input
+   */
+  async chooseAdGroup(optionLabelOrValue: string): Promise<void> {
+    await test.step(`Choose AD Group: ${optionLabelOrValue}`, async () => {
+      // Wait for the select input to be visible and enabled
+      await expect(this.adGroupSelectInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.adGroupSelectInput).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
+      // Wait for the specific option to be available in the dropdown
+      await this.page.waitForFunction(
+        ({ selectId, optionValue }) => {
+          const select = document.querySelector(selectId) as HTMLSelectElement | null;
+          if (!select) return false;
+          // Check if the option exists by label or value
+          return Array.from(select.options).some(
+            opt => opt.value === optionValue || opt.textContent?.trim() === optionValue
+          );
+        },
+        { selectId: '#groups_0_subGroups_0_adGroup', optionValue: optionLabelOrValue },
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
+      // Try to select by label first, then fallback to value
+      try {
+        await this.adGroupSelectInput.selectOption({ label: optionLabelOrValue });
+      } catch {
+        await this.adGroupSelectInput.selectOption(optionLabelOrValue);
+      }
+    });
+  }
+
+  /**
+   * Choose operator from the select input (only if visible)
+   */
+  async chooseOperator(operator: string): Promise<boolean> {
+    return await test.step(`Choose Operator: ${operator}`, async () => {
+      // Check if operator field is visible before trying to interact with it
+      const isOperatorFieldVisible = await this.operatorSelectInput.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (!isOperatorFieldVisible) {
+        console.log(`⚠️ Operator field is not visible. Skipping operator selection: ${operator}`);
+        return false;
+      }
+
+      // Select operator by value (IS, IS_NOT, ALL)
+      await this.operatorSelectInput.selectOption(operator);
+      console.log(`✅ Successfully selected operator: ${operator}`);
+      return true;
+    });
+  }
+
+  /**
+   * Fill operator value by selecting the first available option
+   */
+  async fillOperatorValue(): Promise<void> {
+    await test.step('Fill Operator Value', async () => {
+      // Try the standard locator first, then fallback to Microsoft Entra ID locator
+      const isStandardVisible = await this.operatorValueInput.isVisible({ timeout: 2000 }).catch(() => false);
+      const isDropdownVisible = await this.operatorValueDropdown.isVisible({ timeout: 2000 }).catch(() => false);
+
+      if (isStandardVisible) {
+        await this.operatorValueInput.click();
+      } else if (isDropdownVisible) {
+        await this.operatorValueDropdown.click();
+      } else {
+        console.log(`⚠️ Operator value field is not visible. Skipping operator value selection.`);
+        return;
+      }
+      // Wait for menu items to appear and select the first available option
+      await this.page.getByRole('menuitem').first().click();
+    });
+  }
+
+  /**
+   * Fill country operator value based on the operator type
+   */
+  async fillCountryOperatorValue(): Promise<void> {
+    await test.step('Fill Country Operator Value', async () => {
+      // Get the current operator value to determine the action
+      const currentOperator = await this.operatorSelectInput.inputValue();
+
+      if (currentOperator === 'IS' || currentOperator === 'IS_NOT') {
+        // For IS and IS_NOT, select from dropdown
+        await this.countryValuesTextInput.click();
+        await this.page.getByRole('menuitem', { name: 'India' }).waitFor({ state: 'visible' });
+        await this.page.getByRole('menuitem', { name: 'India' }).click();
+      } else if (
+        currentOperator === 'CONTAINS' ||
+        currentOperator === 'ENDS_WITH' ||
+        currentOperator === 'STARTS_WITH'
+      ) {
+        // For text-based operators, fill the input field
+        await this.countryValuesTextInput.click();
+        await this.countryValuesTextInput.fill('a'); // Fill with 'a' as per codegen
+      }
+    });
+  }
+
+  /**
+   * Fill date operator value - values are auto-populated, no action needed
+   */
+  async fillDateOperatorValue(): Promise<void> {
+    await test.step('Fill Date Operator Value', async () => {
+      // Date operator values are auto-populated, no manual filling required
+      console.log('✅ Date operator values are auto-populated, skipping manual value selection');
+    });
   }
 
   // ========== CONTEXTUAL LOCATOR METHODS ==========

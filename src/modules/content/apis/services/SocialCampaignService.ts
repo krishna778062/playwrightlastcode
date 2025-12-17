@@ -9,6 +9,8 @@ import {
   SocialCampaignDeleteResponse,
   SocialCampaignFilter,
   SocialCampaignListResponse,
+  SocialCampaignShareRequest,
+  SocialCampaignShareResponse,
   SocialCampaignStatusUpdateResponse,
 } from '@core/types/social-campaign.types';
 
@@ -51,6 +53,18 @@ export class SocialCampaignService {
       });
       const result = (await response.json()) as SocialCampaignListResponse;
       return result.result?.listOfItems || [];
+    });
+  }
+
+  /**
+   * Gets campaign list via GET request with query parameters
+   * @param params - Query parameters for filtering campaigns
+   * @returns Promise<SocialCampaignListResponse>
+   */
+  async getCampaignList(params?: { size?: number; sortBy?: string }): Promise<SocialCampaignListResponse> {
+    return await test.step(`Getting campaign list with params: ${JSON.stringify(params)}`, async () => {
+      const response = await this.httpClient.get(`${API_ENDPOINTS.socialCampaign.listGet}`);
+      return (await response.json()) as SocialCampaignListResponse;
     });
   }
 
@@ -111,6 +125,7 @@ export class SocialCampaignService {
       const response = await this.httpClient.put(API_ENDPOINTS.socialCampaign.updateStatus(campaignId), {
         data: { action },
       });
+      console.log('response', await response.json());
       return (await response.json()) as SocialCampaignStatusUpdateResponse;
     });
   }
@@ -145,6 +160,66 @@ export class SocialCampaignService {
   async deactivateCampaign(campaignId: string): Promise<SocialCampaignStatusUpdateResponse> {
     return await test.step(`Deactivating social campaign: ${campaignId}`, async () => {
       return this.updateCampaignStatus(campaignId, SocialCampaignAction.DEACTIVATE);
+    });
+  }
+
+  /**
+   * Shares a social campaign to feed
+   * @param campaignId - The campaign ID
+   * @param shareData - The share data including text, HTML, and sharedWith parameter
+   * @returns Promise<SocialCampaignShareResponse>
+   */
+  async shareCampaignToFeed(
+    campaignId: string,
+    shareData: SocialCampaignShareRequest
+  ): Promise<SocialCampaignShareResponse> {
+    return await test.step(`Sharing social campaign to feed: ${campaignId}`, async () => {
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.socialCampaign.shareToFeed(campaignId, shareData.sharedWith),
+        {
+          data: shareData,
+        }
+      );
+      return (await response.json()) as SocialCampaignShareResponse;
+    });
+  }
+
+  /**
+   * Enables social campaign integrations (Facebook, LinkedIn, Twitter)
+   * @param settings - Social campaign settings configuration
+   * @returns Promise<any> - The response from the API
+   */
+  async enableSocialCampaign(settings?: {
+    facebookIntegrationEnabled?: boolean;
+    linkedinIntegrationEnabled?: boolean;
+    twitterIntegrationEnabled?: boolean;
+  }): Promise<any> {
+    return await test.step('Enabling social campaign integrations', async () => {
+      const defaultSettings = {
+        facebookIntegrationEnabled: true,
+        linkedinIntegrationEnabled: true,
+        twitterIntegrationEnabled: true,
+      };
+
+      const socialCampaignsSettings = settings || defaultSettings;
+
+      const response = await this.httpClient.post(API_ENDPOINTS.socialCampaign.enableSettings, {
+        data: {
+          socialCampaignsSettings,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to enable social campaign settings. Status: ${response.status()}, Response: ${errorText.substring(0, 200)}`
+        );
+      }
+
+      return await response.json();
     });
   }
 }

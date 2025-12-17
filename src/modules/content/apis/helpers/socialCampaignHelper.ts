@@ -1,13 +1,17 @@
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 
 import {
   CreateSocialCampaignRequest,
   SocialCampaign,
   SocialCampaignAction,
   SocialCampaignFilter,
+  SocialCampaignListResponse,
   SocialCampaignNetwork,
   SocialCampaignRecipient,
+  SocialCampaignSharedWith,
+  SocialCampaignShareRequest,
 } from '@/src/core/types/social-campaign.types';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 import { SocialCampaignService } from '@/src/modules/content/apis/services/SocialCampaignService';
 import { SOCIAL_CAMPAIGN_TEST_DATA } from '@/src/modules/content/test-data/social-campaign.test-data';
 
@@ -22,11 +26,13 @@ interface Campaign {
 export class SocialCampaignHelper {
   private campaigns: Campaign[] = [];
   readonly socialCampaignService: SocialCampaignService;
+  private feedManagementService: FeedManagementService;
   constructor(
     readonly appManagerApiContext: APIRequestContext,
     readonly baseUrl: string
   ) {
     this.socialCampaignService = new SocialCampaignService(appManagerApiContext, baseUrl);
+    this.feedManagementService = new FeedManagementService(appManagerApiContext, baseUrl);
   }
 
   /**
@@ -48,9 +54,10 @@ export class SocialCampaignHelper {
     recipient?: SocialCampaignRecipient;
     networks?: SocialCampaignNetwork[];
     audienceId?: string;
+    shouldWaitForSearchIndex?: boolean;
     overrides?: Partial<CreateSocialCampaignRequest>;
   }): Promise<SocialCampaign> {
-    const { message, url, recipient, networks, audienceId, overrides } = params;
+    const { message, url, recipient, networks, audienceId, shouldWaitForSearchIndex, overrides } = params;
 
     const timestamp = Date.now().toString().slice(-4);
     const randomId = Math.random().toString(36).substring(2, 6);
@@ -85,7 +92,6 @@ export class SocialCampaignHelper {
       ],
       url: createdCampaign.campaignUrl || campaignData.url,
     });
-
     return createdCampaign;
   }
 
@@ -191,6 +197,19 @@ export class SocialCampaignHelper {
   }
 
   /**
+   * Gets campaign list via GET API with query parameters
+   * @param params - Query parameters for filtering campaigns
+   * @returns Promise<SocialCampaignListResponse> - Campaign list response
+   */
+  async getCampaignList(params?: {
+    size?: number;
+    sortBy?: string;
+    filter?: string;
+  }): Promise<SocialCampaignListResponse> {
+    return await this.getSocialCampaignService().getCampaignList(params);
+  }
+
+  /**
    * Gets a specific campaign by ID
    * @param campaignId - The campaign ID
    * @returns Promise<SocialCampaign> - The campaign details
@@ -293,35 +312,65 @@ export class SocialCampaignHelper {
   /**
    * Cleans up all campaigns created by this helper instance
    * This should be called in test cleanup to ensure proper resource management
+   * Uses API calls to delete campaigns, similar to site and content helpers
+   * Deletes campaigns in parallel for better performance
    */
   async cleanup(): Promise<void> {
-    console.log(`Cleaning up ${this.campaigns.length} social campaigns...`);
-
-    for (const { campaignId, message } of this.campaigns) {
-      try {
-        await this.deleteCampaign(campaignId);
-        console.log(`Deleted campaign: ${message} (${campaignId})`);
-      } catch (error) {
-        console.warn(`Failed to delete campaign ${message} (${campaignId}):`, error);
-      }
+    // Early return if no campaigns to clean up - avoid unnecessary test step
+    if (this.campaigns.length === 0) {
+      return;
     }
 
-    // Clear the tracking array
-    this.campaigns = [];
+    return await test.step('SocialCampaignHelper Cleanup', async () => {
+      // Create a copy of campaigns array to avoid issues if campaigns array is modified during deletion
+      const campaignsToDelete = [...this.campaigns];
+
+      // Delete campaigns in parallel for better performance
+      const deletePromises = campaignsToDelete.map(async ({ campaignId, message }) => {
+        try {
+          // Use the service directly to ensure API call happens even if tracking fails
+          await this.socialCampaignService.deleteCampaign(campaignId);
+          console.log(`✅ Deleted campaign: ${message} (${campaignId})`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete campaign ${message} (${campaignId}):`, error);
+          // Continue with next campaign even if one fails
+        }
+      });
+
+      await Promise.all(deletePromises);
+
+      // Clear the tracking array after cleanup attempts
+      this.campaigns = [];
+    });
   }
 
   /**
    * Deletes all campaigns from the system (not just tracked ones)
    * Use with caution - this will delete ALL campaigns
-   * @returns Promise<any[]> - Array of delete responses
+   * Deletes campaigns in parallel for better performance
+   * @returns Promise<void>
    */
   async deleteAllCampaigns(filter?: SocialCampaignFilter): Promise<void> {
-    const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
-    console.log(`Deleting ${allCampaigns.length} campaigns`);
-    for (const campaign of allCampaigns) {
-      console.log(`Deleting campaign: ${campaign.message} (${campaign.campaignId})`);
-      await this.deleteCampaign(campaign.campaignId);
-    }
+    return await test.step(`Deleting all campaigns with filter: ${filter || 'none'}`, async () => {
+      const allCampaigns = await this.getSocialCampaignService().getAllCampaigns(filter);
+      console.log(`Deleting ${allCampaigns.length} campaigns`);
+
+      if (allCampaigns.length === 0) {
+        return;
+      }
+
+      // Delete campaigns in parallel for better performance
+      const deletePromises = allCampaigns.map(async campaign => {
+        try {
+          await this.deleteCampaign(campaign.campaignId);
+          console.log(`✅ Deleted campaign: ${campaign.message} (${campaign.campaignId})`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete campaign ${campaign.message} (${campaign.campaignId}):`, error);
+        }
+      });
+
+      await Promise.all(deletePromises);
+    });
   }
 
   /**
@@ -340,5 +389,126 @@ export class SocialCampaignHelper {
   async getCampaignsCanShareToHomeCarousel(): Promise<SocialCampaign[]> {
     const allCampaigns = await this.getAllCampaignsFromAPI();
     return allCampaigns.filter(campaign => campaign.canShareToHomeCarousel === true);
+  }
+
+  /**
+   * Shares a social campaign to feed
+   * @param campaignId - The campaign ID
+   * @param shareData - The share data including text, HTML, and sharedWith parameter
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToFeed(campaignId: string, shareData: SocialCampaignShareRequest): Promise<any> {
+    return await test.step(`Sharing social campaign to feed: ${campaignId}`, async () => {
+      console.log(`Sharing campaign ${campaignId} to ${shareData.sharedWith}`);
+      const response = await this.getSocialCampaignService().shareCampaignToFeed(campaignId, shareData);
+      return response;
+    });
+  }
+
+  /**
+   * Shares a social campaign to followers feed
+   * @param campaignId - The campaign ID
+   * @param description - The description text to post
+   * @param siteId - Optional site ID for site-specific sharing
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToFollowersFeed(campaignId: string, description: string): Promise<any> {
+    const textToPost = `{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":"${description}"}]}]}`;
+    const bodyHtml = `<p>${description}</p>`;
+
+    const shareData: SocialCampaignShareRequest = {
+      textToPost,
+      bodyHtml,
+      isNewTiptap: true,
+      sharedWith: SocialCampaignSharedWith.FOLLOWERS,
+    };
+    return this.shareCampaignToFeed(campaignId, shareData);
+  }
+
+  /**
+   * Shares a social campaign to site feed
+   * @param campaignId - The campaign ID
+   * @param description - The description text to post
+   * @param siteId - Site ID for site-specific sharing
+   * @returns Promise<any> - The share response
+   */
+  async shareCampaignToSiteFeed(campaignId: string, description: string, siteId: string): Promise<any> {
+    const textToPost = `{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":"${description}"}]}]}`;
+    const bodyHtml = `<p>${description}</p>`;
+
+    const shareData: SocialCampaignShareRequest = {
+      textToPost,
+      bodyHtml,
+      isNewTiptap: true,
+      sharedWith: SocialCampaignSharedWith.SITE,
+      siteId,
+    };
+    return this.shareCampaignToFeed(campaignId, shareData);
+  }
+
+  /**
+   * Enables social campaign integrations (Facebook, LinkedIn, Twitter)
+   * Checks app config first - if all are true, does nothing
+   * If any are false, enables them accordingly
+   * @param settings - Optional settings to override defaults (all enabled by default)
+   * @returns Promise<any> - The response from the API
+   */
+  async enableSocialCampaign(settings?: {
+    facebookIntegrationEnabled?: boolean;
+    linkedinIntegrationEnabled?: boolean;
+    twitterIntegrationEnabled?: boolean;
+  }): Promise<any> {
+    return await test.step('Enabling social campaign integrations', async () => {
+      // Get current app config to check existing social campaign settings
+      const appConfig = await this.feedManagementService.getAppConfig();
+      const currentSettings = appConfig.result?.socialCampaignsSettings;
+
+      // Default settings - all enabled
+      const defaultSettings = {
+        facebookIntegrationEnabled: true,
+        linkedinIntegrationEnabled: true,
+        twitterIntegrationEnabled: true,
+      };
+
+      // Use provided settings or defaults
+      const requestedSettings = settings || defaultSettings;
+
+      // If settings are provided in the request, use them
+      // Otherwise, check current settings from app config
+      let settingsToApply = requestedSettings;
+
+      if (currentSettings && !settings) {
+        // Check if all current settings are true
+        const allEnabled =
+          currentSettings.facebookIntegrationEnabled === true &&
+          currentSettings.linkedinIntegrationEnabled === true &&
+          currentSettings.twitterIntegrationEnabled === true;
+
+        if (allEnabled) {
+          console.log('All social campaign integrations are already enabled. Skipping update.');
+          return { result: currentSettings };
+        }
+
+        // If any are false, enable all (use defaults)
+        settingsToApply = defaultSettings;
+      } else if (currentSettings && settings) {
+        // If settings are provided, check if they match current settings
+        const isSame =
+          currentSettings.facebookIntegrationEnabled === requestedSettings.facebookIntegrationEnabled &&
+          currentSettings.linkedinIntegrationEnabled === requestedSettings.linkedinIntegrationEnabled &&
+          currentSettings.twitterIntegrationEnabled === requestedSettings.twitterIntegrationEnabled;
+
+        if (isSame) {
+          console.log('Social campaign settings are already configured as requested. Skipping update.');
+          return { result: currentSettings };
+        }
+
+        // Use requested settings
+        settingsToApply = requestedSettings;
+      }
+
+      // Enable social campaign with the determined settings
+      return await this.getSocialCampaignService().enableSocialCampaign(settingsToApply);
+    });
   }
 }

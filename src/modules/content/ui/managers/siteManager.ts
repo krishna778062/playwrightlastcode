@@ -3,10 +3,11 @@ import { Page } from '@playwright/test';
 import { SitePageTab } from '@content/constants/sitePageEnums';
 import { SiteAboutPage } from '@content/ui/pages/sitePages/siteAboutPage';
 import { SiteContentPage } from '@content/ui/pages/sitePages/siteContentPage';
-import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { SiteFeedPage } from '@content/ui/pages/sitePages/siteFeedPage';
 import { SiteFilesPage } from '@content/ui/pages/sitePages/siteFilesPage';
 import { SiteQuestionsPage } from '@content/ui/pages/sitePages/siteQuestionsPage';
+
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 export type SitePages =
   | SiteDashboardPage

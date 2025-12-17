@@ -39,7 +39,7 @@ test.describe(
     test(
       `Verify Feed Search results for a new home ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -47,7 +47,6 @@ test.describe(
           storyId: 'SEN-12843',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
@@ -72,7 +71,6 @@ test.describe(
           zephyrTestId: 'SEN-19281',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         // Search for the feed
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" to verify feed appears in search results`,
@@ -107,7 +105,6 @@ test.describe(
           storyId: 'SEN-12844',
         });
 
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });

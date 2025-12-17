@@ -1,0 +1,500 @@
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+
+test.describe(
+  '@FeedPost - Show Filters Display Correct Shared Feed Posts',
+  {
+    tag: [ContentTestSuite.FEED_STANDARD_USER],
+  },
+  () => {
+    let createdPostId: string = '';
+
+    test.beforeEach(async () => {
+      createdPostId = '';
+    });
+
+    test.afterEach(async ({ appManagerFixture }) => {
+      // Cleanup: Delete created post
+      if (createdPostId) {
+        try {
+          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          console.log(`Deleted post: ${createdPostId}`);
+          createdPostId = '';
+        } catch (error) {
+          console.warn(`Failed to delete post ${createdPostId}:`, error);
+        }
+      }
+    });
+
+    test(
+      ' posts To Me: Verify Admin sees only posts where they are mentioned and their own posts',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus, verify "Show Filters" display the correct shared feed posts - Posts To Me filter',
+          zephyrTestId: 'CONT-26728',
+          storyId: 'CONT-26728',
+        });
+
+        // Get admin full name only when needed for this test
+        const adminInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const adminFullName = adminInfo.fullName;
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
+
+        // Login as Admin and create a feed post
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.clickShareThoughtsButton();
+        const adminPostResult = await adminFeedPage.actions.createAndPost({ text: postText });
+        createdPostId = adminPostResult.postId || '';
+        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Use Site Manager's page (already logged in via fixture)
+        await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        await siteManagerFeedPage.verifyThePageIsLoaded();
+
+        // Select Show filter = "All Posts"
+        await siteManagerFeedPage.actions.clickOnShowOption('all');
+
+        // Click Share icon for the feed post created by Admin
+        await siteManagerFeedPage.actions.shareFeedPost({
+          postText: postText,
+          mentionUserName: adminFullName,
+          shareMessage: shareMessage,
+          postIn: 'Home Feed',
+        });
+
+        // Wait for shared post to appear
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        await adminFeedPage.reloadPage();
+
+        // Select Show filter = "Posts to me"
+        console.log('Select Show filter = "Posts to me"');
+        await adminFeedPage.actions.clickOnShowOption('toMe');
+
+        // Verify Admin sees:
+        // - Only posts where they are mentioned
+        // - Posts created by themselves
+        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage); // Shared post mentioning Admin
+        await adminFeedPage.assertions.waitForPostToBeVisible(postText); // Admin's own post
+      }
+    );
+
+    test(
+      'posts I Follow: Verify Admin sees posts from users he follows and his own posts',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus, verify "Show Filters" display the correct shared feed posts - Posts I Follow filter',
+          zephyrTestId: 'CONT-26728',
+          storyId: 'CONT-26728',
+        });
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
+
+        // Use Site Manager's page (already logged in via fixture, Admin should not be following Site Manager)
+        await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        await siteManagerFeedPage.verifyThePageIsLoaded();
+
+        // Create a feed post
+        await siteManagerFeedPage.actions.clickShareThoughtsButton();
+        const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
+        createdPostId = siteManagerPostResult.postId || '';
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Use Site Owner's page (already logged in via fixture, Admin is following Site Owner)
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const siteOwnerFeedPage = new FeedPage(standardUserFixture.page);
+        await siteOwnerFeedPage.verifyThePageIsLoaded();
+
+        // Select Show filter = "All Posts"
+        await siteOwnerFeedPage.actions.clickOnShowOption('all');
+
+        // Click Share on the feed post created by Site Manager
+        console.log('Share the feed post created by Site Manager');
+        await siteOwnerFeedPage.actions.shareFeedPost({
+          postText: postText,
+          shareMessage: shareMessage,
+          postIn: 'Home Feed',
+        });
+
+        // Wait for shared post to appear
+        await siteOwnerFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Use Admin's page (already logged in via fixture)
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Select Show filter = "Posts I follow"
+        console.log('Select Show filter = "Posts I follow"');
+        await adminFeedPage.actions.clickOnShowOption('Posts I follow');
+
+        // Verify Admin can see:
+        // - Feed posts shared or created by users he follows (Site Owner)
+        // - His own posts
+        // - NOT Site Manager's post
+        console.log('Verify Admin sees posts from followed users and own posts');
+        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage); // Site Owner's shared post
+
+        // Verify Site Manager's original post is NOT visible (since Admin is not following Site Manager)
+        await adminFeedPage.assertions.verifyPostIsNotVisible(postText);
+      }
+    );
+
+    test(
+      'favourited Posts: Verify Admin sees only favourited posts',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
+      },
+      async ({ appManagerFixture, siteManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus, verify "Show Filters" display the correct shared feed posts - Favourited Posts filter',
+          zephyrTestId: 'CONT-26728',
+          storyId: 'CONT-26728',
+        });
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
+
+        // Use Site Manager's page (already logged in via fixture, Admin should not be following Site Manager)
+        await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        await siteManagerFeedPage.verifyThePageIsLoaded();
+
+        // Create a feed post
+        await siteManagerFeedPage.actions.clickShareThoughtsButton();
+        const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
+        createdPostId = siteManagerPostResult.postId || '';
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
+
+        // Use Standard User's page (already logged in via fixture, Admin is following Standard User)
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+        await standardUserFeedPage.verifyThePageIsLoaded();
+
+        // Select Show filter = "All Posts"
+        console.log('Select Show filter = "All Posts"');
+        await standardUserFeedPage.actions.clickOnShowOption('all');
+
+        // Click Share icon for the feed post created by Site Manager
+        await standardUserFeedPage.actions.shareFeedPost({
+          postText: postText,
+          shareMessage: shareMessage,
+          postIn: 'Home Feed',
+        });
+
+        // Wait for shared post to appear
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Use Admin's page (already logged in via fixture)
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Select Show filter = "All Posts" to see the shared post
+        console.log('Select Show filter = "All Posts" to see the shared post');
+        await adminFeedPage.actions.clickOnShowOption('all');
+        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+        // Favourite the Standard User's shared feed post
+        // Wait for the shared post to be visible
+        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        // Mark the specific post as favorite by its text
+        await adminFeedPage.actions.markPostAsFavourite();
+        await adminFeedPage.assertions.verifyPostIsFavorited(shareMessage);
+
+        // Select Show filter = "Favourited Posts"
+        await adminFeedPage.actions.clickOnShowOption('favourited');
+
+        // Verify Admin sees only the favourited shared post
+        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+      }
+    );
+
+    // Helper function to create three contents (Page, Event, Album) on a private site
+    async function createThreeContents(
+      siteId: string,
+      userFixture: any
+    ): Promise<Array<{ type: string; title: string; contentId: string }>> {
+      return await test.step('Create three contents: Page, Event, Album', async () => {
+        const timestamp = Date.now();
+        const contents: Array<{ type: string; title: string; contentId: string }> = [];
+
+        // Create Page
+        const pageInfo = await userFixture.contentManagementHelper.createPage({
+          siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'knowledge' },
+          options: {
+            pageName: `Test Page ${timestamp}`,
+            contentDescription: 'Test page description',
+          },
+        });
+        contents.push({ type: 'Page', title: pageInfo.pageName, contentId: pageInfo.contentId });
+
+        // Create Event
+        const eventInfo = await userFixture.contentManagementHelper.createEvent({
+          siteId,
+          contentInfo: { contentType: 'event' },
+          options: {
+            eventName: `Test Event ${timestamp}`,
+            contentDescription: 'Test event description',
+          },
+        });
+        contents.push({ type: 'Event', title: eventInfo.eventName, contentId: eventInfo.contentId });
+
+        // Create Album
+        const albumInfo = await userFixture.contentManagementHelper.createAlbum({
+          siteId,
+          imageName: 'beach.jpg',
+          options: {
+            albumName: `Test Album ${timestamp}`,
+            contentDescription: 'Test album description',
+          },
+        });
+        contents.push({ type: 'Album', title: albumInfo.albumName, contentId: albumInfo.contentId });
+
+        console.log('Created contents:', contents);
+        return contents;
+      });
+    }
+
+    // Test data storage for cleanup
+    let testData: {
+      siteId?: string;
+      endUserId?: string;
+      contents?: Array<{ type: string; title: string; contentId: string; siteId: string }>;
+    } = {};
+
+    test(
+      'recently Published Smart Block - Verify content visibility based on membership status',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29442'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Create Page/Event/Album on private site, verify Admin sees them, verify End User (non-member) does not see them, make End User a member, then verify End User can see them in Recently Published smart block when Show Filter = "All Posts"',
+          zephyrTestId: 'CONT-29442',
+          storyId: 'CONT-29442',
+        });
+
+        testData = { contents: [] };
+
+        // Create a private site
+        const privateSite = await appManagerApiFixture.siteManagementHelper.createSite({
+          siteName: `Test Private Site ${Date.now()}`,
+          accessType: SITE_TYPES.PRIVATE,
+          waitForSearchIndex: false,
+        });
+        testData.siteId = privateSite.siteId;
+
+        // Create Page, Event, Album on the private site (as Admin)
+        const contents = await createThreeContents(privateSite.siteId, appManagerApiFixture);
+        testData.contents = contents.map(c => ({ ...c, siteId: privateSite.siteId }));
+
+        // Verify Admin can see all 3 contents in Recently Published block
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.clickOnShowOption('all');
+
+        await adminFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        for (const content of contents) {
+          await adminFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+        }
+
+        // Verify End User (non-member) cannot see the contents
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.verifyThePageIsLoaded();
+        await endUserFeedPage.actions.clickOnShowOption('all');
+
+        await endUserFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        for (const content of contents) {
+          await endUserFeedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
+        }
+
+        // Make End User a member of the private site
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const result = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          privateSite.siteId,
+          endUserInfo.userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        if (result.status === 'success') {
+          testData.endUserId = result.result.userId;
+        } else {
+          throw new Error(`Failed to add user as member: ${result.message || 'Unknown error'}`);
+        }
+
+        // Verify End User (member) can now see all 3 contents
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserMemberFeedPage.verifyThePageIsLoaded();
+        await endUserMemberFeedPage.actions.clickOnShowOption('all');
+
+        await endUserMemberFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        for (const content of contents) {
+          await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+        }
+        await endUserMemberFeedPage.reloadPage();
+      }
+    );
+
+    test(
+      'recently Published Smart Block - Verify unlisted site content visibility with Posts I follow filter',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29446'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Create Page/Event/Album on unlisted site, verify Admin sees them, verify End User (non-member) does not see them, make End User a member, then verify End User can see them in Recently Published smart block when Show Filter = "Posts I follow"',
+          zephyrTestId: 'CONT-29446',
+          storyId: 'CONT-29446',
+        });
+
+        testData = { contents: [] };
+
+        // Create an unlisted site
+        const unlistedSite = await appManagerApiFixture.siteManagementHelper.createSite({
+          siteName: `Test Unlisted Site ${Date.now()}`,
+          accessType: SITE_TYPES.UNLISTED,
+          waitForSearchIndex: false,
+        });
+        testData.siteId = unlistedSite.siteId;
+
+        // Ensure End User is NOT a member (clean state for test)
+        // Get end user info to check membership status
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+        const membershipList = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(
+          unlistedSite.siteId
+        );
+        const existingMember = membershipList.result?.listOfItems?.find(
+          (member: any) => member.peopleId === endUserInfo.userId
+        );
+
+        let isEndUserMember = false;
+        if (existingMember) {
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            unlistedSite.siteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+
+          // Verify membership was actually removed
+          const membershipListAfter = await appManagerApiFixture.siteManagementHelper.getSiteMembershipList(
+            unlistedSite.siteId
+          );
+          const stillMember = membershipListAfter.result?.listOfItems?.find(
+            (member: any) => member.peopleId === endUserInfo.userId
+          );
+
+          if (stillMember) {
+            console.warn(
+              `Warning: Could not remove End User membership (user may have special role). Will skip non-member verification and test member scenario directly.`
+            );
+            isEndUserMember = true;
+          } else {
+          }
+        }
+
+        // Create Page, Event, Album on the unlisted site (as Admin)
+        const contents = await createThreeContents(unlistedSite.siteId, appManagerApiFixture);
+        testData.contents = contents.map(c => ({ ...c, siteId: unlistedSite.siteId }));
+
+        // Verify Admin can see all 3 contents in Recently Published block
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.clickOnShowOption('Posts I follow');
+
+        await adminFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        for (const content of contents) {
+          await adminFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+        }
+
+        // Verify End User (non-member) cannot see the contents (only if user is not already a member)
+        if (!isEndUserMember) {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+          await endUserFeedPage.actions.clickOnShowOption('Posts I follow');
+
+          await endUserFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+          for (const content of contents) {
+            await endUserFeedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
+          }
+        }
+
+        // Make End User a member of the unlisted site (only if not already a member)
+        if (!isEndUserMember) {
+          const result = await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            unlistedSite.siteId,
+            endUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+          testData.endUserId = result.result.userId;
+        } else {
+          testData.endUserId = endUserInfo.userId;
+        }
+
+        // Verify End User (member) can now see all 3 contents
+        const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await endUserMemberFeedPage.reloadPage();
+        await endUserMemberFeedPage.verifyThePageIsLoaded();
+        await endUserMemberFeedPage.actions.clickOnShowOption('Posts I follow');
+
+        await endUserMemberFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        for (const content of contents) {
+          await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+        }
+      }
+    );
+
+    // Enhanced cleanup for all tests (runs after each test including the new CONT-29442 and CONT-29446 tests)
+    test.afterEach(async ({ appManagerApiFixture }) => {
+      // Cleanup created content from CONT-29442 tests
+      if (testData.contents && testData.contents.length > 0) {
+        const fixture = appManagerApiFixture;
+        for (const content of testData.contents) {
+          try {
+            await fixture.contentManagementHelper.deleteContent(content.siteId, content.contentId);
+          } catch (error) {
+            console.warn(`Failed to delete content ${content.contentId}:`, error);
+          }
+        }
+        testData.contents = [];
+      }
+    });
+  }
+);

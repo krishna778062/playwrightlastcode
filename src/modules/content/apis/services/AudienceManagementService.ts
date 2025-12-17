@@ -76,6 +76,26 @@ export class AudienceManagementService {
       const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiences, {
         data: request,
       });
+      const responseData = (await response.json()) as CreateAudienceResponse;
+      console.log('CreateAudienceResponse', JSON.stringify(responseData));
+      return responseData;
+    });
+  }
+
+  /**
+   * Updates an existing audience
+   * @param audienceId - ID of the audience to update
+   * @param request - Audience update request data
+   * @returns Promise<CreateAudienceResponse>
+   */
+  async updateAudience(audienceId: string, request: CreateAudienceRequest): Promise<CreateAudienceResponse> {
+    return await test.step(`Updating audience: ${audienceId}`, async () => {
+      const response = await this.httpClient.put(
+        `${API_ENDPOINTS.appManagement.identity.v2IdentityAudiences}/${audienceId}`,
+        {
+          data: request,
+        }
+      );
       return (await response.json()) as CreateAudienceResponse;
     });
   }

@@ -7,6 +7,8 @@ export enum PlatformSuiteTags {
   PRIVACY_POLICY = '@privacy-policy',
   ACG = '@acg',
   FEATURE_OWNERS = '@feature-owners',
+  AUDIENCE = '@audience',
+  SERVICE_DESK = '@service-desk',
 }
 
 export enum PlatformFeatureTags {

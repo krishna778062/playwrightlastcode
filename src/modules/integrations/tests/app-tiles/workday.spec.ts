@@ -1,0 +1,1772 @@
+import { faker } from '@faker-js/faker';
+import { TimeOffRequestTileComponent } from '@integrations-components/timeOffRequestTileComponent';
+import { UI_ACTIONS } from '@integrations-constants/common';
+import { FIELD_NAMES } from '@integrations-constants/common';
+import { MESSAGES } from '@integrations-constants/messageRepo';
+import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
+import { integrationsFixture as test } from '@integrations-fixtures/integrationsFixture';
+
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import {
+  CONNECTOR_IDS,
+  REDIRECT_URLS,
+  TILE_IDS,
+  WORKDAY_CREDS,
+  WORKDAY_VALUES,
+} from '@/src/modules/integrations/test-data/app-tiles.test-data';
+import { PeopleTabPage } from '@/src/modules/integrations/ui/pages/peopleTabPage';
+
+const {
+  CreateAnotherRequest,
+  Vacation,
+  Wedding,
+  AppName,
+  paystubsTileName,
+  inboxTileName,
+  jobPostingsTileName,
+  AppManagerDefined,
+  SiteManagerDefined,
+  PayslipListUrl,
+  InboxTasksReportUrl,
+  JobType,
+  InternalJobType,
+  ExternalJobType,
+  AllJobType,
+  InternalJobPostingsUrl,
+} = WORKDAY_VALUES;
+
+test.describe(
+  'workday App Tiles Integration',
+  {
+    tag: [IntegrationsSuiteTags.WORKDAY, IntegrationsSuiteTags.ABSOLUTE],
+  },
+  () => {
+    let createdTileTitle: string | undefined = undefined;
+
+    test.afterEach(async ({ appManagerFixture }) => {
+      const { homeDashboard, tileManagementHelper } = appManagerFixture;
+      if (createdTileTitle) {
+        await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
+        await homeDashboard.verifyTileRemoved(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    });
+
+    test(
+      'verify workday is connected with valid credentials',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        void homeDashboard;
+        void tileManagementHelper;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21414',
+          storyId: 'INT-21182',
+        });
+        const peopleTab = new PeopleTabPage(appManagerFixture.page);
+        await peopleTab.navigateToPeopleDataPage();
+        await peopleTab.verifyNavigatedToPeoplePage();
+        await peopleTab.deselectWorkdayIfChecked();
+        await peopleTab.configureWorkdayCredentials({
+          username: WORKDAY_CREDS.USERNAME,
+          password: WORKDAY_CREDS.PASSWORD,
+          wsdlUrl: WORKDAY_CREDS.WSURL,
+          tenantId: WORKDAY_CREDS.TENANT_ID,
+          clientId: WORKDAY_CREDS.CLIENT_ID,
+          clientSecret: WORKDAY_CREDS.CLIENT_SECRET,
+          refreshToken: WORKDAY_CREDS.REFRESH_TOKEN,
+        });
+        await peopleTab.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove pending learning courses workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21415, INT-21561',
+          storyId: 'INT-20803',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
+          CONNECTOR_IDS.WORKDAY
+        );
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify site manager is able to create, edit and remove pending learning courses workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21416, INT-21563',
+          storyId: 'INT-20803',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, edit, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Workday',
+          'Display pending learning courses',
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify display pending learning courses metadata for workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21423',
+          storyId: 'INT-20801',
+        });
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //verify events UI and redirects
+        await homeDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY);
+      }
+    );
+
+    test(
+      'verify display pending learning courses metadata for workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21564',
+          storyId: 'INT-20801',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Workday',
+          'Display pending learning courses',
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //verify pending learning courses tile data
+        await siteDashboard.verifyPendingLearningCoursesTileData(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for display pending learning courses workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27858',
+          storyId: 'INT-26436',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify show more behaviour for display pending learning courses workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27846',
+          storyId: 'INT-26436',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Workday',
+          'Display pending learning courses',
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27857',
+          storyId: 'INT-26436',
+        });
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_PENDING_LEARNING_COURSES,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify "View all courses in Workday" button is displayed and then click on it and verify the page is redirected to the Workday portal
+        await homeDashboard.verifyViewAllCoursesInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+      }
+    );
+
+    test(
+      'verify "View all courses in Workday" behaviour for display pending learning courses workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22870',
+          storyId: 'INT-26436',
+        });
+
+        createdTileTitle = `workday display pending learning courses apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          'Workday',
+          'Display pending learning courses',
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify "View all courses in Workday" button is displayed and then click on it and verify the page is redirected to the Workday portal
+        await siteDashboard.verifyViewAllCoursesInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'create and edit Workday Apply for Time Off tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22814, INT-22828, INT-22832',
+          storyId: 'INT-21182',
+        });
+
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'create and edit Workday Apply for Time Off tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
+        void homeDashboard;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22813, INT-22829, INT-22833',
+          storyId: 'INT-21182',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.applyTimeOffTile,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify Workday Apply for Time Off tile form submission and create another request functionality on Home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22836, INT-22826',
+          storyId: 'INT-21182',
+        });
+
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+        const comments = faker.lorem.sentence();
+
+        // Create Workday Apply for Time Off tile
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
+        const workingDays = 2;
+
+        // Verify all required fields are present
+        await leaveForm.verifyRequiredFields();
+
+        // Select leave dates starting tomorrow for the specified working days
+        await leaveForm.selectLeaveDates(workingDays);
+        await leaveForm.selectTimeOffCategory(Vacation);
+        await leaveForm.enterComments(comments);
+        await leaveForm.verifyTotalHours(workingDays * 8);
+        await leaveForm.submitTimeOffRequest();
+        await leaveForm.verifyMessageOnTile(MESSAGES.REQUESTED_TIME_OFF_LABEL);
+        await homeDashboard.verifyToastMessage(MESSAGES.REQUESTED_TIME_OFF_LABEL);
+        await leaveForm.verifyButton(CreateAnotherRequest);
+        await leaveForm.clickButton(CreateAnotherRequest);
+        await leaveForm.verifyRequiredFields();
+      }
+    );
+
+    test(
+      'verify Workday Apply for Time Off tile form submission on Site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, homeDashboard, siteManagementHelper } = appManagerFixture;
+        void homeDashboard;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28928',
+          storyId: 'INT-21182',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+        const comments = faker.lorem.sentence();
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTile(createdTileTitle, 'Workday', 'Apply for Time Off', UI_ACTIONS.ADD_TO_SITE);
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
+        const workingDays = 2;
+
+        // Verify all required fields are present
+        await leaveForm.verifyRequiredFields();
+
+        // Select leave dates starting tomorrow for the specified working days
+        await leaveForm.selectLeaveDates(workingDays);
+        await leaveForm.selectTimeOffCategory(Vacation);
+        await leaveForm.enterComments(comments);
+        await leaveForm.verifyTotalHours(workingDays * 8);
+        await leaveForm.submitTimeOffRequest();
+        await leaveForm.verifyMessageOnTile(MESSAGES.REQUESTED_TIME_OFF_ERROR_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REQUESTED_TIME_OFF_ERROR_LABEL);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify Edit amount button functionality for Workday Apply for Time Off on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22964',
+          storyId: 'INT-21182',
+        });
+
+        createdTileTitle = `Apply for Time Off ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile and open form
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_APPLY_FOR_TIMEOFF,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const leaveForm = new TimeOffRequestTileComponent(appManagerFixture.page);
+
+        // Select current/next working day range 2 working days total
+        const workingDays = 2;
+        await leaveForm.selectLeaveDates(workingDays);
+        await leaveForm.selectTimeOffCategory(Wedding);
+        await leaveForm.verifyTotalDays(workingDays);
+
+        // Click Edit amount and verify split amounts
+        await leaveForm.verifyAmountValues(workingDays, workingDays, { unit: 'days', amountPerDay: 1 });
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Recent Paystubs app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22732, INT-22739, INT-23286',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Recent Paystubs app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          AppManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        //add, edit, verify
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday Display Recent Paystubs site manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22734, INT-22735',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday Display Recent Paystubs user ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          SiteManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22904, INT-22738',
+          storyId: 'INT-21590',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Recent Paystubs user defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22906',
+          storyId: 'INT-21590',
+        });
+
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata and view all payslips in Workday for Display Recent Paystubs user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22756, INT-22921',
+          storyId: 'INT-21588',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Recent Paystubs user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          FIELD_NAMES.PAYSLIP_LIST_URL
+        );
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.PAYSLIP_LIST_URL,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
+        await homeDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await homeDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+      }
+    );
+
+    test(
+      'verify metadata and view all payslips in Workday for Workday Display Recent Paystubs site manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22752, INT-22910',
+          storyId: 'INT-21588',
+        });
+
+        createdTileTitle = `Workday Display Recent Paystubs site ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          SiteManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyWorkdayPaystubsMetadata(createdTileTitle);
+        await siteDashboard.verifyViewAllPayslipsInWorkdayLink(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify personalize behaviour for Workday Display Recent Paystubs app manager defined user editable tile on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22914',
+          storyId: 'INT-21590',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Recent Paystubs app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettingsEnableToggle(
+          createdTileTitle,
+          AppName,
+          paystubsTileName,
+          AppManagerDefined,
+          PayslipListUrl,
+          REDIRECT_URLS.WORKDAY_RECENT_PAYSTUBS,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        //verify personalize button behaviour
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.PAYSLIP_LIST_URL);
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Inbox app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14008',
+          storyId: 'INT-13791',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Inbox app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await homeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday Display Inbox site manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14009',
+          storyId: 'INT-13791',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Inbox app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        //add, edit, verify
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Inbox user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22737',
+          storyId: 'INT-13791',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          FIELD_NAMES.INBOX_REPORT_URL
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.INBOX_REPORT_URL,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 7 seconds to load the tile.
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday Display Inbox user defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22907',
+          storyId: 'INT-13791',
+        });
+
+        createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          FIELD_NAMES.INBOX_REPORT_URL
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.INBOX_REPORT_URL,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify show more behaviour for Workday Display Inbox apptile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-13998',
+          storyId: 'INT-12864',
+        });
+        createdTileTitle = `Workday Display Inbox apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        await homeDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await homeDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify show more behaviour for Workday Display Inbox site manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14017',
+          storyId: 'INT-12864',
+        });
+        createdTileTitle = `Workday Display Inbox site manager defined ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.isTilePresent(createdTileTitle);
+        //Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+        await siteDashboard.verifyShowMoreBehavior(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata for Workday Display Inbox user defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26059',
+          storyId: 'INT-12864',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Inbox user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          FIELD_NAMES.INBOX_REPORT_URL
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.setUpTileTextbox(
+          createdTileTitle,
+          FIELD_NAMES.INBOX_REPORT_URL,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeVisible(createdTileTitle);
+        await homeDashboard.verifyWorkdayInboxMetadata(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify metadata for Workday Display Inbox app manager defined tile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26028',
+          storyId: 'INT-12864',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Inbox app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithDefinedSettings(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          SiteManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyWorkdayInboxMetadata(createdTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify personalize behaviour for Workday Display Inbox app manager defined user editable tile on home dashboard',
+      {
+        tag: [TestPriority.P3, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14019',
+          storyId: 'INT-12864',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Inbox app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithDefinedSettingsEnableToggle(
+          createdTileTitle,
+          AppName,
+          inboxTileName,
+          AppManagerDefined,
+          InboxTasksReportUrl,
+          REDIRECT_URLS.WORKDAY_INBOX_TASKS_REPORT,
+          UI_ACTIONS.ADD_TO_HOME
+        );
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await appManagerFixture.page.waitForTimeout(10000); //Actual behaviour: It takes more than 10 seconds to load the tile.
+        //verify personalize button behaviour
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.openPersonalizeAndVerify(createdTileTitle, FIELD_NAMES.INBOX_REPORT_URL);
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove default display job postings workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24332',
+          storyId: 'INT-23622',
+        });
+
+        createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_JOB_POSTINGS,
+          CONNECTOR_IDS.WORKDAY
+        );
+
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify site manager is able to create, edit and remove default display job postings workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21424',
+          storyId: 'INT-23622',
+        });
+
+        createdTileTitle = `workday display job postings apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, edit, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday job postings app manager defined tile on home dashboard(Internal)',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27984, INT-21427',
+          storyId: 'INT-27948',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday job postings site manager defined tile on site dashboard(External)',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27985, INT-21417',
+          storyId: 'INT-27948',
+        });
+
+        createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTileWithSiteManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday job postings user defined tile on home dashboard(External)',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27986, INT-21425',
+          storyId: 'INT-27948',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings external ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          JobType,
+          InternalJobPostingsUrl
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        // Personalize: select Job type and enter Example internal job URL, then Save
+        await homeDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.clickEditDashboard();
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app/site manager is able to create, edit and remove Workday job postings user defined tile on site dashboard(Internal)',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27987, INT-27528',
+          storyId: 'INT-27948',
+        });
+
+        createdTileTitle = `Workday job postings internal ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Create site and navigate
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        // Add, edit, and remove tile
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          JobType,
+          InternalJobPostingsUrl
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(All job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27530, INT-24328, INT-24329, INT-24327',
+          storyId: 'INT-26724, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings all job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          AllJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        // Verify tile metadata, show more behaviour and redirect URL
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, AllJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(Internal job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27529, INT-24329, INT-24326',
+          storyId: 'INT-27948, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings internal job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          InternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, InternalJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager defined job postings tile metadata, redirect URL(External job types) and Show more behaviour',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22758, INT-24329, INT-22815',
+          storyId: 'INT-27948, INT-23622',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday job postings external job types ${faker.string.alphanumeric({ length: 6 })}`;
+        // Create via UI with App manager defined and enter URL, then add to home
+        await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
+          createdTileTitle,
+          AppName,
+          jobPostingsTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          JobType,
+          ExternalJobType,
+          InternalJobPostingsUrl,
+          REDIRECT_URLS.WORKDAY_JOB_POSTINGS
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyWorkdayJobPostingsmetadata(createdTileTitle, ExternalJobType);
+        await homeDashboard.verifyTileRedirects(createdTileTitle, REDIRECT_URLS.WORKDAY_EXTERNAL_JOB_POSTINGS);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove default display time off balance workday apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21051, INT-14001',
+          storyId: 'INT-20791',
+        });
+
+        createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
+        //add, edit, verify
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.WORKDAY_DISPLAY_TIME_OFF_BALANCE,
+          CONNECTOR_IDS.WORKDAY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify site manager is able to create, edit and remove default display time off balance workday apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21442, INT-21041',
+          storyId: 'INT-20791',
+        });
+
+        createdTileTitle = `workday display time off balance apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, edit, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard - time off',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27510, INT-21570',
+          storyId: 'INT-26724',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off site manager defined tile on site dashboard - leave of absence',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27514, INT-21046',
+          storyId: 'INT-26724',
+        });
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance site ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await siteDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_SITE,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(createdTileTitle);
+        await siteDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on home dashboard - leave of absence',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27508, INT-27507',
+          storyId: 'INT-26724',
+        });
+
+        // Use homeDashboard from fixture
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await homeDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.clickEditDashboard();
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard - time off',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+
+      async ({ appManagerFixture }) => {
+        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-27512, INT-27513',
+          storyId: 'INT-26724',
+        });
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+        createdTileTitle = `Workday Display Time Off user defined ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add,personalize,edit,verify
+        await siteDashboard.addTilewithPersonalizeSingleField(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          WORKDAY_VALUES.LeaveType
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.personalizeDropdownAndText(
+          createdTileTitle,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.clickEditDashboard();
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify metadata and show more behavior for Workday Display Time Off(Leave of absence) app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21049',
+          storyId: 'INT-20791',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyWorkdayTimeOffMetadata(createdTileTitle, WORKDAY_VALUES.LeaveOfAbsenceLeaveType);
+      }
+    );
+
+    test(
+      'verify metadata and show more behavior for Workday Display Time Off(Time off) app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21050',
+          storyId: 'INT-20791',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.TimeOffLeaveType
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        //show more is not visible as data is 4 only
+        await homeDashboard.verifyWorkdayTimeOffMetadata(createdTileTitle, WORKDAY_VALUES.TimeOffLeaveType);
+      }
+    );
+
+    test(
+      'verify metadata and show more behavior for Workday Display Time Off(All) app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-21053',
+          storyId: 'INT-20791',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `Workday Display Time Off Balance app ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          AppName,
+          WORKDAY_VALUES.timeOffBalanceTileName,
+          UI_ACTIONS.ADD_TO_HOME,
+          WORKDAY_VALUES.LeaveType,
+          WORKDAY_VALUES.AllLeaveType
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        await homeDashboard.verifyShowMoreBehavior(createdTileTitle);
+        await homeDashboard.verifyWorkdayTimeOffMetadata(createdTileTitle, WORKDAY_VALUES.AllLeaveType);
+      }
+    );
+  }
+);
