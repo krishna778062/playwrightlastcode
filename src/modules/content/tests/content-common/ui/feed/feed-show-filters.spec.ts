@@ -3,9 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
-import { buildBodyAndBodyHtml } from '@/src/modules/content/apis/services/ContentManagementService';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { PageContentType } from '@/src/modules/content/constants/pageContentType';
@@ -13,6 +11,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -702,17 +701,7 @@ test.describe(
           ContentType.PAGE
         )) as PageCreationPage;
 
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
         pageCreationOptions.category = 'uncategorized';
 
@@ -730,9 +719,9 @@ test.describe(
         // Initialize contentPreviewPage after we have the pageContentId
         const contentPreviewPage = new ContentPreviewPage(
           standardUserFixture.page,
-          allEmployeesSiteId!,
+          allEmployeesSiteId,
           pageContentId,
-          ContentType.PAGE
+          ContentType.PAGE.toLowerCase()
         );
 
         await contentPreviewPage.actions.handlePromotionPageStep();
@@ -752,7 +741,7 @@ test.describe(
 
         // Unpublish content from option menu
         await test.step('Unpublish content from option menu', async () => {
-          await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/page/${pageContentId}`);
+          await contentPreviewPage.loadPage();
           await contentPreviewPage.verifyThePageIsLoaded();
           await contentPreviewPage.actions.skipPromotionDialogIfVisible('page');
           await contentPreviewPage.actions.clickOnOptionMenuButton();
@@ -773,7 +762,7 @@ test.describe(
 
         // Republish content from option menu
         await test.step('Republish content from option menu', async () => {
-          await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/page/${pageContentId}`);
+          await contentPreviewPage.loadPage();
           await contentPreviewPage.verifyThePageIsLoaded();
           await contentPreviewPage.actions.publishingTheContent();
           await contentPreviewPage.assertions.verifyPublishedContentToasteMessage(
@@ -837,15 +826,12 @@ test.describe(
         futureEndDate.setHours(futureEndDate.getHours() + 2);
 
         const eventName = `Test Event ${Date.now()}`;
-        const { body, bodyHtml } = buildBodyAndBodyHtml('Test event description', 'event');
 
         const eventInfo =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.addNewEventContent(
             allEmployeesSiteId,
             {
               title: eventName,
-              body,
-              bodyHtml,
               contentType: 'event',
               startsAt: futureDate.toISOString(),
               endsAt: futureEndDate.toISOString(),
@@ -860,9 +846,9 @@ test.describe(
         // Initialize page objects once for reuse
         const contentPreviewPage = new ContentPreviewPage(
           standardUserFixture.page,
-          allEmployeesSiteId!,
+          allEmployeesSiteId,
           eventContentId!,
-          ContentType.EVENT
+          ContentType.EVENT.toLowerCase()
         );
         const homeFeedPage = new FeedPage(standardUserFixture.page);
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
@@ -883,7 +869,7 @@ test.describe(
         await siteFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle!);
 
         // Unpublish event and verify it's not visible
-        await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/event/${eventContentId}`);
+        await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
         await contentPreviewPage.actions.skipPromotionDialogIfVisible('event');
         await contentPreviewPage.actions.clickOnOptionMenuButton();
@@ -899,7 +885,7 @@ test.describe(
         await homeFeedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle!);
 
         // Republish event and verify it's visible again
-        await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/event/${eventContentId}`);
+        await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
         await contentPreviewPage.actions.publishingTheContent();
 
@@ -910,7 +896,7 @@ test.describe(
         await homeFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle!);
 
         // Delete event and verify it's not visible
-        await standardUserFixture.page.goto(`/site/${allEmployeesSiteId}/event/${eventContentId}`);
+        await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
         await contentPreviewPage.actions.deleteTheContent();
 

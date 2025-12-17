@@ -178,14 +178,14 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       if (options?.widescreenCropOption) {
         await this.imageCropper.selectCropOption('Widescreen');
       }
+      await this.imageCropper.clickOnNextButton();
+
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
-        await this.imageCropper.clickOnNextButton();
       }
 
       await this.imageCropper.clickOnNextButton();
       //await this.imageCropper.clickOnNextButton();
-      await this.imageCropper.clickOnAddButton();
       await this.imageCropper.clickOnAddButton();
       await this.imageCropper.clickOnAddButton();
 

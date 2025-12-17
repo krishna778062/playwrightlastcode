@@ -318,7 +318,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   async skipPromotionDialogIfVisible(contentType: string): Promise<void> {
     await test.step('Skipping promotion dialog if visible', async () => {
       const isPromotionDialogVisible = await this.verifier.isTheElementVisible(this.promotionEventDialog(contentType), {
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.SHORT,
       });
       if (isPromotionDialogVisible) {
         console.log('Promotion dialog is visible, skipping it');
