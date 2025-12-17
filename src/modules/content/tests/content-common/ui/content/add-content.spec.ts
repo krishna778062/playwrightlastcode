@@ -280,9 +280,13 @@ test.describe(
         });
 
         // Create site with content submission disabled
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
-        const siteName = DEFAULT_UNLISTED_SITE_NAME;
-        addContentModal = await appManagerFixture.navigationHelper.openAddContentModal(ContentType.PAGE);
+        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
+          hasPages: false,
+        });
+        const siteName = siteDetails.name;
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        addContentModal = await appManagerFixture.navigationHelper.openCreateContentPage(ContentType.PAGE);
 
         await addContentModal.selectSiteToAddContentFromDropdown(siteName);
 
