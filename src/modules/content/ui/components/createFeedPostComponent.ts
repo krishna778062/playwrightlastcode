@@ -75,6 +75,7 @@ export interface ICreateFeedPostAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPostButtonDisabled: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -351,7 +352,13 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      await this.fileUploadInput.setInputFiles(filePaths);
+      const fileUploadInputCount = await this.fileUploadInput.count();
+      if (fileUploadInputCount > 1) {
+        await this.fileUploadInput.nth(1).setInputFiles(filePaths);
+      } else {
+        await this.fileUploadInput.setInputFiles(filePaths);
+      }
+
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       /*
           If files are more than 10, verify the count of attached files is 10
@@ -898,6 +905,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Verifies that the Post button is disabled
+   */
+  async verifyPostButtonDisabled(): Promise<void> {
+    await test.step('Verify Post button is disabled', async () => {
+      await expect(this.postButton).toBeDisabled();
+    });
+  }
+
   async addFileToPost(filePath: string): Promise<void> {
     await test.step(`Add file to post: ${filePath}`, async () => {
       await this.fileUploadInput.first().setInputFiles([filePath]);
@@ -1147,12 +1163,17 @@ export class CreateFeedPostComponent
   async selectBoxFile(fileName?: string): Promise<void> {
     await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
       if (fileName) {
-        const file = this.filePickerDialog.getByRole('button', { name: fileName });
-        await this.verifier.verifyTheElementIsVisible(file, {
-          assertionMessage: `Box file "${fileName}" should be visible`,
-          timeout: TIMEOUTS.VERY_SHORT,
+        const checkbox = this.getFileCheckboxLocator(fileName);
+        await this.verifier.verifyTheElementIsVisible(checkbox, {
+          assertionMessage: `Checkbox for file "${fileName}" should be visible`,
         });
-        await file.check();
+
+        // Check if checkbox is already selected
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          // Click the checkbox using JavaScript to ensure it works
+          await checkbox.check();
+        }
       } else {
         const file = this.filePickerDialog.getByRole('checkbox', { name: '.pdf' }).first();
         await this.verifier.verifyTheElementIsVisible(file, {
