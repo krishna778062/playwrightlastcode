@@ -1076,13 +1076,6 @@ test.describe(
           siteManagerInfo = siteManager;
           pageContent = page;
 
-          // Pre-assign Site Manager role (needed for CONT-42996)
-          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-            siteId: publicSiteId,
-            userId: siteManagerInfo.userId,
-            role: SitePermission.MANAGER,
-          });
-
           // Set feed posting permission
           const manageSitePage = new ManageSitePage(appManagerFixture.page);
           await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
@@ -1177,7 +1170,7 @@ test.describe(
         test(
           'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090', '@inappropriate-content-warning'],
           },
           async ({ appManagerFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1210,7 +1203,7 @@ test.describe(
         test(
           'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1218,6 +1211,13 @@ test.describe(
                 'Verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
               zephyrTestId: 'CONT-42996',
               storyId: 'CONT-42996',
+            });
+
+            // Assign Site Manager role
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: siteManagerInfo.userId,
+              role: SitePermission.MANAGER,
             });
 
             // Assign Site Content Manager role
@@ -1250,7 +1250,7 @@ test.describe(
         test(
           'verify warning popup appears when inappropriate content is submitted for Site Member',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1279,7 +1279,7 @@ test.describe(
         test(
           'verify warning popup appears when inappropriate content is submitted for Site Owner',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1442,7 +1442,7 @@ test.describe(
           await homeFeedPage.actions.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostButton();
+          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1489,7 +1489,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1538,7 +1538,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1605,8 +1605,6 @@ test.describe(
           ),
         ]);
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
         // Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: publicSiteId,
@@ -1657,9 +1655,6 @@ test.describe(
           inappropriatePostText,
           editedPostText
         );
-
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
       }
     );
 
