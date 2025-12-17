@@ -247,9 +247,9 @@ export const config = {
     uat: {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://abac.uat.simpplr.xyz',
-      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz/',
+      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz',
       appManagerEmail: 'rakesh.shahabadi@simpplr.com',
-      appManagerPassword: 'simpplr001',
+      appManagerPassword: 'Simp@1234',
       endUserEmail: 'diksha.gaur@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'diksha.gaur@simpplr.com',
@@ -464,6 +464,17 @@ export function clearContentConfigCache(): void {
  */
 export function isContentConfigInitialized(): boolean {
   return configCache !== null;
+}
+
+/**
+ * Get current environment from cache
+ * @returns Current environment key (e.g., 'qa', 'uat', 'test')
+ */
+export function getContentEnvironmentFromCache(): EnvironmentKey {
+  if (!configCache) {
+    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+  }
+  return configCache.environment;
 }
 
 /**

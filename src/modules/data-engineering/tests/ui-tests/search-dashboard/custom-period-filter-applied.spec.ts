@@ -11,6 +11,7 @@ import { DateHelper, SearchDashboardQueryHelper, SnowflakeHelper } from '../../.
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SearchDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSearchDashboardForTest,
@@ -50,7 +51,7 @@ test.describe(
       const customStartDate = '2025-09-01';
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customStartDate,
         customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format

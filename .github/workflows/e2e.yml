@@ -20,6 +20,7 @@ on:
           - 'integrations-primary'
           - 'de'
           - 'de-api'
+          - 'de-api-abac'
           - 'frontline'
           - 'recognition'
           - 'only-peer-to-peer'
@@ -58,6 +59,7 @@ on:
           - 'prodUS'
           - 'prodEU'
           - 'prodCA'
+          - 'prodAU'
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'

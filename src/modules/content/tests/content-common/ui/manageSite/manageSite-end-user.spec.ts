@@ -293,6 +293,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
+        await newSiteDashboard.assertions.verifyThePageIsLoaded();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
