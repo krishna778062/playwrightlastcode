@@ -107,8 +107,14 @@ test.describe(
         });
 
         const contentId = await appManagerFixture.contentManagementHelper.getContentId();
-        const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, contentId.siteId);
+        const contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          contentId.siteId,
+          contentId.contentId,
+          'page'
+        );
         // And Click "Question"
+        await contentPreviewPage.loadPage();
         await contentPreviewPage.actions.clickShareThoughtsButton();
         await contentPreviewPage.actions.clickQuestionButton();
         const questionTitle = TestDataGenerator.generateRandomText();

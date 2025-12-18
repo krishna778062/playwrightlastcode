@@ -136,10 +136,11 @@ for (const fileType of INTRANET_FILE_SEARCH_TEST_DATA.fileTypes) {
           await resultList.waitForAndVerifyAutocompleteListIsDisplayed();
 
           const fileResult = resultList.getAutocompleteItemByName(uploadedFileName);
+          const intranetFileResult = new IntranetFileListComponent(fileResult.page, fileResult.rootLocator);
 
           await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
 
-          await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
+          await intranetFileResult.verifyAutocompleteNavigationToFileLink(fileId, uploadedFileName);
         }
       );
     }

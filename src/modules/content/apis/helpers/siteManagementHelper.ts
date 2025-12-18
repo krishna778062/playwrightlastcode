@@ -624,54 +624,6 @@ export class SiteManagementHelper {
   async getListOfPeople(options?: { size?: number; filter?: string }): Promise<any> {
     return await this.siteManagementService.getListOfPeople(options);
   }
-  /**
-   * Gets 2 sites that are not in the featured sites list
-   * @param count - Number of non-featured sites to return (default: 2)
-   * @returns Promise containing non-featured sites
-   */
-  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
-    return await test.step(`Getting ${count} non-featured sites`, async () => {
-      // Fetch both lists in parallel for better performance
-      const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'active', size: 1000 }),
-        this.getListOfSites({ filter: 'featured', size: 1000 }),
-      ]);
-
-      // Early validation
-      if (!allSitesResponse.result.listOfItems.length) {
-        throw new Error('No active sites found');
-      }
-
-      // Create Set for O(1) lookup performance
-      const featuredSiteIds = new Set(featuredSitesResponse.result.listOfItems.map((site: any) => site.siteId));
-
-      // Single pass filtering and mapping for better performance
-      const nonFeaturedSites: { siteId: string; name: string }[] = [];
-
-      for (const site of allSitesResponse.result.listOfItems) {
-        if (!featuredSiteIds.has(site.siteId)) {
-          nonFeaturedSites.push({
-            siteId: site.siteId,
-            name: site.name,
-          });
-
-          // Early exit if we have enough sites
-          if (nonFeaturedSites.length >= count) {
-            break;
-          }
-        }
-      }
-
-      if (nonFeaturedSites.length < count) {
-        throw new Error(`Not enough non-featured sites found. Found: ${nonFeaturedSites.length}, Required: ${count}`);
-      }
-
-      log.debug(
-        `Selected ${nonFeaturedSites.length} non-featured sites: ${nonFeaturedSites.map(s => s.name).join(', ')}`
-      );
-      return nonFeaturedSites;
-    });
-  }
 
   /**
    * Unfeatures a site (removes it from featured sites)
@@ -778,39 +730,47 @@ export class SiteManagementHelper {
         `Expected accessType to be a string, but received: ${typeof accessType}. Value: ${JSON.stringify(accessType)}`
       );
     }
+    //loop through the siteListResponse and check if the site matches the options
     const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-    let siteDetails = siteListResponse.result.listOfItems.find(site => site.isActive === true);
-    let siteId: string | undefined, siteName: string | undefined, authorName: string | undefined;
 
-    if (siteDetails) {
-      // Check if the existing site matches the required options
+    // Use default values: if options are not specified, default to true (original behavior)
+    const requiredHasPages = options?.hasPages;
+    const requiredHasEvents = options?.hasEvents;
+    const requiredHasAlbums = options?.hasAlbums;
+
+    log.debug(
+      `Looking for site with hasPages: ${requiredHasPages}, hasEvents: ${requiredHasEvents}, hasAlbums: ${requiredHasAlbums}`
+    );
+
+    for (const site of siteListResponse.result.listOfItems) {
+      // Only check active sites
+      if (!site.isActive) {
+        continue;
+      }
+
+      // Check if site matches the required options
       const matchesRequirements =
-        (options?.hasPages ?? true) && (options?.hasEvents ?? true) && (options?.hasAlbums ?? true);
+        site.hasPages === requiredHasPages &&
+        site.hasEvents === requiredHasEvents &&
+        site.hasAlbums === requiredHasAlbums;
 
       if (matchesRequirements) {
-        siteId = siteDetails.siteId;
-        siteName = siteDetails.name;
-        log.debug(`Using existing site: ${siteName} (${siteId}) that matches requirements`);
+        log.debug(
+          `Found matching site: ${site.name} (${site.siteId}) with hasPages: ${site.hasPages}, hasEvents: ${site.hasEvents}, hasAlbums: ${site.hasAlbums}`
+        );
+        return { siteId: site.siteId, name: site.name, siteListResponse: siteListResponse.result.listOfItems };
       } else {
-        log.debug(`Existing site doesn't match requirements, will create new site`);
-        siteDetails = undefined; // Reset to undefined so we create a new site
+        log.debug(
+          `Site ${site.name} doesn't match - hasPages: ${site.hasPages}, hasEvents: ${site.hasEvents}, hasAlbums: ${site.hasAlbums}`
+        );
       }
     }
-
-    if (!siteId) {
-      const createdSite = await this.createSiteByAccessType(accessType, undefined, {
-        ...options,
-        waitForSearchIndex: options?.waitForSearchIndex,
-      });
-      siteId = createdSite.siteId;
-      siteName = createdSite.siteName;
-    }
-
-    if (!siteId || !siteName) {
-      throw new Error(`No site found or created with access type ${accessType}`);
-    }
-
-    return { siteId, name: siteName, siteListResponse: siteListResponse.result.listOfItems };
+    //create a new site with the options
+    const createdSite = await this.createSiteByAccessType(accessType, undefined, {
+      ...options,
+      waitForSearchIndex: options?.waitForSearchIndex,
+    });
+    return { siteId: createdSite.siteId, name: createdSite.siteName };
   }
 
   /**
@@ -1445,6 +1405,77 @@ export class SiteManagementHelper {
   }
 
   /**
+   * Gets users who are neither members nor followers of a site
+   * @param siteId - The site ID
+   * @param options - Optional parameters including minimumCount to ensure enough users are available
+   * @returns Promise containing array of non-member user names
+   */
+  async getNonMemberUserNames(siteId: string, options?: { minimumCount?: number }): Promise<string[]> {
+    return await test.step(`Getting non-member user names for site ${siteId}`, async () => {
+      // Get both members and followers separately to ensure we capture all relationships
+      // Note: 'all' type is invalid, so we fetch 'members' and 'followers' separately
+      const [getMembersListResponse, getFollowersListResponse] = await Promise.all([
+        this.getSiteMembershipList(siteId, {
+          size: 1000,
+          type: 'members',
+        }).catch(() => ({ result: { listOfItems: [] } })), // Fallback if fails
+        this.getSiteMembershipList(siteId, {
+          size: 1000,
+          type: 'followers',
+        }).catch(() => ({ result: { listOfItems: [] } })), // Fallback if 'followers' type is invalid
+      ]);
+      const allUsersListResponse = await this.getAllUsersList();
+
+      // Extract peopleIds from both membership lists (members and followers) and combine
+      const membersPeopleIds = (getMembersListResponse.result.listOfItems || [])
+        .map((member: any) => member.peopleId || member.userId || member.user_id)
+        .filter((id: string) => id);
+      const followersPeopleIds = (getFollowersListResponse.result.listOfItems || [])
+        .map((member: any) => member.peopleId || member.userId || member.user_id)
+        .filter((id: string) => id);
+
+      // Combine and deduplicate using Set to get all people with any relationship to the site
+      const allRelatedPeopleIds = [...new Set([...membersPeopleIds, ...followersPeopleIds])];
+
+      log.debug(
+        `Found ${membersPeopleIds.length} members and ${followersPeopleIds.length} followers for site ${siteId}`
+      );
+      log.debug(`Total unique people with relationship to site: ${allRelatedPeopleIds.length}`);
+
+      // Filter all users to find those who are NOT in the membership list (neither members nor followers)
+      const nonMemberUsers = (allUsersListResponse.result.listOfItems || []).filter((user: any) => {
+        const userId = user.peopleId || user.user_id;
+        if (!userId) {
+          return false; // Skip users without valid ID
+        }
+        return !allRelatedPeopleIds.includes(userId);
+      });
+
+      // Get names of non-member users for UI interaction
+      const nonMemberNames = nonMemberUsers
+        .map((user: any) => `${user.first_name || ''} ${user.last_name || ''}`.trim())
+        .filter((name: string) => name.length > 0);
+
+      log.debug(`Found ${nonMemberNames.length} users who are neither members nor followers`);
+      if (nonMemberNames.length > 0) {
+        log.debug('Available non-member names (first 10):', nonMemberNames.slice(0, 10));
+      }
+
+      if (nonMemberNames.length === 0) {
+        throw new Error('No non-member users found to add to the site');
+      }
+
+      if (options?.minimumCount && nonMemberNames.length < options.minimumCount) {
+        throw new Error(
+          `Only ${nonMemberNames.length} non-member user(s) found. Need at least ${options.minimumCount} users.`
+        );
+      }
+
+      return nonMemberNames;
+    });
+  }
+
+  /**
    * Gets a site by access type with specific content submissions configuration
    * @param accessType - The access type of the site (e.g., SITE_TYPES.UNLISTED)
    * @param isContentSubmissionsEnabled - Whether content submissions should be enabled
@@ -1456,12 +1487,21 @@ export class SiteManagementHelper {
   ): Promise<{ siteId: string; siteName: string }> {
     return await test.step(`Getting site with access type ${accessType} and content submissions ${isContentSubmissionsEnabled ? 'enabled' : 'disabled'}`, async () => {
       // Try to find an existing site with the desired configuration
-      const _existingSite = await this.getSiteByAccessType(accessType, {
-        waitForSearchIndex: true,
-      });
+      const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+      console.log('siteListResponse', JSON.stringify(siteListResponse, null, 2));
+      // Loop through sites to find one that matches the content submissions configuration
+      for (const site of siteListResponse.result.listOfItems) {
+        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+        if (siteDetails.result.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
+          // Activate site if it's not active
+          if (!site.isActive) {
+            await this.siteManagementService.activateSite(site.siteId);
+          }
+          return { siteId: site.siteId, siteName: site.name };
+        }
+      }
 
-      // If we found an existing site, check if it matches our content submission requirements
-      // For now, we'll create a new site with the specific content submission setting
+      // If no matching site found, create a new site with the specific content submission setting
       const createdSite = await this.createSiteByAccessType(accessType, undefined, {
         overrides: {
           isContentSubmissionsEnabled: isContentSubmissionsEnabled,
@@ -1627,6 +1667,32 @@ export class SiteManagementHelper {
       } else {
         return { siteId: site.siteId, siteName: site.name };
       }
+    });
+  }
+
+  /**
+   * Gets unfeatured sites using the API service
+   * @param count - Number of unfeatured sites to return (default: 2)
+   * @returns Promise containing array of unfeatured sites
+   */
+  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
+    return await test.step(`Getting ${count} unfeatured sites`, async () => {
+      // Call the service method to get unfeatured sites
+      const siteListResponse = await this.siteManagementService.getUnfeaturedSites({
+        size: 1000,
+        sortBy: 'alphabetical',
+      });
+
+      // Randomize the site list first
+      const shuffledSites = [...siteListResponse.result.listOfItems].sort(() => Math.random() - 0.5);
+      if (shuffledSites.length < count) {
+        throw new Error(`Not enough unfeatured sites found. Found: ${shuffledSites.length}, Required: ${count}`);
+      }
+      // Return the requested count of sites
+      return shuffledSites.slice(0, count).map((site: any) => ({
+        siteId: site.siteId,
+        name: site.name,
+      }));
     });
   }
 }

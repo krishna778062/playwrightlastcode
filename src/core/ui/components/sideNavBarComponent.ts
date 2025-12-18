@@ -59,7 +59,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
     this.createSection = page.getByRole('button', { name: 'Create', exact: true });
-    this.feedLink = page.locator('p', { hasText: 'Feed' });
+    this.feedLink = page.getByRole('menuitem', { name: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
@@ -120,7 +120,7 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('side navbar: clicking Global Feed button on side navbar', async () => {
-      if (await this.verifier.isTheElementVisible(this.feedLink)) {
+      if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);
