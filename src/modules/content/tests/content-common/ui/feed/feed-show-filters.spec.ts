@@ -511,8 +511,10 @@ test.describe(
           allEmployeesSiteId =
             await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
+          const albumName = TestDataGenerator.generateRandomText('Automated Test Album');
+
           await test.step('As EndUser: Create album', async () => {
-            albumTitle = FEED_TEST_DATA.CONTENT.ALBUM_TITLE;
+            albumTitle = albumName;
 
             const albumInfo = await standardUserFixture.contentManagementHelper.createAlbum({
               siteId: allEmployeesSiteId!,
@@ -758,7 +760,7 @@ test.describe(
         const futureEndDate = new Date(futureDate);
         futureEndDate.setHours(futureEndDate.getHours() + 2);
 
-        const eventName = FEED_TEST_DATA.CONTENT.EVENT_TITLE;
+        const eventName = TestDataGenerator.generateRandomText('Automated Test Event');
 
         const eventInfo =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.addNewEventContent(
