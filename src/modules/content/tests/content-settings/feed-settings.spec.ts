@@ -20,6 +20,7 @@ import { initializeContentConfig } from '@/src/modules/content/config/contentCon
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SmartFeedBlock } from '@/src/modules/content/constants/smartFeedBlocks';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -81,9 +82,6 @@ test.describe(
       } catch (error) {
         console.warn('Failed to configure app governance, continuing with test:', error);
       }
-
-      // Create home page instance
-      await appManagerFixture.homePage.verifyThePageIsLoaded();
 
       // Initialize page objects for the test cases
       feedPage = new FeedPage(appManagerFixture.page);
@@ -195,6 +193,7 @@ test.describe(
           zephyrTestId: 'CONT-26613',
           storyId: 'CONT-26613',
         });
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.clickOnTimelineFeedDisabled();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -242,6 +241,7 @@ test.describe(
         const topicList = await appManagerFixture.contentManagementHelper.getTopicList();
         const topic = topicList.result.listOfItems[0].name;
         await appManagerFixture.feedManagementHelper.setOneLanguage();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
         const customPlaceholder =
           'Share your thoughts @' + userInfo.firstName + ' about #' + topic + ' #' + userInfo.lastName + '#';
@@ -278,7 +278,7 @@ test.describe(
           storyId: 'CONT-33862',
         });
 
-        // Select Default Placeholder option
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.makePlaceholderDefault();
 
         const recognitionConfig = await appManagerFixture.feedManagementHelper.getRecognitionConfig();
@@ -345,6 +345,7 @@ test.describe(
 
         // Step 1: Admin configures custom placeholder text
         await appManagerFixture.feedManagementHelper.setOneLanguage();
+        await governanceScreenPage.loadPage();
         await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
         const customPlaceholder = 'Share your thoughts ' + TestDataGenerator.generateRandomString('');
         await governanceScreenPage.actions.updateTheCustomFeedPlaceholder(customPlaceholder);
@@ -851,10 +852,7 @@ test.describe(
         });
 
         // Setup: Create event and page content so smart feed blocks are visible
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          waitForSearchIndex: false,
-        });
-        const setupSiteId = siteInfo.siteId;
+        const setupSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create an event for "Upcoming events" block
         const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
@@ -903,11 +901,8 @@ test.describe(
         await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
         await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
 
-        // Use the siteId from setup
-        const targetSiteId = setupSiteId;
-
         // Click on "feed" link
-        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, targetSiteId);
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, setupSiteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
 
