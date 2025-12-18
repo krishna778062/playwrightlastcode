@@ -281,8 +281,8 @@ test.describe(
         // Select Default Placeholder option
         await governanceScreenPage.actions.makePlaceholderDefault();
 
-        const appConfig = await appManagerFixture.feedManagementHelper.getAppConfig();
-        const isRecognitionEnabled = appConfig.result?.isRecognitionEnabled || false;
+        const recognitionConfig = await appManagerFixture.feedManagementHelper.getRecognitionConfig();
+        const isRecognitionEnabled = recognitionConfig.enabled;
 
         // Expected placeholder texts based on Recognition feature flag
         const expectedPlaceholderWithRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITH_RECOGNITION;
