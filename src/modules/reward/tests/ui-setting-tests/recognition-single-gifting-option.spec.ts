@@ -73,13 +73,14 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
       });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.pointsToGive);
+      await recognitionHub.navigateToRecognitionHub();
+      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.pointsToGive, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Points to give value is visible on UI',
+      });
       const availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
       const rewardOption = await recognitionHub.setupTheSingleGiftingOptions(availablePoints);
-      // Navigate to Recognition Hub and Click on Give recognition Modal
-      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.navigateToRecognitionHub();
       await recognitionHub.clickOnGiveRecognition();
 
       // Select one user and enable the Gifting option toggle
@@ -92,6 +93,7 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
 
       // Select more user and check the Recognize button is disabled
       await recognitionHub.mockTheWalletPoints(Number(rewardOption) * (userCount - 1), 100, 1000);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.enableTheGiftingOption(true);
       await recognitionHub.selectUsersInTheAwardee(userCount);

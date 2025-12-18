@@ -439,11 +439,14 @@ export class RecognitionHubPage extends BasePage {
     });
     await rewardGiftingOptions.verifyThePageIsLoaded();
     const parsedAvailablePoints = Number(availablePoints.replace(/[,\s]/g, '')) || 1;
-    let rewardOption;
+    let rewardOption: number, giftingOptionSaveButtonEnablement: boolean;
     do {
       rewardOption = Math.floor(Math.random() * (parsedAvailablePoints - 1 + 1)) + 1;
       await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
-    } while (!(await rewardGiftingOptions.giftingOptionsSave.isEnabled({ timeout: 1200 })));
+      giftingOptionSaveButtonEnablement = await rewardGiftingOptions.giftingOptionsSave.isEnabled({
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+    } while (!giftingOptionSaveButtonEnablement);
     await rewardGiftingOptions.clickOnSaveButton();
     await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
       timeout: TIMEOUTS.VERY_SHORT,
