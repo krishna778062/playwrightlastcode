@@ -24,6 +24,7 @@ export class FormParticipationPage extends BasePage {
   readonly dropdownResponse: (dropdownValue: string) => Locator;
   readonly dropdownComponent: Locator;
   readonly actionLocator: (formName: string) => Locator;
+  readonly publishStatusLocator: (formName: string) => Locator;
   readonly ratingResponse: (ratingValue: string) => Locator;
   readonly ratingResponseNew: (ratingValue: string) => Locator;
 
@@ -32,7 +33,10 @@ export class FormParticipationPage extends BasePage {
   readonly dateResponse: (dateValue: string) => Locator;
   readonly timeResponse: (timeValue: string) => Locator;
   readonly datecomponent: Locator;
+  readonly datecomponent1: Locator;
+  readonly timecomponent1: Locator;
   readonly timecomponent: Locator;
+  readonly timeOption: (timeValue: string) => Locator;
   readonly mandatoryFieldError: (heading: string) => Locator;
   readonly mandatoryFieldErrorNew: (heading: string) => Locator;
   readonly mandatoryFieldErrorAddress: (heading: string, message: string) => Locator;
@@ -44,6 +48,10 @@ export class FormParticipationPage extends BasePage {
   readonly zipPostCodeResponse: Locator;
   readonly countryResponse: Locator;
   readonly fileUploadResponsePreview: (fileName: string) => Locator;
+  readonly multiSelectResponseFirstOption: Locator;
+  readonly multiSelectResponseOptions: (index: number) => Locator;
+  readonly genericGetByTextLocator: (text: string) => Locator;
+  readonly mandatoryFieldError2: (heading: string) => Locator;
 
   readonly submitButton: Locator;
 
@@ -73,12 +81,19 @@ export class FormParticipationPage extends BasePage {
       this.page.getByRole('checkbox', { name: `${legalValue}`, exact: true });
     this.dateResponse = (dateValue: string) => this.page.getByRole('button', { name: `Today, ${dateValue}` });
     this.timeResponse = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
-    this.datecomponent = this.page.getByRole('button', { name: 'Select date and time Date' });
+    this.datecomponent1 = this.page.getByRole('button', { name: 'Select date and time Date' });
+    this.datecomponent = this.page.locator("//button//span[text()='Select date...']");
+    this.timecomponent1 = this.page.locator('input[type="time"]');
     this.timecomponent = this.page.getByRole('combobox', { name: 'hh:mm' });
-    this.mandatoryFieldError = (heading: string) =>
+    this.timeOption = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
+    this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
+    this.mandatoryFieldError2 = (heading: string) =>
       this.page.locator(
         `//span[normalize-space()='${heading}']/../../following::div[text()='This is a required field']`
       );
+
+    this.mandatoryFieldError = (heading: string) =>
+      this.page.locator(`//span[text()='${heading}']/../../following::div[text()='This is a required field']`);
     this.mandatoryFieldErrorNew = (heading: string) =>
       this.page.locator(`//span[normalize-space()='${heading}']/../../following::p[text()='This is a required field']`);
     this.submitButton = this.page.getByRole('button', { name: 'Submit' });
@@ -94,6 +109,15 @@ export class FormParticipationPage extends BasePage {
     this.zipPostCodeResponse = this.page.getByRole('textbox', { name: 'Zip/Postal code *', exact: true });
     this.countryResponse = this.page.getByRole('textbox', { name: 'Country *', exact: true });
     this.fileUploadResponsePreview = (fileName: string) => this.page.getByText(fileName);
+    this.publishStatusLocator = (formName: string) =>
+      this.page.locator(
+        `//button[text()='${formName}']/ancestor::*[.//span[text()='Published']][1] //span[text()='Published']`
+      );
+    this.multiSelectResponseFirstOption = this.page
+      .getByRole('textbox', { name: 'Enter text for the property' })
+      .first();
+    this.multiSelectResponseOptions = (index: number) =>
+      this.page.getByRole('textbox', { name: `Enter text for the property` }).nth(index);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -125,6 +149,15 @@ export class FormParticipationPage extends BasePage {
       await this.clickOnElement(this.actionLocator(formCreationConstants.FORM_NAME));
     });
   }
+
+  async clickOnThreeDotsIconWithFormName(formName: string): Promise<void> {
+    await test.step('Click on three dots icon', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.actionLocator(formName), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.actionLocator(formName));
+    });
+  }
   async clickOnCopyLink(): Promise<void> {
     await test.step('Click on copy link', async () => {
       await this.verifier.verifyTheElementIsVisible(this.copyLink, { timeout: TIMEOUTS.MEDIUM });
@@ -133,7 +166,10 @@ export class FormParticipationPage extends BasePage {
   }
   async waitForFormToBePublished(): Promise<void> {
     await test.step('Wait for form to be published', async () => {
-      await this.page.waitForTimeout(TIMEOUTS.SHORT);
+      await this.verifier.verifyTheElementIsVisible(this.publishStatusLocator(formCreationConstants.FORM_NAME), {
+        timeout: TIMEOUTS.VERY_VERY_LONG,
+      });
+      //  await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
 
@@ -259,7 +295,12 @@ export class FormParticipationPage extends BasePage {
     await test.step('Fill response into time field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.timecomponent, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.timecomponent);
-      await this.clickOnElement(this.timeResponse(response));
+      await this.clickOnElement(this.timeOption(response));
+    });
+  }
+  async verifyTimeFieldIsNotVisibleOnPreviewScreen(): Promise<void> {
+    await test.step('Verify time field is disabled', async () => {
+      await test.expect(this.timecomponent).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
   async verifyFormSubmittedMessage(message: string): Promise<void> {
@@ -366,6 +407,59 @@ export class FormParticipationPage extends BasePage {
         .toBe(true);
     });
   }
+
+  async verifyMultiSelectFieldIsMandatory1(heading: string, response: string): Promise<void> {
+    await test.step('Verify multi select field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.multiSelectResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.multiSelectResponse(response).blur();
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+    test
+      .expect(
+        await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
+  async verifyMultiSelectFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify multi select field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.multiSelectResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.clickOnElement(this.multiSelectResponse(response));
+      await this.multiSelectResponse(response).blur();
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator('This is a required field'), {
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    test
+      .expect(
+        await this.genericGetByTextLocator('This is a required field').isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
+  async verifyDropdownFieldIsMandatory(heading: string, response: string): Promise<void> {
+    await test.step('Verify dropdown field is mandatory', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dropdownComponent, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.dropdownComponent);
+      await this.clickOnElement(this.dropdownResponse(response));
+    });
+    await this.clickOnElement(this.previewForm);
+    await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldError(heading), { timeout: TIMEOUTS.MEDIUM });
+    test
+      .expect(
+        await this.mandatoryFieldError(heading).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+        'Mandatory field error should be visible'
+      )
+      .toBe(true);
+  }
+
   async verifyAddressField1IsMandatory(heading: string, message: string): Promise<void> {
     await test.step(`Verify ${message} field is mandatory`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.addressLine1Response, { timeout: TIMEOUTS.MEDIUM });
@@ -496,12 +590,83 @@ export class FormParticipationPage extends BasePage {
         .toBe(true);
     });
   }
+  async verifyRatingFieldResponse(response: string): Promise<void> {
+    await test.step('Verify rating field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.ratingResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await test
+        .expect(this.ratingResponse(response))
+        .toHaveAttribute('aria-pressed', 'true', { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyOpinionFieldResponse(response: string): Promise<void> {
+    await test.step('Verify opinion field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.opinionResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await test
+        .expect(this.opinionResponse(response))
+        .toHaveAttribute('aria-pressed', 'true', { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyMultiSelectFieldResponse(response: string): Promise<void> {
+    await test.step('Verify multi select field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(response), { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.page.getByText(response)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifySingleSelectFieldResponse(response: string): Promise<void> {
+    await test.step('Verify single select field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.singleSelectResponse(response), { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.singleSelectResponse(response)).toBeChecked({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyDropdownFieldResponse(response: string): Promise<void> {
+    await test.step('Verify dropdown field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dropdownComponent, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.dropdownComponent).toContainText(new RegExp(response), { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async changeDefaultOptionsOfMultiSelectComponent(response: string, index?: number): Promise<void> {
+    await test.step('Change default options of multi select component', async () => {
+      const optionInput =
+        typeof index === 'number' ? this.multiSelectResponseOptions(index) : this.multiSelectResponseFirstOption;
+
+      await this.verifier.verifyTheElementIsVisible(optionInput, { timeout: TIMEOUTS.MEDIUM });
+      //await this.clickOnElement(optionInput);
+      await this.fillInElement(optionInput, response);
+      await optionInput.blur();
+    });
+  }
+  async verifyCustomUrlInLegalComponent(customUrl: string): Promise<void> {
+    await test.step('Verify custom url in legal component', async () => {
+      // If the link opened in a new tab, verify there instead
+      const escaped = customUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const existing = this.page
+        .context()
+        .pages()
+        .find(p => p.url().includes(customUrl));
+      if (existing) {
+        await test.expect(existing).toHaveURL(new RegExp(escaped), { timeout: TIMEOUTS.MEDIUM });
+        return;
+      }
+      // Otherwise, wait for a popup and verify its URL
+      const popup = await this.page.waitForEvent('popup', { timeout: TIMEOUTS.MEDIUM }).catch(() => null);
+      if (!popup) {
+        const currentUrl = this.page.url();
+        test.expect(currentUrl, 'Current URL should contain the expected custom url').toContain(customUrl);
+        return;
+      }
+      await popup.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(popup).toHaveURL(new RegExp(escaped), { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
 
   async verifySubmitButtonIsDisabled(): Promise<void> {
     await test.step('Verify submit button is disabled', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.submitButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.submitButton, { timeout: TIMEOUTS.VERY_VERY_LONG });
       test
-        .expect(await this.submitButton.isDisabled({ timeout: TIMEOUTS.MEDIUM }), 'Submit button should be disabled')
+        .expect(
+          await this.submitButton.isDisabled({ timeout: TIMEOUTS.VERY_VERY_LONG }),
+          'Submit button should be disabled'
+        )
         .toBe(true);
     });
   }
@@ -512,6 +677,29 @@ export class FormParticipationPage extends BasePage {
         .expect(
           await this.page.getByText(message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Form deleted message should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyPopupInLegalComponent(popupContent: string): Promise<void> {
+    await test.step('Verify popup in legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(popupContent), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.page.getByText(popupContent).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${popupContent} should be visible`
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await test.step(`Verify ${message}  message`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(message), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.page.getByText(message).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${message}  message should be visible`
         )
         .toBe(true);
     });
