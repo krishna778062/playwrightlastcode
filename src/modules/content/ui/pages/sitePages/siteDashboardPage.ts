@@ -12,6 +12,7 @@ import { EditBarComponent } from '@/src/modules/content/ui/components/editBarCom
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
 export interface ISiteDashboardActions {
+  uploadSiteImage(imagePath: string): Promise<void>;
   navigateToManageSite: () => Promise<void>;
   clickOnFeedLink: () => Promise<void>;
   clickOnOptionsMenu: (commentText: string) => Promise<void>;
@@ -74,6 +75,7 @@ export interface ISiteDashboardAssertions {
   verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
   verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
   verifyCelebrationBlockIsVisible: () => Promise<void>;
+  verifyToastMessage(message: string): Promise<void>;
 }
 
 export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
@@ -89,6 +91,9 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
   readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
     this.page.getByRole('button', { name: socialCampaignName }).first();
   readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
+  readonly fileUploadInput = this.page.locator("input[type='file']");
+  readonly cropImageDialog = this.page.getByRole('dialog', { name: 'Crop image' });
+  readonly cropButton = this.page.getByRole('button', { name: 'Crop' });
   readonly shareThoughtsButton: Locator;
   readonly dismissButton: Locator;
 
@@ -307,6 +312,21 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step('Click on Share your thoughts button', async () => {
       await this.clickOnElement(this.shareThoughtsButton);
     });
+  }
+  async uploadSiteImage(imagePath: string): Promise<void> {
+    await test.step('Upload site image', async () => {
+      await this.fileUploadInput.setInputFiles([imagePath]);
+
+      const cropImageDialog = this.cropImageDialog;
+      await this.verifier.verifyTheElementIsVisible(cropImageDialog, {
+        assertionMessage: 'Crop image dialog should be visible',
+      });
+      await this.clickOnElement(this.cropButton);
+    });
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async clickQuestionButton(): Promise<void> {

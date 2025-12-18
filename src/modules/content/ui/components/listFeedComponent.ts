@@ -978,17 +978,12 @@ export class ListFeedComponent
       const imageSrc = await this.getImageSrcAttribute(siteImageLocator);
 
       const feedImageFileId = this.extractFileIdFromImageSrc(imageSrc);
-      console.log(`Feed image src: ${imageSrc}`);
-      console.log(`Feed image fileId: ${feedImageFileId}`);
-      console.log(`Site image fileId: ${siteImageFileId}`);
 
       if (feedImageFileId !== siteImageFileId) {
         throw new Error(
           `Site image in feed card does not match site iconImage. Expected fileId: ${siteImageFileId}, but feed image fileId was: ${feedImageFileId}`
         );
       }
-
-      console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
 

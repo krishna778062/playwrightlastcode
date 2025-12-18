@@ -24,6 +24,7 @@ import { ShareComponent } from '@/src/modules/content/ui/components/shareCompone
 export { FeedPostOptions, FeedPostResult };
 
 export interface IFeedActions {
+  reloadFeedDetailPage(postText: string): Promise<void>;
   verifyThePageIsLoaded(): Promise<void>;
   // High-level user flows
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
@@ -344,10 +345,24 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
+  async verifyTheFeedDetailPageIsLoaded(): Promise<void> {
+    await test.step('Verify feed detail page is loaded', async () => {
+      await this.page.waitForURL(new RegExp('/feed/'));
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
   async reloadPage(): Promise<void> {
     await test.step('Reload page', async () => {
       await this.page.reload();
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  async reloadFeedDetailPage(postText: string): Promise<void> {
+    await test.step('Reload feed detail page', async () => {
+      await this.page.reload();
+      await this.assertions.waitForPostToBeVisible(postText);
     });
   }
 
