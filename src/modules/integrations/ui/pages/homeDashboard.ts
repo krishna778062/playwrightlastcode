@@ -1250,11 +1250,16 @@ export class HomeDashboard extends BasePage {
     category: string,
     categoryValue: string,
     subcategory: string,
-    subcategoryValue: string
+    subcategoryValue: string,
+    textFieldName?: string,
+    textValue?: string
   ): Promise<void> {
     await this.appTileComponent.clickButton('Create ticket');
-    await this.selectDropdownValue('Category', categoryValue);
-    await this.selectDropdownValue('Subcategory', subcategoryValue);
+    await this.selectDropdownValue(category, categoryValue);
+    await this.selectDropdownValue(subcategory, subcategoryValue);
+    if (textFieldName !== undefined && textValue !== undefined) {
+      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+    }
     await this.appTileComponent.clickButton('Create');
     await this.verifyToastMessage(MESSAGES.CREATE_TICKET_SUCCESS_MESSAGE);
   }
@@ -1353,6 +1358,27 @@ export class HomeDashboard extends BasePage {
   async closeAddContentTileModal(): Promise<void> {
     await test.step('Close add content tile modal', async () => {
       await this.appTileComponent.closeDialog();
+    });
+  }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input and dropdown
+   */
+  async addTilewithDefinedSettingsTextAreaAndDropdown(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInputJQL(fieldName, appManagerDefined, query);
+      await this.selectRadioOptionandValue(dropdownFieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, dropdownValue);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }
 }

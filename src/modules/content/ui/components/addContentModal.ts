@@ -21,6 +21,7 @@ export class AddContentModalComponent extends BaseComponent {
   readonly pageContentTypeLabel: Locator;
   readonly albumContentTypeLabel: Locator;
   readonly eventContentTypeLabel: Locator;
+  readonly siteMessage: Locator;
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
@@ -65,7 +66,8 @@ export class AddContentModalComponent extends BaseComponent {
       page.locator("div[class*='Menu-module'] div[role='menuitem']").nth(index);
 
     this.errorMessage = (contentType: ContentType) =>
-      page.locator(`p:has-text('${contentType}s have been disabled within this site')`);
+      page.getByText(`${contentType}s have been disabled within this site`);
+    this.siteMessage = page.locator('#siteError');
   }
 
   /**
@@ -315,6 +317,7 @@ export class AddContentModalComponent extends BaseComponent {
   async verifyErrorMessageWhenContentSubmissionIsDisabled(contentType: ContentType) {
     await test.step('Verify error message when content submission is disabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.errorMessage(contentType));
+      await this.verifier.verifyTheElementIsVisible(this.siteMessage);
     });
   }
 }
