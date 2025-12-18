@@ -2399,7 +2399,7 @@ test.describe(
           storyId: 'CONT-19560',
         });
 
-        const siteName = 'All Employees';
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;

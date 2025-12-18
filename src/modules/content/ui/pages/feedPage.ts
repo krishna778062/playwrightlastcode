@@ -555,7 +555,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
     await this.listFeedComponent.clickSiteNameOnPost(postText, siteName);
   }
-  
+
   async clickReplyOnContentComment(commentText: string): Promise<void> {
     await this.listFeedComponent.clickReplyOnContentComment(commentText);
   }
