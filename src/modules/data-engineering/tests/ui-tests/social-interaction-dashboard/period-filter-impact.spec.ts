@@ -12,6 +12,7 @@ import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { DateHelper } from '../../../helpers/dateHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSocialInteractionDashboardForTest,
@@ -41,7 +42,7 @@ test.describe(
 
       // Define unified filter configuration for custom period
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customDateRange.startDate,
         customEndDate: customDateRange.endDate,

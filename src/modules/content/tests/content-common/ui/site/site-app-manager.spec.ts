@@ -26,21 +26,21 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 const SITE_TEST_DATA = [
   {
-    siteType: 'public',
+    siteType: 'Public',
     displayName: 'Public Site',
     zephyrTestId: 'CONT-10603',
     storyId: 'CONT-10603',
     description: 'Verify admin can create a public site',
   },
   {
-    siteType: 'private',
+    siteType: 'Private',
     displayName: 'Private Site',
     zephyrTestId: 'CONT-10604',
     storyId: 'CONT-10604',
     description: 'Verify admin can create a private site',
   },
   {
-    siteType: 'unlisted',
+    siteType: 'Unlisted',
     displayName: 'Unlisted Site',
     zephyrTestId: 'CONT-10605',
     storyId: 'CONT-10605',
@@ -111,6 +111,7 @@ test.describe(
             TestGroupType.REGRESSION,
             ContentSuiteTags.SITE_CREATION,
             '@healthcheck',
+            `@${siteData.storyId}`,
           ],
         },
         async ({ appManagerFixture }) => {
@@ -122,7 +123,7 @@ test.describe(
 
           siteCreationPage = (await appManagerFixture.navigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
 
-          // STEP 2: Generate site data using TestDataGenerator
+          //Generate site data using TestDataGenerator
           const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);
 
           console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
