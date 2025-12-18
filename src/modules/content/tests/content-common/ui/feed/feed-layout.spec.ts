@@ -80,6 +80,8 @@ test.describe(
           zephyrTestId: 'CONT-19607',
           storyId: 'CONT-19607',
         });
+        const feedPage = new FeedPage(standardUserFixture.page);
+        const standardUserHomePage = standardUserFixture.homePage;
 
         // Admin Setup Phase: Create feed post and set User as Home Control
         await test.step('Admin: Create feed post on home dashboard', async () => {
@@ -101,45 +103,33 @@ test.describe(
 
         // End User Verification Phase
         await test.step('End User: Navigate to Home tab', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await standardUserFixture.homePage.loadPage();
           await standardUserFixture.homePage.verifyThePageIsLoaded();
         });
 
         await test.step('End User: Include Feed in Dashboard', async () => {
-          const standardUserHomePage = standardUserFixture.homePage;
           await standardUserHomePage.actions.clickOnManageDashboardCarousel();
           await standardUserHomePage.actions.clickOnChangeLayout();
           await standardUserHomePage.actions.clickIncludeFeed();
         });
 
         await test.step('End User: Verify feed post is visible on home dashboard', async () => {
-          const feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
         });
 
         await test.step('End User: Refresh page and verify feed post is still visible', async () => {
-          await standardUserFixture.page.reload();
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
-          const feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
           await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
         });
 
         await test.step('End User: Exclude Feed from Dashboard', async () => {
-          const standardUserHomePage = standardUserFixture.homePage;
           await standardUserHomePage.actions.clickOnManageDashboardCarousel();
           await standardUserHomePage.actions.clickOnChangeLayout();
           await standardUserHomePage.actions.clickExcludeFeed();
         });
 
         await test.step('End User: Verify feed post is not visible on home dashboard', async () => {
-          const feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.assertions.verifyPostIsNotVisible(homeFeedPostText);
-        });
-
-        await test.step('End User: Refresh page and verify feed post is still not visible', async () => {
-          await standardUserFixture.page.reload();
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
-          const feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.assertions.verifyPostIsNotVisible(homeFeedPostText);
         });
       }

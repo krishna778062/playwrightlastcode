@@ -4,12 +4,12 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -149,13 +149,13 @@ test.describe('home Dashboard Tiles', () => {
       await homeDashboardPage.actions.clickOnEditDashboardButton();
 
       // Generate unique tile names
-      const textTileTitle = FEED_TEST_DATA.TILE.TITLE;
-      const sitesTileTitle = FEED_TEST_DATA.TILE.TITLE;
-      const textTileDescription = FEED_TEST_DATA.SEARCH.RANDOM_TEXT;
+      const textTileTitle = TestDataGenerator.generateRandomString('Text Tile');
+      const sitesTileTitle = TestDataGenerator.generateRandomString('Sites Tile');
+      const textTileDescription = TestDataGenerator.generateRandomText();
 
       // Get a site name for Sites & Category tile
       // Using "All Employees" as it's commonly available
-      const siteName = 'All Employees';
+      const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
       // Add Text/HTML & Links tile
       await homeDashboardPage.actions.addTextHtmlLinksTile(textTileDescription, textTileTitle);
@@ -257,7 +257,7 @@ test.describe('home Dashboard Tiles', () => {
       await homeDashboardPage.actions.clickOnSitesTab();
 
       // Enter tile name
-      const tileName = FEED_TEST_DATA.TILE.TITLE;
+      const tileName = TestDataGenerator.generateRandomString('Sites Tile');
       await homeDashboardPage.actions.setSitesTileTitle(tileName);
 
       // Add private and unlisted sites to tile
