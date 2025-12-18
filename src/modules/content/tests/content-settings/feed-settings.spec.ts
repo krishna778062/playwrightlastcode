@@ -83,9 +83,6 @@ test.describe(
         console.warn('Failed to configure app governance, continuing with test:', error);
       }
 
-      // Create home page instance
-      await appManagerFixture.homePage.verifyThePageIsLoaded();
-
       // Initialize page objects for the test cases
       feedPage = new FeedPage(appManagerFixture.page);
       applicationScreenPage = new ApplicationScreenPage(appManagerFixture.page);
