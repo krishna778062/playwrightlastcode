@@ -216,7 +216,7 @@ jobs:
 
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
+            NODE_TLS_REJECT_UNAUTHORIZED=0 TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx browserstack-node-sdk playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
           else
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
@@ -229,7 +229,7 @@ jobs:
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
             echo "Running Content tests with grep filter: $GREP_REGEX"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
+            NODE_TLS_REJECT_UNAUTHORIZED=0 TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx browserstack-node-sdk playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
           fi
 
       - name: Upload test report to github artifact backup
