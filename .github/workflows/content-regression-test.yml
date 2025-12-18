@@ -10,7 +10,6 @@ on:
         type: choice
         options:
           - 'content'
-          - 'content-browserstack'
           - 'content-settings'
           - 'content-studio'
           - 'content-abac'
