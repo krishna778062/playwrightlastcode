@@ -268,7 +268,7 @@ test.describe(
       test(
         `Verify that when primary role of a user is changed from manage users page then the privileges should be lost or gained accordingly for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, `@this-one`],
         },
         async ({ appManagerFixture, browser }) => {
           tagTest(test.info(), {
