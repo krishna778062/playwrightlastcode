@@ -27,7 +27,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   });
 
   test(
-    '[RC-2717] Validate adding the points pill to the recognition post',
+    'RC-2717 Validate adding the points pill to the recognition post',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -117,7 +117,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[RC-3327, RC-3417, RC-3328] Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
+    'RC-3327, RC-3417, RC-3328 Validate if "gift points" toggle button is disabled on recognition modal when Allowances are refreshing',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, TestPriority.P1],
     },
@@ -160,7 +160,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[RC-3326] Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
+    'RC-3326 Validate if user is able to Delete recognition with points rollback when Allowances are refreshing',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE_REFRESH, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
@@ -220,7 +220,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
+    'RC-3223 Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0],
     },

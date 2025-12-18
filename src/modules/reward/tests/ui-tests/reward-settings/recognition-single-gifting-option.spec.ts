@@ -14,7 +14,7 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
   });
 
   test(
-    '[RC-2837] Verify for single gifting option and multiple recipients',
+    'RC-2837 Verify for single gifting option and multiple recipients',
     {
       tag: [
         REWARD_FEATURE_TAGS.CREATE_RECOGNITION_WITH_POINTS,
@@ -47,7 +47,7 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
   );
 
   test(
-    '[RC-2720] Validate single gifting option/value',
+    'RC-2720 Validate single gifting option/value',
     {
       tag: [
         REWARD_FEATURE_TAGS.CREATE_RECOGNITION_WITH_POINTS,

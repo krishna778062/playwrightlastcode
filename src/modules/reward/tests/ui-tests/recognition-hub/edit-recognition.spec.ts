@@ -22,7 +22,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   });
 
   test(
-    '[RC-5348] Verify user can edit points within the 24hr pending period',
+    'RC-5348 Verify user can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -108,7 +108,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5704] Verify App manager can remove the given points within the 24hr pending period',
+    'RC-5704 Verify App manager can remove the given points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -201,7 +201,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5350] Verify app manager can edit points within the 24hr pending period for multiple recipient',
+    'RC-5350 Verify app manager can edit points within the 24hr pending period for multiple recipient',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -288,7 +288,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5351] Verify recognition manager can edit points within the 24hr pending period',
+    'RC-5351 Verify recognition manager can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -373,7 +373,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5354] Verify user can edit points within the 24hr pending period',
+    'RC-5354 Verify user can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -455,7 +455,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5349] Verify app manager can not edit points after the 24hr pending period',
+    'RC-5349 Verify app manager can not edit points after the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -492,7 +492,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5353] Verify recognition manager can not edit points after 24hr period',
+    'RC-5353 Verify recognition manager can not edit points after 24hr period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -534,7 +534,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5705] Verify App manager can not remove given points after the 24hr pending period',
+    'RC-5705 Verify App manager can not remove given points after the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -571,7 +571,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5355] Verify user can not edit points after the 24hr pending period',
+    'RC-5355 Verify user can not edit points after the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -619,7 +619,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    '[RC-5629] Validate status of transaction history when edit recognition with points within 24hr',
+    'RC-5629 Validate status of transaction history when edit recognition with points within 24hr',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,

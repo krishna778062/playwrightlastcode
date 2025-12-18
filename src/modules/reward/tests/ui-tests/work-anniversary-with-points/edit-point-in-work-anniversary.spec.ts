@@ -20,7 +20,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   });
 
   test(
-    '[RC-5715, RC-5716] Validate all the Elements in the Work Anniversary Edit page',
+    'RC-5715, RC-5716 Validate all the Elements in the Work Anniversary Edit page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -41,7 +41,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   );
 
   test(
-    '[RC-5785,RC-5786] Validate the Default Badge numbering and Text in Work Anniversary Instances',
+    'RC-5785, RC-5786 Validate the Default Badge numbering and Text in Work Anniversary Instances',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -63,7 +63,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   );
 
   test(
-    '[RC-5787, RC-5788, RC-5789, RC-5860, RC-5790] Validate the Work Anniversary for logged in User',
+    'RC-5787, RC-5788, RC-5789, RC-5860, RC-5790 Validate the Work Anniversary for logged in User',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
     },
@@ -107,7 +107,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   );
 
   test(
-    '[RC-5808] Validate WA post when manager edit points after anniversary date',
+    'RC-5808 Validate WA post when manager edit points after anniversary date',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
     },
@@ -158,7 +158,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   );
 
   test(
-    '[RC-6087] Validate the Message and URL column value in the points given CSV for the Work Anniversary with the points',
+    'RC-6087 Validate the Message and URL column value in the points given CSV for the Work Anniversary with the points',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
     },
@@ -201,7 +201,7 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   );
 
   test(
-    '[RC-5859] Verify WA post when custom badges with points set as zero on Milestone instance',
+    'RC-5859 Verify WA post when custom badges with points set as zero on Milestone instance',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
     },

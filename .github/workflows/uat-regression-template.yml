@@ -8,11 +8,6 @@ on:
         required: false
         default: 'uat'
         type: string
-      enable_browserstack:
-        description: 'Enable BrowserStack Test Observability reporting'
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: read
@@ -75,7 +70,8 @@ jobs:
       fail-fast: false
       matrix:
         module: [
-            chat,
+            reward-browserstack, # Testing BrowserStack integration
+            # chat,
             # platforms,
             # global-search,
             # content,
@@ -85,7 +81,6 @@ jobs:
             # reward,
             # reward-settings,
             # recognition,
-            # privateRecognition,
             # content-abac,
             # frontline,
             # content-settings,
@@ -94,35 +89,21 @@ jobs:
             # employee-listening,
             # form-designer,
             # comms-planner,
-          ] # de is short for data-engineering
+          ] # Add -browserstack suffix to use BrowserStack Test Observability
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
       TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
-      # BrowserStack SDK Configuration (overrides browserstack.yml)
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      BROWSERSTACK_PROJECT_NAME: ${{ matrix.module }}-automation
+      # BrowserStack env vars override browserstack.yml (only used by -browserstack modules)
+      BROWSERSTACK_PROJECT_NAME: ${{ matrix.module }}
       BROWSERSTACK_BUILD_NAME: ${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}
-      BROWSERSTACK_BUILD_IDENTIFIER: '#${{ github.run_number }}-${{ github.run_attempt }}'
-      # Custom tags for filtering in BrowserStack dashboard
-      BROWSERSTACK_BUILD_TAG: ${{ inputs.environment }}
-      CUSTOM_TAG_1: ${{ matrix.module }}
-      CUSTOM_TAG_2: ${{ inputs.environment }}
-      CUSTOM_TAG_3: uat-regression
     steps:
       - name: Display configuration
         run: |
           echo "🌍 Environment: ${{ inputs.environment }}"
           echo "🔖 Git Ref: ${{ needs.check-stage.outputs.checkout_ref }}"
           echo "📦 Module: ${{ matrix.module }}"
-          echo "🔗 BrowserStack: ${{ inputs.enable_browserstack && 'Enabled' || 'Disabled' }}"
-          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
-            echo "   └── Project: ${{ matrix.module }}-automation"
-            echo "   └── Build: ${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}"
-            echo "   └── Tags: ${{ matrix.module }}, ${{ inputs.environment }}, uat-regression"
-          fi
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -148,33 +129,16 @@ jobs:
 
       - name: Run regression tests
         run: |
-          # Determine if BrowserStack is enabled
-          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
-            echo "🔗 BrowserStack Test Observability: ENABLED"
-            echo "   Project: $BROWSERSTACK_PROJECT_NAME"
-            echo "   Build: $BROWSERSTACK_BUILD_NAME"
-            echo "   Tags: $CUSTOM_TAG_1, $CUSTOM_TAG_2, $CUSTOM_TAG_3"
-            USE_BROWSERSTACK=true
-          else
-            echo "📊 BrowserStack Test Observability: DISABLED"
-            USE_BROWSERSTACK=false
-          fi
+          echo "🧪 Running tests for module: ${{ matrix.module }}"
 
-          # Run tests based on module
-          if [ "${{ matrix.module }}" = "chat" ]; then
-            if [ "$USE_BROWSERSTACK" = "true" ]; then
-              echo "Running Chat tests with BrowserStack SDK..."
-              # Use locally installed SDK (not npx) so it can find browserstack.yml
-              ./node_modules/.bin/browserstack-node-sdk playwright test --config=src/modules/chat/playwright.chat.config.ts --workers=3
-            else
-              npm run test:chat -- --workers=3
-            fi
-          elif [ "${{ matrix.module }}" = "reward" ]; then
-            echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run test:reward -- --grep-invert=P3 --workers=3
-          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
-            echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run test:reward-settings -- --grep-invert=P3 --workers=1
+          # Simple approach: just run npm test script
+          # Use -browserstack suffix modules for BrowserStack Test Observability
+          if [ "${{ matrix.module }}" = "reward" ] || [ "${{ matrix.module }}" = "reward-browserstack" ]; then
+            echo "Running Reward tests (excluding P3) with 3 workers..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+          elif [ "${{ matrix.module }}" = "reward-settings" ] || [ "${{ matrix.module }}" = "reward-settings-browserstack" ]; then
+            echo "Running Reward Settings tests (excluding P3) with 1 worker..."
+            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
           else
             npm run test:${{ matrix.module }} -- --workers=3
           fi
@@ -252,12 +216,6 @@ jobs:
           echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
           echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
           echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
-
-          # BrowserStack Test Observability dashboard link
-          if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
-            echo "BROWSERSTACK_DASHBOARD_URL=https://observability.browserstack.com/builds?project=${{ matrix.module }}-automation&build=${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}" >> $GITHUB_ENV
-            echo "🔗 BrowserStack Dashboard: https://observability.browserstack.com/builds?project=${{ matrix.module }}-automation"
-          fi
 
       - name: Upload Regression Data to Postgres
         if: always()
@@ -339,17 +297,11 @@ jobs:
         run: |
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Build BrowserStack link if enabled
-            BS_LINK=""
-            if [ "${{ inputs.enable_browserstack }}" = "true" ]; then
-              BS_LINK=" | <${{ env.BROWSERSTACK_DASHBOARD_URL }}|🔬 BrowserStack>"
-            fi
-            
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags>${BS_LINK} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             else
-              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags>${BS_LINK} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *UAT Regression* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` (\`${{ needs.check-stage.outputs.checkout_ref }}\`) completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
