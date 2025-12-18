@@ -10,6 +10,9 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { waitUntilNextDecadePlusOne } from '@core/utils/timeUtil';
 
 test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
+  test.describe.configure({
+    timeout: 15 * 60 * 1000, // 15 minutes
+  });
   let tenantCode: string;
   test.beforeEach('Login to the Application and check basic Details', async ({ appManagerFixture }) => {
     const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
