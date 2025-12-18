@@ -1355,8 +1355,8 @@ test.describe(
             await appManagerApiFixture.tileManagementHelper.tileManagementService.deleteHomeDashboardTile(
               latestAndPopularTileId!
             );
-          const deleteBody = await deleteResponse.json();
-          await tileApiHelper.validateTileDeletion(deleteBody);
+
+          await tileApiHelper.validateTileDeletion(deleteResponse.json());
 
           // Remove from cleanup list
           createdTileIds = createdTileIds.filter(tileId => tileId !== latestAndPopularTileId);
