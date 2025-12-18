@@ -59,7 +59,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
     this.createSection = page.getByRole('button', { name: 'Create', exact: true });
-    this.feedLink = this.feedLink = page.getByRole('menuitem', { name: 'Feed' });
+    this.feedLink = page.getByRole('menuitem', { name: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
