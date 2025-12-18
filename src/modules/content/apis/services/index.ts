@@ -1,3 +1,4 @@
+export * from './B2BService';
 export * from './ContentManagementService';
 export * from './FeedManagementService';
 export * from './ImageUploaderService';
