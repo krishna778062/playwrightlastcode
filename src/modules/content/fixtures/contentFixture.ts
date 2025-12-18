@@ -4,6 +4,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { AudienceManagementHelper } from '@/src/modules/content/apis/helpers/audienceManagementHelper';
+import { B2BHelper } from '@/src/modules/content/apis/helpers/b2bHelper';
 import { CarouselHelper } from '@/src/modules/content/apis/helpers/carouselHelper';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
@@ -32,6 +33,7 @@ export interface ApiFixture {
   carouselHelper: CarouselHelper;
   audienceManagementHelper: AudienceManagementHelper;
   siteAudienceHelper: SiteAudienceHelper;
+  b2bHelper: B2BHelper;
   siteManagementService: SiteManagementService;
   feedManagerService: FeedManagementService;
 }
@@ -93,6 +95,11 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
   const siteManagementService = new SiteManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagerService = new FeedManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const siteAudienceHelper = new SiteAudienceHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const b2bHelper = new B2BHelper(
+    apiContext,
+    getContentTenantConfigFromCache().orgId,
+    getContentTenantConfigFromCache().b2bBaseUrl
+  );
 
   return {
     apiContext,
@@ -105,6 +112,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     carouselHelper,
     audienceManagementHelper,
     siteAudienceHelper,
+    b2bHelper,
     siteManagementService,
     feedManagerService,
   };
