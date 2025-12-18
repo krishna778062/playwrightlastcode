@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { AlbumCreationResponse, EventCreationResponse, PageCreationResponse } from '@/src/modules/content/apis/types';
+import {
+  AlbumCreationResponse,
+  B2BContentListResponse,
+  EventCreationResponse,
+  PageCreationResponse,
+} from '@/src/modules/content/apis/types';
 
 export class ContentApiHelper {
   /**
@@ -216,5 +221,43 @@ export class ContentApiHelper {
     await this.validateAlbumIdentification(albumResponse, expectedTitle);
     await this.validateAlbumSiteInfo(albumResponse, expectedSiteId);
     await this.validateAlbumMetadata(albumResponse);
+  }
+
+  /**
+   * Validates B2B content list response structure
+   * @param b2bResponse - The B2B content list response to validate
+   */
+  async validateB2BContentListResponse(b2bResponse: B2BContentListResponse): Promise<void> {
+    await test.step('Validate B2B content list response structure', async () => {
+      expect(b2bResponse, 'Response should be defined').toBeDefined();
+      expect(b2bResponse.status, 'Status should be success').toBe('success');
+      expect(b2bResponse.result, 'Result should be defined').toBeDefined();
+      expect(b2bResponse.result.listOfItems, 'listOfItems should be defined').toBeDefined();
+      expect(Array.isArray(b2bResponse.result.listOfItems), 'listOfItems should be an array').toBe(true);
+    });
+  }
+
+  /**
+   * Validates that manualTranslationsFields is not null for each content item in B2B response
+   * @param b2bResponse - The B2B content list response to validate
+   */
+  async validateB2BContentListManualTranslations(b2bResponse: B2BContentListResponse): Promise<void> {
+    await test.step('Validate manualTranslationsFields is not null for each content item', async () => {
+      if (b2bResponse.result.listOfItems.length > 0) {
+        for (const item of b2bResponse.result.listOfItems) {
+          expect(item.manualTranslationsFields, 'manualTranslationsFields should not be null').not.toBeNull();
+          expect(item.manualTranslationsFields, 'manualTranslationsFields should be defined').toBeDefined();
+        }
+      }
+    });
+  }
+
+  /**
+   * Validates a complete B2B content list response including manualTranslationsFields
+   * @param b2bResponse - The B2B content list response to validate
+   */
+  async validateB2BContentList(b2bResponse: B2BContentListResponse): Promise<void> {
+    await this.validateB2BContentListResponse(b2bResponse);
+    await this.validateB2BContentListManualTranslations(b2bResponse);
   }
 }
