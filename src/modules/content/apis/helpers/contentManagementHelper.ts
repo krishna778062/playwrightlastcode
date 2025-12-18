@@ -14,9 +14,9 @@ import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageU
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy, DateField } from '@/src/modules/content/constants';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Content {
   siteId: string;
@@ -50,7 +50,7 @@ export class ContentManagementHelper {
     status?: string;
     sortBy?: string;
     accessType?: SITE_TYPES;
-  }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+  }): Promise<{ siteId: string; contentId: string; contentType: string; pageName?: string }> {
     // Default to 'public' if not specified
     const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
@@ -78,6 +78,7 @@ export class ContentManagementHelper {
           siteId: randomContent.site.siteId,
           contentId: randomContent.contentId || randomContent.id,
           contentType: randomContent.type,
+          pageName: randomContent.title,
         };
       }
     }
@@ -121,6 +122,7 @@ export class ContentManagementHelper {
       siteId: pageResult.siteId,
       contentId: pageResult.contentId,
       contentType: 'page',
+      pageName: pageResult.pageName,
     };
   }
 

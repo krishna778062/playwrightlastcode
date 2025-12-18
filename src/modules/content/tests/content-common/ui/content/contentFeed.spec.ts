@@ -4,6 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { NotificationComponent } from '@/src/modules/content/ui';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -50,10 +51,9 @@ test.describe(
         }
 
         const selectedSite = { siteId: siteInfo.siteId, siteName: siteInfo.siteName };
-        // Create a page in the selected site
-        const pageInfo = await standardUserFixture.contentManagementHelper.createPage({
-          siteId: selectedSite.siteId,
-          contentInfo: { contentType: 'page', contentSubType: 'news' },
+
+        const pageInfo = await standardUserFixture.contentManagementHelper.getContentId({
+          accessType: SITE_TYPES.PUBLIC,
         });
 
         // App manager comments on the content created by standard user
