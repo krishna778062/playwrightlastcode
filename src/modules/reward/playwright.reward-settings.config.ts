@@ -26,7 +26,7 @@ const commonLaunchArgs_RS = [
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests', 'reward-settings'),
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-setting-tests'),
   testIgnore: '**/api-tests/**',
   // keep workers consistent for CI/local as you previously had
   workers: process.env.CI ? 1 : 1,
