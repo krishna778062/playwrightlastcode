@@ -139,6 +139,7 @@ export class ListFeedComponent
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly replyShowMoreButton: Locator;
+  readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
@@ -206,7 +207,11 @@ export class ListFeedComponent
 
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);
-    return reply.locator('..').locator('..').locator('._reply_1ii4b_1').getByRole('button', { name: 'Image PDF' });
+    return reply
+      .locator('..')
+      .locator('..')
+      .locator('div[class*="_reply_11nkx_1"]')
+      .getByRole('button', { name: 'Image PDF' });
   };
 
   /**
@@ -370,6 +375,7 @@ export class ListFeedComponent
     this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
     this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
+    this.showButton = this.page.getByText('Show', { exact: true }).first();
     this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
     this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
     this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
@@ -991,10 +997,7 @@ export class ListFeedComponent
         assertionMessage: `Post "${postText}" should be visible`,
       });
       // Find all reply content divs within the post container
-      const replyContainers = this.page
-        .locator('div[class*="_container_q3xrp_1"]')
-        .first()
-        .locator('div[class*="_reply_1ii4b_1"]');
+      const replyContainers = this.replyContainer;
 
       const count = await replyContainers.count();
       console.log('Count of visible replies: ', count);
@@ -1201,7 +1204,7 @@ export class ListFeedComponent
       });
 
       // Find the reply container that contains this reply text
-      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const allReplyContainers = this.replyContainer;
       const containerCount = await allReplyContainers.count();
 
       let timestamp: Locator | null = null;
@@ -1249,7 +1252,7 @@ export class ListFeedComponent
       });
 
       // Find the reply container that contains this reply text
-      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const allReplyContainers = this.replyContainer;
       const containerCount = await allReplyContainers.count();
 
       let boxLogo: Locator | null = null;
@@ -1643,9 +1646,9 @@ export class ListFeedComponent
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
-    const sortByButtonLocator = this.page.getByText('Sort by').first();
+    const showButtonLocator = this.showButton;
     await test.step('Verify the page is loaded with timeline mode', async () => {
-      await this.verifier.verifyTheElementIsVisible(sortByButtonLocator, {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
         assertionMessage: 'Show button should be visible on feed post',
       });
     });
