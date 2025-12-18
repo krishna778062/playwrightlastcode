@@ -327,22 +327,22 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify standard user is able to add topic in feed posts and replies',
+    'verify standard user is able to add/list topic in Feed and Replies',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41624'],
     },
     async ({ appManagerFixture, standardUserFixture }) => {
       tagTest(test.info(), {
-        description: 'verify standard user is able to add topic in Content page/Album/Event',
+        description: 'verify standard user is able to add/list topic in Feed and Replies',
         zephyrTestId: 'CONT-41624',
         storyId: 'CONT-41624',
       });
       await standardUserFixture.navigationHelper.clickOnFeedSideMenu();
       const feedPage = new FeedPage(standardUserFixture.page);
       await feedPage.actions.clickShareThoughtsButton();
-      const topicName = TestDataGenerator.generateTopicName();
+      const topicName = TestDataGenerator.generateRandomString();
       const postResult = await feedPage.actions.createAndPostWithTopic(`test topic`, topicName);
-      const topicNameInReply = TestDataGenerator.generateTopicName();
+      const topicNameInReply = TestDataGenerator.generateRandomString();
       await feedPage.actions.addReplyToPostWithTopic(`test topic`, topicNameInReply, postResult.postId!);
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
@@ -358,7 +358,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await siteDashboardPage.loadPage();
       await siteDashboardPage.assertions.verifyThePageIsLoaded();
       await feedPage.actions.clickShareThoughtsButton();
-      const siteTopicName = TestDataGenerator.generateTopicName();
+      const siteTopicName = TestDataGenerator.generateRandomString();
       await feedPage.actions.createAndPostWithTopic(`test topic`, siteTopicName);
       await manageTopicsPage.actions.clearSearchBar();
       await manageTopicsPage.actions.searchingTopicInSearchBar(siteTopicName);
@@ -382,7 +382,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       );
       await contentPreviewPage.loadPage();
       await contentPreviewPage.actions.clickShareThoughtsButton();
-      const contentTopicName = TestDataGenerator.generateTopicName();
+      const contentTopicName = TestDataGenerator.generateRandomString();
       const contentPostResult = await feedPage.actions.createAndPostWithTopic(`test topic`, contentTopicName);
       const contentReplyText = TestDataGenerator.generateRandomString('Reply');
       await feedPage.actions.addReplyToPostWithTopic(`test topic`, contentReplyText, contentPostResult.postId!);

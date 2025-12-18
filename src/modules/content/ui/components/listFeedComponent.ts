@@ -140,6 +140,7 @@ export class ListFeedComponent
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
   readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
+  readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
@@ -372,6 +373,7 @@ export class ListFeedComponent
     this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
     this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
+    this.showButton = this.page.getByText('Show', { exact: true }).first();
     this.sharePostModalContainer = page.getByRole('dialog', { name: 'Share post' });
     this.viewPostLink = this.sharePostModalContainer.getByRole('link', { name: 'View post' });
     this.modelCloseButton = this.page.getByRole('button', { name: 'Close' });
@@ -672,6 +674,7 @@ export class ListFeedComponent
       } else if (topicName) {
         await this.typeInElement(this.replyEditor, ` #${topicName}`);
         await this.clickOnElement(this.topicNameEditor(topicName));
+        replyText = replyText + ` #${topicName}`;
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
@@ -1577,9 +1580,9 @@ export class ListFeedComponent
   }
 
   async verifyThePageIsLoadedWithTimelineMode(): Promise<void> {
-    const sortByButtonLocator = this.page.getByText('Sort by').first();
+    const showButtonLocator = this.showButton;
     await test.step('Verify the page is loaded with timeline mode', async () => {
-      await this.verifier.verifyTheElementIsVisible(sortByButtonLocator, {
+      await this.verifier.verifyTheElementIsVisible(showButtonLocator, {
         assertionMessage: 'Show button should be visible on feed post',
       });
     });

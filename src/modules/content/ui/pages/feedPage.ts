@@ -60,7 +60,6 @@ export interface IFeedActions {
   openReplyEditorForPost: (postText: string) => Promise<void>;
   clickReplyOnContentComment: (commentText: string) => Promise<void>;
   addReplyToPost: (replyText: string, postId: string) => Promise<void>;
-  addReplyToPostWithTopic: (replyText: string, topicName: string, postId: string) => Promise<void>;
   clickReplyShowMoreButton: () => Promise<void>;
   clickLoadMoreRepliesButton: () => Promise<void>;
   clickOnDeleteReplyButton: () => Promise<void>;
@@ -77,6 +76,7 @@ export interface IFeedActions {
   clickOnSortByOption: (optionValue: string) => Promise<void>;
   selectShareOptionAsSiteFeed: () => Promise<void>;
   clickShareButtonForPost: (postText: string) => Promise<void>;
+  addReplyToPostWithTopic: (replyText: string, topicName: string, postId: string) => Promise<string>;
   verifyPostIsAtTop: (postText: string) => Promise<void>;
   enterShareDescription: (description: string) => Promise<void>;
   clickShareButton: () => Promise<void>;
@@ -411,6 +411,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     return await this.createFeedPostComponent.editPostWithTopicAndUserName(params);
   }
 
+  async addReplyToPostWithTopic(replyText: string, topicName: string, postId: string): Promise<string> {
+    return await this.listFeedComponent.addReplyToPost(replyText, postId, undefined, topicName);
+  }
+
   // High-level verification methods
   async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
     await test.step(`Verify complete post details for: ${postText}`, async () => {
@@ -546,10 +550,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async addReplyToPost(replyText: string, postId: string): Promise<void> {
     await this.listFeedComponent.addReplyToPost(replyText, postId);
-  }
-
-  async addReplyToPostWithTopic(replyText: string, topicName: string, postId: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(replyText, postId, undefined, topicName);
   }
 
   async openReplyEditorForPost(postText: string): Promise<void> {
