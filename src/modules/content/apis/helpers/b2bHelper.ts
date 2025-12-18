@@ -44,7 +44,8 @@ export class B2BHelper {
       contentIds,
       content_type: options?.content_type || 'all',
       requestedLanguages: options?.requestedLanguages || ['en'],
-      size: options?.size,
+      // Ensure size is always a number to satisfy B2BContentListRequest
+      size: options?.size ?? contentIds.length,
     };
     return await this.getContentList(payload);
   }
