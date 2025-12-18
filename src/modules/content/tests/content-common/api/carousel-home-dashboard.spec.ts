@@ -22,7 +22,7 @@ test.describe(
     });
 
     test(
-      'app manager can enable and disable home carousel',
+      'app manager can enable and disable home carousel CONT-42874',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CCONT-42874'],
       },
@@ -58,7 +58,7 @@ test.describe(
     );
 
     test(
-      'app manager can add and remove Page content from home carousel',
+      'app manager can add and remove Page content from home carousel CONT-42875',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42875'],
       },

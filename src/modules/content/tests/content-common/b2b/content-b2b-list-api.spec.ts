@@ -19,7 +19,7 @@ test.describe(
     });
 
     test(
-      'content API : Test Content B2B list API',
+      'content API : Test Content B2B list API CONT-43009',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43009', ContentTestSuite.CONTENT_APP_MANAGER],
       },

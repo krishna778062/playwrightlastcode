@@ -38,7 +38,7 @@ test.describe(
     }
 
     test(
-      'verify Must read Modal cancel button for Page, Event and Album Content',
+      'verify Must read Modal cancel button for Page, Event and Album Content CONT-21123',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123', '@healthcheck'],
       },
@@ -92,7 +92,7 @@ test.describe(
     );
 
     test(
-      'verify that app manager can make the content as must read for all the employee in organization',
+      'verify that app manager can make the content as must read for all the employee in organization CONT-5171',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5171'],
       },
@@ -135,7 +135,7 @@ test.describe(
     );
 
     test(
-      'verify that must read button is not visible for standard user when content is already must read',
+      'verify that must read button is not visible for standard user when content is already must read CONT-5521',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5521'],
       },

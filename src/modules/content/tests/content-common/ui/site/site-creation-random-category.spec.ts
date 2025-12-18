@@ -23,7 +23,7 @@ test.describe('site Creation', { tag: ['@content', '@site-creation'] }, () => {
   });
 
   test(
-    'verify admin is able to create a new site with random category via UI',
+    'verify admin is able to create a new site with random category via UI CONT-20912',
     {
       tag: [TestPriority.P1, TestGroupType.SMOKE, '@random-category'],
     },

@@ -78,7 +78,7 @@ test.describe(
 
     for (const testData of PAGE_APPROVAL_TEST_DATA) {
       test(
-        `${testData.description}`,
+        `${testData.description} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
