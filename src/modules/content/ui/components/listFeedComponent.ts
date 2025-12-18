@@ -138,7 +138,6 @@ export class ListFeedComponent
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
-  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly loadMoreRepliesButton: Locator;
   readonly postsIFollow: Locator;
@@ -196,13 +195,20 @@ export class ListFeedComponent
 
   readonly replyLocator = (replyText: string): Locator =>
     this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
-  readonly replyContainer = this.page.locator('._reply_1ii4b_1');
+  readonly replyContainer = this.page
+    .locator('div[class*="_container_q3xrp_1"]')
+    .first()
+    .locator('div[class*="_reply_11nkx_1"]');
   readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
   readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
 
   readonly getReplyBoxImageLocator = (replyText: string): Locator => {
     const reply = this.replyLocator(replyText);
-    return reply.locator('..').locator('..').locator('._reply_1ii4b_1').getByRole('button', { name: 'Image PDF' });
+    return reply
+      .locator('..')
+      .locator('..')
+      .locator('div[class*="_reply_11nkx_1"]')
+      .getByRole('button', { name: 'Image PDF' });
   };
 
   /**
@@ -354,8 +360,6 @@ export class ListFeedComponent
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
-    this.topicNameEditor = (topicName: string): Locator =>
-      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
@@ -633,7 +637,7 @@ export class ListFeedComponent
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, topicName?: string): Promise<string> {
+  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
       //add API wait for response
@@ -653,9 +657,10 @@ export class ListFeedComponent
 
       await this.fillInElement(this.replyEditor, replyText);
 
-      if (topicName) {
-        await this.typeInElement(this.replyEditor, ` #${topicName}`);
-        await this.clickOnElement(this.topicNameEditor(topicName));
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
@@ -912,10 +917,7 @@ export class ListFeedComponent
         assertionMessage: `Post "${postText}" should be visible`,
       });
       // Find all reply content divs within the post container
-      const replyContainers = this.page
-        .locator('div[class*="_container_q3xrp_1"]')
-        .first()
-        .locator('div[class*="_reply_1ii4b_1"]');
+      const replyContainers = this.replyContainer;
 
       const count = await replyContainers.count();
       console.log('Count of visible replies: ', count);
@@ -1122,7 +1124,7 @@ export class ListFeedComponent
       });
 
       // Find the reply container that contains this reply text
-      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const allReplyContainers = this.replyContainer;
       const containerCount = await allReplyContainers.count();
 
       let timestamp: Locator | null = null;
@@ -1170,7 +1172,7 @@ export class ListFeedComponent
       });
 
       // Find the reply container that contains this reply text
-      const allReplyContainers = this.page.locator('._reply_1ii4b_1');
+      const allReplyContainers = this.replyContainer;
       const containerCount = await allReplyContainers.count();
 
       let boxLogo: Locator | null = null;
