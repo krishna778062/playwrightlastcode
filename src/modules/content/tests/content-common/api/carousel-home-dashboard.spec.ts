@@ -264,7 +264,7 @@ test.describe(
           appManagerApiFixture.feedManagementHelper.getAppConfig()
         );
 
-        // Create an unlisted site
+        // Get or create an unlisted site
         const unlistedSite = await appManagerApiFixture.contentManagementHelper.getContentId({
           accessType: SITE_TYPES.UNLISTED,
           status: 'published',
