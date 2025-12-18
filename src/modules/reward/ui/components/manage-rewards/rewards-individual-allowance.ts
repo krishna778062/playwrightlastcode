@@ -116,11 +116,11 @@ export class RewardsIndividualAllowance extends BasePage {
 
   async addOneIndividualUserInTheAllowance(amount: number): Promise<void> {
     const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await this.verifier.verifyTheElementIsVisible(individualAllowanceContainer);
-
     const noAudienceList = individualAllowanceContainer.locator(
       '//p[text()="You haven’t created any individual allowances yet"]'
     );
+
+    await this.verifier.verifyTheElementIsVisible(individualAllowanceContainer, { timeout: 5000 });
 
     if (!(await this.verifier.verifyTheElementIsVisible(noAudienceList))) {
       const alreadyAddedUserInputBox = individualAllowanceContainer

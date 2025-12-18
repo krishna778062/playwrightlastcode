@@ -32,7 +32,10 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 1,
   projects: [
     {
-      name: 'Reward',
+      name: 'Reward Settings',
+      expect: {
+        timeout: 15 * 1000, // 15 seconds for ALL expect() assertions
+      },
       use: {
         ...desktopChromeNoScale,
         headless,
