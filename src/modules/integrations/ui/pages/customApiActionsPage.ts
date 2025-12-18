@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -6,19 +6,17 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { CustomApiActionsComponent } from '@/src/modules/integrations/ui/components/customApiActionsComponent';
 
 export class CustomApiActionsPage extends BasePage {
-  readonly resultListApiActionsItemCountLocator: Locator;
   readonly customApiActionsComponent: CustomApiActionsComponent;
-
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.API_ACTIONS_PAGE);
-    this.resultListApiActionsItemCountLocator = page.locator('div[class*="ConnectorsList_resultCount"]');
     this.customApiActionsComponent = new CustomApiActionsComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.searchInput, {
+    await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.resultListApiActionsItemCountLocator, {
       timeout: TIMEOUTS.MEDIUM,
-      assertionMessage: 'Verifying that the custom api actions page is loaded by asserting search input presence',
+      assertionMessage:
+        'Verifying that the custom api actions page is loaded by asserting result list item count presence',
     });
   }
 

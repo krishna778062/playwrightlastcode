@@ -3,11 +3,12 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class CustomApiActionsComponent extends BaseComponent {
+  readonly resultListApiActionsItemCountLocator: Locator;
   readonly searchInput: Locator;
   readonly apiActionNameLocator: Locator;
+  readonly apiActionNameLocators: Locator;
   readonly clearSearchButton: Locator;
   readonly showMoreButton: Locator;
-  readonly apiActionNameLocators: Locator;
   readonly appsFilterButton: Locator;
   readonly customAppsHeading: Locator;
   readonly appsFilterSearchInput: Locator;
@@ -18,6 +19,7 @@ export class CustomApiActionsComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     // Search and List locators
+    this.resultListApiActionsItemCountLocator = page.locator('div[class*="TasksList_resultCount"]');
     this.searchInput = page.locator('input[name="search"]').first();
     this.apiActionNameLocator = page.locator('div[class*="ApiAction_name"]').first();
     this.apiActionNameLocators = page.locator('div[class*="ApiAction_name"]');
@@ -27,28 +29,10 @@ export class CustomApiActionsComponent extends BaseComponent {
     this.customAppsHeading = page.getByRole('heading', { name: 'Custom apps' });
     this.appsFilterSearchInput = page.getByRole('textbox', { name: 'Search…' }).first();
     this.appsFilterSearchInPanel = this.customAppsHeading.locator('xpath=following::input[@aria-label="Search…"][1]');
-    this.firstAppCheckboxInPanel = this.customAppsHeading.locator('xpath=following::input[@type="checkbox"][1]');
+    this.firstAppCheckboxInPanel = page.getByRole('checkbox', { name: 'Zendesk' });
     this.clearInAppsFilterButton = this.customAppsHeading.locator(
       'xpath=following::button[normalize-space()="Clear"][1]'
     );
-  }
-
-  /**
-   * Get the API action row container for a given name locator
-   */
-  getApiActionRowFor(nameLocator: Locator): Locator {
-    return nameLocator
-      .locator(
-        'xpath=ancestor::div[contains(@class,"ConnectorListItem") or contains(@class,"ApiAction") or contains(@class,"ListItem")][1]'
-      )
-      .first()
-      .or(
-        nameLocator
-          .locator('xpath=ancestor::a[contains(@class,"ConnectorListItem") or contains(@class,"ApiAction")][1]')
-          .first()
-      )
-      .or(nameLocator.locator('xpath=ancestor::li[1]').first())
-      .or(nameLocator.locator('xpath=ancestor::div[1]').first());
   }
 
   /**
@@ -135,34 +119,48 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async verifyAppsFilterSearchSelectClear(appName: string): Promise<void> {
     await test.step(`Verify Apps filter search and clear for: ${appName}`, async () => {
-      // Open Apps filter and search
-      await this.appsFilterButton.click();
-      // Scope search to the Apps filter panel via the heading
-      await this.appsFilterSearchInPanel.fill(appName);
-      await this.page.waitForTimeout(500);
-      // Select the first visible app checkbox inside the filter
-      await this.firstAppCheckboxInPanel.waitFor({ state: 'visible' });
-      await this.firstAppCheckboxInPanel.check().catch(async () => {
-        await this.firstAppCheckboxInPanel.click();
-      });
-
-      // Close filter and verify first API action corresponds to the app
-      await this.page.keyboard.press('Escape');
-      await this.page.waitForTimeout(400);
-      await expect(
-        this.page.getByText(appName).first(),
-        `Expected "${appName}" to be visible on the page`
-      ).toBeVisible();
-
-      // Reopen filter, click Clear, and verify deselected
-      await this.appsFilterButton.click();
-      await this.clearInAppsFilterButton.click();
-      const checkboxRole = this.getAppCheckboxByName(appName);
-      if ((await checkboxRole.count()) > 0) {
-        await expect(checkboxRole.first(), `"${appName}" should be deselected`).not.toBeChecked();
-      }
-      await this.page.keyboard.press('Escape');
+      await this.openFilterSearchAndSelectFirst(appName);
+      await this.closeFilterAndVerifyAppVisible(appName);
+      await this.reopenClearAndVerifyDeselected(appName);
     });
+  }
+
+  // Open filter search and select first app
+  async openFilterSearchAndSelectFirst(appName: string): Promise<void> {
+    await this.appsFilterButton.click();
+    await this.appsFilterSearchInPanel.fill(appName);
+    await this.page.waitForTimeout(500);
+    await this.firstAppCheckboxInPanel.waitFor({ state: 'visible' });
+    await this.firstAppCheckboxInPanel.check().catch(async () => {
+      await this.firstAppCheckboxInPanel.click();
+    });
+  }
+
+  // Close filter and verify app visible
+  async closeFilterAndVerifyAppVisible(appName: string): Promise<void> {
+    await this.pressEscapeAndWait(400);
+    await expect(this.page.getByText(appName).first(), `Expected "${appName}" to be visible on the page`).toBeVisible();
+  }
+
+  // Reopen filter and clear and verify deselected
+  async reopenClearAndVerifyDeselected(appName: string): Promise<void> {
+    await this.appsFilterButton.click();
+    await this.clearInAppsFilterButton.click();
+    const checkboxRole = this.getAppCheckboxByName(appName);
+    if ((await checkboxRole.count()) > 0) {
+      await expect(checkboxRole.first(), `"${appName}" should be deselected`).not.toBeChecked();
+    }
+    await this.pressEscapeAndWait();
+  }
+
+  /**
+   * Press Escape with optional wait
+   */
+  async pressEscapeAndWait(waitMs?: number): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    if (waitMs && waitMs > 0) {
+      await this.page.waitForTimeout(waitMs);
+    }
   }
 
   /**
@@ -170,13 +168,9 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async selectDeselectBehaviour(appName: string): Promise<void> {
     await test.step(`Verify select/deselect behaviour for app: ${appName}`, async () => {
-      // Try to locate the checkbox/label for the app
       const appCheckbox = this.getAppCheckboxByName(appName);
-
-      // Click the checkbox/label to select
       await appCheckbox.first().click();
-      await this.page.keyboard.press('Escape');
-      await this.page.waitForTimeout(500);
+      await this.pressEscapeAndWait(500);
 
       // For each visible API action entry, verify the provider/app label (appName) appears in the same row
       const count = await this.apiActionNameLocators.count();
@@ -192,8 +186,7 @@ export class CustomApiActionsComponent extends BaseComponent {
       // Now deselect the app
       await this.appsFilterButton.click();
       await appCheckbox.first().click();
-      await this.page.keyboard.press('Escape');
-      await this.page.waitForTimeout(300);
+      await this.pressEscapeAndWait(300);
     });
   }
 }
