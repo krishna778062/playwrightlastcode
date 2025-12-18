@@ -126,6 +126,125 @@ export class ContentManagementHelper {
     };
   }
 
+  /**
+   * Gets an array of content items with siteId, contentId, and contentType
+   * Similar to getContentId but returns an array of matching content items up to the specified count
+   * @param count - Number of content items to return
+   * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
+   * @returns Promise with array of objects containing siteId, contentId, and contentType (up to count items)
+   */
+  async getContentItems(
+    count: number,
+    options?: {
+      size?: number;
+      status?: string;
+      sortBy?: string;
+      accessType?: SITE_TYPES;
+    }
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
+    const response = await this.contentManagementService.getContentList(options);
+
+    if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
+      // Filter content by site access type
+      const filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (filteredContent.length > 0) {
+        // Map to content items and limit to count
+        const contentItems = filteredContent.map((content: any) => ({
+          siteId: content.site.siteId,
+          contentId: content.contentId || content.id,
+          contentType: content.type,
+        }));
+
+        // If we have enough items, return up to count
+        if (contentItems.length >= count) {
+          return contentItems.slice(0, count);
+        }
+
+        // We have some items but not enough, create the remaining ones
+        const itemsNeeded = count - contentItems.length;
+        const createdItems = await this.createContentItems(itemsNeeded, accessType);
+        return [...contentItems, ...createdItems];
+      }
+    }
+
+    // No content found, create the requested number of content items
+    const createdItems = await this.createContentItems(count, accessType);
+    return createdItems;
+  }
+
+  /**
+   * Helper method to create content items when not enough are found
+   * @param count - Number of content items to create
+   * @param accessType - Site access type for filtering sites
+   * @returns Array of created content items
+   */
+  private async createContentItems(
+    count: number,
+    accessType: SITE_TYPES
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
+
+    if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+      throw new Error(`No ${accessType} sites found in site service`);
+    }
+
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    const createdItems: Array<{ siteId: string; contentId: string; contentType: string }> = [];
+
+    // Create the requested number of pages
+    for (let i = 0; i < count; i++) {
+      // Get a random active site for each content item
+      const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+      const randomSite = activeSites[randomSiteIndex];
+      const siteId = randomSite.siteId;
+
+      // Create a page in the selected site
+      const pageResult = await this.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'general',
+        },
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      createdItems.push({
+        siteId: pageResult.siteId,
+        contentId: pageResult.contentId,
+        contentType: 'page',
+      });
+    }
+
+    return createdItems;
+  }
+
   async makeContentMustRead(
     contentId: string,
     options: {
