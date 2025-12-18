@@ -55,5 +55,24 @@ test.describe(
         await customApiActionsPage.verifyAppsFilterSearchSelectClear('Zendesk');
       }
     );
+
+    test(
+      'verify Status filter functionality',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16371',
+          storyId: 'INT-15403',
+        });
+
+        const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
+        await customApiActionsPage.selectStatusFilter('Draft');
+        await customApiActionsPage.verifyAllApiActionsHaveStatus('Draft');
+        await customApiActionsPage.selectStatusFilter('Published');
+        await customApiActionsPage.verifyAllApiActionsHaveStatus('Published');
+      }
+    );
   }
 );

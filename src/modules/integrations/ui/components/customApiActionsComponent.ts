@@ -15,6 +15,10 @@ export class CustomApiActionsComponent extends BaseComponent {
   readonly appsFilterSearchInPanel: Locator;
   readonly firstAppCheckboxInPanel: Locator;
   readonly clearInAppsFilterButton: Locator;
+  readonly statusFilterButton: Locator;
+  readonly statusDraftOption: Locator;
+  readonly statusPublishedOption: Locator;
+  readonly showNextItemsButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -33,6 +37,10 @@ export class CustomApiActionsComponent extends BaseComponent {
     this.clearInAppsFilterButton = this.customAppsHeading.locator(
       'xpath=following::button[normalize-space()="Clear"][1]'
     );
+    this.statusFilterButton = page.getByRole('button', { name: /^Status(\s\d+)?$/ });
+    this.statusDraftOption = page.getByRole('radio', { name: 'Draft' });
+    this.statusPublishedOption = page.getByRole('radio', { name: 'Published' });
+    this.showNextItemsButton = page.getByRole('button', { name: 'Show next items' });
   }
 
   /**
@@ -187,6 +195,36 @@ export class CustomApiActionsComponent extends BaseComponent {
       await this.appsFilterButton.click();
       await appCheckbox.first().click();
       await this.pressEscapeAndWait(300);
+    });
+  }
+
+  /**
+   * Verify all visible apps have the expected status
+   */
+  async verifyAllApiActionsHaveStatus(expectedStatus: 'Draft' | 'Published'): Promise<void> {
+    await test.step(`Verify all api actions have status "${expectedStatus}"`, async () => {
+      const count = await this.apiActionNameLocators.count();
+      for (let i = 0; i < count; i++) {
+        const statusText = this.apiActionNameLocators.nth(i).getByText(expectedStatus);
+        await expect(statusText, `Expected api action at index ${i} to have status "${expectedStatus}"`).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Select a status filter option
+   */
+  async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
+    await test.step(`Select status filter: ${status}`, async () => {
+      try {
+        await this.showNextItemsButton.click({ timeout: 1000 });
+      } catch {
+        //continue
+      }
+      await this.statusFilterButton.click();
+      const statusOption = status === 'Draft' ? this.statusDraftOption : this.statusPublishedOption;
+      await this.clickOnElement(statusOption, { timeout: 10000 });
+      await this.pressEscapeAndWait();
     });
   }
 }

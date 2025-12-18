@@ -70,4 +70,20 @@ export class CustomApiActionsPage extends BasePage {
   async verifyAppsFilterSearchSelectClear(appName: string): Promise<void> {
     return this.customApiActionsComponent.verifyAppsFilterSearchSelectClear(appName);
   }
+
+  /**
+   * Verify all visible apps have the expected status
+   * @param expectedStatus - Expected status ('Draft' or 'Published')
+   */
+  async verifyAllApiActionsHaveStatus(expectedStatus: 'Draft' | 'Published'): Promise<void> {
+    return this.customApiActionsComponent.verifyAllApiActionsHaveStatus(expectedStatus);
+  }
+
+  /**
+   * Select a status filter option
+   * @param status - The status to filter by ('Draft' or 'Published')
+   */
+  async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
+    return this.customApiActionsComponent.selectStatusFilter(status);
+  }
 }
