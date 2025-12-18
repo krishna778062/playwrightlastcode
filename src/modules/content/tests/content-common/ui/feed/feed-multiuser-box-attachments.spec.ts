@@ -243,15 +243,9 @@ test.describe(
         await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
         await manageSitePage.actions.setExternalFilesProvider('Box files');
 
-        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.getContentId({
           siteId: siteId,
-          contentInfo: {
-            contentType: ContentType.PAGE.toLowerCase(),
-            contentSubType: 'knowledge',
-          },
-          options: {
-            waitForSearchIndex: false,
-          },
+          status: 'published',
         });
         const contentId = pageInfo.contentId;
 
