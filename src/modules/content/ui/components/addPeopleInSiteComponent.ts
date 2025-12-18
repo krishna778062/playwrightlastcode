@@ -10,7 +10,6 @@ export class AddPeopleInSiteComponent extends BaseComponent {
   readonly alreadyAMember: Locator;
   readonly memberList: Locator;
   readonly crossButton: Locator;
-  constructor(readonly page: Page) {
 
   constructor(page: Page) {
     super(page);
@@ -92,13 +91,11 @@ export class AddPeopleInSiteComponent extends BaseComponent {
   }
 
   async clickOnAddButton(siteId: string): Promise<void> {
-  async clickOnAddButton(memberID: string): Promise<void> {
     await test.step('Clicking on add button', async () => {
       const publishResponse = await this.performActionAndWaitForResponse(
         () => this.clickOnElement(this.addButton),
         response =>
           response.url().includes(API_ENDPOINTS.site.manageMembers(siteId)) &&
-          response.url().includes(API_ENDPOINTS.site.manageMembers(memberID)) &&
           response.request().method() === 'POST' &&
           response.status() === 200,
         {

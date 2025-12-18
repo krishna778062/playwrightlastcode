@@ -625,83 +625,6 @@ export class SiteManagementHelper {
     return await this.siteManagementService.getListOfPeople(options);
   }
 
-  async getSiteWithManageSiteOption(sitesResponse: any): Promise<{ siteId: string; siteName: string }> {
-    const sites = Array.isArray(sitesResponse) ? sitesResponse : sitesResponse?.result?.listOfItems || [];
-
-    if (!sites || sites.length === 0) {
-      throw new Error('No sites found in the response');
-    }
-
-    // Get site details one by one and check isManager === true, isActive === true
-    for (const site of sites) {
-      try {
-        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
-        if (
-          siteDetails.result.isManager === true &&
-          siteDetails.result.isOwner === true &&
-          siteDetails.result.isActive === true
-        ) {
-          return {
-            siteId: siteDetails.result.siteId,
-            siteName: siteDetails.result.name || siteDetails.result.siteName,
-          };
-        }
-      } catch (error: any) {
-        throw error;
-      }
-    }
-
-    throw new Error('No site found with manage site option');
-  }
-  /**
-   * Gets 2 sites that are not in the featured sites list
-   * @param count - Number of non-featured sites to return (default: 2)
-   * @returns Promise containing non-featured sites
-   */
-  async getUnFeaturedSites(count: number = 2): Promise<{ siteId: string; name: string }[]> {
-    return await test.step(`Getting ${count} non-featured sites`, async () => {
-      // Fetch both lists in parallel for better performance
-      const [allSitesResponse, featuredSitesResponse] = await Promise.all([
-        this.getListOfSites({ filter: 'active', size: 1000 }),
-        this.getListOfSites({ filter: 'featured', size: 1000 }),
-      ]);
-
-      // Early validation
-      if (!allSitesResponse.result.listOfItems.length) {
-        throw new Error('No active sites found');
-      }
-
-      // Create Set for O(1) lookup performance
-      const featuredSiteIds = new Set(featuredSitesResponse.result.listOfItems.map((site: any) => site.siteId));
-
-      // Single pass filtering and mapping for better performance
-      const nonFeaturedSites: { siteId: string; name: string }[] = [];
-
-      for (const site of allSitesResponse.result.listOfItems) {
-        if (!featuredSiteIds.has(site.siteId)) {
-          nonFeaturedSites.push({
-            siteId: site.siteId,
-            name: site.name,
-          });
-
-          // Early exit if we have enough sites
-          if (nonFeaturedSites.length >= count) {
-            break;
-          }
-        }
-      }
-
-      if (nonFeaturedSites.length < count) {
-        throw new Error(`Not enough non-featured sites found. Found: ${nonFeaturedSites.length}, Required: ${count}`);
-      }
-
-      log.debug(
-        `Selected ${nonFeaturedSites.length} non-featured sites: ${nonFeaturedSites.map(s => s.name).join(', ')}`
-      );
-      return nonFeaturedSites;
-    });
-  }
-
   /**
    * Unfeatures a site (removes it from featured sites)
    * @param siteId - The ID of the site to unfeature
@@ -1329,21 +1252,6 @@ export class SiteManagementHelper {
     throw new Error('No site found with cover image and hasEvents: true');
   }
 
-  async getAllUsersList(): Promise<any> {
-    const response = await this.identityService.getListOfPeople();
-    return response.result;
-  }
-  /**
-   * Checks if a site has a valid coverImage
-   * @param site - Site object to check
-   * @returns Boolean indicating if the site has a valid coverImage
-   */
-  /**
-   * Ensures user is a member of the site with the specified role
-   * First checks if user is already a member, if not adds them, then assigns the role
-   * @param params - Object containing siteId, userId, and role
-   * @returns Promise<SiteMembershipResponse> - The membership response
-   */
   async getSiteWithMembers(
     accessType: string,
     expectedMemberCount?: number,
@@ -1552,6 +1460,72 @@ export class SiteManagementHelper {
       if (nonMemberNames.length > 0) {
         log.debug('Available non-member names (first 10):', nonMemberNames.slice(0, 10));
       }
+
+      if (nonMemberNames.length === 0) {
+        throw new Error('No non-member users found to add to the site');
+      }
+
+      if (options?.minimumCount && nonMemberNames.length < options.minimumCount) {
+        throw new Error(
+          `Only ${nonMemberNames.length} non-member user(s) found. Need at least ${options.minimumCount} users.`
+        );
+      }
+
+      return nonMemberNames;
+    });
+  }
+
+  /**
+   * Gets users who are not already followers or members of a site
+   * Uses name and email matching to identify non-members
+   * @param siteId - The site ID
+   * @param options - Optional parameters including minimumCount to ensure enough users are available
+   * @returns Promise containing array of non-member user names
+   */
+  async getUserWhoIsNotAlreadyFollowerAndMember(
+    siteId: string,
+    options?: { minimumCount?: number }
+  ): Promise<string[]> {
+    return await test.step(`Getting users who are not already followers or members for site ${siteId}`, async () => {
+      // Get all users list
+      const getUserList = await this.identityService.getListOfPeople();
+
+      // Get site members list
+      const getMemberList = await this.getSiteMembershipList(siteId, {
+        type: 'members',
+      });
+
+      // Get site followers list
+      const getFollowersList = await this.getSiteMembershipList(siteId, {
+        type: 'followers',
+      });
+
+      // Combine members and followers
+      const allSitePeople = [
+        ...(getMemberList.result.listOfItems || []),
+        ...(getFollowersList.result.listOfItems || []),
+      ];
+
+      // Extract member names and emails
+      const memberNames = allSitePeople.map((member: any) => member.name?.trim());
+      const memberEmails = allSitePeople.map((member: any) => member.email?.toLowerCase());
+
+      // Get all user names
+      const allUserNames = getUserList.result.listOfItems.map((user: any) =>
+        `${user.first_name || ''} ${user.last_name || ''}`.trim()
+      );
+
+      // Filter to find users who are not members or followers
+      const nonMemberNames = allUserNames.filter((userName: string, index: number) => {
+        const user = getUserList.result.listOfItems[index];
+        const userEmail = (user.email || '').toLowerCase();
+        const normalizedUserName = userName.trim().toLowerCase();
+        const isMemberByName = memberNames.some(
+          (memberName: string) => (memberName || '').trim().toLowerCase() === normalizedUserName
+        );
+        const isMemberByEmail = memberEmails.includes(userEmail);
+        return !isMemberByName && !isMemberByEmail;
+      });
 
       if (nonMemberNames.length === 0) {
         throw new Error('No non-member users found to add to the site');

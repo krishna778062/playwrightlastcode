@@ -54,7 +54,6 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
-  readonly clickOnAddAnotherButton: Locator;
   readonly clickOnMemberTab: Locator;
   readonly clickOnAddPersonInDialog: Locator;
   readonly SubscriptionButton: Locator;
@@ -114,7 +113,6 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
-    this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' });
     this.clickOnAddPersonInDialog = page.getByRole('dialog', { name: 'Add person to site' });
     this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
@@ -421,12 +419,6 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.clickOnTheManageSiteButton, {
         assertionMessage: 'Manage site button should be visible',
       });
-    });
-  }
-
-  async clickOnAddAnotherButtonAction(): Promise<void> {
-    await test.step('Click on the add another button', async () => {
-      await this.clickOnElement(this.clickOnAddAnotherButton);
     });
   }
 
