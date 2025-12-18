@@ -760,23 +760,26 @@ test.describe(
         const futureEndDate = new Date(futureDate);
         futureEndDate.setHours(futureEndDate.getHours() + 2);
 
-        const eventName = TestDataGenerator.generateRandomText('Automated Test Event');
+        const eventData = TestDataGenerator.generateEvent(
+          undefined,
+          futureDate.toISOString(),
+          futureEndDate.toISOString()
+        );
 
-        const eventInfo =
-          await appManagerApiFixture.contentManagementHelper.contentManagementService.addNewEventContent(
-            allEmployeesSiteId,
-            {
-              title: eventName,
-              contentType: 'event',
-              startsAt: futureDate.toISOString(),
-              endsAt: futureEndDate.toISOString(),
-              timezoneIso: 'Asia/Kolkata',
-              location: 'GGN',
-            }
-          );
+        const eventInfo = await appManagerApiFixture.contentManagementHelper.createEventWithCompleteResponse({
+          siteId: allEmployeesSiteId,
+          contentInfo: {
+            contentType: 'event',
+          },
+          options: {
+            eventName: eventData.title,
+            contentDescription: eventData.description,
+            location: eventData.location,
+          },
+        });
 
-        eventContentId = eventInfo.eventId;
-        eventTitle = eventName;
+        eventContentId = eventInfo.result.id;
+        eventTitle = eventData.title;
 
         // Initialize page objects once for reuse
         const contentPreviewPage = new ContentPreviewPage(
@@ -794,14 +797,14 @@ test.describe(
         await homeFeedPage.verifyThePageIsLoaded();
         await homeFeedPage.actions.clickOnShowOption('all');
         await homeFeedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await homeFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle!);
+        await homeFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
 
         // Verify event is visible in Site Feed upcoming events block
         await siteDashboardPage.loadPage();
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteFeedPage.verifyThePageIsLoaded();
         await siteFeedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await siteFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle!);
+        await siteFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
 
         // Unpublish event and verify it's not visible
         await contentPreviewPage.loadPage();
@@ -817,7 +820,7 @@ test.describe(
         await homeFeedPage.reloadPage();
         await homeFeedPage.actions.clickOnShowOption('all');
         await homeFeedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await homeFeedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle!);
+        await homeFeedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
 
         // Republish event and verify it's visible again
         await contentPreviewPage.loadPage();
@@ -828,7 +831,7 @@ test.describe(
         await homeFeedPage.reloadPage();
         await homeFeedPage.actions.clickOnShowOption('all');
         await homeFeedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await homeFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle!);
+        await homeFeedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
 
         // Delete event and verify it's not visible
         await contentPreviewPage.loadPage();
@@ -839,7 +842,7 @@ test.describe(
         await homeFeedPage.reloadPage();
         await homeFeedPage.actions.clickOnShowOption('all');
         await homeFeedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await homeFeedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle!);
+        await homeFeedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
       } finally {
         if (allEmployeesSiteId && eventContentId) {
           try {
