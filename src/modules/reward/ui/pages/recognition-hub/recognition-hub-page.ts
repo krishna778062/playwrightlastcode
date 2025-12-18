@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RewardGiftingOptionsSetup } from '@rewards/api/services/RewardGiftingOptionsSetup';
 import { RewardsApiService } from '@rewards/api/services/RewardsApiService';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
@@ -114,6 +116,35 @@ export class RecognitionHubPage extends BasePage {
       timeout: TIMEOUTS.VERY_SHORT,
       stepInfo: 'Clicking on Give Recognition button',
     });
+  }
+
+  async giveRecognitionAndGetRecognitionId(
+    recognitionReceiver: string | number,
+    awardName: string | number,
+    points: number
+  ): Promise<string> {
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await recognitionHub.clickOnGiveRecognition();
+    const giveRecognitionModal = new GiveRecognitionDialogBox(this.page);
+    await giveRecognitionModal.selectTheUserForRecognition(recognitionReceiver);
+    await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(awardName);
+    const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+    await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+    await giveRecognitionModal.giftThePoints(points);
+    const [response] = await Promise.all([
+      recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+      giveRecognitionModal.recognizeButton.click({ force: true }),
+    ]);
+    const body = await response.json();
+    if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+    const recognitionPostId = String(body.id);
+    const dialogBox = new DialogBox(this.page);
+    if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+      await dialogBox.container.waitFor({ state: 'visible' });
+      await dialogBox.skipButton.click();
+      await expect(dialogBox.container).not.toBeVisible();
+    }
+    return recognitionPostId;
   }
 
   /**
@@ -400,14 +431,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async setupTheMultipleGiftingOptions(): Promise<number[]> {
     const input_values = [1, 2, 3, 4, 5, 6, 7];
-    const availablePoints = await this.pointsToGive.textContent();
-
-    const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
-    await rewardGiftingOptions.loadPage();
-    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
-
-    // const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    await rewardGiftingOptions.giftingOptionsInputBox.clear();
+    const giftingSetup = new RewardGiftingOptionsSetup();
     const rewardOption = (() => {
       const min = 8;
       const max = 100000;
@@ -418,14 +442,8 @@ export class RecognitionHubPage extends BasePage {
       return num;
     })();
     input_values.push(Number(rewardOption));
-
-    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(input_values));
-    await rewardGiftingOptions.clickOnSaveButton();
-
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-
-    await this.visitRecognitionHub();
+    await giftingSetup.saveGiftingOptions(this.page, input_values);
+    await this.navigateToRecognitionHub();
     return input_values;
   }
 
@@ -513,6 +531,8 @@ export class RecognitionHubPage extends BasePage {
     await expect(this.deleteRecognitionDialogBoxDeleteButton).toBeEnabled();
     await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
     await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+    await this.verifyToastMessageIsVisibleWithText('Recognition deleted');
+    await this.dismissTheToastMessage();
   }
 
   /**

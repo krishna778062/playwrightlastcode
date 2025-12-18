@@ -429,7 +429,6 @@ export class BaseVerificationUtil {
   ) {
     try {
       await test.step(options?.stepInfo || `Waiting for element to be visible`, async () => {
-        console.log('Waiting for element to be visible with timeout: ', options?.timeout || 8_000, locator);
         await locator.waitFor({
           state: 'visible',
           timeout: options?.timeout || 8_000,
