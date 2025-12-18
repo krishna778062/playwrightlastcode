@@ -7,12 +7,12 @@ accessKey: sycBfgWLQZUZQJ8W86gb
 # ======================
 # BrowserStack Reporting
 # ======================
-buildName: 'DE Automation Tests'
-projectName: 'Data Engineering'
+buildName: 'Content Common Automation Tests'
+projectName: 'Content Common'
 buildIdentifier: '#${BUILD_NUMBER}'
 
 # Custom tags for filtering
-CUSTOM_TAG_1: 'reward-module'
+CUSTOM_TAG_1: 'content-common'
 
 # ======================
 # Test Observability Only
