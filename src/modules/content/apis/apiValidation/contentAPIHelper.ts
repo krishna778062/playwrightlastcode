@@ -260,4 +260,18 @@ export class ContentApiHelper {
     await this.validateB2BContentListResponse(b2bResponse);
     await this.validateB2BContentListManualTranslations(b2bResponse);
   }
+
+  async validateB2BContentListItemCount(b2bResponse: B2BContentListResponse, maxSize: number): Promise<void> {
+    await test.step(`Validate B2B content list item count is <= ${maxSize}`, async () => {
+      expect(
+        b2bResponse.result.listOfItems.length,
+        `Number of items should be <= ${maxSize}, but got ${b2bResponse.result.listOfItems.length}`
+      ).toBeLessThanOrEqual(maxSize);
+    });
+  }
+
+  async validateB2BContentListBaseline(b2bResponse: B2BContentListResponse, maxSize: number): Promise<void> {
+    await this.validateB2BContentListResponse(b2bResponse);
+    await this.validateB2BContentListItemCount(b2bResponse, maxSize);
+  }
 }
