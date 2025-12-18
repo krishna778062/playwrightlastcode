@@ -16,7 +16,7 @@ export interface IListFeedComponentActions {
   markPostAsFavourite: () => Promise<void>;
   removePostFromFavourite: (postText: string) => Promise<void>;
   clickInfoIcon: (fileId: string) => Promise<void>;
-  addReplyToPost: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
+  addReplyToPost: (replyText: string, postId: string, mentionUserName?: string, topicName?: string) => Promise<string>;
   addReplyToPostWithInappropriateContent: (
     replyText: string,
     postId: string,
@@ -138,6 +138,7 @@ export class ListFeedComponent
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
+  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly loadMoreRepliesButton: Locator;
   readonly postsIFollow: Locator;
@@ -360,6 +361,8 @@ export class ListFeedComponent
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.topicNameEditor = (topicName: string): Locator =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
@@ -637,7 +640,12 @@ export class ListFeedComponent
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string,
+    topicName?: string
+  ): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       // Click reply button
       //add API wait for response
@@ -661,6 +669,9 @@ export class ListFeedComponent
         replyText = replyText + ` @${mentionUserName}`;
         await this.fillInElement(this.replyEditor, replyText);
         await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else if (topicName) {
+        await this.typeInElement(this.replyEditor, ` #${topicName}`);
+        await this.clickOnElement(this.topicNameEditor(topicName));
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }

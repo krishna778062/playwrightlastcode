@@ -549,7 +549,7 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   }
 
   async addReplyToPostWithTopic(replyText: string, topicName: string, postId: string): Promise<void> {
-    await this.listFeedComponent.addReplyToPost(replyText, postId, topicName);
+    await this.listFeedComponent.addReplyToPost(replyText, postId, undefined, topicName);
   }
 
   async openReplyEditorForPost(postText: string): Promise<void> {

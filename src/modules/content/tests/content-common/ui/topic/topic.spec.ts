@@ -10,6 +10,7 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TOPIC_TEST_DATA } from '@/src/modules/content/test-data/topic.test-data';
 import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
@@ -18,8 +19,9 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   let applicationScreenPage: ApplicationScreenPage;
@@ -58,7 +60,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.clickOnAddTopic();
-      const topicName = TestDataGenerator.generateTopicName();
+      const topicName = faker.lorem.words(2);
       await manageTopicsPage.actions.fillTopicName(topicName);
       await manageTopicsPage.actions.clickOnAddButton();
       await manageTopicsPage.actions.clickOnEditTopic();
@@ -81,7 +83,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.clickOnAddTopic();
-      const topicName = TestDataGenerator.generateTopicName();
+      const topicName = faker.lorem.words(2);
       await manageTopicsPage.actions.fillTopicName(topicName);
       await manageTopicsPage.actions.clickOnAddButton();
       await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
@@ -103,7 +105,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         storyId: 'CONT-21076',
       });
       // Create topic via API
-      const topicName = TestDataGenerator.generateTopicName();
+      const topicName = faker.lorem.words(2);
       const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
       console.log('Created topic via API:', topicInfo);
 
@@ -250,9 +252,86 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   test(
     'verify standard user is able to add/list topic in Content',
     {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25969'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify standard user is able to add/list topic in Content',
+        zephyrTestId: 'CONT-25968',
+        storyId: 'CONT-25969',
+      });
+      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+      // Store topic names in array for later use
+      const topicNames: string[] = [
+        FEED_TEST_DATA.TOPIC_NAME_PAGE,
+        FEED_TEST_DATA.TOPIC_NAME_ALBUM,
+        FEED_TEST_DATA.TOPIC_NAME_EVENT,
+      ];
+      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'page', contentSubType: 'news' },
+      });
+      const contentPage = new ContentPreviewPage(appManagerFixture.page, siteInfo.siteId, pageInfo.contentId, 'page');
+      await contentPage.loadPage();
+      await contentPage.actions.clickShareThoughtsButton();
+      const feedPage = new FeedPage(appManagerFixture.page);
+      const postResultPage = await feedPage.actions.createAndPostWithTopic(
+        `test topic ${topicNames[0]}`,
+        topicNames[0]
+      );
+      console.log('Created feed via API for Page:', postResultPage);
+      const contentAlbum = await appManagerFixture.contentManagementHelper.createAlbum({
+        siteId: siteInfo.siteId,
+        imageName: 'beach.jpg',
+      });
+      const contentAlbumPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        contentAlbum.contentId,
+        'album'
+      );
+      await contentAlbumPage.loadPage();
+      await contentAlbumPage.actions.clickShareThoughtsButton();
+      const feedAlbumPage = new FeedPage(appManagerFixture.page);
+      const postResultAlbum = await feedAlbumPage.actions.createAndPostWithTopic(
+        `test topic ${topicNames[1]}`,
+        topicNames[1]
+      );
+      console.log('Created feed via API for Album:', postResultAlbum);
+      const contentEvent = await appManagerFixture.contentManagementHelper.createEvent({
+        siteId: siteInfo.siteId,
+        contentInfo: { contentType: 'event' },
+        options: {
+          eventName: `test topic ${topicNames[2]}`,
+        },
+      });
+      const contentEventPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteInfo.siteId,
+        contentEvent.contentId,
+        'event'
+      );
+      await contentEventPage.loadPage();
+      await contentEventPage.actions.clickShareThoughtsButton();
+      const feedEventPage = new FeedPage(appManagerFixture.page);
+      const postResultEvent = await feedEventPage.actions.createAndPostWithTopic(
+        `test topic ${topicNames[2]}`,
+        topicNames[2]
+      );
+      console.log('Created feed via API for Event:', postResultEvent);
+
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+      await applicationScreenPage.actions.clickOnTopics();
+      await manageTopicsPage.assertions.searchAndVerifyMultipleTopics(topicNames);
+    }
+  );
+
+  test(
+    'verify standard user is able to add topic in feed posts and replies',
+    {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41624'],
     },
-    async ({ standardUserFixture, appManagerFixture }) => {
+    async ({ appManagerFixture, standardUserFixture }) => {
       tagTest(test.info(), {
         description: 'verify standard user is able to add topic in Content page/Album/Event',
         zephyrTestId: 'CONT-41624',
@@ -315,6 +394,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(contentReplyText);
     }
   );
+
   test(
     'managing Topic Follow/Unfollow Status',
     {
@@ -396,7 +476,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
-      topicName = TestDataGenerator.generateTopicName();
+      topicName = faker.lorem.words(2);
 
       // Click on "Add topic" button
       topicId = await manageTopicsPage.actions.createTopic(topicName);
@@ -424,7 +504,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
       await manageTopicsPage.assertions.verifyTopicListIsVisible();
-      topicName = TestDataGenerator.generateTopicName();
+      topicName = faker.lorem.words(2);
       const existingTopicName = await manageTopicsPage.actions.getTopicNameFromList();
       await manageTopicsPage.actions.searchingTopicInSearchBar(existingTopicName);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(existingTopicName);
@@ -555,7 +635,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.loadPage();
 
       // Create first topic with random alphabetic string
-      const firstTopicName = TestDataGenerator.generateTopicName();
+      const firstTopicName = faker.string.alpha({ length: 5 });
       topicId = await manageTopicsPage.actions.createTopic(firstTopicName);
       await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       const editedTopicName = `${firstTopicName.slice(0, 2)} ${firstTopicName.slice(2)}`;
@@ -567,7 +647,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.actions.clickOnFollowTopic();
 
       // Create second topic "UI-test"
-      const secondTopicName = TestDataGenerator.generateTopicName();
+      const secondTopicName = faker.string.alpha({ length: 5 });
       const secondTopicId = await manageTopicsPage.actions.createTopic(secondTopicName);
       await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
