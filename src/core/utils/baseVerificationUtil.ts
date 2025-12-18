@@ -21,7 +21,6 @@ export class BaseVerificationUtil {
     }
   ): Promise<boolean> {
     try {
-      console.log('Verifying element to be visible with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
         timeout: options?.timeout || 30_000,
       });
@@ -44,7 +43,6 @@ export class BaseVerificationUtil {
     }
   ): Promise<boolean> {
     try {
-      console.log('Verifying element to be visible with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
         timeout: options?.timeout || 30_000,
       });
@@ -86,7 +84,6 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      console.log('Verifying element to be not visible with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not visible`).toBeHidden({
         timeout: options?.timeout || 30_000,
       });
@@ -112,7 +109,6 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      console.log('Verifying element to be enabled with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be enabled`).toBeEnabled({
         timeout: options?.timeout || 30_000,
       });
@@ -138,7 +134,6 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      console.log('Verifying element to be checked with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be checked`).toBeChecked({
         timeout: options?.timeout || 30_000,
       });
@@ -164,7 +159,6 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      console.log('Verifying element to be not checked with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not checked`).not.toBeChecked({
         timeout: options?.timeout || 30_000,
       });
@@ -190,7 +184,6 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      console.log('Verifying element to be disabled with timeout: ', options?.timeout || 30_000);
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be disabled`).toBeDisabled({
         timeout: options?.timeout || 30_000,
       });
@@ -486,6 +479,30 @@ export class BaseVerificationUtil {
     try {
       await locator.waitFor({
         state: 'hidden',
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be hidden failed.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Waits for the element to be hidden
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementIsDetached(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await locator.waitFor({
+        state: 'detached',
         timeout: options?.timeout || 8_000,
       });
     } catch (error) {

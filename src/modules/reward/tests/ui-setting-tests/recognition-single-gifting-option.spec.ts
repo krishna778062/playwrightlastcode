@@ -7,6 +7,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TIMEOUTS } from '@/src/core';
+
 test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
@@ -32,13 +34,15 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const userCount = 3;
-      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.pointsToGive);
+      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.pointsToGive, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Points to give value is visible on UI',
+      });
       const availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
       const rewardOption = await recognitionHub.setupTheSingleGiftingOptions(availablePoints);
-      await recognitionHub.visitRecognitionHub();
-      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.rewardRecognitionFirstPost);
+      await recognitionHub.navigateToRecognitionHub();
       await recognitionHub.mockTheWalletPoints(Number(rewardOption) * (userCount - 1), 100, 1000);
-      await recognitionHub.verifier.verifyTheElementIsVisible(recognitionHub.rewardRecognitionFirstPost);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       await recognitionHub.enableTheGiftingOption(true);
       await recognitionHub.selectUsersInTheAwardee(userCount);
