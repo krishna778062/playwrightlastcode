@@ -22,7 +22,7 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
       });
       return true;
     } catch (error) {
@@ -44,7 +44,7 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
       });
       return true;
     } catch {
@@ -85,7 +85,7 @@ export class BaseVerificationUtil {
   ) {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not visible`).toBeHidden({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
       });
     } catch (error) {
       throw new Error(

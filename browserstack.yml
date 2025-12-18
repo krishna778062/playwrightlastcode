@@ -25,5 +25,5 @@ browserstackAutomation: false # Tests run locally, NOT on BrowserStack browsers
 # Debugging features
 # ===================
 debug: false
-networkLogs: false
+networkLogs: true
 consoleLogs: errors
