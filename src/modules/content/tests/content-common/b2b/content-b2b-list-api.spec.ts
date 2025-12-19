@@ -7,6 +7,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentApiHelper } from '@/src/modules/content/apis/apiValidation/contentAPIHelper';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
   '@Content B2B API',
@@ -35,37 +36,7 @@ test.describe(
         const contentDetails = await appManagerApiFixture.contentManagementHelper.getContentItems(2);
         const contentIds = contentDetails.map(item => item.contentId);
 
-        const languages = [
-          'en-US',
-          'en-GB',
-          'fr-FR',
-          'fr-CA',
-          'es-ES',
-          'de-DE',
-          'it-IT',
-          'ja-JP',
-          'pt-BR',
-          'zh-CN',
-          'nl-NL',
-          'ro-RO',
-          'hy-AM',
-          'bg-BG',
-          'da-DA',
-          'ms-MY',
-          'th-TH',
-          'el-GR',
-          'ko-KR',
-          'tl-PH',
-          'sq-AL',
-          'hi-IN',
-          'fi-FI',
-          'sv-SE',
-          'es-419',
-          'pt-PT',
-          'no-NO',
-          'vi-VN',
-          'cs-CZ',
-        ];
+        const languages = CONTENT_TEST_DATA.B2B_LANGUAGES;
 
         const responses = await Promise.all(
           languages.map(lang =>
