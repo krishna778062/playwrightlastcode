@@ -68,7 +68,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true }
+        'email'
       );
     });
 
@@ -204,7 +204,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
     });
 
@@ -335,7 +335,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: false, deleteMobile: true }
+        'mobile'
       );
     });
 
@@ -346,7 +346,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -462,7 +462,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: false, deleteMobile: true }
+        'mobile'
       );
     });
 
@@ -473,7 +473,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -602,7 +602,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
         userDetails.endUserId,
@@ -617,7 +617,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: false, deleteMobile: true }
+        'mobile'
       );
     });
 
@@ -742,7 +742,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: false }
+        'email'
       );
     });
 
@@ -753,7 +753,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
@@ -905,7 +905,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: false }
+        'email'
       );
     });
 
@@ -916,7 +916,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        { deleteEmail: true, deleteMobile: true }
+        'both'
       );
 
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
