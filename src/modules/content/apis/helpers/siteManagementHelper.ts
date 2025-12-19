@@ -897,6 +897,10 @@ export class SiteManagementHelper {
     return null;
   }
 
+  async getSiteDetails(siteId: string): Promise<any> {
+    return await this.siteManagementService.getSiteDetails(siteId);
+  }
+
   /**
    * Verifies that the user has the correct role after assignment
    * @param siteId - The site ID

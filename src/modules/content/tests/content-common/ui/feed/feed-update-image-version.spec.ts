@@ -333,7 +333,7 @@ test.describe(
       await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify site image' });
 
       // Get site details to retrieve the site iconImage fileId for verification
-      let siteDetails = await appManagerFixture.siteManagementHelper.siteManagementService.getSiteDetails(siteId);
+      let siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
       let siteImageUrl = siteDetails.result?.img;
       if (!siteImageUrl) {
         await siteDashboardPage.actions.uploadSiteImage(FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname));
@@ -342,7 +342,7 @@ test.describe(
         );
         await siteDashboardPage.page.reload();
         await siteDashboardPage.assertions.verifyThePageIsLoaded();
-        siteDetails = await appManagerFixture.siteManagementHelper.siteManagementService.getSiteDetails(siteId);
+        siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
         siteImageUrl = siteDetails.result?.img;
       }
       // Extract fileId from the site image URL
@@ -418,7 +418,7 @@ test.describe(
         // Navigate directly to the feed URL to see the shared content
         const feedDetailPage = new FeedPage(appManagerFixture.page, createdFeedId);
         await feedDetailPage.loadFeedDetailPage({ stepInfo: 'Load feed detail page to verify shared content' });
-        await feedDetailPage.verifyTheFeedDetailPageIsLoaded();
+        await feedDetailPage.verifyFeedDetailPageLoaded();
         await feedDetailPage.assertions.waitForPostToBeVisible(createdFeedText);
 
         // Verify that the feed card for the shared content is displayed

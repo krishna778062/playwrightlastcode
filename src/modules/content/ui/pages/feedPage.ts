@@ -345,13 +345,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     });
   }
 
-  async verifyTheFeedDetailPageIsLoaded(): Promise<void> {
-    await test.step('Verify feed detail page is loaded', async () => {
-      await this.page.waitForURL(new RegExp('/feed/'));
-      await this.page.waitForLoadState('domcontentloaded');
-    });
-  }
-
   async reloadPage(): Promise<void> {
     await test.step('Reload page', async () => {
       await this.page.reload();
