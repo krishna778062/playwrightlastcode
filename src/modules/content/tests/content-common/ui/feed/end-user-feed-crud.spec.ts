@@ -60,11 +60,11 @@ test.describe(
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ appManagerFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
       if (createdPostId) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -733,6 +733,7 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
         await endUserFeedPage.actions.verifyThePageIsLoaded();
 
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
@@ -783,44 +784,41 @@ test.describe(
         });
 
         await test.step('Verify shared post is visible on Site Feed', async () => {
-          siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
           await siteDashboardPage.actions.clickOnFeedLink();
           await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-          const siteFeedPage = new FeedPage(standardUserFixture.page);
-          await siteFeedPage.assertions.waitForPostToBeVisible(shareMessage);
-          await siteFeedPage.assertions.validatePostText(shareMessage);
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
 
-          await siteFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
         });
 
         await test.step('Delete the post from Global Feed', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-          const globalFeedPage = new FeedPage(standardUserFixture.page);
-          await globalFeedPage.actions.verifyThePageIsLoaded();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
 
-          await globalFeedPage.actions.deletePost(createdPostText);
+          await endUserFeedPage.actions.deletePost(createdPostText);
         });
 
         await test.step('Verify deleted post is not visible on Site Feed', async () => {
-          const siteDashboardForDelete = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
-          await siteDashboardForDelete.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
-          await siteDashboardForDelete.actions.clickOnFeedLink();
-          await siteDashboardForDelete.navigateToTab(SitePageTab.FeedTab);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
+          await siteDashboardPage.reloadPage();
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-          const siteFeedForDelete = new FeedPage(standardUserFixture.page);
-          await siteFeedForDelete.assertions.verifyPostIsNotVisible(shareMessage);
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
         });
 
         await test.step('Verify deleted post is not visible on Home Feed', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-          const globalFeedForDelete = new FeedPage(standardUserFixture.page);
-          await globalFeedForDelete.actions.verifyThePageIsLoaded();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
 
-          await globalFeedForDelete.assertions.verifyPostIsNotVisible(shareMessage);
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
 
-          await globalFeedForDelete.assertions.verifyPostIsNotVisible(createdPostText);
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(createdPostText);
         });
       }
     );
