@@ -1,3 +1,5 @@
+import { expect } from '@playwright/test';
+
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
@@ -5,6 +7,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentApiHelper } from '@/src/modules/content/apis/apiValidation/contentAPIHelper';
+import { B2B_TEST_DATA } from '@/src/modules/content/test-data/b2b.test-data';
 
 test.describe(
   '@Content B2B API',
@@ -67,14 +70,15 @@ test.describe(
 
         const response = await appManagerApiFixture.b2bHelper.getContentList({
           contentIds: [contentIds[0], contentIds[1]],
-          content_type: 'all',
-          requestedLanguages: ['da'],
-          size: 3,
+          content_type: B2B_TEST_DATA.REQUEST_PARAMS.contentType,
+          requestedLanguages: [...B2B_TEST_DATA.REQUEST_PARAMS.requestedLanguages],
+          size: B2B_TEST_DATA.REQUEST_PARAMS.size,
         });
 
         console.log(`B2B content list response: ${JSON.stringify(response)}`);
 
-        await contentApiHelper.validateB2BContentListBaseline(response, 3);
+        await contentApiHelper.validateB2BContentListResponse(response);
+        expect(response.result.listOfItems.length).toBeLessThanOrEqual(B2B_TEST_DATA.REQUEST_PARAMS.size);
       }
     );
   }
