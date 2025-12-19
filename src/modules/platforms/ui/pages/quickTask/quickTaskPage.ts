@@ -37,16 +37,27 @@ export class QuickTaskPage extends BasePage {
     this.audiencesRadio = page.getByRole('radio', { name: 'Audiences' });
   }
 
+  /**
+   * Verify the quick task page is loaded
+   */
   async verifyThePageIsLoaded(): Promise<void> {
     await expect(this.quickTaskContainer, 'quick task page to load').toBeVisible({ timeout: 15000 });
   }
 
+  /**
+   * Opens the create task form by navigating to Tasks and clicking create new task button
+   */
   async openCreateTaskForm(): Promise<void> {
     await this.tasksLink.click();
     await this.createNewTaskButton.click();
     await this.taskTypeSelector.click();
   }
 
+  /**
+   * Fills task details including title, context, priority and future date
+   * @param title - Task title
+   * @param context - Task description/context
+   */
   async fillTaskDetails(title: string, context: string): Promise<void> {
     await this.titleInput.fill(title);
     await this.contextInput.click();
@@ -64,15 +75,25 @@ export class QuickTaskPage extends BasePage {
     await this.page.getByRole('button', { name: dateButtonText }).click();
   }
 
+  /**
+   * Attempts to create task without assigning to any user
+   * Verifies assignee field is empty and clicks create button
+   */
   async attemptToCreateTaskWithoutAssignee(): Promise<void> {
     await expect(this.addIndividualsCombobox).toHaveValue('');
     await this.createTaskButton.click();
   }
 
+  /**
+   * Verifies the required field error message is displayed
+   */
   async verifyRequiredFieldError(): Promise<void> {
     await expect(this.requiredFieldError).toBeVisible();
   }
 
+  /**
+   * Selects Audiences radio option and verifies error message is still displayed
+   */
   async selectAudiencesAndVerifyError(): Promise<void> {
     await this.audiencesRadio.click();
     await expect(this.requiredFieldError).toBeVisible();
