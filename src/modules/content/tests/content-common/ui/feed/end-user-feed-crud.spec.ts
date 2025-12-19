@@ -2432,12 +2432,10 @@ test.describe(
         await siteDashboardPage.actions.clickOnFeedLink();
         await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-        const siteFeedPage = new FeedPage(standardUserFixture.page);
-        await siteFeedPage.assertions.waitForPostToBeVisible(postText);
+        await feedPage.assertions.waitForPostToBeVisible(postText);
 
-        await siteFeedPage.assertions.verifyPostDetails(postText, 1);
+        await feedPage.assertions.verifyPostDetails(postText, 1);
 
-        feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
         await feedPage.assertions.waitForPostToBeVisible(postText);
 
