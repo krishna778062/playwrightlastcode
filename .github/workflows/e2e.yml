@@ -53,15 +53,17 @@ on:
         default: 'qa'
         type: choice
         options:
+          - 'dev'
+          - 'test'
           - 'qa'
           - 'uat'
-          - 'test'
-          - 'dev'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
           - 'prodUS'
           - 'prodEU'
           - 'prodCA'
           - 'prodAU'
-          - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
