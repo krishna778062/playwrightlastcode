@@ -4,7 +4,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -678,6 +680,86 @@ test.describe(
           await contentPreviewPage.actions.clickPostCreationCancelButton();
 
           await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+        });
+      }
+    );
+
+    test(
+      'verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24133'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed',
+          zephyrTestId: 'CONT-24133',
+          storyId: 'CONT-24133',
+        });
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Verify Post button is disabled', async () => {
+          // Navigate to Home-Global Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          // Click on "Share your thoughts or question" button
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Verify Post button is disabled', async () => {
+          // Get or create site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteId = siteInfo.siteId;
+
+          // Navigate to Site Feed
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          // Click on "Share your thoughts or question" button
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Verify Post button is disabled', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId({
+            status: ContentStatus.PUBLISHED.toLowerCase(),
+          });
+
+          // Navigate to Content tab
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.navigateToTab(SitePageTab.ContentTab);
+
+          // Click on any content (navigate to content preview page)
+          const contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+          // Click on "Share your thoughts or question" button
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
         });
       }
     );
