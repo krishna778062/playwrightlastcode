@@ -5,6 +5,7 @@ import {
   FilterRequest,
   GetBatchRunDetailsResponse,
   GetCompanyNamesResponse,
+  GetContentEngagementResponse,
   GetDepartmentsResponse,
   GetDivisionsResponse,
   GetLocationsResponse,
@@ -124,5 +125,27 @@ export class AnalyticsApiService extends HttpClient {
 
     const responseData = await response.json();
     return responseData as GetBatchRunDetailsResponse;
+  }
+
+  /**
+   * Get content engagement metrics for a specific content
+   * @param contentId - The content ID to fetch engagement metrics for
+   * @param isRestricted - Whether the content is restricted
+   * @returns Promise with the content engagement response data
+   */
+  async getContentEngagement(contentId: string, isRestricted: boolean): Promise<GetContentEngagementResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.contentEngagement, {
+      data: {
+        contentId,
+        isRestricted,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as GetContentEngagementResponse;
   }
 }

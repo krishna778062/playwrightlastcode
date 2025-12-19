@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+import { expect } from '@playwright/test';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { ContentTestSuite } from '@content/constants/testSuite';
@@ -15,12 +17,15 @@ import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -872,17 +877,40 @@ test.describe(
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
 
-        // Get Site Owner (siteManager) user info
-        const siteOwnerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-          users.siteManager.email
+        // Get or create a private site where Site Owner is the owner
+        const siteManagerprivateSites = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: SITE_TYPES.PRIVATE,
+        });
+
+        const standardUserPrivateSites = await standardUserFixture.siteManagementHelper.getListOfSites({
+          filter: SITE_TYPES.PRIVATE,
+        });
+
+        const standardUserSiteIds = new Set(
+          standardUserPrivateSites.result.listOfItems.map((site: any) => site.siteId)
         );
 
-        // Get or create a private site where Site Owner is the owner
-        const privateSiteDetails = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
-          siteOwnerInfo.userId,
-          SITE_TYPES.PRIVATE
+        const privateSiteDetails = siteManagerprivateSites.result.listOfItems.find(
+          (site: any) => site.isActive === true && !standardUserSiteIds.has(site.siteId)
         );
-        const privateSiteName = privateSiteDetails.siteName;
+
+        let privateSiteId = privateSiteDetails?.siteId;
+        let privateSiteName = privateSiteDetails?.name;
+
+        if (!privateSiteDetails) {
+          console.log(
+            'No private site found where Site Owner is the owner and standard user is not a member, Hence creating a new private site'
+          );
+        } else {
+          const siteName = `Private Site ${faker.company.name()}`;
+          const privateSiteDetailsResponse = await appManagerApiFixture.siteManagementHelper.createSite({
+            siteName: siteName,
+            accessType: SITE_TYPES.PRIVATE,
+            waitForSearchIndex: false,
+          });
+          privateSiteId = privateSiteDetailsResponse.siteId;
+          privateSiteName = privateSiteDetailsResponse.siteName;
+        }
         console.log(`Using private site: ${privateSiteName}`);
 
         // Create a Feed post on "Private Site" from Home Dashboard
@@ -894,7 +922,7 @@ test.describe(
         await adminFeedPage.actions.selectShareOptionAsSiteFeed();
 
         // Enter private site name
-        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName);
+        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName || '');
 
         // Post the feed
         const postResult = await adminFeedPage.actions.createAndPost({
@@ -906,7 +934,7 @@ test.describe(
         // Wait for post to be visible
         await adminFeedPage.assertions.waitForPostToBeVisible(postText);
 
-        const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteDetails.siteId);
+        const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId || '');
         await siteOwnerDashboardPage.loadPage({ stepInfo: 'Load private site dashboard page' });
         await siteOwnerDashboardPage.actions.clickOnFeedLink();
         await siteOwnerDashboardPage.navigateToTab(SitePageTab.FeedTab);
@@ -1014,43 +1042,44 @@ test.describe(
       }
     );
 
-    test(
-      'verify warning popup appears when inappropriate content is submitted in Feed post or Comment',
+    test.describe(
+      'inappropriate content warning tests',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },
-      async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify warning popup appears when inappropriate content is submitted in Feed post or Comment for all roles',
-          zephyrTestId: 'CONT-28090',
-          storyId: 'CONT-28090',
-        });
-
-        // Inappropriate words to test
+      () => {
+        // Shared setup variables
+        let publicSiteId: string;
+        let pageContent: any;
+        let endUserInfo: any;
+        let siteManagerInfo: any;
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
 
-        // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
-        const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          waitForSearchIndex: false,
-        });
-        const publicSiteId = publicSite.siteId;
+        test.beforeEach('Setup test data', async ({ appManagerApiFixture, appManagerFixture }) => {
+          // Get site
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          });
+          publicSiteId = publicSite.siteId;
 
-        const [endUserInfo, siteManagerInfo, pageContent] = await Promise.all([
-          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
-          appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
-          appManagerApiFixture.contentManagementHelper.createPage({
-            siteId: publicSiteId,
-            contentInfo: { contentType: 'page', contentSubType: 'news' },
-            options: { waitForSearchIndex: false },
-          }),
-        ]);
+          // Get user info and create page in parallel
+          const [endUser, siteManager, page] = await Promise.all([
+            appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+            appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
+            appManagerApiFixture.contentManagementHelper.createPage({
+              siteId: publicSiteId,
+              contentInfo: { contentType: 'page', contentSubType: 'news' },
+              options: { waitForSearchIndex: false },
+            }),
+          ]);
+          endUserInfo = endUser;
+          siteManagerInfo = siteManager;
+          pageContent = page;
 
-        // Pre-assign Site Manager role (needed for Group 1-3 parallel tests)
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: siteManagerInfo.userId,
-          role: SitePermission.MANAGER,
+          // Set feed posting permission
+          const manageSitePage = new ManageSitePage(appManagerFixture.page);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.actions.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
         });
 
         // Helper function to test Home Dashboard inappropriate content warning
@@ -1068,7 +1097,7 @@ test.describe(
           await homeFeedPage.actions.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostButton();
+          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1094,7 +1123,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1127,7 +1156,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1138,66 +1167,143 @@ test.describe(
           await warningPopup.actions.clickCancel();
         };
 
-        // Phase 2: Parallel Context Testing
+        test(
+          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090', '@inappropriate-content-warning'],
+          },
+          async ({ appManagerFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description:
+                'Verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+              zephyrTestId: 'CONT-28090',
+              storyId: 'CONT-28090',
+            });
 
-        // Group 1: Home Dashboard Tests - All users in parallel
-        await Promise.all([
-          testHomeDashboardWarning(appManagerFixture, inappropriatePostText),
-          testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
-          testHomeDashboardWarning(siteManagerFixture, inappropriatePostText),
-        ]);
+            // Group 1: Home Dashboard Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testHomeDashboardWarning(appManagerFixture, inappropriatePostText),
+              testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
+            ]);
 
-        // Group 2: Site Dashboard Tests - All users in parallel
-        await Promise.all([
-          testSiteDashboardWarning(appManagerFixture, publicSiteId, inappropriatePostText),
-          testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
-          testSiteDashboardWarning(siteManagerFixture, publicSiteId, inappropriatePostText),
-        ]);
+            // Group 2: Site Dashboard Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testSiteDashboardWarning(appManagerFixture, publicSiteId, inappropriatePostText),
+              testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
+            ]);
 
-        // Group 3: Content Page Tests - All users in parallel
-        await Promise.all([
-          testContentPageWarning(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-          testContentPageWarning(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
-        ]);
+            // Group 3: Content Page Tests - App Manager and Standard User in parallel
+            await Promise.all([
+              testContentPageWarning(appManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+              testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+            ]);
+          }
+        );
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
-        // Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996', '@inappropriate-content-warning'],
+          },
+          async ({ appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description:
+                'Verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+              zephyrTestId: 'CONT-42996',
+              storyId: 'CONT-42996',
+            });
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+            // Assign Site Manager role
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: siteManagerInfo.userId,
+              role: SitePermission.MANAGER,
+            });
 
-        // Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.MEMBER,
-        });
+            // Assign Site Content Manager role
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.CONTENT_MANAGER,
+            });
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+            // Group 1: Home Dashboard Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testHomeDashboardWarning(siteManagerFixture, inappropriatePostText),
+              testHomeDashboardWarning(standardUserFixture, inappropriatePostText),
+            ]);
 
-        // Site Owner
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
-          userId: endUserInfo.userId,
-          role: SitePermission.OWNER,
-        });
+            // Group 2: Site Dashboard Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testSiteDashboardWarning(siteManagerFixture, publicSiteId, inappropriatePostText),
+              testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText),
+            ]);
 
-        await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
-        await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
-        await testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText);
+            // Group 3: Content Page Tests - Site Manager and Site Content Manager in parallel
+            await Promise.all([
+              testContentPageWarning(siteManagerFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+              testContentPageWarning(standardUserFixture, publicSiteId, pageContent.contentId, inappropriatePostText),
+            ]);
+          }
+        );
 
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Member',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997', '@inappropriate-content-warning'],
+          },
+          async ({ appManagerApiFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify warning popup appears when inappropriate content is submitted for Site Member',
+              zephyrTestId: 'CONT-42997',
+              storyId: 'CONT-42997',
+            });
+
+            // Test Member role - Sequential context testing
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.MEMBER,
+            });
+
+            await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+            await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+            await testContentPageWarning(
+              standardUserFixture,
+              publicSiteId,
+              pageContent.contentId,
+              inappropriatePostText
+            );
+          }
+        );
+        test(
+          'verify warning popup appears when inappropriate content is submitted for Site Owner',
+          {
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999', '@inappropriate-content-warning'],
+          },
+          async ({ appManagerApiFixture, standardUserFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify warning popup appears when inappropriate content is submitted for Site Owner',
+              zephyrTestId: 'CONT-42999',
+              storyId: 'CONT-42999',
+            });
+
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: endUserInfo.userId,
+              role: SitePermission.OWNER,
+            });
+
+            await testHomeDashboardWarning(standardUserFixture, inappropriatePostText);
+            await testSiteDashboardWarning(standardUserFixture, publicSiteId, inappropriatePostText);
+            await testContentPageWarning(
+              standardUserFixture,
+              publicSiteId,
+              pageContent.contentId,
+              inappropriatePostText
+            );
+          }
+        );
       }
     );
 
@@ -1336,7 +1442,7 @@ test.describe(
           await homeFeedPage.actions.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostButton();
+          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1383,7 +1489,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1432,7 +1538,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1499,8 +1605,6 @@ test.describe(
           ),
         ]);
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
         // Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: publicSiteId,
@@ -1551,9 +1655,6 @@ test.describe(
           inappropriatePostText,
           editedPostText
         );
-
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
       }
     );
 
@@ -2076,6 +2177,156 @@ test.describe(
     );
 
     test(
+      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24122'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
+          zephyrTestId: 'CONT-24122',
+          storyId: 'CONT-24122',
+        });
+
+        // Setup: Get public, private, and unlisted sites, plus user and topic for mentions
+        const [publicSite, privateSite, endUserInfo, topicList] = await Promise.all([
+          appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          }),
+          appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
+            waitForSearchIndex: false,
+          }),
+          appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
+          appManagerFixture.contentManagementHelper.getTopicList(),
+        ]);
+
+        const publicSiteName = publicSite.name;
+        const privateSiteName = privateSite.name;
+        const publicSiteId = publicSite.siteId;
+        const privateSiteId = privateSite.siteId;
+
+        // Get a user name and topic for the post
+        const userName = endUserInfo.fullName;
+        const topicName = topicList.result.listOfItems[0]?.name || 'General';
+
+        const publicSite2Name = publicSiteName;
+        const publicSite2Id = publicSiteId;
+
+        // Navigate to Home → Global Feed
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+        // Initialize feedPage for this test
+        feedPage = new FeedPage(appManagerFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Generate base post text (will be used for all post lookups)
+        const initialPostText = TestDataGenerator.generateRandomText('Site Mention Post', 2, false);
+
+        // Step 1: Create Post with Site Mentions
+        await test.step('Create post with site mentions', async () => {
+          await feedPage.actions.clickShareThoughtsButton();
+
+          // Create post mentioning Public Site, Private Site, and Unlisted Site
+          // Note: createfeedWithMentionUserNameAndTopic requires userName and topicName, so we provide them
+          const postResult = await feedPage.actions.createfeedWithMentionUserNameAndTopic({
+            text: initialPostText,
+            userName: userName,
+            topicName: topicName,
+            siteName: [publicSiteName, privateSiteName],
+            embedUrl: '', // No embed URL needed
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify post creation - use base text for verification as mentions may render differently
+          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await feedPage.assertions.validatePostText(initialPostText);
+        });
+
+        // Step 2: Navigate via Site Mentions
+        await test.step('Navigate via site mentions', async () => {
+          // Click Public Site mention and verify navigation
+          await feedPage.actions.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
+
+          // Return to Home-Global Feed
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+
+          // Click Private Site mention and verify navigation
+          await feedPage.actions.clickSiteMentionInPost(initialPostText, privateSiteName, privateSiteId);
+
+          // Return to Home-Global Feed
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+        });
+
+        // Step 3: Edit Site Mentions
+        await test.step('Edit site mentions', async () => {
+          // Open ellipses menu
+          await feedPage.actions.openPostOptionsMenu(initialPostText);
+
+          // Click Edit
+          await feedPage.actions.clickEditOption();
+
+          // Verify Update button is disabled initially
+          await feedPage.assertions.verifyUpdateButtonDisabled();
+
+          // Remove "Public Site" mention
+          await feedPage.actions.removeSiteMention(publicSiteName);
+
+          // Add "Public Site2" mention
+          await feedPage.actions.addSiteName(publicSite2Name);
+
+          // Click Update button to save changes
+          await feedPage.actions.clickUpdateButton();
+
+          // Verify updated post shows new site mention
+          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+        });
+
+        // Step 4: Verify Updated Mention Navigation
+        await test.step('Verify updated mention navigation', async () => {
+          // Click new site mention
+          await feedPage.actions.clickSiteMentionInPost(initialPostText, publicSite2Name, publicSite2Id);
+
+          // Return to Home-Global Feed
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+        });
+
+        // Step 5: Delete Post
+        await test.step('Delete post from Home Feed', async () => {
+          // Return to Home-Global Feed (already there, but ensure)
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.verifyThePageIsLoaded();
+
+          // Open ellipses menu
+          await feedPage['listFeedComponent'].openPostOptionsMenu(initialPostText);
+
+          // Click Delete option
+          await feedPage['listFeedComponent'].clickDeleteOption();
+
+          // Confirm delete in the dialog
+          await feedPage['listFeedComponent'].confirmDelete();
+
+          // Verify post is removed from feed
+          await feedPage['listFeedComponent'].validatePostNotVisible(initialPostText);
+          createdPostId = '';
+        });
+      }
+    );
+
+    test(
       'verify user is able to see Follow button on hovering profile icon on Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20094'],
@@ -2208,6 +2459,115 @@ test.describe(
           await endUserFeedPage.actions.openPostOptionsMenu(replyText);
 
           await endUserFeedPage.assertions.verifyReplyOptionsMenuNotVisible(replyText);
+        });
+      }
+    );
+
+    test(
+      'verify Admin can create, edit and delete a feed post with multiple file attachments on Home Feed',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24135'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Admin is able to Add, Edit, and Delete Feed Post with File Attachments on Home Feed',
+          zephyrTestId: 'CONT-24135',
+          storyId: 'CONT-24135',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // ==================== CREATE FEED POST ====================
+        await test.step('Create feed post with multiple file attachments', async () => {
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          const filePaths = [
+            FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname), // image1.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname), // image3.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE4.getPath(__dirname), // image4.jpg
+            FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname), // favicon.png
+            FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname), // sample.docx
+            FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname), // sample.xlsx
+            FILE_TEST_DATA.DOCUMENTS.FILES_PREVIEW_BEHAVE_DOC_1_PDF.getPath(__dirname), // sample.pdf
+          ];
+
+          await createFeedPostComponent.createPost(initialPostText);
+
+          await createFeedPostComponent.uploadFiles(filePaths);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(filePaths.length);
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const postResponse = await createFeedPostComponent.createFeedPost();
+          const feedResponseBody = (await postResponse.json()) as any;
+          createdPostText = initialPostText;
+          createdPostId = feedResponseBody.result?.feedId || '';
+        });
+
+        // ==================== VERIFY POST CREATED ====================
+        await test.step('Verify feed post is created with file attachments', async () => {
+          await adminFeedPage.assertions.waitForPostToBeVisible(initialPostText);
+
+          await adminFeedPage.getPostTimestamp(initialPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(initialPostText, 7);
+        });
+
+        // ==================== EDIT FEED POST ====================
+        await test.step('Edit feed post and remove one attachment', async () => {
+          await adminFeedPage.actions.openPostOptionsMenu(initialPostText);
+
+          await adminFeedPage.actions.clickEditOption();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          await createFeedPostComponent.assertions.verifyUpdateButtonDisabled();
+
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const initialFileCount = await createFeedPostComponent.attachedFiles.count();
+          await createFeedPostComponent.removeAttachedFile(0);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(initialFileCount - 1);
+
+          await createFeedPostComponent.updatePostText(updatedPostText);
+
+          await createFeedPostComponent.clickUpdateButton();
+        });
+
+        // ==================== VERIFY POST UPDATED ====================
+        await test.step('Verify feed post is updated successfully', async () => {
+          await adminFeedPage.assertions.waitForPostToBeVisible(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(updatedPostText, 6);
+        });
+
+        // ==================== DELETE FEED POST ====================
+        await test.step('Delete feed post', async () => {
+          await adminFeedPage.actions.deletePost(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostIsNotVisible(updatedPostText);
+          createdPostId = '';
+          createdPostText = '';
         });
       }
     );

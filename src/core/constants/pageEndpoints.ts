@@ -6,7 +6,8 @@ export const PAGE_ENDPOINTS = {
   FEATURED_SITES_PAGE: '/sites/featured',
   MANAGE_CONTENT_SHOW_MORE_API: '/v1/content/sites/content/list',
   SITES_LIST_PAGE: '/sites',
-  SITE_PAGE: (siteId: string) => `/site/${siteId}/dashboard`,
+  SITE_PAGE: (siteId: string) => `/site/${siteId}`,
+  SITE_CONTENT_PAGE: (siteId: string) => `/site/${siteId}/content`,
   MANAGE_QR_PAGE: '/manage/promotions',
   SOCIAL_CAMPAIGN_SETTING_PAGE: '/manage/app/integrations/campaigns',
   MANAGE_CONTENT_ACTIVATE_API: '/v1/content/sites/attributes?attribute=status',
@@ -24,6 +25,7 @@ export const PAGE_ENDPOINTS = {
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
+  COMPANY_VALUES_PAGE: '/manage/company-values',
   MANAGE_USERS_PAGE: '/manage/users',
   MANAGE_USERS_FILTER_PAGE: (firstName: string, lastName: string) =>
     `/manage/users?searchTerm=${firstName}+${lastName}`,
@@ -75,6 +77,9 @@ export const PAGE_ENDPOINTS = {
 
   MANAGE_SITE_SETUP_PAGE: (siteId: string) => `manage/sites/${siteId}/setup`,
   MANAGE_SITE_PAGE: `manage/sites`,
+  MANAGE_SITE_PAGE_CATEGORIES_PAGE: (siteId: string) => `manage/sites/${siteId}/page-categories`,
+  MANAGE_SITE_CONTENT_PAGE: (siteId: string, pageCategoryId: string) =>
+    `manage/sites/${siteId}/content?type=page&pageCategoryId=${pageCategoryId}`,
   SITE_DETAILS_PAGE: (siteId: string) => PAGE_ENDPOINTS.getSiteDashboardPage(siteId),
   ADD_SITE_SCREEN_PAGE: '/manage/sites/add?nextLinkTo=/manage/sites',
   SITE_CATEGORIES_PAGE: '/manage/site-categories',
@@ -117,6 +122,7 @@ export const PAGE_ENDPOINTS = {
   MOBILE_DASHBOARD: '/analytics/mobile',
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
+  CONTENT_DASHBOARD: '/analytics/content',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -129,4 +135,5 @@ export const PAGE_ENDPOINTS = {
 
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
+  COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
 };

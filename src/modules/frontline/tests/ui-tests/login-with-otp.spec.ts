@@ -15,6 +15,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { UserTestDataBuilder } from '@/src/core/test-data-builders/UserTestDataBuilder';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { LoginPage } from '@/src/core/ui/pages/loginPage';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { PropertiesFile } from '@/src/core/utils/propertiesFile';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
@@ -380,11 +381,22 @@ test.describe(
         prop.store(null);
 
         const userDetails = loadUserDetails();
-        await LoginHelper.loginWithPassword(page, {
-          email: userDetails.endUserEmail,
-          password: userDetails.endUserPassword,
-        });
+        const loginPage = new LoginPage(page);
+
         const loginWithOtpPage = new LoginWithOtpPage(page);
+
+        await loginPage.loadPage({ stepInfo: 'Loading login page' });
+        await loginPage.verifyThePageIsLoaded();
+
+        await loginWithOtpPage.performLoginWithOtp(
+          loginPage,
+          userDetails.endUserEmail,
+          otpUtils,
+          mailosaurValues.mailosaurEmail,
+          'email'
+        );
+
+        // Add mobile number based on identifiers
         await loginWithOtpPage.addEmailOrMobileBasedOnIdentifiers(otpUtils, mailosaurValues.mailosaurPhone, 'mobile');
       }
     );

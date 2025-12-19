@@ -10,19 +10,41 @@ jobs:
   create-tag:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
+      - name: Check if this is a main sync
+        id: check_main_sync
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+            if [ "$SOURCE_BRANCH" == "main" ]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+              echo "⏭️ This is main → release sync - no tag needed (hotfix already deployed to production)"
+            else
+              echo "skip=false" >> $GITHUB_OUTPUT
+              echo "✅ Source branch: $SOURCE_BRANCH - will proceed with tagging"
+            fi
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ Direct push - will proceed with tagging"
+          fi
+
       - name: Checkout
+        if: steps.check_main_sync.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           ref: release
           fetch-depth: 0
 
       - name: Configure Git
+        if: steps.check_main_sync.outputs.skip == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Detect release type (dual check)
+        if: steps.check_main_sync.outputs.skip == 'false'
         id: detect
         env:
           CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
@@ -77,6 +99,7 @@ jobs:
           echo "current_stage=$STAGE" >> $GITHUB_OUTPUT
 
       - name: Determine tag version
+        if: steps.check_main_sync.outputs.skip == 'false'
         id: tag
         env:
           IS_NEW_RELEASE: ${{ steps.detect.outputs.is_new_release }}
@@ -94,8 +117,8 @@ jobs:
             LATEST_TAG=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
             
             if [ -z "$LATEST_TAG" ]; then
-              BASE_VERSION="25.01"
-              echo "First tag ever: $BASE_VERSION"
+            BASE_VERSION=$(date +%y.%m)  # Changed from "25.01"
+            echo "First tag ever: $BASE_VERSION"
             else
               CURRENT_BASE=$(echo $LATEST_TAG | grep -oP '^\d+\.\d+')
               CURRENT_YEAR=$(echo $CURRENT_BASE | cut -d'.' -f1)
@@ -126,6 +149,12 @@ jobs:
             RELEASE_TYPE="new_release"
             echo "🔄 New release tag: ${NEW_TAG}"
             
+          elif [ "$STAGE" == "production" ]; then
+            echo "⏭️ Stage is 'production' - skipping tag creation"
+            echo "Backports during production stage should not create tags"
+            echo "Tags are only created during active release cycles (QA/UAT)"
+            exit 0  # Exit successfully without creating tag
+
           elif [ "$STAGE" == "uat" ]; then
             # UAT hotfix
             echo "📦 UAT phase active - creating UAT hotfix tag"
@@ -144,14 +173,14 @@ jobs:
             RELEASE_TYPE="hotfix_uat"
             echo "📈 UAT hotfix: ${LATEST_UAT} → ${NEW_TAG}"
             
-          else
+          elif [ "$STAGE" == "qa" ]; then
             # QA hotfix
-            echo "🧪 QA phase active - creating QA hotfix tag"
+            echo "🧪 QA phase - creating QA hotfix tag"
             
             LATEST_QA=$(git tag -l "*-qa.*" --sort=-v:refname | head -n1)
             
             if [ -z "$LATEST_QA" ]; then
-              echo "❌ No QA tags found! Please start a new release first."
+              echo "❌ No QA tags found!"
               exit 1
             fi
             
@@ -160,7 +189,12 @@ jobs:
             NEW_QA_NUM=$((QA_NUM + 1))
             NEW_TAG="${BASE_VERSION}-qa.${NEW_QA_NUM}"
             RELEASE_TYPE="hotfix_qa"
-            echo "📈 QA hotfix: ${LATEST_QA} → ${NEW_TAG}"
+            
+          else
+            # Unknown stage
+            echo "❌ Unknown stage: $STAGE"
+            echo "Valid stages: qa, uat, production"
+            exit 1
           fi
 
           echo ""
@@ -176,45 +210,48 @@ jobs:
           echo "should_update_stage=$SHOULD_UPDATE_STAGE" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
+        if: steps.check_main_sync.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
           git tag ${{ steps.tag.outputs.new_tag }}
           git push origin ${{ steps.tag.outputs.new_tag }}
           echo "✅ Tag created: ${{ steps.tag.outputs.new_tag }}"
 
       - name: Update stage variable (if needed)
-        if: steps.tag.outputs.should_update_stage == 'true'
+        if: steps.check_main_sync.outputs.skip == 'false' && steps.tag.outputs.should_update_stage == 'true'
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         run: |
           gh variable set CURRENT_STAGE --body "qa"
           echo "✅ CURRENT_STAGE reset to 'qa'"
 
-    #   - name: Notify Slack
-    #     if: always()
-    #     run: |
-    #       if [ "${{ job.status }}" == "success" ]; then
-    #         DETECTION_INFO=""
-    #         if [ "${{ steps.detect.outputs.detection_method }}" == "label" ]; then
-    #           DETECTION_INFO="(detected via label)"
-    #         elif [ "${{ steps.detect.outputs.detection_method }}" == "source_branch" ]; then
-    #           DETECTION_INFO="(detected via source branch)"
-    #         elif [ "${{ steps.detect.outputs.detection_method }}" == "commit_message" ]; then
-    #           DETECTION_INFO="(detected via commit message)"
-    #         fi
+      - name: Notify Slack
+        if: always() && steps.check_main_sync.outputs.skip == 'false'
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            DETECTION_INFO=""
+            if [ "${{ steps.detect.outputs.detection_method }}" == "label" ]; then
+              DETECTION_INFO="(detected via label)"
+            elif [ "${{ steps.detect.outputs.detection_method }}" == "source_branch" ]; then
+              DETECTION_INFO="(detected via source branch)"
+            elif [ "${{ steps.detect.outputs.detection_method }}" == "commit_message" ]; then
+              DETECTION_INFO="(detected via commit message)"
+            fi
 
-    #         if [ "${{ steps.tag.outputs.release_type }}" == "new_release" ]; then
-    #           MESSAGE="🚀 New Release Started: \`${{ steps.tag.outputs.new_tag }}\` $DETECTION_INFO\n📍 Stage: QA\n🔄 Merged develop → release"
-    #         elif [ "${{ steps.tag.outputs.release_type }}" == "hotfix_uat" ]; then
-    #           MESSAGE="🔧 UAT Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: UAT"
-    #         else
-    #           MESSAGE="🔧 QA Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: QA"
-    #         fi
+            if [ "${{ steps.tag.outputs.release_type }}" == "new_release" ]; then
+              MESSAGE="🚀 New Release Started: \`${{ steps.tag.outputs.new_tag }}\` $DETECTION_INFO\n📍 Stage: QA\n🔄 Merged develop → release"
+            elif [ "${{ steps.tag.outputs.release_type }}" == "hotfix_uat" ]; then
+              MESSAGE="🔧 UAT Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: UAT"
+            else
+              MESSAGE="🔧 QA Hotfix Tag: \`${{ steps.tag.outputs.new_tag }}\`\n📍 Stage: QA"
+            fi
 
-    #         curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
-    #           -H 'Content-Type: application/json' \
-    #           -d "{\"text\":\"$MESSAGE\n\nNext cron will pick this up automatically.\"}"
-    #       else
-    #         curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
-    #           -H 'Content-Type: application/json' \
-    #           -d '{"text":"❌ Failed to create tag on release branch"}'
-    #       fi
+            curl -X POST $SLACK_WEBHOOK_URL \
+              -H 'Content-Type: application/json' \
+              -d "{\"text\":\"$MESSAGE\n\nNext cron will pick this up automatically.\"}"
+          else
+            curl -X POST $SLACK_WEBHOOK_URL \
+              -H 'Content-Type: application/json' \
+              -d '{"text":"❌ Failed to create tag on release branch"}'
+          fi

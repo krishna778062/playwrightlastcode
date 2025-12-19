@@ -32,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -74,6 +75,7 @@ export interface ICreateFeedPostAssertions {
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPostButtonDisabled: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -350,7 +352,13 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      await this.fileUploadInput.setInputFiles(filePaths);
+      const fileUploadInputCount = await this.fileUploadInput.count();
+      if (fileUploadInputCount > 1) {
+        await this.fileUploadInput.nth(1).setInputFiles(filePaths);
+      } else {
+        await this.fileUploadInput.setInputFiles(filePaths);
+      }
+
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       /*
           If files are more than 10, verify the count of attached files is 10
@@ -442,6 +450,12 @@ export class CreateFeedPostComponent
           response.status() === 201,
         { timeout: 20_000 }
       );
+    });
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
+      await this.clickOnElement(this.postButton);
     });
   }
 
@@ -581,6 +595,31 @@ export class CreateFeedPostComponent
     await test.step(`Adding topic mention: #${topicName}`, async () => {
       await this.typeInElement(this.feedEditor, ` #${topicName}`);
       await this.clickOnElement(this.addtopicfromList(topicName));
+    });
+  }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await test.step(`Removing site mention: @${siteName}`, async () => {
+      // Find the site mention node in the editor
+      // Site mentions are rendered as spans with data-type="site" and data-label containing the site name
+      const siteMentionNode = this.feedEditor
+        .locator('span[data-type="site"]')
+        .filter({ hasText: new RegExp(siteName) })
+        .first();
+
+      // Check if the mention exists
+      const isVisible = await siteMentionNode.isVisible().catch(() => false);
+
+      if (isVisible) {
+        // Click on the mention to select it, then delete
+        await this.clickOnElement(siteMentionNode);
+        // Press Backspace or Delete to remove the mention
+        await this.feedEditor.press('Backspace');
+        // Sometimes we need to press it twice or use Delete
+        await this.feedEditor.press('Delete');
+      } else {
+        console.log(`Site mention @${siteName} not found in editor, skipping removal`);
+      }
     });
   }
 
@@ -866,6 +905,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Verifies that the Post button is disabled
+   */
+  async verifyPostButtonDisabled(): Promise<void> {
+    await test.step('Verify Post button is disabled', async () => {
+      await expect(this.postButton).toBeDisabled();
+    });
+  }
+
   async addFileToPost(filePath: string): Promise<void> {
     await test.step(`Add file to post: ${filePath}`, async () => {
       await this.fileUploadInput.first().setInputFiles([filePath]);
@@ -1112,17 +1160,17 @@ export class CreateFeedPostComponent
   async selectBoxFile(fileName: string): Promise<void> {
     await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
       if (fileName) {
-        // Find file in table by name
-        const fileRow = this.page.locator('table tbody tr').filter({ hasText: fileName });
-        await this.verifier.verifyTheElementIsVisible(fileRow, {
-          assertionMessage: `Box file "${fileName}" should be visible`,
-        });
-        // Click on the checkbox in the first column
-        const checkbox = fileRow.locator('td').first().locator('input[type="checkbox"]');
+        const checkbox = this.getFileCheckboxLocator(fileName);
         await this.verifier.verifyTheElementIsVisible(checkbox, {
           assertionMessage: `Checkbox for file "${fileName}" should be visible`,
         });
-        await this.clickOnElement(checkbox);
+
+        // Check if checkbox is already selected
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          // Click the checkbox using JavaScript to ensure it works
+          await checkbox.check();
+        }
       } else {
         // Select first available file (not a folder)
         // Wait for table to load after folder navigation
