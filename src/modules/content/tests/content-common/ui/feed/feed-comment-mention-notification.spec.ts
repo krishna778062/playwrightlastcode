@@ -536,10 +536,6 @@ test.describe(
 
           replyText = `${baseReplyText} @${siteManagerInfo.fullName} #${topicName}`;
           await endUserFeedPage.assertions.verifyReplyIsVisible(replyText);
-          // const replyImageLocator = listFeedComponent.getReplyBoxImageLocator(replyText);
-          // await endUserFeedPage['verifier'].verifyTheElementIsVisible(replyImageLocator, {
-          //   assertionMessage: 'Inline image should be displayed in reply',
-          // });
         });
 
         await test.step('Phase 3: Standard User2 (EndUser1) Validates Notification', async () => {
