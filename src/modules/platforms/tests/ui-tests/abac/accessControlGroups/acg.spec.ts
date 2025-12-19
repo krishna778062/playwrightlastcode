@@ -725,7 +725,7 @@ test.describe(
     test(
       `verify the state of different edit buttons when Admin is editing an Active Custom ACG`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture, browser }) => {
         tagTest(test.info(), {
