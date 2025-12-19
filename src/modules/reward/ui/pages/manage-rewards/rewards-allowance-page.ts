@@ -3,6 +3,8 @@ import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-all
 
 import { BasePage } from '@core/ui';
 
+import { TIMEOUTS } from '@/src/core';
+
 export class RewardsAllowancePage extends BasePage {
   // Page elements
   readonly header: Locator;
@@ -281,7 +283,10 @@ export class RewardsAllowancePage extends BasePage {
         break;
     }
 
-    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox);
+    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox, {
+      timeout: 30000,
+      assertionMessage: 'Delete user allowance dialog box is visible',
+    });
     await this.verifier.verifyElementHasText(dialogBoxTitleElement, dialogBoxTitle);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine1, dialogBoxDescriptionLine1);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine2, dialogBoxDescriptionLine2);
@@ -294,15 +299,18 @@ export class RewardsAllowancePage extends BasePage {
     const successToastBoxMessage = successToastContainer.locator('p');
     const successToastBoxIcon = successToastContainer.locator('i[data-testid="i-checkLarge"]');
     const successToastBoxClose = successToastContainer.locator('button[aria-label="Dismiss"]');
-
-    await successToastContainer.waitFor({ state: 'attached', timeout: 30000 });
-    await this.verifier.verifyTheElementIsVisible(successToastContainer);
-    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon);
-    await this.verifier.verifyElementHasText(successToastBoxMessage, message);
+    await this.verifier.verifyTheElementIsVisible(successToastContainer, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: 'Success toast container is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon, { timeout: TIMEOUTS.VERY_SHORT });
+    await this.verifier.verifyElementHasText(successToastBoxMessage, message, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: `Success toast container have ${message} message`,
+    });
     await this.clickOnElement(successToastBoxClose, {
       stepInfo: 'Closing toast message',
     });
-    await successToastContainer.waitFor({ state: 'detached', timeout: 30000 });
   }
 
   async checkTheSingleDeletion(page: Page): Promise<void> {
