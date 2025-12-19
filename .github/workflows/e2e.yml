@@ -11,7 +11,6 @@ on:
         options:
           - 'chat'
           - 'content'
-          - 'chat-browserstack'
           - 'platforms'
           - 'global-search'
           - 'reward'
@@ -21,7 +20,6 @@ on:
           - 'integrations-azuresso'
           - 'integrations-primary'
           - 'de'
-          - 'de-browserstack'
           - 'de-api'
           - 'de-api-abac'
           - 'frontline'
@@ -81,6 +79,12 @@ on:
         default: 'all'
         type: string
 
+      is_browserstack:
+        description: 'Do you want to run tests on Browserstack'
+        required: true
+        default: false
+        type: boolean
+
 permissions:
   contents: read
   id-token: write
@@ -93,7 +97,13 @@ jobs:
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module_name || 'chat' }}
+      TEST_ENV: ${{ inputs.environment || 'qa' }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack configuration (used by browserstack.yml)
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -124,8 +134,6 @@ jobs:
 
       - name: Run playwright tests
         id: run-tests
-        env:
-          TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
@@ -151,11 +159,19 @@ jobs:
 
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
+            if [ "${{ inputs.is_browserstack }}" = true ]; then
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=${{ inputs.module_name }} npx browserstack-node-sdk playwright test --config=src/modules/${{ inputs.module_name}}/playwright.${{ inputs.module_name}}.config.ts --workers=${{ inputs.workers }}
+            else
+              npm run test:${{ inputs.module_name }} -- --workers=${{ inputs.workers }}
+            fi
           else
             GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            if [ "${{ inputs.is_browserstack }}" = true ]; then
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=${{ inputs.module_name }} npx browserstack-node-sdk playwright test --config=src/modules/${{ inputs.module_name}}/playwright.${{ inputs.module_name}}.config.ts --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            else
+              npm run test:${{ inputs.module_name }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            fi
           fi
 
       - name: Upload test report to github artifact backup

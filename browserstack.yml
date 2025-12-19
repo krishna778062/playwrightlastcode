@@ -1,18 +1,22 @@
 # =============================
 # Set BrowserStack Credentials
 # =============================
-userName: prateekparashar_LlOEnN
-accessKey: sycBfgWLQZUZQJ8W86gb
+# Use environment variables for sensitive data (set in CI secrets)
+userName: ${BROWSERSTACK_USERNAME:-prateekparashar_LlOEnN}
+accessKey: ${BROWSERSTACK_ACCESS_KEY:-sycBfgWLQZUZQJ8W86gb}
 
 # ======================
 # BrowserStack Reporting
 # ======================
-buildName: 'Content Common Automation Tests'
-projectName: 'Content Common'
-buildIdentifier: '#${BUILD_NUMBER}'
+# Dynamic build/project names from CI environment
+buildName: '${MODULE_NAME:-Automation} Tests - ${TEST_ENV:-qa}'
+projectName: '${MODULE_NAME:-Automation}'
+buildIdentifier: '#${BUILD_NUMBER:-local}'
 
-# Custom tags for filtering
-CUSTOM_TAG_1: 'content-common'
+# Custom tags for filtering (useful in BrowserStack dashboard)
+CUSTOM_TAG_1: '${MODULE_NAME:-automation}'
+CUSTOM_TAG_2: '${TEST_ENV:-qa}'
+CUSTOM_TAG_3: '${CI_BRANCH:-local}'
 
 # ======================
 # Test Observability Only
@@ -24,6 +28,6 @@ browserstackAutomation: false # Tests run locally, NOT on BrowserStack browsers
 # ===================
 # Debugging features
 # ===================
-debug: false
+debug: ${BROWSERSTACK_DEBUG:-false}
 networkLogs: true
 consoleLogs: errors

@@ -50,3 +50,6 @@ downloads/
 #browserstack files
 browserstack.err
 log/
+src/modules/*/playwright-browserstack-sdk.config.ts
+playwright-report-browserstack/
+src/modules/*/browserstacksetupConfig.json
