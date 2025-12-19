@@ -35,17 +35,54 @@ test.describe(
         const contentDetails = await appManagerApiFixture.contentManagementHelper.getContentItems(2);
         const contentIds = contentDetails.map(item => item.contentId);
 
-        const response = await appManagerApiFixture.b2bHelper.getContentList({
-          contentIds: [contentIds[0], contentIds[1]],
-          content_type: 'all',
-          requestedLanguages: ['en'],
-          size: 3,
-        });
+        const languages = [
+          'en-US',
+          'en-GB',
+          'fr-FR',
+          'fr-CA',
+          'es-ES',
+          'de-DE',
+          'it-IT',
+          'ja-JP',
+          'pt-BR',
+          'zh-CN',
+          'nl-NL',
+          'ro-RO',
+          'hy-AM',
+          'bg-BG',
+          'da-DA',
+          'ms-MY',
+          'th-TH',
+          'el-GR',
+          'ko-KR',
+          'tl-PH',
+          'sq-AL',
+          'hi-IN',
+          'fi-FI',
+          'sv-SE',
+          'es-419',
+          'pt-PT',
+          'no-NO',
+          'vi-VN',
+          'cs-CZ',
+        ];
 
-        console.log(`B2B content list response: ${JSON.stringify(response)}`);
+        const responses = await Promise.all(
+          languages.map(lang =>
+            appManagerApiFixture.b2bHelper.getContentList({
+              contentIds: [contentIds[0], contentIds[1]],
+              content_type: 'all',
+              requestedLanguages: [lang],
+              size: 3,
+            })
+          )
+        );
 
-        await contentApiHelper.validateB2BContentList(response);
-        expect(response.result.listOfItems.length).toBeLessThanOrEqual(3);
+        for (let i = 0; i < responses.length; i++) {
+          console.log(`B2B content list response for ${languages[i]}: ${JSON.stringify(responses[i])}`);
+          await contentApiHelper.validateB2BContentList(responses[i]);
+          expect(responses[i].result.listOfItems.length).toBeLessThanOrEqual(3);
+        }
       }
     );
   }
