@@ -286,6 +286,7 @@ test.describe(
         // Navigate to Home feed dashboard
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.reloadPage();
         await homeFeedPage.verifyThePageIsLoaded();
 
         //  Verify feed post from content appears on home feed dashboard
