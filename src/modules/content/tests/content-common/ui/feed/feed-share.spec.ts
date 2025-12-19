@@ -21,6 +21,21 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
+    const createdPostIds: string[] = [];
+
+    test.afterEach(async ({ appManagerApiFixture }) => {
+      // Cleanup: Delete all shared posts
+      for (const sharedPostId of createdPostIds) {
+        if (sharedPostId) {
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteFeed(sharedPostId);
+          } catch (error) {
+            console.warn(`Failed to delete shared post ${sharedPostId}:`, error);
+          }
+        }
+      }
+    });
+
     test(
       'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page',
       {
@@ -614,139 +629,118 @@ test.describe(
           storyId: 'CONT-26726',
         });
 
-        let originalPostId: string = '';
         let originalPostText: string = '';
         let sharedPostId: string = '';
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
 
-        try {
-          // ==================== PART 1: ADMIN CREATES FEED POST ====================
-          await test.step('Part 1: Admin creates feed post with mentions, topics, and message', async () => {
-            const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-              users.endUser.email
-            );
+        // ==================== PART 1: ADMIN CREATES FEED POST ====================
+        await test.step('Part 1: Admin creates feed post with mentions, topics, and message', async () => {
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
 
-            const endUserFullName = endUserInfo.fullName;
-            const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+          const endUserFullName = endUserInfo.fullName;
+          const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
-            const simpplrTopic = await appManagerFixture.contentManagementHelper.getTopicListWithName(
-              FEED_TEST_DATA.DEFAULT_TOPIC_NAME
-            );
+          const simpplrTopic = await appManagerFixture.contentManagementHelper.getTopicListWithName(
+            FEED_TEST_DATA.DEFAULT_TOPIC_NAME
+          );
 
-            // Navigate to Home Feed as Admin
-            await appManagerFixture.homePage.loadPage();
-            await appManagerFixture.homePage.verifyThePageIsLoaded();
-            await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
-            const adminFeedPage = new FeedPage(appManagerFixture.page);
-            await adminFeedPage.verifyThePageIsLoaded();
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
 
-            // Create feed post with mentions, topics, and message
-            const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-            const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+          // Create feed post with mentions, topics, and message
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
 
-            await adminFeedPage.actions.clickShareThoughtsButton();
+          await adminFeedPage.actions.clickShareThoughtsButton();
 
-            const postResult = await adminFeedPage.actions.createfeedWithMentionUserNameAndTopic({
-              text: postText,
-              userName: endUserFullName,
-              topicName: simpplrTopic.name,
-              siteName: [publicSiteName],
-              embedUrl: embedUrl,
-            });
-
-            originalPostText = postResult.postText;
-            originalPostId = postResult.postId || '';
-
-            // Wait for post to be visible
-            await adminFeedPage.assertions.waitForPostToBeVisible(originalPostText);
+          const postResult = await adminFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+            text: postText,
+            userName: endUserFullName,
+            topicName: simpplrTopic.name,
+            siteName: [publicSiteName],
+            embedUrl: embedUrl,
           });
 
-          // ==================== PART 2: ENDUSER SHARES TO HOME FEED ====================
-          await test.step('Part 2: EndUser shares post to Home Feed and verifies View Post link', async () => {
-            // Navigate to Home Feed as EndUser
-            await standardUserFixture.homePage.loadPage();
-            await standardUserFixture.homePage.verifyThePageIsLoaded();
-            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          originalPostText = postResult.postText;
+          createdPostIds.push(postResult.postId || '');
 
-            const endUserFeedPage = new FeedPage(standardUserFixture.page);
-            await endUserFeedPage.verifyThePageIsLoaded();
-            await endUserFeedPage.assertions.waitForPostToBeVisible(originalPostText);
+          // Wait for post to be visible
+          await adminFeedPage.assertions.waitForPostToBeVisible(originalPostText);
+        });
 
-            // Click Share button on Admin's feed post
-            await endUserFeedPage.actions.clickShareIconOnPost(originalPostText);
+        // ==================== PART 2: ENDUSER SHARES TO HOME FEED ====================
+        await test.step('Part 2: EndUser shares post to Home Feed and verifies View Post link', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
-            // Verify Share modal is open
-            await endUserFeedPage.assertions.verifyShareModalIsVisible();
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+          await endUserFeedPage.assertions.waitForPostToBeVisible(originalPostText);
 
-            const shareComponent = new ShareComponent(standardUserFixture.page);
-            await shareComponent.assertions.verifyViewPostLinkInShareDialog();
+          // Click Share button on Admin's feed post
+          await endUserFeedPage.actions.clickShareIconOnPost(originalPostText);
 
-            await endUserFeedPage.actions.enterShareDescription(shareMessage);
+          // Verify Share modal is open
+          await endUserFeedPage.assertions.verifyShareModalIsVisible();
 
-            sharedPostId = await shareComponent.actions.clickShareButtonAndGetPostId();
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.assertions.verifyViewPostLinkInShareDialog();
 
-            await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+          await endUserFeedPage.actions.enterShareDescription(shareMessage);
 
-            await endUserFeedPage.reloadPage();
-            await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
-          });
+          sharedPostId = await shareComponent.actions.clickShareButtonAndGetPostId();
+          createdPostIds.push(sharedPostId);
 
-          // ==================== PART 3: ADMIN DELETES ORIGINAL POST ====================
-          await test.step('Part 3: Admin deletes original post', async () => {
-            // Navigate to Home Feed as Admin
-            await appManagerFixture.homePage.loadPage();
-            await appManagerFixture.homePage.verifyThePageIsLoaded();
-            await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
 
-            const adminFeedPage = new FeedPage(appManagerFixture.page);
-            await adminFeedPage.verifyThePageIsLoaded();
-            await adminFeedPage.assertions.waitForPostToBeVisible(originalPostText);
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        });
 
-            await adminFeedPage.actions.deletePost(originalPostText);
+        // ==================== PART 3: ADMIN DELETES ORIGINAL POST ====================
+        await test.step('Part 3: Admin deletes original post', async () => {
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
-            await adminFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.DELETED_POST_SUCCESSFULLY);
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+          await adminFeedPage.assertions.waitForPostToBeVisible(originalPostText);
 
-            await adminFeedPage.reloadPage();
+          await adminFeedPage.actions.deletePost(originalPostText);
 
-            // Verify original post is no longer visible
-            await adminFeedPage.assertions.verifyPostIsNotVisible(originalPostText);
-          });
+          await adminFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.DELETED_POST_SUCCESSFULLY);
 
-          // ==================== PART 4: ENDUSER VERIFIES DELETED MESSAGE ====================
-          await test.step('Part 4: EndUser verifies shared post shows deleted message', async () => {
-            // Navigate to Home Feed as EndUser
-            await standardUserFixture.homePage.loadPage();
-            await standardUserFixture.homePage.verifyThePageIsLoaded();
-            await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          await adminFeedPage.reloadPage();
 
-            const endUserFeedPage = new FeedPage(standardUserFixture.page);
-            await endUserFeedPage.verifyThePageIsLoaded();
+          // Verify original post is no longer visible
+          await adminFeedPage.assertions.verifyPostIsNotVisible(originalPostText);
+        });
 
-            await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        // ==================== PART 4: ENDUSER VERIFIES DELETED MESSAGE ====================
+        await test.step('Part 4: EndUser verifies shared post shows deleted message', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
-            await endUserFeedPage.assertions.verifyDeletedPostMessage(shareMessage);
-          });
-        } finally {
-          // Cleanup: Delete shared post first, then original post (if still exists)
-          if (sharedPostId) {
-            try {
-              await appManagerFixture.feedManagementHelper.deleteFeed(sharedPostId);
-              console.log(`Deleted shared post: ${sharedPostId}`);
-            } catch (error) {
-              console.warn(`Failed to delete shared post ${sharedPostId}:`, error);
-            }
-          }
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
 
-          if (originalPostId) {
-            try {
-              await appManagerFixture.feedManagementHelper.deleteFeed(originalPostId);
-              console.log(`Deleted original post: ${originalPostId}`);
-            } catch (error) {
-              console.warn(`Failed to delete original post ${originalPostId}:`, error);
-            }
-          }
-        }
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+          await endUserFeedPage.assertions.verifyDeletedPostMessage(shareMessage);
+        });
       }
     );
   }
