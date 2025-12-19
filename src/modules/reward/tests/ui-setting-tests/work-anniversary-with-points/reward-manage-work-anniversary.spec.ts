@@ -1,12 +1,12 @@
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
-import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary';
+import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary/work-anniversary-page';
 
 import { TestGroupType, TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
 
-test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
+test.describe('manage work anniversary setting', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
     await manageRecognitionPage.rewards.enableTheRewardsAndPeerGiftingIfDisabled();

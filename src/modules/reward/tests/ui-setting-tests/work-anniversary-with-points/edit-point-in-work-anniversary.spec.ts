@@ -2,7 +2,6 @@ import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition/manage-recognition-page';
-import { AutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
 import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary/work-anniversary-page';
 
 import { TestPriority } from '@core/constants';
@@ -10,18 +9,16 @@ import { tagTest } from '@core/utils';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { waitUntilNextDecadePlusOne } from '@core/utils/timeUtil';
 
-test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
+test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.describe.configure({
     timeout: 15 * 60 * 1000, // 15 minutes
   });
   let tenantCode: string;
   test.beforeEach('Login to Application and open Manage work anniversary page', async ({ appManagerFixture }) => {
     const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-    const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-    await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
-    await manageRecognitionPage.automatedAwards.editMenuItem.click();
-    await automatedAwardPage.editMilestoneTitle.waitFor({ state: 'visible' });
+    await manageRecognitionPage.rewards.enableTheRewardsAndPeerGiftingIfDisabled();
+    const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+    await workAnniversaryPage.loadPage();
     tenantCode = await appManagerFixture.page.evaluate(() => {
       return (window as any).Simpplr?.Settings?.accountId;
     });
