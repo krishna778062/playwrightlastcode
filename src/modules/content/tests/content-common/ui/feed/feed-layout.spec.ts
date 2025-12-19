@@ -85,7 +85,7 @@ test.describe(
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
             const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + 1;
+            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -191,7 +191,7 @@ test.describe(
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
             const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + 1;
+            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -291,7 +291,7 @@ test.describe(
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
             const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + 1;
+            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -395,7 +395,7 @@ test.describe(
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
             const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + 2;
+            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
