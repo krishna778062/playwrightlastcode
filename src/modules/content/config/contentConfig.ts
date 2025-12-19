@@ -55,6 +55,7 @@ export interface ContentTenantConfig {
   tenantName: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  b2bBaseUrl: string;
   appManagerEmail: string;
   appManagerPassword: string;
   endUserEmail: string;
@@ -79,6 +80,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://automation-ui-content.test.simpplr.xyz',
       apiBaseUrl: 'https://automation-ui-content-api.test.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'keerthana.ks@simpplr.com',
@@ -94,6 +96,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://ui-automation-content.qa.simpplr.xyz',
       apiBaseUrl: 'https://ui-automation-content-api.qa.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -101,7 +104,7 @@ export const config = {
       siteManagerEmail: 'sonali.gupta+2@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
-      orgId: 'test-org-id',
+      orgId: 'c3b312f2-064d-44ae-b0f1-40721116e5e0',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
@@ -109,6 +112,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://ui-automation-content.uat.simpplr.xyz',
       apiBaseUrl: 'https://ui-automation-content-api.uat.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.uat.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -124,6 +128,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://content-ui.eu.simpplr.com',
       apiBaseUrl: 'https://content-ui-api.eu.simpplr.com',
+      b2bBaseUrl: 'https://api-be.eu.simpplr.com',
       appManagerEmail: 'diksha.gaur@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+2@simpplr.com',
@@ -139,6 +144,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://cont-ui.app.simpplr.com',
       apiBaseUrl: 'https://cont-ui-api.app.simpplr.com',
+      b2bBaseUrl: 'https://api-be.app.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+2@simpplr.com',
@@ -146,7 +152,7 @@ export const config = {
       siteManagerEmail: 'sonali.gupta+3@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
-      orgId: 'test-org-id',
+      orgId: 'ac0335f1-8bb2-4593-8249-669fc5c9a904',
       socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
     },
@@ -154,6 +160,7 @@ export const config = {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
       apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.uat-eu.simpplr.com',
       appManagerEmail: 'shubham.garg@simpplr.com',
       appManagerPassword: 'Simpplr@123',
       endUserEmail: 'sonali.gupta@simpplr.com',
@@ -171,6 +178,7 @@ export const config = {
       tenantName: 'Content Settings',
       frontendBaseUrl: ' https://automation-ui-content.qa.simpplr.xyz',
       apiBaseUrl: 'https://automation-ui-content-api.qa.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -186,6 +194,39 @@ export const config = {
       tenantName: 'Content Settings',
       frontendBaseUrl: 'https://ui-settings.uat.simpplr.xyz',
       apiBaseUrl: 'https://ui-settings-api.uat.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.uat.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+20@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    prodUS: {
+      tenantName: 'Content Settings',
+      frontendBaseUrl: 'https://content.app.simpplr.com',
+      apiBaseUrl: 'https://content-api.app.simpplr.com',
+      b2bBaseUrl: 'https://api-be.app.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+20@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
+    prodEU: {
+      tenantName: 'Content Settings',
+      frontendBaseUrl: 'https://content.eu.simpplr.com',
+      apiBaseUrl: 'https://content-api.eu.simpplr.com',
+      b2bBaseUrl: 'https://api-be.eu.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -203,6 +244,7 @@ export const config = {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
       apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
       appManagerEmail: 'diksha.gaur@simpplr.com',
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -217,9 +259,10 @@ export const config = {
     uat: {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://abac.uat.simpplr.xyz',
-      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz/',
+      apiBaseUrl: 'https://abac-api.uat.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.uat.simpplr.com',
       appManagerEmail: 'rakesh.shahabadi@simpplr.com',
-      appManagerPassword: 'simpplr001',
+      appManagerPassword: 'Simp@1234',
       endUserEmail: 'diksha.gaur@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'diksha.gaur@simpplr.com',
@@ -233,6 +276,7 @@ export const config = {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://abac-eu.eu.simpplr.com',
       apiBaseUrl: 'https://abac-eu-api.eu.simpplr.com',
+      b2bBaseUrl: 'https://api-be.eu.simpplr.com',
       appManagerEmail: 'rakesh.shahabadi@simpplr.com',
       appManagerPassword: 'Simp@1234',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
@@ -248,6 +292,7 @@ export const config = {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://abac.app.simpplr.com',
       apiBaseUrl: 'https://abac-api.app.simpplr.com',
+      b2bBaseUrl: 'https://api-be.app.simpplr.com',
       appManagerEmail: 'rakesh.shahabadi@simpplr.com',
       appManagerPassword: 'Simp@1234',
       endUserEmail: 'sonali.gupta@simpplr.com',
@@ -265,6 +310,7 @@ export const config = {
       tenantName: 'Content Studio',
       frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
       apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
       appManagerEmail: 'pushker.yadav@simpplr.com',
       appManagerPassword: 'Simpplr@123',
       endUserEmail: 'pushker.yadav@simpplr.com',
@@ -280,6 +326,7 @@ export const config = {
       tenantName: 'Content Studio',
       frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
       apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.app.simpplr.com',
       appManagerEmail: 'pushker.yadav@simpplr.com',
       appManagerPassword: 'Simpplr@123',
       endUserEmail: 'pushker.yadav@simpplr.com',
@@ -434,6 +481,17 @@ export function clearContentConfigCache(): void {
  */
 export function isContentConfigInitialized(): boolean {
   return configCache !== null;
+}
+
+/**
+ * Get current environment from cache
+ * @returns Current environment key (e.g., 'qa', 'uat', 'test')
+ */
+export function getContentEnvironmentFromCache(): EnvironmentKey {
+  if (!configCache) {
+    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+  }
+  return configCache.environment;
 }
 
 /**

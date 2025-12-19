@@ -23,7 +23,8 @@ export class BaseAppTileComponent extends BaseComponent {
   readonly urlTextbox: (name: string) => Locator;
   readonly textboxByName: (name: string) => Locator;
   readonly fieldInputByTestId: (fieldName: string) => Locator;
-
+  readonly textAreaInput: Locator;
+  readonly textAreaInputJQL: Locator;
   // Connection status verification locators
   readonly connectionContainer: Locator;
   readonly connectorIconSelector: string;
@@ -46,10 +47,12 @@ export class BaseAppTileComponent extends BaseComponent {
     this.dialog = page.getByRole('dialog');
     this.tileTypeCombobox = page.getByRole('combobox', { name: 'Tile type' });
     this.tileSelector = page.locator('aside.Tile');
-    this.urlRadioButton = (name: string) => page.getByRole('radio', { name });
+    this.urlRadioButton = (name: string) => this.dialog.getByRole('radio', { name }).first();
     this.urlTextbox = (name: string) => page.getByRole('textbox', { name });
     this.textboxByName = (name: string) => page.getByRole('textbox', { name });
     this.fieldInputByTestId = (fieldName: string) => page.locator(`[data-testid="field-${fieldName}"] input`);
+    this.textAreaInput = page.locator('//textarea[@name="parameters[0].value"]');
+    this.textAreaInputJQL = page.locator('//textarea[@name="body[0].value"]');
 
     // Initialize connection status verification locators
     this.connectionContainer = page.locator('div._connectorIconContainer_13sed_1').locator('..');
@@ -716,6 +719,32 @@ export class BaseAppTileComponent extends BaseComponent {
     await test.step(`Open Set Up Tile for '${title}'`, async () => {
       const setUpTileBtn = this.getSetUpTileButton(title);
       await this.clickOnElement(setUpTileBtn, { timeout: 30_000 });
+    });
+  }
+  /**
+   * Enter text area input
+   */
+  async enterTextAreaInput(fieldName: string, urlType: string, query: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      await this.urlRadioButton(urlType).click();
+      await this.textAreaInput.fill(query);
+    });
+  }
+  /**
+   * Enter text area input
+   */
+  async setUpTileTextAreaInput(fieldName: string, value: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      await this.textAreaInput.fill(value);
+    });
+  }
+  /**
+   * Enter text area input JQL
+   */
+  async enterTextAreaInputJQL(fieldName: string, urlType: string, value: string): Promise<void> {
+    await test.step(`Enter ${fieldName}`, async () => {
+      await this.urlRadioButton(urlType).click();
+      await this.textAreaInputJQL.fill(value);
     });
   }
 }

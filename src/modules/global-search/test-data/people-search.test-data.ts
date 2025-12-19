@@ -86,17 +86,17 @@ export const PEOPLE_SEARCH_TEST_DATA = {
    */
   createUpdatePayload: (currentUserData: any, updateFields: any) => ({
     personal_info: {
-      ...currentUserData.personal_info,
+      ...(currentUserData.personal_info || {}),
       mobile: updateFields.mobile,
       phone: updateFields.phone,
     },
     work_info: {
       department: updateFields.department,
-      start_date: currentUserData.work_info.start_date,
+      start_date: currentUserData.work_info?.start_date || '2024-01-01',
       title: updateFields.jobTitle,
     },
     address: {
-      ...currentUserData.address,
+      ...(currentUserData.address || {}),
       city: updateFields.city,
       state: updateFields.state,
       country_name: updateFields.country,

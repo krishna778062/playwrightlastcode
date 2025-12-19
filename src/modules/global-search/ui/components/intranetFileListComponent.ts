@@ -251,4 +251,24 @@ export class IntranetFileListComponent extends ContentListComponent {
     });
     return uniqueFileName;
   }
+
+  /**
+   * Verify autocomplete navigation to intranet file by checking file ID in URL
+   * @param fileId - The file ID to verify in the URL
+   * @param fileName - The file name (for logging purposes)
+   */
+  async verifyAutocompleteNavigationToFileLink(fileId: string, fileName: string) {
+    await test.step(`Verifying autocomplete navigation to intranet file "${fileName}"`, async () => {
+      // Click the autocomplete item
+      await this.clickOnElement(this.autocompleteSiteName, { timeout: 40000 });
+
+      try {
+        await this.page.waitForURL(url => url.toString().includes(fileId), { timeout: 30000 });
+      } catch (error) {
+        throw new Error(
+          `Verifying autocomplete navigation to intranet file "${fileName}" failed. URL should contain file ID "${fileId}".\n${error}`
+        );
+      }
+    });
+  }
 }

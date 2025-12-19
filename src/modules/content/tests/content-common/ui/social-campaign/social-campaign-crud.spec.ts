@@ -763,8 +763,13 @@ test.describe(
           zephyrTestId: 'CONT-14905',
           storyId: 'CONT-14905',
           isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
+
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        //remove all the carousel items from the site
+        await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
+
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
@@ -780,9 +785,6 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-
-        //remove all the carousel items from the site
-        await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
@@ -856,8 +858,11 @@ test.describe(
           zephyrTestId: 'CONT-14904',
           storyId: 'CONT-14904',
           isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
+        //remove all the carousel items from the site
+        await appManagerFixture.carouselHelper.getAndRemoveAllHomeCarouselItems();
         const applicationManagerHomePage = appManagerFixture.homePage;
         // Create campaign with audience
         const campaignOptions = {
@@ -875,8 +880,6 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        //remove all the carousel items from the site
-        await appManagerFixture.carouselHelper.getAndRemoveAllHomeCarouselItems();
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
         await applicationManagerHomePage.actions.clickOnEditDashboard();
@@ -951,6 +954,7 @@ test.describe(
           zephyrTestId: 'CONT-21039',
           storyId: 'CONT-21039',
           isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1048,6 +1052,7 @@ test.describe(
           zephyrTestId: 'CONT-40519',
           storyId: 'CONT-40519',
           isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1097,6 +1102,8 @@ test.describe(
             'In Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
           zephyrTestId: 'CONT-40721',
           storyId: 'CONT-40721',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         // Create campaign with audience

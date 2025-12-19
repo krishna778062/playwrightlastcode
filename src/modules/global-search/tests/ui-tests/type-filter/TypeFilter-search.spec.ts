@@ -352,6 +352,7 @@ test.describe(
   'global Search - Video Search Type Filter functionality',
   {
     tag: [GlobalSearchSuiteTags.GLOBAL_SEARCH, GlobalSearchSuiteTags.FILE_SEARCH],
+    annotation: { type: 'known_failure', description: 'CONT-43091' },
   },
   () => {
     const testData = VIDEO_FILE_SEARCH_TEST_DATA;
@@ -383,10 +384,16 @@ test.describe(
       'verify Type filter functionality for Video',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        annotation: { type: 'known_failure', description: 'CONT-43091' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19824',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43091',
+          bugReportedDate: '2025-12-10',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
         });
 
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
