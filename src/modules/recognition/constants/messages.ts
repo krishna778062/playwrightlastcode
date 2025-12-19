@@ -10,3 +10,4 @@ export const AWARD_CREATION_MESSAGES = {
 };
 
 export default MESSAGES;
+} as const;

@@ -66,7 +66,7 @@ export class AccessControlGroupsPage extends BasePage {
     super(page, pageUrl);
     this.acgCreatePopupCloseButton = page.getByRole('button', { name: 'Close' });
     this.acgDropdownButton = page.getByRole('button', { name: 'Open menu' });
-    this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create' }).nth(1);
+    this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create' });
     this.acgCreateButtonMultiple = page.getByRole('menuitem', { name: 'Bulk create control groups' });
     this.acgAudiencesSearchField = page.locator('#search');
     this.acgUsersSearchField = page.locator('[class*="Dialog-module__children"] [class*="placeholder"]');
