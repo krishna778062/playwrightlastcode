@@ -211,6 +211,7 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async validateTheYearNumberInAwardBadgeForDefaultBadge() {
+    await this.verifier.waitUntilElementIsVisible(this.awardIconInScheduleList.last());
     const texts = await this.awardIconInScheduleList.allTextContents();
     const awardNumbers = texts
       .map(t => (t ?? '').trim())
@@ -227,6 +228,7 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async validateTheYearNumberInAwardInstanceLabels() {
+    await this.verifier.waitUntilElementIsVisible(this.awardTextInScheduleList.last());
     let texts = await this.awardTextInScheduleList.allTextContents();
     const awardNumbersAll = texts.flatMap(t => {
       const matches = (t ?? '').match(/\d+/g);
