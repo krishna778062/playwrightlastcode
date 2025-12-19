@@ -700,17 +700,10 @@ test.describe(
 
         // Verify on Content Preview Page
         await test.step('Verify all six reaction emojis on Content Preview Page', async () => {
-          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-            waitForSearchIndex: false,
+          const pageContent = await appManagerApiFixture.contentManagementHelper.getContentId({
+            accessType: SITE_TYPES.PUBLIC,
           });
-          const siteId = publicSite.siteId;
-
-          // Create a page
-          const pageContent = await appManagerApiFixture.contentManagementHelper.createPage({
-            siteId: siteId,
-            contentInfo: { contentType: 'page', contentSubType: 'news' },
-            options: { waitForSearchIndex: false },
-          });
+          const siteId = pageContent.siteId;
 
           const contentPreviewPage = new ContentPreviewPage(
             standardUserFixture.page,
