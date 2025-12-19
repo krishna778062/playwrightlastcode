@@ -41,12 +41,22 @@ export class ServiceDeskPage extends BasePage {
   private readonly slaStateHeadings: Locator;
   private readonly assignUserDropdownTrigger: Locator;
   private readonly assignUserDropdown: Locator;
+  private readonly rocketButton: Locator;
+  private readonly appsButton: Locator;
+  private readonly globalButton: Locator;
+  private readonly globalButtonRegex: Locator;
+  private readonly globalButtonRole: Locator;
 
   constructor(page: Page, pageUrl?: string) {
     super(page, pageUrl || '/service-desk');
 
     this.ticketListTable = page.getByRole('row', { name: 'select subject severity' });
     this.createTicketButton = page.getByTestId('create-ticket-button');
+    this.rocketButton = page.getByRole('button', { name: 'rocket' });
+    this.appsButton = page.getByTestId('popover-launcher').getByRole('button', { name: 'apps' });
+    this.globalButton = page.locator('button').filter({ hasText: 'GlobalManage user and' });
+    this.globalButtonRegex = page.locator('button').filter({ hasText: /Global.*Manage/i });
+    this.globalButtonRole = page.getByRole('button', { name: /Global/i });
     this.createTicketDialog = page.getByRole('dialog', { name: 'Create new incident' });
     this.workspaceDropdown = page
       .getByTestId('field-Workspace')
@@ -108,10 +118,42 @@ export class ServiceDeskPage extends BasePage {
       await this.verifyThePageIsLoaded();
     });
   }
+
+  /**
+   * Find Global button using multiple locator strategies
+   */
+  private async findGlobalButton(): Promise<Locator> {
+    const strategies = [this.globalButton, this.globalButtonRegex, this.globalButtonRole];
+
+    for (const locator of strategies) {
+      try {
+        await expect(locator).toBeVisible({ timeout: 3000 });
+        return locator;
+      } catch {
+        continue;
+      }
+    }
+
+    throw new Error('Global button not found on the page.');
+  }
+
   /**
    * Open the Create Ticket dialog
    */
   async openCreateTicketDialog(): Promise<void> {
+    const isAppsButtonVisible = await this.appsButton.isVisible({ timeout: 2000 }).catch(() => false);
+    if (isAppsButtonVisible) {
+      await this.appsButton.click();
+    } else {
+      await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await this.rocketButton.click();
+    }
+    await this.page.waitForTimeout(1000);
+
+    const globalButtonLocator = await this.findGlobalButton();
+    await globalButtonLocator.click();
+    await this.page.waitForTimeout(1000);
+
     await this.createTicketButton.click();
     await expect(this.createTicketDialog).toBeVisible({ timeout: 5000 });
   }
