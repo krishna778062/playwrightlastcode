@@ -335,11 +335,77 @@ export class SiteDashboard {
   }
 
   /**
+   * Verify Calendar upcoming events tile data for native tiles
+   * @param tileTitle - The title of the tile to verify
+   * @param eventTitle - Optional regex pattern for event title (defaults to any text)
+   * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
+   * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
+   */
+  async verifyNativeCalendarUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle?: RegExp,
+    calDate?: RegExp,
+    minExpectedCount?: number
+  ): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarUpcomingEventsTileData(
+      tileTitle,
+      eventTitle,
+      calDate,
+      minExpectedCount
+    );
+  }
+
+  /**
    * Verify Show more behaviour for apptile on site dashboard
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
   }
+
+  /**
+   * Verify "Show more" behavior for native tiles
+   */
+  async verifyNativeShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyShowMoreBehavior(tileTitle);
+  }
+
+  /**
+   * Verify tile redirects to expected URL for native tiles
+   * @param tileTitle - The title of the tile
+   * @param expectedUrl - The expected URL to redirect to
+   */
+  async verifyNativeTileRedirects(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.nativeTileComponent.verifyTileRedirects(tileTitle, expectedUrl);
+  }
+
+  /**
+   * Verify events are sorted in chronological order for native tiles
+   */
+  async verifyNativeEventsChronologicalOrder(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyEventsChronologicalOrder(tileTitle);
+  }
+
+  /**
+   * Verify calendar day elements are displayed for native tiles
+   */
+  async verifyNativeCalendarDayElements(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarDayElements(tileTitle);
+  }
+
+  /**
+   * Verify Google Calendar label is present for native tiles
+   */
+  async verifyNativeGoogleCalendarLabel(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyGoogleCalendarLabel(tileTitle);
+  }
+
+  /**
+   * Verify event count for native tiles
+   */
+  async verifyNativeEventCount(tileTitle: string, minExpectedCount: number = 1): Promise<void> {
+    await this.nativeTileComponent.verifyEventCount(tileTitle, minExpectedCount);
+  }
+
   /**
    * Verify DocuSign tile content structure with task records
    * @param tileTitle - The title of the tile to verify
@@ -950,11 +1016,16 @@ export class SiteDashboard {
     category: string,
     categoryValue: string,
     subcategory: string,
-    subcategoryValue: string
+    subcategoryValue: string,
+    textFieldName?: string,
+    textValue?: string
   ): Promise<void> {
     await this.appTileComponent.clickButton('Create ticket');
-    await this.selectDropdownValue('Category', categoryValue);
-    await this.selectDropdownValue('Subcategory', subcategoryValue);
+    await this.selectDropdownValue(category, categoryValue);
+    await this.selectDropdownValue(subcategory, subcategoryValue);
+    if (textFieldName !== undefined && textValue !== undefined) {
+      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+    }
     await this.appTileComponent.clickButton('Create');
   }
   /**
@@ -971,7 +1042,27 @@ export class SiteDashboard {
   async verifyJiraContentStructure(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyJiraTileContentStructure(tileTitle);
   }
-
+  /**
+   * Complete workflow to add an app tile with site manager defined settings and text area input
+   */
+  async addTilewithDefinedSettingsTextArea(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInput(fieldName, appManagerDefined, query);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+  async setUpTileTextAreaInput(tileTitle: string, fieldName: string, fieldValue: string): Promise<void> {
+    await this.tileOperationsComponent.setUpTileTextArea(tileTitle, fieldName, fieldValue);
+  }
   /**
    * Add a native tile (pages, events & albums) to the dashboard
    * @param tileTitle - The title to set for the tile
@@ -1030,5 +1121,30 @@ export class SiteDashboard {
    */
   async clickSaveButtonInEditModal(): Promise<void> {
     await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
+  }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input and dropdown
+   */
+  async addTilewithDefinedSettingsTextAreaAndDropdown(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    siteManagerDefined: string,
+    fieldName: string,
+    query: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInputJQL(fieldName, siteManagerDefined, query);
+      await this.selectRadioOptionandValue(
+        dropdownFieldName,
+        ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED,
+        dropdownValue
+      );
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
   }
 }

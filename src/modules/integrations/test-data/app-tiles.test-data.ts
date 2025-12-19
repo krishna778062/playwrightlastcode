@@ -272,4 +272,11 @@ export const WORKDAY_VALUES = {
 export const JIRA_VALUES = {
   PROJECT: 'Project',
   INTEGRATIONS: 'Integrations',
+  JIRA_JQL_QUERY: 'project = "INT" AND assignee = 607d428f1417e2006aacea72 AND type = Story ORDER BY created DESC',
+  JIRA_SERVICE_DESK_VALUE: 'ITSM Test Project / BOT',
+  TICKET_GROUP_VALUE: 'General Requests',
+  TICKET_TYPE_VALUE: 'Get IT help',
+  SUMMARY_VALUE: 'Test Summary',
+  GROUP_ISSUES_BY: 'Group issues by',
+  ISSUES_BY_VALUE: 'Assignee',
 } as const;

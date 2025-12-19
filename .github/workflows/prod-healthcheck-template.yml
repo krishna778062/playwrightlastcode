@@ -1,12 +1,10 @@
-name: Prod Healthcheck (Reusable Template)
+name: Daily Regression Tests
 
 on:
-  workflow_call:
-    inputs:
-      environment:
-        description: 'Environment to run tests against'
-        required: true
-        type: string
+  schedule:
+    # Run daily at 2 AM UTC (adjust timezone as needed)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # allows manual triggering for testing
 
 permissions:
   contents: read
@@ -14,7 +12,7 @@ permissions:
   pages: write
 
 jobs:
-  healthcheck-tests:
+  regression-tests:
     timeout-minutes: 120
     runs-on: [kubernetes]
     strategy:
@@ -28,7 +26,7 @@ jobs:
             de,
             reward,
             recognition,
-            only-peer-to-peer,
+            privateRecognition,
             content-abac,
             frontline,
             content-settings,
@@ -36,23 +34,15 @@ jobs:
             alert-notification,
             employee-listening,
             form-designer,
-            comms-planner,
           ] # de is short for data-engineering
+        environment: [qa]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
-      TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
-      - name: Display environment
-        run: |
-          echo "🌍 Running healthcheck tests for environment: ${{ inputs.environment }}"
-
       - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main #always main HEAD
+        uses: actions/checkout@v3
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -73,16 +63,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
-      - name: Run healthcheck tests
+      - name: Run regression tests
+        env:
+          TEST_ENV: ${{ matrix.environment }}
         run: |
-          echo "Running @healthcheck tests for ${{ matrix.module }} module on ${{ inputs.environment }}..."
-          TEST_ENV=${{ inputs.environment }} npm run test:${{ matrix.module }} -- --grep="@healthcheck" --workers=3
+          if [ "${{ matrix.module }}" = "reward" ]; then
+            echo "Running Reward tests (excluding P3) and with 3 workers..."
+            npm run test:${{ matrix.module }} -- --grep-invert=@rewards-db --workers=3
+          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
+            echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
+            npm run test:${{ matrix.module }} -- --grep-invert=@rewards-db --workers=1
+          else
+            npm run test:${{ matrix.module }} -- --workers=3
+          fi
 
       - name: Upload test report to github artifact backup
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-${{ matrix.module }}-${{ inputs.environment }}
+          name: test-report-${{ matrix.module }}-${{ matrix.environment }}
           path: |
             playwright-report
             test-results
@@ -167,6 +166,7 @@ jobs:
           PG_DB_USER: ${{secrets.PG_DB_USER}}
           PG_DB_PASSWORD: ${{secrets.PG_DB_PASSWORD}}
           TEAM_NAME: core
+          TEST_ENV: ${{ matrix.environment }}
           MODULE_NAME: ${{ matrix.module }}
           IS_REGRESSION: true
         run: |
@@ -234,9 +234,9 @@ jobs:
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🩺 *Prod Healthcheck* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             else
-              MESSAGE="🩺 *Prod Healthcheck* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` completed with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="🧪 *Daily Regression* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             fi
             echo "MESSAGE: $MESSAGE"
             # Send to Slack using curl
@@ -257,7 +257,7 @@ jobs:
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found
               echo "No tests were found matching the criteria"
-              NO_TESTS_MESSAGE="⚠️ *Prod Healthcheck: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` found no @healthcheck tests. Please add healthcheck tests for this module. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              NO_TESTS_MESSAGE="⚠️ *Daily Regression: No Tests Found* - \`${{ matrix.module }}\` module on \`${{ matrix.environment }}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
               echo "NO_TESTS_MESSAGE: $NO_TESTS_MESSAGE"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
@@ -270,7 +270,7 @@ jobs:
           else
             # No test results file - this means pipeline failed before tests could run
             echo "No test results file found - pipeline likely failed"
-            FAILURE_MESSAGE="🚨 *Prod Healthcheck Failed* - \`${{ matrix.module }}\` module on \`${{ inputs.environment }}\` pipeline could not execute. Please check job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            FAILURE_MESSAGE="🚨 *Daily Regression Pipeline Failed* - \`${{ matrix.module }}\` module pipeline on \`${{ matrix.environment }}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
             echo "FAILURE_MESSAGE: $FAILURE_MESSAGE"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$FAILURE_MESSAGE\"}" \

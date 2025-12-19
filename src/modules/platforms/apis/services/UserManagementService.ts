@@ -592,29 +592,19 @@ export class UserManagementService implements IUserManagementOperations {
    */
   async setSecurityQuestionsAfterRegistration(cookie: string, csrfid: string): Promise<any> {
     return await test.step(`Setting security questions for the user`, async () => {
-      const response = await this.httpClient.post(API_ENDPOINTS.identity.v2IdentityUsersRegisterProfile, {
-        headers: {
-          Cookie: cookie,
-          'x-smtip-csrfid': csrfid,
-        },
-        data: {
-          answers: [
-            {
-              questionId: 24409,
-              answer: 'monty',
-            },
-            {
-              questionId: 24410,
-              answer: 'monty',
-            },
-            {
-              questionId: 24411,
-              answer: 'monty',
-            },
-          ],
-        },
+      const headers = { Cookie: cookie, 'x-smtip-csrfid': csrfid };
+      const questionsResponse = await this.httpClient.get(API_ENDPOINTS.identity.v1IdentityAccountsSecurityQuestions, {
+        headers,
       });
-      return response;
+      const questions = await this.httpClient.parseResponse<any>(questionsResponse);
+      const answers = questions.slice(0, 3).map((q: any) => ({
+        questionId: parseInt(q.question_id),
+        answer: 'monty',
+      }));
+      return await this.httpClient.post(API_ENDPOINTS.identity.v2IdentityUsersRegisterProfile, {
+        headers,
+        data: { answers },
+      });
     });
   }
 

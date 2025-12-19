@@ -39,13 +39,13 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "checkout_ref=main" >> $GITHUB_OUTPUT
             echo "✅ Production stage - will test main HEAD"
-            
+
           elif [ "$STAGE" == "uat" ]; then
             # Active release - use latest UAT tag
             TAG=$(git ls-remote --tags origin | \
                   grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
                   sort -V | tail -n1 | cut -d'/' -f3)
-            
+
             if [ -z "$TAG" ]; then
               echo "should_run=false" >> $GITHUB_OUTPUT
               echo "⏭️ No UAT tags found - skipping"
@@ -54,7 +54,7 @@ jobs:
               echo "checkout_ref=$TAG" >> $GITHUB_OUTPUT
               echo "✅ UAT stage - will test tag: $TAG"
             fi
-            
+
           else
             # QA stage - skip UAT tests
             echo "should_run=false" >> $GITHUB_OUTPUT
@@ -75,6 +75,8 @@ jobs:
             global-search,
             content,
             de,
+            de-api,
+            de-api-abac,
             reward,
             reward-settings,
             recognition,
@@ -125,10 +127,10 @@ jobs:
         run: |
           if [ "${{ matrix.module }}" = "reward" ]; then
             echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=3
+            npm run test:${{ matrix.module }} -- --grep-invert="@rewards-db|P3" --workers=3
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run test:${{ matrix.module }} -- --grep-invert=P3 --workers=1
+            npm run test:${{ matrix.module }} -- --grep-invert="@rewards-db|P3" --workers=1
           else
             npm run test:${{ matrix.module }} -- --workers=3
           fi

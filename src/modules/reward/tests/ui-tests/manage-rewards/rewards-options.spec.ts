@@ -241,8 +241,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
       await rewardOptionsPage.setTheRewardsOptionsFeatureFlag(false);
-      await manageRewardsPage.page.reload();
-      await manageRewardsPage.verifyPageIsNotFound();
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(false);
     }
   );
 
