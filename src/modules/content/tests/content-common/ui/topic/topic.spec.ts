@@ -367,12 +367,8 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         filter: `active`,
       });
       // Create page using API with the topic
-      const pageInfo = await standardUserFixture.contentManagementHelper.createPage({
-        siteId: siteInfoForCreateContent.result.listOfItems[0].siteId,
-        contentInfo: {
-          contentType: 'page',
-          contentSubType: 'knowledge',
-        },
+      const pageInfo = await standardUserFixture.contentManagementHelper.getContentId({
+        accessType: SITE_TYPES.PUBLIC,
       });
       const contentPreviewPage = new ContentPreviewPage(
         standardUserFixture.page,
