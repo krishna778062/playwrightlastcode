@@ -356,6 +356,34 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
+
+  /**
+   * Gets list of unfeatured sites
+   * @param options - Optional parameters for size and sortBy
+   * @returns Promise containing list of unfeatured sites
+   */
+  async getUnfeaturedSites(options?: { size?: number; sortBy?: string }): Promise<SiteListResponse> {
+    return await test.step('Getting list of unfeatured sites via API', async () => {
+      const payload = {
+        filter: 'unfeatured',
+        size: options?.size || 64,
+        sortBy: options?.sortBy || 'alphabetical',
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
+        data: payload,
+      });
+
+      const json = await response.json();
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to get unfeatured sites list. Status: ${json.status}`);
+      }
+
+      return json;
+    });
+  }
+
   async approveContent(siteId: string, contentId: string): Promise<void> {
     return await test.step(`Approving content: ${contentId} for site: ${siteId}`, async () => {
       // First, get the content details to get all required fields

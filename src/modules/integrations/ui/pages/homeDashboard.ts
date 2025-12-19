@@ -459,6 +459,15 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
+   * Verify tile redirects to expected URL for native tiles
+   * @param tileTitle - The title of the tile
+   * @param expectedUrl - The expected URL to redirect to
+   */
+  async verifyNativeTileRedirects(tileTitle: string, expectedUrl: string): Promise<void> {
+    await this.nativeTileComponent.verifyTileRedirects(tileTitle, expectedUrl);
+  }
+
+  /**
    * Verify Expensify report tile data
    */
   async verifyExpensifyReportData(tileTitle: string): Promise<void> {
@@ -589,11 +598,69 @@ export class HomeDashboard extends BasePage {
   }
 
   /**
-   * Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed
+   * Verify Calendar upcoming events tile data for native tiles
+   * @param tileTitle - The title of the tile to verify
+   * @param eventTitle - Optional regex pattern for event title (defaults to any text)
+   * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
+   * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
+   */
+  async verifyNativeCalendarUpcomingEventsTileData(
+    tileTitle: string,
+    eventTitle?: RegExp,
+    calDate?: RegExp,
+    minExpectedCount?: number
+  ): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarUpcomingEventsTileData(
+      tileTitle,
+      eventTitle,
+      calDate,
+      minExpectedCount
+    );
+  }
+
+  /**
+   * Verify first 4 tasks are displayed and then click on show more button and verify all tasks are displayed (for app tiles)
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await this.tileOperationsComponent.verifyShowMoreBehavior(tileTitle);
   }
+
+  /**
+   * Verify "Show more" behavior for native tiles
+   * Verifies that initially at least 4 events are displayed, then clicking "Show more" displays additional events
+   */
+  async verifyNativeShowMoreBehavior(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyShowMoreBehavior(tileTitle);
+  }
+
+  /**
+   * Verify events are sorted in chronological order for native tiles
+   */
+  async verifyNativeEventsChronologicalOrder(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyEventsChronologicalOrder(tileTitle);
+  }
+
+  /**
+   * Verify calendar day elements are displayed for native tiles
+   */
+  async verifyNativeCalendarDayElements(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyCalendarDayElements(tileTitle);
+  }
+
+  /**
+   * Verify Google Calendar label is present for native tiles
+   */
+  async verifyNativeGoogleCalendarLabel(tileTitle: string): Promise<void> {
+    await this.nativeTileComponent.verifyGoogleCalendarLabel(tileTitle);
+  }
+
+  /**
+   * Verify event count for native tiles
+   */
+  async verifyNativeEventCount(tileTitle: string, minExpectedCount: number = 1): Promise<void> {
+    await this.nativeTileComponent.verifyEventCount(tileTitle, minExpectedCount);
+  }
+
   /**
    * Verify DocuSign tile content structure with task records
    * @param tileTitle - The title of the tile to verify
@@ -1183,11 +1250,16 @@ export class HomeDashboard extends BasePage {
     category: string,
     categoryValue: string,
     subcategory: string,
-    subcategoryValue: string
+    subcategoryValue: string,
+    textFieldName?: string,
+    textValue?: string
   ): Promise<void> {
     await this.appTileComponent.clickButton('Create ticket');
-    await this.selectDropdownValue('Category', categoryValue);
-    await this.selectDropdownValue('Subcategory', subcategoryValue);
+    await this.selectDropdownValue(category, categoryValue);
+    await this.selectDropdownValue(subcategory, subcategoryValue);
+    if (textFieldName !== undefined && textValue !== undefined) {
+      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+    }
     await this.appTileComponent.clickButton('Create');
     await this.verifyToastMessage(MESSAGES.CREATE_TICKET_SUCCESS_MESSAGE);
   }
@@ -1254,6 +1326,58 @@ export class HomeDashboard extends BasePage {
       }
 
       await this.nativeTileComponent.setTileTitle(tileTitle);
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
+
+  /**
+   * Open add content tile modal and verify UI elements for Google Calendar
+   */
+  async openAddContentTileModalAndVerifyUI(): Promise<void> {
+    await test.step('Open add content tile modal and verify UI elements', async () => {
+      await this.appTileComponent.clickEditDashboard();
+      await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.ADD_TILE);
+      await this.nativeTileComponent.clickAddContentTileButton();
+
+      // Verify Events content type option is available and select it
+      await this.nativeTileComponent.selectEventsContentType();
+      await this.nativeTileComponent.verifyEventsContentTypeSelected();
+
+      // Verify Google Calendar source option is available and select it
+      await this.nativeTileComponent.selectGoogleCalendar();
+      await this.nativeTileComponent.verifyGoogleCalendarSelected();
+
+      // Verify calendar dropdown is present
+      await this.nativeTileComponent.verifyCalendarDropdownVisible();
+    });
+  }
+
+  /**
+   * Close the add content tile modal
+   */
+  async closeAddContentTileModal(): Promise<void> {
+    await test.step('Close add content tile modal', async () => {
+      await this.appTileComponent.closeDialog();
+    });
+  }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input and dropdown
+   */
+  async addTilewithDefinedSettingsTextAreaAndDropdown(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    appManagerDefined: string,
+    fieldName: string,
+    query: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInputJQL(fieldName, appManagerDefined, query);
+      await this.selectRadioOptionandValue(dropdownFieldName, ORGANIZATION_SETTINGS.APP_MANAGER_DEFINED, dropdownValue);
       await this.appTileComponent.submitTileToHomeOrDashboard(destination);
     });
   }

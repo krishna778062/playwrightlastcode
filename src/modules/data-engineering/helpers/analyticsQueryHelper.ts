@@ -110,24 +110,24 @@ export class AnalyticsQueryHelper {
 
   /**
    * Fetches content data from Snowflake based on tenant, restriction status, and site type
+   * @param isRestricted - Whether the content is restricted
    * @param siteType - The site type (Public, Private, or Unlisted)
-   * @param isRestricted - Whether the content is restricted (default: false)
    * @returns Promise with content data results
    */
-  async getContentDataFromDB(siteType: SiteType, isRestricted: boolean = false): Promise<ContentDataResult[]> {
+  async getContentDataFromDB(isRestricted: boolean, siteType: SiteType): Promise<ContentDataResult[]> {
     const query = CommonSql.CONTENT_DATA.replace('{tenantCode}', this.tenantCode)
       .replace('{isRestricted}', String(isRestricted))
       .replace('{siteType}', siteType);
+    console.log('Query:', query);
     return await this.snowflakeHelper.execute<ContentDataResult>(query);
   }
 
   /**
-   * Fetches blog post data from Snowflake
-   * @param tenantCode - The tenant code
-   * @returns Promise with blog post content data results
+   * Gets a random site type from the available options
+   * @returns A random site type
    */
-  async getBlogDataFromDB(tenantCode: any): Promise<ContentDataResult[]> {
-    const query = CommonSql.BLOG_DATA.replace('{tenantCode}', tenantCode);
-    return await this.snowflakeHelper.execute<ContentDataResult>(query);
+  static getRandomSiteType(): SiteType {
+    const siteTypes: SiteType[] = ['Public', 'Private', 'Unlisted'];
+    return siteTypes[Math.floor(Math.random() * siteTypes.length)];
   }
 }
