@@ -1,5 +1,16 @@
 export type TenantKey = 'primary' | 'rewardSettings';
-export type EnvironmentKey = 'dev' | 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS' | 'prodEU' | 'prodCA';
+export type EnvironmentKey =
+  | 'dev'
+  | 'test'
+  | 'qa'
+  | 'uat'
+  | 'uatEU'
+  | 'uatCA'
+  | 'uatAU'
+  | 'prodUS'
+  | 'prodEU'
+  | 'prodCA'
+  | 'prodAU';
 
 /**
  * Get caller function information for debugging
@@ -132,10 +143,10 @@ export const config = {
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
-    prodEU: {
-      tenantName: 'Reward Prod-EU Primary',
-      frontendBaseUrl: 'https://zeus.eu.simpplr.com',
-      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+    uatCA: {
+      tenantName: 'Reward UAT-AU Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north.uat-au-api.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
@@ -165,6 +176,60 @@ export const config = {
       endUserEmail: 'aishma.gupta@simpplr.com',
       endUserName: 'Aishma enduser',
       endUserUserId: 'f0d7c666-aa81-4813-95f8-220bdd7d5a8e',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodEU: {
+      tenantName: 'Reward Prod-EU Primary',
+      frontendBaseUrl: 'https://zeus.eu.simpplr.com',
+      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodCA: {
+      tenantName: 'Reward Prod-CA Primary',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1.ca-api.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodAU: {
+      tenantName: 'Reward Prod-AU Primary',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
@@ -208,8 +273,8 @@ export const config = {
     },
     uat: {
       tenantName: 'Reward Primary UAT',
-      frontendBaseUrl: 'https://rewards-setting.uat.simpplr.xyz',
-      apiBaseUrl: 'https://rewards-setting-api.uat.simpplr.xyz',
+      frontendBaseUrl: 'https://reward-setting.uat.simpplr.xyz/',
+      apiBaseUrl: 'https://reward-setting-api.uat.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
       appManagerUserId: 'bdfcdf8d-e148-4b93-87d2-838b336806e2',
@@ -221,24 +286,6 @@ export const config = {
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Standard User',
       endUserUserId: '155fcda1-88e6-4296-8737-897a9e173a49',
-      endUserPassword: 'Simpplr123',
-      newUxEnabled: true,
-    },
-    uatEU: {
-      tenantName: 'Reward UAT-EU Primary',
-      frontendBaseUrl: 'https://rewards-setting.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://rewards-setting.uat-eu.simpplr.xyz',
-      appManagerEmail: 'sonu.kumar+1@simpplr.com',
-      appManagerName: 'Sonu Kumar',
-      appManagerUserId: '406c1289-8d37-4c91-b346-0fa4b4a0b02a',
-      appManagerPassword: 'Simpplr123',
-      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
-      recognitionManagerName: 'Recognition Manager',
-      recognitionManagerUserId: '7ec479c5-9cdf-4f74-b3ea-8f5cd3a28e07',
-      recognitionManagerPassword: 'Simpplr123',
-      endUserEmail: 'sonu.kumar+3@simpplr.com',
-      endUserName: 'Standard User',
-      endUserUserId: '2122c952-73d7-43c4-b9d1-72a183e518ce',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
@@ -265,7 +312,9 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['dev', 'qa', 'test', 'uat', 'uatEU', 'prodUS', 'prodEU', 'prodCA'].includes(testEnv)) {
+  if (
+    !['dev', 'qa', 'test', 'uat', 'uatEU', 'uatCA', 'uatAU', 'prodUS', 'prodEU', 'prodCA', 'prodAU'].includes(testEnv)
+  ) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
         `Valid values are: dev, test, qa, uat, uatEU, prodUS, prodEU, prodCA\n` +
@@ -274,9 +323,12 @@ function getCurrentEnvironment(): EnvironmentKey {
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
         `Example: TEST_ENV=uatEU npm run test\n` +
+        `Example: TEST_ENV=uatCA npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
         `Example: TEST_ENV=prodUS npm run test\n` +
         `Example: TEST_ENV=prodEU npm run test\n` +
-        `Example: TEST_ENV=prodCA npm run test\n`
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n`
     );
   }
 

@@ -97,11 +97,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          # Use the branch selected in "Use workflow from" dropdown (github.ref_name)
-          # For scheduled runs, default to develop
-          ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref_name || github.ref || 'develop' }}
 
       - name: Create Calendar Secrets JSON
         run: |

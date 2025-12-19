@@ -162,7 +162,6 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserFixture.page.reload();
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });

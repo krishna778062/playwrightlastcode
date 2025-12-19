@@ -126,7 +126,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardPointIndex = 3;
-      let availablePoints: string, recognitionPostId: String;
+      let availablePoints: string;
       const existingOptions = await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
       availablePoints = (await recognitionHub.pointsToGive.textContent()) || '0';
@@ -151,7 +151,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
 
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
-      recognitionPostId = String(body.id);
+      const recognitionPostId = String(body.id);
 
       // Handle dialog box if it appears
       const dialogBox = new DialogBox(appManagerFixture.page);
@@ -184,6 +184,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       );
       const manageRecognitionPage = new ManageRewardsOverviewPage(recognitionHub.page);
       await manageRecognitionPage.loadPage();
+      await manageRecognitionPage.verifyThePageIsLoaded();
       const [download] = await Promise.all([
         manageRecognitionPage.page.waitForEvent('download'),
         manageRecognitionPage.clickOnElement(manageRecognitionPage.activityTableDownloadCSVButton, {

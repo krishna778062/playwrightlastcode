@@ -5,7 +5,7 @@ import { TEST_RESULTS_DIR } from '@core/constants/paths';
 export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  timeout: 150000,
+  timeout: 3 * 60 * 1000, // 3 minutes per test
   expect: {
     timeout: 15000, // 15 seconds for ALL expect() assertions
   },
@@ -14,7 +14,7 @@ export default defineConfig({
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
     headless: !!process.env.CI,
     viewport: null,
-    actionTimeout: 15_000,
+    actionTimeout: 15 * 1000, // 15 seconds
     navigationTimeout: 30_000,
   },
   reporter: [
