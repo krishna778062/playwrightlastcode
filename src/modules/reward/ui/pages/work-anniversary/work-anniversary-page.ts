@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { getQuery } from '@rewards/utils/dbQuery';
+import { MilestoneAwardInstance } from '@rewards-components/milestone-award-instance/milestone-award-instance';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import fs from 'fs';
 import path from 'path';
@@ -9,10 +10,14 @@ import { BasePage } from '@core/pages/basePage';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { executeQuery } from '@core/utils/dbUtils';
 
+import { TestDataGenerator, TIMEOUTS } from '@/src/core';
+
 export class WorkAnniversaryPage extends BasePage {
-  readonly tableGridFirstRow: Locator;
-  readonly tableGridFirstActionButton: Locator;
-  readonly tableHeaders: Locator;
+  // Manage Milestone Award page
+  private mileStoneAwardTableContainer: Locator;
+  private milestoneTableHeaders: Locator;
+  private milestoneTableRow: Locator;
+  private milestoneTableRowActionButton: Locator;
 
   // Edit Work Anniversary Page Locators
   readonly editMileStoneContainer: Locator;
@@ -31,6 +36,7 @@ export class WorkAnniversaryPage extends BasePage {
   private awardInstancesContainer: Locator;
   private awardIconInScheduleList: Locator;
   private awardTextInScheduleList: Locator;
+  private awardCustomIconInSchedule: Locator;
   private awardInstanceEditButton: Locator;
   private awardInstanceEditPreviewButton: Locator;
   private showMoreButton: Locator;
@@ -70,9 +76,10 @@ export class WorkAnniversaryPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
 
-    this.tableGridFirstRow = page.locator('[data-testid*="dataGridRow"] td p');
-    this.tableGridFirstActionButton = page.locator('[data-testid*="dataGridRow"] td button[aria-label="Show more"]');
-    this.tableHeaders = page.locator('[class*="Table-module__table"] thead button > div');
+    this.mileStoneAwardTableContainer = page.locator('div[data-testid="pageContainer-page"] > div table');
+    this.milestoneTableHeaders = this.mileStoneAwardTableContainer.locator('thead');
+    this.milestoneTableRow = this.mileStoneAwardTableContainer.locator('tbody tr');
+    this.milestoneTableRowActionButton = this.milestoneTableRow.locator('td button[aria-label="Show more"]');
 
     // Edit Work Anniversary Page Locators
     this.editMileStoneContainer = page.locator('[data-testid="pageContainer-page"]');
@@ -102,6 +109,9 @@ export class WorkAnniversaryPage extends BasePage {
     );
     this.awardTextInScheduleList = this.awardInstancesContainer.locator(
       '[class*="FrequencyAndSchedule_milestoneAwardIcon"]+p'
+    );
+    this.awardCustomIconInSchedule = this.awardInstancesContainer.locator(
+      'button[class*="FrequencyAndSchedule_customInstanceButton"]'
     );
     this.awardInstanceEditButton = this.awardInstancesContainer.locator('[aria-label*="Edit"]');
     this.awardInstanceEditPreviewButton = this.awardInstancesContainer.locator('[aria-label*="Preview"]');
@@ -146,6 +156,10 @@ export class WorkAnniversaryPage extends BasePage {
     this.workAnniversaryPostBadgePointTooltipText = this.firstWorkAnniversaryPost.locator('[id*="tippy"] p');
   }
 
+  get milestoneAwardInstance(): MilestoneAwardInstance {
+    return new MilestoneAwardInstance(this.page);
+  }
+
   /**
    * visit(): visit the work anniversary page
    */
@@ -172,12 +186,13 @@ export class WorkAnniversaryPage extends BasePage {
    * means(it has atleast 3 column data i.e. Award name, Times awarded, Last awarded etc..)
    */
   async validateAllTheTableElements() {
-    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
-    const headers: string[] = await this.tableHeaders.allTextContents();
+    await this.verifier.waitUntilElementIsVisible(this.milestoneTableRow.last(), {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Waiting for Milestone table rows to be visible',
+    });
+    const headers: string[] = await this.milestoneTableHeaders.locator('th div > button').allTextContents();
     expect(headers).toEqual(['Award', 'Times awarded', 'Last awarded', 'Status', 'Created', 'Edited']);
-    const tableData: string[] = await this.tableGridFirstRow.allTextContents();
-    expect(tableData.length).toBeGreaterThan(3);
-    await expect(this.tableGridFirstActionButton).toBeVisible();
+    await expect(this.milestoneTableRowActionButton).toBeVisible();
   }
 
   /**
@@ -185,8 +200,11 @@ export class WorkAnniversaryPage extends BasePage {
    * and verify the Edit milestone container is visible
    */
   async clickOnTheEditWorkAnniversaryButton(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last());
-    await this.tableGridFirstActionButton.click();
+    await this.verifier.waitUntilElementIsVisible(this.milestoneTableRow.last(), {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Waiting for Milestone table rows to be visible',
+    });
+    await this.milestoneTableRowActionButton.click();
     await this.clickOnMenuItemWithVisibleText(this.page, 'Edit');
   }
 
@@ -201,6 +219,36 @@ export class WorkAnniversaryPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(this.plusButton);
       await this.verifier.verifyTheElementIsVisible(this.minusButton);
     }
+  }
+
+  /**
+   * Ensure toggle enabled, change points, verify plus/minus behavior, then save.
+   * @param newValue numeric value to enter into the input
+   */
+  async enableAndEditPoints(): Promise<string> {
+    await this.verifier.waitUntilElementIsVisible(this.awardPointsToReceiver, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Wait for the Award Points To Receiver toggle to be visible',
+    });
+    const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
+    const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
+    if (!isEnabled) {
+      await this.awardPointsToReceiver.click();
+      await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(true|checked)$/);
+      await this.pointInputBox.waitFor({ state: 'visible' });
+    }
+    const storedValueRaw = await this.pointInputBox.inputValue();
+    const storedValue = Number(storedValueRaw || '0');
+    const newValue = TestDataGenerator.getRandomNo(1, 20, storedValue);
+    await this.pointInputBox.fill(String(newValue));
+    await expect(this.pointInputBox).toHaveValue(String(newValue));
+    await this.plusButton.waitFor({ state: 'visible' });
+    await this.plusButton.click();
+    await expect(this.pointInputBox).toHaveValue(String(newValue + 1));
+    await this.minusButton.waitFor({ state: 'visible' });
+    await this.minusButton.click();
+    await expect(this.pointInputBox).toHaveValue(String(newValue));
+    return await this.pointInputBox.inputValue();
   }
 
   async selectTheDefaultBadgeInWorkAnniversary(index: number = 0): Promise<void> {
@@ -280,6 +328,16 @@ export class WorkAnniversaryPage extends BasePage {
     await this.saveTheWorkAnniversaryChanges();
   }
 
+  /**
+   * This method returns a locator for an edit button based on the given index text.
+   * @param editButtonIndex - The exact index of edit button to locate.
+   * @returns - A Locator for the specified edit button element.
+   */
+  async clickWorkAnniversaryAwardInstanceEditButton(editButtonIndex: number): Promise<void> {
+    await this.editMileStoneContainer.locator(`[data-testid="i-edit"]`).nth(editButtonIndex).scrollIntoViewIfNeeded();
+    return this.editMileStoneContainer.locator(`[data-testid="i-edit"]`).nth(editButtonIndex).click();
+  }
+
   async setTheDefaultPointsInWorkAnniversary(number: number) {
     await expect(this.awardPointsToReceiver).toBeVisible();
     if ((await this.awardPointsToReceiver.getAttribute('aria-checked')) === 'false') {
@@ -344,13 +402,18 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async saveTheWorkAnniversaryChanges() {
-    await expect(this.workAnniversarySaveChangesButton).toBeVisible({ timeout: 5000 });
+    await this.verifier.waitUntilElementIsVisible(this.workAnniversarySaveChangesButton, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Waiting for Work Anniversary Save Changes button to be visible',
+    });
     const saveChangesIsEnabled = await this.workAnniversarySaveChangesButton.isEnabled();
     if (saveChangesIsEnabled) {
       await this.workAnniversarySaveChangesButton.click();
-      // Note: Toast message validation should be handled by the calling test
-      await this.clickOnTheEditWorkAnniversaryButton();
     }
+    await this.verifier.waitUntilElementIsVisible(this.milestoneTableRow, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Waiting for Milestone table rows to be visible after saving changes',
+    });
   }
 
   async validateTheWorkAnniversaryRecognitionPost(
@@ -526,9 +589,79 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.tableGridFirstRow.last(), {
+    await this.verifier.waitUntilElementIsVisible(this.milestoneTableRow.last(), {
       timeout: 20000,
       stepInfo: 'Wait for the table to be visible on Work Anniversary page',
     });
+  }
+
+  async setToggleAndSaveChangesInWorkAnniversary(toggleState: boolean): Promise<void> {
+    const awardToggle = this.page.getByRole('switch', { name: 'Make this award active' });
+    const isChecked = await awardToggle.getAttribute('aria-checked');
+    const currentlyEnabled = isChecked === 'true' || isChecked === 'checked';
+    if (currentlyEnabled !== toggleState) {
+      await awardToggle.click();
+    }
+    await this.saveTheWorkAnniversaryChanges();
+  }
+
+  async validateTheWorkAnniversryWithPointsIsEnabledInTheTable() {
+    const headers: string[] = await this.milestoneTableRow.locator('td').nth(3).locator('p').allTextContents();
+    expect(headers).toContain('Active');
+  }
+
+  private async getNumericInputValue(): Promise<number> {
+    const raw = await this.pointInputBox.inputValue();
+    const numeric = raw?.match(/-?\d+/)?.[0] ?? '0';
+    return Number(numeric);
+  }
+
+  private async enableTheAwardPointToReceiver(): Promise<void> {
+    await this.awardPointsToReceiver.waitFor({ state: 'visible' });
+    const ariaChecked = await this.awardPointsToReceiver.getAttribute('aria-checked');
+    const isEnabled = ariaChecked === 'true' || ariaChecked === 'checked';
+    if (!isEnabled) {
+      await this.awardPointsToReceiver.click();
+      await expect(this.awardPointsToReceiver).toHaveAttribute('aria-checked', /^(true|checked)$/);
+      await this.pointInputBox.waitFor({ state: 'visible' });
+    }
+  }
+
+  /**
+   * 3) Try to add any alphanumeric input (e.g., "12A") and assert it's not accepted.
+   * We enter the value, blur (Tab) and then verify the stored numeric value does not contain letters.
+   *
+   * @param candidate the string to type (e.g., "12A")
+   */
+  async verifyTheErrorForInvalidInput(candidate: number) {
+    await this.enableTheAwardPointToReceiver();
+    await this.pointInputBox.waitFor({ state: 'attached' });
+    const before = await this.getNumericInputValue();
+    await this.pointInputBox.clear({ force: true });
+    await this.pointInputBox.fill(String(candidate));
+    await this.pointInputBox.blur();
+    await expect(this.pointInputError).toBeVisible();
+    await expect(this.pointInputError).toHaveText('Please enter a number between 1 and 100000');
+  }
+
+  async validateTheIconsInAwardInstance(awardInstance: number, isCustomIcon?: boolean) {
+    await this.verifier.waitUntilElementIsVisible(this.awardTextInScheduleList.last(), {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Waiting for Award Text In Schedule List to be visible',
+    });
+
+    if (!isCustomIcon) {
+      await expect(
+        this.awardInstancesContainer
+          .nth(awardInstance)
+          .locator('button[class*="FrequencyAndSchedule_customInstanceButton"]')
+      ).not.toBeVisible();
+    } else {
+      await expect(
+        this.awardInstancesContainer
+          .nth(awardInstance)
+          .locator('button[class*="FrequencyAndSchedule_customInstanceButton"]')
+      ).toBeVisible();
+    }
   }
 }

@@ -5,7 +5,7 @@ import { ManageRecognitionPage } from '@rewards-pages/manage-recognition/manage-
 import { AutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
 import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary/work-anniversary-page';
 
-import { TestGroupType, TestPriority } from '@core/constants';
+import { TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { waitUntilNextDecadePlusOne } from '@core/utils/timeUtil';
@@ -26,49 +26,6 @@ test.describe('work Anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       return (window as any).Simpplr?.Settings?.accountId;
     });
   });
-
-  test(
-    '[RC-5715, RC-5716] Validate all the Elements in the Work Anniversary Edit page',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate all the Elements in the Work Anniversary Edit page',
-        zephyrTestId: 'RC-5715, RC-5716',
-        storyId: 'RC-5715',
-      });
-
-      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      await workAnniversaryPage.validateAllTheTableElements();
-      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.validateTheElementsInEditWorkAnniversaryPage();
-    }
-  );
-
-  test(
-    '[RC-5785,RC-5786] Validate the Default Badge numbering and Text in Work Anniversary Instances',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Validate the Default Badge numbering and Text in Work Anniversary Instances',
-        zephyrTestId: 'RC-5785, RC-5786',
-        storyId: 'RC-5785',
-      });
-
-      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.selectTheDefaultBadgeInWorkAnniversary();
-      await workAnniversaryPage.validateTheYearNumberInAwardBadgeForDefaultBadge();
-      await workAnniversaryPage.validateTheYearNumberInAwardInstanceLabels();
-    }
-  );
 
   test(
     '[RC-5787, RC-5788, RC-5789, RC-5860, RC-5790] Validate the Work Anniversary for logged in User',

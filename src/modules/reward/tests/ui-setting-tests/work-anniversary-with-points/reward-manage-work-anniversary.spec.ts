@@ -1,8 +1,7 @@
-import { expect } from '@playwright/test';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
-import { AutomatedAwardPage, EditAutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
+import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary';
 
 import { TestGroupType, TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
@@ -10,12 +9,47 @@ import { tagTest } from '@core/utils';
 test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-    const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-    await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
-    await manageRecognitionPage.automatedAwards.editMenuItem.click();
-    await automatedAwardPage.editMilestoneTitle.waitFor({ state: 'visible' });
+    await manageRecognitionPage.rewards.enableTheRewardsAndPeerGiftingIfDisabled();
+    const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+    await workAnniversaryPage.loadPage();
   });
+
+  test(
+    '[RC-5715, RC-5716] Validate all the Elements in the Work Anniversary Edit page',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate all the Elements in the Work Anniversary Edit page',
+        zephyrTestId: 'RC-5715, RC-5716',
+        storyId: 'RC-5715',
+      });
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.validateAllTheTableElements();
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.validateTheElementsInEditWorkAnniversaryPage();
+    }
+  );
+
+  test(
+    '[RC-5785,RC-5786] Validate the Default Badge numbering and Text in Work Anniversary Instances',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate the Default Badge numbering and Text in Work Anniversary Instances',
+        zephyrTestId: 'RC-5785, RC-5786',
+        storyId: 'RC-5785',
+      });
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.selectTheDefaultBadgeInWorkAnniversary();
+      await workAnniversaryPage.validateTheYearNumberInAwardBadgeForDefaultBadge();
+      await workAnniversaryPage.validateTheYearNumberInAwardInstanceLabels();
+    }
+  );
 
   test(
     '[RC-5715] Verify "Award points to Receiver" option on Edit milestone award',
@@ -33,16 +67,15 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
         zephyrTestId: 'RC-5715',
         storyId: 'RC-5715',
       });
-
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-      const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
-      const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-      await editAutomatedAwardPage.getHeadingElementByText('Award frequency').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.enableAndEditPoints();
-      await automatedAwardPage.automatedAwardSaveButton.click();
-      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-      await expect(manageRecognitionPage.header).toBeVisible();
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      const currentValue = await workAnniversaryPage.enableAndEditPoints();
+      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(Number(currentValue));
+      await workAnniversaryPage.setToggleAndSaveChangesInWorkAnniversary(true);
+      await workAnniversaryPage.dismissTheToastMessage({
+        toastText: 'Saved changes successfully',
+      });
+      await workAnniversaryPage.validateTheWorkAnniversryWithPointsIsEnabledInTheTable();
     }
   );
 
@@ -57,18 +90,41 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
         zephyrTestId: 'RC-5718',
         storyId: 'RC-5718',
       });
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.verifyTheErrorForInvalidInput(-12);
+      await workAnniversaryPage.verifyTheErrorForInvalidInput(0);
+      const currentValue = await workAnniversaryPage.enableAndEditPoints();
+      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(Number(currentValue));
+      await workAnniversaryPage.setToggleAndSaveChangesInWorkAnniversary(true);
+      await workAnniversaryPage.dismissTheToastMessage({
+        toastText: 'Saved changes successfully',
+      });
+      await workAnniversaryPage.validateTheWorkAnniversryWithPointsIsEnabledInTheTable();
+    }
+  );
 
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-      const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
-      const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.verifyTheErrorForInvalidInput(-12);
-      await editAutomatedAwardPage.verifyTheErrorForInvalidInput(0);
-      await editAutomatedAwardPage.enableAndEditPoints();
-      await automatedAwardPage.automatedAwardSaveButton.click();
-      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-      await expect(manageRecognitionPage.header).toBeVisible();
+  test(
+    '[RC-5732] Verify cancel button on milestone award instance page while adding reward points',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify cancel button on milestone award instance page while adding reward points',
+        zephyrTestId: 'RC-5732',
+        storyId: 'RC-5732',
+      });
+
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.clickWorkAnniversaryAwardInstanceEditButton(0);
+      await workAnniversaryPage.milestoneAwardInstance.validateTheAwardInstanceModalIsOpened(0);
+      await workAnniversaryPage.milestoneAwardInstance.enableAndEditPointsInDialogBox();
+      await workAnniversaryPage.milestoneAwardInstance.closeTheAwardInstanceModal();
+      await workAnniversaryPage.validateTheIconsInAwardInstance(0);
     }
   );
 
@@ -98,82 +154,24 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
         zephyrTestId: 'RC-5733',
         storyId: 'RC-5733',
       });
+      // RC-5730, RC-5733
+      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.clickWorkAnniversaryAwardInstanceEditButton(0);
+      await workAnniversaryPage.milestoneAwardInstance.validateTheAwardInstanceModalIsOpened(0);
+      await workAnniversaryPage.milestoneAwardInstance.enableAndEditPointsInDialogBox();
+      await workAnniversaryPage.milestoneAwardInstance.validateTheRemoveButton('customAwardPoints');
+      await workAnniversaryPage.milestoneAwardInstance.saveTheChangesInAwardInstanceModal();
 
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-      const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
-      const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-      await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await manageRecognitionPage.workAnniversaryWithPoints.setTheDefaultPointsInWorkAnniversary(10);
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
-        manageRecognitionPage.dialogContainerForm.dialogHeader
-      );
+      // RC-5721
+      await workAnniversaryPage.validateTheIconsInAwardInstance(0, true);
 
-      await editAutomatedAwardPage.enableAndEditPointsInDialogBox(automatedAwardPage.page);
-      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
-      await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
-
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
-        manageRecognitionPage.dialogContainerForm.dialogHeader
-      );
-
-      await editAutomatedAwardPage.disableTheCustomPoint(automatedAwardPage.page);
-      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.scrollIntoViewIfNeeded();
-      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
-      await expect(editAutomatedAwardPage.awardSchedulePointIcon).toBeVisible();
-
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.verifier.verifyTheElementIsVisible(
-        manageRecognitionPage.dialogContainerForm.dialogHeader
-      );
-
-      await editAutomatedAwardPage.removeTheCustomPoint(automatedAwardPage.page);
-      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.scrollIntoViewIfNeeded();
-      await manageRecognitionPage.dialogContainerForm.dialogSaveBtn.click();
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
-      await expect(editAutomatedAwardPage.awardSchedulePointIcon).not.toBeVisible();
-      await automatedAwardPage.automatedAwardSaveButton.click();
-      await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
-      await expect(manageRecognitionPage.header).toBeVisible();
-    }
-  );
-
-  test(
-    '[RC-5732] Verify cancel button on milestone award instance page while adding reward points',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify cancel button on milestone award instance page while adding reward points',
-        zephyrTestId: 'RC-5732',
-        storyId: 'RC-5732',
-      });
-
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
-      const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerFixture.page);
-      const automatedAwardPage = new AutomatedAwardPage(appManagerFixture.page);
-
-      await manageRecognitionPage.workAnniversaryWithPoints.cleanUpTheDataIfAlreadySet();
-
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
-      await expect(editAutomatedAwardPage.awardScheduleEditIcon).toBeVisible();
-      await editAutomatedAwardPage.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dialogContainerForm.dialogHeader.waitFor({ state: 'visible' });
-
-      await editAutomatedAwardPage.enableAndEditPointsInDialogBox(automatedAwardPage.page);
-      await manageRecognitionPage.dialogContainerForm.dialogCancelBtn.click();
-      await editAutomatedAwardPage.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
-      await expect(editAutomatedAwardPage.awardSchedulePointIcon).not.toBeVisible();
+      // RC-5731
+      await workAnniversaryPage.clickWorkAnniversaryAwardInstanceEditButton(0);
+      await workAnniversaryPage.milestoneAwardInstance.validateTheRemoveButton('customAwardPoints');
+      await workAnniversaryPage.milestoneAwardInstance.clickOnTheRemoveButton('customAwardPoints');
+      await workAnniversaryPage.milestoneAwardInstance.saveTheChangesInAwardInstanceModal();
+      await workAnniversaryPage.validateTheIconsInAwardInstance(0, false);
     }
   );
 });
