@@ -4,14 +4,26 @@ export const OnSiteSql = {
 
   /** Replies from other users-IT007, Feed post and content comments-IT004','IT008 */
   REACTIONS_MADE: `SELECT 
-            u.code,
+            u.code as "Interacted by user code",
             u.full_name AS "Full name",
-            COUNT(i.interacted_by_user_code) AS "Interaction count"
+            COUNT(i.receiver_user_code) AS "Interaction count",
+            u.city as "City",
+            u.country as "Country",
+            u.department as "Department",
+            u.email as "Email",
+            u.phone_number as "Phone number",
+            u.title as "Job title",
+            u.state as "State",
+            s.site_name as "Site name",
+            sp.member_role as "Site role",
+            sp.site_role_name as "Audience role"
         FROM UDL.VW_INTERACTION i
         INNER JOIN UDL.VW_USER_AS_IS u 
             ON i.interacted_by_user_code = u.code
         INNER JOIN UDL.VW_SITE_AS_IS s
             ON i.site_code=s.code AND s.tenant_code=u.tenant_code
+        INNER JOIN udl.vw_member_follower_other sp
+        ON sp.user_code=u.code and sp.tenant_code=u.tenant_code and sp.site_code=s.code
         WHERE 
             u.tenant_code = '{tenantCode}'
             AND i.is_deleted = FALSE
@@ -20,20 +32,31 @@ export const OnSiteSql = {
             AND date(i.INTERACTION_DATETIME)>= '{startDate}' AND date(i.INTERACTION_DATETIME)<= '{endDate}' 
             AND i.site_code='{siteCode}'
         GROUP BY 
-            u.code, 
-            u.full_name
+            u.full_name,u.code,u.city,u.country,u.department,u.email,u.phone_number,u.title,u.state,s.site_name,sp.member_role,sp.site_role_name
         ORDER BY 
             COUNT(i.interacted_by_user_code) DESC;`,
   /** Replies to others-IT007, Shares received-IT003*/
   REACTIONS_RECEIVED: `SELECT 
-        u.code,
+        u.code as "Interacted by user code",
         u.full_name AS "Full name",
-        COUNT(i.receiver_user_code) AS "Interaction count"
+        COUNT(i.receiver_user_code) AS "Interaction count",
+        u.city as "City",
+        u.country as "Country",
+        u.department as "Department",
+        u.email as "Email",
+        u.phone_number as "Phone number",
+        u.title as "Job title",
+        u.state as "State",
+        s.site_name as "Site name",
+        sp.member_role as "Site role",
+        sp.site_role_name as "Audience role"
     FROM UDL.VW_INTERACTION i
     INNER JOIN UDL.VW_USER_AS_IS u 
         ON i.receiver_user_code = u.code
-    INNER JOIN UDL.VW_SITE_AS_IS s
-        ON i.site_code=s.code
+    INNER JOIN UDL.VW_SITE_AS_IS s 
+        ON i.site_code=s.code AND s.tenant_code=u.tenant_code
+    INNER JOIN udl.vw_member_follower_other sp
+        ON sp.user_code=u.code and sp.tenant_code=u.tenant_code and sp.site_code=s.code
     WHERE 
         u.tenant_code = '{tenantCode}'
         AND i.is_deleted = FALSE
@@ -42,8 +65,7 @@ export const OnSiteSql = {
         AND date(i.INTERACTION_DATETIME)>= '{startDate}' AND date(i.INTERACTION_DATETIME)<= '{endDate}' 
         AND i.site_code='{siteCode}'
     GROUP BY 
-        u.code,
-        u.full_name
+        u.full_name,u.code,u.city,u.country,u.department,u.email,u.phone_number,u.title,u.state,s.site_name,sp.member_role,sp.site_role_name
     ORDER BY 
         COUNT(i.receiver_user_code) DESC;`,
 

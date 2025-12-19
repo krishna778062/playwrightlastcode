@@ -92,6 +92,43 @@ test.describe(
     );
 
     test(
+      'verify Reactions Made CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@reactions-made-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Reactions made in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Get expected data from Snowflake with filters applied
+        const reactionsMadeData = await onSiteQueryHelper.getReactionsMadeDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Download CSV and validate against Snowflake data (skip UI validation)
+        const reactionsMadeMetric = testEnvironment.onSitePage.reactionsMade;
+        await reactionsMadeMetric.scrollToComponent();
+        const { filePath, fileName } = await reactionsMadeMetric.downloadAndValidateReactionsMadeCSV(
+          reactionsMadeData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
+      }
+    );
+
+    test(
       'verify Reactions Received metric data validation with default period filter (Last 90 days)',
       {
         tag: [
@@ -126,6 +163,48 @@ test.describe(
         const reactionsReceivedMetric = testEnvironment.onSitePage.reactionsReceived;
         await reactionsReceivedMetric.scrollToComponent();
         await reactionsReceivedMetric.verifyUIDataMatchesWithSnowflakeData(expectedData);
+      }
+    );
+
+    test(
+      'verify Reactions Received CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@reactions-received-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Reactions received in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Reactions Received (uses IT002)
+        const reactionsReceivedFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: 'IT002',
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const reactionsReceivedData = await onSiteQueryHelper.getReactionsReceivedDataFromDBWithFilters({
+          filterBy: reactionsReceivedFiltersConfig,
+        });
+
+        const reactionsReceivedMetric = testEnvironment.onSitePage.reactionsReceived;
+        await reactionsReceivedMetric.scrollToComponent();
+        const { filePath, fileName } = await reactionsReceivedMetric.downloadAndValidateReactionsReceivedCSV(
+          reactionsReceivedData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
@@ -169,6 +248,48 @@ test.describe(
     );
 
     test(
+      'verify Favorites Received CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@favorites-received-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Favorites received in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Favorites Received (uses IT006)
+        const favoritesReceivedFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: 'IT006',
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const favoritesReceivedData = await onSiteQueryHelper.getReactionsReceivedDataFromDBWithFilters({
+          filterBy: favoritesReceivedFiltersConfig,
+        });
+
+        const favoritesReceivedMetric = testEnvironment.onSitePage.favoritesReceived;
+        await favoritesReceivedMetric.scrollToComponent();
+        const { filePath, fileName } = await favoritesReceivedMetric.downloadAndValidateFavoritesReceivedCSV(
+          favoritesReceivedData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
+      }
+    );
+
+    test(
       'verify Shares Received metric data validation with default period filter (Last 90 days)',
       {
         tag: [
@@ -203,6 +324,48 @@ test.describe(
         const sharesReceivedMetric = testEnvironment.onSitePage.sharesReceived;
         await sharesReceivedMetric.scrollToComponent();
         await sharesReceivedMetric.verifyUIDataMatchesWithSnowflakeData(expectedData);
+      }
+    );
+
+    test(
+      'verify Shares Received CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@shares-received-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Shares received in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Shares Received (uses IT003)
+        const sharesReceivedFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: 'IT003',
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const sharesReceivedData = await onSiteQueryHelper.getReactionsReceivedDataFromDBWithFilters({
+          filterBy: sharesReceivedFiltersConfig,
+        });
+
+        const sharesReceivedMetric = testEnvironment.onSitePage.sharesReceived;
+        await sharesReceivedMetric.scrollToComponent();
+        const { filePath, fileName } = await sharesReceivedMetric.downloadAndValidateSharesReceivedCSV(
+          sharesReceivedData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
@@ -245,6 +408,49 @@ test.describe(
     );
 
     test(
+      'verify Feed Posts and Content Comments CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@feed-posts-content-comments-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify CSV download and validation for Feed posts and content comments in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Feed Posts and Content Comments (uses IT004, IT008)
+        const feedPostsFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: ['IT004', 'IT008'],
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const feedPostsData = await onSiteQueryHelper.getReactionsMadeDataFromDBWithFilters({
+          filterBy: feedPostsFiltersConfig,
+        });
+
+        const feedPostsMetric = testEnvironment.onSitePage.feedPostsAndContentComments;
+        await feedPostsMetric.scrollToComponent();
+        const { filePath, fileName } = await feedPostsMetric.downloadAndValidateFeedPostsAndContentCommentsCSV(
+          feedPostsData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
+      }
+    );
+
+    test(
       'verify Replies to Others metric data validation with default period filter (Last 90 days)',
       {
         tag: [
@@ -283,6 +489,48 @@ test.describe(
     );
 
     test(
+      'verify Replies to Others CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@replies-to-others-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify CSV download and validation for Replies to others in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Replies to Others (uses IT007)
+        const repliesToOthersFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: 'IT007',
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const repliesToOthersData = await onSiteQueryHelper.getReactionsReceivedDataFromDBWithFilters({
+          filterBy: repliesToOthersFiltersConfig,
+        });
+
+        const repliesToOthersMetric = testEnvironment.onSitePage.repliesToOthers;
+        await repliesToOthersMetric.scrollToComponent();
+        const { filePath, fileName } = await repliesToOthersMetric.downloadAndValidateRepliesToOthersCSV(
+          repliesToOthersData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
+      }
+    );
+
+    test(
       'verify Replies from Other Users metric data validation with default period filter (Last 90 days)',
       {
         tag: [
@@ -317,6 +565,49 @@ test.describe(
         const repliesFromOtherUsersMetric = testEnvironment.onSitePage.repliesFromOtherUsers;
         await repliesFromOtherUsersMetric.scrollToComponent();
         await repliesFromOtherUsersMetric.verifyUIDataMatchesWithSnowflakeData(expectedData);
+      }
+    );
+
+    test(
+      'verify Replies from Other Users CSV download and validation with default period filter (Last 90 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@replies-from-other-users-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify CSV download and validation for Replies from other users in On-Site Analytics Page',
+          zephyrTestId: 'DE-',
+          storyId: 'DE-',
+        });
+
+        const { onSiteQueryHelper } = testEnvironment;
+
+        // Create filter config for Replies from Other Users (uses IT007)
+        const repliesFromOtherUsersFiltersConfig: OnSiteFilterOptions = {
+          ...testFiltersConfig,
+          interactionTypeCode: 'IT007',
+        };
+
+        // Get expected data from Snowflake with filters applied
+        const repliesFromOtherUsersData = await onSiteQueryHelper.getReactionsMadeDataFromDBWithFilters({
+          filterBy: repliesFromOtherUsersFiltersConfig,
+        });
+
+        const repliesFromOtherUsersMetric = testEnvironment.onSitePage.repliesFromOtherUsers;
+        await repliesFromOtherUsersMetric.scrollToComponent();
+        const { filePath, fileName } = await repliesFromOtherUsersMetric.downloadAndValidateRepliesFromOtherUsersCSV(
+          repliesFromOtherUsersData,
+          testFiltersConfig.timePeriod
+        );
+
+        console.log(`CSV downloaded successfully: ${fileName} at ${filePath}`);
       }
     );
 
