@@ -343,7 +343,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const topicName = TestDataGenerator.generateRandomString();
       const postResult = await feedPage.actions.createAndPostWithTopic(`test topic`, topicName);
       const topicNameInReply = TestDataGenerator.generateRandomString();
-      await feedPage.actions.addReplyToPostWithTopic(`test topic`, topicNameInReply, postResult.postId!);
+      await feedPage.actions.addReplyToPostWithTopic(`test topic`, topicNameInReply, postResult.postId || '');
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.actions.clickOnTopics();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
@@ -381,7 +381,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const contentTopicName = TestDataGenerator.generateRandomString();
       const contentPostResult = await feedPage.actions.createAndPostWithTopic(`test topic`, contentTopicName);
       const contentReplyText = TestDataGenerator.generateRandomString('Reply');
-      await feedPage.actions.addReplyToPostWithTopic(`test topic`, contentReplyText, contentPostResult.postId!);
+      await feedPage.actions.addReplyToPostWithTopic(`test topic`, contentReplyText, contentPostResult.postId || '');
       await manageTopicsPage.actions.clearSearchBar();
       await manageTopicsPage.actions.searchingTopicInSearchBar(contentTopicName);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(contentTopicName);
