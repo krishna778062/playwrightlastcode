@@ -345,24 +345,13 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         storyId: 'CONT-23778',
       });
 
-      // Get an existing public site
-      const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-      const siteId = siteInfo.siteId;
-
-      // Create a page on the site via API
-      const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
-        siteId: siteId,
-        contentInfo: {
-          contentType: 'page',
-          contentSubType: 'knowledge',
-        },
-        options: {
-          waitForSearchIndex: false,
-        },
+      const pageInfo = await appManagerFixture.contentManagementHelper.getContentId({
+        accessType: SITE_TYPES.PUBLIC,
       });
+      const siteId = pageInfo.siteId;
 
       // Create topic via API
-      const topicName = faker.lorem.words(2);
+      const topicName = TestDataGenerator.generateRandomString('topic_');
       const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
       const topicId = topicInfo.topicId;
 
