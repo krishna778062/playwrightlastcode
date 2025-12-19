@@ -2195,107 +2195,102 @@ test.describe(
           storyId: 'CONT-28478',
         });
 
-        // Inappropriate text to test
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
-
         const siteName = 'All Employees';
-
-        // Setup - Admin uploads file to public site
-        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
-        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
-        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
-        await manageSitePage.actions.setExternalFilesProvider('Box files');
-        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
-        await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
-
-        const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
-        await siteFilesPage.assertions.verifyThePageIsLoaded();
-        await siteFilesPage.actions.clickOnFilesFolder('Box files');
-        await siteFilesPage.actions.uploadBoxFileFolder('AVISTA BOX FILES EDITOR');
         const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
 
-        // Helper function to test sharing file with inappropriate content warning (Cancel and Submit Anyway flows)
-        const testShareFileWithInappropriateContent = async (
-          userFixture: any,
-          siteId: string,
-          fileName: string,
-          inappropriateText: string,
-          postIn: 'Home Feed' | 'Site Feed',
-          siteName?: string
-        ) => {
-          const shareComponent = new ShareComponent(userFixture.page);
-          const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
+        // Get site ID and setup page objects once
+        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
-          const siteDashboardPage = new SiteDashboardPage(userFixture.page, siteId);
-          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+        // Admin page objects for setup
+        const adminManageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const adminSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const adminSiteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
 
-          const siteFilesPage = new SiteFilesPage(userFixture.page, siteId);
-          await siteFilesPage.assertions.verifyThePageIsLoaded();
+        // Standard user page objects (reused across both scenarios)
+        const userSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        const userSiteFilesPage = new SiteFilesPage(standardUserFixture.page, publicSiteId);
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
 
-          await siteFilesPage.actions.clickOnFilesFolder('Box files');
-          await siteFilesPage.actions.clickOnFilesFolder('AVISTA BOX FILES EDITOR');
-          await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
-
-          await siteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
-          await siteFilesPage.actions.clickShareOptionFromFileMenu();
-
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-
-          await shareComponent.actions.enterShareDescription(inappropriateText);
-
-          if (postIn === 'Site Feed') {
-            await shareComponent.selectShareOptionAsSiteFeed();
-            if (siteName) {
-              await shareComponent.actions.enterSiteName(siteName);
-            }
-          }
-
-          await shareComponent.actions.clickShareButton();
-
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-
-          await warningPopup.actions.clickCancel();
-
-          await warningPopup.assertions.verifyWarningPopupClosed();
-
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-
-          await shareComponent.actions.enterShareDescription(inappropriateText);
-
-          await shareComponent.actions.clickShareButton();
-
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-
-          await warningPopup.actions.clickContinue();
-
-          await warningPopup.assertions.verifyWarningPopupClosed();
-        };
+        // Setup - Admin configures external files and uploads folder
+        await test.step('Admin: Setup external files provider and upload folder', async () => {
+          await adminManageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await adminManageSitePage.actions.setExternalFilesProvider('Box files');
+          await adminSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await adminSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await adminSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await adminSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await adminSiteFilesPage.actions.uploadBoxFileFolder(folderName);
+        });
 
         // Test Home Feed scenario
-        await test.step('Test Home Feed: Inappropriate content warning when sharing file', async () => {
-          await testShareFileWithInappropriateContent(
-            standardUserFixture,
-            publicSiteId,
-            fileName,
-            inappropriatePostText,
-            'Home Feed'
-          );
+        await test.step('Home Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal and enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickCancel();
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickContinue();
+          await warningPopup.assertions.verifyWarningPopupClosed();
         });
 
         // Test Site Feed scenario
-        await test.step('Test Site Feed: Inappropriate content warning when sharing file', async () => {
-          await testShareFileWithInappropriateContent(
-            standardUserFixture,
-            publicSiteId,
-            fileName,
-            inappropriatePostText,
-            'Site Feed',
-            siteName
-          );
+        await test.step('Site Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal, select Site Feed, enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+          await shareComponent.selectShareOptionAsSiteFeed();
+          await shareComponent.actions.enterSiteName(siteName);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickCancel();
+          await warningPopup.assertions.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+          await shareComponent.actions.clickShareButton();
+          await warningPopup.assertions.verifyWarningPopupVisible();
+          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.actions.clickContinue();
+          await warningPopup.assertions.verifyWarningPopupClosed();
         });
       }
     );
@@ -2529,23 +2524,27 @@ test.describe(
 
         const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
 
-        try {
-          // Setup - Navigate to site dashboard and Files tab
-          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
-          const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        // Create page objects once and reuse
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+
+        // Setup - Configure external files provider and upload folder
+        await test.step('Setup: Configure external files and upload folder', async () => {
           await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
           await manageSitePage.actions.setExternalFilesProvider('Box files');
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
           await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
-
-          const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
           await siteFilesPage.assertions.verifyThePageIsLoaded();
           await siteFilesPage.actions.clickOnFilesFolder('Box files');
           await siteFilesPage.actions.uploadBoxFileFolder(folderName);
           await siteFilesPage.actions.clickOnFilesFolder(folderName);
           await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+        });
 
-          const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+        // Change governance to Timeline mode and verify share option is hidden
+        await test.step('Verify share option is NOT visible when Feed is disabled (Timeline mode)', async () => {
           await governanceScreenPage.loadPage();
           await governanceScreenPage.verifyThePageIsLoaded();
           await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
@@ -2555,28 +2554,22 @@ test.describe(
           await siteFilesPage.assertions.verifyThePageIsLoaded();
           await siteFilesPage.actions.clickOnFilesFolder('Box files');
           await siteFilesPage.actions.clickOnFilesFolder(folderName);
-
-          // Hover over OptionsMenu and verify Share option is NOT visibl
           await siteFilesPage.assertions.verifyShareOptionIsNotVisible(fileName);
+        });
 
-          const governanceScreenPage2 = new GovernanceScreenPage(appManagerFixture.page);
-          await governanceScreenPage2.loadPage();
-          await governanceScreenPage2.verifyThePageIsLoaded();
-          await governanceScreenPage2.actions.selectTimelineFeedSettingsAsDefaultMode();
+        // Restore governance to default mode and verify share option is visible
+        await test.step('Verify share option is visible when Feed is enabled (Default mode)', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
 
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
           await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
           await siteFilesPage.assertions.verifyThePageIsLoaded();
           await siteFilesPage.actions.clickOnFilesFolder('Box files');
           await siteFilesPage.actions.clickOnFilesFolder(folderName);
-
           await siteFilesPage.assertions.verifyShareOptionIsVisible(fileName);
-        } finally {
-          const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
-          await governanceScreenPage.loadPage();
-          await governanceScreenPage.verifyThePageIsLoaded();
-          await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
-        }
+        });
       }
     );
 
