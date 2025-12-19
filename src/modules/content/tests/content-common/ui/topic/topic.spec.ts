@@ -6,7 +6,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -447,17 +446,11 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       try {
         topicName = await manageTopicsPage.getTopicNameFromList();
+
+        topicId = await appManagerFixture.contentManagementHelper.getTopicIdByName(topicName);
+
         // Click on the topic link to navigate to topic details page
         await manageTopicsPage.actions.openingSearchedTopic(topicName);
-
-        // Extract topicId from URL after navigation
-        await appManagerFixture.page.waitForURL(/\/topic\//, { timeout: TIMEOUTS.MEDIUM });
-        const currentUrl = appManagerFixture.page.url();
-        const urlMatch = currentUrl.match(/\/topic\/([^/]+)/);
-        if (!urlMatch?.[1]) {
-          throw new Error('Could not extract topicId from URL');
-        }
-        topicId = urlMatch[1];
       } catch {
         // If no topic exists, create one
         topicName = faker.lorem.words(2);
