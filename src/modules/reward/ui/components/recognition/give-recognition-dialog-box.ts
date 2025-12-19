@@ -192,20 +192,28 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.recognitionRecipientsInput.click();
     if (typeof userName === 'string') {
       await this.recognitionRecipientsInput.fill(userName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).click();
     } else {
-      await this.recognitionRecipientsInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).first().click();
     }
-    await this.suggesterContainer.waitFor({ state: 'visible' });
-    await this.getOption(userName).click();
   }
 
   /**
    * Select the peer recognition award for recognition
    */
   async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
-    await this.selectPeerRecognitionInput.click();
-    await this.suggesterContainer.waitFor();
-    await this.getOption(awardName).click();
+    if (typeof awardName === 'string') {
+      await this.selectPeerRecognitionInput.click();
+      await this.recognitionRecipientsInput.fill(awardName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).click();
+    } else {
+      await this.selectPeerRecognitionInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).first().click();
+    }
     const text = await this.selectedAwardInRecognition.textContent();
     return text || '';
   }

@@ -197,7 +197,7 @@ export class RewardsCurrencyConversionPage extends BasePage {
     let deletable: boolean = false;
     const count = await this.currencyTableRemoveButtons.count();
     for (let i = 0; i < count; i++) {
-      await this.currencyTableRemoveButtons.nth(i).click();
+      await this.clickOnElement(this.currencyTableRemoveButtons.nth(0));
       deletable = true;
     }
     if (deletable) {

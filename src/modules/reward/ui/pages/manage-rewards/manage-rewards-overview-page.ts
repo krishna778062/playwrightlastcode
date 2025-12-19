@@ -160,7 +160,7 @@ export class ManageRewardsOverviewPage extends BasePage {
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
-    this.manageRewardsPageNotFound = page.getByTestId('no-results');
+    this.manageRewardsPageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.locator('h1, h2, h3').first();
 
     // Locators for the Rewards Overview page
@@ -496,6 +496,7 @@ export class ManageRewardsOverviewPage extends BasePage {
    */
   async verifyPageIsNotFound(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.manageRewardsPageNotFound, {
+      timeout: TIMEOUTS.SHORT,
       assertionMessage: 'Verify the Manage Reward page is visible',
     });
   }
