@@ -536,8 +536,8 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
 
       await manageRewardsPage.budgetModal.selectTheBudgetFrequency('Quarterly');
-      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '19999', {
-        stepInfo: 'Filling budget input with 19999',
+      await manageRewardsPage.fillInElement(manageRewardsPage.budgetModal.budgetPanelInputBox, '99999', {
+        stepInfo: 'Filling budget input with 99999',
       });
       await manageRewardsPage.budgetModal.budgetPanelInputBox.blur();
       await manageRewardsPage.clickOnElement(manageRewardsPage.budgetModal.budgetPanelSaveButton, {
@@ -554,7 +554,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
       const budgetValue2 = await manageRewardsPage.budgetSummaryAnnualBudgetBalanceValue.last().textContent();
       const numericValue2 = budgetValue2?.split('/$')[1].replace(/,/g, '').trim();
-      expect(numericValue2).toContain('19999');
+      expect(numericValue2).toContain('99999');
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
@@ -576,7 +576,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
       });
       const budgetValue3 = await manageRewardsPage.budgetSummaryAnnualBudgetBalanceValue.last().textContent();
       const value = budgetValue3?.split('/')[0].replace(/[$,]/g, '').trim();
-      expect(Number(value)).toBeLessThan(19999);
+      expect(Number(value)).toBeLessThan(99999);
 
       await manageRewardsPage.clickOnAddEditBudgetButton();
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.dialogContainerForm.container);
