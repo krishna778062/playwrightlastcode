@@ -311,6 +311,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
       }
 
       await individualAllowance.validateTheIndividualAllowanceElements();
+      //line to investigate
       await individualAllowance.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualUsersAllowance);
       const currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualUsersAllowance);
