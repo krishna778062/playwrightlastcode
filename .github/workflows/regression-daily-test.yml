@@ -13,4 +13,5 @@ jobs:
       environment: test
       git_ref: develop
       slack_prefix: Daily Regression
+      is_browserstack: true
     secrets: inherit
