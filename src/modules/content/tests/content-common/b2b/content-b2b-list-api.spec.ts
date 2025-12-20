@@ -1,3 +1,5 @@
+import { expect } from '@playwright/test';
+
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
 import { TestPriority } from '@core/constants/testPriority';
@@ -5,6 +7,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentApiHelper } from '@/src/modules/content/apis/apiValidation/contentAPIHelper';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 
 test.describe(
   '@Content B2B API',
@@ -31,22 +34,26 @@ test.describe(
         });
 
         const contentDetails = await appManagerApiFixture.contentManagementHelper.getContentItems(2);
-
-        // Extract content IDs from the content details
         const contentIds = contentDetails.map(item => item.contentId);
 
-        // Get content list using B2B API
-        const response = await appManagerApiFixture.b2bHelper.getContentList({
-          contentIds: [contentIds[0], contentIds[1]],
-          content_type: 'all',
-          requestedLanguages: ['en'],
-          size: 3,
-        });
+        const languages = CONTENT_TEST_DATA.B2B_LANGUAGES;
 
-        console.log(`B2B content list response: ${JSON.stringify(response)}`);
+        const responses = await Promise.all(
+          languages.map(lang =>
+            appManagerApiFixture.b2bHelper.getContentList({
+              contentIds: [contentIds[0], contentIds[1]],
+              content_type: 'all',
+              requestedLanguages: [lang],
+              size: 3,
+            })
+          )
+        );
 
-        // Validate response structure and manualTranslationsFields
-        await contentApiHelper.validateB2BContentList(response);
+        for (let i = 0; i < responses.length; i++) {
+          console.log(`B2B content list response for ${languages[i]}: ${JSON.stringify(responses[i])}`);
+          await contentApiHelper.validateB2BContentList(responses[i]);
+          expect(responses[i].result.listOfItems.length).toBeLessThanOrEqual(3);
+        }
       }
     );
   }
