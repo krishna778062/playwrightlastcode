@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
@@ -114,22 +113,15 @@ test.describe('quick Task', () => {
       const quickTaskPage = new QuickTaskPage(page);
       const quickTaskTestHelper = quickTaskApiFixture.quickTaskTestHelper;
 
-      await quickTaskPage.navigateToTasks();
-      const initialCount = await quickTaskPage.getNewTabCount();
+      const initialCount = await quickTaskPage.getInitialNewTabCount();
 
       await quickTaskTestHelper.createTestTask('medium');
       await quickTaskPage.reloadAndNavigateToTasks();
-      await expect(async () => {
-        const count = await quickTaskPage.getNewTabCount();
-        expect(count).toBe(initialCount + 1);
-      }).toPass({ timeout: 20000 });
+      await quickTaskPage.verifyNewTabCount(initialCount + 1);
 
       await quickTaskTestHelper.createTestTask('high');
       await quickTaskPage.reloadAndNavigateToTasks();
-      await expect(async () => {
-        const count = await quickTaskPage.getNewTabCount();
-        expect(count).toBe(initialCount + 2);
-      }).toPass({ timeout: 20000 });
+      await quickTaskPage.verifyNewTabCount(initialCount + 2);
     }
   );
 });

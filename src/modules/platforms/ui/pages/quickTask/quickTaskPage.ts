@@ -246,4 +246,25 @@ export class QuickTaskPage extends BasePage {
     const match = countText.match(/\d+/);
     return match ? parseInt(match[0], 10) : 0;
   }
+
+  /**
+   * Gets the initial "New" tab count after navigating to Tasks section
+   * Used to establish baseline count before creating tasks
+   * @returns The initial count as a number
+   */
+  async getInitialNewTabCount(): Promise<number> {
+    await this.navigateToTasks();
+    return await this.getNewTabCount();
+  }
+
+  /**
+   * Verifies that the "New" tab count matches the expected count
+   * @param expectedCount - The expected count to verify
+   */
+  async verifyNewTabCount(expectedCount: number): Promise<void> {
+    await expect(async () => {
+      const newCount = await this.getNewTabCount();
+      expect(newCount).toBe(expectedCount);
+    }).toPass({ timeout: 20000 });
+  }
 }
