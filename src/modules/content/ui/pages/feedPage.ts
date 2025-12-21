@@ -350,6 +350,12 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       await this.verifyThePageIsLoaded();
     });
   }
+  async reloadPageWithTimelineMode(): Promise<void> {
+    await test.step('Reload page with timeline mode', async () => {
+      await this.page.reload();
+      await this.verifyThePageIsLoadedWithTimelineMode();
+    });
+  }
 
   // High-level user flow methods
   async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {

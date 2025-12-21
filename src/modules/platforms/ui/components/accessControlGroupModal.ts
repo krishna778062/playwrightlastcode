@@ -7,6 +7,7 @@ import {
   ACG_TOOLTIPS,
 } from '../../constants/acg';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export type AccessControlGroupModalMode = 'create' | 'edit' | 'view';
@@ -104,6 +105,14 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .locator('[class*="Spacing-module__row"]')
       .filter({ hasText: audienceName })
       .getByRole('button', { name: 'Remove audience' });
+    await this.clickOnElement(removeButtonElement);
+  }
+
+  async clickOnRemoveButtonForUser(userName: string): Promise<void> {
+    const removeButtonElement = this.page
+      .locator('[class*="Spacing-module__row"]')
+      .filter({ hasText: userName })
+      .getByRole('button', { name: 'Remove user' });
     await this.clickOnElement(removeButtonElement);
   }
 
@@ -262,5 +271,39 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    */
   async clickOnBackButton(): Promise<void> {
     await this.clickOnElement(this.backButton);
+  }
+
+  async isUserVisibleInList(userName: string): Promise<boolean> {
+    const userRow = this.page.locator('[class*="Spacing-module__divider__bvKBb"]').filter({ hasText: userName });
+    return await this.verifier.isTheElementVisible(userRow, { timeout: TIMEOUTS.VERY_SHORT });
+  }
+
+  async removeUserIfPresentInList(userName: string): Promise<boolean> {
+    return await test.step(`Remove ${userName} from list if present`, async () => {
+      const isUserVisible = await this.isUserVisibleInList(userName);
+      if (isUserVisible) {
+        console.log('User is visible, removing user from list');
+        await this.clickOnRemoveButtonForUser(userName);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  async isSummaryScreenAssetButtonEnabled(buttonName: string): Promise<boolean> {
+    return await this.verifier.isTheElementEnabled(this.summaryScreenAssetButtons(buttonName), {
+      timeout: TIMEOUTS.SHORT,
+    });
+  }
+
+  async clickOnEditButtonIfEnabled(assetName: string): Promise<boolean> {
+    return await test.step(`Click on ${assetName} edit button if enabled`, async () => {
+      const isEnabled = await this.isSummaryScreenAssetButtonEnabled(assetName);
+      if (isEnabled) {
+        await this.clickOnEditButtonOnSummaryScreen(assetName);
+        return true;
+      }
+      return false;
+    });
   }
 }
