@@ -128,7 +128,7 @@ test.describe(
       await page.close();
     });
     test(
-      'verify different sites can share same page category name',
+      'verify different sites can share same page category name CONT-24601',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -190,7 +190,7 @@ test.describe(
     );
 
     test(
-      'verify Scheduled stamp and its options menu under-manage site content tab',
+      'verify Scheduled stamp and its options menu under-manage site content tab CONT-23966',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23966'],
       },
@@ -226,7 +226,7 @@ test.describe(
     );
 
     test(
-      'to verify the favourite people from manage site people',
+      'to verify the favourite people from manage site people CONT-24178',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -296,7 +296,7 @@ test.describe(
     );
 
     test(
-      'verify draft stamp and its options menu on content under Content tab in Manage Site',
+      'verify draft stamp and its options menu on content under Content tab in Manage Site CONT-20535',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20535'],
       },
@@ -324,7 +324,7 @@ test.describe(
     );
 
     test(
-      'verify Add to campaign option under Content tab in Manage Site',
+      'verify Add to campaign option under Content tab in Manage Site CONT-20537',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20537'],
       },
@@ -371,7 +371,7 @@ test.describe(
     );
 
     test(
-      'to verify the site view option in manage site user drop down sites',
+      'to verify the site view option in manage site user drop down sites CONT-26044',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
@@ -401,7 +401,7 @@ test.describe(
       }
     );
     test(
-      'to verify the onboarding option in manage site content',
+      'to verify the onboarding option in manage site content CONT-23737',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23737'],
       },
@@ -450,7 +450,7 @@ test.describe(
     );
 
     test(
-      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site',
+      'verify user able to apply publish unpublish delete actions on selected contents under Content tab in Manage Site CONT-20538',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20538'],
       },
@@ -506,7 +506,7 @@ test.describe(
       }
     );
     test(
-      'to verify the UI of favorite people section',
+      'to verify the UI of favorite people section CONT-26450',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26450'],
       },
@@ -531,7 +531,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site edit option in manage site user drop down sites',
+      'to verify the site edit option in manage site user drop down sites CONT-26503',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
       },
@@ -552,7 +552,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action activate in manage site user drop down',
+      'to verify the bulk action activate in manage site user drop down CONT-26576',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
@@ -645,7 +645,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from app manager can activate the site',
+      'to verify the bulk action from app manager can activate the site CONT-26574',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
@@ -676,7 +676,7 @@ test.describe(
     );
 
     test(
-      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site CONT-20536',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20536'],
       },
@@ -718,7 +718,7 @@ test.describe(
     );
 
     test(
-      'verify published stamp and its options menu on approved content under Content tab in Manage Site',
+      'verify published stamp and its options menu on approved content under Content tab in Manage Site CONT-20534',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20534'],
       },
@@ -755,7 +755,7 @@ test.describe(
     );
 
     test(
-      'verify the site activate option in manage site user drop down sites for all site types',
+      'verify the site activate option in manage site user drop down sites for all site types CONT-26177',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26177'],
       },
@@ -788,7 +788,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site ownership change in manage site people tab',
+      'to verify the site ownership change in manage site people tab CONT-23662',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23662'],
       },
@@ -832,7 +832,7 @@ test.describe(
       }
     );
     test(
-      'to verify add another button in manage site people tab',
+      'to verify add another button in manage site people tab CONT-23554',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23554'],
       },
@@ -880,7 +880,7 @@ test.describe(
       }
     );
     test(
-      'to verify the favourite content filters',
+      'to verify the favourite content filters CONT-26264',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26264'],
       },
@@ -937,7 +937,7 @@ test.describe(
       }
     );
     test(
-      'to verify the UI of favourite content',
+      'to verify the UI of favourite content CONT-26267',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26267'],
       },
@@ -1017,7 +1017,7 @@ test.describe(
       }
     );
     test(
-      'verify user should be able to add and remove content from carousel on clicking three dot menu options',
+      'verify user should be able to add and remove content from carousel on clicking three dot menu options CONT-29906',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29906'],
       },
@@ -1064,7 +1064,7 @@ test.describe(
     );
 
     test(
-      'to verify the created and published dates of content in  Manage site content',
+      'to verify the created and published dates of content in  Manage site content CONT-23980',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23980'],
       },
@@ -1275,7 +1275,7 @@ test.describe(
       }
     );
     test(
-      'verify user able to apply validate action on selected content under Content tab in Manage Site',
+      'verify user able to apply validate action on selected content under Content tab in Manage Site CONT-20539',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_CONTENT, '@CONT-20539'],
       },
@@ -1346,7 +1346,7 @@ test.describe(
       }
     );
     test(
-      'verify rejected content functionality under Content tab in Manage Site',
+      'verify rejected content functionality under Content tab in Manage Site CONT-20533',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20533'],
       },
@@ -1390,7 +1390,7 @@ test.describe(
     );
 
     test(
-      'verify content list loads when page category has more than 16 items on site dashboard',
+      'verify content list loads when page category has more than 16 items on site dashboard CONT-43064',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43064'],
       },
@@ -1423,7 +1423,7 @@ test.describe(
     );
 
     test(
-      'verify content list loads when page category has more than 16 items on manage site Page Categories',
+      'verify content list loads when page category has more than 16 items on manage site Page Categories CONT-43065',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43065'],
       },
