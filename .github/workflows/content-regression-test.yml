@@ -107,6 +107,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }} # temp change to test the linking
 
       - name: Create Calendar Secrets JSON
         run: |
@@ -224,6 +227,11 @@ jobs:
 
           echo "Using config file: $CONFIG_FILE"
 
+          # Set environment variables for test execution
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+          export TEST_ENV="${{ inputs.environment || 'qa' }}"
+          export MODULE_NAME="${{ inputs.module_name || 'content' }}"
+
           # Determine run command based on BrowserStack toggle
           # For scheduled runs, always use BrowserStack (default: true)
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
@@ -233,10 +241,10 @@ jobs:
 
           if [ "$IS_BROWSERSTACK" = "true" ]; then
             echo "🔬 Running with BrowserStack Test Observability..."
-            RUN_CMD="NODE_TLS_REJECT_UNAUTHORIZED=0 TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx browserstack-node-sdk playwright test"
+            RUN_CMD="npx browserstack-node-sdk playwright test"
           else
             echo "🧪 Running locally..."
-            RUN_CMD="NODE_TLS_REJECT_UNAUTHORIZED=0 TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test"
+            RUN_CMD="npx playwright test"
           fi
 
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
