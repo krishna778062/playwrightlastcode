@@ -36,9 +36,3 @@ export const getOrdinalSuffix = (n: number): string => {
   const v = n % 100;
   return s[(v - 20) % 10] || s[v] || s[0];
 };
-
-/**
- * Default user ID for creating tasks via API
- * Update this if needed for different environments
- */
-export const DEFAULT_USER_ID = '39eebfe1-4270-4177-b766-8fc8776f2682';
