@@ -33,11 +33,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Content modules removed - they have their own workflow (content-regression-test.yml)
         module: [
             chat,
             platforms,
             global-search,
-            content,
             de,
             de-api,
             de-api-abac,
@@ -45,10 +45,7 @@ jobs:
             reward-settings,
             recognition,
             privateRecognition,
-            content-abac,
             frontline,
-            content-settings,
-            content-studio,
             alert-notification,
             employee-listening,
             form-designer,
@@ -112,6 +109,24 @@ jobs:
           elif [ "${{ matrix.module }}" = "reward-settings" ]; then
             echo "Running Reward Settings tests (excluding P3) with 1 worker..."
             $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts --grep-invert="@rewards-db|P3" --workers=1
+          elif [ "${{ matrix.module }}" = "de" ]; then
+            echo "Running Data Engineering tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "de-api" ]; then
+            echo "Running Data Engineering API tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "de-api-abac" ]; then
+            echo "Running Data Engineering API ABAC tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-settings" ]; then
+            echo "Running Content Settings tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-studio" ]; then
+            echo "Running Content Studio tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-abac" ]; then
+            echo "Running Content ABAC tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts --workers=3
           else
             $RUN_CMD --config=src/modules/${{ matrix.module }}/playwright.${{ matrix.module }}.config.ts --workers=3
           fi

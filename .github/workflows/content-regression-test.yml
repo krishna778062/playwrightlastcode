@@ -74,8 +74,8 @@ on:
         default: true
         type: boolean
   schedule:
-    # Run daily at 3 AM UTC for content regression tests
-    - cron: '0 4 * * *'
+    # Run daily at 5:00 AM UTC (10:30 AM IST)
+    - cron: '0 5 * * *'
 
 permissions:
   contents: read
