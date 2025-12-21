@@ -14,21 +14,35 @@
 
 > **Check ONE that applies:**
 
-- [ ] 🚀 **Feature** - New functionality (target: `develop`)
-- [ ] 🐛 **Bug Fix** - Fix for develop/release branch
-- [ ] 🚨 **Hotfix** - Production fix (target: `main`)
+- [ ] 🚀 **Feature** - New test cases, helpers, utilities (target: `develop`)
+- [ ] 🔧 **Automation TC Fix** - Fix flaky tests, update locators, stabilize tests
+- [ ] 🚨 **Hotfix** - Urgent fix (target: `main` or `release`)
 - [ ] 📦 **Release** - Release preparation (`develop` → `release`)
 
 ---
 
-## 🔄 Backport Options (Hotfix Only)
+## 🎯 Target Branch
 
-> **If this is a HOTFIX to `main`, check where to sync:**
+> **Where is this PR going?**
 
-- [x] **Develop** - Sync to `develop` branch (recommended)
-- [ ] **Release** - Sync to `release` branch (only if QA/UAT needs this)
+- [ ] `develop` - Regular development
+- [ ] `release` - Fix needed during QA/UAT cycle
+- [ ] `main` - Production hotfix
 
-_Skip this section if not a hotfix._
+---
+
+## 🔄 Backport Options
+
+> **After merge, sync this change to:**
+
+- [x] **Develop** - Sync to `develop` (recommended for all fixes)
+- [ ] **Release** - Sync to `release` (only if QA/UAT needs this fix)
+
+> ℹ️ **When does backporting apply?**
+>
+> - PR to `main` → Reads checkboxes above, creates sync PRs accordingly
+> - PR to `release` → Automatically syncs to `develop` (no checkbox needed)
+> - PR to `develop` → No backporting needed
 
 ---
 
