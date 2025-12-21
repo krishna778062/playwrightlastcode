@@ -29,6 +29,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private featureSection: Locator;
   private targetAudienceSection: Locator;
   private backButton: Locator;
+  private addUsersButton: Locator;
+  private addUserDialog: Locator;
+  private doneButton: Locator;
 
   constructor(page: Page, accessControlGroupModalMode: AccessControlGroupModalMode) {
     super(page);
@@ -55,6 +58,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .locator('[class*="Spacing-module__divider"]')
       .filter({ hasText: 'Target audience' });
     this.backButton = this.acgDialog.getByRole('button', { name: 'Back' });
+    this.addUsersButton = this.acgDialog.getByRole('button', { name: 'Add users' });
+    this.addUserDialog = this.page.getByRole('dialog', { name: 'Users' });
+    this.doneButton = this.addUserDialog.getByRole('button', { name: 'Done' });
   }
 
   /**
@@ -304,6 +310,24 @@ export class AccessControlGroupModalComponent extends BaseComponent {
         return true;
       }
       return false;
+    });
+  }
+
+  async addUserToList(userName: string): Promise<void> {
+    await test.step(`Add ${userName} to list`, async () => {
+      const isUserAlreadyAdded = await this.isUserVisibleInList(userName);
+      if (isUserAlreadyAdded) {
+        return;
+      }
+
+      await this.clickOnElement(this.addUsersButton);
+
+      // Search for user in the user picker
+      await this.typeInElement(this.page.getByRole('combobox').first(), userName);
+
+      await this.clickOnElement(this.page.getByRole('menuitem', { name: `profile icon ${userName}` }));
+
+      await this.clickOnElement(this.doneButton);
     });
   }
 }
