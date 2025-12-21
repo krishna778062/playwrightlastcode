@@ -386,71 +386,71 @@ jobs:
           echo "Test Results:"
           echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
-      # - name: Send Slack Notification
-      #   if: always()
-      #   run: |
-      #     WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
-      #     # Only send notification if tests actually ran (TOTAL_TESTS > 0)
-      #     if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-      #       # Prepare Slack message with hyperlinks
-      #       BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
-      #       ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-      #       MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
-      #       if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-      #         MESSAGE="📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-      #       else
-      #         MESSAGE=" 📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
-      #       fi
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
+          # Only send notification if tests actually ran (TOTAL_TESTS > 0)
+          if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            # Prepare Slack message with hyperlinks
+            BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+            ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+            MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
+            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
+              MESSAGE="📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known failures (linked): ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            else
+              MESSAGE=" 📝 *Content Regression Automation Suite* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment concluded with ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 View Report> | <${{ env.TIMESTAMPED_TAG_REPORT_URL }}|🏷️ Tag Report> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+            fi
 
-      #       # Send to Slack using curl
-      #       for WEBHOOK in "${WEBHOOKS[@]}"; do
-      #         curl -X POST -H 'Content-type: application/json' \
-      #           --data "{\"text\":\"$MESSAGE\"}" \
-      #           $WEBHOOK
-      #       done
-      #     else
-      #       echo "No tests ran, skipping success notification"
-      #     fi
+            # Send to Slack using curl
+            for WEBHOOK in "${WEBHOOKS[@]}"; do
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$MESSAGE\"}" \
+                $WEBHOOK
+            done
+          else
+            echo "No tests ran, skipping success notification"
+          fi
 
-      # - name: Send Smart Slack Notifications
-      #   if: always()
-      #   run: |
-      #     WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
-      #      # Check if tests were executed
-      #      if [ -f "test-results/test-results.json" ]; then
-      #        TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+      - name: Send Smart Slack Notifications
+        if: always()
+        run: |
+          WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
+           # Check if tests were executed
+           if [ -f "test-results/test-results.json" ]; then
+             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
 
-      #        if [ "$TOTAL_TESTS" -eq 0 ]; then
-      #          # No tests found
-      #          echo "No tests were found matching the criteria"
-      #          BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
-      #          ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-      #          MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
-      #          NO_TESTS_MESSAGE="⚠️ *No Content Tests Found* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+             if [ "$TOTAL_TESTS" -eq 0 ]; then
+               # No tests found
+               echo "No tests were found matching the criteria"
+               BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+               ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+               MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
+               NO_TESTS_MESSAGE="⚠️ *No Content Tests Found* - \`${MODULE_NAME}\` module triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment found no tests matching the criteria. Please check your test filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-      #         # Send to Slack using curl
-      #         for WEBHOOK in "${WEBHOOKS[@]}"; do
-      #          curl -X POST -H 'Content-type: application/json' \
-      #            --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
-      #            $WEBHOOK
-      #         done
-      #        else
-      #          # Tests were found and executed (pass or fail)
-      #          echo "Tests were found: $TOTAL_TESTS"
-      #          # Success notification already sent in previous step, no additional notification needed
-      #        fi
-      #      else
-      #        # No test results file - this means pipeline failed before tests could run
-      #        echo "No test results file found - pipeline likely failed"
-      #        BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
-      #        ENVIRONMENT="${{ inputs.environment || 'qa' }}"
-      #        MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
-      #        FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content Regression Automation Suite Pipeline Failed* - \`${MODULE_NAME}\` module pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
+              # Send to Slack using curl
+              for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$NO_TESTS_MESSAGE\"}" \
+                 $WEBHOOK
+              done
+             else
+               # Tests were found and executed (pass or fail)
+               echo "Tests were found: $TOTAL_TESTS"
+               # Success notification already sent in previous step, no additional notification needed
+             fi
+           else
+             # No test results file - this means pipeline failed before tests could run
+             echo "No test results file found - pipeline likely failed"
+             BRANCH_NAME="${{ github.ref_name || github.ref || 'unknown' }}"
+             ENVIRONMENT="${{ inputs.environment || 'qa' }}"
+             MODULE_NAME="${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}"
+             FAILURE_MESSAGE="<!subteam^S087M3C16GL> 🚨 *Content Regression Automation Suite Pipeline Failed* - \`${MODULE_NAME}\` module pipeline triggered by \`${{ github.actor }}\` from \`${BRANCH_NAME}\` branch on \`${ENVIRONMENT}\` environment could not be executed successfully. Please check the job details for debugging. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Job Details>"
 
-      #        # Send to Slack using curl
-      #        for WEBHOOK in "${WEBHOOKS[@]}"; do
-      #          curl -X POST -H 'Content-type: application/json' \
-      #            --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
-      #            $WEBHOOK
-      #        done
-      #      fi
+             # Send to Slack using curl
+             for WEBHOOK in "${WEBHOOKS[@]}"; do
+               curl -X POST -H 'Content-type: application/json' \
+                 --data "{\"text\":\"$FAILURE_MESSAGE\"}" \
+                 $WEBHOOK
+             done
+           fi
