@@ -11,4 +11,5 @@ jobs:
     uses: ./.github/workflows/prod-healthcheck-template.yml
     with:
       environment: prodEU
+      git_ref: main
     secrets: inherit
