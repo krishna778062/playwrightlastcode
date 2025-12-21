@@ -1,4 +1,4 @@
-name: PR Template Reminder
+name: PR Template Reminder # comment
 
 on:
   pull_request:
