@@ -421,5 +421,93 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify SU who is only in Target Audience of "Post In Home Feed" ACG cannot create Feed Post',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42181', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Standard User who is only in Target Audience (not Manager/Admin/FO) of "Post In Home Feed" ACG cannot view or create Feed posts on Home Feed',
+          zephyrTestId: 'CONT-42181',
+          storyId: 'CONT-42181',
+        });
+
+        // ==================== Ensure SU is NOT a Manager/Admin/FO of "Post In Home Feed" ACG ====================
+        await test.step('Pre-requisite: Ensure SU is not a Manager/Admin/FO of "Post In Home Feed" ACG', async () => {
+          let operationPerformed = false;
+
+          // Remove from Feature Owners if present
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          try {
+            await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+          } catch {
+            // User not in FO list, close modal
+            await featureOwnersPage.featureOwnerModal.clickOnCloseButton();
+          }
+
+          // Remove from Managers and Admins in ACG if present
+          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Remove from Managers if present
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            const wasRemovedFromManagers = await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            if (wasRemovedFromManagers) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              operationPerformed = true;
+            } else {
+              await acgPage.editACGModal.clickOnBackButton();
+            }
+          }
+
+          // Remove from Admins if present
+          const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
+          if (isAdminButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Admins');
+            const wasRemovedFromAdmins = await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            if (wasRemovedFromAdmins) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              operationPerformed = true;
+            } else {
+              await acgPage.editACGModal.clickOnBackButton();
+            }
+          }
+
+          if (operationPerformed) {
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== Verify SU cannot view Feed form when only in Target Audience ====================
+        await test.step('Verify SU cannot view Feed Post creation form when only in Target Audience', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.verifyThePageIsLoadedWithTimelineMode();
+
+          // SU should NOT be able to view Feed Post creation form
+          await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        });
+      }
+    );
   }
 );
