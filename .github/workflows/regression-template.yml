@@ -95,6 +95,9 @@ jobs:
 
       - name: Run regression tests
         run: |
+          # Set TLS config for test environments
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+
           if [ "${{ inputs.is_browserstack }}" = "true" ]; then
             echo "🔬 Running with BrowserStack Test Observability..."
             RUN_CMD="npx browserstack-node-sdk playwright test"
