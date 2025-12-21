@@ -228,9 +228,8 @@ test.describe(
           const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
           if (isAdminButtonEnabled) {
             await acgPage.editACGModal.verifyTitleOfTheModal('Admins');
-            await acgPage.editACGModal.addUserToList(standardUserFullName);
+            operationPerformed = await acgPage.editACGModal.addUserToList(standardUserFullName);
             await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            operationPerformed = true;
           } else {
             await acgPage.editACGModal.clickCloseButton();
           }
@@ -243,12 +242,9 @@ test.describe(
 
         // ==================== SU navigates to Home Feed and creates post ====================
         await test.step('SU navigates to Home Feed, verifies form is visible, and creates a Feed post', async () => {
-          const homePage = new NewHomePage(standardUserFixture.page);
-          await homePage.loadPage();
-          await homePage.verifyThePageIsLoaded();
-
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
           await feedPage.verifyThePageIsLoaded();
 
           // Verify SU can view Feed Post creation form
@@ -284,8 +280,142 @@ test.describe(
           await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
         });
 
-        // ==================== STEP 4: Verify SU cannot view Feed form after Admin removal ====================
+        // ==================== Verify SU cannot view Feed form after Admin removal ====================
         await test.step('Verify SU cannot view Feed Post creation form after Admin removal', async () => {
+          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        });
+      }
+    );
+
+    test(
+      'verify SU who is Manager of "Post In Home Feed" ACG can view Feed form and create posts',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42180', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Standard User who is Manager of "Post In Home Feed" ACG can view and use the Feed Post creation form on Home Feed',
+          zephyrTestId: 'CONT-42180',
+          storyId: 'CONT-42180',
+        });
+        let operationPerformed = false;
+
+        // ==================== Ensure SU is NOT an Admin/FO of "Post In Home Feed" ACG ====================
+        await test.step('Pre-requisite: Ensure SU is not an Admin/FO of "Post In Home Feed" ACG', async () => {
+          // Remove from Feature Owners if present
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          try {
+            await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+          } catch {
+            // User not in FO list, close modal
+            await featureOwnersPage.featureOwnerModal.clickOnCloseButton();
+          }
+
+          // Remove from Admins in ACG if present
+          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
+          if (isAdminButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Admins');
+            const wasRemovedFromAdmins = await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            if (wasRemovedFromAdmins) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              operationPerformed = true;
+            } else {
+              await acgPage.editACGModal.clickOnBackButton();
+            }
+          }
+
+          if (operationPerformed) {
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== App Manager adds SU as Manager of ACG ====================
+        await test.step('App Manager adds SU as Manager of "Post In Home Feed" ACG', async () => {
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and add user
+          operationPerformed = false;
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            operationPerformed = await acgPage.editACGModal.addUserToList(standardUserFullName);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+          if (operationPerformed) {
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== SU navigates to Home Feed and creates post ====================
+        await test.step('SU navigates to Home Feed, verifies form is visible, and creates a Feed post', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          // Verify SU can view Feed Post creation form
+          await feedPage.assertions.verifyFeedSectionIsVisible();
+
+          // SU creates a Feed post
+          const postText = TestDataGenerator.generateRandomText('ABAC Manager Home Feed Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+          const postResult = await feedPage.actions.createAndPost({
+            text: postText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        });
+
+        // ==================== App Manager removes SU as Manager from ACG ====================
+        await test.step('App Manager removes SU as Manager from "Post In Home Feed" ACG', async () => {
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and remove user
+          await acgPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.MANAGER);
+          await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+          await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+          await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+
+          // Save the ACG changes
+          await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+        });
+
+        // ==================== Verify SU cannot view Feed form after Manager removal ====================
+        await test.step('Verify SU cannot view Feed Post creation form after Manager removal', async () => {
           await feedPage.reloadPageWithTimelineMode();
           await feedPage.assertions.verifyFeedSectionIsNotVisible();
         });

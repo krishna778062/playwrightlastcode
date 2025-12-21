@@ -313,11 +313,11 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     });
   }
 
-  async addUserToList(userName: string): Promise<void> {
-    await test.step(`Add ${userName} to list`, async () => {
+  async addUserToList(userName: string): Promise<boolean> {
+    return await test.step(`Add ${userName} to list`, async () => {
       const isUserAlreadyAdded = await this.isUserVisibleInList(userName);
       if (isUserAlreadyAdded) {
-        return;
+        return false;
       }
 
       await this.clickOnElement(this.addUsersButton);
@@ -328,6 +328,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       await this.clickOnElement(this.page.getByRole('menuitem', { name: `profile icon ${userName}` }));
 
       await this.clickOnElement(this.doneButton);
+      return true;
     });
   }
 }
