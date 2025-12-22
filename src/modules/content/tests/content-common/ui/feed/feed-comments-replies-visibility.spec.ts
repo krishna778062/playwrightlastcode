@@ -73,7 +73,7 @@ test.describe(
     });
 
     test(
-      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -143,7 +143,7 @@ test.describe(
     );
 
     test(
-      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -226,7 +226,7 @@ test.describe(
     );
 
     test(
-      'content Feed Flow - Verify user can view comments on Content detail page',
+      'content Feed Flow - Verify user can view comments on Content detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -318,7 +318,7 @@ test.describe(
     );
 
     test(
-      'content Comments with Unpublish - Verify comments disappear after content unpublish',
+      'content Comments with Unpublish - Verify comments disappear after content unpublish CONT-19566',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-19566'],
       },

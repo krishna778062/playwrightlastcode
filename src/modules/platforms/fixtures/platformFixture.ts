@@ -9,6 +9,8 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
+import { QuickTaskTestHelper } from '../apis/helpers/quickTaskTestHelper';
+import { QuickTaskService } from '../apis/services/QuickTaskService';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
@@ -120,6 +122,13 @@ export interface PlatformUiFixture {
 // Combined user fixture type that extends both API and UI fixtures
 export interface PlatformUserFixture extends PlatformApiFixture, PlatformUiFixture {}
 
+// Quick Task API fixture type
+export interface QuickTaskApiFixture {
+  apiContext: APIRequestContext;
+  quickTaskService: QuickTaskService;
+  quickTaskTestHelper: QuickTaskTestHelper;
+}
+
 export type PlatformUserType = 'appManager' | 'userManager';
 
 export const platformUsers = {
@@ -191,11 +200,13 @@ export const platformTestFixture = test.extend<
     zuluEndUserPage: Page;
     zuluBrandingManagerPage: Page;
     quickTaskPage: Page;
+    quickTaskApiFixture: QuickTaskApiFixture;
   },
   {
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
     userManagerApiContext: APIRequestContext;
+    quickTaskApiContext: APIRequestContext;
   }
 >({
   // Worker-scoped API contexts - shared across all tests in worker
@@ -216,6 +227,22 @@ export const platformTestFixture = test.extend<
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().userManagerEmail!,
         password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  quickTaskApiContext: [
+    async ({}, use) => {
+      const quickTaskApiUrl = process.env.QUICK_TASK_API_URL;
+      if (!quickTaskApiUrl) {
+        throw new Error('QUICK_TASK_API_URL not configured in environment variables');
+      }
+      const context = await RequestContextFactory.createAuthenticatedContext(quickTaskApiUrl, {
+        email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
+        password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
       });
       await use(context);
       await context.dispose();
@@ -368,6 +395,30 @@ export const platformTestFixture = test.extend<
       const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
       if (quickTaskUrl) {
         await page.goto(`${quickTaskUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  quickTaskApiFixture: [
+    async ({ quickTaskApiContext }, use) => {
+      const quickTaskApiUrl = process.env.QUICK_TASK_API_URL;
+      if (!quickTaskApiUrl) {
+        throw new Error('QUICK_TASK_API_URL not configured in environment variables');
+      }
+      const quickTaskService = new QuickTaskService(quickTaskApiContext, quickTaskApiUrl);
+      const quickTaskTestHelper = new QuickTaskTestHelper(quickTaskService);
+      await use({
+        apiContext: quickTaskApiContext,
+        quickTaskService,
+        quickTaskTestHelper,
+      });
+
+      // Cleanup: Delete all tracked tasks
+      try {
+        await quickTaskTestHelper.cleanup();
+      } catch (error) {
+        console.warn('Quick Task API fixture cleanup failed:', error);
       }
     },
     { scope: 'test' },

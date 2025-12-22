@@ -164,7 +164,7 @@ test.describe(
     };
 
     test(
-      'verify Site Manager can add, edit, and delete Feed reply with Box file attachments',
+      'verify Site Manager can add, edit, and delete Feed reply with Box file attachments CONT-24903',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments'],
       },
@@ -180,7 +180,7 @@ test.describe(
     );
 
     test(
-      'verify Site Content Manager can add, edit, and delete Feed reply with Box file attachments',
+      'verify Site Content Manager can add, edit, and delete Feed reply with Box file attachments CONT-24904',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments'],
       },
@@ -201,7 +201,7 @@ test.describe(
     );
 
     test(
-      'verify Site Member can add, edit, and delete Feed reply with Box file attachments',
+      'verify Site Member can add, edit, and delete Feed reply with Box file attachments CONT-24905',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments'],
       },
