@@ -19,7 +19,7 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
-import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -351,7 +351,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.actions.clearSearchBar();
       await manageTopicsPage.actions.searchingTopicInSearchBar(topicNameInReply);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicNameInReply);
-      const siteInfo = await standardUserFixture.siteManagementService.getListOfSites({
+      const siteInfo = await standardUserFixture.siteManagementHelper.getListOfSites({
         filter: `active`,
       });
       const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteInfo.result.listOfItems[0].siteId);
@@ -363,7 +363,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.actions.clearSearchBar();
       await manageTopicsPage.actions.searchingTopicInSearchBar(siteTopicName);
       await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(siteTopicName);
-      const siteInfoForCreateContent = await standardUserFixture.siteManagementService.getListOfSites({
+      const siteInfoForCreateContent = await standardUserFixture.siteManagementHelper.getListOfSites({
         filter: `active`,
       });
       // Create page using API with the topic
