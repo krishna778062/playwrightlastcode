@@ -103,7 +103,7 @@ test.describe(
 
     for (const siteData of SITE_TEST_DATA) {
       test(
-        `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
+        `Verify admin can create a ${siteData.displayName.toLowerCase()} ${siteData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -150,7 +150,7 @@ test.describe(
       );
     }
     test(
-      `to verify the deactivate option in manage site user drop down sites`,
+      `to verify the deactivate option in manage site user drop down sites CONT-26176`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_DEACTIVATION],
       },
@@ -176,7 +176,7 @@ test.describe(
       }
     );
     test(
-      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member CONT-22692',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22692'],
       },

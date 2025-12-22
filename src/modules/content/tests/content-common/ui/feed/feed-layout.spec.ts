@@ -47,7 +47,7 @@ test.describe(
     });
 
     test(
-      'smart Feed blocks not visible on Home Dashboard when "Include feed on dashboard" is unchecked',
+      'smart Feed blocks not visible on Home Dashboard when "Include feed on dashboard" is unchecked CONT-22570',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-22570'],
       },

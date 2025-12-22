@@ -17,7 +17,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3234] Validate if peerGiftingEnabled flag, is added in rewards config endpoint on rewards overview page',
+    'RC-3234 Validate if peerGiftingEnabled flag, is added in rewards config endpoint on rewards overview page',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -63,7 +63,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-2485] Verify peer gifting warning message when peer gifting option is not configured',
+    'RC-2485 Verify peer gifting warning message when peer gifting option is not configured',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -120,7 +120,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-2199] Validate peer gifting on Overview UI',
+    'RC-2199 Validate peer gifting on Overview UI',
     {
       tag: [
         TestGroupType.REGRESSION,
@@ -164,7 +164,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-2264] Validate peer gifting flow',
+    'RC-2264 Validate peer gifting flow',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -241,7 +241,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3347] Validate Enable peer gifting option when rewards is live',
+    'RC-3347 Validate Enable peer gifting option when rewards is live',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -282,7 +282,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5420] Validate when user navigate to tabs under Peer Gifting one by one, rewards and peer api is called for once only',
+    'RC-5420 Validate when user navigate to tabs under Peer Gifting one by one, rewards and peer api is called for once only',
     {
       tag: [
         TestGroupType.REGRESSION,
@@ -339,7 +339,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3431] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    'RC-3431 Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -382,7 +382,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3430] Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
+    'RC-3430 Validate peer gifting option enabling in the same month as disabled when rewards is live and changes to allowances',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },
@@ -413,7 +413,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3432] Validate the peer gifting enabling in the Next month when the reward is live',
+    'RC-3432 Validate the peer gifting enabling in the Next month when the reward is live',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
     },

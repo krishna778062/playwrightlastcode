@@ -42,7 +42,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   });
 
   test(
-    '[RC-2266] Validate All the UI elements in the Currency conversion page',
+    'RC-2266 Validate All the UI elements in the Currency conversion page',
     {
       tag: [
         TestGroupType.REGRESSION,
@@ -69,7 +69,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   );
 
   test(
-    '[RC-3115] Verify dialog for unsaved changes when user in currency conversion page navigates to different page or refreshes',
+    'RC-3115 Verify dialog for unsaved changes when user in currency conversion page navigates to different page or refreshes',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
     },
@@ -90,7 +90,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   );
 
   test(
-    '[RC-4590] Validate Download CSV option if some active users on the platform have not set a payroll currency on their profile',
+    'RC-4590 Validate Download CSV option if some active users on the platform have not set a payroll currency on their profile',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P2],
     },

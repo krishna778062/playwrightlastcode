@@ -15,7 +15,7 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   });
 
   test(
-    '[RC-3116] Verify dialog for unsaved changes when user in peer gifting options page navigates to different page or refreshes',
+    'RC-3116 Verify dialog for unsaved changes when user in peer gifting options page navigates to different page or refreshes',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS, TestPriority.P0],
     },
@@ -58,7 +58,7 @@ test.describe('gifting Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () 
   );
 
   test(
-    '[RC-4424] Validate error message on Reward point gifting options',
+    'RC-4424 Validate error message on Reward point gifting options',
     {
       tag: [
         TestGroupType.REGRESSION,

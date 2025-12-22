@@ -19,7 +19,7 @@ test.describe(
     });
 
     test(
-      'verify Add subscription button',
+      'verify Add subscription button CONT-23093',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23093'],
       },
