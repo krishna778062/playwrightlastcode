@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { RewardsApiService } from '@rewards/api/services/RewardsApiService';
 import { DialogBox } from '@rewards-components/common/dialog-box';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 import { RewardsBudgetModal } from '@rewards-components/manage-rewards/rewards-budget-modal';
@@ -159,7 +160,7 @@ export class ManageRewardsOverviewPage extends BasePage {
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
-    this.manageRewardsPageNotFound = page.getByTestId('no-results');
+    this.manageRewardsPageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.locator('h1, h2, h3').first();
 
     // Locators for the Rewards Overview page
@@ -396,32 +397,21 @@ export class ManageRewardsOverviewPage extends BasePage {
   }
 
   async enableTheRewardsAndPeerGiftingIfDisabled(): Promise<void> {
-    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    const [apiResponse] = await Promise.all([
-      this.page.waitForResponse(
-        res =>
-          res.url().endsWith('/recognition/admin/rewards') &&
-          res.request().resourceType() === 'xhr' &&
-          res.status() === 200 &&
-          res.request().method() === 'GET'
-      ),
-      manageRecognitionPage.loadPage(), // action that triggers API
-      manageRecognitionPage.verifyThePageIsLoaded(),
-    ]);
-    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
-    const body = await apiResponse.json();
-    console.log(`/recognition/admin/rewards Response is:\n${JSON.stringify(body, null, 2)}`);
-    const isRewardEnabled = body.enabled;
-    const isPeerGiftingDisabled = body.peerGiftingEnabled;
+    const rewardsApi = new RewardsApiService();
+    const rewardsData = await rewardsApi.getRewardsAsJson(this.page);
+    const isRewardEnabled = rewardsData.enabled;
+    const isPeerGiftingDisabled = rewardsData.peerGiftingEnabled;
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
+    const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await this.loadPage();
     }
+    await manageRecognitionPage.loadPage();
+    await manageRecognitionPage.verifyThePageIsLoaded();
   }
 
   async disableTheRewards(): Promise<void> {
@@ -506,6 +496,7 @@ export class ManageRewardsOverviewPage extends BasePage {
    */
   async verifyPageIsNotFound(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.manageRewardsPageNotFound, {
+      timeout: TIMEOUTS.SHORT,
       assertionMessage: 'Verify the Manage Reward page is visible',
     });
   }
@@ -812,14 +803,16 @@ export class ManageRewardsOverviewPage extends BasePage {
         timeout: 15000,
       });
       await this.clickOnDisabledRewardsAddEditPeerGiftingButton();
-      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+      if (
+        await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'), { timeout: 5000 })
+      ) {
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
         await manageRecognitionPage.rewardsAllowance.saveAmount();
         await manageRecognitionPage.peerGifting.visit();
         await manageRecognitionPage.peerGifting.verifyThePageIsLoaded();
       }
-      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.click();
+      await manageRecognitionPage.peerGifting.peerGiftingToggleSwitch.check();
       await manageRecognitionPage.peerGifting.saveButton.waitFor({ state: 'attached', timeout: 15000 });
       await manageRecognitionPage.peerGifting.saveButton.click();
       await manageRecognitionPage.rewardsAllowance.validateToastMessage('Saved changes successfully');
@@ -830,6 +823,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       await expect(manageRecognitionPage.rewardsTabHeading).toHaveText('Rewards overview');
     } else if (!isRewardEnabled && isPeerGiftingDisabled) {
       // Directly enable Rewards
+      await manageRecognitionPage.loadPage();
       await manageRecognitionPage.enableRewardsButton.waitFor({ state: 'visible', timeout: 15000 });
       await manageRecognitionPage.enableRewardsButton.click();
       await manageRecognitionPage.rewardsAllowance.validateToastMessage('Rewards enabled');
@@ -839,7 +833,9 @@ export class ManageRewardsOverviewPage extends BasePage {
       await manageRecognitionPage.verifier.waitUntilElementIsVisible(
         manageRecognitionPage.peerGifting.peerGiftingHeading
       );
-      if (await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'))) {
+      if (
+        await this.verifier.isTheElementVisible(this.page.locator('[aria-label="Add allowances"]'), { timeout: 5000 })
+      ) {
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.visitToUserAllowanceSetupPage();
         await manageRecognitionPage.rewardsAllowance.rewardsUserAllowance.enterThePointAmount(10);
         await manageRecognitionPage.rewardsAllowance.saveAmount();

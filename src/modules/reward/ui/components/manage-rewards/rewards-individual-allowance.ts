@@ -116,13 +116,21 @@ export class RewardsIndividualAllowance extends BasePage {
 
   async addOneIndividualUserInTheAllowance(amount: number): Promise<void> {
     const individualAllowanceContainer = this.page.locator('div[data-testid="pageContainer-page"]');
-    await this.verifier.verifyTheElementIsVisible(individualAllowanceContainer);
-
     const noAudienceList = individualAllowanceContainer.locator(
       '//p[text()="You haven’t created any individual allowances yet"]'
     );
 
-    if (!(await this.verifier.verifyTheElementIsVisible(noAudienceList))) {
+    await this.verifier.verifyTheElementIsVisible(individualAllowanceContainer, {
+      timeout: 5000,
+      assertionMessage: 'verify that individual allowance container is visible',
+    });
+
+    if (
+      !(await this.verifier.verifyTheElementIsVisible(noAudienceList, {
+        timeout: 5000,
+        assertionMessage: 'verify that no audience list is visible',
+      }))
+    ) {
       const alreadyAddedUserInputBox = individualAllowanceContainer
         .locator('table[class*="Table-module__table"] tr[data-testid*="dataGridRow"]')
         .first()
@@ -137,13 +145,14 @@ export class RewardsIndividualAllowance extends BasePage {
           stepInfo: 'Clicking add audience button',
         });
         const dialogBox = new DialogBox(this.page);
-        await expect(dialogBox.title).toHaveText('Add individual allowance');
-        await expect(dialogBox.closeButton).toBeVisible();
+        await expect(dialogBox.title, "expected dialog box title to be 'Add individual allowance'").toHaveText(
+          'Add individual allowance'
+        );
+        await expect(dialogBox.closeButton, 'expected close button to be visible').toBeVisible();
         await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
         await dialogBox.container.locator('input').first().click();
         await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
         await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
-        await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
         await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
         await this.removeAddedIndividualUser.click();
       }
@@ -152,13 +161,14 @@ export class RewardsIndividualAllowance extends BasePage {
         stepInfo: 'Clicking add audience button',
       });
       const dialogBox = new DialogBox(this.page);
-      await expect(dialogBox.title).toHaveText('Add individual allowance');
-      await expect(dialogBox.closeButton).toBeVisible();
+      await expect(dialogBox.title, "expected dialog box title to be 'Add individual allowance'").toHaveText(
+        'Add individual allowance'
+      );
+      await expect(dialogBox.closeButton, 'expected close button to be visible').toBeVisible();
       await dialogBox.container.locator('input').last().waitFor({ state: 'visible' });
       await dialogBox.container.locator('input').first().click();
       await dialogBox.container.locator('[role="menuitem"]:not([aria-disabled="true"])').last().click();
       await dialogBox.container.locator('input[id="pointAmount"]').fill(String(amount));
-      await expect(dialogBox.container.getByRole('button', { name: 'Add allowance' })).toBeEnabled();
       await dialogBox.container.getByRole('button', { name: 'Add allowance' }).click();
     }
   }

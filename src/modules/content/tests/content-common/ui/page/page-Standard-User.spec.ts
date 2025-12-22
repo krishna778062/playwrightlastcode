@@ -78,11 +78,17 @@ test.describe(
 
     for (const testData of PAGE_APPROVAL_TEST_DATA) {
       test(
-        `${testData.description}`,
+        `${testData.description} ${testData.zephyrTestId}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.PAGE_CREATION],
+          tag: [
+            TestPriority.P0,
+            TestGroupType.SMOKE,
+            TestGroupType.REGRESSION,
+            ContentSuiteTags.PAGE_CREATION,
+            `@${testData.storyId}`,
+          ],
         },
-        async ({ standardUserFixture, appManagerFixture, appManagerApiContext }) => {
+        async ({ standardUserFixture, appManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
@@ -97,15 +103,18 @@ test.describe(
             ContentType.PAGE
           );
 
-          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-            [users.endUser.email],
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+          const site = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
+            [endUserInfo.userId],
             SITE_TYPES.PUBLIC
           );
 
           // Navigate to page creation by standard user
           pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
             ContentType.PAGE,
-            { siteName: siteInfo.siteName }
+            { siteName: site.siteName }
           )) as PageCreationPage;
 
           // Generate page data using TestDataGenerator
@@ -146,18 +155,16 @@ test.describe(
             pageCreationOptions.title,
             testData.actionSuccessMessage
           );
-          await standardUserFixture.page.reload();
-
-          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
-            stepInfo: 'Standard user clicking on bell icon to view notifications',
-          });
           const identityManagementHelper = new IdentityManagementHelper(
-            appManagerApiContext,
+            appManagerApiFixture.apiContext,
             getContentConfigFromCache().tenant.apiBaseUrl
           );
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + pageCreationOptions.title + '"';
+          const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
+            stepInfo: 'Standard user clicking on bell icon to view notifications',
+          });
           await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {

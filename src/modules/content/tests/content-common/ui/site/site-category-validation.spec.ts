@@ -36,7 +36,7 @@ test.describe('site Category Validation', { tag: ['@content-management', '@site-
   });
 
   test(
-    'verify category name field validation and successful creation with maximum characters',
+    'verify category name field validation and successful creation with maximum characters CONT-26590',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
     },

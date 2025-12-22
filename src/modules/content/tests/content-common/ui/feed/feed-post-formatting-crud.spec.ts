@@ -181,7 +181,7 @@ test.describe(
     });
 
     test(
-      'in Zeus verify end user is able to add edit delete text topic mention user mention site embedded URL',
+      'in Zeus verify end user is able to add edit delete text topic mention user mention site embedded URL CONT-24134',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
@@ -289,7 +289,7 @@ test.describe(
     );
 
     test(
-      'verify timestamp format is displayed as "Month Date, Year at Time" for feed posts and comments',
+      'verify timestamp format is displayed as "Month Date, Year at Time" for feed posts and comments CONT-27846',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27846'],
       },
@@ -299,7 +299,6 @@ test.describe(
             'Verify the Timestamp format is displayed as "Month Date, Year at Time" for feed posts on Home Dashboard, Site Dashboard, and comments on Content Page',
           zephyrTestId: 'CONT-27846',
           storyId: 'CONT-27846',
-          isKnownFailure: true,
         });
 
         let homeFeedPostId: string = '';

@@ -88,7 +88,7 @@ test.describe(
               createdSite.result.siteId
             );
 
-          await siteApiHelper.validateSiteResponse(siteDetailsResponse, expectedAccessType, siteData.siteName);
+          await siteApiHelper.validateSiteResponse(siteDetailsResponse, expectedAccessType, siteData.name);
         }
       );
     }

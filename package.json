@@ -37,6 +37,7 @@
     "test": "npm run test:interactive",
     "create:module": "ts-node scripts/create-module.ts",
     "start-report-server": "http-server . -p 3000 --cors",
+    "start:cache-server": "ts-node src/core/utils/storageStateServer.ts",
     "generate-report": "node convert-report.js",
     "generate-report:custom": "node convert-report.js",
     "generate-tag-report": "node reporting/tag-report.mjs --generate-only",
@@ -45,6 +46,7 @@
     "serve-report:custom": "npm run generate-report:custom && concurrently \"npm run start-report-server\" \"sleep 1 && OPEN_REPORT=true npm run generate-report:custom\"",
     "test:de": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering.config.ts --project=data-engineering-chromium",
     "test:de-api": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts",
+    "test:de-api-abac": "cross-env MODULE_NAME=data-engineering npx playwright test --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts",
     "report:postgres": "node reporting/enhanced-pg-reporter.mjs",
     "test:alert-notification": "cross-env MODULE_NAME=alert-notification npx playwright test --config=src/modules/alert-notification/playwright.alert-notification.config.ts",
     "test:alert-notification:p0": "cross-env MODULE_NAME=alert-notification npx playwright test --config=src/modules/alert-notification/playwright.alert-notification.config.ts --grep=@P0",
@@ -64,7 +66,7 @@
     "test:integrations-okta:test": "cross-env TEST_ENV=test MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-okta.config.ts",
     "test:integrations-azuresso": "cross-env MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
     "test:integrations-azuresso:test": "cross-env TEST_ENV=test MODULE_NAME=integrations npx playwright test --config=src/modules/integrations/playwright.integrations-azuresso.config.ts",
-    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form.config.ts",
+    "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form-designer.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
@@ -92,6 +94,7 @@
     "@types/snowflake-sdk": "^1.6.24",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "browserstack-node-sdk": "^1.47.1",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.28.0",
@@ -121,6 +124,7 @@
     "dotenv": "^16.6.1",
     "eslint-plugin-unused-imports": "^4.2.0",
     "express": "^5.1.0",
+    "fastify": "^5.6.2",
     "jsonwebtoken": "^9.0.2",
     "mailosaur": "^9.0.0",
     "nanoid": "^5.1.5",
@@ -129,7 +133,8 @@
     "pg": "^8.16.3",
     "playwright": "^1.55.1",
     "snowflake-sdk": "^2.1.3",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "zod": "^4.1.13"
   },
   "lint-staged": {
     "*.{ts,js}": [

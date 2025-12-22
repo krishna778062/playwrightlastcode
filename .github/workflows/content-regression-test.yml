@@ -53,10 +53,11 @@ on:
           - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests (default: 5 for content UI, 1 for others)'
-        required: true
-        default: '1'
+        required: false
+        default: 'default'
         type: choice
         options:
+          - 'default'
           - '1'
           - '2'
           - '3'
@@ -67,9 +68,14 @@ on:
         required: false
         default: 'all'
         type: string
+      is_browserstack:
+        description: 'Run tests with BrowserStack Test Observability'
+        required: false
+        default: true
+        type: boolean
   schedule:
-    # Run daily at 3 AM UTC for content regression tests
-    - cron: '0 4 * * *'
+    # Run daily at 5:00 AM UTC (10:30 AM IST)
+    - cron: '0 5 * * *'
 
 permissions:
   contents: read
@@ -81,24 +87,26 @@ jobs:
     timeout-minutes: 300
     runs-on: [kubernetes]
     # Use matrix strategy for scheduled runs to execute both UI and API tests
+    # For manual runs: only execute the selected test_category
     strategy:
       matrix:
-        # Always include both UI and API in matrix
-        # For scheduled runs: both will execute
-        # For manual runs: only the selected one will execute (other will be skipped at step level)
-        test_category: [ui, api]
+        # For scheduled runs: include both UI and API
+        # For manual runs: include only the selected test_category
+        test_category: ${{ github.event_name == 'schedule' && fromJSON('["ui", "api"]') || fromJSON(format('["{0}"]', inputs.test_category || 'ui')) }}
       fail-fast: false
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}
       E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
       CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack Test Observability
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: develop #always develop HEAD
 
       - name: Create Calendar Secrets JSON
         run: |
@@ -123,9 +131,8 @@ jobs:
 
       - name: Run Content tests
         id: run-tests
-        # For manual runs, only execute if the matrix test_category matches the input
-        # For scheduled runs, always execute (both UI and API)
-        if: github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui')
+        # Matrix strategy now only creates jobs for selected test_category in manual runs
+        # So this step will always execute (no conditional needed)
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
@@ -161,18 +168,25 @@ jobs:
           echo "Debug: Module=$MODULE, TestCategory=$TEST_CATEGORY, Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
-          # Set workers - default to 5 for content UI tests, use input value for others
-          WORKERS="${{ inputs.workers || '1' }}"
-          if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ]; then
-            if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ]; then
-              WORKERS="5"
-            else
-              WORKERS="1"
-            fi
-          fi
-          # Override to 5 for content UI module if it's the default '1' (user didn't specify)
-          if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ] && [ "$WORKERS" = "1" ]; then
+          # Set workers based on execution type:
+          # - Scheduled runs for UI tests: always use 5 workers
+          # - Manual runs: use user's selection (or default to 1 if not specified)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$TEST_CATEGORY" = "ui" ]; then
+            # Scheduled UI runs always use 5 workers
             WORKERS="5"
+            echo "Scheduled UI execution detected - using 5 workers"
+          else
+            # Manual runs: use user's selection
+            WORKERS="${{ inputs.workers }}"
+            # If user selected "default" or didn't specify, use defaults based on module
+            if [ -z "$WORKERS" ] || [ "$WORKERS" = "" ] || [ "$WORKERS" = "default" ]; then
+              if [ "$MODULE" = "content" ] && [ "$TEST_CATEGORY" = "ui" ]; then
+                WORKERS="5"
+              else
+                WORKERS="1"
+              fi
+            fi
+            echo "Manual execution - using selected workers: $WORKERS"
           fi
 
           # Determine config file based on module and test category
@@ -210,9 +224,29 @@ jobs:
 
           echo "Using config file: $CONFIG_FILE"
 
+          # Set environment variables for test execution
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+          export TEST_ENV="${{ inputs.environment || 'qa' }}"
+          export MODULE_NAME="${{ inputs.module_name || 'content' }}"
+
+          # Determine run command based on BrowserStack toggle
+          # For scheduled runs, always use BrowserStack (default: true)
+          IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            IS_BROWSERSTACK="true"
+          fi
+
+          if [ "$IS_BROWSERSTACK" = "true" ]; then
+            echo "🔬 Running with BrowserStack Test Observability..."
+            RUN_CMD="npx browserstack-node-sdk playwright test"
+          else
+            echo "🧪 Running locally..."
+            RUN_CMD="npx playwright test"
+          fi
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --workers="$WORKERS"
           else
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
@@ -225,11 +259,11 @@ jobs:
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
             echo "Running Content tests with grep filter: $GREP_REGEX"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
           fi
 
       - name: Upload test report to github artifact backup
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: content-test-report
@@ -252,17 +286,17 @@ jobs:
           echo "Timestamp set to: $TIMESTAMP"
 
       - name: Generate HTML Report
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           npm run generate-report:custom test-results/test-results.json
 
       - name: Generate Tag Report
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           npm run generate-tag-report
 
       - name: Upload Report to S3
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           # Upload to timestamped folder
           echo "Uploading report to S3..."
@@ -302,7 +336,7 @@ jobs:
           echo "TIMESTAMPED_TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
 
       - name: Parse Test Results
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           # Parse test results from test-results directory
           if [ -f "test-results/test-results.json" ]; then
@@ -353,7 +387,7 @@ jobs:
           echo "Total: $TOTAL_TESTS, Passed: $PASSED_TESTS, Failed: $FAILED_TESTS (Actual: $ACTUAL_FAILED, Known: $KNOWN_FAILED), Skipped: $SKIPPED_TESTS, Flaky: $FLAKY_TESTS"
 
       - name: Send Slack Notification
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
@@ -379,7 +413,7 @@ jobs:
           fi
 
       - name: Send Smart Slack Notifications
-        if: always() && (github.event_name == 'schedule' || matrix.test_category == (inputs.test_category || 'ui'))
+        if: always()
         run: |
           WEBHOOKS=(" $E2E_SLACK_WEBHOOK_URL " " $CONTENT_QA_SLACK_WEBHOOK_URL ")
            # Check if tests were executed

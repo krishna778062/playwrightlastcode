@@ -23,7 +23,7 @@ test.describe(
     });
 
     test(
-      'verify if end user does not select any option from bulk options apply button should be disabled',
+      'verify if end user does not select any option from bulk options apply button should be disabled CONT-25065',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25065'],
       },
@@ -43,7 +43,7 @@ test.describe(
     );
 
     test(
-      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen CONT-25099',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25099'],
       },
@@ -183,7 +183,7 @@ test.describe(
     );
 
     test(
-      'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+      'verify user should be able to filter the content on the "Created Date Oldest First" filter CONT-25057',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25057'],
       },
@@ -213,7 +213,7 @@ test.describe(
       }
     );
     test(
-      'verify user should be able to filter the content on the "Published Date Oldest First" filter',
+      'verify user should be able to filter the content on the "Published Date Oldest First" filter CONT-25056',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25056'],
       },
@@ -244,7 +244,7 @@ test.describe(
       }
     );
     test(
-      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content CONT-25050',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25050'],
       },
@@ -285,7 +285,7 @@ test.describe(
     );
 
     test(
-      'application allow to filter on my content page using Author By filter',
+      'application allow to filter on my content page using Author By filter CONT-10822',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-10822'],
       },

@@ -257,7 +257,7 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType}`,
+        `Verify Delete File from File Preview Page doesn't appears on ${testData.feedType} ${testData.storyId}`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, `@${testData.storyId}`],
         },

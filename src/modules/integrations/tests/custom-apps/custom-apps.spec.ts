@@ -43,6 +43,167 @@ test.describe(
     });
 
     test(
+      'verify search field accepts input and displays results',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.searchForApps('Airtable');
+        await customAppsPage.verifyAppIsDisplayedInList('Airtable');
+        await customAppsPage.clearSearch();
+      }
+    );
+
+    test(
+      'verify search with no results displays appropriate message',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.searchForApps('NonExistentApp12345');
+        await customAppsPage.verifyNoResultsHeadingIsDisplayed();
+        await customAppsPage.verifyNoResultsDescriptionIsDisplayed('Try adjusting search term or filters');
+        await customAppsPage.verifyResultCountText('0 Apps');
+        await customAppsPage.clearSearch();
+      }
+    );
+
+    test(
+      'verify clicking on an app navigates to app detail page',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.searchAndOpenApp('Airtable');
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      'verify Status filter actually filters apps by status',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.selectStatusFilter('Enabled');
+        await customAppsPage.verifyAllAppsHaveStatus('Enabled');
+        await customAppsPage.clearStatusFilter();
+      }
+    );
+    test(
+      'verify result count displays correctly when apps are loaded',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.customAppsComponent.verifyResultCountIsVisible();
+      }
+    );
+
+    test(
+      'verify required form fields can be filled and Save button enables',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Test App ${faker.string.alphanumeric({ length: 6 })}`;
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.verifySaveButtonIsDisabled();
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.verifySaveButtonIsEnabled();
+      }
+    );
+
+    test(
+      'verify category dropdown displays all available category options',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Category Options');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
+        await customAppsPage.selectAppCategory('Calendar');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
+        await customAppsPage.selectAppCategory('CRM');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
+      }
+    );
+
+    test(
+      'verify form fields show correctly based on auth type selection',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Test App ${faker.string.alphanumeric({ length: 6 })}`;
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.selectConnectionType('App level');
+
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.verifyFieldIsDisplayed('API Token label');
+
+        await customAppsPage.selectAuthType('Basic Auth');
+        await customAppsPage.verifyFieldIsDisplayed('Username label');
+        await customAppsPage.verifyFieldIsDisplayed('Password label');
+
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.verifyFieldIsDisplayed('OAuth 2.0 type');
+      }
+    );
+
+    test(
       'verify the search field functionality on "Custom Apps" page',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
@@ -145,6 +306,78 @@ test.describe(
         await customAppsPage.selectAppCategory('Other');
         await customAppsPage.uploadLogoFile('Jira_Custom_App.jpg');
         await customAppsPage.verifyUploadedLogoDetails('Jira_Custom_App', 'JPG');
+      }
+    );
+
+    test(
+      'verify user is able to replace logo by removing existing logo and uploading a new one ',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28965',
+        });
+
+        const appName = `TestCustomApp name ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Test Description ${faker.lorem.sentence()}`;
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.verifySaveButtonIsDisabled(); // Verify save button is disabled when required fields are not filled
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(appDescription);
+        await customAppsPage.selectAppCategory('Other');
+
+        // Upload first logo
+        await customAppsPage.uploadLogoFile('Jira_Custom_App.jpg');
+        await customAppsPage.verifyUploadedLogoDetails('Jira_Custom_App', 'JPG');
+        await customAppsPage.verifyRemoveLogoButtonIsDisplayed();
+
+        // Remove the first logo
+        await customAppsPage.clickRemoveLogoButton();
+
+        // Verify logo is removed - logo preview should not be visible
+        await customAppsPage.verifyLogoPreviewIsHidden();
+
+        // Upload a new logo
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.verifyUploadedLogoDetails('favicon', 'PNG');
+        await customAppsPage.verifyRemoveLogoButtonIsDisplayed();
+      }
+    );
+
+    test(
+      'verify URL validations for custom app configuration fields',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28923',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName(`Test App ${faker.string.alphanumeric({ length: 6 })}`);
+        await customAppsPage.enterAppDescription(`Test Description ${faker.lorem.sentence()}`);
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('Jira_Custom_App.jpg');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Auth Code');
+
+        // Enter invalid URLs for required fields
+        await customAppsPage.enterFieldValue('Auth URL', 'invalid-auth-url');
+        await customAppsPage.enterFieldValue('Token URL', 'invalid-token');
+        await customAppsPage.enterFieldValue('Base URL', 'invalid base url');
+
+        // Attempt to save
+        await customAppsPage.clickSaveButtonOnForm();
+
+        // Verify validation errors for all URL fields
+        await customAppsPage.verifyUrlValidationError('Invalid Auth URL format');
+        await customAppsPage.verifyUrlValidationError('Invalid Token URL format');
+        await customAppsPage.verifyUrlValidationError('Invalid Base URL format');
       }
     );
 
@@ -1645,6 +1878,832 @@ test.describe(
         await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppSettingsUpdatedMessage(updatedAppName));
         await customAppsPage.verifyAppNameInHeader(updatedAppName);
         await customAppsPage.verifyTextIsDisplayed(updatedDescription);
+      }
+    );
+
+    test(
+      'verify correct prebuilt apps are visible on using both search filter and categories dropdown',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23501',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
+        await customAppsPage.clickCategoryButtonInPrebuiltDialog();
+        await customAppsPage.selectCategoryRadioInPrebuiltDialog('Calendar');
+        await customAppsPage.searchForPrebuiltApp('Auth0');
+        await customAppsPage.verifyCreateYourOwnAppTextIsDisplayed();
+        await customAppsPage.verifyNoResultsMessageWithCreateOwnApp();
+      }
+    );
+
+    test(
+      'verify delete custom app without connection',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25365',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        // Create app without connecting
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        // Delete app without connection
+        await customAppsPage.deleteAppAndVerify(appName);
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.CUSTOM_APPS_EMPTY_STATE);
+        createdAppName = null;
+      }
+    );
+
+    test(
+      'verify user can navigate back to custom apps list using breadcrumb',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25363',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        // Create app and navigate to details
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyAppNameInHeader(appName);
+
+        // Navigate back using breadcrumb
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.verifyAppIsDisplayedInList(appName);
+      }
+    );
+
+    test(
+      'verify Show next items button reveals additional filter options',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-13513',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        // Verify Type filter functionality which requires Show next items
+        await customAppsPage.selectTypeFilter('Custom');
+        await customAppsPage.verifyAllAppsHaveType('Custom');
+        await customAppsPage.clearTypeFilter();
+      }
+    );
+
+    test(
+      'verify app is not visible in External Apps page after disabling',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-13512',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const externalAppsPage = new ExternalAppsPage(appManagerFixture.page);
+        const appName = `Auth0 Disable Test ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Auth0 Disable Test Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        // Create and enable app
+        await customAppsPage.createAuth0PkceApp(appName, appDescription, 'Plain');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.enableApp();
+
+        // Verify app is visible in External Apps
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.scrollPageBy(1000);
+        await externalAppsPage.verifyCustomAppIsVisible(appName);
+
+        // Disable the app
+        await customAppsPage.loadPage();
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.searchAndOpenApp(appName);
+        await customAppsPage.disableAppAndVerify(appName);
+
+        // Verify app is not visible in External Apps after disabling
+        await externalAppsPage.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.scrollPageBy(1000);
+        await externalAppsPage.verifyCustomAppIsNotVisible(appName);
+      }
+    );
+
+    test(
+      'verify invalid API token shows error or fails to connect',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-13511',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        // Create app
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        // Enter invalid API token
+        await customAppsPage.enterAPIToken('invalid-api-token-12345');
+
+        // Verify connection is not established - checklist item should remain unchecked
+        await customAppsPage.verifyChecklistItemIsUnchecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+      }
+    );
+
+    test(
+      'verify cancel button in delete dialog does not delete the app',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14330',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        // Create app
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        // Open delete dialog and cancel
+        await customAppsPage.customAppsComponent.selectConnectorOption(AppConnectorOptions.Delete);
+        await customAppsPage.verifyDialogTitle(MESSAGES.DELETE_CUSTOM_APP_DIALOG_TITLE);
+        await customAppsPage.clickCancelButton();
+
+        // Verify app still exists
+        await customAppsPage.verifyAppNameInHeader(appName);
+      }
+    );
+
+    test(
+      'verify cancel button in disconnect dialog does not disconnect the account',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14329',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const trelloApp = CUSTOM_APPS_TEST_DATA.TRELLO_API_TOKEN_APP;
+        const appName = `${trelloApp.NAME_PREFIX} ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        // Create and connect app
+        await customAppsPage.createTrelloApiTokenApp(appName, trelloApp.DESCRIPTION);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.enterAPIToken(CREDENTIALS.TRELLO.API_TOKEN);
+        await customAppsPage.verifyDisconnectAccountButtonIsDisplayed();
+        await customAppsPage.verifyChecklistItemIsChecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+
+        // Open disconnect dialog and cancel
+        await customAppsPage.clickDisconnectAccountButton();
+        await customAppsPage.verifyDialogTitle(MESSAGES.DISCONNECT_CUSTOM_APP_DIALOG_TITLE);
+        await customAppsPage.clickCancelButton();
+
+        // Verify account is still connected
+        await customAppsPage.verifyDisconnectAccountButtonIsDisplayed();
+        await customAppsPage.verifyChecklistItemIsChecked(MESSAGES.CHECKLIST_CONNECT_APP_LEVEL);
+      }
+    );
+
+    test(
+      'verify form fields displayed for API Token auth type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14328',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test API Token Fields');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('API Token');
+
+        // Verify API Token specific fields are displayed
+        await customAppsPage.verifyFieldIsDisplayed('Base URL');
+        await customAppsPage.verifyFieldIsDisplayed('API Token label');
+        await customAppsPage.verifyFieldIsDisplayed('Authorization header');
+      }
+    );
+
+    test(
+      'verify form fields displayed for Basic Auth type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14327',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Basic Auth Fields');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('Basic Auth');
+
+        // Verify Basic Auth specific fields are displayed
+        await customAppsPage.verifyFieldIsDisplayed('Base URL');
+        await customAppsPage.verifyFieldIsDisplayed('Username label');
+        await customAppsPage.verifyFieldIsDisplayed('Password label');
+      }
+    );
+
+    test(
+      'verify form fields displayed for OAuth 2.0 Auth Code type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14324',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test OAuth Auth Code Fields');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Auth Code');
+
+        // Verify OAuth 2.0 Auth Code specific fields are displayed
+        await customAppsPage.verifyFieldIsDisplayed('Client ID');
+        await customAppsPage.verifyFieldIsDisplayed('Secret key');
+        await customAppsPage.verifyFieldIsDisplayed('Auth URL');
+        await customAppsPage.verifyFieldIsDisplayed('Token URL');
+        await customAppsPage.verifyFieldIsDisplayed('Base URL');
+        await customAppsPage.verifyTextIsDisplayed('Add headers for Token URL');
+      }
+    );
+
+    test(
+      'verify form fields displayed for OAuth 2.0 Auth Code with PKCE type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14158',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test OAuth PKCE Fields');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('User level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Auth Code with PKCE');
+
+        // Verify OAuth 2.0 PKCE specific fields are displayed
+        await customAppsPage.verifyFieldIsDisplayed('Code challenge method');
+        await customAppsPage.verifyFieldIsDisplayed('Client ID');
+        await customAppsPage.verifyFieldIsDisplayed('Secret key');
+        await customAppsPage.verifyFieldIsDisplayed('Auth URL');
+        await customAppsPage.verifyFieldIsDisplayed('Token URL');
+        await customAppsPage.verifyFieldIsDisplayed('Base URL');
+      }
+    );
+
+    test(
+      'verify form fields displayed for OAuth 2.0 Client Credentials type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14157',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Client Credentials Fields');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Client Credentials');
+
+        // Verify Client Credentials specific fields are displayed
+        await customAppsPage.verifyFieldIsDisplayed('Client ID label');
+        await customAppsPage.verifyFieldIsDisplayed('Secret key label');
+        await customAppsPage.verifyFieldIsDisplayed('Token URL');
+        await customAppsPage.verifyFieldIsDisplayed('Base URL');
+      }
+    );
+
+    test(
+      'verify OAuth 2.0 redirect URL is displayed when OAuth auth type is selected',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-10642',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test OAuth Redirect URL');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+
+        // Verify redirect URL guidance message is displayed
+        await customAppsPage.verifyTextIsDisplayed('Use this redirect URL when setting up your OAuth 2.0 app');
+        await customAppsPage.verifyTextIsDisplayed('connector/callback');
+      }
+    );
+
+    test(
+      'verify Code challenge method dropdown options for PKCE auth type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-10640',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test PKCE Code Challenge');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('User level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Auth Code with PKCE');
+
+        // Verify Code challenge method field is displayed
+        await customAppsPage.verifyFieldIsDisplayed('Code challenge method');
+
+        // Select Plain method and verify
+        await customAppsPage.selectCodeChallengeMethod('Plain');
+
+        // Select SHA-256 method and verify
+        await customAppsPage.selectCodeChallengeMethod('SHA-256');
+      }
+    );
+
+    test(
+      'verify required field validation error for Client ID',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-28637',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Client ID Validation');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('User level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.selectSubAuthType('Auth Code');
+
+        // Click on Client ID field and blur to trigger validation
+        await customAppsPage.clickSaveButtonOnForm();
+
+        // Verify Client ID required error is displayed
+        await customAppsPage.verifyTextIsDisplayed('Client ID is required');
+      }
+    );
+
+    test(
+      'verify required field validation error for OAuth 2.0 type',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-26520',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test OAuth Type Validation');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level & user level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+
+        // Do not select OAuth 2.0 type and try to save
+        await customAppsPage.clickSaveButtonOnForm();
+
+        // Verify OAuth 2.0 type required error is displayed
+        await customAppsPage.verifyTextIsDisplayed('OAuth 2.0 type is required');
+      }
+    );
+
+    test(
+      'verify all three connection type options are available',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14331',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Connection Types');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+
+        // Verify App level connection type
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.verifyTextIsDisplayed('App level connection requires only an app manager to connect');
+
+        // Verify User level connection type
+        await customAppsPage.selectConnectionType('User level');
+        await customAppsPage.verifyTextIsDisplayed(
+          'user level connection requires all users to connect their accounts'
+        );
+
+        // Verify App level & user level connection type
+        await customAppsPage.selectConnectionType('App level & user level');
+        await customAppsPage.verifyTextIsDisplayed('App level connection requires only an app manager to connect');
+      }
+    );
+
+    test(
+      'verify all three auth type options are available',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22242',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Auth Types');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+
+        // Verify API Token auth type
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.verifyFieldIsDisplayed('API Token label');
+
+        // Verify Basic Auth type
+        await customAppsPage.selectAuthType('Basic Auth');
+        await customAppsPage.verifyFieldIsDisplayed('Username label');
+
+        // Verify OAuth 2.0 auth type
+        await customAppsPage.selectAuthType('OAuth 2.0');
+        await customAppsPage.verifyFieldIsDisplayed('OAuth 2.0 type');
+      }
+    );
+
+    test(
+      'verify all OAuth 2.0 sub-type options are available for App level connection',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22241',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test OAuth Sub Types');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('OAuth 2.0');
+
+        // Verify Auth Code sub-type
+        await customAppsPage.selectSubAuthType('Auth Code');
+        await customAppsPage.verifyFieldIsDisplayed('Client ID');
+
+        // Verify Auth Code with PKCE sub-type
+        await customAppsPage.selectSubAuthType('Auth Code with PKCE');
+        await customAppsPage.verifyFieldIsDisplayed('Code challenge method');
+
+        // Verify Client Credentials sub-type
+        await customAppsPage.selectSubAuthType('Client Credentials');
+        await customAppsPage.verifyFieldIsDisplayed('Client ID label');
+      }
+    );
+
+    test(
+      'verify empty state layout when no prebuilt apps match search term or filter',
+      {
+        tag: [TestPriority.P1],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23500',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+
+        // Open prebuilt app dialog
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
+
+        // Select a category and enter search term that returns no results
+        await customAppsPage.clickCategoryButtonInPrebuiltDialog();
+        await customAppsPage.selectCategoryRadioInPrebuiltDialog('Calendar');
+        await customAppsPage.searchForPrebuiltApp('nonexistentapp123');
+
+        // Verify empty state with "Create your own app" option is displayed
+        await customAppsPage.verifyCreateYourOwnAppTextIsDisplayed();
+        await customAppsPage.verifyNoResultsMessageWithCreateOwnApp();
+        await customAppsPage.verifyTextIsDisplayed(MESSAGES.APP_NOT_AVAILABLE_HEADING);
+
+        // Click on "Create your own app" link and verify Add custom app page is displayed
+        await customAppsPage.clickCreateYourOwnAppLink();
+        await customAppsPage.verifyUrlContains('manage/app/integrations/custom/new');
+        await customAppsPage.verifyTextIsDisplayed('Add custom app');
+        await customAppsPage.verifyTextIsDisplayed('Details');
+        await customAppsPage.verifyFieldIsDisplayed('Custom app name');
+        await customAppsPage.verifyFieldIsDisplayed('Description');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
+        await customAppsPage.verifyTextIsDisplayed('Logo');
+        await customAppsPage.verifyTextIsDisplayed('Configuration');
+        await customAppsPage.verifyFieldIsDisplayed('Connection type');
+        await customAppsPage.verifyFieldIsDisplayed('Auth type');
+      }
+    );
+
+    test(
+      'verify logo file size validation rejects files exceeding 100KB',
+      {
+        tag: [TestPriority.P3],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-14512',
+        });
+
+        const appName = `TestCustomApp name ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Test Description ${faker.lorem.sentence()}`;
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(appDescription);
+        await customAppsPage.selectAppCategory('Other');
+
+        // Attempt to upload logo file exceeding 100KB
+        await customAppsPage.uploadLogoFile('SizeMoreThan300KB.jpg');
+
+        // Verify error toast message is displayed
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.IMAGE_UPLOAD_FAILED_MESSAGE);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.FILE_SIZE_SHOULD_NOT_EXCEED_100KB_MESSAGE);
+
+        // Verify logo preview is not displayed (file was rejected)
+        await customAppsPage.verifyLogoPreviewIsHidden();
+      }
+    );
+
+    test(
+      'verify duplicate custom app name validation shows error message',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-22240',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `Duplicate Test App ${faker.string.alphanumeric({ length: 6 })}`;
+        const appDescription = `Test Description ${faker.lorem.sentence()}`;
+        createdAppName = appName;
+
+        // Create first app
+        await customAppsPage.createTrelloApiTokenApp(appName, appDescription);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+
+        // Navigate back to create another app
+        await customAppsPage.navigateToCustomAppsList();
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+
+        // Try to create app with duplicate name
+        await customAppsPage.enterAppName(appName);
+        await customAppsPage.enterAppDescription(appDescription);
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.uploadLogoFile('favicon.png');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.enterFieldValue('Base URL', 'https://api.example.com');
+        await customAppsPage.enterFieldValue('API Token label', 'API Token');
+        await customAppsPage.enterFieldValue('Authorization header', 'Authorization');
+
+        // Try to save with duplicate name
+        await customAppsPage.clickSaveButtonOnForm();
+
+        // Verify duplicate name error message is displayed
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CUSTOM_APP_NAME_ALREADY_EXISTS);
+      }
+    );
+
+    test(
+      'verify custom apps list page loads successfully',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.loadPage();
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.verifyTextIsDisplayed('Custom apps');
+        await customAppsPage.customAppsComponent.verifyResultCountIsVisible();
+      }
+    );
+
+    test(
+      'verify can create a basic custom app with required fields',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        const appName = `P0 Test App ${faker.string.alphanumeric({ length: 6 })}`;
+        createdAppName = appName;
+
+        await customAppsPage.loadPage();
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.createTrelloApiTokenApp(appName, 'Test Description for P0 test');
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(appName));
+        await customAppsPage.verifyAppNameInHeader(appName);
+      }
+    );
+
+    test(
+      'verify Sort functionality works correctly on list page',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.loadPage();
+        await customAppsPage.verifyThePageIsLoaded();
+        await customAppsPage.selectSortBy('Name');
+        await customAppsPage.selectSortOrder('Oldest first');
+        await customAppsPage.verifyAppsSortedAlphabeticallyAZ();
+        await customAppsPage.selectSortOrder('Newest first');
+        await customAppsPage.verifyAppsSortedAlphabeticallyZA();
+      }
+    );
+
+    test(
+      'verify required field validation shows error messages',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.loadPage();
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test App');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.selectAuthType('API Token');
+        await customAppsPage.verifySaveButtonIsEnabled();
+        await customAppsPage.enterAppName('');
+        await customAppsPage.verifyRequiredFieldError('Custom app name');
+      }
+    );
+
+    test(
+      'verify connection type dropdown displays all available options',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await customAppsPage.loadPage();
+        await customAppsPage.clickAddCustomAppOption(CustomAppType.CREATE_OWN_APP);
+        await customAppsPage.enterAppName('Test Connection');
+        await customAppsPage.enterAppDescription('Test Description');
+        await customAppsPage.selectAppCategory('Other');
+        await customAppsPage.selectConnectionType('App level');
+        await customAppsPage.verifyFieldIsDisplayed('Connection type');
+        await customAppsPage.selectConnectionType('User level');
+        await customAppsPage.verifyFieldIsDisplayed('Connection type');
+        await customAppsPage.selectConnectionType('App level & user level');
+        await customAppsPage.verifyFieldIsDisplayed('Connection type');
+      }
+    );
+
+    test(
+      'verify direct navigation to new custom app page URL works',
+      {
+        tag: [TestPriority.P1, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+
+        const customAppsPage = new CustomAppsIntegrationPage(appManagerFixture.page);
+        await appManagerFixture.page.goto('/manage/app/integrations/custom/new');
+        await customAppsPage.verifyTextIsDisplayed('Add custom app');
+        await customAppsPage.verifyFieldIsDisplayed('Custom app name');
+        await customAppsPage.verifyFieldIsDisplayed('Description');
+        await customAppsPage.verifyFieldIsDisplayed('App category');
       }
     );
   }

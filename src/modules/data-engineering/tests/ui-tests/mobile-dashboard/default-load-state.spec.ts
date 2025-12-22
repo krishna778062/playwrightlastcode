@@ -16,6 +16,7 @@ import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupMobileDashboardForTest,
@@ -52,8 +53,8 @@ test.describe(
       testEnvironment = await setupMobileDashboardForTest(browser, UserRole.APP_MANAGER);
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
-        timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS, //default period filter
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
+        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, //default period filter
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;

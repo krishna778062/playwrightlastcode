@@ -124,6 +124,125 @@ export class ContentManagementHelper {
     };
   }
 
+  /**
+   * Gets an array of content items with siteId, contentId, and contentType
+   * Similar to getContentId but returns an array of matching content items up to the specified count
+   * @param count - Number of content items to return
+   * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
+   * @returns Promise with array of objects containing siteId, contentId, and contentType (up to count items)
+   */
+  async getContentItems(
+    count: number,
+    options?: {
+      size?: number;
+      status?: string;
+      sortBy?: string;
+      accessType?: SITE_TYPES;
+    }
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
+    const response = await this.contentManagementService.getContentList(options);
+
+    if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
+      // Filter content by site access type
+      const filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (filteredContent.length > 0) {
+        // Map to content items and limit to count
+        const contentItems = filteredContent.map((content: any) => ({
+          siteId: content.site.siteId,
+          contentId: content.contentId || content.id,
+          contentType: content.type,
+        }));
+
+        // If we have enough items, return up to count
+        if (contentItems.length >= count) {
+          return contentItems.slice(0, count);
+        }
+
+        // We have some items but not enough, create the remaining ones
+        const itemsNeeded = count - contentItems.length;
+        const createdItems = await this.createContentItems(itemsNeeded, accessType);
+        return [...contentItems, ...createdItems];
+      }
+    }
+
+    // No content found, create the requested number of content items
+    const createdItems = await this.createContentItems(count, accessType);
+    return createdItems;
+  }
+
+  /**
+   * Helper method to create content items when not enough are found
+   * @param count - Number of content items to create
+   * @param accessType - Site access type for filtering sites
+   * @returns Array of created content items
+   */
+  private async createContentItems(
+    count: number,
+    accessType: SITE_TYPES
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
+
+    if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+      throw new Error(`No ${accessType} sites found in site service`);
+    }
+
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    const createdItems: Array<{ siteId: string; contentId: string; contentType: string }> = [];
+
+    // Create the requested number of pages
+    for (let i = 0; i < count; i++) {
+      // Get a random active site for each content item
+      const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+      const randomSite = activeSites[randomSiteIndex];
+      const siteId = randomSite.siteId;
+
+      // Create a page in the selected site
+      const pageResult = await this.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'general',
+        },
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      createdItems.push({
+        siteId: pageResult.siteId,
+        contentId: pageResult.contentId,
+        contentType: 'page',
+      });
+    }
+
+    return createdItems;
+  }
+
   async makeContentMustRead(
     contentId: string,
     options: {
@@ -1031,5 +1150,147 @@ export class ContentManagementHelper {
     }
 
     return templateResult;
+  }
+
+  /**
+   * Finds a site with a page category that has more than 16 pages, or creates pages to reach that count
+   * @param options - Optional parameters
+   * @param options.minPageCount - Minimum page count required (default: 17)
+   * @param options.maxSitesToCheck - Maximum number of sites to check (default: 10)
+   * @returns Promise with site info, category info, and page count
+   */
+  async getSiteWithPageCategoryHavingMoreThan16Pages(
+    options: {
+      minPageCount?: number;
+      maxSitesToCheck?: number;
+    } = {}
+  ): Promise<{
+    siteId: string;
+    siteName: string;
+    categoryId: string;
+    categoryName: string;
+    pageCount: number;
+  }> {
+    const minPageCount = options.minPageCount ?? 17;
+    const maxSitesToCheck = options.maxSitesToCheck ?? 10;
+
+    return await test.step(`Finding site with page category having more than ${minPageCount - 1} pages`, async () => {
+      // Get list of sites
+      const sitesResponse = await this.siteManagementService.getListOfSites({
+        size: maxSitesToCheck,
+        canManage: true,
+        filter: 'active',
+      });
+
+      if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+        throw new Error('No sites found');
+      }
+
+      let bestCategory: {
+        siteId: string;
+        siteName: string;
+        categoryId: string;
+        categoryName: string;
+        pageCount: number;
+      } | null = null;
+      let highestPageCount = 0;
+
+      // Iterate through sites
+      for (const site of sitesResponse.result.listOfItems) {
+        const siteId = site.siteId;
+        const siteName = site.name;
+
+        if (!siteId) {
+          log.debug(`Skipping site without ID: ${siteName || 'Unknown'}`);
+          continue;
+        }
+
+        try {
+          // Get page categories for this site
+          const categoriesResponse = await this.contentManagementService.getPageCategoriesList(siteId, {
+            size: 999,
+            sortBy: 'createdNewest',
+          });
+
+          if (!categoriesResponse.result?.listOfItems || categoriesResponse.result.listOfItems.length === 0) {
+            log.debug(`No page categories found for site ${siteId}`);
+            continue;
+          }
+
+          // Find category with pageCount > minPageCount, or track the highest
+          for (const category of categoriesResponse.result.listOfItems) {
+            const pageCount = category.pageCount || 0;
+
+            // If we find one with more than minPageCount, use it immediately
+            if (pageCount >= minPageCount) {
+              log.info(`Found category with ${pageCount} pages in site ${siteName}`);
+              return {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+
+            // Track the category with highest page count
+            if (pageCount > highestPageCount) {
+              highestPageCount = pageCount;
+              bestCategory = {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+          }
+        } catch (error) {
+          log.warn(`Error checking site ${siteId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          continue;
+        }
+      }
+
+      // If we found a category but it has <= minPageCount, create more pages
+      if (bestCategory) {
+        const pagesToCreate = minPageCount - bestCategory.pageCount;
+        log.info(
+          `Category "${bestCategory.categoryName}" in site "${bestCategory.siteName}" has ${bestCategory.pageCount} pages. Creating ${pagesToCreate} more pages.`
+        );
+
+        // Get the category info for creating pages
+        const pageCategory = {
+          categoryId: bestCategory.categoryId,
+          name: bestCategory.categoryName,
+        };
+
+        // Create pages to reach minPageCount
+        for (let i = 0; i < pagesToCreate; i++) {
+          await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
+            title: `Test Page ${Date.now()}_${i}`,
+            bodyHtml: `<p>Auto-generated page for testing category with >16 pages</p>`,
+            contentType: 'page',
+            contentSubType: 'knowledge',
+            category: {
+              id: pageCategory.categoryId,
+              name: pageCategory.name,
+            },
+          });
+        }
+
+        // Update page count
+        bestCategory.pageCount = minPageCount;
+
+        log.info(
+          `Created ${pagesToCreate} pages. Category "${bestCategory.categoryName}" now has ${bestCategory.pageCount} pages.`
+        );
+
+        return bestCategory;
+      }
+
+      throw new Error(
+        `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
+      );
+    });
   }
 }
