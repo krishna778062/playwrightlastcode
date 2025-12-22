@@ -77,7 +77,7 @@ test.describe(
     });
 
     test(
-      'verify user can create, edit and delete a feed post with attachments',
+      'verify user can create, edit and delete a feed post with attachments CONT-19533',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments', '@healthcheck'],
       },
@@ -128,7 +128,7 @@ test.describe(
     );
 
     test(
-      'verify user can create, edit and delete a feed post with file attachment on site feed',
+      'verify user can create, edit and delete a feed post with file attachment on site feed CONT-19544',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19544'],
       },
@@ -227,7 +227,7 @@ test.describe(
     );
 
     test(
-      'verify user can create, edit and delete a feed post with file attachment on content feed',
+      'verify user can create, edit and delete a feed post with file attachment on content feed CONT-19540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
       },
@@ -345,7 +345,7 @@ test.describe(
     );
 
     test(
-      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site CONT-24150',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-24150'],
       },
@@ -402,7 +402,7 @@ test.describe(
     );
 
     test(
-      'verify user is able to add video to a feed post using "Browse files"',
+      'verify user is able to add video to a feed post using "Browse files" CONT-36599',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36599'],
       },
@@ -462,7 +462,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option CONT-28219',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28219'],
       },
@@ -548,7 +548,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option CONT-28215',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28215'],
       },
@@ -624,7 +624,7 @@ test.describe(
     );
 
     test(
-      'sU : Verify site owner or manager can edit or delete comments from other users',
+      'sU : Verify site owner or manager can edit or delete comments from other users CONT-26611',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
       },
@@ -670,7 +670,7 @@ test.describe(
     );
 
     test(
-      'sU : Verify that application should not allow user to view the Private or unlisted site content comment using link',
+      'sU : Verify that application should not allow user to view the Private or unlisted site content comment using link CONT-26362',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26362'],
       },
@@ -763,7 +763,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
+      'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post CONT-26727',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-26727'],
       },
@@ -861,7 +861,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site',
+      'in Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site CONT-26801',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26801'],
       },
@@ -974,7 +974,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from home feed',
+      'verify user can create and share recognition from home feed CONT-28581',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28581'],
       },
@@ -1045,7 +1045,7 @@ test.describe(
     );
 
     test.describe(
-      'inappropriate content warning tests',
+      'inappropriate content warning tests CONT-28090',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },
@@ -1170,7 +1170,7 @@ test.describe(
         };
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User CONT-42996',
           {
             tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090', '@inappropriate-content-warning'],
           },
@@ -1203,7 +1203,7 @@ test.describe(
         );
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager CONT-42996',
           {
             tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996', '@inappropriate-content-warning'],
           },
@@ -1250,7 +1250,7 @@ test.describe(
         );
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Member',
+          'verify warning popup appears when inappropriate content is submitted for Site Member CONT-42997',
           {
             tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997', '@inappropriate-content-warning'],
           },
@@ -1279,7 +1279,7 @@ test.describe(
           }
         );
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Owner',
+          'verify warning popup appears when inappropriate content is submitted for Site Owner CONT-42999',
           {
             tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999', '@inappropriate-content-warning'],
           },
@@ -1310,7 +1310,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from site feed',
+      'verify user can create and share recognition from site feed CONT-28582',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28582'],
       },
@@ -1386,7 +1386,7 @@ test.describe(
     );
 
     test(
-      'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment',
+      'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment CONT-28091',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28091'],
       },
@@ -1661,7 +1661,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from home feed to site feed',
+      'verify user can create and share recognition from home feed to site feed CONT-28583',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28583'],
       },
@@ -1744,7 +1744,7 @@ test.describe(
     );
 
     test(
-      'verify inappropriate content warning when sharing feed posts/comments',
+      'verify inappropriate content warning when sharing feed posts/comments CONT-28474',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28474'],
       },
@@ -1970,7 +1970,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from site feed to home feed',
+      'verify user can create and share recognition from site feed to home feed CONT-28584',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28584'],
       },
@@ -2048,7 +2048,7 @@ test.describe(
     );
 
     test(
-      'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard',
+      'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard CONT-28476',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28476'],
       },
@@ -2442,7 +2442,7 @@ test.describe(
     );
 
     test(
-      'verify user is able to see Follow button on hovering profile icon on Home Feed',
+      'verify user is able to see Follow button on hovering profile icon on Home Feed CONT-20094',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20094'],
       },
@@ -2648,7 +2648,7 @@ test.describe(
     );
 
     test(
-      'verify Admin can create, edit and delete a feed post with multiple file attachments on Home Feed',
+      'verify Admin can create, edit and delete a feed post with multiple file attachments on Home Feed CONT-24135',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24135'],
       },

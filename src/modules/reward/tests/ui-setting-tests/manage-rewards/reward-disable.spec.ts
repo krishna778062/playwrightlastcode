@@ -11,7 +11,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
-    '[RC-2198] Validate disable rewards flow',
+    'RC-2198 Validate disable rewards flow',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },
@@ -120,7 +120,7 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   );
 
   test(
-    '[RC-3247] Validate Disable rewards flow, if there are no unredeemed points in users wallets',
+    'RC-3247 Validate Disable rewards flow, if there are no unredeemed points in users wallets',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0],
     },
@@ -194,7 +194,7 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   );
 
   test(
-    '[RC-3249] Validate localisation for "confirm" field on Disable rewards confirmation dialogue.',
+    'RC-3249 Validate localisation for "confirm" field on Disable rewards confirmation dialogue.',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.DISABLE_REWARD, TestPriority.P0],
     },

@@ -22,7 +22,7 @@ test.describe('protected Authors', () => {
   test.afterEach(async ({}) => {});
 
   test(
-    'verify As an application manager, I should be able to add the users to protected authors - authors list)',
+    'verify As an application manager, I should be able to add the users to protected authors - authors list) CONT-32768',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_AUTHOR],
     },
@@ -53,7 +53,7 @@ test.describe('protected Authors', () => {
   );
 
   test(
-    'verify As an application manager, I should be able to add the users to protected authors - allow list)',
+    'verify As an application manager, I should be able to add the users to protected authors - allow list) CONT-32769',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],
     },

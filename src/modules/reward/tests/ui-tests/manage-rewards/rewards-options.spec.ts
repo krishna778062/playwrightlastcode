@@ -10,7 +10,7 @@ import { tagTest } from '@core/utils';
 
 test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
-    'a - Verify Reward options only visible to App managers',
+    'RC-5371 Verify Reward options only visible to App managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -31,7 +31,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'b - Verify Reward options only visible to recognition managers',
+    'RC-5371 Verify Reward options only visible to recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -52,7 +52,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'verify Reward options not visible to user other than recognition managers',
+    'RC-5374 Verify Reward options not visible to user other than recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -71,7 +71,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'validate search box on rewards option page',
+    'RC-5386 Validate search box on rewards option page',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_OPTIONS,
@@ -101,7 +101,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5385] Validate sorting of column on rewards options page',
+    'RC-5385 Validate sorting of column on rewards options page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -173,7 +173,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5570] Validate show more button on rewards option page',
+    'RC-5570 Validate show more button on rewards option page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -191,7 +191,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5377] Verify reward options when feature flag is enabled',
+    'RC-5377 Verify reward options when feature flag is enabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -223,7 +223,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5379] Verify rewards options when feature flag is disabled',
+    'RC-5379 Verify rewards options when feature flag is disabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -246,7 +246,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5567] Validate user should able to deactivate the active cards',
+    'RC-5567 Validate user should able to deactivate the active cards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -276,7 +276,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5568] Validate user should able to activate the inactive cards',
+    'RC-5568 Validate user should able to activate the inactive cards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -305,7 +305,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5433] Validate gift card on order history after user deactivate it',
+    'RC-5433 Validate gift card on order history after user deactivate it',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

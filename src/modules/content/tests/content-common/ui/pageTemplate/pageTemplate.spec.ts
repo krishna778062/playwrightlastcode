@@ -23,7 +23,7 @@ test.describe(
     test.afterEach(async ({}) => {});
 
     test(
-      'verify user should be able to add and edit page template created with more than 3 lakhs character within the editor',
+      'verify user should be able to add and edit page template created with more than 3 lakhs character within the editor CONT-25965',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.PAGE_CREATION, '@CONT-25965'],
       },

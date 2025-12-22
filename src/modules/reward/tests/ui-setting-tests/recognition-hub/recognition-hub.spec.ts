@@ -6,7 +6,7 @@ import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-h
 import { tagTest, TestGroupType, TestPriority } from '@/src/core';
 
 test(
-  '[RC-3099] Validate rewards points are not shown on posts when rewards is disabled.',
+  'RC-3099 Validate rewards points are not shown on posts when rewards is disabled.',
   {
     tag: [
       REWARD_FEATURE_TAGS.RECOGNITION_POINT_LABELING,
