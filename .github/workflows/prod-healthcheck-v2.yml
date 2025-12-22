@@ -65,6 +65,7 @@ on:
       is_browserstack:
         description: 'Enable BrowserStack'
         required: false
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
         default: false
         type: boolean
 
@@ -78,8 +79,8 @@ jobs:
       slack_prefix: Prod Healthcheck
       git_ref: ''
       # Scheduled: all modules, Manual: user choice
-      # Scheduled: all modules, Manual: user choice
       modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
-      is_browserstack: ${{ inputs.is_browserstack || false }}
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: false
       timeout_minutes: 120
     secrets: inherit
