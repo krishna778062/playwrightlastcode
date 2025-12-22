@@ -200,7 +200,7 @@ export const config = {
     prodCA: {
       tenantName: 'Reward Prod-CA Primary',
       frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
-      apiBaseUrl: 'https://winter-is-coming-1.ca-api.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
