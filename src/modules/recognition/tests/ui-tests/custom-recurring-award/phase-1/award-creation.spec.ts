@@ -71,7 +71,7 @@ test.describe('custom recurring award creation', () => {
       const { page: appManagerPage } = appManagerFixture;
       const recurringAwardPage = new RecurringAwardPage(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-      const appManagerName = getRecognitionTenantConfigFromCache().appManagerName;
+      const { appManagerName } = getRecognitionTenantConfigFromCache();
       await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
       await recurringAwardPage.clickRecurringAwardNewButton();
       await recurringAwardPage.fillRecurringAwardFormPageOne();
@@ -255,6 +255,46 @@ test.describe('recurring award custom range validation', () => {
     }
   );
 
+  test('validate Nomination close date and participation window custom option field for Monthly awards', async ({
+    appManagerFixture,
+  }) => {
+    const { page: appManagerPage } = appManagerFixture;
+    const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+    const appManagerName = getRecognitionTenantConfigFromCache().appManagerName;
+
+    await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+    await recurringAwardPage.clickRecurringAwardNewButton();
+    await recurringAwardPage.fillRecurringAwardFormPageOne();
+    await recurringAwardPage.fillRecurringAwardFormPageTwo(
+      appManagerName,
+      'Nominations',
+      'Monthly',
+      'America/Los_Angeles',
+      1
+    );
+
+    const assertMonthlyCustomRangeBounds = async (fieldTestId: string) => {
+      await recurringAwardPage.setCustomRangeForCustomRecurringAward({
+        fieldTestId,
+        minusClicks: 1,
+        expectedValue: 1,
+        expectMinusDisabled: true,
+      });
+
+      await recurringAwardPage.setCustomRangeForCustomRecurringAward({
+        fieldTestId,
+        plusClicks: 26,
+        expectedValue: 27,
+        expectPlusDisabled: true,
+      });
+    };
+
+    await assertMonthlyCustomRangeBounds('Participation window');
+    await assertMonthlyCustomRangeBounds('Nominations close');
+    await recurringAwardPage.selectOverdueOption('Custom');
+    await assertMonthlyCustomRangeBounds('Award overdue');
+  });
+
   test(
     'validate quarterly award allows max custom ranges (88 days) and saves successfully',
     {
@@ -309,6 +349,45 @@ test.describe('recurring award custom range validation', () => {
       await recurringAwardPage.submitRecurringAward();
       await manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
       await manageRecognitionPage.cleanupCreatedAward();
+    }
+  );
+});
+
+test.describe('custom recurring award details in final confirmation page', () => {
+  test(
+    'validate award frequency and schedule section on final confirmation create award page for nomination type award',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
+        TestPriority.P1,
+        TestGroupType.SANITY,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6182',
+        storyId: 'RC-3426',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+      const { appManagerName } = getRecognitionTenantConfigFromCache();
+      const timeZone = 'Africa/Algiers';
+      const nominationCloseDays = 27;
+      const awardOverdueDays = 2;
+      const monthsToValidate = 4;
+
+      await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      await recurringAwardPage.clickRecurringAwardNewButton();
+      await recurringAwardPage.fillRecurringAwardFormPageOne();
+      await recurringAwardPage.fillRecurringAwardFormPageTwo(appManagerName, 'Nominations', 'Monthly', timeZone, 1);
+      await recurringAwardPage.configureMonthlyScheduleAndValidateSummary({
+        timeZone,
+        participationWindowOption: 'Whole month',
+        nominationsCloseDays: nominationCloseDays,
+        awardOverdueDays,
+        monthsToValidate,
+      });
     }
   );
 });
