@@ -178,6 +178,7 @@ export interface IFeedActions {
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
+  verifyThePageIsLoaded(): Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;

@@ -2436,7 +2436,7 @@ test.describe(
 
         await feedPage.assertions.verifyPostDetails(postText, 1);
 
-        await feedPage.verifyThePageIsLoaded();
+        await feedPage.assertions.verifyThePageIsLoaded();
         await feedPage.assertions.waitForPostToBeVisible(postText);
 
         await feedPage.actions.deletePost(postText);
