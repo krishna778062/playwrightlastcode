@@ -25,7 +25,7 @@ test.describe(
     });
 
     test(
-      'verify published status for scheduled page by app manager',
+      'verify published status for scheduled page by app manager CONT-33059',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33059'],
       },
@@ -56,7 +56,7 @@ test.describe(
     );
 
     test(
-      'verify if Application Manager does not select any option from bulk options apply button should be disabled',
+      'verify if Application Manager does not select any option from bulk options apply button should be disabled CONT-25065',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25065'],
       },
@@ -90,7 +90,7 @@ test.describe(
     );
 
     test(
-      'verify application manager should be able to apply bulk options on selecting the Select All option',
+      'verify application manager should be able to apply bulk options on selecting the Select All option CONT-25063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25063'],
       },
@@ -169,7 +169,7 @@ test.describe(
     );
 
     test(
-      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen',
+      'verify different combination for filters for Manage By/Author By, Content type and sort by filter on Manage > Content screen CONT-25099',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25099'],
       },
@@ -280,7 +280,7 @@ test.describe(
       }
     );
     test(
-      'verify user should be able to filter the content on the "Created Date Oldest First" filter',
+      'verify user should be able to filter the content on the "Created Date Oldest First" filter CONT-25057',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25057'],
       },
@@ -325,7 +325,7 @@ test.describe(
       }
     );
     test(
-      'verify user should be able to filter the content on the "Published Date Oldest First" filter',
+      'verify user should be able to filter the content on the "Published Date Oldest First" filter CONT-25056',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25056'],
       },
@@ -360,7 +360,7 @@ test.describe(
     );
 
     test(
-      'verify app manager should be able to filter the content for the content status as Published and Unpublished',
+      'verify app manager should be able to filter the content for the content status as Published and Unpublished CONT-25058',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25058'],
       },
@@ -438,7 +438,7 @@ test.describe(
     );
 
     test(
-      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content',
+      'verify for the list API for content listing, it should have a limit of 16 and show more button should come for more than 16 content CONT-25050',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25050'],
       },

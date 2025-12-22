@@ -17,7 +17,7 @@ test.describe('manage Notifications', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   });
 
   test(
-    '[RC-3607] Validate new notification settings of rewards for Email setting',
+    'RC-3607 Validate new notification settings of rewards for Email setting',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_NOTIFICATIONS, TestPriority.P0],
     },
@@ -49,7 +49,7 @@ test.describe('manage Notifications', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   );
 
   test(
-    '[RC-3609] Validate new notification settings of rewards for Browser setting',
+    'RC-3609 Validate new notification settings of rewards for Browser setting',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_NOTIFICATIONS, TestPriority.P0],
     },
@@ -83,7 +83,7 @@ test.describe('manage Notifications', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
   );
 
   test(
-    '[RC-3610] Validate new notification settings of rewards for Mobile',
+    'RC-3610 Validate new notification settings of rewards for Mobile',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_NOTIFICATIONS, TestPriority.P0],
     },

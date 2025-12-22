@@ -62,7 +62,7 @@ test.describe(
     });
 
     test(
-      'verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site',
+      'verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site CONT-30521',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
       },
@@ -110,7 +110,7 @@ test.describe(
     );
 
     test(
-      'verify the Application Manager is able to add content from home dashboard on any unlisted site',
+      'verify the Application Manager is able to add content from home dashboard on any unlisted site CONT-39680',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39680'],
       },
@@ -159,7 +159,7 @@ test.describe(
     );
     // Additional test for disabled content submission
     test(
-      'verify the App Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the App Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39774',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39774'],
       },
@@ -213,7 +213,7 @@ test.describe(
     );
     // Additional test for disabled content submission
     test(
-      'verify the unlisted site Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the unlisted site Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39775',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39775'],
       },
@@ -269,7 +269,7 @@ test.describe(
 
     // Additional test for disabled content submission
     test(
-      'verify the App Manager not able to add content from home dashboard on any unlisted site when specific Content type is disabled at site level',
+      'verify the App Manager not able to add content from home dashboard on any unlisted site when specific Content type is disabled at site level CONT-39777',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39777'],
       },
@@ -296,7 +296,7 @@ test.describe(
     );
     // Additional test for disabled content submission
     test(
-      'verify the unlisted site Manager not able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the unlisted site Manager not able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39780',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39780'],
       },

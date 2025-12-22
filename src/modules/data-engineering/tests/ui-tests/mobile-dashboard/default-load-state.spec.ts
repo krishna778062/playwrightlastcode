@@ -54,7 +54,7 @@ test.describe(
 
       testFiltersConfig = {
         tenantCode: getDataEngineeringConfigFromCache().orgId,
-        timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS, //default period filter
+        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, //default period filter
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;

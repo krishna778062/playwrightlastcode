@@ -42,7 +42,7 @@ test.describe(
     });
 
     test(
-      ' posts To Me: Verify Admin sees only posts where they are mentioned and their own posts',
+      'posts To Me: Verify Admin sees only posts where they are mentioned and their own posts CONT-26728',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
       },
@@ -105,7 +105,7 @@ test.describe(
     );
 
     test(
-      'posts I Follow: Verify Admin sees posts from users he follows and his own posts',
+      'posts I Follow: Verify Admin sees posts from users he follows and his own posts CONT-26728',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
       },
@@ -171,7 +171,7 @@ test.describe(
     );
 
     test(
-      'favourited Posts: Verify Admin sees only favourited posts',
+      'favourited Posts: Verify Admin sees only favourited posts CONT-26728',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26728'],
       },
@@ -295,7 +295,7 @@ test.describe(
     } = {};
 
     test(
-      'recently Published Smart Block - Verify content visibility based on membership status',
+      'recently Published Smart Block - Verify content visibility based on membership status CONT-29442',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29442'],
       },
@@ -375,7 +375,7 @@ test.describe(
     );
 
     test(
-      'recently Published Smart Block - Verify unlisted site content visibility with Posts I follow filter',
+      'recently Published Smart Block - Verify unlisted site content visibility with Posts I follow filter CONT-29446',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29446'],
       },

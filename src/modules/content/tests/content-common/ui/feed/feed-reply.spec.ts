@@ -210,7 +210,7 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify user can add reply to ${testData.feedType} post`,
+        `Verify user can add reply to ${testData.feedType} post ${testData.storyId}`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
@@ -239,7 +239,7 @@ for (const testData of feedTestData) {
       );
 
       test(
-        `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+        `Verify user can see and click Cancel button while replying to ${testData.feedType} post CONT-30149`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30149'],
         },
@@ -270,7 +270,7 @@ for (const testData of feedTestData) {
       // Test case for CONT-19537: Verify user able to add, edit, delete reply on Home Feed
       if (testData.feedType === 'Home Feed') {
         test(
-          'verify user can add, edit, delete reply on Home Feed with image attachments',
+          'verify user can add, edit, delete reply on Home Feed with image attachments CONT-19537',
           {
             tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19537'],
           },
@@ -377,7 +377,7 @@ for (const testData of feedTestData) {
       // Test case for CONT-19548: Verify user able to add, edit, delete reply on Site Feed with file attachment
       if (testData.feedType === 'Site Feed') {
         test(
-          'verify user can add, edit, delete reply on Site Feed with file attachment',
+          'verify user can add, edit, delete reply on Site Feed with file attachment CONT-19548',
           {
             tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19548'],
           },
@@ -523,7 +523,7 @@ test.describe(
   },
   () => {
     test(
-      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post CONT-30148',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
       },
@@ -598,7 +598,7 @@ test.describe(
     );
 
     test(
-      'verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed',
+      'verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed CONT-24133',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24133'],
       },
@@ -752,7 +752,7 @@ test.describe(
     });
 
     test(
-      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it CONT-30407',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30407'],
       },
@@ -800,7 +800,7 @@ test.describe(
     );
 
     test(
-      'verify User 1 receives a notification when User 2 replies to a feed post containing an attachment',
+      'verify User 1 receives a notification when User 2 replies to a feed post containing an attachment CONT-36598',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36598'],
       },
@@ -893,7 +893,7 @@ test.describe(
     let editedReplyText: string;
 
     test(
-      'verify that application should allow user to edit the comment',
+      'verify that application should allow user to edit the comment CONT-26348',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26348'],
       },

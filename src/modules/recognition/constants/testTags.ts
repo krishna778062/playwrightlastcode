@@ -17,6 +17,7 @@ export enum RecurringAwardsFeatureTags {
   RECURRING_AWARD = '@recurring-award',
   NOMINATION_RECURRING_AWARD = '@nomination-recurring-award',
   DELEGATE_RECURRING_AWARD = '@delegate-recurring-award',
+  RECURRING_AWARD_CREATION = '@recurring-award-creation',
 }
 
 export const RecognitionTestTags = [
