@@ -61,7 +61,7 @@ test.describe(
     });
 
     test(
-      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters CONT-25055',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25055'],
       },
@@ -86,7 +86,7 @@ test.describe(
     );
 
     test(
-      'verify Bulk actions Functionality in My Content Screen',
+      'verify Bulk actions Functionality in My Content Screen CONT-20952',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20952'],
       },
@@ -349,7 +349,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site update category option in manage site user drop down sites',
+      'to verify the site update category option in manage site user drop down sites CONT-26056',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.UPDATE_CATEGORY],
       },
@@ -387,7 +387,7 @@ test.describe(
       }
     );
     test(
-      'to verify validate option in manage content',
+      'to verify validate option in manage content CONT-33591',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION, '@CONT-33591'],
       },
@@ -442,7 +442,7 @@ test.describe(
     );
 
     test(
-      'zeus: Edit the validation Expired Content and Cancel',
+      'zeus: Edit the validation Expired Content and Cancel CONT-36069',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
       },
@@ -477,7 +477,7 @@ test.describe(
       }
     );
     test(
-      'verify the bulk action in manage site content',
+      'verify the bulk action in manage site content CONT-23981',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23981'],
       },
@@ -534,7 +534,7 @@ test.describe(
       }
     );
     test(
-      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site CONT-20532',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20532'],
       },
@@ -582,7 +582,7 @@ test.describe(
     );
 
     test(
-      'verify user able to move unpublished content under Content tab in Manage Site',
+      'verify user able to move unpublished content under Content tab in Manage Site CONT-20540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20540'],
       },
@@ -641,7 +641,7 @@ test.describe(
     );
 
     test(
-      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      'verify user able to select all max 50 items under Content tab in Manage Content page CONT-20541',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20541'],
       },
@@ -670,7 +670,7 @@ test.describe(
       }
     );
     test(
-      'to verify the navigation menu of recently visited site on home dashboard',
+      'to verify the navigation menu of recently visited site on home dashboard CONT-22482',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22482'],
       },
@@ -729,7 +729,7 @@ test.describe(
       }
     );
     test(
-      'verify All Sites site category takes the user to respective category screen with list of Sites',
+      'verify All Sites site category takes the user to respective category screen with list of Sites CONT-26918',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
       },

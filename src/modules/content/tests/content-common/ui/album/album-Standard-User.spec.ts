@@ -79,7 +79,7 @@ test.describe(
 
     for (const testData of ALBUM_APPROVAL_TEST_DATA) {
       test(
-        `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -162,7 +162,6 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserFixture.page.reload();
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });

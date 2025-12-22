@@ -63,7 +63,7 @@ test.describe(
         action: 'Approve & publish',
         displayName: 'Approved by Application Manager',
         zephyrTestId: 'CONT-18537',
-        storyId: 'CONT-39210',
+        storyId: 'CONT-18537',
         description:
           'Event Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
         actionSuccessMessage: 'Event approved and published',
@@ -83,7 +83,7 @@ test.describe(
 
     for (const testData of EVENT_APPROVAL_TEST_DATA) {
       test(
-        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -162,7 +162,6 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserFixture.page.reload();
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });

@@ -1,5 +1,7 @@
 import { Browser, Page, test } from '@playwright/test';
 
+import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDashboard';
+
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
@@ -9,7 +11,7 @@ import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
-import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
+import { ContentDashboardQueryHelper, SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
@@ -364,6 +366,43 @@ export async function setupOverviewDashboardForTest(
       overviewDashboard,
       snowflakeHelper,
       appAdoptionQueryHelper,
+    };
+  });
+}
+
+/**
+ * Sets up Content Dashboard for testing
+ */
+export async function setupContentDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  contentDashboard: ContentDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  contentDashboardQueryHelper: ContentDashboardQueryHelper;
+}> {
+  return await test.step('Setup Content Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create content dashboard query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const contentDashboardQueryHelper = new ContentDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create content dashboard
+    const contentDashboard = new ContentDashboard(page);
+    await contentDashboard.loadPage();
+
+    console.log('Content Dashboard loaded successfully');
+
+    return {
+      page,
+      contentDashboard,
+      snowflakeHelper,
+      contentDashboardQueryHelper,
     };
   });
 }

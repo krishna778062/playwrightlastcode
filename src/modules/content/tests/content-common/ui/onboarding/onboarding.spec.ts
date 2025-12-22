@@ -25,7 +25,7 @@ test.describe('onboarding', () => {
   test.afterEach(async ({}) => {});
 
   test(
-    'verify UI of Share your post under My Setting',
+    'verify UI of Share your post under My Setting CONT-19346',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19346'],
     },
@@ -97,7 +97,7 @@ test.describe('onboarding', () => {
   );
 
   test(
-    'verify the onboarding tile on home dashboard as an app manager',
+    'verify the onboarding tile on home dashboard as an app manager CONT-20883',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20883'],
     },
@@ -131,7 +131,7 @@ test.describe('onboarding', () => {
   );
 
   test(
-    'verify addition of onboarding tile on home dashboard when it has already been added by App manager',
+    'verify addition of onboarding tile on home dashboard when it has already been added by App manager CONT-20886',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20886'],
     },
