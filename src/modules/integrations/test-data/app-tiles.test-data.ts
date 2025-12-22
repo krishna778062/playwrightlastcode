@@ -277,4 +277,6 @@ export const JIRA_VALUES = {
   TICKET_GROUP_VALUE: 'General Requests',
   TICKET_TYPE_VALUE: 'Get IT help',
   SUMMARY_VALUE: 'Test Summary',
+  GROUP_ISSUES_BY: 'Group issues by',
+  ISSUES_BY_VALUE: 'Assignee',
 } as const;

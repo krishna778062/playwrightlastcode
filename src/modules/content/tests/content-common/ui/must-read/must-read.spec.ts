@@ -7,6 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { PrivilegesScreenPage } from '@/src/modules/content/ui/pages/privilegesScreenPage';
 
 test.describe(
   '@Must Read - Must Read Modal functionality',
@@ -38,7 +39,7 @@ test.describe(
     }
 
     test(
-      'verify Must read Modal cancel button for Page, Event and Album Content',
+      'verify Must read Modal cancel button for Page, Event and Album Content CONT-21123',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123', '@healthcheck'],
       },
@@ -92,7 +93,7 @@ test.describe(
     );
 
     test(
-      'verify that app manager can make the content as must read for all the employee in organization',
+      'verify that app manager can make the content as must read for all the employee in organization CONT-5171',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5171'],
       },
@@ -135,7 +136,7 @@ test.describe(
     );
 
     test(
-      'verify that must read button is not visible for standard user when content is already must read',
+      'verify that must read button is not visible for standard user when content is already must read CONT-5521',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5521'],
       },
@@ -163,6 +164,38 @@ test.describe(
         await contentDetails.loadPage();
         await contentDetails.actions.clickOnOptionMenuButton();
         await contentDetails.assertions.verifyMustReadButtonIsNotVisible();
+      }
+    );
+
+    test(
+      'verify there should be no error message "Cannot read property \'getAppConfig\' of undefined" when user make changes under Manage Application Must Read or Alert section',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29121'],
+      },
+      async ({ appManagerApiFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify there should be no error message "Cannot read property \'getAppConfig\' of undefined" when user make changes under Manage Application Must Read or Alert section',
+          zephyrTestId: 'CONT-29121',
+          storyId: 'CONT-29121',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.getAppConfig();
+        const sitesNotInControl = await appManagerApiFixture.feedManagementHelper.getSiteAndContentNotInControl(
+          appManagerApiFixture.siteManagementHelper
+        );
+        const privilegesScreenPage = new PrivilegesScreenPage(appManagerFixture.page);
+        await privilegesScreenPage.loadPage();
+        await privilegesScreenPage.verifyThePageIsLoaded();
+        await privilegesScreenPage.actions.alertInputBoxFillWithText(sitesNotInControl.site.name);
+        await privilegesScreenPage.actions.alertInputBoxSelectOption(sitesNotInControl.site.name);
+        await privilegesScreenPage.actions.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.actions.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.actions.clickOnSave();
+        await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+        await privilegesScreenPage.reloadScreen();
+        await privilegesScreenPage.assertions.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.assertions.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
       }
     );
   }

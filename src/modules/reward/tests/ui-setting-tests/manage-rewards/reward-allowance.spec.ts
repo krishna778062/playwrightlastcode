@@ -17,7 +17,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   });
 
   test(
-    '[RC-2448] Verify user allowances index page for user allowances',
+    'RC-2448 Verify user allowances index page for user allowances',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE,
@@ -113,7 +113,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3117] Verify dialog for unsaved changes when user in user allowance page navigates to different page or refreshes',
+    'RC-3117 Verify dialog for unsaved changes when user in user allowance page navigates to different page or refreshes',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -187,7 +187,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2459] Verify index page for audience allowances',
+    'RC-2459 Verify index page for audience allowances',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
@@ -257,7 +257,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2486] Verify individual allowances page once allowance is added',
+    'RC-2486 Verify individual allowances page once allowance is added',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -311,6 +311,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
       }
 
       await individualAllowance.validateTheIndividualAllowanceElements();
+      //line to investigate
       await individualAllowance.addOneIndividualUserInTheAllowance(amountToBeSetForIndividualUsersAllowance);
       const currentAmount = await individualAllowance.getTheCurrentAmountForLatestAddedUserInIndividualAllowance();
       expect(currentAmount).toBe(amountToBeSetForIndividualUsersAllowance);
@@ -339,7 +340,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2491] Verify audience allowances page',
+    'RC-2491 Verify audience allowances page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -382,7 +383,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3119] Verify dialog for unsaved changes when audience in audience allowance page navigates to different page or refreshes',
+    'RC-3119 Verify dialog for unsaved changes when audience in audience allowance page navigates to different page or refreshes',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -458,7 +459,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3120] Verify dialog for unsaved changes when user in individual allowance page navigates to different page or refreshes',
+    'RC-3120 Verify dialog for unsaved changes when user in individual allowance page navigates to different page or refreshes',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -551,7 +552,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2138] Validate allowances index page for individual allowances',
+    'RC-2138 Validate allowances index page for individual allowances',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -639,7 +640,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3240] Validate the panel text in Manager/Audience allowances page',
+    'RC-3240 Validate the panel text in Manager/Audience allowances page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -702,7 +703,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3454] Validate update allowance estimation loading UI',
+    'RC-3454 Validate update allowance estimation loading UI',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -781,7 +782,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2460] Validate index page for manager allowances',
+    'RC-2460 Validate index page for manager allowances',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -885,7 +886,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-2511] Verify error message when offline and reload functionality',
+    'RC-2511 Verify error message when offline and reload functionality',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -910,7 +911,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-5409] Validate the single allowance can not be deleted in the Rewards Allowance',
+    'RC-5409 Validate the single allowance can not be deleted in the Rewards Allowance',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -936,7 +937,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3325] Validate that the user cannot add/edit/remove any allowance when Allowances are refreshing',
+    'RC-3325 Validate that the user cannot add/edit/remove any allowance when Allowances are refreshing',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
@@ -997,7 +998,7 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
   );
 
   test(
-    '[RC-3118] Verify dialog for unsaved changes when user in manager allowance page navigates to different page or refreshes',
+    'RC-3118 Verify dialog for unsaved changes when user in manager allowance page navigates to different page or refreshes',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ALLOWANCE, TestPriority.P0, TestGroupType.REGRESSION],
     },
