@@ -14,7 +14,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test(
-    '[RC-2619] Validate system notifications on rewards and recognition',
+    'RC-2619 Validate system notifications on rewards and recognition',
     {
       tag: [REWARD_FEATURE_TAGS.RECOGNITION_NOTIFICATION_CHECK, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -52,7 +52,8 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
-
+      await recognitionHub.page.reload();
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
@@ -98,6 +99,8 @@ test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNI
       notifications = new Notifications(appManagerFixture.page);
       await notifications.siteHeader.waitFor({ state: 'attached' });
       await notifications.navigateToRecentActivityNotifications();
+      await notifications.page.reload();
+      await notifications.verifyThePageIsLoaded();
       const firstNotificationTextForRecognitionUser = await notifications.getNotificationText();
       expect(firstNotificationTextForRecognitionUser).toContain(
         `${recognizedUser} was recognized for "${recognitionAward}" and gifted ${rewardPointsText} point`

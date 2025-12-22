@@ -146,7 +146,7 @@ test.describe(
     );
 
     test(
-      'verify Site Owner and Site Manager can create feed post on Public Site Dashboard when feed permission is set to managersOnly',
+      'verify Site Owner and Site Manager can create feed post on Public Site Dashboard when feed permission is set to managersOnly CONT-41198',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41198'],
       },

@@ -11,7 +11,7 @@ import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@modules/reward/constant
 
 test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SUITE_TAGS.USER_PROFILE] }, () => {
   test(
-    "[RC-3261] A Verify user profile should show a 'View orders' button in the Recognition section in Admin User profile page",
+    "RC-3261 Verify user profile should show a 'View orders' button in the Recognition section in User profile page",
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.HEALTHCHECK],
     },
@@ -31,7 +31,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   );
 
   test(
-    "[RC-3261] B Verify user profile should show a 'View orders' button in the Recognition section in Recognition User profile page",
+    "RC-3261 B Verify user profile should show a 'View orders' button in the Recognition section in Recognition User profile page",
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
     },
@@ -51,7 +51,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   );
 
   test(
-    "[RC-3261] C Verify user profile should show a 'View orders' button in the Recognition section in Standard User profile page",
+    "RC-3261 C Verify user profile should show a 'View orders' button in the Recognition section in Standard User profile page",
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
     },
@@ -73,7 +73,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   );
 
   test(
-    '[RC-2963] Verify user wallet in users profile',
+    'RC-2963 Verify user wallet in users profile',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },
@@ -103,7 +103,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   );
 
   test(
-    '[RC-3000] Validate Reward redeeming failure',
+    'RC-3000 Validate Reward redeeming failure',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
     },
@@ -122,7 +122,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   );
 
   test(
-    '[RC-3418] Verify the tooltip on the User wallet section, when Allowances are refreshing',
+    'RC-3418 Verify the tooltip on the User wallet section, when Allowances are refreshing',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P1],
     },

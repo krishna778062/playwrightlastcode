@@ -30,7 +30,7 @@ test.describe(
     });
 
     test(
-      'verify user can navigate to featured sites page from side nav bar and add site to featured',
+      'verify user can navigate to featured sites page from side nav bar and add site to featured CONT-20911',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20911'],
       },
@@ -77,7 +77,7 @@ test.describe(
     );
 
     test(
-      'shuffling sites from feature modal list',
+      'shuffling sites from feature modal list CONT-27919',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
       },

@@ -192,7 +192,7 @@ test.describe(
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed CONT-24918',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24918'],
       },
@@ -369,7 +369,7 @@ test.describe(
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed CONT-24906',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24906'],
       },
@@ -540,7 +540,7 @@ test.describe(
     });
 
     test(
-      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed',
+      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed CONT-19556',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19556'],
       },
@@ -619,7 +619,7 @@ test.describe(
     });
 
     test(
-      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji CONT-31817',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817'],
       },
@@ -652,7 +652,7 @@ test.describe(
     );
 
     test(
-      'verify that clicking on reaction count opens modal with users grouped by emoji',
+      'verify that clicking on reaction count opens modal with users grouped by emoji CONT-31819',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
       },
@@ -752,7 +752,7 @@ test.describe(
     );
 
     test(
-      'verify that clicking on a username in the reaction modal navigates to profile screen',
+      'verify that clicking on a username in the reaction modal navigates to profile screen CONT-31820',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31820'],
       },

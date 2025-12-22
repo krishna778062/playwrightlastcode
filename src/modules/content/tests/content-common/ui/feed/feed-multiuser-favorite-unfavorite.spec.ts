@@ -89,7 +89,7 @@ test.describe(
     // Data-driven test for favorite/unfavorite functionality
     for (const testData of favoriteTestData) {
       test(
-        `Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post ${testData.testName}`,
+        `Verify Site Owner/Manager/Content Manager can favorite and unfavorite feed post ${testData.testName} ${testData.storyId}`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, '@' + testData.storyId],
         },
@@ -398,7 +398,7 @@ test.describe(
     });
 
     test(
-      'verify standard user can favorite and unfavorite a feed post on Home Feed',
+      'verify standard user can favorite and unfavorite a feed post on Home Feed CONT-19557',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19557'],
       },
