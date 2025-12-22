@@ -5,7 +5,10 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
+import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
+
 export class ManageRecognitionPage extends BasePage {
+  subTabIndicator: SubTabIndicator;
   readonly recognitionHeader: Locator;
   readonly peerRecognitionTab: Locator;
   readonly spotAwardTab: Locator;
@@ -20,6 +23,7 @@ export class ManageRecognitionPage extends BasePage {
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
+    this.subTabIndicator = new SubTabIndicator(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition' }).first();
     this.analyticsLink = page.locator('[class^="Manage_analytics]');
     this.peerRecognitionButton = page.getByRole('button', { name: 'New peer recognition' });
@@ -110,6 +114,38 @@ export class ManageRecognitionPage extends BasePage {
       await expect(this.featureNotAvailable).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toContainText(MESSAGES.FEATURE_NOT_AVAILABLE);
+    });
+  }
+
+  /**
+   * Assert that recurring award submission is successful by verifying toast message
+   * Checks for Continue button and clicks it if present, then verifies success toast
+   */
+  async assertToastMessageIsVisible(toastMessage: string): Promise<void> {
+    await test.step('Verifying success toast message: New award created', async () => {
+      const toastLocator = this.page.getByRole('alert').filter({ hasText: toastMessage }).first();
+      await this.verifier.verifyTheElementIsVisible(toastLocator, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Toast message should be visible: ${toastMessage}`,
+      });
+    });
+  }
+
+  /**
+   * Clean up the created award
+   */
+  async cleanupCreatedAward(): Promise<void> {
+    await test.step('Clean up - Delete recently created award', async () => {
+      const button = this.subTabIndicator.createdColumnButton;
+      for (let i = 0; i < 2; i++) {
+        await button.click();
+        await this.page.waitForTimeout(500);
+      }
+      await this.subTabIndicator.getThreeDotsButton(0).click();
+      await this.subTabIndicator.deleteMenuItem.click();
+      await this.page.waitForTimeout(500);
+      await this.subTabIndicator.deleteButton.click();
+      await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
     });
   }
 }

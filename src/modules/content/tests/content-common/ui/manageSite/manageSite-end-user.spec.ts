@@ -42,7 +42,7 @@ test.describe(
       await page.close();
     });
     test(
-      'login as Standard User where user is Site Content Manager of Public site',
+      'login as Standard User where user is Site Content Manager of Public site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_SITE, '@CONT-29063'],
       },
@@ -71,7 +71,7 @@ test.describe(
     );
 
     test(
-      'to verify the UI of Manage site content - End User',
+      'to verify the UI of Manage site content - End User CONT-23740',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -139,7 +139,7 @@ test.describe(
     );
 
     test(
-      'login as Standard User where user is Site Content Manager of Private site',
+      'login as Standard User where user is Site Content Manager of Private site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -214,7 +214,7 @@ test.describe(
     );
 
     test(
-      'login as Standard User where user is Site Content Manager of Unlisted site',
+      'login as Standard User where user is Site Content Manager of Unlisted site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -244,7 +244,7 @@ test.describe(
     );
 
     test(
-      'to verify the search content in manage site content',
+      'to verify the search content in manage site content CONT-23736',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23736'],
       },
@@ -303,7 +303,7 @@ test.describe(
     );
 
     test(
-      'to verify the site view option in manage site user drop down site',
+      'to verify the site view option in manage site user drop down site CONT-41421',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
@@ -332,7 +332,7 @@ test.describe(
       }
     );
     test(
-      'to verify the edit option on file detail page',
+      'to verify the edit option on file detail page CONT-26763',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26763'],
       },
@@ -388,7 +388,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site edit option in manage site user drop down sites',
+      'to verify the site edit option in manage site user drop down sites CONT-26503',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
       },
@@ -476,7 +476,7 @@ test.describe(
       }
     );
     test(
-      'to verify the people follow in site about members and followers tab',
+      'to verify the people follow in site about members and followers tab CONT-24063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
       },
@@ -518,7 +518,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from end user can deactivate the site',
+      'to verify the bulk action from end user can deactivate the site CONT-26576',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
@@ -636,7 +636,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from end user can activate the site',
+      'to verify the bulk action from end user can activate the site CONT-26574',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
@@ -723,7 +723,7 @@ test.describe(
       }
     );
     test(
-      'to verify follow site, followers tab, and membership request functionality',
+      'to verify follow site, followers tab, and membership request functionality CONT-24062',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24062'],
       },

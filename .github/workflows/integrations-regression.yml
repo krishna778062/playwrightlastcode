@@ -76,7 +76,7 @@ jobs:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run integrations regression tests
-          npm run test:${{ matrix.module }} -- --workers=7
+          npm run test:${{ matrix.module }} -- --workers=6
 
       - name: Upload test report to github artifact backup
         if: always()
