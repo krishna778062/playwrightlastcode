@@ -13,7 +13,7 @@ test.describe('rewards order history', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }
   });
 
   test(
-    '[RC-3538] Validate reward value of rewards on Order History page',
+    'RC-3538 Validate reward value of rewards on Order History page',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_ORDERS_HISTORY_PAGE,

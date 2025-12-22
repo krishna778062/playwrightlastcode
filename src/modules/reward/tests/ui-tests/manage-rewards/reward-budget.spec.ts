@@ -18,7 +18,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   });
 
   test(
-    '[RC-3052] Validate reward overview Budget Summary tile component',
+    'RC-3052 Validate reward overview Budget Summary tile component',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -42,7 +42,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3053] Validate Rewards Overview Points Balance summary tile component',
+    'RC-3053 Validate Rewards Overview Points Balance summary tile component',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_POINT_BALANCE_SUMMARY,
@@ -178,7 +178,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3133] Validate tooltips on Rewards Overview Budget Summary tile component',
+    'RC-3133 Validate tooltips on Rewards Overview Budget Summary tile component',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY,
@@ -219,7 +219,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3453] Validate format of annual/quarterly budget field error message',
+    'RC-3453 Validate format of annual/quarterly budget field error message',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -273,7 +273,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3109] Validate if Budget Exceeded warning is removed when budget is no longer in Deficit',
+    'RC-3109 Validate if Budget Exceeded warning is removed when budget is no longer in Deficit',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -330,7 +330,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3279] Validate the Remove budget option',
+    'RC-3279 Validate the Remove budget option',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -389,7 +389,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    "[RC-3262] Validate if 'isBudgetConfigured' flag, is added in rewards config endpoint on rewards overview page",
+    "RC-3262 Validate if 'isBudgetConfigured' flag, is added in rewards config endpoint on rewards overview page",
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -470,7 +470,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3217] Validate Edit Budget flow modal when rewards is enabled',
+    'RC-3217 Validate Edit Budget flow modal when rewards is enabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -592,7 +592,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3045] Validate the Add Budget flow modal when rewards is enabled',
+    'RC-3045 Validate the Add Budget flow modal when rewards is enabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -652,7 +652,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3046] Validate the Add /Edit rewards budget flow modal',
+    'RC-3046 Validate the Add /Edit rewards budget flow modal',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -760,7 +760,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3132] Validate if Budget summary component gets highlighted when Budget Exceeds',
+    'RC-3132 Validate if Budget summary component gets highlighted when Budget Exceeds',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -813,7 +813,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3255] Validate current total spent endpoint in Add/Edit Budget dialog',
+    'RC-3255 Validate current total spent endpoint in Add/Edit Budget dialog',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -870,7 +870,7 @@ test.describe('budget Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => 
   );
 
   test(
-    '[RC-3055] Validate the Pro-rata budget value for Annual And Quarterly Budget',
+    'RC-3055 Validate the Pro-rata budget value for Annual And Quarterly Budget',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },

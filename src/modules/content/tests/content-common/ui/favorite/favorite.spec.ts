@@ -42,7 +42,7 @@ test.describe('favorite', () => {
   test.afterEach(async ({}) => {});
 
   test(
-    'should navigate to favorite page and interact with user profile',
+    'should navigate to favorite page and interact with user profile CONT-27834',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27834'],
     },
@@ -108,7 +108,7 @@ test.describe('favorite', () => {
   );
 
   test(
-    'should verify favorite people search functionality',
+    'should verify favorite people search functionality CONT-26448',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26448'],
     },
@@ -154,7 +154,7 @@ test.describe('favorite', () => {
   );
 
   test(
-    'should verify favorite content search functionality',
+    'should verify favorite content search functionality CONT-26266',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26266'],
     },
@@ -199,15 +199,15 @@ test.describe('favorite', () => {
   );
 
   test(
-    'should verify the UI of favourite feed post',
+    'should verify the UI of favourite feed post CONT-26466',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26466'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify the UI of favourite feed post',
-        zephyrTestId: '26466',
-        storyId: '26466',
+        zephyrTestId: 'CONT-26466',
+        storyId: 'CONT-26466',
       });
       await appManagerFixture.homePage.verifyThePageIsLoaded();
 
@@ -327,9 +327,9 @@ test.describe('favorite', () => {
   // Use conditional test.skip if video file not found
   const testFn = videoFilePath ? test : test.skip;
   testFn(
-    'should verify the listing options of videos in favourites page',
+    'should verify the listing options of videos in favourites page CONT-26283',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorite'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26283'],
     },
     async ({ appManagerFixture }) => {
       if (!videoFilePath) {
@@ -489,7 +489,7 @@ test.describe('favorite', () => {
     }
   );
   test(
-    'to verify the favourite and unfavourite content functionality',
+    'to verify the favourite and unfavourite content functionality CONT-26268',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26268'],
     },
@@ -601,15 +601,15 @@ test.describe('favorite', () => {
     }
   );
   test(
-    'to verify the favourite and unfavourite files functionality',
+    'to verify the favourite and unfavourite files functionality CONT-26467',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26467'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify the favourite and unfavourite files functionality',
-        zephyrTestId: '26467',
-        storyId: '26467',
+        zephyrTestId: 'CONT-26467',
+        storyId: 'CONT-26467',
       });
       const getListOfSitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites();
       console.log('getListOfSitesResponse', getListOfSitesResponse);
