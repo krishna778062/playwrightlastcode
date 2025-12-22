@@ -504,7 +504,7 @@ test.describe(
       // Reactivate site first
       if (allEmployeesSiteId) {
         try {
-          await appManagerApiFixture.siteManagementHelper.siteManagementService.activateSite(allEmployeesSiteId);
+          await appManagerApiFixture.siteManagementHelper.activateSite(allEmployeesSiteId);
         } catch (error) {
           console.warn(`Failed to reactivate site ${allEmployeesSiteId}:`, error);
         }
@@ -567,7 +567,7 @@ test.describe(
       });
 
       await test.step('As Admin: Deactivate site', async () => {
-        await appManagerApiFixture.siteManagementHelper.siteManagementService.deactivateSite(allEmployeesSiteId!);
+        await appManagerApiFixture.siteManagementHelper.deactivateSite(allEmployeesSiteId!);
       });
 
       await test.step('Verify album is NOT visible after site deactivation', async () => {
