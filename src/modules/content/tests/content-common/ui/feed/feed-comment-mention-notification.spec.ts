@@ -282,9 +282,12 @@ test.describe(
         const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
 
         // Verify mention notification exists
-        const shortReplyText = replyText.length > 25 ? replyText.substring(0, 25) : replyText;
-        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
-        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
+        const shortExpectedNotificationMessage =
+          expectedNotificationMessage.length > 40
+            ? expectedNotificationMessage.substring(0, 25)
+            : expectedNotificationMessage;
+        await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
       }
     );
 
@@ -547,12 +550,16 @@ test.describe(
           const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
 
           // Verify "mentioned you" notification exists
-          const shortReplyText = replyText.length > 20 ? replyText.substring(0, 20) : replyText;
-          const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
-          await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+
+          const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
+          const shortExpectedNotificationMessage =
+            expectedNotificationMessage.length > 40
+              ? expectedNotificationMessage.substring(0, 25)
+              : expectedNotificationMessage;
+          await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
 
           // Click notification
-          await activityNotificationPage.actions.clickOnNotificationForMention(expectedNotificationMessage);
+          await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
 
           // Verify user can view the feed reply with the mention
           const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
@@ -580,9 +587,6 @@ test.describe(
 
           // Delete the created post
           await adminFeedPage.actions.deletePost(createdPostText);
-
-          // Verify confirmation popup text is handled in deletePost method
-          // The deletePost method already verifies the confirmation dialog
 
           createdPostId = '';
         });
