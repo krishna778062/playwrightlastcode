@@ -71,7 +71,7 @@ on:
       is_browserstack:
         description: 'Run tests with BrowserStack Test Observability'
         required: false
-        default: true
+        default: false
         type: boolean
   schedule:
     # Run daily at 5:00 AM UTC (10:30 AM IST)
