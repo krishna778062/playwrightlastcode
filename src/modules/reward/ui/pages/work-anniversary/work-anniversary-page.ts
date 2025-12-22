@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { getQuery } from '@rewards/utils/dbQuery';
 import { MilestoneAwardInstance } from '@rewards-components/milestone-award-instance/milestone-award-instance';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
@@ -401,6 +402,52 @@ export class WorkAnniversaryPage extends BasePage {
     }
   }
 
+  /**
+   * Edit the work anniversary instance and set the data for work anniversary award instance
+   * @param instanceIndex - index of WA instance
+   * @param customBadges - 0 for default badge, 1,2,3... for custom badges
+   * @param customPoints - 0 for no points, null for cancel, other number for custom points
+   */
+  async setTheDataForWorkAnniversaryAwardInstance(
+    instanceIndex: number = 0,
+    customMessage: boolean = false,
+    customAuthor: boolean = false,
+    customBadges: boolean = false,
+    customPoints: number | null = 0
+  ) {
+    await this.awardInstanceEditButton.nth(instanceIndex).click();
+    const milestoneInstance = new MilestoneAwardInstance(this.page);
+    let changesMade = false;
+    if (customMessage) {
+      const customMessageText = `Congratulations on your ${instanceIndex + 1} year work anniversary!`;
+      await milestoneInstance.enterCustomMessageInTiptapEditor(customMessageText);
+      changesMade = true;
+    }
+
+    if (customAuthor) {
+      const customAuthor = getRewardTenantConfigFromCache().appManagerName;
+      await milestoneInstance.enterTheCustomAuthorNameInAwardInstance(customAuthor);
+      changesMade = true;
+    }
+
+    if (customBadges) {
+      const customBadge = customBadges ? 0 : 1;
+      await milestoneInstance.setTheCustomBadgeInAwardInstanceModal(customBadge);
+      changesMade = true;
+    }
+
+    if (customPoints !== undefined) {
+      await milestoneInstance.setTheCustomPointsInAwardInstanceModal(customPoints);
+      changesMade = true;
+    }
+
+    if (changesMade) {
+      await this.awardInstanceSaveButton.click();
+    } else {
+      await this.awardInstanceCancelButton.click();
+    }
+  }
+
   async saveTheWorkAnniversaryChanges() {
     await this.verifier.waitUntilElementIsVisible(this.workAnniversarySaveChangesButton, {
       timeout: TIMEOUTS.SHORT,
@@ -590,7 +637,7 @@ export class WorkAnniversaryPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.milestoneTableRow.last(), {
-      timeout: 20000,
+      timeout: TIMEOUTS.MEDIUM,
       stepInfo: 'Wait for the table to be visible on Work Anniversary page',
     });
   }

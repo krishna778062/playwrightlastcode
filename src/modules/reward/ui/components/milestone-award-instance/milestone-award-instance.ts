@@ -21,6 +21,13 @@ export class MilestoneAwardInstance extends DialogBox {
   private removeCustomAuthorButton: Locator;
   private removeCustomBadgeButton: Locator;
   private removeCustomAwardPointsButton: Locator;
+  private customMessageInputBox: Locator;
+  private customAuthorRadioButton: Locator;
+  private customAuthorUserInputBox: Locator;
+  private customAwardPointToReceiversSwitch: Locator;
+  private customAwardPointsInputBox: Locator;
+
+  private suggesterContainer: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -54,6 +61,14 @@ export class MilestoneAwardInstance extends DialogBox {
     this.removeCustomAwardPointsButton = this.dialog.locator(
       'button[aria-label="Remove milestone instance award points customization"]'
     );
+
+    this.customMessageInputBox = this.dialog.locator('div[class="tiptap ProseMirror"][contenteditable="true"]');
+    this.customAuthorRadioButton = this.dialog.locator('input[id="instanceAuthor_typeUSER"]');
+    this.customAuthorUserInputBox = this.dialog.locator('input[role="combobox"]');
+    this.customAwardPointToReceiversSwitch = this.dialog.getByRole('switch', { name: 'Award points to receivers' });
+    this.customAwardPointsInputBox = this.dialog.locator('input[id="anniversaryPoints"]');
+
+    this.suggesterContainer = this.page.locator('div[role="listbox"]');
   }
 
   async validateTheAwardInstanceModalIsOpened(anniversaryInstance: number): Promise<void> {
@@ -75,6 +90,19 @@ export class MilestoneAwardInstance extends DialogBox {
 
   async saveTheChangesInAwardInstanceModal() {
     await this.dialogSaveBtn.click();
+  }
+
+  /**
+   * This method returns a locator for the suggested item.
+   * @param identifier - The identifier can be a string or a number.
+   * @returns {Locator} - The locator for the option.
+   */
+  getOption(identifier: string | number): Locator {
+    if (typeof identifier === 'string') {
+      return this.suggesterContainer.getByText(identifier);
+    } else {
+      return this.suggesterContainer.locator('[role="option"]').nth(identifier);
+    }
   }
 
   /**
@@ -160,6 +188,72 @@ export class MilestoneAwardInstance extends DialogBox {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
         stepInfo: 'Waiting for milestone award instance dialog to be visible',
       });
+    }
+  }
+
+  async enterCustomMessageInTiptapEditor(customMessageText: string) {
+    await this.clickOnElement(this.customMessagePlusButton, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for milestone award instance dialog to be visible',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.customMessageInputBox, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for milestone award instance dialog to be visible',
+    });
+    await this.fillInElement(this.customMessageInputBox, customMessageText, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: `Typing the ${customMessageText} in message`,
+    });
+  }
+
+  async enterTheCustomAuthorNameInAwardInstance(customAuthor: string) {
+    await this.clickOnElement(this.customAuthorPlusButton, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for milestone award instance dialog to be visible',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.customAuthorRadioButton, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for milestone award instance dialog to be visible',
+    });
+    await this.customAuthorRadioButton.check();
+    await this.fillInElement(this.customAuthorUserInputBox, customAuthor, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: `Typing the ${customAuthor} in author input box`,
+    });
+    await this.suggesterContainer.waitFor({ state: 'visible' });
+    await this.getOption(customAuthor).first().click();
+  }
+
+  async setTheCustomBadgeInAwardInstanceModal(customBadge: number) {
+    await this.clickOnElement(this.customBadgePlusButton, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for milestone award instance dialog to be visible',
+    });
+    const badgeOption = this.dialog.locator(`input[name="awardIcon"]`).nth(customBadge);
+    await this.clickOnElement(badgeOption, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: `Selecting the badge option ${customBadge} in award instance modal`,
+    });
+  }
+
+  async setTheCustomPointsInAwardInstanceModal(customPoints: number | null) {
+    await this.customAwardPointsPlusButton.click();
+    if (customPoints === null) {
+      const isChecked = await this.customAwardPointToReceiversSwitch.getAttribute('aria-checked');
+      if (isChecked === 'true') {
+        await this.customAwardPointToReceiversSwitch.uncheck();
+      }
+    } else if (customPoints === 0) {
+      const isChecked = await this.customAwardPointToReceiversSwitch.getAttribute('aria-checked');
+      if (isChecked === 'true') {
+        await this.customAwardPointToReceiversSwitch.uncheck();
+      }
+    } else {
+      const isChecked = await this.customAwardPointToReceiversSwitch.getAttribute('aria-checked');
+      if (isChecked === 'false') {
+        await this.customAwardPointToReceiversSwitch.check();
+      }
+      await this.customAwardPointsInputBox.fill(String(customPoints));
     }
   }
 }

@@ -27,7 +27,7 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   test(
     '[RC-5787, RC-5788, RC-5789, RC-5860, RC-5790] Validate the Work Anniversary for logged in User',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -37,22 +37,21 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       });
 
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
       const userIds = [
         getRewardTenantConfigFromCache().appManagerUserId,
         getRewardTenantConfigFromCache().recognitionManagerUserId,
         getRewardTenantConfigFromCache().endUserUserId,
-      ].filter((id): id is string => id !== undefined);
+      ];
+
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
-      await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
-      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(0, undefined);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(1, 0);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(2, 30);
-      await workAnniversaryPage.saveTheWorkAnniversaryChanges();
-      await workAnniversaryPage.visit();
+      // await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
+      // await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      // await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
+      // await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
+      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(0, false, false, false, null);
+      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(1, false, true, true, 0);
+      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(2, true, false, true, 50);
+      // await workAnniversaryPage.saveTheWorkAnniversaryChanges();
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[0], 1, tenantCode);

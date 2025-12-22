@@ -1,3 +1,4 @@
+import { getDbConfigFromCache } from '@rewards/config/dbConfig';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Client, QueryResultRow } from 'pg';
@@ -65,11 +66,11 @@ export async function connectToDB(database?: string, customConfig?: Partial<Data
   const config = getDatabaseConfig(customConfig, database);
 
   const client = new Client({
-    host: config.host,
-    port: config.port,
-    user: config.user,
-    password: config.password,
-    database: config.database,
+    host: config.host || getDbConfigFromCache().host,
+    port: config.port || getDbConfigFromCache().port,
+    user: config.user || getDbConfigFromCache().user,
+    password: config.password || getDbConfigFromCache().password,
+    database: config.database || getDbConfigFromCache().database,
   });
 
   try {
