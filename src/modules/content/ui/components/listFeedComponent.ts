@@ -2005,8 +2005,7 @@ export class ListFeedComponent
   async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
     await test.step(`Verify original post title format "${expectedFormat}" for post: ${postText}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const postContainer = this.page.locator('._postBody_1rr9k_14');
-      const originalPostTitleLocator = postContainer.filter({ hasText: expectedFormat }).first();
+      const originalPostTitleLocator = this.page.getByText(expectedFormat).first();
 
       await this.verifier.verifyTheElementIsVisible(originalPostTitleLocator, {
         assertionMessage: `Original post title matching "${expectedFormat}" should be visible for post "${postText}"`,

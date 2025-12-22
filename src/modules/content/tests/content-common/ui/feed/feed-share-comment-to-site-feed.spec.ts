@@ -98,50 +98,6 @@ test.describe(
         const contentId = contentResponse.contentId;
         const contentSiteId = contentResponse.siteId;
 
-        // Initialize feed page
-        siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
-        siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
-
-        // Generate test data
-        commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
-        shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-      }
-    );
-
-    test.afterEach('Cleanup created posts', async ({ siteManagerFixture }) => {
-      // Only cleanup if test completed (sharedPostId2 will be set if Part 2 completed)
-      if (createdPostId) {
-        try {
-          await siteManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
-        } catch (error) {
-          console.warn(`Failed to cleanup comment post ${createdPostId}:`, error);
-        }
-        createdPostId = '';
-      }
-      if (sharedPostId) {
-        try {
-          await siteManagerFixture.feedManagementHelper.deleteFeed(sharedPostId);
-          console.log(`Cleaned up first shared post: ${sharedPostId}`);
-        } catch (error) {
-          console.warn(`Failed to cleanup first shared post ${sharedPostId}:`, error);
-        }
-        sharedPostId = '';
-      }
-    });
-
-    test(
-      'verify that a user can share a Content Feed post comment with a message to both a Private Site and an Unlisted Site using the "Post in SITE FEED" option CONT-26712',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26712'],
-      },
-      async ({ siteManagerFixture, standardUserFixture }) => {
-        tagTest(test.info(), {
-          description:
-            'Verify that a user can share a Content Feed post comment with a message to both a Private Site and an Unlisted Site using the "Post in SITE FEED" option',
-          zephyrTestId: 'CONT-26712',
-          storyId: 'CONT-26712',
-        });
-
         // Initialize feed pages
         const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
         const siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
