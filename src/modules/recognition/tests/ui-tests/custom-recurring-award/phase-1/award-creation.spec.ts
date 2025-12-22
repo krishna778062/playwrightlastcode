@@ -255,45 +255,58 @@ test.describe('recurring award custom range validation', () => {
     }
   );
 
-  test('validate Nomination close date and participation window custom option field for Monthly awards', async ({
-    appManagerFixture,
-  }) => {
-    const { page: appManagerPage } = appManagerFixture;
-    const recurringAwardPage = new RecurringAwardPage(appManagerPage);
-    const appManagerName = getRecognitionTenantConfigFromCache().appManagerName;
-
-    await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
-    await recurringAwardPage.clickRecurringAwardNewButton();
-    await recurringAwardPage.fillRecurringAwardFormPageOne();
-    await recurringAwardPage.fillRecurringAwardFormPageTwo(
-      appManagerName,
-      'Nominations',
-      'Monthly',
-      'America/Los_Angeles',
-      1
-    );
-
-    const assertMonthlyCustomRangeBounds = async (fieldTestId: string) => {
-      await recurringAwardPage.setCustomRangeForCustomRecurringAward({
-        fieldTestId,
-        minusClicks: 1,
-        expectedValue: 1,
-        expectMinusDisabled: true,
+  test(
+    'validate Nomination close date and participation window custom option field for Monthly awards',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6117',
+        storyId: 'RC-3426',
       });
+      const { page: appManagerPage } = appManagerFixture;
+      const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+      const appManagerName = getRecognitionTenantConfigFromCache().appManagerName;
 
-      await recurringAwardPage.setCustomRangeForCustomRecurringAward({
-        fieldTestId,
-        plusClicks: 26,
-        expectedValue: 27,
-        expectPlusDisabled: true,
-      });
-    };
+      await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      await recurringAwardPage.clickRecurringAwardNewButton();
+      await recurringAwardPage.fillRecurringAwardFormPageOne();
+      await recurringAwardPage.fillRecurringAwardFormPageTwo(
+        appManagerName,
+        'Nominations',
+        'Monthly',
+        'America/Los_Angeles',
+        1
+      );
 
-    await assertMonthlyCustomRangeBounds('Participation window');
-    await assertMonthlyCustomRangeBounds('Nominations close');
-    await recurringAwardPage.selectOverdueOption('Custom');
-    await assertMonthlyCustomRangeBounds('Award overdue');
-  });
+      const assertMonthlyCustomRangeBounds = async (fieldTestId: string) => {
+        await recurringAwardPage.setCustomRangeForCustomRecurringAward({
+          fieldTestId,
+          minusClicks: 1,
+          expectedValue: 1,
+          expectMinusDisabled: true,
+        });
+
+        await recurringAwardPage.setCustomRangeForCustomRecurringAward({
+          fieldTestId,
+          plusClicks: 26,
+          expectedValue: 27,
+          expectPlusDisabled: true,
+        });
+      };
+
+      await assertMonthlyCustomRangeBounds('Participation window');
+      await assertMonthlyCustomRangeBounds('Nominations close');
+      await recurringAwardPage.selectOverdueOption('Custom');
+      await assertMonthlyCustomRangeBounds('Award overdue');
+    }
+  );
 
   test(
     'validate quarterly award allows max custom ranges (88 days) and saves successfully',
